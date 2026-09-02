@@ -47,7 +47,7 @@ func parseTrimmedUUIDValues(values []string, invalidErr error) ([]uuid.UUID, err
 }
 
 func uuidStringPtr(value *uuid.UUID) *string {
-	if value == nil {
+	if value == nil || *value == uuid.Nil {
 		return nil
 	}
 	result := value.String()

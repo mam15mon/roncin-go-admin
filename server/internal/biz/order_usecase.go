@@ -7,6 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
@@ -19,6 +20,9 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 		return nil, err
 	}
 	if err := attachOrderTags(ctx, uc.tagRepo, order); err != nil {
+		return nil, err
+	}
+	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, order); err != nil {
 		return nil, err
 	}
 	return order, nil
@@ -46,7 +50,14 @@ func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) 
 	if id == uuid.Nil {
 		return nil, ErrOrderNotFound
 	}
-	return uc.repo.Find(ctx, id)
+	order, err := uc.repo.Find(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, order.OrganizationID, order); err != nil {
+		return nil, err
+	}
+	return order, nil
 }
 
 func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
@@ -83,7 +94,36 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if err := attachOrderTags(ctx, uc.tagRepo, result.Items...); err != nil {
 		return nil, err
 	}
+	for _, organizationID := range organizationIDs {
+		organizationOrders := make([]*Order, 0, len(result.Items))
+		for _, order := range result.Items {
+			if order.OrganizationID == organizationID {
+				organizationOrders = append(organizationOrders, order)
+			}
+		}
+		if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, organizationOrders...); err != nil {
+			return nil, err
+		}
+	}
 	return result, nil
+}
+
+func attachSeaMasterBillSummaries(ctx context.Context, repo SeaMasterBillRepo, organizationID uuid.UUID, orders ...*Order) error {
+	if repo == nil || organizationID == uuid.Nil || len(orders) == 0 {
+		return nil
+	}
+	orderIDs := make([]uuid.UUID, 0, len(orders))
+	for _, order := range orders {
+		orderIDs = append(orderIDs, order.ID)
+	}
+	summaries, err := repo.GetSummariesByOrderIDs(ctx, organizationID, orderIDs)
+	if err != nil {
+		return err
+	}
+	for _, order := range orders {
+		order.SeaMasterBill = summaries[order.ID]
+	}
+	return nil
 }
 
 func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.UUID, check OrderReferenceCheck) (*OrderReferenceMatch, error) {
@@ -115,6 +155,17 @@ func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organiza
 	return uc.repo.ListConsolidationSummaries(ctx, organizationID, orderID)
 }
 
+func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
+	if organizationID == uuid.Nil || issuerPartnerID == uuid.Nil {
+		return nil, ErrSeaMasterBillInvalidArgument
+	}
+	normalizedNo, err := ValidateAndNormalizeSeaMasterNo(masterNo)
+	if err != nil {
+		return nil, err
+	}
+	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, issuerPartnerID, normalizedNo, voyage)
+}
+
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
 	normalized, err := normalizeOrder(input, true)
 	if err != nil {
@@ -132,6 +183,9 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	}
 	created, err := uc.repo.Create(ctx, organizationID, actorID, normalized, audit)
 	if err != nil {
+		return nil, err
+	}
+	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, created); err != nil {
 		return nil, err
 	}
 	return created, nil
@@ -161,8 +215,15 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 		Result:         "success",
 		Details:        map[string]string{"order.id": id.String()},
 	}
+	if normalized.SeaMasterBillInput != nil && strings.TrimSpace(normalized.SeaMasterBillInput.CorrectionReason) != "" {
+		audit.Action = "order.sea_master_bill.correct"
+		audit.ResourceType = "sea_master_bill"
+	}
 	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, expectedVersion, normalized, audit)
 	if err != nil {
+		return nil, err
+	}
+	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, updated); err != nil {
 		return nil, err
 	}
 	return updated, nil
@@ -233,7 +294,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	}
 	output.PersonnelAssignments = normalizedPersonnel
 	houseNumbers := make(map[string]struct{}, len(output.ShippingDocuments))
-	masterAttributes := make(map[string][2]string, len(output.ShippingDocuments))
 	for index, document := range output.ShippingDocuments {
 		normalized, err := normalizeOrderShippingDocument(document)
 		if err != nil {
@@ -243,12 +303,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 			return nil, ErrOrderShippingDocumentExists
 		}
 		houseNumbers[strings.ToLower(normalized.HouseNo)] = struct{}{}
-		masterKey := strings.ToLower(normalized.MasterNo)
-		attributes := [2]string{stringPointerValue(normalized.MasterDocumentType), stringPointerValue(normalized.MasterReleaseMethod)}
-		if existing, exists := masterAttributes[masterKey]; exists && existing != attributes {
-			return nil, ErrOrderInvalidArgument
-		}
-		masterAttributes[masterKey] = attributes
 		output.ShippingDocuments[index] = normalized
 	}
 	containerSpecs := make(map[uuid.UUID]struct{}, len(output.ContainerRequests))
@@ -285,6 +339,32 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	}
 	if err := validateUUIDSet(output.CargoCategoryIDs); err != nil {
 		return nil, err
+	}
+	if output.BusinessType == OrderBusinessSE {
+		if creating {
+			if output.SeaMasterBillInput == nil {
+				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
+			}
+			normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
+			if err != nil {
+				return nil, err
+			}
+			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
+				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择主单签发方")
+			}
+			output.SeaMasterBillInput.MasterNo = normalizedMasterNo
+		} else if output.SeaMasterBillInput != nil {
+			if output.SeaMasterBillInput.MasterNo != "" {
+				normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
+				if err != nil {
+					return nil, err
+				}
+				output.SeaMasterBillInput.MasterNo = normalizedMasterNo
+			}
+			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
+				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "主单签发方不能为空")
+			}
+		}
 	}
 	return &output, nil
 }

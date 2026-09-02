@@ -190,6 +190,8 @@ const (
 	EdgeCommissionAttributions = "commission_attributions"
 	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
 	EdgeEnterpriseTagLinks = "enterprise_tag_links"
+	// EdgeSeaMasterBillLinks holds the string denoting the sea_master_bill_links edge name in mutations.
+	EdgeSeaMasterBillLinks = "sea_master_bill_links"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -332,6 +334,13 @@ const (
 	EnterpriseTagLinksInverseTable = "order_enterprise_tags"
 	// EnterpriseTagLinksColumn is the table column denoting the enterprise_tag_links relation/edge.
 	EnterpriseTagLinksColumn = "order_id"
+	// SeaMasterBillLinksTable is the table that holds the sea_master_bill_links relation/edge.
+	SeaMasterBillLinksTable = "sea_master_bill_order_links"
+	// SeaMasterBillLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillorderlink" package.
+	SeaMasterBillLinksInverseTable = "sea_master_bill_order_links"
+	// SeaMasterBillLinksColumn is the table column denoting the sea_master_bill_links relation/edge.
+	SeaMasterBillLinksColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -1401,6 +1410,20 @@ func ByEnterpriseTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySeaMasterBillLinksCount orders the results by sea_master_bill_links count.
+func BySeaMasterBillLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillLinksStep(), opts...)
+	}
+}
+
+// BySeaMasterBillLinks orders the results by sea_master_bill_links terms.
+func BySeaMasterBillLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1539,5 +1562,12 @@ func newEnterpriseTagLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EnterpriseTagLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
+	)
+}
+func newSeaMasterBillLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillLinksTable, SeaMasterBillLinksColumn),
 	)
 }

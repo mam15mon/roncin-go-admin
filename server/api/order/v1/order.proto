@@ -12,6 +12,11 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderService 订单核心服务。
 service OrderService {
+  rpc MatchSeaMasterBillCandidate(MatchSeaMasterBillCandidateRequest) returns (MatchSeaMasterBillCandidateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/sea-master-bill-candidate"};
+  }
+
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{id}"};
@@ -299,6 +304,7 @@ message Order {
   bool is_shared = 78;
   repeated BusinessTagSummary tags = 79;
   repeated OrderFlowStatus allowed_target_flow_statuses = 80;
+  optional SeaMasterBillSummary sea_master_bill = 81;
 }
 
 message OrderCargoMeasurement {
@@ -325,17 +331,17 @@ message OrderConsolidationSummary {
   repeated OrderConsolidationMember members = 6;
 }
 
-// OrderShippingDocumentInput 订单表单中的主分单输入。
+// OrderShippingDocumentInput 订单表单中的分单输入。
 message OrderShippingDocumentInput {
   optional string id = 1;
-  string master_no = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 2;
+  reserved "master_no";
   string house_no = 3 [(google.api.field_behavior) = REQUIRED];
   // release_type 是分单（HBL）签放方式。
   optional string release_type = 4;
   optional string note = 5;
-  // 主单属性存储在共享的主单批次，同一主单组内必须一致。
-  optional string master_document_type = 6;
-  optional string master_release_method = 7;
+  reserved 6, 7;
+  reserved "master_document_type", "master_release_method";
 }
 
 // OrderContainerRequestInput 订单订舱阶段的箱型箱量输入。
@@ -529,6 +535,7 @@ message CreateOrderRequest {
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
+  optional SeaMasterBillInput sea_master_bill = 57;
 }
 
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
@@ -589,6 +596,7 @@ message UpdateOrderRequest {
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
+  optional SeaMasterBillInput sea_master_bill = 57;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。
@@ -701,4 +709,107 @@ message ListPersonnelOptionsResponse {
   int32 total = 6;
   int32 page = 7;
   int32 page_size = 8;
+}
+
+// SeaTransportExecution 独立运输执行摘要。
+message SeaTransportExecution {
+  string id = 1;
+  optional string carrier_id = 2;
+  optional string carrier_name = 3;
+  optional string origin_location_id = 4;
+  optional string origin_location_name = 5;
+  optional string discharge_location_id = 6;
+  optional string discharge_location_name = 7;
+  optional string transit_location_id = 8;
+  optional string transit_location_name = 9;
+  string vessel_name = 10;
+  string voyage_no = 11;
+  optional string etd = 12;
+  optional string eta = 13;
+  uint64 version = 14;
+}
+
+// SeaMasterBillSummary 海运主单及当前航程摘要。
+message SeaMasterBillSummary {
+  string master_bill_id = 1;
+  string master_no = 2;
+  string issuer_partner_id = 3;
+  optional string issuer_partner_name = 4;
+  string transport_execution_id = 5;
+  optional string carrier_id = 6;
+  optional string carrier_name = 7;
+  optional string origin_location_id = 8;
+  optional string origin_location_name = 9;
+  optional string discharge_location_id = 10;
+  optional string discharge_location_name = 11;
+  optional string transit_location_id = 12;
+  optional string transit_location_name = 13;
+  string vessel_name = 14;
+  string voyage_no = 15;
+  optional string etd = 16;
+  optional string eta = 17;
+  string status = 18;
+  uint64 version = 19;
+  int32 member_count = 20;
+}
+
+// SeaMasterBillInput 海运主单输入（新建或确认关联已有主单）。
+message SeaMasterBillInput {
+  string master_no = 1 [(google.api.field_behavior) = REQUIRED];
+  string issuer_partner_id = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string candidate_id = 3;
+  optional uint64 expected_candidate_version = 4;
+  optional string correction_reason = 5;
+}
+
+// SeaVoyageConflict 航程冲突详情。
+message SeaVoyageConflict {
+  string field = 1;
+  string master_value = 2;
+  string order_value = 3;
+  string message = 4;
+}
+
+// SeaMasterBillMemberSummary 共享主单成员操作票摘要。
+message SeaMasterBillMemberSummary {
+  string order_id = 1;
+  string order_no = 2;
+  optional string customer_reference_no = 3;
+}
+
+// SeaMasterBillCandidate 匹配到的已有主单候选。
+message SeaMasterBillCandidate {
+  string id = 1;
+  uint64 version = 2;
+  string master_no = 3;
+  string issuer_partner_id = 4;
+  optional string issuer_partner_name = 5;
+  SeaTransportExecution transport_execution = 6;
+  int32 member_count = 7;
+  repeated SeaMasterBillMemberSummary members = 8;
+}
+
+// MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。
+message MatchSeaMasterBillCandidateRequest {
+  string issuer_partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string master_no = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string carrier_id = 3;
+  optional string origin_location_id = 4;
+  optional string discharge_location_id = 5;
+  optional string transit_location_id = 6;
+  optional string vessel_name = 7;
+  optional string voyage_no = 8;
+  optional string etd = 9;
+  optional string eta = 10;
+}
+
+// MatchSeaMasterBillCandidateResponse 共享主单候选匹配响应。
+message MatchSeaMasterBillCandidateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  bool matched = 4;
+  optional SeaMasterBillCandidate candidate = 5;
+  repeated SeaVoyageConflict conflicts = 6;
+  string trace_id = 7;
 }

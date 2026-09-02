@@ -25,7 +25,6 @@ func (s *orderShippingDocumentRepoStub) List(_ context.Context, _ uuid.UUID, ord
 		{
 			ID:        uuid.New(),
 			OrderID:   orderID,
-			MasterNo:  "MSCU123456",
 			HouseNo:   "HBL123456",
 			Status:    OrderShippingDocumentStatusDraft,
 			CreatedAt: time.Now(),
@@ -39,7 +38,6 @@ func (s *orderShippingDocumentRepoStub) Add(_ context.Context, _ uuid.UUID, orde
 	s.added = &OrderShippingDocument{
 		ID:          input.ID,
 		OrderID:     orderID,
-		MasterNo:    input.MasterNo,
 		HouseNo:     input.HouseNo,
 		ReleaseType: input.ReleaseType,
 		Status:      input.Status,
@@ -55,7 +53,6 @@ func (s *orderShippingDocumentRepoStub) Update(_ context.Context, _ uuid.UUID, o
 	s.updated = &OrderShippingDocument{
 		ID:          id,
 		OrderID:     orderID,
-		MasterNo:    input.MasterNo,
 		HouseNo:     input.HouseNo,
 		ReleaseType: input.ReleaseType,
 		Status:      input.Status,
@@ -71,7 +68,6 @@ func (s *orderShippingDocumentRepoStub) Transition(_ context.Context, _ uuid.UUI
 	s.transitioned = &OrderShippingDocument{
 		ID:        id,
 		OrderID:   orderID,
-		MasterNo:  "MSCU123456",
 		HouseNo:   "HBL123456",
 		Status:    to,
 		CreatedAt: time.Now(),
@@ -139,15 +135,10 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	orgID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 
 	baseValidInput := func() *OrderShippingDocument {
-		masterDocumentType := "ORIGINAL_BL"
-		masterReleaseMethod := "TELEX_RELEASE"
 		return &OrderShippingDocument{
-			MasterNo:            "MBL123456",
-			MasterDocumentType:  &masterDocumentType,
-			MasterReleaseMethod: &masterReleaseMethod,
-			HouseNo:             "HBL123456",
-			ReleaseType:         stringPtr("ORIGINAL"),
-			Note:                stringPtr("test note"),
+			HouseNo:     "HBL123456",
+			ReleaseType: stringPtr("ORIGINAL"),
+			Note:        stringPtr("test note"),
 		}
 	}
 
@@ -165,16 +156,6 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	// Nil input
 	if _, err := usecase.Add(context.Background(), orgID, actorID, orderID, nil); err != ErrOrderShippingDocumentInvalidArgument {
 		t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for nil input, got %v", err)
-	}
-
-	// MasterNo validation
-	invalidMasterNos := []string{"", "   ", strings.Repeat("A", 65)}
-	for _, no := range invalidMasterNos {
-		in := baseValidInput()
-		in.MasterNo = no
-		if _, err := usecase.Add(context.Background(), orgID, actorID, orderID, in); err != ErrOrderShippingDocumentInvalidArgument {
-			t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for masterNo %q, got %v", no, err)
-		}
 	}
 
 	// HouseNo validation
@@ -196,19 +177,6 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 		}
 	}
 
-	for _, field := range []string{"document_type", "release_method"} {
-		in := baseValidInput()
-		value := strings.Repeat("M", 65)
-		if field == "document_type" {
-			in.MasterDocumentType = &value
-		} else {
-			in.MasterReleaseMethod = &value
-		}
-		if _, err := usecase.Add(context.Background(), orgID, actorID, orderID, in); err != ErrOrderShippingDocumentInvalidArgument {
-			t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for long master %s, got %v", field, err)
-		}
-	}
-
 	// Note too long
 	{
 		in := baseValidInput()
@@ -221,16 +189,12 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	// Blank optional fields normalized to nil and trimmed fields
 	{
 		in := baseValidInput()
-		in.MasterNo = "  MBL999  "
 		in.HouseNo = "  HBL999  "
 		in.ReleaseType = stringPtr("   ")
 		in.Note = stringPtr("   ")
 		created, err := usecase.Add(context.Background(), orgID, actorID, orderID, in)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
-		}
-		if created.MasterNo != "MBL999" {
-			t.Fatalf("expected trimmed masterNo, got %q", created.MasterNo)
 		}
 		if created.HouseNo != "HBL999" {
 			t.Fatalf("expected trimmed houseNo, got %q", created.HouseNo)
@@ -249,7 +213,7 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if created == nil || created.MasterNo != "MBL123456" {
+	if created == nil || created.HouseNo != "HBL123456" {
 		t.Fatalf("unexpected created shipping document: %#v", created)
 	}
 	if created.Status != OrderShippingDocumentStatusDraft {
@@ -264,7 +228,7 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	}
 	if event.Details["shipping_document.id"] != created.ID.String() ||
 		event.Details["order.id"] != orderID.String() ||
-		event.Details["master_no"] != "MBL123456" {
+		event.Details["house_no"] != "HBL123456" {
 		t.Fatalf("unexpected audit details: %#v", event.Details)
 	}
 }
@@ -275,7 +239,6 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	input := &OrderShippingDocument{
-		MasterNo:    "MBL789",
 		HouseNo:     "HBL789",
 		ReleaseType: stringPtr("SEAWAY_BILL"),
 		Note:        stringPtr("updated note"),
@@ -297,9 +260,9 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 
 	// Invalid input
 	invalidIn := *input
-	invalidIn.MasterNo = ""
+	invalidIn.HouseNo = ""
 	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, &invalidIn); err != ErrOrderShippingDocumentInvalidArgument {
-		t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for empty masterNo, got %v", err)
+		t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for empty houseNo, got %v", err)
 	}
 
 	invalidIn = *input
@@ -343,7 +306,7 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if updated.ID != id || updated.MasterNo != "MBL789" {
+	if updated.ID != id || updated.HouseNo != "HBL789" {
 		t.Fatalf("unexpected updated shipping document: %#v", updated)
 	}
 	if repo.updatedAudit == nil {
@@ -355,7 +318,7 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	}
 	if event.Details["shipping_document.id"] != id.String() ||
 		event.Details["order.id"] != orderID.String() ||
-		event.Details["master_no"] != "MBL789" {
+		event.Details["house_no"] != "HBL789" {
 		t.Fatalf("unexpected audit details: %#v", event.Details)
 	}
 }

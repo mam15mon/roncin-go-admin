@@ -37,4 +37,33 @@ describe('buildInitialValues', () => {
       }),
     );
   });
+
+  it('回填当前共享主单版本供单票身份更正做乐观锁校验', () => {
+    const result = buildInitialValues(
+      {
+        id: 'order-1',
+        seaMasterBill: {
+          masterBillId: 'mbl-1',
+          masterNo: 'COSCO123456',
+          issuerPartnerId: 'issuer-1',
+          transportExecutionId: 'transport-1',
+          vesselName: '',
+          voyageNo: '',
+          status: 'DRAFT',
+          version: '7',
+          memberCount: 1,
+        },
+      },
+      [],
+      [],
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        seaMasterBillMasterNo: 'COSCO123456',
+        seaMasterBillIssuerPartnerId: 'issuer-1',
+        seaMasterBillExpectedCandidateVersion: '7',
+      }),
+    );
+  });
 });

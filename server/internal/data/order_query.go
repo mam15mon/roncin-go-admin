@@ -12,18 +12,22 @@ import (
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
-	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.Order, error) {
-	item, err := withOrderEdges(r.data.db.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID))).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := withOrderEdges(client.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
@@ -31,7 +35,11 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 }
 
 func (r *orderRepo) Find(ctx context.Context, id uuid.UUID) (*biz.Order, error) {
-	item, err := withOrderEdges(r.data.db.Order.Query().Where(orderent.IDEQ(id))).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := withOrderEdges(client.Order.Query().Where(orderent.IDEQ(id))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
@@ -39,7 +47,11 @@ func (r *orderRepo) Find(ctx context.Context, id uuid.UUID) (*biz.Order, error) 
 }
 
 func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, options biz.OrderListOptions) (*biz.OrderList, error) {
-	query := r.data.db.Order.Query().Where(orderent.OrganizationIDIn(organizationIDs...))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.Order.Query().Where(orderent.OrganizationIDIn(organizationIDs...))
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
@@ -48,8 +60,9 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 		case biz.OrderNumberFilterOrder:
 			query.Where(orderent.OrderNoContainsFold(options.NumberKeyword))
 		case biz.OrderNumberFilterMaster:
-			query.Where(orderent.HasShippingDocumentsWith(
-				ordershippingdocumentent.HasConsolidationWith(orderconsolidationent.MasterNoContainsFold(options.NumberKeyword)),
+			query.Where(orderent.HasSeaMasterBillLinksWith(
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+				seamasterbillorderlink.HasMasterBillWith(seamasterbill.MasterNoContainsFold(options.NumberKeyword)),
 			))
 		case biz.OrderNumberFilterConsolidatedMaster:
 			query.Where(orderConsolidatedMasterContainsFold(options.NumberKeyword))
@@ -148,11 +161,11 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 func orderConsolidatedMasterContainsFold(keyword string) entpredicate.Order {
 	return entpredicate.Order(func(selector *entsql.Selector) {
 		selector.Where(entsql.P(func(builder *entsql.Builder) {
-			builder.WriteString(`EXISTS (SELECT 1 FROM "order_shipping_documents" AS "filter_document" JOIN "order_consolidations" AS "filter_consolidation" ON "filter_consolidation"."id" = "filter_document"."consolidation_id" WHERE "filter_document"."order_id" = `).
+			builder.WriteString(`EXISTS (SELECT 1 FROM "sea_master_bill_order_links" AS "filter_link" JOIN "sea_master_bills" AS "filter_mbl" ON "filter_mbl"."id" = "filter_link"."master_bill_id" WHERE "filter_link"."order_id" = `).
 				Ident(selector.C(orderent.FieldID)).
-				WriteString(` AND LOWER("filter_consolidation"."master_no") LIKE `).
+				WriteString(` AND "filter_link"."status" = 'ACTIVE' AND LOWER("filter_mbl"."master_no") LIKE `).
 				Arg("%" + strings.ToLower(keyword) + "%").
-				WriteString(` GROUP BY "filter_consolidation"."id" HAVING COUNT(DISTINCT "filter_document"."order_id") > 1)`)
+				WriteString(` AND (SELECT COUNT(*) FROM "sea_master_bill_order_links" AS "sub_link" WHERE "sub_link"."master_bill_id" = "filter_mbl"."id" AND "sub_link"."status" = 'ACTIVE') > 1)`)
 		}))
 	})
 }
@@ -186,7 +199,11 @@ func applyOrderPersonnelFilter(query *ent.OrderQuery, role orderpersonnelent.Rol
 }
 
 func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID uuid.UUID, check biz.OrderReferenceCheck) (*biz.OrderReferenceMatch, error) {
-	query := r.data.db.Order.Query().Where(orderent.OrganizationIDEQ(organizationID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.Order.Query().Where(orderent.OrganizationIDEQ(organizationID))
 	if check.ReferenceType == biz.OrderReferenceCustomer {
 		query.Where(
 			orderent.CustomerIDEQ(*check.CustomerID),
@@ -209,7 +226,11 @@ func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID u
 }
 
 func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID uuid.UUID) (bool, error) {
-	return r.data.db.Order.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return false, err
+	}
+	return client.Order.Query().Where(
 		orderent.IDEQ(orderID),
 		orderent.OrganizationIDEQ(organizationID),
 		orderent.HasContainers(),
@@ -217,45 +238,72 @@ func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID u
 }
 
 func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderConsolidationSummary, error) {
-	current, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	current, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	if current.ShipmentType == nil || *current.ShipmentType != orderent.ShipmentTypeLCL {
 		return nil, biz.ErrOrderConsolidationShipmentType
 	}
-	documents, err := r.data.db.OrderShippingDocument.Query().Where(ordershippingdocumentent.OrderIDEQ(orderID)).All(ctx)
+	activeLinks, err := client.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.OrderIDEQ(orderID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		WithMasterBill(func(query *ent.SeaMasterBillQuery) {
+			query.Where(seamasterbill.OrganizationIDEQ(organizationID))
+		}).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	consolidationIDs := make([]uuid.UUID, 0, len(documents))
-	seen := make(map[uuid.UUID]struct{}, len(documents))
-	for _, document := range documents {
-		if _, exists := seen[document.ConsolidationID]; !exists {
-			seen[document.ConsolidationID] = struct{}{}
-			consolidationIDs = append(consolidationIDs, document.ConsolidationID)
-		}
-	}
-	if len(consolidationIDs) == 0 {
+	if len(activeLinks) == 0 {
 		return []*biz.OrderConsolidationSummary{}, nil
 	}
-	items, err := r.data.db.OrderConsolidation.Query().Where(
-		orderconsolidationent.IDIn(consolidationIDs...),
-		orderconsolidationent.OrganizationIDEQ(organizationID),
-	).WithShippingDocuments(func(query *ent.OrderShippingDocumentQuery) {
-		query.Where(ordershippingdocumentent.HasOrderWith(orderent.ShipmentTypeEQ(orderent.ShipmentTypeLCL))).
-			WithOrder(func(orderQuery *ent.OrderQuery) { orderQuery.WithCargoItems() }).
-			Order(ordershippingdocumentent.ByCreatedAt())
-	}).Order(orderconsolidationent.ByMasterNo()).All(ctx)
+	mblIDs := make([]uuid.UUID, 0, len(activeLinks))
+	mblMap := make(map[uuid.UUID]*ent.SeaMasterBill, len(activeLinks))
+	for _, link := range activeLinks {
+		if link.Edges.MasterBill != nil {
+			mblIDs = append(mblIDs, link.MasterBillID)
+			mblMap[link.MasterBillID] = link.Edges.MasterBill
+		}
+	}
+	if len(mblIDs) == 0 {
+		return []*biz.OrderConsolidationSummary{}, nil
+	}
+
+	allLinks, err := client.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.MasterBillIDIn(mblIDs...),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		WithOrder(func(oq *ent.OrderQuery) {
+			oq.Where(orderent.ShipmentTypeEQ(orderent.ShipmentTypeLCL)).
+				WithCargoItems().
+				WithShippingDocuments()
+		}).
+		Order(seamasterbillorderlink.ByStartedAt()).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*biz.OrderConsolidationSummary, 0, len(items))
-	for _, item := range items {
-		summary := &biz.OrderConsolidationSummary{ConsolidationID: item.ID, MasterNo: item.MasterNo}
+
+	result := make([]*biz.OrderConsolidationSummary, 0, len(mblIDs))
+	for _, mblID := range mblIDs {
+		mbl := mblMap[mblID]
+		summary := &biz.OrderConsolidationSummary{ConsolidationID: mbl.ID, MasterNo: mbl.MasterNo}
 		members := make(map[uuid.UUID]*biz.OrderConsolidationMember)
-		for _, document := range item.Edges.ShippingDocuments {
-			orderItem := document.Edges.Order
+		for _, link := range allLinks {
+			if link.MasterBillID != mblID || link.Edges.Order == nil {
+				continue
+			}
+			orderItem := link.Edges.Order
 			member := members[orderItem.ID]
 			if member == nil {
 				member = &biz.OrderConsolidationMember{OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, CustomerReferenceNo: orderItem.CustomerReferenceNo}
@@ -273,10 +321,12 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 					member.Actual.GrossWeightKg += cargo.GrossWeightKg
 					member.Actual.VolumeCbm += cargo.VolumeCbm
 				}
+				for _, doc := range orderItem.Edges.ShippingDocuments {
+					member.HouseNos = append(member.HouseNos, doc.HouseNo)
+				}
 				members[orderItem.ID] = member
 				summary.Members = append(summary.Members, member)
 			}
-			member.HouseNos = append(member.HouseNos, document.HouseNo)
 		}
 		for _, member := range summary.Members {
 			summary.Entrusted.Packages += member.Entrusted.Packages
@@ -292,7 +342,11 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 }
 
 func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.OrderPersonnelOption], error) {
-	organizations, err := r.data.db.Organization.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	organizations, err := client.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
 		All(ctx)
 	if err != nil {
@@ -308,7 +362,7 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	query := r.data.db.Membership.Query().Where(
+	query := client.Membership.Query().Where(
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
 		membershipent.HasUserWith(userent.EnabledEQ(true)),

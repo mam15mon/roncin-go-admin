@@ -15,7 +15,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -25,15 +24,14 @@ import (
 // OrderShippingDocumentQuery is the builder for querying OrderShippingDocument entities.
 type OrderShippingDocumentQuery struct {
 	config
-	ctx               *QueryContext
-	order             []ordershippingdocument.OrderOption
-	inters            []Interceptor
-	predicates        []predicate.OrderShippingDocument
-	withOrder         *OrderQuery
-	withConsolidation *OrderConsolidationQuery
-	withContainers    *OrderContainerQuery
-	withReleasePods   *OrderReleasePodQuery
-	modifiers         []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []ordershippingdocument.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.OrderShippingDocument
+	withOrder       *OrderQuery
+	withContainers  *OrderContainerQuery
+	withReleasePods *OrderReleasePodQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -85,28 +83,6 @@ func (_q *OrderShippingDocumentQuery) QueryOrder() *OrderQuery {
 			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, selector),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.OrderTable, ordershippingdocument.OrderColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryConsolidation chains the current query on the "consolidation" edge.
-func (_q *OrderShippingDocumentQuery) QueryConsolidation() *OrderConsolidationQuery {
-	query := (&OrderConsolidationClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, selector),
-			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.ConsolidationTable, ordershippingdocument.ConsolidationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -345,15 +321,14 @@ func (_q *OrderShippingDocumentQuery) Clone() *OrderShippingDocumentQuery {
 		return nil
 	}
 	return &OrderShippingDocumentQuery{
-		config:            _q.config,
-		ctx:               _q.ctx.Clone(),
-		order:             append([]ordershippingdocument.OrderOption{}, _q.order...),
-		inters:            append([]Interceptor{}, _q.inters...),
-		predicates:        append([]predicate.OrderShippingDocument{}, _q.predicates...),
-		withOrder:         _q.withOrder.Clone(),
-		withConsolidation: _q.withConsolidation.Clone(),
-		withContainers:    _q.withContainers.Clone(),
-		withReleasePods:   _q.withReleasePods.Clone(),
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]ordershippingdocument.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.OrderShippingDocument{}, _q.predicates...),
+		withOrder:       _q.withOrder.Clone(),
+		withContainers:  _q.withContainers.Clone(),
+		withReleasePods: _q.withReleasePods.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -368,17 +343,6 @@ func (_q *OrderShippingDocumentQuery) WithOrder(opts ...func(*OrderQuery)) *Orde
 		opt(query)
 	}
 	_q.withOrder = query
-	return _q
-}
-
-// WithConsolidation tells the query-builder to eager-load the nodes that are connected to
-// the "consolidation" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderShippingDocumentQuery) WithConsolidation(opts ...func(*OrderConsolidationQuery)) *OrderShippingDocumentQuery {
-	query := (&OrderConsolidationClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withConsolidation = query
 	return _q
 }
 
@@ -482,9 +446,8 @@ func (_q *OrderShippingDocumentQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*OrderShippingDocument{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [3]bool{
 			_q.withOrder != nil,
-			_q.withConsolidation != nil,
 			_q.withContainers != nil,
 			_q.withReleasePods != nil,
 		}
@@ -513,12 +476,6 @@ func (_q *OrderShippingDocumentQuery) sqlAll(ctx context.Context, hooks ...query
 	if query := _q.withOrder; query != nil {
 		if err := _q.loadOrder(ctx, query, nodes, nil,
 			func(n *OrderShippingDocument, e *Order) { n.Edges.Order = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withConsolidation; query != nil {
-		if err := _q.loadConsolidation(ctx, query, nodes, nil,
-			func(n *OrderShippingDocument, e *OrderConsolidation) { n.Edges.Consolidation = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -563,35 +520,6 @@ func (_q *OrderShippingDocumentQuery) loadOrder(ctx context.Context, query *Orde
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "order_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *OrderShippingDocumentQuery) loadConsolidation(ctx context.Context, query *OrderConsolidationQuery, nodes []*OrderShippingDocument, init func(*OrderShippingDocument), assign func(*OrderShippingDocument, *OrderConsolidation)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*OrderShippingDocument)
-	for i := range nodes {
-		fk := nodes[i].ConsolidationID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(orderconsolidation.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "consolidation_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -696,9 +624,6 @@ func (_q *OrderShippingDocumentQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withOrder != nil {
 			_spec.Node.AddColumnOnce(ordershippingdocument.FieldOrderID)
-		}
-		if _q.withConsolidation != nil {
-			_spec.Node.AddColumnOnce(ordershippingdocument.FieldConsolidationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

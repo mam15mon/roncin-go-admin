@@ -37,7 +37,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -49,6 +48,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
@@ -415,19 +417,49 @@ func (_u *OrganizationUpdate) AddOrders(v ...*Order) *OrganizationUpdate {
 	return _u.AddOrderIDs(ids...)
 }
 
-// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
-func (_u *OrganizationUpdate) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.AddOrderConsolidationIDs(ids...)
+// AddSeaTransportExecutionIDs adds the "sea_transport_executions" edge to the SeaTransportExecution entity by IDs.
+func (_u *OrganizationUpdate) AddSeaTransportExecutionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaTransportExecutionIDs(ids...)
 	return _u
 }
 
-// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
-func (_u *OrganizationUpdate) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdate {
+// AddSeaTransportExecutions adds the "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_u *OrganizationUpdate) AddSeaTransportExecutions(v ...*SeaTransportExecution) *OrganizationUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddOrderConsolidationIDs(ids...)
+	return _u.AddSeaTransportExecutionIDs(ids...)
+}
+
+// AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
+func (_u *OrganizationUpdate) AddSeaMasterBillIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaMasterBillIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBills adds the "sea_master_bills" edges to the SeaMasterBill entity.
+func (_u *OrganizationUpdate) AddSeaMasterBills(v ...*SeaMasterBill) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillIDs(ids...)
+}
+
+// AddSeaMasterBillOrderLinkIDs adds the "sea_master_bill_order_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_u *OrganizationUpdate) AddSeaMasterBillOrderLinkIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaMasterBillOrderLinkIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillOrderLinks adds the "sea_master_bill_order_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *OrganizationUpdate) AddSeaMasterBillOrderLinks(v ...*SeaMasterBillOrderLink) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillOrderLinkIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -1113,25 +1145,67 @@ func (_u *OrganizationUpdate) RemoveOrders(v ...*Order) *OrganizationUpdate {
 	return _u.RemoveOrderIDs(ids...)
 }
 
-// ClearOrderConsolidations clears all "order_consolidations" edges to the OrderConsolidation entity.
-func (_u *OrganizationUpdate) ClearOrderConsolidations() *OrganizationUpdate {
-	_u.mutation.ClearOrderConsolidations()
+// ClearSeaTransportExecutions clears all "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_u *OrganizationUpdate) ClearSeaTransportExecutions() *OrganizationUpdate {
+	_u.mutation.ClearSeaTransportExecutions()
 	return _u
 }
 
-// RemoveOrderConsolidationIDs removes the "order_consolidations" edge to OrderConsolidation entities by IDs.
-func (_u *OrganizationUpdate) RemoveOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.RemoveOrderConsolidationIDs(ids...)
+// RemoveSeaTransportExecutionIDs removes the "sea_transport_executions" edge to SeaTransportExecution entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaTransportExecutionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaTransportExecutionIDs(ids...)
 	return _u
 }
 
-// RemoveOrderConsolidations removes "order_consolidations" edges to OrderConsolidation entities.
-func (_u *OrganizationUpdate) RemoveOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdate {
+// RemoveSeaTransportExecutions removes "sea_transport_executions" edges to SeaTransportExecution entities.
+func (_u *OrganizationUpdate) RemoveSeaTransportExecutions(v ...*SeaTransportExecution) *OrganizationUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveOrderConsolidationIDs(ids...)
+	return _u.RemoveSeaTransportExecutionIDs(ids...)
+}
+
+// ClearSeaMasterBills clears all "sea_master_bills" edges to the SeaMasterBill entity.
+func (_u *OrganizationUpdate) ClearSeaMasterBills() *OrganizationUpdate {
+	_u.mutation.ClearSeaMasterBills()
+	return _u
+}
+
+// RemoveSeaMasterBillIDs removes the "sea_master_bills" edge to SeaMasterBill entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaMasterBillIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaMasterBillIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBills removes "sea_master_bills" edges to SeaMasterBill entities.
+func (_u *OrganizationUpdate) RemoveSeaMasterBills(v ...*SeaMasterBill) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillIDs(ids...)
+}
+
+// ClearSeaMasterBillOrderLinks clears all "sea_master_bill_order_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *OrganizationUpdate) ClearSeaMasterBillOrderLinks() *OrganizationUpdate {
+	_u.mutation.ClearSeaMasterBillOrderLinks()
+	return _u
+}
+
+// RemoveSeaMasterBillOrderLinkIDs removes the "sea_master_bill_order_links" edge to SeaMasterBillOrderLink entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaMasterBillOrderLinkIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaMasterBillOrderLinkIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillOrderLinks removes "sea_master_bill_order_links" edges to SeaMasterBillOrderLink entities.
+func (_u *OrganizationUpdate) RemoveSeaMasterBillOrderLinks(v ...*SeaMasterBillOrderLink) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillOrderLinkIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -2456,28 +2530,28 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.OrderConsolidationsCleared() {
+	if _u.mutation.SeaTransportExecutionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedOrderConsolidationsIDs(); len(nodes) > 0 && !_u.mutation.OrderConsolidationsCleared() {
+	if nodes := _u.mutation.RemovedSeaTransportExecutionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2485,15 +2559,105 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SeaTransportExecutionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillOrderLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillOrderLinksIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillOrderLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillOrderLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3814,19 +3978,49 @@ func (_u *OrganizationUpdateOne) AddOrders(v ...*Order) *OrganizationUpdateOne {
 	return _u.AddOrderIDs(ids...)
 }
 
-// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
-func (_u *OrganizationUpdateOne) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.AddOrderConsolidationIDs(ids...)
+// AddSeaTransportExecutionIDs adds the "sea_transport_executions" edge to the SeaTransportExecution entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaTransportExecutionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaTransportExecutionIDs(ids...)
 	return _u
 }
 
-// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
-func (_u *OrganizationUpdateOne) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdateOne {
+// AddSeaTransportExecutions adds the "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_u *OrganizationUpdateOne) AddSeaTransportExecutions(v ...*SeaTransportExecution) *OrganizationUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddOrderConsolidationIDs(ids...)
+	return _u.AddSeaTransportExecutionIDs(ids...)
+}
+
+// AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaMasterBillIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaMasterBillIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBills adds the "sea_master_bills" edges to the SeaMasterBill entity.
+func (_u *OrganizationUpdateOne) AddSeaMasterBills(v ...*SeaMasterBill) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillIDs(ids...)
+}
+
+// AddSeaMasterBillOrderLinkIDs adds the "sea_master_bill_order_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaMasterBillOrderLinkIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaMasterBillOrderLinkIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillOrderLinks adds the "sea_master_bill_order_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *OrganizationUpdateOne) AddSeaMasterBillOrderLinks(v ...*SeaMasterBillOrderLink) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillOrderLinkIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -4512,25 +4706,67 @@ func (_u *OrganizationUpdateOne) RemoveOrders(v ...*Order) *OrganizationUpdateOn
 	return _u.RemoveOrderIDs(ids...)
 }
 
-// ClearOrderConsolidations clears all "order_consolidations" edges to the OrderConsolidation entity.
-func (_u *OrganizationUpdateOne) ClearOrderConsolidations() *OrganizationUpdateOne {
-	_u.mutation.ClearOrderConsolidations()
+// ClearSeaTransportExecutions clears all "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_u *OrganizationUpdateOne) ClearSeaTransportExecutions() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaTransportExecutions()
 	return _u
 }
 
-// RemoveOrderConsolidationIDs removes the "order_consolidations" edge to OrderConsolidation entities by IDs.
-func (_u *OrganizationUpdateOne) RemoveOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.RemoveOrderConsolidationIDs(ids...)
+// RemoveSeaTransportExecutionIDs removes the "sea_transport_executions" edge to SeaTransportExecution entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaTransportExecutionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaTransportExecutionIDs(ids...)
 	return _u
 }
 
-// RemoveOrderConsolidations removes "order_consolidations" edges to OrderConsolidation entities.
-func (_u *OrganizationUpdateOne) RemoveOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdateOne {
+// RemoveSeaTransportExecutions removes "sea_transport_executions" edges to SeaTransportExecution entities.
+func (_u *OrganizationUpdateOne) RemoveSeaTransportExecutions(v ...*SeaTransportExecution) *OrganizationUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveOrderConsolidationIDs(ids...)
+	return _u.RemoveSeaTransportExecutionIDs(ids...)
+}
+
+// ClearSeaMasterBills clears all "sea_master_bills" edges to the SeaMasterBill entity.
+func (_u *OrganizationUpdateOne) ClearSeaMasterBills() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaMasterBills()
+	return _u
+}
+
+// RemoveSeaMasterBillIDs removes the "sea_master_bills" edge to SeaMasterBill entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBillIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaMasterBillIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBills removes "sea_master_bills" edges to SeaMasterBill entities.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBills(v ...*SeaMasterBill) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillIDs(ids...)
+}
+
+// ClearSeaMasterBillOrderLinks clears all "sea_master_bill_order_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *OrganizationUpdateOne) ClearSeaMasterBillOrderLinks() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaMasterBillOrderLinks()
+	return _u
+}
+
+// RemoveSeaMasterBillOrderLinkIDs removes the "sea_master_bill_order_links" edge to SeaMasterBillOrderLink entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBillOrderLinkIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaMasterBillOrderLinkIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillOrderLinks removes "sea_master_bill_order_links" edges to SeaMasterBillOrderLink entities.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBillOrderLinks(v ...*SeaMasterBillOrderLink) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillOrderLinkIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -5885,28 +6121,28 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.OrderConsolidationsCleared() {
+	if _u.mutation.SeaTransportExecutionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedOrderConsolidationsIDs(); len(nodes) > 0 && !_u.mutation.OrderConsolidationsCleared() {
+	if nodes := _u.mutation.RemovedSeaTransportExecutionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5914,15 +6150,105 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SeaTransportExecutionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillOrderLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillOrderLinksIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillOrderLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillOrderLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 // OrderQuery is the builder for querying Order entities.
@@ -65,6 +66,7 @@ type OrderQuery struct {
 	withFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
 	withCommissionAttributions       *OrderCommissionAttributionQuery
 	withEnterpriseTagLinks           *OrderEnterpriseTagQuery
+	withSeaMasterBillLinks           *SeaMasterBillOrderLinkQuery
 	modifiers                        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -542,6 +544,28 @@ func (_q *OrderQuery) QueryEnterpriseTagLinks() *OrderEnterpriseTagQuery {
 	return query
 }
 
+// QuerySeaMasterBillLinks chains the current query on the "sea_master_bill_links" edge.
+func (_q *OrderQuery) QuerySeaMasterBillLinks() *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaMasterBillLinksTable, order.SeaMasterBillLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Order entity from the query.
 // Returns a *NotFoundError when no Order was found.
 func (_q *OrderQuery) First(ctx context.Context) (*Order, error) {
@@ -754,6 +778,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withFinanceCommissionAdjustments: _q.withFinanceCommissionAdjustments.Clone(),
 		withCommissionAttributions:       _q.withCommissionAttributions.Clone(),
 		withEnterpriseTagLinks:           _q.withEnterpriseTagLinks.Clone(),
+		withSeaMasterBillLinks:           _q.withSeaMasterBillLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -980,6 +1005,17 @@ func (_q *OrderQuery) WithEnterpriseTagLinks(opts ...func(*OrderEnterpriseTagQue
 	return _q
 }
 
+// WithSeaMasterBillLinks tells the query-builder to eager-load the nodes that are connected to
+// the "sea_master_bill_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithSeaMasterBillLinks(opts ...func(*SeaMasterBillOrderLinkQuery)) *OrderQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaMasterBillLinks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1058,7 +1094,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [20]bool{
+		loadedTypes = [21]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withLifecycleEvents != nil,
@@ -1079,6 +1115,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withFinanceCommissionAdjustments != nil,
 			_q.withCommissionAttributions != nil,
 			_q.withEnterpriseTagLinks != nil,
+			_q.withSeaMasterBillLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1248,6 +1285,15 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			func(n *Order) { n.Edges.EnterpriseTagLinks = []*OrderEnterpriseTag{} },
 			func(n *Order, e *OrderEnterpriseTag) {
 				n.Edges.EnterpriseTagLinks = append(n.Edges.EnterpriseTagLinks, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaMasterBillLinks; query != nil {
+		if err := _q.loadSeaMasterBillLinks(ctx, query, nodes,
+			func(n *Order) { n.Edges.SeaMasterBillLinks = []*SeaMasterBillOrderLink{} },
+			func(n *Order, e *SeaMasterBillOrderLink) {
+				n.Edges.SeaMasterBillLinks = append(n.Edges.SeaMasterBillLinks, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1838,6 +1884,36 @@ func (_q *OrderQuery) loadEnterpriseTagLinks(ctx context.Context, query *OrderEn
 	}
 	query.Where(predicate.OrderEnterpriseTag(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.EnterpriseTagLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadSeaMasterBillLinks(ctx context.Context, query *SeaMasterBillOrderLinkQuery, nodes []*Order, init func(*Order), assign func(*Order, *SeaMasterBillOrderLink)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillorderlink.FieldOrderID)
+	}
+	query.Where(predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.SeaMasterBillLinksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

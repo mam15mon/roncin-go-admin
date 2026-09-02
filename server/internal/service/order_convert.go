@@ -41,6 +41,9 @@ func orderToAPI(item *biz.Order) *v1.Order {
 			CreatedAt: request.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: request.UpdatedAt.UTC().Format(timeFormatRFC3339),
 		})
 	}
+	if item.SeaMasterBill != nil {
+		result.SeaMasterBill = seaMasterBillSummaryToAPI(item.SeaMasterBill)
+	}
 	return result
 }
 
@@ -55,9 +58,10 @@ func shippingDocumentsFromAPI(values []*v1.OrderShippingDocumentInput) ([]*biz.O
 			return nil, err
 		}
 		result = append(result, &biz.OrderShippingDocument{
-			ID: id, MasterNo: value.GetMasterNo(), HouseNo: value.GetHouseNo(),
-			MasterDocumentType: optionalStringPointer(value.MasterDocumentType), MasterReleaseMethod: optionalStringPointer(value.MasterReleaseMethod),
-			ReleaseType: optionalStringPointer(value.ReleaseType), Note: optionalStringPointer(value.Note),
+			ID:          id,
+			HouseNo:     value.GetHouseNo(),
+			ReleaseType: optionalStringPointer(value.ReleaseType),
+			Note:        optionalStringPointer(value.Note),
 		})
 	}
 	return result, nil
@@ -165,6 +169,20 @@ func intToInt32Ptr(value *int) *int32 {
 	return &result
 }
 
+func parseOptionalTime(value *string) *time.Time {
+	if value == nil || strings.TrimSpace(*value) == "" {
+		return nil
+	}
+	v := strings.TrimSpace(*value)
+	if t, err := time.Parse(time.RFC3339, v); err == nil {
+		return &t
+	}
+	if t, err := time.Parse("2006-01-02", v); err == nil {
+		return &t
+	}
+	return nil
+}
+
 func timePtrToString(value *time.Time) *string {
 	if value == nil {
 		return nil
@@ -182,4 +200,107 @@ func businessTagSummariesToAPI(items []*biz.BusinessTagSummary) []*v1.BusinessTa
 		result = append(result, businessTagSummaryToAPI(item))
 	}
 	return result
+}
+
+func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBillSummary {
+	if item == nil {
+		return nil
+	}
+	res := &v1.SeaMasterBillSummary{
+		MasterBillId:          item.MasterBillID.String(),
+		MasterNo:              item.MasterNo,
+		IssuerPartnerId:       item.IssuerPartnerID.String(),
+		IssuerPartnerName:     stringPtrIfNotEmpty(item.IssuerPartnerName),
+		TransportExecutionId:  item.TransportExecutionID.String(),
+		CarrierId:             uuidStringPtr(item.CarrierID),
+		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
+		OriginLocationId:      uuidStringPtr(item.OriginLocationID),
+		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
+		DischargeLocationId:   uuidStringPtr(item.DischargeLocationID),
+		DischargeLocationName: stringPtrIfNotEmpty(item.DischargeLocationName),
+		TransitLocationId:     uuidStringPtr(item.TransitLocationID),
+		TransitLocationName:   stringPtrIfNotEmpty(item.TransitLocationName),
+		VesselName:            item.VesselName,
+		VoyageNo:              item.VoyageNo,
+		Etd:                   stringPtrIfNotEmpty(item.ETD),
+		Eta:                   stringPtrIfNotEmpty(item.ETA),
+		Status:                item.Status,
+		Version:               item.Version,
+		MemberCount:           int32(item.MemberCount),
+	}
+	return res
+}
+
+func seaTransportExecutionToAPI(item *biz.SeaTransportExecution) *v1.SeaTransportExecution {
+	if item == nil {
+		return nil
+	}
+	res := &v1.SeaTransportExecution{
+		Id:                    item.ID.String(),
+		CarrierId:             uuidStringPtr(&item.CarrierID),
+		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
+		OriginLocationId:      uuidStringPtr(&item.OriginLocationID),
+		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
+		DischargeLocationId:   uuidStringPtr(&item.DischargeLocationID),
+		DischargeLocationName: stringPtrIfNotEmpty(item.DischargeLocationName),
+		TransitLocationId:     uuidStringPtr(item.TransitLocationID),
+		TransitLocationName:   stringPtrIfNotEmpty(item.TransitLocationName),
+		VesselName:            item.VesselName,
+		VoyageNo:              item.VoyageNo,
+		Version:               item.Version,
+	}
+	if item.ETD != nil {
+		res.Etd = stringPtrIfNotEmpty(item.ETD.Format("2006-01-02"))
+	}
+	if item.ETA != nil {
+		res.Eta = stringPtrIfNotEmpty(item.ETA.Format("2006-01-02"))
+	}
+	return res
+}
+
+func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMasterBillCandidate {
+	if item == nil {
+		return nil
+	}
+	res := &v1.SeaMasterBillCandidate{
+		Id:                 item.ID.String(),
+		Version:            item.Version,
+		MasterNo:           item.MasterNo,
+		IssuerPartnerId:    item.IssuerPartnerID.String(),
+		IssuerPartnerName:  stringPtrIfNotEmpty(item.IssuerPartnerName),
+		TransportExecution: seaTransportExecutionToAPI(item.TransportExecution),
+		MemberCount:        int32(item.MemberCount),
+	}
+	for _, m := range item.Members {
+		res.Members = append(res.Members, &v1.SeaMasterBillMemberSummary{
+			OrderId:             m.OrderID.String(),
+			OrderNo:             m.OrderNo,
+			CustomerReferenceNo: stringPtrIfNotEmpty(m.CustomerReferenceNo),
+		})
+	}
+	return res
+}
+
+func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBillInput, error) {
+	if input == nil {
+		return nil, nil
+	}
+	issuerPartnerID, err := uuid.Parse(input.GetIssuerPartnerId())
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	res := &biz.SeaMasterBillInput{
+		MasterNo:                 input.GetMasterNo(),
+		IssuerPartnerID:          issuerPartnerID,
+		CorrectionReason:         input.GetCorrectionReason(),
+		ExpectedCandidateVersion: input.ExpectedCandidateVersion,
+	}
+	if input.CandidateId != nil && strings.TrimSpace(*input.CandidateId) != "" {
+		cid, err := uuid.Parse(strings.TrimSpace(*input.CandidateId))
+		if err != nil {
+			return nil, biz.ErrSeaMasterBillInvalidArgument
+		}
+		res.CandidateID = &cid
+	}
+	return res, nil
 }

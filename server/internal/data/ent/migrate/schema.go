@@ -3054,49 +3054,6 @@ var (
 			},
 		},
 	}
-	// OrderConsolidationsColumns holds the columns for the "order_consolidations" table.
-	OrderConsolidationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
-		{Name: "master_no", Type: field.TypeString, Size: 64},
-		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
-		{Name: "document_type", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "release_method", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "organization_id", Type: field.TypeUUID},
-	}
-	// OrderConsolidationsTable holds the schema information for the "order_consolidations" table.
-	OrderConsolidationsTable = &schema.Table{
-		Name:       "order_consolidations",
-		Columns:    OrderConsolidationsColumns,
-		PrimaryKey: []*schema.Column{OrderConsolidationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "order_consolidations_organizations_order_consolidations",
-				Columns:    []*schema.Column{OrderConsolidationsColumns[8]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "orderconsolidation_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{OrderConsolidationsColumns[2]},
-			},
-			{
-				Name:    "orderconsolidation_organization_id_business_type_normalized_master_no",
-				Unique:  true,
-				Columns: []*schema.Column{OrderConsolidationsColumns[8], OrderConsolidationsColumns[3], OrderConsolidationsColumns[5]},
-			},
-			{
-				Name:    "orderconsolidation_organization_id_business_type_master_no",
-				Unique:  false,
-				Columns: []*schema.Column{OrderConsolidationsColumns[8], OrderConsolidationsColumns[3], OrderConsolidationsColumns[4]},
-			},
-		},
-	}
 	// OrderContainersColumns holds the columns for the "order_containers" table.
 	OrderContainersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3661,7 +3618,6 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
-		{Name: "consolidation_id", Type: field.TypeUUID},
 	}
 	// OrderShippingDocumentsTable holds the schema information for the "order_shipping_documents" table.
 	OrderShippingDocumentsTable = &schema.Table{
@@ -3675,12 +3631,6 @@ var (
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
-			{
-				Symbol:     "order_shipping_documents_order_consolidations_shipping_documents",
-				Columns:    []*schema.Column{OrderShippingDocumentsColumns[8]},
-				RefColumns: []*schema.Column{OrderConsolidationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
 		},
 		Indexes: []*schema.Index{
 			{
@@ -3692,11 +3642,6 @@ var (
 				Name:    "ordershippingdocument_order_id_house_no",
 				Unique:  true,
 				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[3]},
-			},
-			{
-				Name:    "ordershippingdocument_order_id_consolidation_id",
-				Unique:  false,
-				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[8]},
 			},
 			{
 				Name:    "ordershippingdocument_order_id_status",
@@ -4525,6 +4470,168 @@ var (
 			},
 		},
 	}
+	// SeaMasterBillsColumns holds the columns for the "sea_master_bills" table.
+	SeaMasterBillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "issuer_partner_id", Type: field.TypeUUID},
+		{Name: "master_no", Type: field.TypeString, Size: 64},
+		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "transport_execution_id", Type: field.TypeUUID},
+	}
+	// SeaMasterBillsTable holds the schema information for the "sea_master_bills" table.
+	SeaMasterBillsTable = &schema.Table{
+		Name:       "sea_master_bills",
+		Columns:    SeaMasterBillsColumns,
+		PrimaryKey: []*schema.Column{SeaMasterBillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_master_bills_organizations_sea_master_bills",
+				Columns:    []*schema.Column{SeaMasterBillsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_master_bills_sea_transport_executions_master_bills",
+				Columns:    []*schema.Column{SeaMasterBillsColumns[9]},
+				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seamasterbill_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillsColumns[2]},
+			},
+			{
+				Name:    "seamasterbill_organization_id_issuer_partner_id_normalized_master_no",
+				Unique:  true,
+				Columns: []*schema.Column{SeaMasterBillsColumns[8], SeaMasterBillsColumns[3], SeaMasterBillsColumns[5]},
+			},
+			{
+				Name:    "seamasterbill_organization_id_transport_execution_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillsColumns[8], SeaMasterBillsColumns[9]},
+			},
+		},
+	}
+	// SeaMasterBillOrderLinksColumns holds the columns for the "sea_master_bill_order_links" table.
+	SeaMasterBillOrderLinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "ENDED"}, Default: "ACTIVE"},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ended_reason", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "master_bill_id", Type: field.TypeUUID},
+	}
+	// SeaMasterBillOrderLinksTable holds the schema information for the "sea_master_bill_order_links" table.
+	SeaMasterBillOrderLinksTable = &schema.Table{
+		Name:       "sea_master_bill_order_links",
+		Columns:    SeaMasterBillOrderLinksColumns,
+		PrimaryKey: []*schema.Column{SeaMasterBillOrderLinksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_master_bill_order_links_orders_sea_master_bill_links",
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[8]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_master_bill_order_links_organizations_sea_master_bill_order_links",
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_master_bill_order_links_sea_master_bills_order_links",
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[10]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seamasterbillorderlink_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[2]},
+			},
+			{
+				Name:    "seamasterbillorderlink_organization_id_master_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9], SeaMasterBillOrderLinksColumns[10]},
+			},
+			{
+				Name:    "seamasterbillorderlink_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9], SeaMasterBillOrderLinksColumns[8]},
+			},
+			{
+				Name:    "idx_sea_mbl_order_links_active_order",
+				Unique:  true,
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'ACTIVE'",
+				},
+			},
+		},
+	}
+	// SeaTransportExecutionsColumns holds the columns for the "sea_transport_executions" table.
+	SeaTransportExecutionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "carrier_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "discharge_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transit_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "vessel_name", Type: field.TypeString, Size: 128, Default: ""},
+		{Name: "voyage_no", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "etd", Type: field.TypeTime, Nullable: true},
+		{Name: "eta", Type: field.TypeTime, Nullable: true},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// SeaTransportExecutionsTable holds the schema information for the "sea_transport_executions" table.
+	SeaTransportExecutionsTable = &schema.Table{
+		Name:       "sea_transport_executions",
+		Columns:    SeaTransportExecutionsColumns,
+		PrimaryKey: []*schema.Column{SeaTransportExecutionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_transport_executions_organizations_sea_transport_executions",
+				Columns:    []*schema.Column{SeaTransportExecutionsColumns[12]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seatransportexecution_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaTransportExecutionsColumns[2]},
+			},
+			{
+				Name:    "seatransportexecution_organization_id_carrier_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaTransportExecutionsColumns[12], SeaTransportExecutionsColumns[3]},
+			},
+			{
+				Name:    "seatransportexecution_organization_id_origin_location_id_discharge_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaTransportExecutionsColumns[12], SeaTransportExecutionsColumns[4], SeaTransportExecutionsColumns[5]},
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4846,7 +4953,6 @@ var (
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
 		OrderCommissionAttributionsTable,
-		OrderConsolidationsTable,
 		OrderContainersTable,
 		OrderContainerRequestsTable,
 		OrderEnterpriseTagsTable,
@@ -4875,6 +4981,9 @@ var (
 		RolesTable,
 		RoleAssignmentsTable,
 		RoleOrderOrganizationAccessesTable,
+		SeaMasterBillsTable,
+		SeaMasterBillOrderLinksTable,
+		SeaTransportExecutionsTable,
 		SessionsTable,
 		ShippingLinesTable,
 		ShippingLineContainerPrefixesTable,
@@ -4986,7 +5095,6 @@ func init() {
 	OrderCommissionAttributionsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	OrderCommissionAttributionsTable.ForeignKeys[2].RefTable = PartnersTable
 	OrderCommissionAttributionsTable.ForeignKeys[3].RefTable = UsersTable
-	OrderConsolidationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderContainerRequestsTable.ForeignKeys[0].RefTable = OrdersTable
@@ -5010,7 +5118,6 @@ func init() {
 	OrderReleasePodsTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderShippingDocumentsTable.ForeignKeys[1].RefTable = OrderConsolidationsTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
@@ -5032,6 +5139,12 @@ func init() {
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
+	SeaMasterBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	SeaMasterBillsTable.ForeignKeys[1].RefTable = SeaTransportExecutionsTable
+	SeaMasterBillOrderLinksTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaMasterBillOrderLinksTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaMasterBillOrderLinksTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
+	SeaTransportExecutionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
 	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable

@@ -23,6 +23,7 @@ const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListOrderConsolidations = "/order.v1.OrderService/ListOrderConsolidations"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
 const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
+const OperationOrderServiceMatchSeaMasterBillCandidate = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
 const OperationOrderServiceTransitionOrderClosure = "/order.v1.OrderService/TransitionOrderClosure"
 const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/TransitionOrderStatus"
 const OperationOrderServiceTransitionOrderTermination = "/order.v1.OrderService/TransitionOrderTermination"
@@ -35,6 +36,7 @@ type OrderServiceHTTPServer interface {
 	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
+	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
 	TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
 	TransitionOrderTermination(context.Context, *TransitionOrderTerminationRequest) (*TransitionOrderTerminationResponse, error)
@@ -43,6 +45,7 @@ type OrderServiceHTTPServer interface {
 
 func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("GET", "/api/v1/orders/sea-master-bill-candidate", _OrderService_MatchSeaMasterBillCandidate0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{id}", _OrderService_GetOrder0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders", _OrderService_ListOrders0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/order-reference-check", _OrderService_CheckOrderReference0_HTTP_Handler(srv))
@@ -53,6 +56,25 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/termination", _OrderService_TransitionOrderTermination0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/closure", _OrderService_TransitionOrderClosure0_HTTP_Handler(srv))
+}
+
+func _OrderService_MatchSeaMasterBillCandidate0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MatchSeaMasterBillCandidateRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceMatchSeaMasterBillCandidate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MatchSeaMasterBillCandidate(ctx, req.(*MatchSeaMasterBillCandidateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MatchSeaMasterBillCandidateResponse)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _OrderService_GetOrder0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
@@ -270,6 +292,7 @@ type OrderServiceHTTPClient interface {
 	ListOrderConsolidations(ctx context.Context, req *ListOrderConsolidationsRequest, opts ...http.CallOption) (rsp *ListOrderConsolidationsResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
 	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
+	MatchSeaMasterBillCandidate(ctx context.Context, req *MatchSeaMasterBillCandidateRequest, opts ...http.CallOption) (rsp *MatchSeaMasterBillCandidateResponse, err error)
 	TransitionOrderClosure(ctx context.Context, req *TransitionOrderClosureRequest, opts ...http.CallOption) (rsp *TransitionOrderClosureResponse, err error)
 	TransitionOrderStatus(ctx context.Context, req *TransitionOrderStatusRequest, opts ...http.CallOption) (rsp *TransitionOrderStatusResponse, err error)
 	TransitionOrderTermination(ctx context.Context, req *TransitionOrderTerminationRequest, opts ...http.CallOption) (rsp *TransitionOrderTerminationResponse, err error)
@@ -372,6 +395,22 @@ func (c *OrderServiceHTTPClientImpl) ListPersonnelOptions(ctx context.Context, i
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderServiceListPersonnelOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...http.CallOption) (*MatchSeaMasterBillCandidateResponse, error) {
+	var out MatchSeaMasterBillCandidateResponse
+	pattern := "/api/v1/orders/sea-master-bill-candidate"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceMatchSeaMasterBillCandidate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

@@ -60,14 +60,17 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     >([]);
 
     const containerDocumentOptions = containerDocuments.map((doc) => ({
-      label: `${doc.masterNo} / ${doc.houseNo}`,
+      label: doc.houseNo ? `分单: ${doc.houseNo}` : (doc.id ?? ''),
       value: doc.id ?? '',
     }));
 
     const containerDocumentMap = Object.fromEntries(
       containerDocuments
         .filter((doc) => doc.id)
-        .map((doc) => [doc.id as string, `${doc.masterNo} / ${doc.houseNo}`]),
+        .map((doc) => [
+          doc.id as string,
+          doc.houseNo ? `分单: ${doc.houseNo}` : (doc.id as string),
+        ]),
     );
 
     const columns: ProColumns<API.OrderContainer>[] = [

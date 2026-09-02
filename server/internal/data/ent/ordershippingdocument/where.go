@@ -71,11 +71,6 @@ func OrderID(v uuid.UUID) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.FieldEQ(FieldOrderID, v))
 }
 
-// ConsolidationID applies equality check predicate on the "consolidation_id" field. It's identical to ConsolidationIDEQ.
-func ConsolidationID(v uuid.UUID) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldEQ(FieldConsolidationID, v))
-}
-
 // HouseNo applies equality check predicate on the "house_no" field. It's identical to HouseNoEQ.
 func HouseNo(v string) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.FieldEQ(FieldHouseNo, v))
@@ -189,26 +184,6 @@ func OrderIDIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
 // OrderIDNotIn applies the NotIn predicate on the "order_id" field.
 func OrderIDNotIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.FieldNotIn(FieldOrderID, vs...))
-}
-
-// ConsolidationIDEQ applies the EQ predicate on the "consolidation_id" field.
-func ConsolidationIDEQ(v uuid.UUID) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldEQ(FieldConsolidationID, v))
-}
-
-// ConsolidationIDNEQ applies the NEQ predicate on the "consolidation_id" field.
-func ConsolidationIDNEQ(v uuid.UUID) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldNEQ(FieldConsolidationID, v))
-}
-
-// ConsolidationIDIn applies the In predicate on the "consolidation_id" field.
-func ConsolidationIDIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldIn(FieldConsolidationID, vs...))
-}
-
-// ConsolidationIDNotIn applies the NotIn predicate on the "consolidation_id" field.
-func ConsolidationIDNotIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldNotIn(FieldConsolidationID, vs...))
 }
 
 // HouseNoEQ applies the EQ predicate on the "house_no" field.
@@ -461,29 +436,6 @@ func HasOrder() predicate.OrderShippingDocument {
 func HasOrderWith(preds ...predicate.Order) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(func(s *sql.Selector) {
 		step := newOrderStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasConsolidation applies the HasEdge predicate on the "consolidation" edge.
-func HasConsolidation() predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ConsolidationTable, ConsolidationColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasConsolidationWith applies the HasEdge predicate on the "consolidation" edge with a given conditions (other predicates).
-func HasConsolidationWith(preds ...predicate.OrderConsolidation) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(func(s *sql.Selector) {
-		step := newConsolidationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

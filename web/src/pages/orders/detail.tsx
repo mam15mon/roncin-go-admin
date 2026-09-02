@@ -37,6 +37,7 @@ import {
   parseOrderKind,
   searchPartnersByRole,
 } from './common';
+import { searchPartnerOptions } from '@/utils/options';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
@@ -140,6 +141,8 @@ export default function OrderDetailPage() {
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      searchIssuers: (keyword?: string) =>
+        searchPartnerOptions(keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: async () => {},

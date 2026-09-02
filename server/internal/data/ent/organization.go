@@ -80,8 +80,12 @@ type OrganizationEdges struct {
 	NumberRules []*NumberRule `json:"number_rules,omitempty"`
 	// Orders holds the value of the orders edge.
 	Orders []*Order `json:"orders,omitempty"`
-	// OrderConsolidations holds the value of the order_consolidations edge.
-	OrderConsolidations []*OrderConsolidation `json:"order_consolidations,omitempty"`
+	// SeaTransportExecutions holds the value of the sea_transport_executions edge.
+	SeaTransportExecutions []*SeaTransportExecution `json:"sea_transport_executions,omitempty"`
+	// SeaMasterBills holds the value of the sea_master_bills edge.
+	SeaMasterBills []*SeaMasterBill `json:"sea_master_bills,omitempty"`
+	// SeaMasterBillOrderLinks holds the value of the sea_master_bill_order_links edge.
+	SeaMasterBillOrderLinks []*SeaMasterBillOrderLink `json:"sea_master_bill_order_links,omitempty"`
 	// OrderPersonnel holds the value of the order_personnel edge.
 	OrderPersonnel []*OrderPersonnel `json:"order_personnel,omitempty"`
 	// BackgroundTasks holds the value of the background_tasks edge.
@@ -126,7 +130,7 @@ type OrganizationEdges struct {
 	FinanceBillEnterpriseTags []*FinanceBillEnterpriseTag `json:"finance_bill_enterprise_tags,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [40]bool
+	loadedTypes [42]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -293,19 +297,37 @@ func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
 	return nil, &NotLoadedError{edge: "orders"}
 }
 
-// OrderConsolidationsOrErr returns the OrderConsolidations value or an error if the edge
+// SeaTransportExecutionsOrErr returns the SeaTransportExecutions value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrganizationEdges) OrderConsolidationsOrErr() ([]*OrderConsolidation, error) {
+func (e OrganizationEdges) SeaTransportExecutionsOrErr() ([]*SeaTransportExecution, error) {
 	if e.loadedTypes[18] {
-		return e.OrderConsolidations, nil
+		return e.SeaTransportExecutions, nil
 	}
-	return nil, &NotLoadedError{edge: "order_consolidations"}
+	return nil, &NotLoadedError{edge: "sea_transport_executions"}
+}
+
+// SeaMasterBillsOrErr returns the SeaMasterBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
+	if e.loadedTypes[19] {
+		return e.SeaMasterBills, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bills"}
+}
+
+// SeaMasterBillOrderLinksOrErr returns the SeaMasterBillOrderLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaMasterBillOrderLinksOrErr() ([]*SeaMasterBillOrderLink, error) {
+	if e.loadedTypes[20] {
+		return e.SeaMasterBillOrderLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill_order_links"}
 }
 
 // OrderPersonnelOrErr returns the OrderPersonnel value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderPersonnelOrErr() ([]*OrderPersonnel, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[21] {
 		return e.OrderPersonnel, nil
 	}
 	return nil, &NotLoadedError{edge: "order_personnel"}
@@ -314,7 +336,7 @@ func (e OrganizationEdges) OrderPersonnelOrErr() ([]*OrderPersonnel, error) {
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[22] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -323,7 +345,7 @@ func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
 // FinanceBillsOrErr returns the FinanceBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
-	if e.loadedTypes[21] {
+	if e.loadedTypes[23] {
 		return e.FinanceBills, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bills"}
@@ -332,7 +354,7 @@ func (e OrganizationEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
 // FinanceBillBatchesOrErr returns the FinanceBillBatches value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceBillBatchesOrErr() ([]*FinanceBillBatch, error) {
-	if e.loadedTypes[22] {
+	if e.loadedTypes[24] {
 		return e.FinanceBillBatches, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_batches"}
@@ -341,7 +363,7 @@ func (e OrganizationEdges) FinanceBillBatchesOrErr() ([]*FinanceBillBatch, error
 // PartnerInvoiceProfilesOrErr returns the PartnerInvoiceProfiles value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) PartnerInvoiceProfilesOrErr() ([]*PartnerInvoiceProfile, error) {
-	if e.loadedTypes[23] {
+	if e.loadedTypes[25] {
 		return e.PartnerInvoiceProfiles, nil
 	}
 	return nil, &NotLoadedError{edge: "partner_invoice_profiles"}
@@ -350,7 +372,7 @@ func (e OrganizationEdges) PartnerInvoiceProfilesOrErr() ([]*PartnerInvoiceProfi
 // FinanceInvoicesOrErr returns the FinanceInvoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
-	if e.loadedTypes[24] {
+	if e.loadedTypes[26] {
 		return e.FinanceInvoices, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_invoices"}
@@ -359,7 +381,7 @@ func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
 // FinanceCashflowsOrErr returns the FinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[25] {
+	if e.loadedTypes[27] {
 		return e.FinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_cashflows"}
@@ -368,7 +390,7 @@ func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
 // FinanceVerificationsOrErr returns the FinanceVerifications value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error) {
-	if e.loadedTypes[26] {
+	if e.loadedTypes[28] {
 		return e.FinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_verifications"}
@@ -377,7 +399,7 @@ func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, 
 // FinanceCommissionsOrErr returns the FinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[27] {
+	if e.loadedTypes[29] {
 		return e.FinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commissions"}
@@ -386,7 +408,7 @@ func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, erro
 // FinanceCommissionLinesOrErr returns the FinanceCommissionLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionLinesOrErr() ([]*FinanceCommissionLine, error) {
-	if e.loadedTypes[28] {
+	if e.loadedTypes[30] {
 		return e.FinanceCommissionLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_lines"}
@@ -395,7 +417,7 @@ func (e OrganizationEdges) FinanceCommissionLinesOrErr() ([]*FinanceCommissionLi
 // FinanceCommissionAdjustmentsOrErr returns the FinanceCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[29] {
+	if e.loadedTypes[31] {
 		return e.FinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
@@ -404,7 +426,7 @@ func (e OrganizationEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommis
 // FinanceCommissionRulesOrErr returns the FinanceCommissionRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRule, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[32] {
 		return e.FinanceCommissionRules, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_rules"}
@@ -413,7 +435,7 @@ func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRu
 // OrderCommissionAttributionsOrErr returns the OrderCommissionAttributions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[33] {
 		return e.OrderCommissionAttributions, nil
 	}
 	return nil, &NotLoadedError{edge: "order_commission_attributions"}
@@ -422,7 +444,7 @@ func (e OrganizationEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissio
 // FinanceFeeLedgerPreferencesOrErr returns the FinanceFeeLedgerPreferences value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPreference, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[34] {
 		return e.FinanceFeeLedgerPreferences, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
@@ -431,7 +453,7 @@ func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedg
 // ExchangeRateCustomSettingOrErr returns the ExchangeRateCustomSetting value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCustomSetting, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[35] {
 		return e.ExchangeRateCustomSetting, nil
 	}
 	return nil, &NotLoadedError{edge: "exchange_rate_custom_setting"}
@@ -440,7 +462,7 @@ func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCust
 // FinanceCustomSettingOrErr returns the FinanceCustomSetting value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCustomSettingOrErr() ([]*FinanceCustomSetting, error) {
-	if e.loadedTypes[34] {
+	if e.loadedTypes[36] {
 		return e.FinanceCustomSetting, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_custom_setting"}
@@ -449,7 +471,7 @@ func (e OrganizationEdges) FinanceCustomSettingOrErr() ([]*FinanceCustomSetting,
 // EnterpriseResourcesOrErr returns the EnterpriseResources value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) EnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
-	if e.loadedTypes[35] {
+	if e.loadedTypes[37] {
 		return e.EnterpriseResources, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_resources"}
@@ -458,7 +480,7 @@ func (e OrganizationEdges) EnterpriseResourcesOrErr() ([]*EnterpriseResource, er
 // EnterpriseTagGroupsOrErr returns the EnterpriseTagGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) EnterpriseTagGroupsOrErr() ([]*EnterpriseTagGroup, error) {
-	if e.loadedTypes[36] {
+	if e.loadedTypes[38] {
 		return e.EnterpriseTagGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_tag_groups"}
@@ -467,7 +489,7 @@ func (e OrganizationEdges) EnterpriseTagGroupsOrErr() ([]*EnterpriseTagGroup, er
 // OrderEnterpriseTagsOrErr returns the OrderEnterpriseTags value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderEnterpriseTagsOrErr() ([]*OrderEnterpriseTag, error) {
-	if e.loadedTypes[37] {
+	if e.loadedTypes[39] {
 		return e.OrderEnterpriseTags, nil
 	}
 	return nil, &NotLoadedError{edge: "order_enterprise_tags"}
@@ -476,7 +498,7 @@ func (e OrganizationEdges) OrderEnterpriseTagsOrErr() ([]*OrderEnterpriseTag, er
 // OrderFeeEnterpriseTagsOrErr returns the OrderFeeEnterpriseTags value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderFeeEnterpriseTagsOrErr() ([]*OrderFeeEnterpriseTag, error) {
-	if e.loadedTypes[38] {
+	if e.loadedTypes[40] {
 		return e.OrderFeeEnterpriseTags, nil
 	}
 	return nil, &NotLoadedError{edge: "order_fee_enterprise_tags"}
@@ -485,7 +507,7 @@ func (e OrganizationEdges) OrderFeeEnterpriseTagsOrErr() ([]*OrderFeeEnterpriseT
 // FinanceBillEnterpriseTagsOrErr returns the FinanceBillEnterpriseTags value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceBillEnterpriseTagsOrErr() ([]*FinanceBillEnterpriseTag, error) {
-	if e.loadedTypes[39] {
+	if e.loadedTypes[41] {
 		return e.FinanceBillEnterpriseTags, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_enterprise_tags"}
@@ -686,9 +708,19 @@ func (_m *Organization) QueryOrders() *OrderQuery {
 	return NewOrganizationClient(_m.config).QueryOrders(_m)
 }
 
-// QueryOrderConsolidations queries the "order_consolidations" edge of the Organization entity.
-func (_m *Organization) QueryOrderConsolidations() *OrderConsolidationQuery {
-	return NewOrganizationClient(_m.config).QueryOrderConsolidations(_m)
+// QuerySeaTransportExecutions queries the "sea_transport_executions" edge of the Organization entity.
+func (_m *Organization) QuerySeaTransportExecutions() *SeaTransportExecutionQuery {
+	return NewOrganizationClient(_m.config).QuerySeaTransportExecutions(_m)
+}
+
+// QuerySeaMasterBills queries the "sea_master_bills" edge of the Organization entity.
+func (_m *Organization) QuerySeaMasterBills() *SeaMasterBillQuery {
+	return NewOrganizationClient(_m.config).QuerySeaMasterBills(_m)
+}
+
+// QuerySeaMasterBillOrderLinks queries the "sea_master_bill_order_links" edge of the Organization entity.
+func (_m *Organization) QuerySeaMasterBillOrderLinks() *SeaMasterBillOrderLinkQuery {
+	return NewOrganizationClient(_m.config).QuerySeaMasterBillOrderLinks(_m)
 }
 
 // QueryOrderPersonnel queries the "order_personnel" edge of the Organization entity.

@@ -277,6 +277,8 @@ type Order struct {
 	PersonnelAssignments  []*OrderPersonnel
 	ShippingDocuments     []*OrderShippingDocument
 	ContainerRequests     []*OrderContainerRequest
+	SeaMasterBill         *SeaMasterBillSummary
+	SeaMasterBillInput    *SeaMasterBillInput
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }

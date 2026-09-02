@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -62,5 +63,39 @@ func TestOrderCreateRollsBackAllocatedNumberWhenValidationFails(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("号码分配与订单校验未处于同一回滚事务: %v", err)
+	}
+}
+
+func TestValidateOrderReferencesPreservesPartnerQueryError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("创建 sqlmock 失败: %v", err)
+	}
+	driver := entsql.OpenDB(dialect.Postgres, db)
+	client := ent.NewClient(ent.Driver(driver))
+	t.Cleanup(func() {
+		_ = client.Close()
+		_ = db.Close()
+	})
+
+	mock.ExpectBegin()
+	tx, err := client.Tx(t.Context())
+	if err != nil {
+		t.Fatalf("开启测试事务失败: %v", err)
+	}
+	databaseErr := errors.New("partner query failed")
+	mock.ExpectQuery(`SELECT .* FROM "partner_roles"`).WillReturnError(databaseErr)
+
+	err = validateOrderReferences(t.Context(), tx, uuid.New(), &biz.Order{CustomerID: uuid.New()})
+	if !errors.Is(err, databaseErr) {
+		t.Fatalf("合作方查询错误被改写: got %v, want %v", err, databaseErr)
+	}
+
+	mock.ExpectRollback()
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("回滚测试事务失败: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("未满足 sqlmock 期望: %v", err)
 	}
 }

@@ -2,8 +2,24 @@ import { ProForm } from '@ant-design/pro-components';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { getSeaTemplateSections } from './sea-template';
+import { splitSeaVesselVoyage } from './components/sea/SeaTransportSection';
 
 describe('海运订单新增模板', () => {
+  it('候选查询按后端相同规则拆分船名航次', () => {
+    expect(splitSeaVesselVoyage('EVER GIVEN / 001W')).toEqual({
+      vesselName: 'EVER GIVEN',
+      voyageNo: '001W',
+    });
+    expect(splitSeaVesselVoyage('EVER GIVEN 001W')).toEqual({
+      vesselName: 'EVER GIVEN',
+      voyageNo: '001W',
+    });
+    expect(splitSeaVesselVoyage('EVERGIVEN')).toEqual({
+      vesselName: 'EVERGIVEN',
+      voyageNo: undefined,
+    });
+  });
+
   it('仅生成需求约定的五个业务区块', () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
@@ -41,12 +57,12 @@ describe('海运订单新增模板', () => {
       </ProForm>,
     );
     const transportSection = screen.getByTestId('section-transportInfo');
-    expect(transportSection).toHaveTextContent('主单 (MBL)');
-    expect(transportSection).toHaveTextContent('分单号 (HBL)');
-    expect(transportSection).toHaveTextContent('一主多分');
+    expect(transportSection).toHaveTextContent('MBL 主单号');
+    expect(transportSection).toHaveTextContent('实际签发/承运主体');
+    expect(transportSection).toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
     expect(
-      screen.getByRole('button', { name: /加拼主单 \(MBL\)/ }),
+      screen.getByRole('button', { name: /添加分单 \(HBL\)/ }),
     ).toBeTruthy();
     expect(
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),
@@ -57,7 +73,7 @@ describe('海运订单新增模板', () => {
     expect(cargoSection).not.toHaveTextContent('分单号');
   });
 
-  it('支持多组主分单的展开和删除', async () => {
+  it('支持多条分单 (HBL) 的添加和删除', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -87,25 +103,17 @@ describe('海运订单新增模板', () => {
     );
 
     expect(
-      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
+      screen.getAllByPlaceholderText('分单号 (HBL)'),
     ).toHaveLength(1);
 
-    const addMasterBtn = screen.getByRole('button', {
-      name: /加拼主单 \(MBL\)/,
+    const addHouseBtn = screen.getByRole('button', {
+      name: /添加分单 \(HBL\)/,
     });
-    fireEvent.click(addMasterBtn);
+    fireEvent.click(addHouseBtn);
 
     expect(
-      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
+      screen.getAllByPlaceholderText('分单号 (HBL)'),
     ).toHaveLength(2);
-    expect(
-      screen.getAllByRole('button', { name: /删除该主单组/ }),
-    ).toHaveLength(2);
-
-    fireEvent.click(screen.getAllByRole('button', { name: /删除该主单组/ })[1]);
-    expect(
-      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
-    ).toHaveLength(1);
   });
 
   it('散杂托运隐藏箱型箱量并要求显式清理已有计划', () => {

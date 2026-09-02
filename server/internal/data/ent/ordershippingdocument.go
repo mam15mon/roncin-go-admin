@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
@@ -26,8 +25,6 @@ type OrderShippingDocument struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
-	// ConsolidationID holds the value of the "consolidation_id" field.
-	ConsolidationID uuid.UUID `json:"consolidation_id,omitempty"`
 	// HouseNo holds the value of the "house_no" field.
 	HouseNo string `json:"house_no,omitempty"`
 	// ReleaseType holds the value of the "release_type" field.
@@ -46,15 +43,13 @@ type OrderShippingDocument struct {
 type OrderShippingDocumentEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
-	// Consolidation holds the value of the consolidation edge.
-	Consolidation *OrderConsolidation `json:"consolidation,omitempty"`
 	// Containers holds the value of the containers edge.
 	Containers []*OrderContainer `json:"containers,omitempty"`
 	// ReleasePods holds the value of the release_pods edge.
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [3]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -68,21 +63,10 @@ func (e OrderShippingDocumentEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
-// ConsolidationOrErr returns the Consolidation value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e OrderShippingDocumentEdges) ConsolidationOrErr() (*OrderConsolidation, error) {
-	if e.Consolidation != nil {
-		return e.Consolidation, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: orderconsolidation.Label}
-	}
-	return nil, &NotLoadedError{edge: "consolidation"}
-}
-
 // ContainersOrErr returns the Containers value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderShippingDocumentEdges) ContainersOrErr() ([]*OrderContainer, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Containers, nil
 	}
 	return nil, &NotLoadedError{edge: "containers"}
@@ -91,7 +75,7 @@ func (e OrderShippingDocumentEdges) ContainersOrErr() ([]*OrderContainer, error)
 // ReleasePodsOrErr returns the ReleasePods value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderShippingDocumentEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.ReleasePods, nil
 	}
 	return nil, &NotLoadedError{edge: "release_pods"}
@@ -106,7 +90,7 @@ func (*OrderShippingDocument) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case ordershippingdocument.FieldCreatedAt, ordershippingdocument.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case ordershippingdocument.FieldID, ordershippingdocument.FieldOrderID, ordershippingdocument.FieldConsolidationID:
+		case ordershippingdocument.FieldID, ordershippingdocument.FieldOrderID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -146,12 +130,6 @@ func (_m *OrderShippingDocument) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value != nil {
 				_m.OrderID = *value
-			}
-		case ordershippingdocument.FieldConsolidationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field consolidation_id", values[i])
-			} else if value != nil {
-				_m.ConsolidationID = *value
 			}
 		case ordershippingdocument.FieldHouseNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -195,11 +173,6 @@ func (_m *OrderShippingDocument) QueryOrder() *OrderQuery {
 	return NewOrderShippingDocumentClient(_m.config).QueryOrder(_m)
 }
 
-// QueryConsolidation queries the "consolidation" edge of the OrderShippingDocument entity.
-func (_m *OrderShippingDocument) QueryConsolidation() *OrderConsolidationQuery {
-	return NewOrderShippingDocumentClient(_m.config).QueryConsolidation(_m)
-}
-
 // QueryContainers queries the "containers" edge of the OrderShippingDocument entity.
 func (_m *OrderShippingDocument) QueryContainers() *OrderContainerQuery {
 	return NewOrderShippingDocumentClient(_m.config).QueryContainers(_m)
@@ -241,9 +214,6 @@ func (_m *OrderShippingDocument) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
-	builder.WriteString(", ")
-	builder.WriteString("consolidation_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ConsolidationID))
 	builder.WriteString(", ")
 	builder.WriteString("house_no=")
 	builder.WriteString(_m.HouseNo)

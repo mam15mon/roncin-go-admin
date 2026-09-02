@@ -53,6 +53,12 @@ export type CreateOrderFormValues = {
   operationNotes?: string;
   shippingDocuments?: API.OrderShippingDocumentInput[];
   containerRequests?: API.OrderContainerRequestInput[];
+  seaMasterBillMasterNo?: string;
+  seaMasterBillIssuerPartnerId?: string;
+  seaMasterBillCandidateId?: string;
+  seaMasterBillExpectedCandidateVersion?: number | string;
+  seaMasterBillCorrectionReason?: string;
+  seaMasterBill?: API.SeaMasterBillInput;
   operatorUserId?: string;
   operatorOrganizationId?: string;
   salesUserId?: string;
@@ -97,6 +103,24 @@ export function buildCreateOrderPayload(
   addPersonnel(5, values.documentUserId, values.documentOrganizationId);
   addPersonnel(6, values.commercialUserId, values.commercialOrganizationId);
   addPersonnel(8, values.associate2UserId, values.associate2OrganizationId);
+
+  let seaMasterBill: API.SeaMasterBillInput | undefined;
+  if (values.seaMasterBill) {
+    seaMasterBill = values.seaMasterBill;
+  } else if (values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId) {
+    seaMasterBill = {
+      masterNo: values.seaMasterBillMasterNo || '',
+      issuerPartnerId: values.seaMasterBillIssuerPartnerId || '',
+      candidateId: values.seaMasterBillCandidateId || undefined,
+      expectedCandidateVersion:
+        values.seaMasterBillExpectedCandidateVersion !== undefined &&
+        values.seaMasterBillExpectedCandidateVersion !== null
+          ? String(values.seaMasterBillExpectedCandidateVersion)
+          : undefined,
+      correctionReason:
+        values.seaMasterBillCorrectionReason?.trim() || undefined,
+    };
+  }
 
   return {
     customerId: values.customerId,
@@ -188,11 +212,13 @@ export function buildCreateOrderPayload(
     personnelAssignments,
     shippingDocuments: values.shippingDocuments
       ?.map((doc) => ({
-        ...doc,
-        masterNo: doc.masterNo?.trim() || '',
+        id: doc.id,
         houseNo: doc.houseNo?.trim() || '',
+        releaseType: doc.releaseType?.trim() || undefined,
+        note: doc.note?.trim() || undefined,
       }))
-      .filter((doc) => doc.masterNo || doc.houseNo),
+      .filter((doc) => !!doc.houseNo),
     containerRequests: values.containerRequests,
+    seaMasterBill,
   };
 }

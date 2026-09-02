@@ -64,7 +64,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
@@ -93,6 +92,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -210,7 +212,6 @@ func checkColumn(t, c string) error {
 			ordercargocategory.Table:             ordercargocategory.ValidColumn,
 			ordercargoitem.Table:                 ordercargoitem.ValidColumn,
 			ordercommissionattribution.Table:     ordercommissionattribution.ValidColumn,
-			orderconsolidation.Table:             orderconsolidation.ValidColumn,
 			ordercontainer.Table:                 ordercontainer.ValidColumn,
 			ordercontainerrequest.Table:          ordercontainerrequest.ValidColumn,
 			orderenterprisetag.Table:             orderenterprisetag.ValidColumn,
@@ -239,6 +240,9 @@ func checkColumn(t, c string) error {
 			role.Table:                           role.ValidColumn,
 			roleassignment.Table:                 roleassignment.ValidColumn,
 			roleorderorganizationaccess.Table:    roleorderorganizationaccess.ValidColumn,
+			seamasterbill.Table:                  seamasterbill.ValidColumn,
+			seamasterbillorderlink.Table:         seamasterbillorderlink.ValidColumn,
+			seatransportexecution.Table:          seatransportexecution.ValidColumn,
 			session.Table:                        session.ValidColumn,
 			shippingline.Table:                   shippingline.ValidColumn,
 			shippinglinecontainerprefix.Table:    shippinglinecontainerprefix.ValidColumn,

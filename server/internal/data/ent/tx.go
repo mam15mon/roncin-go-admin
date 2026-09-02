@@ -116,8 +116,6 @@ type Tx struct {
 	OrderCargoItem *OrderCargoItemClient
 	// OrderCommissionAttribution is the client for interacting with the OrderCommissionAttribution builders.
 	OrderCommissionAttribution *OrderCommissionAttributionClient
-	// OrderConsolidation is the client for interacting with the OrderConsolidation builders.
-	OrderConsolidation *OrderConsolidationClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
@@ -174,6 +172,12 @@ type Tx struct {
 	RoleAssignment *RoleAssignmentClient
 	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
+	SeaMasterBill *SeaMasterBillClient
+	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
+	SeaMasterBillOrderLink *SeaMasterBillOrderLinkClient
+	// SeaTransportExecution is the client for interacting with the SeaTransportExecution builders.
+	SeaTransportExecution *SeaTransportExecutionClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -367,7 +371,6 @@ func (tx *Tx) init() {
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderCargoItem = NewOrderCargoItemClient(tx.config)
 	tx.OrderCommissionAttribution = NewOrderCommissionAttributionClient(tx.config)
-	tx.OrderConsolidation = NewOrderConsolidationClient(tx.config)
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
 	tx.OrderEnterpriseTag = NewOrderEnterpriseTagClient(tx.config)
@@ -396,6 +399,9 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
+	tx.SeaMasterBill = NewSeaMasterBillClient(tx.config)
+	tx.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(tx.config)
+	tx.SeaTransportExecution = NewSeaTransportExecutionClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.ShippingLine = NewShippingLineClient(tx.config)
 	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)

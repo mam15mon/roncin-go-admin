@@ -633,18 +633,6 @@ func (f OrderCommissionAttributionFunc) Mutate(ctx context.Context, m ent.Mutati
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderCommissionAttributionMutation", m)
 }
 
-// The OrderConsolidationFunc type is an adapter to allow the use of ordinary
-// function as OrderConsolidation mutator.
-type OrderConsolidationFunc func(context.Context, *ent.OrderConsolidationMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderConsolidationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderConsolidationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderConsolidationMutation", m)
-}
-
 // The OrderContainerFunc type is an adapter to allow the use of ordinary
 // function as OrderContainer mutator.
 type OrderContainerFunc func(context.Context, *ent.OrderContainerMutation) (ent.Value, error)
@@ -979,6 +967,42 @@ func (f RoleOrderOrganizationAccessFunc) Mutate(ctx context.Context, m ent.Mutat
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleOrderOrganizationAccessMutation", m)
+}
+
+// The SeaMasterBillFunc type is an adapter to allow the use of ordinary
+// function as SeaMasterBill mutator.
+type SeaMasterBillFunc func(context.Context, *ent.SeaMasterBillMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaMasterBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaMasterBillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaMasterBillMutation", m)
+}
+
+// The SeaMasterBillOrderLinkFunc type is an adapter to allow the use of ordinary
+// function as SeaMasterBillOrderLink mutator.
+type SeaMasterBillOrderLinkFunc func(context.Context, *ent.SeaMasterBillOrderLinkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaMasterBillOrderLinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaMasterBillOrderLinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaMasterBillOrderLinkMutation", m)
+}
+
+// The SeaTransportExecutionFunc type is an adapter to allow the use of ordinary
+// function as SeaTransportExecution mutator.
+type SeaTransportExecutionFunc func(context.Context, *ent.SeaTransportExecutionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaTransportExecutionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaTransportExecutionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaTransportExecutionMutation", m)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary

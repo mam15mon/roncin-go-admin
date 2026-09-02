@@ -9,6 +9,7 @@
 |-------|-------------|--------|
 | [Directory Structure](./directory-structure.md) | 分层职责与依赖方向 | ✅ |
 | [Database Guidelines](./database-guidelines.md) | Ent、事务封装、并发锁、分页 | ✅ |
+| [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |

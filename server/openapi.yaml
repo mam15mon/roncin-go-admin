@@ -3639,6 +3639,59 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.CreateOrderResponse'
+    /api/v1/orders/sea-master-bill-candidate:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_MatchSeaMasterBillCandidate
+            parameters:
+                - name: issuerPartnerId
+                  in: query
+                  schema:
+                    type: string
+                - name: masterNo
+                  in: query
+                  schema:
+                    type: string
+                - name: carrierId
+                  in: query
+                  schema:
+                    type: string
+                - name: originLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: dischargeLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: transitLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: vesselName
+                  in: query
+                  schema:
+                    type: string
+                - name: voyageNo
+                  in: query
+                  schema:
+                    type: string
+                - name: etd
+                  in: query
+                  schema:
+                    type: string
+                - name: eta
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.MatchSeaMasterBillCandidateResponse'
     /api/v1/orders/{id}:
         get:
             tags:
@@ -11750,23 +11803,16 @@ components:
         order.v1.AddShippingDocumentRequest:
             required:
                 - orderId
-                - masterNo
                 - houseNo
             type: object
             properties:
                 orderId:
-                    type: string
-                masterNo:
                     type: string
                 houseNo:
                     type: string
                 releaseType:
                     type: string
                 note:
-                    type: string
-                masterDocumentType:
-                    type: string
-                masterReleaseMethod:
                     type: string
             description: AddShippingDocumentRequest 添加提单请求。
         order.v1.AddShippingDocumentResponse:
@@ -12118,6 +12164,8 @@ components:
                     type: string
                 consigneeShortName:
                     type: string
+                seaMasterBill:
+                    $ref: '#/components/schemas/order.v1.SeaMasterBillInput'
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -12457,6 +12505,27 @@ components:
                 traceId:
                     type: string
             description: MarkAbnormalCaseResponse 单条异常标记响应。
+        order.v1.MatchSeaMasterBillCandidateResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                matched:
+                    type: boolean
+                candidate:
+                    $ref: '#/components/schemas/order.v1.SeaMasterBillCandidate'
+                conflicts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaVoyageConflict'
+                traceId:
+                    type: string
+            description: MatchSeaMasterBillCandidateResponse 共享主单候选匹配响应。
         order.v1.Order:
             type: object
             properties:
@@ -12649,6 +12718,8 @@ components:
                     items:
                         type: integer
                         format: enum
+                seaMasterBill:
+                    $ref: '#/components/schemas/order.v1.SeaMasterBillSummary'
         order.v1.OrderAbnormalCase:
             type: object
             properties:
@@ -13090,8 +13161,6 @@ components:
                     type: string
                 orderId:
                     type: string
-                masterNo:
-                    type: string
                 houseNo:
                     type: string
                 releaseType:
@@ -13105,22 +13174,13 @@ components:
                     type: string
                 updatedAt:
                     type: string
-                consolidationId:
-                    type: string
-                masterDocumentType:
-                    type: string
-                masterReleaseMethod:
-                    type: string
-            description: OrderShippingDocument 提单信息。
+            description: OrderShippingDocument 提单（HBL）信息。
         order.v1.OrderShippingDocumentInput:
             required:
-                - masterNo
                 - houseNo
             type: object
             properties:
                 id:
-                    type: string
-                masterNo:
                     type: string
                 houseNo:
                     type: string
@@ -13129,12 +13189,7 @@ components:
                     description: release_type 是分单（HBL）签放方式。
                 note:
                     type: string
-                masterDocumentType:
-                    type: string
-                    description: 主单属性存储在共享的主单批次，同一主单组内必须一致。
-                masterReleaseMethod:
-                    type: string
-            description: OrderShippingDocumentInput 订单表单中的主分单输入。
+            description: OrderShippingDocumentInput 订单表单中的分单输入。
         order.v1.RegisterAttachmentRequest:
             required:
                 - orderId
@@ -13343,6 +13398,145 @@ components:
                     type: string
                 traceId:
                     type: string
+        order.v1.SeaMasterBillCandidate:
+            type: object
+            properties:
+                id:
+                    type: string
+                version:
+                    type: string
+                masterNo:
+                    type: string
+                issuerPartnerId:
+                    type: string
+                issuerPartnerName:
+                    type: string
+                transportExecution:
+                    $ref: '#/components/schemas/order.v1.SeaTransportExecution'
+                memberCount:
+                    type: integer
+                    format: int32
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaMasterBillMemberSummary'
+            description: SeaMasterBillCandidate 匹配到的已有主单候选。
+        order.v1.SeaMasterBillInput:
+            required:
+                - masterNo
+                - issuerPartnerId
+            type: object
+            properties:
+                masterNo:
+                    type: string
+                issuerPartnerId:
+                    type: string
+                candidateId:
+                    type: string
+                expectedCandidateVersion:
+                    type: string
+                correctionReason:
+                    type: string
+            description: SeaMasterBillInput 海运主单输入（新建或确认关联已有主单）。
+        order.v1.SeaMasterBillMemberSummary:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                customerReferenceNo:
+                    type: string
+            description: SeaMasterBillMemberSummary 共享主单成员操作票摘要。
+        order.v1.SeaMasterBillSummary:
+            type: object
+            properties:
+                masterBillId:
+                    type: string
+                masterNo:
+                    type: string
+                issuerPartnerId:
+                    type: string
+                issuerPartnerName:
+                    type: string
+                transportExecutionId:
+                    type: string
+                carrierId:
+                    type: string
+                carrierName:
+                    type: string
+                originLocationId:
+                    type: string
+                originLocationName:
+                    type: string
+                dischargeLocationId:
+                    type: string
+                dischargeLocationName:
+                    type: string
+                transitLocationId:
+                    type: string
+                transitLocationName:
+                    type: string
+                vesselName:
+                    type: string
+                voyageNo:
+                    type: string
+                etd:
+                    type: string
+                eta:
+                    type: string
+                status:
+                    type: string
+                version:
+                    type: string
+                memberCount:
+                    type: integer
+                    format: int32
+            description: SeaMasterBillSummary 海运主单及当前航程摘要。
+        order.v1.SeaTransportExecution:
+            type: object
+            properties:
+                id:
+                    type: string
+                carrierId:
+                    type: string
+                carrierName:
+                    type: string
+                originLocationId:
+                    type: string
+                originLocationName:
+                    type: string
+                dischargeLocationId:
+                    type: string
+                dischargeLocationName:
+                    type: string
+                transitLocationId:
+                    type: string
+                transitLocationName:
+                    type: string
+                vesselName:
+                    type: string
+                voyageNo:
+                    type: string
+                etd:
+                    type: string
+                eta:
+                    type: string
+                version:
+                    type: string
+            description: SeaTransportExecution 独立运输执行摘要。
+        order.v1.SeaVoyageConflict:
+            type: object
+            properties:
+                field:
+                    type: string
+                masterValue:
+                    type: string
+                orderValue:
+                    type: string
+                message:
+                    type: string
+            description: SeaVoyageConflict 航程冲突详情。
         order.v1.SetMilestoneRequest:
             required:
                 - orderId
@@ -13830,6 +14024,8 @@ components:
                     type: string
                 consigneeShortName:
                     type: string
+                seaMasterBill:
+                    $ref: '#/components/schemas/order.v1.SeaMasterBillInput'
             description: UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
         order.v1.UpdateOrderResponse:
             type: object
@@ -13882,7 +14078,6 @@ components:
             required:
                 - orderId
                 - id
-                - masterNo
                 - houseNo
             type: object
             properties:
@@ -13890,17 +14085,11 @@ components:
                     type: string
                 id:
                     type: string
-                masterNo:
-                    type: string
                 houseNo:
                     type: string
                 releaseType:
                     type: string
                 note:
-                    type: string
-                masterDocumentType:
-                    type: string
-                masterReleaseMethod:
                     type: string
             description: UpdateShippingDocumentRequest 更新提单字段请求。
         order.v1.UpdateShippingDocumentResponse:

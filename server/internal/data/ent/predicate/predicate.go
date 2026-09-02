@@ -162,9 +162,6 @@ type OrderCargoItem func(*sql.Selector)
 // OrderCommissionAttribution is the predicate function for ordercommissionattribution builders.
 type OrderCommissionAttribution func(*sql.Selector)
 
-// OrderConsolidation is the predicate function for orderconsolidation builders.
-type OrderConsolidation func(*sql.Selector)
-
 // OrderContainer is the predicate function for ordercontainer builders.
 type OrderContainer func(*sql.Selector)
 
@@ -248,6 +245,15 @@ type RoleAssignment func(*sql.Selector)
 
 // RoleOrderOrganizationAccess is the predicate function for roleorderorganizationaccess builders.
 type RoleOrderOrganizationAccess func(*sql.Selector)
+
+// SeaMasterBill is the predicate function for seamasterbill builders.
+type SeaMasterBill func(*sql.Selector)
+
+// SeaMasterBillOrderLink is the predicate function for seamasterbillorderlink builders.
+type SeaMasterBillOrderLink func(*sql.Selector)
+
+// SeaTransportExecution is the predicate function for seatransportexecution builders.
+type SeaTransportExecution func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)

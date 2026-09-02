@@ -60,20 +60,20 @@ enum OrderShippingDocumentStatus {
   ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED = 3;
 }
 
-// OrderShippingDocument 提单信息。
+// OrderShippingDocument 提单（HBL）信息。
 message OrderShippingDocument {
   string id = 1;
   string order_id = 2;
-  string master_no = 3;
+  reserved 3;
+  reserved "master_no";
   string house_no = 4;
   optional string release_type = 5;
   OrderShippingDocumentStatus status = 6;
   optional string note = 7;
   string created_at = 8;
   string updated_at = 9;
-  string consolidation_id = 10;
-  optional string master_document_type = 11;
-  optional string master_release_method = 12;
+  reserved 10, 11, 12;
+  reserved "consolidation_id", "master_document_type", "master_release_method";
 }
 
 // ListShippingDocumentsRequest 获取提单列表请求。
@@ -84,24 +84,26 @@ message ListShippingDocumentsRequest {
 // AddShippingDocumentRequest 添加提单请求。
 message AddShippingDocumentRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string master_no = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 2;
+  reserved "master_no";
   string house_no = 3 [(google.api.field_behavior) = REQUIRED];
   optional string release_type = 4;
   optional string note = 5;
-  optional string master_document_type = 6;
-  optional string master_release_method = 7;
+  reserved 6, 7;
+  reserved "master_document_type", "master_release_method";
 }
 
 // UpdateShippingDocumentRequest 更新提单字段请求。
 message UpdateShippingDocumentRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
-  string master_no = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 3;
+  reserved "master_no";
   string house_no = 4 [(google.api.field_behavior) = REQUIRED];
   optional string release_type = 5;
   optional string note = 6;
-  optional string master_document_type = 7;
-  optional string master_release_method = 8;
+  reserved 7, 8;
+  reserved "master_document_type", "master_release_method";
 }
 
 // TransitionShippingDocumentStatusRequest 流转提单状态请求。

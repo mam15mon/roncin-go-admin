@@ -16,9 +16,9 @@ func TestOrderConsolidatedMasterFilterRequiresMultipleOrders(t *testing.T) {
 
 	query, args := selector.Query()
 	for _, fragment := range []string{
-		`JOIN "order_consolidations"`,
-		`LOWER("filter_consolidation"."master_no") LIKE`,
-		`COUNT(DISTINCT "filter_document"."order_id") > 1`,
+		`JOIN "sea_master_bills"`,
+		`LOWER("filter_mbl"."master_no") LIKE`,
+		`COUNT(*) FROM "sea_master_bill_order_links"`,
 	} {
 		if !strings.Contains(query, fragment) {
 			t.Fatalf("查询未包含 %q: %s", fragment, query)

@@ -19,16 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderService_GetOrder_FullMethodName                   = "/order.v1.OrderService/GetOrder"
-	OrderService_ListOrders_FullMethodName                 = "/order.v1.OrderService/ListOrders"
-	OrderService_CheckOrderReference_FullMethodName        = "/order.v1.OrderService/CheckOrderReference"
-	OrderService_ListPersonnelOptions_FullMethodName       = "/order.v1.OrderService/ListPersonnelOptions"
-	OrderService_ListOrderConsolidations_FullMethodName    = "/order.v1.OrderService/ListOrderConsolidations"
-	OrderService_CreateOrder_FullMethodName                = "/order.v1.OrderService/CreateOrder"
-	OrderService_UpdateOrder_FullMethodName                = "/order.v1.OrderService/UpdateOrder"
-	OrderService_TransitionOrderStatus_FullMethodName      = "/order.v1.OrderService/TransitionOrderStatus"
-	OrderService_TransitionOrderTermination_FullMethodName = "/order.v1.OrderService/TransitionOrderTermination"
-	OrderService_TransitionOrderClosure_FullMethodName     = "/order.v1.OrderService/TransitionOrderClosure"
+	OrderService_MatchSeaMasterBillCandidate_FullMethodName = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
+	OrderService_GetOrder_FullMethodName                    = "/order.v1.OrderService/GetOrder"
+	OrderService_ListOrders_FullMethodName                  = "/order.v1.OrderService/ListOrders"
+	OrderService_CheckOrderReference_FullMethodName         = "/order.v1.OrderService/CheckOrderReference"
+	OrderService_ListPersonnelOptions_FullMethodName        = "/order.v1.OrderService/ListPersonnelOptions"
+	OrderService_ListOrderConsolidations_FullMethodName     = "/order.v1.OrderService/ListOrderConsolidations"
+	OrderService_CreateOrder_FullMethodName                 = "/order.v1.OrderService/CreateOrder"
+	OrderService_UpdateOrder_FullMethodName                 = "/order.v1.OrderService/UpdateOrder"
+	OrderService_TransitionOrderStatus_FullMethodName       = "/order.v1.OrderService/TransitionOrderStatus"
+	OrderService_TransitionOrderTermination_FullMethodName  = "/order.v1.OrderService/TransitionOrderTermination"
+	OrderService_TransitionOrderClosure_FullMethodName      = "/order.v1.OrderService/TransitionOrderClosure"
 )
 
 // OrderServiceClient is the client API for OrderService service.
@@ -37,6 +38,7 @@ const (
 //
 // OrderService 订单核心服务。
 type OrderServiceClient interface {
+	MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...grpc.CallOption) (*MatchSeaMasterBillCandidateResponse, error)
 	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error)
 	ListOrders(ctx context.Context, in *ListOrdersRequest, opts ...grpc.CallOption) (*ListOrdersResponse, error)
 	CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...grpc.CallOption) (*CheckOrderReferenceResponse, error)
@@ -55,6 +57,16 @@ type orderServiceClient struct {
 
 func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 	return &orderServiceClient{cc}
+}
+
+func (c *orderServiceClient) MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...grpc.CallOption) (*MatchSeaMasterBillCandidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MatchSeaMasterBillCandidateResponse)
+	err := c.cc.Invoke(ctx, OrderService_MatchSeaMasterBillCandidate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *orderServiceClient) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error) {
@@ -163,6 +175,7 @@ func (c *orderServiceClient) TransitionOrderClosure(ctx context.Context, in *Tra
 //
 // OrderService 订单核心服务。
 type OrderServiceServer interface {
+	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*CheckOrderReferenceResponse, error)
@@ -183,6 +196,9 @@ type OrderServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderServiceServer struct{}
 
+func (UnimplementedOrderServiceServer) MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MatchSeaMasterBillCandidate not implemented")
+}
 func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOrder not implemented")
 }
@@ -232,6 +248,24 @@ func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&OrderService_ServiceDesc, srv)
+}
+
+func _OrderService_MatchSeaMasterBillCandidate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MatchSeaMasterBillCandidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).MatchSeaMasterBillCandidate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_MatchSeaMasterBillCandidate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).MatchSeaMasterBillCandidate(ctx, req.(*MatchSeaMasterBillCandidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrderService_GetOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -421,6 +455,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "order.v1.OrderService",
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "MatchSeaMasterBillCandidate",
+			Handler:    _OrderService_MatchSeaMasterBillCandidate_Handler,
+		},
 		{
 			MethodName: "GetOrder",
 			Handler:    _OrderService_GetOrder_Handler,

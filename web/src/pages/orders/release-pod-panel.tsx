@@ -105,7 +105,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     }));
 
     const documentOptions = documents.map((document) => ({
-      label: `${document.masterNo} / ${document.houseNo}`,
+      label: `分单: ${document.houseNo}`,
       value: document.id ?? '',
     }));
     const documentMap = Object.fromEntries(
@@ -113,7 +113,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         .filter((document) => document.id)
         .map((document) => [
           document.id as string,
-          `${document.masterNo} / ${document.houseNo}`,
+          `分单: ${document.houseNo}`,
         ]),
     );
 

@@ -68,7 +68,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
@@ -97,6 +96,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -213,8 +215,6 @@ type Client struct {
 	OrderCargoItem *OrderCargoItemClient
 	// OrderCommissionAttribution is the client for interacting with the OrderCommissionAttribution builders.
 	OrderCommissionAttribution *OrderCommissionAttributionClient
-	// OrderConsolidation is the client for interacting with the OrderConsolidation builders.
-	OrderConsolidation *OrderConsolidationClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
@@ -271,6 +271,12 @@ type Client struct {
 	RoleAssignment *RoleAssignmentClient
 	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
+	SeaMasterBill *SeaMasterBillClient
+	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
+	SeaMasterBillOrderLink *SeaMasterBillOrderLinkClient
+	// SeaTransportExecution is the client for interacting with the SeaTransportExecution builders.
+	SeaTransportExecution *SeaTransportExecutionClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -344,7 +350,6 @@ func (c *Client) init() {
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
 	c.OrderCargoItem = NewOrderCargoItemClient(c.config)
 	c.OrderCommissionAttribution = NewOrderCommissionAttributionClient(c.config)
-	c.OrderConsolidation = NewOrderConsolidationClient(c.config)
 	c.OrderContainer = NewOrderContainerClient(c.config)
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
 	c.OrderEnterpriseTag = NewOrderEnterpriseTagClient(c.config)
@@ -373,6 +378,9 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
+	c.SeaMasterBill = NewSeaMasterBillClient(c.config)
+	c.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(c.config)
+	c.SeaTransportExecution = NewSeaTransportExecutionClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.ShippingLine = NewShippingLineClient(c.config)
 	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
@@ -522,7 +530,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
 		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
-		OrderConsolidation:             NewOrderConsolidationClient(cfg),
 		OrderContainer:                 NewOrderContainerClient(cfg),
 		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
 		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
@@ -551,6 +558,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
+		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
+		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
 		Session:                        NewSessionClient(cfg),
 		ShippingLine:                   NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
@@ -627,7 +637,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
 		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
-		OrderConsolidation:             NewOrderConsolidationClient(cfg),
 		OrderContainer:                 NewOrderContainerClient(cfg),
 		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
 		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
@@ -656,6 +665,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
+		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
+		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
 		Session:                        NewSessionClient(cfg),
 		ShippingLine:                   NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
@@ -706,15 +718,15 @@ func (c *Client) Use(hooks ...Hook) {
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
 		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
 		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
@@ -741,15 +753,15 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
 		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
 		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -863,8 +875,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderCargoItem.mutate(ctx, m)
 	case *OrderCommissionAttributionMutation:
 		return c.OrderCommissionAttribution.mutate(ctx, m)
-	case *OrderConsolidationMutation:
-		return c.OrderConsolidation.mutate(ctx, m)
 	case *OrderContainerMutation:
 		return c.OrderContainer.mutate(ctx, m)
 	case *OrderContainerRequestMutation:
@@ -921,6 +931,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoleAssignment.mutate(ctx, m)
 	case *RoleOrderOrganizationAccessMutation:
 		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
+	case *SeaMasterBillMutation:
+		return c.SeaMasterBill.mutate(ctx, m)
+	case *SeaMasterBillOrderLinkMutation:
+		return c.SeaMasterBillOrderLink.mutate(ctx, m)
+	case *SeaTransportExecutionMutation:
+		return c.SeaTransportExecution.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *ShippingLineMutation:
@@ -9523,6 +9539,22 @@ func (c *OrderClient) QueryEnterpriseTagLinks(_m *Order) *OrderEnterpriseTagQuer
 	return query
 }
 
+// QuerySeaMasterBillLinks queries the sea_master_bill_links edge of a Order.
+func (c *OrderClient) QuerySeaMasterBillLinks(_m *Order) *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaMasterBillLinksTable, order.SeaMasterBillLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -10338,171 +10370,6 @@ func (c *OrderCommissionAttributionClient) mutate(ctx context.Context, m *OrderC
 		return (&OrderCommissionAttributionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderCommissionAttribution mutation op: %q", m.Op())
-	}
-}
-
-// OrderConsolidationClient is a client for the OrderConsolidation schema.
-type OrderConsolidationClient struct {
-	config
-}
-
-// NewOrderConsolidationClient returns a client for the OrderConsolidation from the given config.
-func NewOrderConsolidationClient(c config) *OrderConsolidationClient {
-	return &OrderConsolidationClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `orderconsolidation.Hooks(f(g(h())))`.
-func (c *OrderConsolidationClient) Use(hooks ...Hook) {
-	c.hooks.OrderConsolidation = append(c.hooks.OrderConsolidation, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `orderconsolidation.Intercept(f(g(h())))`.
-func (c *OrderConsolidationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.OrderConsolidation = append(c.inters.OrderConsolidation, interceptors...)
-}
-
-// Create returns a builder for creating a OrderConsolidation entity.
-func (c *OrderConsolidationClient) Create() *OrderConsolidationCreate {
-	mutation := newOrderConsolidationMutation(c.config, OpCreate)
-	return &OrderConsolidationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of OrderConsolidation entities.
-func (c *OrderConsolidationClient) CreateBulk(builders ...*OrderConsolidationCreate) *OrderConsolidationCreateBulk {
-	return &OrderConsolidationCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *OrderConsolidationClient) MapCreateBulk(slice any, setFunc func(*OrderConsolidationCreate, int)) *OrderConsolidationCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &OrderConsolidationCreateBulk{err: fmt.Errorf("calling to OrderConsolidationClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*OrderConsolidationCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &OrderConsolidationCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for OrderConsolidation.
-func (c *OrderConsolidationClient) Update() *OrderConsolidationUpdate {
-	mutation := newOrderConsolidationMutation(c.config, OpUpdate)
-	return &OrderConsolidationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *OrderConsolidationClient) UpdateOne(_m *OrderConsolidation) *OrderConsolidationUpdateOne {
-	mutation := newOrderConsolidationMutation(c.config, OpUpdateOne, withOrderConsolidation(_m))
-	return &OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *OrderConsolidationClient) UpdateOneID(id uuid.UUID) *OrderConsolidationUpdateOne {
-	mutation := newOrderConsolidationMutation(c.config, OpUpdateOne, withOrderConsolidationID(id))
-	return &OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for OrderConsolidation.
-func (c *OrderConsolidationClient) Delete() *OrderConsolidationDelete {
-	mutation := newOrderConsolidationMutation(c.config, OpDelete)
-	return &OrderConsolidationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *OrderConsolidationClient) DeleteOne(_m *OrderConsolidation) *OrderConsolidationDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *OrderConsolidationClient) DeleteOneID(id uuid.UUID) *OrderConsolidationDeleteOne {
-	builder := c.Delete().Where(orderconsolidation.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &OrderConsolidationDeleteOne{builder}
-}
-
-// Query returns a query builder for OrderConsolidation.
-func (c *OrderConsolidationClient) Query() *OrderConsolidationQuery {
-	return &OrderConsolidationQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeOrderConsolidation},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a OrderConsolidation entity by its id.
-func (c *OrderConsolidationClient) Get(ctx context.Context, id uuid.UUID) (*OrderConsolidation, error) {
-	return c.Query().Where(orderconsolidation.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *OrderConsolidationClient) GetX(ctx context.Context, id uuid.UUID) *OrderConsolidation {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOrganization queries the organization edge of a OrderConsolidation.
-func (c *OrderConsolidationClient) QueryOrganization(_m *OrderConsolidation) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, orderconsolidation.OrganizationTable, orderconsolidation.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryShippingDocuments queries the shipping_documents edge of a OrderConsolidation.
-func (c *OrderConsolidationClient) QueryShippingDocuments(_m *OrderConsolidation) *OrderShippingDocumentQuery {
-	query := (&OrderShippingDocumentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, id),
-			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, orderconsolidation.ShippingDocumentsTable, orderconsolidation.ShippingDocumentsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *OrderConsolidationClient) Hooks() []Hook {
-	return c.hooks.OrderConsolidation
-}
-
-// Interceptors returns the client interceptors.
-func (c *OrderConsolidationClient) Interceptors() []Interceptor {
-	return c.inters.OrderConsolidation
-}
-
-func (c *OrderConsolidationClient) mutate(ctx context.Context, m *OrderConsolidationMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&OrderConsolidationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&OrderConsolidationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&OrderConsolidationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown OrderConsolidation mutation op: %q", m.Op())
 	}
 }
 
@@ -12344,22 +12211,6 @@ func (c *OrderShippingDocumentClient) QueryOrder(_m *OrderShippingDocument) *Ord
 	return query
 }
 
-// QueryConsolidation queries the consolidation edge of a OrderShippingDocument.
-func (c *OrderShippingDocumentClient) QueryConsolidation(_m *OrderShippingDocument) *OrderConsolidationQuery {
-	query := (&OrderConsolidationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, id),
-			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.ConsolidationTable, ordershippingdocument.ConsolidationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryContainers queries the containers edge of a OrderShippingDocument.
 func (c *OrderShippingDocumentClient) QueryContainers(_m *OrderShippingDocument) *OrderContainerQuery {
 	query := (&OrderContainerClient{config: c.config}).Query()
@@ -12813,15 +12664,47 @@ func (c *OrganizationClient) QueryOrders(_m *Organization) *OrderQuery {
 	return query
 }
 
-// QueryOrderConsolidations queries the order_consolidations edge of a Organization.
-func (c *OrganizationClient) QueryOrderConsolidations(_m *Organization) *OrderConsolidationQuery {
-	query := (&OrderConsolidationClient{config: c.config}).Query()
+// QuerySeaTransportExecutions queries the sea_transport_executions edge of a Organization.
+func (c *OrganizationClient) QuerySeaTransportExecutions(_m *Organization) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderConsolidationsTable, organization.OrderConsolidationsColumn),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaTransportExecutionsTable, organization.SeaTransportExecutionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBills queries the sea_master_bills edge of a Organization.
+func (c *OrganizationClient) QuerySeaMasterBills(_m *Organization) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaMasterBillsTable, organization.SeaMasterBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillOrderLinks queries the sea_master_bill_order_links edge of a Organization.
+func (c *OrganizationClient) QuerySeaMasterBillOrderLinks(_m *Organization) *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaMasterBillOrderLinksTable, organization.SeaMasterBillOrderLinksColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -16010,6 +15893,533 @@ func (c *RoleOrderOrganizationAccessClient) mutate(ctx context.Context, m *RoleO
 	}
 }
 
+// SeaMasterBillClient is a client for the SeaMasterBill schema.
+type SeaMasterBillClient struct {
+	config
+}
+
+// NewSeaMasterBillClient returns a client for the SeaMasterBill from the given config.
+func NewSeaMasterBillClient(c config) *SeaMasterBillClient {
+	return &SeaMasterBillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seamasterbill.Hooks(f(g(h())))`.
+func (c *SeaMasterBillClient) Use(hooks ...Hook) {
+	c.hooks.SeaMasterBill = append(c.hooks.SeaMasterBill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seamasterbill.Intercept(f(g(h())))`.
+func (c *SeaMasterBillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaMasterBill = append(c.inters.SeaMasterBill, interceptors...)
+}
+
+// Create returns a builder for creating a SeaMasterBill entity.
+func (c *SeaMasterBillClient) Create() *SeaMasterBillCreate {
+	mutation := newSeaMasterBillMutation(c.config, OpCreate)
+	return &SeaMasterBillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaMasterBill entities.
+func (c *SeaMasterBillClient) CreateBulk(builders ...*SeaMasterBillCreate) *SeaMasterBillCreateBulk {
+	return &SeaMasterBillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaMasterBillClient) MapCreateBulk(slice any, setFunc func(*SeaMasterBillCreate, int)) *SeaMasterBillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaMasterBillCreateBulk{err: fmt.Errorf("calling to SeaMasterBillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaMasterBillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaMasterBillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaMasterBill.
+func (c *SeaMasterBillClient) Update() *SeaMasterBillUpdate {
+	mutation := newSeaMasterBillMutation(c.config, OpUpdate)
+	return &SeaMasterBillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaMasterBillClient) UpdateOne(_m *SeaMasterBill) *SeaMasterBillUpdateOne {
+	mutation := newSeaMasterBillMutation(c.config, OpUpdateOne, withSeaMasterBill(_m))
+	return &SeaMasterBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaMasterBillClient) UpdateOneID(id uuid.UUID) *SeaMasterBillUpdateOne {
+	mutation := newSeaMasterBillMutation(c.config, OpUpdateOne, withSeaMasterBillID(id))
+	return &SeaMasterBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaMasterBill.
+func (c *SeaMasterBillClient) Delete() *SeaMasterBillDelete {
+	mutation := newSeaMasterBillMutation(c.config, OpDelete)
+	return &SeaMasterBillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaMasterBillClient) DeleteOne(_m *SeaMasterBill) *SeaMasterBillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaMasterBillClient) DeleteOneID(id uuid.UUID) *SeaMasterBillDeleteOne {
+	builder := c.Delete().Where(seamasterbill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaMasterBillDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaMasterBill.
+func (c *SeaMasterBillClient) Query() *SeaMasterBillQuery {
+	return &SeaMasterBillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaMasterBill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaMasterBill entity by its id.
+func (c *SeaMasterBillClient) Get(ctx context.Context, id uuid.UUID) (*SeaMasterBill, error) {
+	return c.Query().Where(seamasterbill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaMasterBillClient) GetX(ctx context.Context, id uuid.UUID) *SeaMasterBill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryOrganization(_m *SeaMasterBill) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.OrganizationTable, seamasterbill.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecution queries the transport_execution edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryTransportExecution(_m *SeaMasterBill) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.TransportExecutionTable, seamasterbill.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderLinks queries the order_links edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryOrderLinks(_m *SeaMasterBill) *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.OrderLinksTable, seamasterbill.OrderLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaMasterBillClient) Hooks() []Hook {
+	return c.hooks.SeaMasterBill
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaMasterBillClient) Interceptors() []Interceptor {
+	return c.inters.SeaMasterBill
+}
+
+func (c *SeaMasterBillClient) mutate(ctx context.Context, m *SeaMasterBillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaMasterBillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaMasterBillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaMasterBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaMasterBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaMasterBill mutation op: %q", m.Op())
+	}
+}
+
+// SeaMasterBillOrderLinkClient is a client for the SeaMasterBillOrderLink schema.
+type SeaMasterBillOrderLinkClient struct {
+	config
+}
+
+// NewSeaMasterBillOrderLinkClient returns a client for the SeaMasterBillOrderLink from the given config.
+func NewSeaMasterBillOrderLinkClient(c config) *SeaMasterBillOrderLinkClient {
+	return &SeaMasterBillOrderLinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seamasterbillorderlink.Hooks(f(g(h())))`.
+func (c *SeaMasterBillOrderLinkClient) Use(hooks ...Hook) {
+	c.hooks.SeaMasterBillOrderLink = append(c.hooks.SeaMasterBillOrderLink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seamasterbillorderlink.Intercept(f(g(h())))`.
+func (c *SeaMasterBillOrderLinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaMasterBillOrderLink = append(c.inters.SeaMasterBillOrderLink, interceptors...)
+}
+
+// Create returns a builder for creating a SeaMasterBillOrderLink entity.
+func (c *SeaMasterBillOrderLinkClient) Create() *SeaMasterBillOrderLinkCreate {
+	mutation := newSeaMasterBillOrderLinkMutation(c.config, OpCreate)
+	return &SeaMasterBillOrderLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaMasterBillOrderLink entities.
+func (c *SeaMasterBillOrderLinkClient) CreateBulk(builders ...*SeaMasterBillOrderLinkCreate) *SeaMasterBillOrderLinkCreateBulk {
+	return &SeaMasterBillOrderLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaMasterBillOrderLinkClient) MapCreateBulk(slice any, setFunc func(*SeaMasterBillOrderLinkCreate, int)) *SeaMasterBillOrderLinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaMasterBillOrderLinkCreateBulk{err: fmt.Errorf("calling to SeaMasterBillOrderLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaMasterBillOrderLinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaMasterBillOrderLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) Update() *SeaMasterBillOrderLinkUpdate {
+	mutation := newSeaMasterBillOrderLinkMutation(c.config, OpUpdate)
+	return &SeaMasterBillOrderLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaMasterBillOrderLinkClient) UpdateOne(_m *SeaMasterBillOrderLink) *SeaMasterBillOrderLinkUpdateOne {
+	mutation := newSeaMasterBillOrderLinkMutation(c.config, OpUpdateOne, withSeaMasterBillOrderLink(_m))
+	return &SeaMasterBillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaMasterBillOrderLinkClient) UpdateOneID(id uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	mutation := newSeaMasterBillOrderLinkMutation(c.config, OpUpdateOne, withSeaMasterBillOrderLinkID(id))
+	return &SeaMasterBillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) Delete() *SeaMasterBillOrderLinkDelete {
+	mutation := newSeaMasterBillOrderLinkMutation(c.config, OpDelete)
+	return &SeaMasterBillOrderLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaMasterBillOrderLinkClient) DeleteOne(_m *SeaMasterBillOrderLink) *SeaMasterBillOrderLinkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaMasterBillOrderLinkClient) DeleteOneID(id uuid.UUID) *SeaMasterBillOrderLinkDeleteOne {
+	builder := c.Delete().Where(seamasterbillorderlink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaMasterBillOrderLinkDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) Query() *SeaMasterBillOrderLinkQuery {
+	return &SeaMasterBillOrderLinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaMasterBillOrderLink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaMasterBillOrderLink entity by its id.
+func (c *SeaMasterBillOrderLinkClient) Get(ctx context.Context, id uuid.UUID) (*SeaMasterBillOrderLink, error) {
+	return c.Query().Where(seamasterbillorderlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaMasterBillOrderLinkClient) GetX(ctx context.Context, id uuid.UUID) *SeaMasterBillOrderLink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) QueryOrganization(_m *SeaMasterBillOrderLink) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.OrganizationTable, seamasterbillorderlink.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) QueryMasterBill(_m *SeaMasterBillOrderLink) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.MasterBillTable, seamasterbillorderlink.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) QueryOrder(_m *SeaMasterBillOrderLink) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.OrderTable, seamasterbillorderlink.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaMasterBillOrderLinkClient) Hooks() []Hook {
+	return c.hooks.SeaMasterBillOrderLink
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaMasterBillOrderLinkClient) Interceptors() []Interceptor {
+	return c.inters.SeaMasterBillOrderLink
+}
+
+func (c *SeaMasterBillOrderLinkClient) mutate(ctx context.Context, m *SeaMasterBillOrderLinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaMasterBillOrderLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaMasterBillOrderLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaMasterBillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaMasterBillOrderLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaMasterBillOrderLink mutation op: %q", m.Op())
+	}
+}
+
+// SeaTransportExecutionClient is a client for the SeaTransportExecution schema.
+type SeaTransportExecutionClient struct {
+	config
+}
+
+// NewSeaTransportExecutionClient returns a client for the SeaTransportExecution from the given config.
+func NewSeaTransportExecutionClient(c config) *SeaTransportExecutionClient {
+	return &SeaTransportExecutionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seatransportexecution.Hooks(f(g(h())))`.
+func (c *SeaTransportExecutionClient) Use(hooks ...Hook) {
+	c.hooks.SeaTransportExecution = append(c.hooks.SeaTransportExecution, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seatransportexecution.Intercept(f(g(h())))`.
+func (c *SeaTransportExecutionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaTransportExecution = append(c.inters.SeaTransportExecution, interceptors...)
+}
+
+// Create returns a builder for creating a SeaTransportExecution entity.
+func (c *SeaTransportExecutionClient) Create() *SeaTransportExecutionCreate {
+	mutation := newSeaTransportExecutionMutation(c.config, OpCreate)
+	return &SeaTransportExecutionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaTransportExecution entities.
+func (c *SeaTransportExecutionClient) CreateBulk(builders ...*SeaTransportExecutionCreate) *SeaTransportExecutionCreateBulk {
+	return &SeaTransportExecutionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaTransportExecutionClient) MapCreateBulk(slice any, setFunc func(*SeaTransportExecutionCreate, int)) *SeaTransportExecutionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaTransportExecutionCreateBulk{err: fmt.Errorf("calling to SeaTransportExecutionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaTransportExecutionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaTransportExecutionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaTransportExecution.
+func (c *SeaTransportExecutionClient) Update() *SeaTransportExecutionUpdate {
+	mutation := newSeaTransportExecutionMutation(c.config, OpUpdate)
+	return &SeaTransportExecutionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaTransportExecutionClient) UpdateOne(_m *SeaTransportExecution) *SeaTransportExecutionUpdateOne {
+	mutation := newSeaTransportExecutionMutation(c.config, OpUpdateOne, withSeaTransportExecution(_m))
+	return &SeaTransportExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaTransportExecutionClient) UpdateOneID(id uuid.UUID) *SeaTransportExecutionUpdateOne {
+	mutation := newSeaTransportExecutionMutation(c.config, OpUpdateOne, withSeaTransportExecutionID(id))
+	return &SeaTransportExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaTransportExecution.
+func (c *SeaTransportExecutionClient) Delete() *SeaTransportExecutionDelete {
+	mutation := newSeaTransportExecutionMutation(c.config, OpDelete)
+	return &SeaTransportExecutionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaTransportExecutionClient) DeleteOne(_m *SeaTransportExecution) *SeaTransportExecutionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaTransportExecutionClient) DeleteOneID(id uuid.UUID) *SeaTransportExecutionDeleteOne {
+	builder := c.Delete().Where(seatransportexecution.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaTransportExecutionDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaTransportExecution.
+func (c *SeaTransportExecutionClient) Query() *SeaTransportExecutionQuery {
+	return &SeaTransportExecutionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaTransportExecution},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaTransportExecution entity by its id.
+func (c *SeaTransportExecutionClient) Get(ctx context.Context, id uuid.UUID) (*SeaTransportExecution, error) {
+	return c.Query().Where(seatransportexecution.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaTransportExecutionClient) GetX(ctx context.Context, id uuid.UUID) *SeaTransportExecution {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryOrganization(_m *SeaTransportExecution) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.OrganizationTable, seatransportexecution.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBills queries the master_bills edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryMasterBills(_m *SeaTransportExecution) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaTransportExecutionClient) Hooks() []Hook {
+	return c.hooks.SeaTransportExecution
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaTransportExecutionClient) Interceptors() []Interceptor {
+	return c.inters.SeaTransportExecution
+}
+
+func (c *SeaTransportExecutionClient) mutate(ctx context.Context, m *SeaTransportExecutionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaTransportExecutionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaTransportExecutionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaTransportExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaTransportExecutionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaTransportExecution mutation op: %q", m.Op())
+	}
+}
+
 // SessionClient is a client for the Session schema.
 type SessionClient struct {
 	config
@@ -17303,15 +17713,16 @@ type (
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
-		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderEnterpriseTag,
-		OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution, OrderContainer,
+		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
+		TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -17328,14 +17739,15 @@ type (
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
-		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderEnterpriseTag,
-		OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution, OrderContainer,
+		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
+		TaxableService, User []ent.Interceptor
 	}
 )

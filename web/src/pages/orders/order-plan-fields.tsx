@@ -2,20 +2,19 @@ import {
   DeleteOutlined,
   PlusCircleFilled,
 } from '@ant-design/icons';
-import { Button, Col, Form, InputNumber, Select } from 'antd';
+import { Button, Col, Form, Input, InputNumber, Select } from 'antd';
 import React from 'react';
-import OrderMasterDocGroupCard from './components/docs/OrderMasterDocGroupCard';
+import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
-  type MasterDocGroup,
+  type HouseDocItem,
   type SelectOption,
 } from './order-plan-constants';
 import {
-  getDuplicateMasterNo,
   getShippingDocumentsValidationMessage,
-  groupsToRawDocs,
+  housesToRawDocs,
   nextDocKey,
-  rawDocsToGroups,
+  rawDocsToHouses,
   type ShippingDocumentFormValue,
 } from './order-shipping-doc-helpers';
 
@@ -39,9 +38,9 @@ export function OrderShippingDocumentFields({
   transportMode = 'sea',
 }: OrderShippingDocumentFieldsProps = {}) {
   const form = Form.useFormInstance();
-  const [groups, setGroups] = React.useState<MasterDocGroup[]>(() => {
+  const [houses, setHouses] = React.useState<HouseDocItem[]>(() => {
     const initial = form?.getFieldValue('shippingDocuments');
-    return rawDocsToGroups(initial);
+    return rawDocsToHouses(initial);
   });
 
   const watchedDocuments = Form.useWatch('shippingDocuments', {
@@ -53,102 +52,47 @@ export function OrderShippingDocumentFields({
   React.useEffect(() => {
     const current = watchedDocuments;
     if (Array.isArray(current)) {
-      const currentFlat = groupsToRawDocs(groups);
+      const currentFlat = housesToRawDocs(houses);
       const isSame =
         current.length === currentFlat.length &&
         current.every(
           (doc, idx) =>
             doc.id === currentFlat[idx]?.id &&
-            (doc.masterNo || '') === (currentFlat[idx]?.masterNo || '') &&
-            (doc.masterDocumentType || '') ===
-              (currentFlat[idx]?.masterDocumentType || '') &&
-            (doc.masterReleaseMethod || '') ===
-              (currentFlat[idx]?.masterReleaseMethod || '') &&
             (doc.houseNo || '') === (currentFlat[idx]?.houseNo || '') &&
             (doc.releaseType || '') === (currentFlat[idx]?.releaseType || '') &&
             (doc.note || '') === (currentFlat[idx]?.note || ''),
         );
       if (!isSame) {
-        setGroups(rawDocsToGroups(current));
+        setHouses(rawDocsToHouses(current));
       }
     }
-  }, [groups, watchedDocuments]);
+  }, [houses, watchedDocuments]);
 
-  const updateGroups = (nextGroups: MasterDocGroup[]) => {
-    setGroups(nextGroups);
-    const flat = groupsToRawDocs(nextGroups);
+  const updateHouses = (nextHouses: HouseDocItem[]) => {
+    setHouses(nextHouses);
+    const flat = housesToRawDocs(nextHouses);
     form?.setFieldValue('shippingDocuments', flat);
   };
 
-  const handleMasterChange = (groupIndex: number, val: string) => {
-    const next = groups.map((g, idx) => {
-      if (idx === groupIndex) {
-        return { ...g, masterNo: val };
-      }
-      return g;
-    });
-    updateGroups(next);
-  };
-
-  const handleMasterAttributeChange = (
-    groupIndex: number,
-    field: 'masterDocumentType' | 'masterReleaseMethod',
-    val: string,
-  ) => {
-    const next = groups.map((group, index) =>
-      index === groupIndex ? { ...group, [field]: val } : group,
-    );
-    updateGroups(next);
-  };
-
-  const handleAddGroup = () => {
+  const handleAddHouse = () => {
     const next = [
-      ...groups,
+      ...houses,
       {
-        key: nextDocKey('mg'),
-        masterNo: '',
-        houses: [
-          {
-            key: nextDocKey('h'),
-            houseNo: '',
-            releaseType: undefined,
-            note: '',
-          },
-        ],
+        key: nextDocKey('h'),
+        houseNo: '',
+        releaseType: undefined,
+        note: '',
       },
     ];
-    updateGroups(next);
+    updateHouses(next);
   };
 
-  const handleRemoveGroup = (groupIndex: number) => {
-    const next = groups.filter((_, idx) => idx !== groupIndex);
-    updateGroups(
+  const handleRemoveHouse = (index: number) => {
+    const next = houses.filter((_, idx) => idx !== index);
+    updateHouses(
       next.length > 0
         ? next
         : [
-            {
-              key: nextDocKey('mg'),
-              masterNo: '',
-              houses: [
-                {
-                  key: nextDocKey('h'),
-                  houseNo: '',
-                  releaseType: undefined,
-                  note: '',
-                },
-              ],
-            },
-          ],
-    );
-  };
-
-  const handleAddHouse = (groupIndex: number) => {
-    const next = groups.map((g, idx) => {
-      if (idx === groupIndex) {
-        return {
-          ...g,
-          houses: [
-            ...g.houses,
             {
               key: nextDocKey('h'),
               houseNo: '',
@@ -157,85 +101,25 @@ export function OrderShippingDocumentFields({
               omitWhenEmpty: true,
             },
           ],
-        };
-      }
-      return g;
-    });
-    updateGroups(next);
+    );
   };
 
-  const handleRemoveHouse = (groupIndex: number, houseIndex: number) => {
-    const next = groups.map((g, idx) => {
-      if (idx === groupIndex) {
-        const filtered = g.houses.filter((_, hIdx) => hIdx !== houseIndex);
-        return {
-          ...g,
-          houses:
-            filtered.length > 0
-              ? filtered
-              : [
-                  {
-                    key: nextDocKey('h'),
-                    houseNo: '',
-                    releaseType: undefined,
-                    note: '',
-                    omitWhenEmpty: true,
-                  },
-                ],
-        };
-      }
-      return g;
-    });
-    updateGroups(next);
-  };
-
-  const handleHouseFieldChange = (
-    groupIndex: number,
-    houseIndex: number,
+  const handleFieldChange = (
+    index: number,
     field: 'houseNo' | 'releaseType' | 'note',
-    val: string,
+    val: string | undefined,
   ) => {
-    const next = groups.map((g, idx) => {
-      if (idx === groupIndex) {
-        const newHouses = g.houses.map((h, hIdx) => {
-          if (hIdx === houseIndex) {
-            return { ...h, [field]: val };
-          }
-          return h;
-        });
-        return { ...g, houses: newHouses };
+    const next = houses.map((item, idx) => {
+      if (idx === index) {
+        return { ...item, [field]: val, omitWhenEmpty: false };
       }
-      return g;
+      return item;
     });
-    updateGroups(next);
+    updateHouses(next);
   };
 
-  const documentLabels =
-    transportMode === 'air'
-      ? { master: 'MAWB', house: 'HAWB' }
-      : { master: 'MBL', house: 'HBL' };
   const releaseTypeOptions =
     transportMode === 'sea' ? SEA_HOUSE_RELEASE_TYPE_OPTIONS : [];
-  const masterNoCounts = new Map<string, number>();
-  const houseNoCounts = new Map<string, number>();
-  for (const group of groups) {
-    const normalizedMasterNo = group.masterNo.trim().toLowerCase();
-    if (normalizedMasterNo) {
-      masterNoCounts.set(
-        normalizedMasterNo,
-        (masterNoCounts.get(normalizedMasterNo) || 0) + 1,
-      );
-    }
-    for (const house of group.houses) {
-      const normalizedHouseNo = house.houseNo.trim().toLowerCase();
-      if (normalizedHouseNo) {
-        houseNoCounts.set(
-          normalizedHouseNo,
-          (houseNoCounts.get(normalizedHouseNo) || 0) + 1,
-        );
-      }
-    }
-  }
 
   return (
     <>
@@ -248,10 +132,6 @@ export function OrderShippingDocumentFields({
               _,
               value: ShippingDocumentFormValue[] | undefined,
             ) => {
-              const duplicateMasterNo = getDuplicateMasterNo(groups);
-              if (duplicateMasterNo) {
-                throw new Error(`主单号 ${duplicateMasterNo} 已在当前操作票中`);
-              }
               const message = getShippingDocumentsValidationMessage(value);
               if (message) {
                 throw new Error(message);
@@ -262,27 +142,92 @@ export function OrderShippingDocumentFields({
       >
         <ShippingDocumentsFormControl />
       </Form.Item>
-      {groups.map((group, groupIdx) => (
-        <OrderMasterDocGroupCard
-          key={group.key}
-          group={group}
-          groupIdx={groupIdx}
-          totalGroups={groups.length}
-          disabled={disabled}
-          transportMode={transportMode}
-          documentLabels={documentLabels}
-          releaseTypeOptions={releaseTypeOptions}
-          masterNoCounts={masterNoCounts}
-          houseNoCounts={houseNoCounts}
-          onMasterChange={handleMasterChange}
-          onMasterAttributeChange={handleMasterAttributeChange}
-          onRemoveGroup={handleRemoveGroup}
-          onAddHouse={handleAddHouse}
-          onRemoveHouse={handleRemoveHouse}
-          onHouseFieldChange={handleHouseFieldChange}
-          onAddGroup={handleAddGroup}
-        />
-      ))}
+
+      <Col span={24} style={{ marginBottom: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 8,
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>分单信息 (HBL)</span>
+          {!disabled && (
+            <Button
+              type="dashed"
+              size="small"
+              icon={<PlusCircleFilled />}
+              onClick={handleAddHouse}
+            >
+              添加分单 (HBL)
+            </Button>
+          )}
+        </div>
+
+        {houses.map((house, idx) => {
+          const isReleased =
+            house.status ===
+            OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
+          return (
+            <div
+              key={house.key}
+              style={{
+                display: 'flex',
+                gap: 12,
+                alignItems: 'center',
+                marginBottom: 8,
+                background: '#fafafa',
+                padding: '8px 12px',
+                borderRadius: 4,
+                border: '1px solid #f0f0f0',
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <Input
+                  placeholder="分单号 (HBL)"
+                  value={house.houseNo}
+                  disabled={disabled || isReleased}
+                  onChange={(e) =>
+                    handleFieldChange(idx, 'houseNo', e.target.value)
+                  }
+                />
+              </div>
+              <div style={{ width: 180 }}>
+                <Select
+                  placeholder="分单签放方式"
+                  value={house.releaseType}
+                  options={releaseTypeOptions}
+                  disabled={disabled || isReleased}
+                  allowClear
+                  style={{ width: '100%' }}
+                  onChange={(val) =>
+                    handleFieldChange(idx, 'releaseType', val)
+                  }
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Input
+                  placeholder="备注"
+                  value={house.note}
+                  disabled={disabled || isReleased}
+                  onChange={(e) =>
+                    handleFieldChange(idx, 'note', e.target.value)
+                  }
+                />
+              </div>
+              {!disabled && !isReleased && houses.length > 1 && (
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleRemoveHouse(idx)}
+                />
+              )}
+            </div>
+          );
+        })}
+      </Col>
     </>
   );
 }

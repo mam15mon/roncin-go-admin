@@ -80,7 +80,7 @@ export default function OrderFeeHeader({
             {order.tradeTerm ? 'FOB / CIF' : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="主单号 (MBL)">
-            {order.shippingDocuments?.[0]?.masterNo || '-'}
+            {order.seaMasterBill?.masterNo || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="船名航次">
             {order.vesselVoyage || '-'}

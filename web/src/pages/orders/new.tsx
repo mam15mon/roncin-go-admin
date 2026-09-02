@@ -20,6 +20,7 @@ import {
   parseOrderKind,
   searchPartnersByRole,
 } from './common';
+import { searchPartnerOptions } from '@/utils/options';
 import {
   type CreateOrderFormValues,
   buildCreateOrderPayload,
@@ -111,6 +112,8 @@ export default function NewOrderPage() {
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      searchIssuers: (keyword?: string) =>
+        searchPartnerOptions(keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: () =>

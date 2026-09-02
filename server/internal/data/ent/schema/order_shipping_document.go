@@ -17,7 +17,6 @@ func (OrderShippingDocument) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{},
 func (OrderShippingDocument) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("order_id", uuid.Nil),
-		field.UUID("consolidation_id", uuid.Nil),
 		field.String("house_no").NotEmpty().MaxLen(64),
 		field.String("release_type").Optional().MaxLen(64),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "RELEASED").Default("DRAFT"),
@@ -28,7 +27,6 @@ func (OrderShippingDocument) Fields() []ent.Field {
 func (OrderShippingDocument) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).Ref("shipping_documents").Field("order_id").Unique().Required(),
-		edge.From("consolidation", OrderConsolidation.Type).Ref("shipping_documents").Field("consolidation_id").Unique().Required(),
 		edge.To("containers", OrderContainer.Type),
 		edge.To("release_pods", OrderReleasePod.Type),
 	}
@@ -37,7 +35,6 @@ func (OrderShippingDocument) Edges() []ent.Edge {
 func (OrderShippingDocument) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("order_id", "house_no").Unique(),
-		index.Fields("order_id", "consolidation_id"),
 		index.Fields("order_id", "status"),
 	}
 }

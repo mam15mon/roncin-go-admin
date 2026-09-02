@@ -155,6 +155,10 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	seaMasterBillInput, err := seaMasterBillInputFromAPI(request.GetSeaMasterBill())
+	if err != nil {
+		return nil, err
+	}
 	return &biz.Order{
 		CustomerID: customerID,
 		CarrierID:  carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
@@ -175,6 +179,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		OrderDate: request.GetOrderDate(), Notes: request.GetNotes(),
 		BookingNotes: request.GetBookingNotes(), AllocationNotes: request.GetAllocationNotes(), OperationNotes: request.GetOperationNotes(),
 		PersonnelAssignments: personnelAssignments, ShippingDocuments: shippingDocuments, ContainerRequests: containerRequests,
+		SeaMasterBillInput: seaMasterBillInput,
 	}, nil
 }
 
@@ -373,6 +378,12 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	output.ContainerRequests, err = containerRequestsFromAPI(request.GetContainerRequests())
 	if err != nil {
 		return nil, err
+	}
+	if request.SeaMasterBill != nil {
+		output.SeaMasterBillInput, err = seaMasterBillInputFromAPI(request.GetSeaMasterBill())
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &output, nil
 }

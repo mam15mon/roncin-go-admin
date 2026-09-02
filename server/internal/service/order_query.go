@@ -12,6 +12,93 @@ import (
 	"github.com/google/uuid"
 )
 
+func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request *v1.MatchSeaMasterBillCandidateRequest) (*v1.MatchSeaMasterBillCandidateResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	issuerPartnerID, err := uuid.Parse(request.GetIssuerPartnerId())
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+
+	etd, err := parseSeaCandidateTime(request.Etd)
+	if err != nil {
+		return nil, err
+	}
+	eta, err := parseSeaCandidateTime(request.Eta)
+	if err != nil {
+		return nil, err
+	}
+	orderVoyage := &biz.SeaTransportExecution{
+		VesselName: strings.TrimSpace(request.GetVesselName()),
+		VoyageNo:   strings.TrimSpace(request.GetVoyageNo()),
+		ETD:        etd,
+		ETA:        eta,
+	}
+	carrierID, err := parseOptionalUUIDPointer(request.CarrierId)
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	if carrierID != nil {
+		orderVoyage.CarrierID = *carrierID
+	}
+	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	if originLocationID != nil {
+		orderVoyage.OriginLocationID = *originLocationID
+	}
+	dischargeLocationID, err := parseOptionalUUIDPointer(request.DischargeLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	if dischargeLocationID != nil {
+		orderVoyage.DischargeLocationID = *dischargeLocationID
+	}
+	transitLocationID, err := parseOptionalUUIDPointer(request.TransitLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	if transitLocationID != nil {
+		orderVoyage.TransitLocationID = transitLocationID
+	}
+
+	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, issuerPartnerID, request.GetMasterNo(), orderVoyage)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &v1.MatchSeaMasterBillCandidateResponse{
+		Matched: result.Matched,
+	}
+	if result.Matched && result.Candidate != nil {
+		resp.Candidate = seaMasterBillCandidateToAPI(result.Candidate)
+		for _, c := range result.Conflicts {
+			resp.Conflicts = append(resp.Conflicts, &v1.SeaVoyageConflict{
+				Field:       c.Field,
+				MasterValue: c.MasterValue,
+				OrderValue:  c.OrderValue,
+				Message:     c.Message,
+			})
+		}
+	}
+
+	return ok(ctx, resp), nil
+}
+
+func parseSeaCandidateTime(value *string) (*time.Time, error) {
+	if value == nil || strings.TrimSpace(*value) == "" {
+		return nil, nil
+	}
+	parsed := parseOptionalTime(value)
+	if parsed == nil {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
+	return parsed, nil
+}
+
 func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest) (*v1.GetOrderResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

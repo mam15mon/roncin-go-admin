@@ -71,8 +71,12 @@ const (
 	EdgeNumberRules = "number_rules"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
-	// EdgeOrderConsolidations holds the string denoting the order_consolidations edge name in mutations.
-	EdgeOrderConsolidations = "order_consolidations"
+	// EdgeSeaTransportExecutions holds the string denoting the sea_transport_executions edge name in mutations.
+	EdgeSeaTransportExecutions = "sea_transport_executions"
+	// EdgeSeaMasterBills holds the string denoting the sea_master_bills edge name in mutations.
+	EdgeSeaMasterBills = "sea_master_bills"
+	// EdgeSeaMasterBillOrderLinks holds the string denoting the sea_master_bill_order_links edge name in mutations.
+	EdgeSeaMasterBillOrderLinks = "sea_master_bill_order_links"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -237,13 +241,27 @@ const (
 	OrdersInverseTable = "orders"
 	// OrdersColumn is the table column denoting the orders relation/edge.
 	OrdersColumn = "organization_id"
-	// OrderConsolidationsTable is the table that holds the order_consolidations relation/edge.
-	OrderConsolidationsTable = "order_consolidations"
-	// OrderConsolidationsInverseTable is the table name for the OrderConsolidation entity.
-	// It exists in this package in order to avoid circular dependency with the "orderconsolidation" package.
-	OrderConsolidationsInverseTable = "order_consolidations"
-	// OrderConsolidationsColumn is the table column denoting the order_consolidations relation/edge.
-	OrderConsolidationsColumn = "organization_id"
+	// SeaTransportExecutionsTable is the table that holds the sea_transport_executions relation/edge.
+	SeaTransportExecutionsTable = "sea_transport_executions"
+	// SeaTransportExecutionsInverseTable is the table name for the SeaTransportExecution entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecution" package.
+	SeaTransportExecutionsInverseTable = "sea_transport_executions"
+	// SeaTransportExecutionsColumn is the table column denoting the sea_transport_executions relation/edge.
+	SeaTransportExecutionsColumn = "organization_id"
+	// SeaMasterBillsTable is the table that holds the sea_master_bills relation/edge.
+	SeaMasterBillsTable = "sea_master_bills"
+	// SeaMasterBillsInverseTable is the table name for the SeaMasterBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbill" package.
+	SeaMasterBillsInverseTable = "sea_master_bills"
+	// SeaMasterBillsColumn is the table column denoting the sea_master_bills relation/edge.
+	SeaMasterBillsColumn = "organization_id"
+	// SeaMasterBillOrderLinksTable is the table that holds the sea_master_bill_order_links relation/edge.
+	SeaMasterBillOrderLinksTable = "sea_master_bill_order_links"
+	// SeaMasterBillOrderLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillorderlink" package.
+	SeaMasterBillOrderLinksInverseTable = "sea_master_bill_order_links"
+	// SeaMasterBillOrderLinksColumn is the table column denoting the sea_master_bill_order_links relation/edge.
+	SeaMasterBillOrderLinksColumn = "organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -767,17 +785,45 @@ func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByOrderConsolidationsCount orders the results by order_consolidations count.
-func ByOrderConsolidationsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySeaTransportExecutionsCount orders the results by sea_transport_executions count.
+func BySeaTransportExecutionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrderConsolidationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionsStep(), opts...)
 	}
 }
 
-// ByOrderConsolidations orders the results by order_consolidations terms.
-func ByOrderConsolidations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySeaTransportExecutions orders the results by sea_transport_executions terms.
+func BySeaTransportExecutions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrderConsolidationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaMasterBillsCount orders the results by sea_master_bills count.
+func BySeaMasterBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillsStep(), opts...)
+	}
+}
+
+// BySeaMasterBills orders the results by sea_master_bills terms.
+func BySeaMasterBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaMasterBillOrderLinksCount orders the results by sea_master_bill_order_links count.
+func BySeaMasterBillOrderLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillOrderLinksStep(), opts...)
+	}
+}
+
+// BySeaMasterBillOrderLinks orders the results by sea_master_bill_order_links terms.
+func BySeaMasterBillOrderLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillOrderLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1200,11 +1246,25 @@ func newOrdersStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
 	)
 }
-func newOrderConsolidationsStep() *sqlgraph.Step {
+func newSeaTransportExecutionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrderConsolidationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OrderConsolidationsTable, OrderConsolidationsColumn),
+		sqlgraph.To(SeaTransportExecutionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionsTable, SeaTransportExecutionsColumn),
+	)
+}
+func newSeaMasterBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillsTable, SeaMasterBillsColumn),
+	)
+}
+func newSeaMasterBillOrderLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillOrderLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillOrderLinksTable, SeaMasterBillOrderLinksColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {

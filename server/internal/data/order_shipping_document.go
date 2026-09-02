@@ -19,7 +19,11 @@ func NewOrderShippingDocumentRepo(data *Data) biz.OrderShippingDocumentRepo {
 }
 
 func (r *orderShippingDocumentRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) (*ent.Order, error) {
-	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderShippingDocumentNotFound, nil)
 	}
@@ -30,9 +34,12 @@ func (r *orderShippingDocumentRepo) List(ctx context.Context, organizationID, or
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.OrderShippingDocument.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderShippingDocument.Query().
 		Where(ordershippingdocumentent.OrderIDEQ(orderID)).
-		WithConsolidation().
 		Order(ordershippingdocumentent.ByCreatedAt()).
 		All(ctx)
 	if err != nil {
@@ -46,22 +53,14 @@ func (r *orderShippingDocumentRepo) List(ctx context.Context, organizationID, or
 }
 
 func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
-	orderItem, err := r.order(ctx, organizationID, orderID)
-	if err != nil {
+	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
 	var created *ent.OrderShippingDocument
-	var consolidation *ent.OrderConsolidation
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		var resolveErr error
-		consolidation, resolveErr = resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
-		if resolveErr != nil {
-			return resolveErr
-		}
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		builder := tx.OrderShippingDocument.Create().
 			SetID(input.ID).
 			SetOrderID(orderID).
-			SetConsolidationID(consolidation.ID).
 			SetHouseNo(input.HouseNo).
 			SetStatus(ordershippingdocumentent.StatusDRAFT)
 		if input.ReleaseType != nil {
@@ -80,18 +79,15 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 	if err != nil {
 		return nil, err
 	}
-	created.Edges.Consolidation = consolidation
 	return orderShippingDocumentToBiz(created), nil
 }
 
 func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
-	orderItem, err := r.order(ctx, organizationID, orderID)
-	if err != nil {
+	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
 	var updated *ent.OrderShippingDocument
-	var consolidation *ent.OrderConsolidation
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.OrderShippingDocument.Query().
 			Where(
 				ordershippingdocumentent.IDEQ(id),
@@ -105,13 +101,7 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 		if item.Status != ordershippingdocumentent.StatusDRAFT && item.Status != ordershippingdocumentent.StatusCONFIRMED {
 			return biz.ErrOrderShippingDocumentInvalidStatus
 		}
-		var resolveErr error
-		consolidation, resolveErr = resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
-		if resolveErr != nil {
-			return resolveErr
-		}
 		builder := tx.OrderShippingDocument.UpdateOne(item).
-			SetConsolidationID(consolidation.ID).
 			SetHouseNo(input.HouseNo)
 		if input.ReleaseType != nil {
 			builder.SetReleaseType(*input.ReleaseType)
@@ -133,7 +123,6 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	updated.Edges.Consolidation = consolidation
 	return orderShippingDocumentToBiz(updated), nil
 }
 
@@ -142,7 +131,6 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 		return nil, err
 	}
 	var updated *ent.OrderShippingDocument
-	var consolidation *ent.OrderConsolidation
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.OrderShippingDocument.Query().
 			Where(
@@ -156,11 +144,6 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 		}
 		if item.Status != ordershippingdocumentent.Status(from) {
 			return biz.ErrOrderShippingDocumentStatusConflict
-		}
-		var consolidationErr error
-		consolidation, consolidationErr = item.QueryConsolidation().Only(ctx)
-		if consolidationErr != nil {
-			return consolidationErr
 		}
 		if item.Status == ordershippingdocumentent.StatusRELEASED ||
 			(item.Status == ordershippingdocumentent.StatusDRAFT && to != biz.OrderShippingDocumentStatusConfirmed) ||
@@ -179,7 +162,6 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	updated.Edges.Consolidation = consolidation
 	return orderShippingDocumentToBiz(updated), nil
 }
 
@@ -201,17 +183,8 @@ func (r *orderShippingDocumentRepo) Remove(ctx context.Context, organizationID, 
 		if item.Status == ordershippingdocumentent.StatusRELEASED {
 			return biz.ErrOrderShippingDocumentInvalidStatus
 		}
-		n, deleteErr := tx.OrderShippingDocument.Delete().
-			Where(
-				ordershippingdocumentent.IDEQ(id),
-				ordershippingdocumentent.OrderIDEQ(orderID),
-			).
-			Exec(ctx)
-		if deleteErr != nil {
-			return deleteErr
-		}
-		if n == 0 {
-			return biz.ErrOrderShippingDocumentNotFound
+		if err := tx.OrderShippingDocument.DeleteOneID(id).Exec(ctx); err != nil {
+			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -222,16 +195,12 @@ func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShipp
 		return nil
 	}
 	result := &biz.OrderShippingDocument{
-		ID:                  item.ID,
-		OrderID:             item.OrderID,
-		ConsolidationID:     item.ConsolidationID,
-		MasterNo:            item.Edges.Consolidation.MasterNo,
-		MasterDocumentType:  optionalEntString(item.Edges.Consolidation.DocumentType),
-		MasterReleaseMethod: optionalEntString(item.Edges.Consolidation.ReleaseMethod),
-		HouseNo:             item.HouseNo,
-		Status:              biz.OrderShippingDocumentStatus(item.Status),
-		CreatedAt:           item.CreatedAt,
-		UpdatedAt:           item.UpdatedAt,
+		ID:        item.ID,
+		OrderID:   item.OrderID,
+		HouseNo:   item.HouseNo,
+		Status:    biz.OrderShippingDocumentStatus(item.Status),
+		CreatedAt: item.CreatedAt,
+		UpdatedAt: item.UpdatedAt,
 	}
 	if item.ReleaseType != "" {
 		v := item.ReleaseType
@@ -243,13 +212,3 @@ func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShipp
 	}
 	return result
 }
-
-func optionalEntString(value string) *string {
-	if value == "" {
-		return nil
-	}
-	copy := value
-	return &copy
-}
-
-var _ biz.OrderShippingDocumentRepo = (*orderShippingDocumentRepo)(nil)

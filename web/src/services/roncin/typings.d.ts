@@ -78,12 +78,9 @@ declare namespace API {
 
   type AddShippingDocumentRequest = {
     orderId: string;
-    masterNo: string;
     houseNo: string;
     releaseType?: string;
     note?: string;
-    masterDocumentType?: string;
-    masterReleaseMethod?: string;
   };
 
   type AddShippingDocumentResponse = {
@@ -1234,6 +1231,7 @@ declare namespace API {
     totalVolumeCbm?: number;
     shipperShortName?: string;
     consigneeShortName?: string;
+    seaMasterBill?: SeaMasterBillInput;
   };
 
   type CreateOrderResponse = {
@@ -3221,6 +3219,16 @@ declare namespace API {
     id: string;
   };
 
+  type MatchSeaMasterBillCandidateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    matched?: boolean;
+    candidate?: SeaMasterBillCandidate;
+    conflicts?: SeaVoyageConflict[];
+    traceId?: string;
+  };
+
   type MeResponse = {
     success?: boolean;
     code?: number;
@@ -3322,6 +3330,7 @@ declare namespace API {
     isShared?: boolean;
     tags?: BusinessTagSummary[];
     allowedTargetFlowStatuses?: number[];
+    seaMasterBill?: SeaMasterBillSummary;
   };
 
   type OrderAbnormalCase = {
@@ -3776,6 +3785,19 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type OrderServiceMatchSeaMasterBillCandidateParams = {
+    issuerPartnerId?: string;
+    masterNo?: string;
+    carrierId?: string;
+    originLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+  };
+
   type OrderServiceTransitionOrderClosureParams = {
     id: string;
   };
@@ -3795,28 +3817,20 @@ declare namespace API {
   type OrderShippingDocument = {
     id?: string;
     orderId?: string;
-    masterNo?: string;
     houseNo?: string;
     releaseType?: string;
     status?: number;
     note?: string;
     createdAt?: string;
     updatedAt?: string;
-    consolidationId?: string;
-    masterDocumentType?: string;
-    masterReleaseMethod?: string;
   };
 
   type OrderShippingDocumentInput = {
     id?: string;
-    masterNo: string;
     houseNo: string;
     /** release_type 是分单（HBL）签放方式。 */
     releaseType?: string;
     note?: string;
-    /** 主单属性存储在共享的主单批次，同一主单组内必须一致。 */
-    masterDocumentType?: string;
-    masterReleaseMethod?: string;
   };
 
   type OrderShippingDocumentServiceAddShippingDocumentParams = {
@@ -4553,6 +4567,54 @@ declare namespace API {
     dataScope?: string;
   };
 
+  type SeaMasterBillCandidate = {
+    id?: string;
+    version?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    issuerPartnerName?: string;
+    transportExecution?: SeaTransportExecution;
+    memberCount?: number;
+    members?: SeaMasterBillMemberSummary[];
+  };
+
+  type SeaMasterBillInput = {
+    masterNo: string;
+    issuerPartnerId: string;
+    candidateId?: string;
+    expectedCandidateVersion?: string;
+    correctionReason?: string;
+  };
+
+  type SeaMasterBillMemberSummary = {
+    orderId?: string;
+    orderNo?: string;
+    customerReferenceNo?: string;
+  };
+
+  type SeaMasterBillSummary = {
+    masterBillId?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    issuerPartnerName?: string;
+    transportExecutionId?: string;
+    carrierId?: string;
+    carrierName?: string;
+    originLocationId?: string;
+    originLocationName?: string;
+    dischargeLocationId?: string;
+    dischargeLocationName?: string;
+    transitLocationId?: string;
+    transitLocationName?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    status?: string;
+    version?: string;
+    memberCount?: number;
+  };
+
   type SearchBillingUnitsResponse = {
     success?: boolean;
     code?: number;
@@ -4628,6 +4690,30 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type SeaTransportExecution = {
+    id?: string;
+    carrierId?: string;
+    carrierName?: string;
+    originLocationId?: string;
+    originLocationName?: string;
+    dischargeLocationId?: string;
+    dischargeLocationName?: string;
+    transitLocationId?: string;
+    transitLocationName?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    version?: string;
+  };
+
+  type SeaVoyageConflict = {
+    field?: string;
+    masterValue?: string;
+    orderValue?: string;
+    message?: string;
   };
 
   type SetMilestoneRequest = {
@@ -5362,6 +5448,7 @@ declare namespace API {
     totalVolumeCbm?: number;
     shipperShortName?: string;
     consigneeShortName?: string;
+    seaMasterBill?: SeaMasterBillInput;
   };
 
   type UpdateOrderResponse = {
@@ -5553,12 +5640,9 @@ declare namespace API {
   type UpdateShippingDocumentRequest = {
     orderId: string;
     id: string;
-    masterNo: string;
     houseNo: string;
     releaseType?: string;
     note?: string;
-    masterDocumentType?: string;
-    masterReleaseMethod?: string;
   };
 
   type UpdateShippingDocumentResponse = {

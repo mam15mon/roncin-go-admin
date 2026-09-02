@@ -49,18 +49,14 @@ func validShippingDocumentTransition(from, to OrderShippingDocumentStatus) bool 
 }
 
 type OrderShippingDocument struct {
-	ID                  uuid.UUID
-	OrderID             uuid.UUID
-	ConsolidationID     uuid.UUID
-	MasterNo            string
-	MasterDocumentType  *string
-	MasterReleaseMethod *string
-	HouseNo             string
-	ReleaseType         *string
-	Status              OrderShippingDocumentStatus
-	Note                *string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	ID          uuid.UUID
+	OrderID     uuid.UUID
+	HouseNo     string
+	ReleaseType *string
+	Status      OrderShippingDocumentStatus
+	Note        *string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type OrderShippingDocumentRepo interface {
@@ -104,7 +100,7 @@ func (uc *OrderShippingDocumentUsecase) Add(ctx context.Context, organizationID,
 		Details: map[string]string{
 			"shipping_document.id": normalized.ID.String(),
 			"order.id":             orderID.String(),
-			"master_no":            normalized.MasterNo,
+			"house_no":             normalized.HouseNo,
 		},
 	})
 }
@@ -125,7 +121,7 @@ func (uc *OrderShippingDocumentUsecase) Update(ctx context.Context, organization
 		Details: map[string]string{
 			"shipping_document.id": id.String(),
 			"order.id":             orderID.String(),
-			"master_no":            normalized.MasterNo,
+			"house_no":             normalized.HouseNo,
 		},
 	})
 }
@@ -171,10 +167,6 @@ func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippin
 	if input == nil {
 		return nil, ErrOrderShippingDocumentInvalidArgument
 	}
-	masterNo := strings.TrimSpace(input.MasterNo)
-	if masterNo == "" || utf8.RuneCountInString(masterNo) > 64 {
-		return nil, ErrOrderShippingDocumentInvalidArgument
-	}
 	houseNo := strings.TrimSpace(input.HouseNo)
 	if houseNo == "" || utf8.RuneCountInString(houseNo) > 64 {
 		return nil, ErrOrderShippingDocumentInvalidArgument
@@ -189,26 +181,6 @@ func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippin
 			releaseType = &v
 		}
 	}
-	var masterDocumentType *string
-	if input.MasterDocumentType != nil {
-		v := strings.TrimSpace(*input.MasterDocumentType)
-		if v != "" {
-			if utf8.RuneCountInString(v) > 64 {
-				return nil, ErrOrderShippingDocumentInvalidArgument
-			}
-			masterDocumentType = &v
-		}
-	}
-	var masterReleaseMethod *string
-	if input.MasterReleaseMethod != nil {
-		v := strings.TrimSpace(*input.MasterReleaseMethod)
-		if v != "" {
-			if utf8.RuneCountInString(v) > 64 {
-				return nil, ErrOrderShippingDocumentInvalidArgument
-			}
-			masterReleaseMethod = &v
-		}
-	}
 	var note *string
 	if input.Note != nil {
 		v := strings.TrimSpace(*input.Note)
@@ -219,12 +191,14 @@ func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippin
 			note = &v
 		}
 	}
-	output := *input
-	output.MasterNo = masterNo
-	output.MasterDocumentType = masterDocumentType
-	output.MasterReleaseMethod = masterReleaseMethod
-	output.HouseNo = houseNo
-	output.ReleaseType = releaseType
-	output.Note = note
-	return &output, nil
+	return &OrderShippingDocument{
+		ID:          input.ID,
+		OrderID:     input.OrderID,
+		HouseNo:     houseNo,
+		ReleaseType: releaseType,
+		Status:      input.Status,
+		Note:        note,
+		CreatedAt:   input.CreatedAt,
+		UpdatedAt:   input.UpdatedAt,
+	}, nil
 }

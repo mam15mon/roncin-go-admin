@@ -199,6 +199,7 @@ var operationAccessRules = map[string]accessRule{
 	"/order.v1.OrderService/ListOrderConsolidations":                                            {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("read")},
 	"/order.v1.OrderService/ListOrders":                                                         {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("read")},
 	"/order.v1.OrderService/ListPersonnelOptions":                                               {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("create")},
+	"/order.v1.OrderService/MatchSeaMasterBillCandidate":                                        {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("read")},
 	"/order.v1.OrderService/TransitionOrderClosure":                                             {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("transition")},
 	"/order.v1.OrderService/TransitionOrderStatus":                                              {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("transition")},
 	"/order.v1.OrderService/TransitionOrderTermination":                                         {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("transition")},

@@ -76,23 +76,19 @@ func (OrderShippingDocumentStatus) EnumDescriptor() ([]byte, []int) {
 	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{0}
 }
 
-// OrderShippingDocument 提单信息。
+// OrderShippingDocument 提单（HBL）信息。
 type OrderShippingDocument struct {
-	state               protoimpl.MessageState      `protogen:"open.v1"`
-	Id                  string                      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId             string                      `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	MasterNo            string                      `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	HouseNo             string                      `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	ReleaseType         *string                     `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
-	Status              OrderShippingDocumentStatus `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderShippingDocumentStatus" json:"status,omitempty"`
-	Note                *string                     `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	CreatedAt           string                      `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt           string                      `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	ConsolidationId     string                      `protobuf:"bytes,10,opt,name=consolidation_id,json=consolidationId,proto3" json:"consolidation_id,omitempty"`
-	MasterDocumentType  *string                     `protobuf:"bytes,11,opt,name=master_document_type,json=masterDocumentType,proto3,oneof" json:"master_document_type,omitempty"`
-	MasterReleaseMethod *string                     `protobuf:"bytes,12,opt,name=master_release_method,json=masterReleaseMethod,proto3,oneof" json:"master_release_method,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Id            string                      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId       string                      `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	HouseNo       string                      `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	ReleaseType   *string                     `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Status        OrderShippingDocumentStatus `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderShippingDocumentStatus" json:"status,omitempty"`
+	Note          *string                     `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	CreatedAt     string                      `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                      `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderShippingDocument) Reset() {
@@ -139,13 +135,6 @@ func (x *OrderShippingDocument) GetOrderId() string {
 	return ""
 }
 
-func (x *OrderShippingDocument) GetMasterNo() string {
-	if x != nil {
-		return x.MasterNo
-	}
-	return ""
-}
-
 func (x *OrderShippingDocument) GetHouseNo() string {
 	if x != nil {
 		return x.HouseNo
@@ -184,27 +173,6 @@ func (x *OrderShippingDocument) GetCreatedAt() string {
 func (x *OrderShippingDocument) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
-	}
-	return ""
-}
-
-func (x *OrderShippingDocument) GetConsolidationId() string {
-	if x != nil {
-		return x.ConsolidationId
-	}
-	return ""
-}
-
-func (x *OrderShippingDocument) GetMasterDocumentType() string {
-	if x != nil && x.MasterDocumentType != nil {
-		return *x.MasterDocumentType
-	}
-	return ""
-}
-
-func (x *OrderShippingDocument) GetMasterReleaseMethod() string {
-	if x != nil && x.MasterReleaseMethod != nil {
-		return *x.MasterReleaseMethod
 	}
 	return ""
 }
@@ -256,16 +224,13 @@ func (x *ListShippingDocumentsRequest) GetOrderId() string {
 
 // AddShippingDocumentRequest 添加提单请求。
 type AddShippingDocumentRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	MasterNo            string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	HouseNo             string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	ReleaseType         *string                `protobuf:"bytes,4,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
-	Note                *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	MasterDocumentType  *string                `protobuf:"bytes,6,opt,name=master_document_type,json=masterDocumentType,proto3,oneof" json:"master_document_type,omitempty"`
-	MasterReleaseMethod *string                `protobuf:"bytes,7,opt,name=master_release_method,json=masterReleaseMethod,proto3,oneof" json:"master_release_method,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	HouseNo       string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	ReleaseType   *string                `protobuf:"bytes,4,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Note          *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AddShippingDocumentRequest) Reset() {
@@ -305,13 +270,6 @@ func (x *AddShippingDocumentRequest) GetOrderId() string {
 	return ""
 }
 
-func (x *AddShippingDocumentRequest) GetMasterNo() string {
-	if x != nil {
-		return x.MasterNo
-	}
-	return ""
-}
-
 func (x *AddShippingDocumentRequest) GetHouseNo() string {
 	if x != nil {
 		return x.HouseNo
@@ -333,33 +291,16 @@ func (x *AddShippingDocumentRequest) GetNote() string {
 	return ""
 }
 
-func (x *AddShippingDocumentRequest) GetMasterDocumentType() string {
-	if x != nil && x.MasterDocumentType != nil {
-		return *x.MasterDocumentType
-	}
-	return ""
-}
-
-func (x *AddShippingDocumentRequest) GetMasterReleaseMethod() string {
-	if x != nil && x.MasterReleaseMethod != nil {
-		return *x.MasterReleaseMethod
-	}
-	return ""
-}
-
 // UpdateShippingDocumentRequest 更新提单字段请求。
 type UpdateShippingDocumentRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id                  string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	MasterNo            string                 `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	HouseNo             string                 `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	ReleaseType         *string                `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
-	Note                *string                `protobuf:"bytes,6,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	MasterDocumentType  *string                `protobuf:"bytes,7,opt,name=master_document_type,json=masterDocumentType,proto3,oneof" json:"master_document_type,omitempty"`
-	MasterReleaseMethod *string                `protobuf:"bytes,8,opt,name=master_release_method,json=masterReleaseMethod,proto3,oneof" json:"master_release_method,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	HouseNo       string                 `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	ReleaseType   *string                `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Note          *string                `protobuf:"bytes,6,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateShippingDocumentRequest) Reset() {
@@ -406,13 +347,6 @@ func (x *UpdateShippingDocumentRequest) GetId() string {
 	return ""
 }
 
-func (x *UpdateShippingDocumentRequest) GetMasterNo() string {
-	if x != nil {
-		return x.MasterNo
-	}
-	return ""
-}
-
 func (x *UpdateShippingDocumentRequest) GetHouseNo() string {
 	if x != nil {
 		return x.HouseNo
@@ -430,20 +364,6 @@ func (x *UpdateShippingDocumentRequest) GetReleaseType() string {
 func (x *UpdateShippingDocumentRequest) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
-	}
-	return ""
-}
-
-func (x *UpdateShippingDocumentRequest) GetMasterDocumentType() string {
-	if x != nil && x.MasterDocumentType != nil {
-		return *x.MasterDocumentType
-	}
-	return ""
-}
-
-func (x *UpdateShippingDocumentRequest) GetMasterReleaseMethod() string {
-	if x != nil && x.MasterReleaseMethod != nil {
-		return *x.MasterReleaseMethod
 	}
 	return ""
 }
@@ -949,11 +869,10 @@ var File_order_v1_order_shipping_document_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"\n" +
-	"&order/v1/order_shipping_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xa0\x04\n" +
+	"&order/v1/order_shipping_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x97\x03\n" +
 	"\x15OrderShippingDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1b\n" +
-	"\tmaster_no\x18\x03 \x01(\tR\bmasterNo\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
 	"\bhouse_no\x18\x04 \x01(\tR\ahouseNo\x12&\n" +
 	"\frelease_type\x18\x05 \x01(\tH\x00R\vreleaseType\x88\x01\x01\x12=\n" +
 	"\x06status\x18\x06 \x01(\x0e2%.order.v1.OrderShippingDocumentStatusR\x06status\x12\x17\n" +
@@ -961,42 +880,27 @@ const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt\x12)\n" +
-	"\x10consolidation_id\x18\n" +
-	" \x01(\tR\x0fconsolidationId\x125\n" +
-	"\x14master_document_type\x18\v \x01(\tH\x02R\x12masterDocumentType\x88\x01\x01\x127\n" +
-	"\x15master_release_method\x18\f \x01(\tH\x03R\x13masterReleaseMethod\x88\x01\x01B\x0f\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAtB\x0f\n" +
 	"\r_release_typeB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_master_document_typeB\x18\n" +
-	"\x16_master_release_method\">\n" +
+	"\x05_noteJ\x04\b\x03\x10\x04J\x04\b\n" +
+	"\x10\vJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\tmaster_noR\x10consolidation_idR\x14master_document_typeR\x15master_release_method\">\n" +
 	"\x1cListShippingDocumentsRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xfc\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\x81\x02\n" +
 	"\x1aAddShippingDocumentRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12 \n" +
-	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1e\n" +
 	"\bhouse_no\x18\x03 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12&\n" +
 	"\frelease_type\x18\x04 \x01(\tH\x00R\vreleaseType\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x05 \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
-	"\x14master_document_type\x18\x06 \x01(\tH\x02R\x12masterDocumentType\x88\x01\x01\x127\n" +
-	"\x15master_release_method\x18\a \x01(\tH\x03R\x13masterReleaseMethod\x88\x01\x01B\x0f\n" +
+	"\x04note\x18\x05 \x01(\tH\x01R\x04note\x88\x01\x01B\x0f\n" +
 	"\r_release_typeB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_master_document_typeB\x18\n" +
-	"\x16_master_release_method\"\x94\x03\n" +
+	"\x05_noteJ\x04\b\x02\x10\x03J\x04\b\x06\x10\aJ\x04\b\a\x10\bR\tmaster_noR\x14master_document_typeR\x15master_release_method\"\x99\x02\n" +
 	"\x1dUpdateShippingDocumentRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
-	"\tmaster_no\x18\x03 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1e\n" +
 	"\bhouse_no\x18\x04 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12&\n" +
 	"\frelease_type\x18\x05 \x01(\tH\x00R\vreleaseType\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x06 \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
-	"\x14master_document_type\x18\a \x01(\tH\x02R\x12masterDocumentType\x88\x01\x01\x127\n" +
-	"\x15master_release_method\x18\b \x01(\tH\x03R\x13masterReleaseMethod\x88\x01\x01B\x0f\n" +
+	"\x04note\x18\x06 \x01(\tH\x01R\x04note\x88\x01\x01B\x0f\n" +
 	"\r_release_typeB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_master_document_typeB\x18\n" +
-	"\x16_master_release_method\"\xfc\x01\n" +
+	"\x05_noteJ\x04\b\x03\x10\x04J\x04\b\a\x10\bJ\x04\b\b\x10\tR\tmaster_noR\x14master_document_typeR\x15master_release_method\"\xfc\x01\n" +
 	"'TransitionShippingDocumentStatusRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12S\n" +

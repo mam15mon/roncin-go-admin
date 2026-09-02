@@ -17,8 +17,6 @@ import { OrderShippingDocumentStatus } from '@/enums.generated';
 import { shippingDocumentStatusValueEnum } from '../../common';
 import {
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
-  SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
-  SEA_MASTER_RELEASE_METHOD_OPTIONS,
   formatHouseReleaseType,
 } from '../../order-plan-fields';
 import {
@@ -40,9 +38,6 @@ type ShippingDocumentDrawerProps = {
 };
 
 type ShippingDocumentFormValues = {
-  masterNo: string;
-  masterDocumentType?: string;
-  masterReleaseMethod?: string;
   houseNo: string;
   releaseType?: string;
   note?: string;
@@ -78,9 +73,6 @@ const ShippingDocumentDrawer = forwardRef<
   const openEditShippingDocument = (record: API.OrderShippingDocument) => {
     setEditingShippingDocument(record);
     formRef.current?.setFieldsValue({
-      masterNo: record.masterNo,
-      masterDocumentType: record.masterDocumentType,
-      masterReleaseMethod: record.masterReleaseMethod,
       houseNo: record.houseNo,
       releaseType: record.releaseType,
       note: record.note,
@@ -90,35 +82,11 @@ const ShippingDocumentDrawer = forwardRef<
 
   const columns: ProColumns<API.OrderShippingDocument>[] = [
     {
-      title: '主单号 (MBL)',
-      dataIndex: 'masterNo',
-      copyable: true,
-      ellipsis: true,
-    },
-    {
       title: '分单号 (HBL)',
       dataIndex: 'houseNo',
       copyable: true,
       ellipsis: true,
     },
-    ...(category === 'sea'
-      ? [
-          {
-            title: '主单单证类型',
-            dataIndex: 'masterDocumentType',
-            width: 140,
-            render: (_: unknown, record: API.OrderShippingDocument) =>
-              record.masterDocumentType || '-',
-          },
-          {
-            title: '主单签放方式',
-            dataIndex: 'masterReleaseMethod',
-            width: 140,
-            render: (_: unknown, record: API.OrderShippingDocument) =>
-              record.masterReleaseMethod || '-',
-          },
-        ]
-      : []),
     {
       title: '分单签放方式',
       dataIndex: 'releaseType',
@@ -138,62 +106,92 @@ const ShippingDocumentDrawer = forwardRef<
       width: 120,
       valueType: 'select',
       valueEnum: shippingDocumentStatusValueEnum,
-      render: (_, record) =>
-        record.status !== undefined &&
-        shippingDocumentStatusValueEnum[record.status] ? (
-          <Tag
-            color={
-              record.status ===
-              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED
-                ? 'success'
-                : record.status ===
-                    OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED
-                  ? 'processing'
-                  : 'default'
-            }
-            variant="filled"
-          >
-            {shippingDocumentStatusValueEnum[record.status]?.text}
+      render: (_, record) => {
+        const status =
+          record.status ??
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_UNSPECIFIED;
+        const color =
+          status ===
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED
+            ? 'green'
+            : status ===
+                OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED
+              ? 'blue'
+              : 'orange';
+        const label =
+          (
+            shippingDocumentStatusValueEnum[
+              status as unknown as keyof typeof shippingDocumentStatusValueEnum
+            ] as { text?: string } | undefined
+          )?.text ?? String(status);
+        return (
+          <Tag color={color} variant="filled">
+            {label}
           </Tag>
-        ) : (
-          '-'
-        ),
+        );
+      },
     },
     {
-      title: '备注说明',
+      title: '备注',
       dataIndex: 'note',
       ellipsis: true,
       render: (_, record) => record.note || '-',
     },
     {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      width: 170,
+      valueType: 'dateTime',
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updatedAt',
+      width: 170,
+      valueType: 'dateTime',
+    },
+    {
       title: '操作',
       valueType: 'option',
-      width: 160,
+      width: 180,
       render: (_, record) => {
-        if (!canManage) return null;
+        if (!canManage || !order?.id || !record.id) return null;
+        const status =
+          record.status ??
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_UNSPECIFIED;
+        const isDraft =
+          status ===
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT;
+        const isConfirmed =
+          status ===
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED;
+        const isReleased =
+          status ===
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
+
         return (
           <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              onClick={() => openEditShippingDocument(record)}
-            >
-              编辑
-            </Button>
-            {record.status ===
-              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT && (
+            {!isReleased && (
+              <a
+                onClick={() => {
+                  openEditShippingDocument(record);
+                }}
+              >
+                编辑
+              </a>
+            )}
+            {isDraft && (
               <Popconfirm
-                title="确认将该提单状态流转为【已确认】？"
+                title="确认提单"
+                description="确认后提单将进入已确认状态，确定继续？"
                 onConfirm={async () => {
-                  if (!order?.id || !record.id) return;
                   await orderShippingDocumentServiceTransitionShippingDocumentStatus(
                     {
-                      orderId: order.id,
-                      id: record.id,
+                      orderId: order.id as string,
+                      id: record.id as string,
                     },
                     {
-                      orderId: order.id,
-                      id: record.id,
+                      orderId: order.id as string,
+                      id: record.id as string,
                       expectedStatus:
                         OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT,
                       toStatus:
@@ -204,27 +202,51 @@ const ShippingDocumentDrawer = forwardRef<
                   actionRef.current?.reload();
                 }}
               >
-                <Button type="link" size="small">
-                  确认
-                </Button>
+                <a style={{ color: '#1677ff' }}>确认</a>
               </Popconfirm>
             )}
-            <Popconfirm
-              title="确定移除该提单？"
-              onConfirm={async () => {
-                if (!order?.id || !record.id) return;
-                await orderShippingDocumentServiceRemoveShippingDocument({
-                  orderId: order.id,
-                  id: record.id,
-                });
-                message.success('移除提单成功');
-                actionRef.current?.reload();
-              }}
-            >
-              <Button type="link" danger size="small">
-                删除
-              </Button>
-            </Popconfirm>
+            {isConfirmed && (
+              <Popconfirm
+                title="放行提单"
+                description="放行后提单将无法再次编辑或删除，确定继续？"
+                onConfirm={async () => {
+                  await orderShippingDocumentServiceTransitionShippingDocumentStatus(
+                    {
+                      orderId: order.id as string,
+                      id: record.id as string,
+                    },
+                    {
+                      orderId: order.id as string,
+                      id: record.id as string,
+                      expectedStatus:
+                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
+                      toStatus:
+                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED,
+                    },
+                  );
+                  message.success('提单已放行');
+                  actionRef.current?.reload();
+                }}
+              >
+                <a style={{ color: '#52c41a' }}>放行</a>
+              </Popconfirm>
+            )}
+            {!isReleased && (
+              <Popconfirm
+                title="删除提单"
+                description="确定要删除该分单吗？"
+                onConfirm={async () => {
+                  await orderShippingDocumentServiceRemoveShippingDocument({
+                    orderId: order.id as string,
+                    id: record.id as string,
+                  });
+                  message.success('删除提单成功');
+                  actionRef.current?.reload();
+                }}
+              >
+                <a style={{ color: '#ff4d4f' }}>删除</a>
+              </Popconfirm>
+            )}
           </Space>
         );
       },
@@ -234,19 +256,31 @@ const ShippingDocumentDrawer = forwardRef<
   return (
     <>
       <Drawer
-        title={
-          order
-            ? `订单提单与放货 - ${order.orderNo || order.id}`
-            : '订单提单与放货'
-        }
+        title="分单管理 (HBL)"
         open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setOrder(undefined);
-        }}
-        size={920}
-        destroyOnHidden
+        onClose={() => setDrawerOpen(false)}
+        width={960}
       >
+        {category === 'sea' && (
+          <Alert
+            type="info"
+            showIcon
+            message={
+              <span>
+                当前订单关联海运主单 (MBL)：
+                <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>
+                {order?.seaMasterBill?.issuerPartnerName && (
+                  <span>
+                    {' '}
+                    (实际签发主体: {order.seaMasterBill.issuerPartnerName})
+                  </span>
+                )}
+              </span>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
         {order?.id && (
           <ProTable<API.OrderShippingDocument>
             actionRef={actionRef}
@@ -270,7 +304,7 @@ const ShippingDocumentDrawer = forwardRef<
                   icon={<PlusOutlined />}
                   onClick={openCreateShippingDocument}
                 >
-                  添加提单
+                  添加分单 (HBL)
                 </Button>
               ),
             ]}
@@ -279,16 +313,12 @@ const ShippingDocumentDrawer = forwardRef<
       </Drawer>
 
       <ModalForm<ShippingDocumentFormValues>
-        title={editingShippingDocument ? '编辑提单' : '添加提单'}
+        title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}
         open={modalOpen}
         formRef={formRef}
         initialValues={
           editingShippingDocument
             ? {
-                masterNo: editingShippingDocument.masterNo,
-                masterDocumentType: editingShippingDocument.masterDocumentType,
-                masterReleaseMethod:
-                  editingShippingDocument.masterReleaseMethod,
                 houseNo: editingShippingDocument.houseNo,
                 releaseType: editingShippingDocument.releaseType,
                 note: editingShippingDocument.note,
@@ -312,15 +342,12 @@ const ShippingDocumentDrawer = forwardRef<
               {
                 orderId: order.id,
                 id: editingShippingDocument.id,
-                masterNo: values.masterNo.trim(),
-                masterDocumentType: values.masterDocumentType,
-                masterReleaseMethod: values.masterReleaseMethod,
                 houseNo: values.houseNo.trim(),
                 releaseType: values.releaseType?.trim() || undefined,
                 note: values.note?.trim() || undefined,
               },
             );
-            message.success('更新提单成功');
+            message.success('更新分单成功');
           } else {
             await orderShippingDocumentServiceAddShippingDocument(
               {
@@ -328,51 +355,18 @@ const ShippingDocumentDrawer = forwardRef<
               },
               {
                 orderId: order.id,
-                masterNo: values.masterNo.trim(),
-                masterDocumentType: values.masterDocumentType,
-                masterReleaseMethod: values.masterReleaseMethod,
                 houseNo: values.houseNo.trim(),
                 releaseType: values.releaseType?.trim() || undefined,
                 note: values.note?.trim() || undefined,
               },
             );
-            message.success('添加提单成功');
+            message.success('添加分单成功');
           }
           setModalOpen(false);
           actionRef.current?.reload();
           return true;
         }}
       >
-        <ProFormText
-          name="masterNo"
-          label="主单号 (MBL)"
-          placeholder="请输入主单号"
-          rules={[{ required: true, message: '请输入主单号' }]}
-        />
-        {category === 'sea' && (
-          <>
-            <ProFormSearchableSelect
-              name="masterDocumentType"
-              label="主单单证类型"
-              options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
-              placeholder="请选择主单单证类型"
-              allowClear={false}
-            />
-            <ProFormSearchableSelect
-              name="masterReleaseMethod"
-              label="主单签放方式"
-              options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
-              placeholder="请选择主单签放方式"
-              allowClear={false}
-            />
-            <Alert
-              type="warning"
-              showIcon
-              title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
-              style={{ marginBottom: 16 }}
-            />
-          </>
-        )}
         <ProFormText
           name="houseNo"
           label="分单号 (HBL)"
@@ -389,15 +383,15 @@ const ShippingDocumentDrawer = forwardRef<
         ) : (
           <ProFormText
             name="releaseType"
-            label="分单签放方式"
-            placeholder="请输入分单签放方式"
+            label="签放方式"
+            placeholder="请输入签放方式"
           />
         )}
         <ProFormTextArea
           name="note"
-          label="备注说明"
-          placeholder="请输入备注 (可选)"
-          fieldProps={{ maxLength: 500, showCount: true }}
+          label="备注"
+          placeholder="请输入备注"
+          fieldProps={{ rows: 3, maxLength: 500 }}
         />
       </ModalForm>
     </>

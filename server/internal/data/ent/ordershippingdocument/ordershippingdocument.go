@@ -22,8 +22,6 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
-	// FieldConsolidationID holds the string denoting the consolidation_id field in the database.
-	FieldConsolidationID = "consolidation_id"
 	// FieldHouseNo holds the string denoting the house_no field in the database.
 	FieldHouseNo = "house_no"
 	// FieldReleaseType holds the string denoting the release_type field in the database.
@@ -34,8 +32,6 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
-	// EdgeConsolidation holds the string denoting the consolidation edge name in mutations.
-	EdgeConsolidation = "consolidation"
 	// EdgeContainers holds the string denoting the containers edge name in mutations.
 	EdgeContainers = "containers"
 	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
@@ -49,13 +45,6 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
-	// ConsolidationTable is the table that holds the consolidation relation/edge.
-	ConsolidationTable = "order_shipping_documents"
-	// ConsolidationInverseTable is the table name for the OrderConsolidation entity.
-	// It exists in this package in order to avoid circular dependency with the "orderconsolidation" package.
-	ConsolidationInverseTable = "order_consolidations"
-	// ConsolidationColumn is the table column denoting the consolidation relation/edge.
-	ConsolidationColumn = "consolidation_id"
 	// ContainersTable is the table that holds the containers relation/edge.
 	ContainersTable = "order_containers"
 	// ContainersInverseTable is the table name for the OrderContainer entity.
@@ -78,7 +67,6 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrderID,
-	FieldConsolidationID,
 	FieldHouseNo,
 	FieldReleaseType,
 	FieldStatus,
@@ -162,11 +150,6 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
 }
 
-// ByConsolidationID orders the results by the consolidation_id field.
-func ByConsolidationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldConsolidationID, opts...).ToFunc()
-}
-
 // ByHouseNo orders the results by the house_no field.
 func ByHouseNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHouseNo, opts...).ToFunc()
@@ -191,13 +174,6 @@ func ByNote(opts ...sql.OrderTermOption) OrderOption {
 func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByConsolidationField orders the results by consolidation field.
-func ByConsolidationField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newConsolidationStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -233,13 +209,6 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
-	)
-}
-func newConsolidationStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ConsolidationInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ConsolidationTable, ConsolidationColumn),
 	)
 }
 func newContainersStep() *sqlgraph.Step {

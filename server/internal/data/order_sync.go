@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/google/uuid"
 
@@ -13,7 +13,6 @@ import (
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
-	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -27,26 +26,29 @@ import (
 
 func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order) error {
 	if err := validatePartnerRole(ctx, tx, organizationID, input.CustomerID, partnerroleent.RoleTypeCustomer); err != nil {
-		return biz.ErrOrderCustomerInvalid
+		if errors.Is(err, biz.ErrOrderInvalidArgument) {
+			return biz.ErrOrderCustomerInvalid
+		}
+		return err
 	}
 	if input.CarrierID != nil {
 		if err := validatePartnerRole(ctx, tx, organizationID, *input.CarrierID, partnerroleent.RoleTypeCarrier); err != nil {
-			return biz.ErrOrderInvalidArgument
+			return err
 		}
 	}
 	if input.BookingAgentID != nil {
 		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
-			return biz.ErrOrderInvalidArgument
+			return err
 		}
 	}
 	if input.ForeignAgentID != nil {
 		if err := validatePartnerRole(ctx, tx, organizationID, *input.ForeignAgentID, partnerroleent.RoleTypeForeignAgent); err != nil {
-			return biz.ErrOrderInvalidArgument
+			return err
 		}
 	}
 	if input.ShippingAgentID != nil {
 		if err := validatePartnerRole(ctx, tx, organizationID, *input.ShippingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
-			return biz.ErrOrderInvalidArgument
+			return err
 		}
 	}
 	if input.CargoCurrency != "" {
@@ -217,12 +219,8 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 		remaining[item.ID] = item
 	}
 	for _, input := range inputs {
-		consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, businessType, input)
-		if err != nil {
-			return err
-		}
 		if input.ID == uuid.Nil {
-			builder := tx.OrderShippingDocument.Create().SetID(uuid.Must(uuid.NewV7())).SetOrderID(orderID).SetConsolidationID(consolidation.ID).SetHouseNo(input.HouseNo).SetStatus(ordershippingdocumentent.StatusDRAFT)
+			builder := tx.OrderShippingDocument.Create().SetID(uuid.Must(uuid.NewV7())).SetOrderID(orderID).SetHouseNo(input.HouseNo).SetStatus(ordershippingdocumentent.StatusDRAFT)
 			setShippingDocumentOptionalFieldsOnCreate(builder, input)
 			if _, err := builder.Save(ctx); err != nil {
 				return mapEntConstraint(err, "ordershippingdocument_order_id_house_no", biz.ErrOrderShippingDocumentExists)
@@ -236,7 +234,7 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 		if item.Status == ordershippingdocumentent.StatusRELEASED {
 			return biz.ErrOrderShippingDocumentInvalidStatus
 		}
-		builder := item.Update().SetConsolidationID(consolidation.ID).SetHouseNo(input.HouseNo)
+		builder := item.Update().SetHouseNo(input.HouseNo)
 		setShippingDocumentOptionalFieldsOnUpdate(builder, input)
 		if _, err := builder.Save(ctx); err != nil {
 			return mapEntConstraint(err, "ordershippingdocument_order_id_house_no", biz.ErrOrderShippingDocumentExists)
@@ -252,47 +250,6 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 		}
 	}
 	return nil
-}
-
-func resolveOrderConsolidation(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType biz.OrderBusinessType, input *biz.OrderShippingDocument) (*ent.OrderConsolidation, error) {
-	normalizedMasterNo := strings.ToLower(input.MasterNo)
-	consolidation, err := tx.OrderConsolidation.Query().Where(
-		orderconsolidationent.OrganizationIDEQ(organizationID),
-		orderconsolidationent.BusinessTypeEQ(orderconsolidationent.BusinessType(businessType)),
-		orderconsolidationent.NormalizedMasterNoEQ(normalizedMasterNo),
-	).Only(ctx)
-	if err == nil {
-		builder := consolidation.Update()
-		changed := false
-		if input.MasterDocumentType != nil {
-			builder.SetDocumentType(*input.MasterDocumentType)
-			changed = true
-		}
-		if input.MasterReleaseMethod != nil {
-			builder.SetReleaseMethod(*input.MasterReleaseMethod)
-			changed = true
-		}
-		if changed {
-			return builder.Save(ctx)
-		}
-		return consolidation, nil
-	}
-	if !ent.IsNotFound(err) {
-		return nil, err
-	}
-	builder := tx.OrderConsolidation.Create().
-		SetID(uuid.Must(uuid.NewV7())).
-		SetOrganizationID(organizationID).
-		SetBusinessType(orderconsolidationent.BusinessType(businessType)).
-		SetMasterNo(input.MasterNo).
-		SetNormalizedMasterNo(normalizedMasterNo)
-	if input.MasterDocumentType != nil {
-		builder.SetDocumentType(*input.MasterDocumentType)
-	}
-	if input.MasterReleaseMethod != nil {
-		builder.SetReleaseMethod(*input.MasterReleaseMethod)
-	}
-	return builder.Save(ctx)
 }
 
 func setShippingDocumentOptionalFieldsOnCreate(builder *ent.OrderShippingDocumentCreate, input *biz.OrderShippingDocument) {

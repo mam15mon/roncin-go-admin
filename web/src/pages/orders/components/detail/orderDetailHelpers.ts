@@ -125,6 +125,12 @@ export function buildInitialValues(
     associate2OrganizationId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
         ?.organizationId,
+    seaMasterBillMasterNo: order.seaMasterBill?.masterNo,
+    seaMasterBillIssuerPartnerId: order.seaMasterBill?.issuerPartnerId,
+    seaMasterBillCandidateId: undefined,
+    seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,
+    seaMasterBillCorrectionReason: undefined,
+    seaMasterBill: order.seaMasterBill,
   };
 }
 
@@ -208,11 +214,27 @@ export function buildUpdatePayload(
     operationNotes: values.operationNotes?.trim() || undefined,
     shippingDocuments: values.shippingDocuments
       ?.map((doc: any) => ({
-        ...doc,
-        masterNo: doc.masterNo?.trim() || '',
+        id: doc.id,
         houseNo: doc.houseNo?.trim() || '',
+        releaseType: doc.releaseType?.trim() || undefined,
+        note: doc.note?.trim() || undefined,
       }))
-      .filter((doc: any) => doc.masterNo || doc.houseNo),
+      .filter((doc: any) => !!doc.houseNo),
     containerRequests: values.containerRequests,
+    seaMasterBill:
+      values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId
+        ? {
+            masterNo: values.seaMasterBillMasterNo || '',
+            issuerPartnerId: values.seaMasterBillIssuerPartnerId || '',
+            candidateId: values.seaMasterBillCandidateId || undefined,
+            expectedCandidateVersion:
+              values.seaMasterBillExpectedCandidateVersion !== undefined &&
+              values.seaMasterBillExpectedCandidateVersion !== null
+                ? String(values.seaMasterBillExpectedCandidateVersion)
+                : undefined,
+            correctionReason:
+              values.seaMasterBillCorrectionReason?.trim() || undefined,
+          }
+        : undefined,
   };
 }

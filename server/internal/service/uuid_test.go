@@ -51,6 +51,10 @@ func TestUUIDStringPtr(t *testing.T) {
 	if uuidStringPtr(nil) != nil {
 		t.Fatal("空 UUID 指针应保持为空")
 	}
+	zero := uuid.Nil
+	if uuidStringPtr(&zero) != nil {
+		t.Fatal("全零 UUID 应按未设置处理")
+	}
 	value := uuid.New()
 	formatted := uuidStringPtr(&value)
 	if formatted == nil || *formatted != value.String() {

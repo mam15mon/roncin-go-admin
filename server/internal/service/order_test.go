@@ -125,8 +125,8 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
 		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		ShippingDocuments: []*v1.OrderShippingDocumentInput{
-			{MasterNo: "MBL-001", HouseNo: "HBL-001"},
-			{MasterNo: "MBL-001", HouseNo: "HBL-002"},
+			{HouseNo: "HBL-001"},
+			{HouseNo: "HBL-002"},
 		},
 		ContainerRequests: []*v1.OrderContainerRequestInput{{ContainerSpecId: containerSpecID.String(), Quantity: 2}},
 	})
@@ -152,7 +152,24 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 	order.ContainerRequests[0].CreatedAt = now
 	order.ContainerRequests[0].UpdatedAt = now
 	apiOrder := orderToAPI(order)
-	if len(apiOrder.GetShippingDocuments()) != 2 || apiOrder.GetShippingDocuments()[0].GetMasterNo() != "MBL-001" || len(apiOrder.GetContainerRequests()) != 1 || apiOrder.GetContainerRequests()[0].GetContainerSpecId() != containerSpecID.String() {
+	if len(apiOrder.GetShippingDocuments()) != 2 || apiOrder.GetShippingDocuments()[0].GetHouseNo() != "HBL-001" || len(apiOrder.GetContainerRequests()) != 1 || apiOrder.GetContainerRequests()[0].GetContainerSpecId() != containerSpecID.String() {
 		t.Fatalf("orderToAPI() plan fields = %#v, %#v", apiOrder.GetShippingDocuments(), apiOrder.GetContainerRequests())
+	}
+}
+
+func TestSeaTransportExecutionToAPIOmitsUnsetUUIDs(t *testing.T) {
+	item := &biz.SeaTransportExecution{ID: uuid.New()}
+	output := seaTransportExecutionToAPI(item)
+	if output.CarrierId != nil || output.OriginLocationId != nil || output.DischargeLocationId != nil {
+		t.Fatalf("未设置的运输执行 UUID 不应输出全零值: %#v", output)
+	}
+
+	carrierID, originID, dischargeID := uuid.New(), uuid.New(), uuid.New()
+	item.CarrierID = carrierID
+	item.OriginLocationID = originID
+	item.DischargeLocationID = dischargeID
+	output = seaTransportExecutionToAPI(item)
+	if output.GetCarrierId() != carrierID.String() || output.GetOriginLocationId() != originID.String() || output.GetDischargeLocationId() != dischargeID.String() {
+		t.Fatalf("已设置的运输执行 UUID 转换错误: %#v", output)
 	}
 }

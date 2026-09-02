@@ -58,7 +58,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
@@ -88,6 +87,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -4498,71 +4500,6 @@ func init() {
 	ordercommissionattributionDescID := ordercommissionattributionMixinFields0[0].Descriptor()
 	// ordercommissionattribution.DefaultID holds the default value on creation for the id field.
 	ordercommissionattribution.DefaultID = ordercommissionattributionDescID.Default.(func() uuid.UUID)
-	orderconsolidationMixin := schema.OrderConsolidation{}.Mixin()
-	orderconsolidationMixinFields0 := orderconsolidationMixin[0].Fields()
-	_ = orderconsolidationMixinFields0
-	orderconsolidationMixinFields1 := orderconsolidationMixin[1].Fields()
-	_ = orderconsolidationMixinFields1
-	orderconsolidationFields := schema.OrderConsolidation{}.Fields()
-	_ = orderconsolidationFields
-	// orderconsolidationDescCreatedAt is the schema descriptor for created_at field.
-	orderconsolidationDescCreatedAt := orderconsolidationMixinFields1[0].Descriptor()
-	// orderconsolidation.DefaultCreatedAt holds the default value on creation for the created_at field.
-	orderconsolidation.DefaultCreatedAt = orderconsolidationDescCreatedAt.Default.(func() time.Time)
-	// orderconsolidationDescUpdatedAt is the schema descriptor for updated_at field.
-	orderconsolidationDescUpdatedAt := orderconsolidationMixinFields1[1].Descriptor()
-	// orderconsolidation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	orderconsolidation.DefaultUpdatedAt = orderconsolidationDescUpdatedAt.Default.(func() time.Time)
-	// orderconsolidation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	orderconsolidation.UpdateDefaultUpdatedAt = orderconsolidationDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// orderconsolidationDescMasterNo is the schema descriptor for master_no field.
-	orderconsolidationDescMasterNo := orderconsolidationFields[2].Descriptor()
-	// orderconsolidation.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
-	orderconsolidation.MasterNoValidator = func() func(string) error {
-		validators := orderconsolidationDescMasterNo.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(master_no string) error {
-			for _, fn := range fns {
-				if err := fn(master_no); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// orderconsolidationDescNormalizedMasterNo is the schema descriptor for normalized_master_no field.
-	orderconsolidationDescNormalizedMasterNo := orderconsolidationFields[3].Descriptor()
-	// orderconsolidation.NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
-	orderconsolidation.NormalizedMasterNoValidator = func() func(string) error {
-		validators := orderconsolidationDescNormalizedMasterNo.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(normalized_master_no string) error {
-			for _, fn := range fns {
-				if err := fn(normalized_master_no); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// orderconsolidationDescDocumentType is the schema descriptor for document_type field.
-	orderconsolidationDescDocumentType := orderconsolidationFields[4].Descriptor()
-	// orderconsolidation.DocumentTypeValidator is a validator for the "document_type" field. It is called by the builders before save.
-	orderconsolidation.DocumentTypeValidator = orderconsolidationDescDocumentType.Validators[0].(func(string) error)
-	// orderconsolidationDescReleaseMethod is the schema descriptor for release_method field.
-	orderconsolidationDescReleaseMethod := orderconsolidationFields[5].Descriptor()
-	// orderconsolidation.ReleaseMethodValidator is a validator for the "release_method" field. It is called by the builders before save.
-	orderconsolidation.ReleaseMethodValidator = orderconsolidationDescReleaseMethod.Validators[0].(func(string) error)
-	// orderconsolidationDescID is the schema descriptor for id field.
-	orderconsolidationDescID := orderconsolidationMixinFields0[0].Descriptor()
-	// orderconsolidation.DefaultID holds the default value on creation for the id field.
-	orderconsolidation.DefaultID = orderconsolidationDescID.Default.(func() uuid.UUID)
 	ordercontainerMixin := schema.OrderContainer{}.Mixin()
 	ordercontainerMixinFields0 := ordercontainerMixin[0].Fields()
 	_ = ordercontainerMixinFields0
@@ -5083,7 +5020,7 @@ func init() {
 	// ordershippingdocument.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ordershippingdocument.UpdateDefaultUpdatedAt = ordershippingdocumentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// ordershippingdocumentDescHouseNo is the schema descriptor for house_no field.
-	ordershippingdocumentDescHouseNo := ordershippingdocumentFields[2].Descriptor()
+	ordershippingdocumentDescHouseNo := ordershippingdocumentFields[1].Descriptor()
 	// ordershippingdocument.HouseNoValidator is a validator for the "house_no" field. It is called by the builders before save.
 	ordershippingdocument.HouseNoValidator = func() func(string) error {
 		validators := ordershippingdocumentDescHouseNo.Validators
@@ -5101,11 +5038,11 @@ func init() {
 		}
 	}()
 	// ordershippingdocumentDescReleaseType is the schema descriptor for release_type field.
-	ordershippingdocumentDescReleaseType := ordershippingdocumentFields[3].Descriptor()
+	ordershippingdocumentDescReleaseType := ordershippingdocumentFields[2].Descriptor()
 	// ordershippingdocument.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	ordershippingdocument.ReleaseTypeValidator = ordershippingdocumentDescReleaseType.Validators[0].(func(string) error)
 	// ordershippingdocumentDescNote is the schema descriptor for note field.
-	ordershippingdocumentDescNote := ordershippingdocumentFields[5].Descriptor()
+	ordershippingdocumentDescNote := ordershippingdocumentFields[4].Descriptor()
 	// ordershippingdocument.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	ordershippingdocument.NoteValidator = ordershippingdocumentDescNote.Validators[0].(func(string) error)
 	// ordershippingdocumentDescID is the schema descriptor for id field.
@@ -6225,6 +6162,137 @@ func init() {
 	roleorderorganizationaccessDescID := roleorderorganizationaccessMixinFields0[0].Descriptor()
 	// roleorderorganizationaccess.DefaultID holds the default value on creation for the id field.
 	roleorderorganizationaccess.DefaultID = roleorderorganizationaccessDescID.Default.(func() uuid.UUID)
+	seamasterbillMixin := schema.SeaMasterBill{}.Mixin()
+	seamasterbillMixinFields0 := seamasterbillMixin[0].Fields()
+	_ = seamasterbillMixinFields0
+	seamasterbillMixinFields1 := seamasterbillMixin[1].Fields()
+	_ = seamasterbillMixinFields1
+	seamasterbillFields := schema.SeaMasterBill{}.Fields()
+	_ = seamasterbillFields
+	// seamasterbillDescCreatedAt is the schema descriptor for created_at field.
+	seamasterbillDescCreatedAt := seamasterbillMixinFields1[0].Descriptor()
+	// seamasterbill.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seamasterbill.DefaultCreatedAt = seamasterbillDescCreatedAt.Default.(func() time.Time)
+	// seamasterbillDescUpdatedAt is the schema descriptor for updated_at field.
+	seamasterbillDescUpdatedAt := seamasterbillMixinFields1[1].Descriptor()
+	// seamasterbill.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seamasterbill.DefaultUpdatedAt = seamasterbillDescUpdatedAt.Default.(func() time.Time)
+	// seamasterbill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seamasterbill.UpdateDefaultUpdatedAt = seamasterbillDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seamasterbillDescMasterNo is the schema descriptor for master_no field.
+	seamasterbillDescMasterNo := seamasterbillFields[3].Descriptor()
+	// seamasterbill.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
+	seamasterbill.MasterNoValidator = func() func(string) error {
+		validators := seamasterbillDescMasterNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(master_no string) error {
+			for _, fn := range fns {
+				if err := fn(master_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seamasterbillDescNormalizedMasterNo is the schema descriptor for normalized_master_no field.
+	seamasterbillDescNormalizedMasterNo := seamasterbillFields[4].Descriptor()
+	// seamasterbill.NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
+	seamasterbill.NormalizedMasterNoValidator = func() func(string) error {
+		validators := seamasterbillDescNormalizedMasterNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(normalized_master_no string) error {
+			for _, fn := range fns {
+				if err := fn(normalized_master_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seamasterbillDescVersion is the schema descriptor for version field.
+	seamasterbillDescVersion := seamasterbillFields[6].Descriptor()
+	// seamasterbill.DefaultVersion holds the default value on creation for the version field.
+	seamasterbill.DefaultVersion = seamasterbillDescVersion.Default.(uint64)
+	// seamasterbillDescID is the schema descriptor for id field.
+	seamasterbillDescID := seamasterbillMixinFields0[0].Descriptor()
+	// seamasterbill.DefaultID holds the default value on creation for the id field.
+	seamasterbill.DefaultID = seamasterbillDescID.Default.(func() uuid.UUID)
+	seamasterbillorderlinkMixin := schema.SeaMasterBillOrderLink{}.Mixin()
+	seamasterbillorderlinkMixinFields0 := seamasterbillorderlinkMixin[0].Fields()
+	_ = seamasterbillorderlinkMixinFields0
+	seamasterbillorderlinkMixinFields1 := seamasterbillorderlinkMixin[1].Fields()
+	_ = seamasterbillorderlinkMixinFields1
+	seamasterbillorderlinkFields := schema.SeaMasterBillOrderLink{}.Fields()
+	_ = seamasterbillorderlinkFields
+	// seamasterbillorderlinkDescCreatedAt is the schema descriptor for created_at field.
+	seamasterbillorderlinkDescCreatedAt := seamasterbillorderlinkMixinFields1[0].Descriptor()
+	// seamasterbillorderlink.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seamasterbillorderlink.DefaultCreatedAt = seamasterbillorderlinkDescCreatedAt.Default.(func() time.Time)
+	// seamasterbillorderlinkDescUpdatedAt is the schema descriptor for updated_at field.
+	seamasterbillorderlinkDescUpdatedAt := seamasterbillorderlinkMixinFields1[1].Descriptor()
+	// seamasterbillorderlink.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seamasterbillorderlink.DefaultUpdatedAt = seamasterbillorderlinkDescUpdatedAt.Default.(func() time.Time)
+	// seamasterbillorderlink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seamasterbillorderlink.UpdateDefaultUpdatedAt = seamasterbillorderlinkDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seamasterbillorderlinkDescStartedAt is the schema descriptor for started_at field.
+	seamasterbillorderlinkDescStartedAt := seamasterbillorderlinkFields[4].Descriptor()
+	// seamasterbillorderlink.DefaultStartedAt holds the default value on creation for the started_at field.
+	seamasterbillorderlink.DefaultStartedAt = seamasterbillorderlinkDescStartedAt.Default.(func() time.Time)
+	// seamasterbillorderlinkDescEndedReason is the schema descriptor for ended_reason field.
+	seamasterbillorderlinkDescEndedReason := seamasterbillorderlinkFields[6].Descriptor()
+	// seamasterbillorderlink.EndedReasonValidator is a validator for the "ended_reason" field. It is called by the builders before save.
+	seamasterbillorderlink.EndedReasonValidator = seamasterbillorderlinkDescEndedReason.Validators[0].(func(string) error)
+	// seamasterbillorderlinkDescVersion is the schema descriptor for version field.
+	seamasterbillorderlinkDescVersion := seamasterbillorderlinkFields[7].Descriptor()
+	// seamasterbillorderlink.DefaultVersion holds the default value on creation for the version field.
+	seamasterbillorderlink.DefaultVersion = seamasterbillorderlinkDescVersion.Default.(uint64)
+	// seamasterbillorderlinkDescID is the schema descriptor for id field.
+	seamasterbillorderlinkDescID := seamasterbillorderlinkMixinFields0[0].Descriptor()
+	// seamasterbillorderlink.DefaultID holds the default value on creation for the id field.
+	seamasterbillorderlink.DefaultID = seamasterbillorderlinkDescID.Default.(func() uuid.UUID)
+	seatransportexecutionMixin := schema.SeaTransportExecution{}.Mixin()
+	seatransportexecutionMixinFields0 := seatransportexecutionMixin[0].Fields()
+	_ = seatransportexecutionMixinFields0
+	seatransportexecutionMixinFields1 := seatransportexecutionMixin[1].Fields()
+	_ = seatransportexecutionMixinFields1
+	seatransportexecutionFields := schema.SeaTransportExecution{}.Fields()
+	_ = seatransportexecutionFields
+	// seatransportexecutionDescCreatedAt is the schema descriptor for created_at field.
+	seatransportexecutionDescCreatedAt := seatransportexecutionMixinFields1[0].Descriptor()
+	// seatransportexecution.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seatransportexecution.DefaultCreatedAt = seatransportexecutionDescCreatedAt.Default.(func() time.Time)
+	// seatransportexecutionDescUpdatedAt is the schema descriptor for updated_at field.
+	seatransportexecutionDescUpdatedAt := seatransportexecutionMixinFields1[1].Descriptor()
+	// seatransportexecution.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seatransportexecution.DefaultUpdatedAt = seatransportexecutionDescUpdatedAt.Default.(func() time.Time)
+	// seatransportexecution.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seatransportexecution.UpdateDefaultUpdatedAt = seatransportexecutionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seatransportexecutionDescVesselName is the schema descriptor for vessel_name field.
+	seatransportexecutionDescVesselName := seatransportexecutionFields[5].Descriptor()
+	// seatransportexecution.DefaultVesselName holds the default value on creation for the vessel_name field.
+	seatransportexecution.DefaultVesselName = seatransportexecutionDescVesselName.Default.(string)
+	// seatransportexecution.VesselNameValidator is a validator for the "vessel_name" field. It is called by the builders before save.
+	seatransportexecution.VesselNameValidator = seatransportexecutionDescVesselName.Validators[0].(func(string) error)
+	// seatransportexecutionDescVoyageNo is the schema descriptor for voyage_no field.
+	seatransportexecutionDescVoyageNo := seatransportexecutionFields[6].Descriptor()
+	// seatransportexecution.DefaultVoyageNo holds the default value on creation for the voyage_no field.
+	seatransportexecution.DefaultVoyageNo = seatransportexecutionDescVoyageNo.Default.(string)
+	// seatransportexecution.VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
+	seatransportexecution.VoyageNoValidator = seatransportexecutionDescVoyageNo.Validators[0].(func(string) error)
+	// seatransportexecutionDescVersion is the schema descriptor for version field.
+	seatransportexecutionDescVersion := seatransportexecutionFields[9].Descriptor()
+	// seatransportexecution.DefaultVersion holds the default value on creation for the version field.
+	seatransportexecution.DefaultVersion = seatransportexecutionDescVersion.Default.(uint64)
+	// seatransportexecutionDescID is the schema descriptor for id field.
+	seatransportexecutionDescID := seatransportexecutionMixinFields0[0].Descriptor()
+	// seatransportexecution.DefaultID holds the default value on creation for the id field.
+	seatransportexecution.DefaultID = seatransportexecutionDescID.Default.(func() uuid.UUID)
 	sessionMixin := schema.Session{}.Mixin()
 	sessionMixinFields0 := sessionMixin[0].Fields()
 	_ = sessionMixinFields0

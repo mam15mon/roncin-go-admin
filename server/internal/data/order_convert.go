@@ -11,6 +11,7 @@ import (
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
@@ -19,11 +20,20 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
 		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) }).
 		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) {
-			q.WithConsolidation().Order(ordershippingdocumentent.ByCreatedAt())
+			q.Order(ordershippingdocumentent.ByCreatedAt())
 		}).
 		WithContainerRequests(func(q *ent.OrderContainerRequestQuery) { q.Order(ordercontainerrequestent.ByCreatedAt()) }).
 		WithAbnormalCases(func(q *ent.OrderAbnormalCaseQuery) {
 			q.Where(orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE))
+		}).
+		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
+			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
+				WithMasterBill(func(mq *ent.SeaMasterBillQuery) {
+					mq.WithTransportExecution().
+						WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
+							lq.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
+						})
+				})
 		})
 }
 
@@ -81,6 +91,37 @@ func orderToBiz(item *ent.Order) *biz.Order {
 			ID: request.ID, OrderID: request.OrderID, ContainerSpecID: request.ContainerSpecID,
 			Quantity: request.Quantity, CreatedAt: request.CreatedAt, UpdatedAt: request.UpdatedAt,
 		})
+	}
+	if len(item.Edges.SeaMasterBillLinks) > 0 {
+		activeLink := item.Edges.SeaMasterBillLinks[0]
+		if activeLink.Edges.MasterBill != nil {
+			mbl := activeLink.Edges.MasterBill
+			summary := &biz.SeaMasterBillSummary{
+				MasterBillID:    mbl.ID,
+				MasterNo:        mbl.MasterNo,
+				IssuerPartnerID: mbl.IssuerPartnerID,
+				Status:          string(mbl.Status),
+				Version:         mbl.Version,
+				MemberCount:     len(mbl.Edges.OrderLinks),
+			}
+			if mbl.Edges.TransportExecution != nil {
+				te := mbl.Edges.TransportExecution
+				summary.TransportExecutionID = te.ID
+				summary.CarrierID = te.CarrierID
+				summary.OriginLocationID = te.OriginLocationID
+				summary.DischargeLocationID = te.DischargeLocationID
+				summary.TransitLocationID = te.TransitLocationID
+				summary.VesselName = te.VesselName
+				summary.VoyageNo = te.VoyageNo
+				if te.Etd != nil {
+					summary.ETD = te.Etd.Format("2006-01-02")
+				}
+				if te.Eta != nil {
+					summary.ETA = te.Eta.Format("2006-01-02")
+				}
+			}
+			result.SeaMasterBill = summary
+		}
 	}
 	result.AllowedActions = orderAllowedActions(result)
 	return result
@@ -227,4 +268,32 @@ func nonNilUUIDs(values ...*uuid.UUID) []uuid.UUID {
 		}
 	}
 	return result
+}
+
+func seaTransportExecutionToBiz(te *ent.SeaTransportExecution) *biz.SeaTransportExecution {
+	if te == nil {
+		return nil
+	}
+	res := &biz.SeaTransportExecution{
+		ID:                te.ID,
+		OrganizationID:    te.OrganizationID,
+		TransitLocationID: te.TransitLocationID,
+		VesselName:        te.VesselName,
+		VoyageNo:          te.VoyageNo,
+		ETD:               te.Etd,
+		ETA:               te.Eta,
+		Version:           te.Version,
+		CreatedAt:         te.CreatedAt,
+		UpdatedAt:         te.UpdatedAt,
+	}
+	if te.CarrierID != nil {
+		res.CarrierID = *te.CarrierID
+	}
+	if te.OriginLocationID != nil {
+		res.OriginLocationID = *te.OriginLocationID
+	}
+	if te.DischargeLocationID != nil {
+		res.DischargeLocationID = *te.DischargeLocationID
+	}
+	return res
 }

@@ -14,60 +14,60 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
-// OrderConsolidationQuery is the builder for querying OrderConsolidation entities.
-type OrderConsolidationQuery struct {
+// SeaTransportExecutionQuery is the builder for querying SeaTransportExecution entities.
+type SeaTransportExecutionQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []orderconsolidation.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.OrderConsolidation
-	withOrganization      *OrganizationQuery
-	withShippingDocuments *OrderShippingDocumentQuery
-	modifiers             []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []seatransportexecution.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.SeaTransportExecution
+	withOrganization *OrganizationQuery
+	withMasterBills  *SeaMasterBillQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the OrderConsolidationQuery builder.
-func (_q *OrderConsolidationQuery) Where(ps ...predicate.OrderConsolidation) *OrderConsolidationQuery {
+// Where adds a new predicate for the SeaTransportExecutionQuery builder.
+func (_q *SeaTransportExecutionQuery) Where(ps ...predicate.SeaTransportExecution) *SeaTransportExecutionQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *OrderConsolidationQuery) Limit(limit int) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) Limit(limit int) *SeaTransportExecutionQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *OrderConsolidationQuery) Offset(offset int) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) Offset(offset int) *SeaTransportExecutionQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *OrderConsolidationQuery) Unique(unique bool) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) Unique(unique bool) *SeaTransportExecutionQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *OrderConsolidationQuery) Order(o ...orderconsolidation.OrderOption) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) Order(o ...seatransportexecution.OrderOption) *SeaTransportExecutionQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryOrganization chains the current query on the "organization" edge.
-func (_q *OrderConsolidationQuery) QueryOrganization() *OrganizationQuery {
+func (_q *SeaTransportExecutionQuery) QueryOrganization() *OrganizationQuery {
 	query := (&OrganizationClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -78,9 +78,9 @@ func (_q *OrderConsolidationQuery) QueryOrganization() *OrganizationQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, selector),
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
 			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, orderconsolidation.OrganizationTable, orderconsolidation.OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.OrganizationTable, seatransportexecution.OrganizationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,9 +88,9 @@ func (_q *OrderConsolidationQuery) QueryOrganization() *OrganizationQuery {
 	return query
 }
 
-// QueryShippingDocuments chains the current query on the "shipping_documents" edge.
-func (_q *OrderConsolidationQuery) QueryShippingDocuments() *OrderShippingDocumentQuery {
-	query := (&OrderShippingDocumentClient{config: _q.config}).Query()
+// QueryMasterBills chains the current query on the "master_bills" edge.
+func (_q *SeaTransportExecutionQuery) QueryMasterBills() *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,9 +100,9 @@ func (_q *OrderConsolidationQuery) QueryShippingDocuments() *OrderShippingDocume
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, selector),
-			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, orderconsolidation.ShippingDocumentsTable, orderconsolidation.ShippingDocumentsColumn),
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -110,21 +110,21 @@ func (_q *OrderConsolidationQuery) QueryShippingDocuments() *OrderShippingDocume
 	return query
 }
 
-// First returns the first OrderConsolidation entity from the query.
-// Returns a *NotFoundError when no OrderConsolidation was found.
-func (_q *OrderConsolidationQuery) First(ctx context.Context) (*OrderConsolidation, error) {
+// First returns the first SeaTransportExecution entity from the query.
+// Returns a *NotFoundError when no SeaTransportExecution was found.
+func (_q *SeaTransportExecutionQuery) First(ctx context.Context) (*SeaTransportExecution, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{orderconsolidation.Label}
+		return nil, &NotFoundError{seatransportexecution.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) FirstX(ctx context.Context) *OrderConsolidation {
+func (_q *SeaTransportExecutionQuery) FirstX(ctx context.Context) *SeaTransportExecution {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,22 +132,22 @@ func (_q *OrderConsolidationQuery) FirstX(ctx context.Context) *OrderConsolidati
 	return node
 }
 
-// FirstID returns the first OrderConsolidation ID from the query.
-// Returns a *NotFoundError when no OrderConsolidation ID was found.
-func (_q *OrderConsolidationQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first SeaTransportExecution ID from the query.
+// Returns a *NotFoundError when no SeaTransportExecution ID was found.
+func (_q *SeaTransportExecutionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{orderconsolidation.Label}
+		err = &NotFoundError{seatransportexecution.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *SeaTransportExecutionQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -155,10 +155,10 @@ func (_q *OrderConsolidationQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single OrderConsolidation entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one OrderConsolidation entity is found.
-// Returns a *NotFoundError when no OrderConsolidation entities are found.
-func (_q *OrderConsolidationQuery) Only(ctx context.Context) (*OrderConsolidation, error) {
+// Only returns a single SeaTransportExecution entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one SeaTransportExecution entity is found.
+// Returns a *NotFoundError when no SeaTransportExecution entities are found.
+func (_q *SeaTransportExecutionQuery) Only(ctx context.Context) (*SeaTransportExecution, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -167,14 +167,14 @@ func (_q *OrderConsolidationQuery) Only(ctx context.Context) (*OrderConsolidatio
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{orderconsolidation.Label}
+		return nil, &NotFoundError{seatransportexecution.Label}
 	default:
-		return nil, &NotSingularError{orderconsolidation.Label}
+		return nil, &NotSingularError{seatransportexecution.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) OnlyX(ctx context.Context) *OrderConsolidation {
+func (_q *SeaTransportExecutionQuery) OnlyX(ctx context.Context) *SeaTransportExecution {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -182,10 +182,10 @@ func (_q *OrderConsolidationQuery) OnlyX(ctx context.Context) *OrderConsolidatio
 	return node
 }
 
-// OnlyID is like Only, but returns the only OrderConsolidation ID in the query.
-// Returns a *NotSingularError when more than one OrderConsolidation ID is found.
+// OnlyID is like Only, but returns the only SeaTransportExecution ID in the query.
+// Returns a *NotSingularError when more than one SeaTransportExecution ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *OrderConsolidationQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *SeaTransportExecutionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -194,15 +194,15 @@ func (_q *OrderConsolidationQuery) OnlyID(ctx context.Context) (id uuid.UUID, er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{orderconsolidation.Label}
+		err = &NotFoundError{seatransportexecution.Label}
 	default:
-		err = &NotSingularError{orderconsolidation.Label}
+		err = &NotSingularError{seatransportexecution.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *SeaTransportExecutionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -210,18 +210,18 @@ func (_q *OrderConsolidationQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of OrderConsolidations.
-func (_q *OrderConsolidationQuery) All(ctx context.Context) ([]*OrderConsolidation, error) {
+// All executes the query and returns a list of SeaTransportExecutions.
+func (_q *SeaTransportExecutionQuery) All(ctx context.Context) ([]*SeaTransportExecution, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*OrderConsolidation, *OrderConsolidationQuery]()
-	return withInterceptors[[]*OrderConsolidation](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*SeaTransportExecution, *SeaTransportExecutionQuery]()
+	return withInterceptors[[]*SeaTransportExecution](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) AllX(ctx context.Context) []*OrderConsolidation {
+func (_q *SeaTransportExecutionQuery) AllX(ctx context.Context) []*SeaTransportExecution {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -229,20 +229,20 @@ func (_q *OrderConsolidationQuery) AllX(ctx context.Context) []*OrderConsolidati
 	return nodes
 }
 
-// IDs executes the query and returns a list of OrderConsolidation IDs.
-func (_q *OrderConsolidationQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of SeaTransportExecution IDs.
+func (_q *SeaTransportExecutionQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(orderconsolidation.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(seatransportexecution.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *SeaTransportExecutionQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -251,16 +251,16 @@ func (_q *OrderConsolidationQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *OrderConsolidationQuery) Count(ctx context.Context) (int, error) {
+func (_q *SeaTransportExecutionQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*OrderConsolidationQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*SeaTransportExecutionQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) CountX(ctx context.Context) int {
+func (_q *SeaTransportExecutionQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -269,7 +269,7 @@ func (_q *OrderConsolidationQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *OrderConsolidationQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *SeaTransportExecutionQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -282,7 +282,7 @@ func (_q *OrderConsolidationQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *OrderConsolidationQuery) ExistX(ctx context.Context) bool {
+func (_q *SeaTransportExecutionQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -290,20 +290,20 @@ func (_q *OrderConsolidationQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the OrderConsolidationQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the SeaTransportExecutionQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *OrderConsolidationQuery) Clone() *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) Clone() *SeaTransportExecutionQuery {
 	if _q == nil {
 		return nil
 	}
-	return &OrderConsolidationQuery{
-		config:                _q.config,
-		ctx:                   _q.ctx.Clone(),
-		order:                 append([]orderconsolidation.OrderOption{}, _q.order...),
-		inters:                append([]Interceptor{}, _q.inters...),
-		predicates:            append([]predicate.OrderConsolidation{}, _q.predicates...),
-		withOrganization:      _q.withOrganization.Clone(),
-		withShippingDocuments: _q.withShippingDocuments.Clone(),
+	return &SeaTransportExecutionQuery{
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]seatransportexecution.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.SeaTransportExecution{}, _q.predicates...),
+		withOrganization: _q.withOrganization.Clone(),
+		withMasterBills:  _q.withMasterBills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -312,7 +312,7 @@ func (_q *OrderConsolidationQuery) Clone() *OrderConsolidationQuery {
 
 // WithOrganization tells the query-builder to eager-load the nodes that are connected to
 // the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderConsolidationQuery) WithOrganization(opts ...func(*OrganizationQuery)) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) WithOrganization(opts ...func(*OrganizationQuery)) *SeaTransportExecutionQuery {
 	query := (&OrganizationClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -321,14 +321,14 @@ func (_q *OrderConsolidationQuery) WithOrganization(opts ...func(*OrganizationQu
 	return _q
 }
 
-// WithShippingDocuments tells the query-builder to eager-load the nodes that are connected to
-// the "shipping_documents" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderConsolidationQuery) WithShippingDocuments(opts ...func(*OrderShippingDocumentQuery)) *OrderConsolidationQuery {
-	query := (&OrderShippingDocumentClient{config: _q.config}).Query()
+// WithMasterBills tells the query-builder to eager-load the nodes that are connected to
+// the "master_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithMasterBills(opts ...func(*SeaMasterBillQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaMasterBillClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withShippingDocuments = query
+	_q.withMasterBills = query
 	return _q
 }
 
@@ -342,15 +342,15 @@ func (_q *OrderConsolidationQuery) WithShippingDocuments(opts ...func(*OrderShip
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.OrderConsolidation.Query().
-//		GroupBy(orderconsolidation.FieldCreatedAt).
+//	client.SeaTransportExecution.Query().
+//		GroupBy(seatransportexecution.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *OrderConsolidationQuery) GroupBy(field string, fields ...string) *OrderConsolidationGroupBy {
+func (_q *SeaTransportExecutionQuery) GroupBy(field string, fields ...string) *SeaTransportExecutionGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &OrderConsolidationGroupBy{build: _q}
+	grbuild := &SeaTransportExecutionGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = orderconsolidation.Label
+	grbuild.label = seatransportexecution.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -364,23 +364,23 @@ func (_q *OrderConsolidationQuery) GroupBy(field string, fields ...string) *Orde
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.OrderConsolidation.Query().
-//		Select(orderconsolidation.FieldCreatedAt).
+//	client.SeaTransportExecution.Query().
+//		Select(seatransportexecution.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *OrderConsolidationQuery) Select(fields ...string) *OrderConsolidationSelect {
+func (_q *SeaTransportExecutionQuery) Select(fields ...string) *SeaTransportExecutionSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &OrderConsolidationSelect{OrderConsolidationQuery: _q}
-	sbuild.label = orderconsolidation.Label
+	sbuild := &SeaTransportExecutionSelect{SeaTransportExecutionQuery: _q}
+	sbuild.label = seatransportexecution.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a OrderConsolidationSelect configured with the given aggregations.
-func (_q *OrderConsolidationQuery) Aggregate(fns ...AggregateFunc) *OrderConsolidationSelect {
+// Aggregate returns a SeaTransportExecutionSelect configured with the given aggregations.
+func (_q *SeaTransportExecutionQuery) Aggregate(fns ...AggregateFunc) *SeaTransportExecutionSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *OrderConsolidationQuery) prepareQuery(ctx context.Context) error {
+func (_q *SeaTransportExecutionQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -392,7 +392,7 @@ func (_q *OrderConsolidationQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !orderconsolidation.ValidColumn(f) {
+		if !seatransportexecution.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -406,20 +406,20 @@ func (_q *OrderConsolidationQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *OrderConsolidationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderConsolidation, error) {
+func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*SeaTransportExecution, error) {
 	var (
-		nodes       = []*OrderConsolidation{}
+		nodes       = []*SeaTransportExecution{}
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
 			_q.withOrganization != nil,
-			_q.withShippingDocuments != nil,
+			_q.withMasterBills != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*OrderConsolidation).scanValues(nil, columns)
+		return (*SeaTransportExecution).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &OrderConsolidation{config: _q.config}
+		node := &SeaTransportExecution{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -438,25 +438,23 @@ func (_q *OrderConsolidationQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	}
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *OrderConsolidation, e *Organization) { n.Edges.Organization = e }); err != nil {
+			func(n *SeaTransportExecution, e *Organization) { n.Edges.Organization = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withShippingDocuments; query != nil {
-		if err := _q.loadShippingDocuments(ctx, query, nodes,
-			func(n *OrderConsolidation) { n.Edges.ShippingDocuments = []*OrderShippingDocument{} },
-			func(n *OrderConsolidation, e *OrderShippingDocument) {
-				n.Edges.ShippingDocuments = append(n.Edges.ShippingDocuments, e)
-			}); err != nil {
+	if query := _q.withMasterBills; query != nil {
+		if err := _q.loadMasterBills(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.MasterBills = []*SeaMasterBill{} },
+			func(n *SeaTransportExecution, e *SeaMasterBill) { n.Edges.MasterBills = append(n.Edges.MasterBills, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *OrderConsolidationQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*OrderConsolidation, init func(*OrderConsolidation), assign func(*OrderConsolidation, *Organization)) error {
+func (_q *SeaTransportExecutionQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *Organization)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*OrderConsolidation)
+	nodeids := make(map[uuid.UUID][]*SeaTransportExecution)
 	for i := range nodes {
 		fk := nodes[i].OrganizationID
 		if _, ok := nodeids[fk]; !ok {
@@ -483,9 +481,9 @@ func (_q *OrderConsolidationQuery) loadOrganization(ctx context.Context, query *
 	}
 	return nil
 }
-func (_q *OrderConsolidationQuery) loadShippingDocuments(ctx context.Context, query *OrderShippingDocumentQuery, nodes []*OrderConsolidation, init func(*OrderConsolidation), assign func(*OrderConsolidation, *OrderShippingDocument)) error {
+func (_q *SeaTransportExecutionQuery) loadMasterBills(ctx context.Context, query *SeaMasterBillQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaMasterBill)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*OrderConsolidation)
+	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -494,27 +492,27 @@ func (_q *OrderConsolidationQuery) loadShippingDocuments(ctx context.Context, qu
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(ordershippingdocument.FieldConsolidationID)
+		query.ctx.AppendFieldOnce(seamasterbill.FieldTransportExecutionID)
 	}
-	query.Where(predicate.OrderShippingDocument(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(orderconsolidation.ShippingDocumentsColumn), fks...))
+	query.Where(predicate.SeaMasterBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.MasterBillsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.ConsolidationID
+		fk := n.TransportExecutionID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "consolidation_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "transport_execution_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
 	return nil
 }
 
-func (_q *OrderConsolidationQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *SeaTransportExecutionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	if len(_q.modifiers) > 0 {
 		_spec.Modifiers = _q.modifiers
@@ -526,8 +524,8 @@ func (_q *OrderConsolidationQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *OrderConsolidationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(orderconsolidation.Table, orderconsolidation.Columns, sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID))
+func (_q *SeaTransportExecutionQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(seatransportexecution.Table, seatransportexecution.Columns, sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -536,14 +534,14 @@ func (_q *OrderConsolidationQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, orderconsolidation.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, seatransportexecution.FieldID)
 		for i := range fields {
-			if fields[i] != orderconsolidation.FieldID {
+			if fields[i] != seatransportexecution.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(orderconsolidation.FieldOrganizationID)
+			_spec.Node.AddColumnOnce(seatransportexecution.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -569,12 +567,12 @@ func (_q *OrderConsolidationQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *OrderConsolidationQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *SeaTransportExecutionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(orderconsolidation.Table)
+	t1 := builder.Table(seatransportexecution.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = orderconsolidation.Columns
+		columns = seatransportexecution.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -607,7 +605,7 @@ func (_q *OrderConsolidationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (_q *OrderConsolidationQuery) ForUpdate(opts ...sql.LockOption) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) ForUpdate(opts ...sql.LockOption) *SeaTransportExecutionQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -620,7 +618,7 @@ func (_q *OrderConsolidationQuery) ForUpdate(opts ...sql.LockOption) *OrderConso
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (_q *OrderConsolidationQuery) ForShare(opts ...sql.LockOption) *OrderConsolidationQuery {
+func (_q *SeaTransportExecutionQuery) ForShare(opts ...sql.LockOption) *SeaTransportExecutionQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -630,28 +628,28 @@ func (_q *OrderConsolidationQuery) ForShare(opts ...sql.LockOption) *OrderConsol
 	return _q
 }
 
-// OrderConsolidationGroupBy is the group-by builder for OrderConsolidation entities.
-type OrderConsolidationGroupBy struct {
+// SeaTransportExecutionGroupBy is the group-by builder for SeaTransportExecution entities.
+type SeaTransportExecutionGroupBy struct {
 	selector
-	build *OrderConsolidationQuery
+	build *SeaTransportExecutionQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *OrderConsolidationGroupBy) Aggregate(fns ...AggregateFunc) *OrderConsolidationGroupBy {
+func (_g *SeaTransportExecutionGroupBy) Aggregate(fns ...AggregateFunc) *SeaTransportExecutionGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *OrderConsolidationGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *SeaTransportExecutionGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*OrderConsolidationQuery, *OrderConsolidationGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*SeaTransportExecutionQuery, *SeaTransportExecutionGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *OrderConsolidationGroupBy) sqlScan(ctx context.Context, root *OrderConsolidationQuery, v any) error {
+func (_g *SeaTransportExecutionGroupBy) sqlScan(ctx context.Context, root *SeaTransportExecutionQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -678,28 +676,28 @@ func (_g *OrderConsolidationGroupBy) sqlScan(ctx context.Context, root *OrderCon
 	return sql.ScanSlice(rows, v)
 }
 
-// OrderConsolidationSelect is the builder for selecting fields of OrderConsolidation entities.
-type OrderConsolidationSelect struct {
-	*OrderConsolidationQuery
+// SeaTransportExecutionSelect is the builder for selecting fields of SeaTransportExecution entities.
+type SeaTransportExecutionSelect struct {
+	*SeaTransportExecutionQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *OrderConsolidationSelect) Aggregate(fns ...AggregateFunc) *OrderConsolidationSelect {
+func (_s *SeaTransportExecutionSelect) Aggregate(fns ...AggregateFunc) *SeaTransportExecutionSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *OrderConsolidationSelect) Scan(ctx context.Context, v any) error {
+func (_s *SeaTransportExecutionSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*OrderConsolidationQuery, *OrderConsolidationSelect](ctx, _s.OrderConsolidationQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*SeaTransportExecutionQuery, *SeaTransportExecutionSelect](ctx, _s.SeaTransportExecutionQuery, _s, _s.inters, v)
 }
 
-func (_s *OrderConsolidationSelect) sqlScan(ctx context.Context, root *OrderConsolidationQuery, v any) error {
+func (_s *SeaTransportExecutionSelect) sqlScan(ctx context.Context, root *SeaTransportExecutionQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

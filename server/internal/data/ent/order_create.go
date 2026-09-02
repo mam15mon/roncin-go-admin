@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 // OrderCreate is the builder for creating a Order entity.
@@ -1217,6 +1218,21 @@ func (_c *OrderCreate) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderCre
 	return _c.AddEnterpriseTagLinkIDs(ids...)
 }
 
+// AddSeaMasterBillLinkIDs adds the "sea_master_bill_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_c *OrderCreate) AddSeaMasterBillLinkIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaMasterBillLinkIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBillLinks adds the "sea_master_bill_links" edges to the SeaMasterBillOrderLink entity.
+func (_c *OrderCreate) AddSeaMasterBillLinks(v ...*SeaMasterBillOrderLink) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillLinkIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -2195,6 +2211,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaMasterBillLinksTable,
+			Columns: []string{order.SeaMasterBillLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

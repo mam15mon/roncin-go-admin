@@ -36,7 +36,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -47,6 +46,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
@@ -435,19 +437,49 @@ func (_c *OrganizationCreate) AddOrders(v ...*Order) *OrganizationCreate {
 	return _c.AddOrderIDs(ids...)
 }
 
-// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
-func (_c *OrganizationCreate) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddOrderConsolidationIDs(ids...)
+// AddSeaTransportExecutionIDs adds the "sea_transport_executions" edge to the SeaTransportExecution entity by IDs.
+func (_c *OrganizationCreate) AddSeaTransportExecutionIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaTransportExecutionIDs(ids...)
 	return _c
 }
 
-// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
-func (_c *OrganizationCreate) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationCreate {
+// AddSeaTransportExecutions adds the "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_c *OrganizationCreate) AddSeaTransportExecutions(v ...*SeaTransportExecution) *OrganizationCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddOrderConsolidationIDs(ids...)
+	return _c.AddSeaTransportExecutionIDs(ids...)
+}
+
+// AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
+func (_c *OrganizationCreate) AddSeaMasterBillIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaMasterBillIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBills adds the "sea_master_bills" edges to the SeaMasterBill entity.
+func (_c *OrganizationCreate) AddSeaMasterBills(v ...*SeaMasterBill) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillIDs(ids...)
+}
+
+// AddSeaMasterBillOrderLinkIDs adds the "sea_master_bill_order_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_c *OrganizationCreate) AddSeaMasterBillOrderLinkIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaMasterBillOrderLinkIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBillOrderLinks adds the "sea_master_bill_order_links" edges to the SeaMasterBillOrderLink entity.
+func (_c *OrganizationCreate) AddSeaMasterBillOrderLinks(v ...*SeaMasterBillOrderLink) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillOrderLinkIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -1233,15 +1265,47 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SeaTransportExecutionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.OrderConsolidationsTable,
-			Columns: []string{organization.OrderConsolidationsColumn},
+			Table:   organization.SeaTransportExecutionsTable,
+			Columns: []string{organization.SeaTransportExecutionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillsTable,
+			Columns: []string{organization.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillOrderLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillOrderLinksTable,
+			Columns: []string{organization.SeaMasterBillOrderLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

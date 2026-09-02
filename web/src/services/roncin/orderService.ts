@@ -183,3 +183,21 @@ export async function orderServiceTransitionOrderTermination(
     }
   );
 }
+
+/** 此处后端没有提供注释 GET /api/v1/orders/sea-master-bill-candidate */
+export async function orderServiceMatchSeaMasterBillCandidate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderServiceMatchSeaMasterBillCandidateParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.MatchSeaMasterBillCandidateResponse>(
+    "/api/v1/orders/sea-master-bill-candidate",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}

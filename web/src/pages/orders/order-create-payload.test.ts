@@ -29,9 +29,8 @@ describe('buildCreateOrderPayload', () => {
         associate2UserId: 'associate-2',
         associate2OrganizationId: 'org-7',
         shippingDocuments: [
-          { masterNo: '  MBL-001  ', houseNo: '  ' },
-          { masterNo: '  ', houseNo: '  HBL-001  ' },
-          { masterNo: '  ', houseNo: '' },
+          { houseNo: '  HBL-001  ' },
+          { houseNo: '  ' },
         ],
       },
       ORDER_KIND_CONFIGS['sea-export'],
@@ -57,8 +56,7 @@ describe('buildCreateOrderPayload', () => {
         { role: 8, userId: 'associate-2', organizationId: 'org-7' },
       ],
       shippingDocuments: [
-        { masterNo: 'MBL-001', houseNo: '' },
-        { masterNo: '', houseNo: 'HBL-001' },
+        { houseNo: 'HBL-001' },
       ],
     });
   });
@@ -79,5 +77,29 @@ describe('buildCreateOrderPayload', () => {
     expect(result.customerReferenceNo).toBeUndefined();
     expect(result.personnelAssignments).toEqual([]);
     expect(result.shippingDocuments).toEqual([]);
+  });
+
+  it('组装海运出口 MBL 主单与候选确认参数', () => {
+    const result = buildCreateOrderPayload(
+      {
+        customerId: 'customer-1',
+        tradeTerm: 3,
+        paymentTerm: 1,
+        seaMasterBillMasterNo: 'COSCO999901',
+        seaMasterBillIssuerPartnerId: 'partner-issuer-1',
+        seaMasterBillCandidateId: 'candidate-mbl-1',
+        seaMasterBillExpectedCandidateVersion: 3,
+        seaMasterBillCorrectionReason: '更正主单号',
+      },
+      ORDER_KIND_CONFIGS['sea-export'],
+    );
+
+    expect(result.seaMasterBill).toEqual({
+      masterNo: 'COSCO999901',
+      issuerPartnerId: 'partner-issuer-1',
+      candidateId: 'candidate-mbl-1',
+      expectedCandidateVersion: '3',
+      correctionReason: '更正主单号',
+    });
   });
 });
