@@ -251,3 +251,42 @@
 ### Next Steps
 
 - 后续独立任务可覆盖提成 MarkPaid、应付外币链、低权限与双组织隔离、CI 强制一次性验收
+
+
+## Session 10: 修复内置海运服务类型读取
+<!-- trellis-session: v=2 fp=0ff4911a2fb5b89d -->
+
+**Date**: 2026-09-02
+**Task**: 修复内置海运服务类型读取
+**Package**: web
+**Branch**: `main`
+
+### Summary
+
+确认 BOOKING 等 19 个服务类型已经由应用自动初始化，修复订单前端用字符串比较 OpenAPI 数字枚举导致的主数据误报缺失。
+
+### Main Changes
+
+- 订单服务类型、货物类别、箱型和地区统一消费生成的 MasterDataKind 数字常量
+- 移除订单模块字符串枚举第二真相并收敛地区查询裸数字
+- 补充真实数字 API 响应、19 个服务类型、后端名称和 BOOKING 缺项回归测试
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `729a5a2d` | fix: 修复订单内置主数据枚举读取 |
+
+### Testing
+
+- [OK] 运行中开发服务返回 19 个服务类型，BOOKING kind=8 且类型为 number、source=system、enabled=true
+- [OK] Vitest 54 个文件、180 项测试通过；TypeScript 与 393 文件 Biome 检查通过
+- [OK] 独立 trellis-check PASS：P0=0、P1=0、P2=0
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 用户刷新或重启前端开发服务后验证海运出口新建订单不再误报 BOOKING 缺失

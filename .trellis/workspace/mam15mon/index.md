@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 9
+- **Total Sessions**: 10
 - **Last Active**: 2026-09-02
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~253 | Active |
+| `journal-1.md` | ~292 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 10 | 2026-09-02 | 修复内置海运服务类型读取 | `729a5a2d` | `main` |
 | 9 | 2026-09-02 | 完成外币财务全链路验收 | `1c13e9df` | `main` |
 | 8 | 2026-09-01 | 完成财务全链路测试覆盖审计 | `dfac79b1` | `main` |
 | 7 | 2026-09-01 | 补齐提成 PostgreSQL 事务集成验证 | `33445813`, `1cd7904c` | `main` |
