@@ -2,7 +2,9 @@ import {
   ProFormDateTimePicker,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Alert, Button, Col, Form } from 'antd';
+import { Alert, Button, Col, Form, Input, Tooltip } from 'antd';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import React from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { containerOwnershipOptions } from '../../../common';
@@ -12,6 +14,8 @@ import {
   type SelectOption,
 } from '../../../order-plan-fields';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
+
+dayjs.extend(isoWeek);
 
 export function SeaContainerPlanFields({
   options,
@@ -58,42 +62,63 @@ export function SeaContainerPlanFields({
 
 export function SeaScheduleDateFields() {
   const form = Form.useFormInstance();
+  const etd = Form.useWatch('etd', form);
+  const weekValue =
+    etd && dayjs(etd).isValid() ? `W${dayjs(etd).isoWeek()}` : '';
+
   return (
     <>
-      <ProFormDateTimePicker
-        colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-        name="etd"
-        label="ETD (预计开航)"
-        fieldProps={{
-          style: { width: '100%' },
-          onChange: (date) => {
-            if (date) {
-              const currentEta = form?.getFieldValue('eta');
-              if (currentEta?.isBefore(date)) {
-                form?.setFieldValue('eta', undefined);
+      <Col className="col-5">
+        <ProFormDateTimePicker
+          name="etd"
+          label="ETD (预计开航)"
+          fieldProps={{
+            style: { width: '100%' },
+            onChange: (date) => {
+              if (date) {
+                const currentEta = form?.getFieldValue('eta');
+                if (currentEta?.isBefore(date)) {
+                  form?.setFieldValue('eta', undefined);
+                }
               }
-            }
-          },
-        }}
-      />
-      <ProFormDateTimePicker
-        colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-        name="eta"
-        label="ETA (预计到达)"
-        dependencies={['etd']}
-        rules={[
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              const etd = getFieldValue('etd');
-              if (!value || !etd || value.isAfter(etd) || value.isSame(etd)) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error('ETA 不能早于 ETD'));
             },
-          }),
-        ]}
-        fieldProps={{ style: { width: '100%' } }}
-      />
+          }}
+        />
+      </Col>
+      <Col className="col-5">
+        <Form.Item label="WEEK" style={{ marginInline: 0 }}>
+          <Input
+            value={weekValue}
+            placeholder="依据 ETD 自动生成"
+            disabled
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+      </Col>
+      <Col className="col-5">
+        <ProFormDateTimePicker
+          name="eta"
+          label="ETA (预计到达)"
+          dependencies={['etd']}
+          rules={[
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const etdVal = getFieldValue('etd');
+                if (
+                  !value ||
+                  !etdVal ||
+                  value.isAfter(etdVal) ||
+                  value.isSame(etdVal)
+                ) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('ETA 不能早于 ETD'));
+              },
+            }),
+          ]}
+          fieldProps={{ style: { width: '100%' } }}
+        />
+      </Col>
     </>
   );
 }
@@ -108,91 +133,120 @@ export function buildSeaTransportSection(
     title: '配舱信息',
     content: (
       <>
-        {/* 第 1 行：航线 4 港口（一行 4 个，各占 6 栅格） */}
-        <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="originLocationId"
-          label="起运港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择起运港或地点"
-        />
-        <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="destinationLocationId"
-          label="目的港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择目的港或地点"
-        />
-        <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="dischargeLocationId"
-          label="卸货港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择卸货港"
-        />
-        <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="transitLocationId"
-          label="中转港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择中转港"
-        />
+        {/* 第 1 行：主单号、分单号、主单单证类型、主单签放方式、分单签放方式 */}
+        <OrderShippingDocumentFields transportMode="sea" />
 
-        {/* 第 2 行：箱货与船期（一行 4 个，各占 6 栅格） */}
-        <ProFormText
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="vesselVoyage"
-          label="船名航次"
-          placeholder="请输入船名航次"
-        />
-        <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="containerOwnership"
-          label="货主箱标记"
-          options={containerOwnershipOptions}
-          placeholder="请选择 COC / SOC"
-        />
-        <SeaScheduleDateFields />
-
-        {/* 第 3 行：4 大截关时间（一行 4 个，各占 6 栅格） */}
-        <ProFormDateTimePicker
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="siCutoff"
-          label="SI截关时间"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="docCutoff"
-          label="单证截关时间"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="customsCutoff"
-          label="报关截关时间"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-          name="vgmCutoff"
-          label="VGM截关时间"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-
-        {/* 第 4 行：计划箱型箱量 */}
+        {/* 第 2 行：箱型箱量 */}
         <SeaContainerPlanFields options={containerSpecOptions} />
 
-        {/* 第 5 行：主单与分单配置 */}
-        <OrderShippingDocumentFields transportMode="sea" />
+        {/* 第 3 行：航线 4 港口（起运港、目的港、卸货港、中转港） */}
+        <Col className="col-5">
+          <ProFormSearchableSelect
+            name="originLocationId"
+            label="起运港"
+            options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
+            placeholder="请选择起运港或地点"
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormSearchableSelect
+            name="destinationLocationId"
+            label="目的港"
+            options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
+            placeholder="请选择目的港或地点"
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormSearchableSelect
+            name="dischargeLocationId"
+            label="卸货港"
+            options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
+            placeholder="请选择卸货港"
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormSearchableSelect
+            name="transitLocationId"
+            label="中转港"
+            options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
+            placeholder="请选择中转港"
+          />
+        </Col>
+        <Col className="col-5" />
+
+        {/* 第 4 行：货主箱标记、船名航次、ETD、WEEK、ETA */}
+        <Col className="col-5">
+          <ProFormSearchableSelect
+            name="containerOwnership"
+            label="货主箱标记"
+            options={containerOwnershipOptions}
+            placeholder="请选择 COC / SOC"
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormText
+            name="vesselVoyage"
+            label="船名航次"
+            placeholder="请输入船名航次"
+            fieldProps={{
+              suffix: (
+                <Tooltip title="船期与船舶实时动态追踪">
+                  <a
+                    href="https://www.shipxy.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: 12, color: '#1677ff' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    船在哪儿
+                  </a>
+                </Tooltip>
+              ),
+            }}
+          />
+        </Col>
+        <SeaScheduleDateFields />
+
+        {/* 第 5 行：SI截关时间、单证截关时间(截单时间)、报关截关时间(截关时间)、VGM截关时间 */}
+        <Col className="col-5">
+          <ProFormDateTimePicker
+            name="siCutoff"
+            label="SI截关时间"
+            fieldProps={{ style: { width: '100%' } }}
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormDateTimePicker
+            name="docCutoff"
+            label="单证截关时间"
+            tooltip="即截单时间"
+            fieldProps={{ style: { width: '100%' } }}
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormDateTimePicker
+            name="customsCutoff"
+            label="报关截关时间"
+            tooltip="即截关时间"
+            fieldProps={{ style: { width: '100%' } }}
+          />
+        </Col>
+        <Col className="col-5">
+          <ProFormDateTimePicker
+            name="vgmCutoff"
+            label="VGM截关时间"
+            fieldProps={{ style: { width: '100%' } }}
+          />
+        </Col>
+        <Col className="col-5" />
       </>
     ),
   };

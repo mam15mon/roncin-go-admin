@@ -1,8 +1,7 @@
 import {
   DeleteOutlined,
-  FileTextOutlined,
   InfoCircleOutlined,
-  PlusOutlined,
+  PlusCircleFilled,
 } from '@ant-design/icons';
 import {
   Alert,
@@ -12,7 +11,6 @@ import {
   Form,
   Input,
   Popconfirm,
-  Row,
   Select,
   Tag,
   Tooltip,
@@ -50,6 +48,7 @@ type OrderMasterDocGroupCardProps = {
     field: 'houseNo' | 'releaseType' | 'note',
     val: string,
   ) => void;
+  onAddGroup?: () => void;
 };
 
 export default function OrderMasterDocGroupCard({
@@ -68,6 +67,7 @@ export default function OrderMasterDocGroupCard({
   onAddHouse,
   onRemoveHouse,
   onHouseFieldChange,
+  onAddGroup,
 }: OrderMasterDocGroupCardProps) {
   const masterTrimmed = group.masterNo?.trim();
   const groupHasReleased = group.houses.some(
@@ -92,129 +92,90 @@ export default function OrderMasterDocGroupCard({
     Boolean(normalizedMasterNo) &&
     (masterNoCounts.get(normalizedMasterNo) || 0) > 1;
 
+  const firstHouse = group.houses[0] || {
+    key: 'h-0',
+    houseNo: '',
+    releaseType: undefined,
+    note: '',
+  };
+  const firstHouseTrimmed = firstHouse.houseNo.trim().toLowerCase();
+  const firstHouseDuplicate =
+    Boolean(firstHouseTrimmed) && (houseNoCounts.get(firstHouseTrimmed) || 0) > 1;
+  const firstHouseHasContent = Boolean(
+    firstHouse.id ||
+      (!firstHouse.omitWhenEmpty && group.masterNo.trim()) ||
+      firstHouse.houseNo.trim() ||
+      firstHouse.releaseType?.trim() ||
+      firstHouse.note?.trim(),
+  );
+  const firstHouseMissing = firstHouseHasContent && !firstHouse.houseNo.trim();
+  const firstHouseReleased =
+    firstHouse.status ===
+    OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
+
   const removeGroupButton = (
     <Button
-      type="text"
+      type="link"
       danger
       size="small"
-      icon={<DeleteOutlined />}
-      disabled={groupHasReleased}
+      disabled={disabled || groupHasReleased}
+      icon={<DeleteOutlined style={{ fontSize: 12 }} />}
       onClick={() => onRemoveGroup(groupIdx)}
-      style={{ fontSize: 12 }}
+      style={{ padding: '0 2px', fontSize: 12, height: 32 }}
     >
       删除该主单组
     </Button>
   );
 
-  return (
-    <div
-      key={group.key}
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e8e8e8',
-        borderRadius: 6,
-        padding: '12px 16px 16px',
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
-      }}
+  const removeFirstHouseButton = (
+    <Button
+      type="link"
+      danger
+      size="small"
+      disabled={disabled || firstHouseReleased}
+      aria-label={`删除分单 ${firstHouse.houseNo || 1}`}
+      icon={<DeleteOutlined style={{ fontSize: 12 }} />}
+      onClick={() => onRemoveHouse(groupIdx, 0)}
+      style={{ padding: '0 2px', height: 32, fontSize: 12, flexShrink: 0 }}
     >
-      {/* 主单行 Header 标题栏 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingBottom: 10,
-          marginBottom: 12,
-          borderBottom: '1px solid #f0f0f0',
-          flexWrap: 'wrap',
-          gap: 8,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <FileTextOutlined style={{ color: '#1677ff', fontSize: 14 }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>
-            主单 ({documentLabels.master})
-          </span>
-          {totalGroups > 1 && (
-            <Tag
-              variant="filled"
-              color="blue"
-              style={{ margin: 0, fontSize: 11 }}
-            >
-              批次 #{groupIdx + 1}
-            </Tag>
-          )}
-          <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（忽略大小写与首尾空格）。">
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 12,
-                color: '#8c8c8c',
-                cursor: 'help',
-              }}
-            >
-              <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 12 }} />
-              <span>一主多分</span>
-            </span>
-          </Tooltip>
-          {masterTrimmed && (
-            <Tag
-              color="blue"
-              variant="filled"
-              style={{ margin: 0, fontSize: 11 }}
-            >
-              批次标识: {masterTrimmed.toUpperCase()}
-            </Tag>
-          )}
-        </div>
+      删除分单
+    </Button>
+  );
 
-        {totalGroups > 1 && !disabled && (
-          <Tooltip
-            title={
-              groupHasReleased
-                ? '组内存在已放货分单，不能删除该主单组'
-                : undefined
-            }
-          >
-            <span>
-              {group.houses.some((house) => house.id) &&
-              !groupHasReleased ? (
-                <Popconfirm
-                  title="确认删除该主单组？"
-                  description="保存订单后，组内已有分单会被删除。"
-                  onConfirm={() => onRemoveGroup(groupIdx)}
-                  okText="删除"
-                  cancelText="取消"
-                >
-                  {React.cloneElement(removeGroupButton, {
-                    onClick: undefined,
-                  })}
-                </Popconfirm>
-              ) : (
-                removeGroupButton
+  return (
+    <>
+      {/* 主单与首条分单：5 列紧凑横排 */}
+      <Col className="col-5">
+        <Form.Item
+          label={
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span>{`主单 (${documentLabels.master})`}</span>
+              {totalGroups > 1 && (
+                <Tag color="blue" variant="filled" style={{ margin: 0, fontSize: 10, padding: '0 4px' }}>
+                  #{groupIdx + 1}
+                </Tag>
+              )}
+              {groupIdx === 0 && (
+                <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（一主多分）。">
+                  <span style={{ color: '#8c8c8c', cursor: 'help', fontSize: 12 }}>
+                    <InfoCircleOutlined style={{ color: '#1677ff' }} />
+                    <span style={{ display: 'none' }}>一主多分</span>
+                  </span>
+                </Tooltip>
               )}
             </span>
-          </Tooltip>
-        )}
-      </div>
-
-      {/* 主单属性行 */}
-      <Row gutter={16} align="middle" style={{ marginBottom: transportMode === 'sea' ? 8 : 12 }}>
-        <Col xs={24} sm={12} lg={transportMode === 'sea' ? 8 : 12}>
-          <Form.Item
-            label={`主单号 (${documentLabels.master})`}
-            style={{ marginBottom: masterMissing || masterDuplicate ? 20 : 8 }}
-            validateStatus={masterMissing || masterDuplicate ? 'error' : undefined}
-            help={
-              masterDuplicate
-                ? '该主单已在当前操作票中，请在原主单组下添加分单'
-                : masterMissing
-                  ? '请填写主单号'
-                  : undefined
-            }
-          >
+          }
+          style={{ marginBottom: masterMissing || masterDuplicate ? 24 : 12 }}
+          validateStatus={masterMissing || masterDuplicate ? 'error' : undefined}
+          help={
+            masterDuplicate
+              ? '该主单已在当前操作票中，请在原主单组下添加分单'
+              : masterMissing
+                ? '请填写主单号'
+                : undefined
+          }
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Input
               value={group.masterNo}
               onChange={(e) => onMasterChange(groupIdx, e.target.value)}
@@ -224,344 +185,256 @@ export default function OrderMasterDocGroupCard({
               status={masterMissing || masterDuplicate ? 'error' : undefined}
               allowClear
             />
-          </Form.Item>
-        </Col>
+            {groupIdx === 0 && !disabled && onAddGroup && (
+              <Button
+                type="link"
+                icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
+                onClick={onAddGroup}
+                style={{ padding: '0 2px', height: 32, fontSize: 12, flexShrink: 0 }}
+              >
+                加拼主单 ({documentLabels.master})
+              </Button>
+            )}
+            {totalGroups > 1 && (
+              <span>
+                {group.houses.some((house) => house.id) && !groupHasReleased && !disabled ? (
+                  <Popconfirm
+                    title="确认删除该主单组？"
+                    description="保存订单后，组内已有分单会被删除。"
+                    onConfirm={() => onRemoveGroup(groupIdx)}
+                    okText="删除"
+                    cancelText="取消"
+                  >
+                    {React.cloneElement(removeGroupButton, { onClick: undefined })}
+                  </Popconfirm>
+                ) : (
+                  removeGroupButton
+                )}
+              </span>
+            )}
+          </div>
+        </Form.Item>
+      </Col>
 
-        {transportMode === 'sea' && (
-          <>
-            <Col xs={24} sm={12} lg={8}>
-              <Form.Item label="主单单证类型" style={{ marginBottom: 8 }}>
-                <Select
-                  value={group.masterDocumentType}
-                  options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
-                  placeholder="请选择主单单证类型"
-                  disabled={disabled || groupHasReleased}
-                  onChange={(value) =>
-                    onMasterAttributeChange(
-                      groupIdx,
-                      'masterDocumentType',
-                      value,
-                    )
-                  }
-                  allowClear
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Form.Item label="主单签放方式" style={{ marginBottom: 8 }}>
-                <Select
-                  value={group.masterReleaseMethod}
-                  options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
-                  placeholder="请选择主单签放方式"
-                  disabled={disabled || groupHasReleased}
-                  onChange={(value) =>
-                    onMasterAttributeChange(
-                      groupIdx,
-                      'masterReleaseMethod',
-                      value,
-                    )
-                  }
-                  allowClear
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-          </>
-        )}
-      </Row>
+      <Col className="col-5">
+        <Form.Item
+          label={`分单号 (${documentLabels.house})`}
+          style={{ marginBottom: firstHouseMissing || firstHouseDuplicate ? 24 : 12 }}
+          validateStatus={firstHouseMissing || firstHouseDuplicate ? 'error' : undefined}
+          help={
+            firstHouseDuplicate
+              ? '分单号重复'
+              : firstHouseMissing
+                ? '请填写分单号'
+                : undefined
+          }
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Input
+              value={firstHouse.houseNo}
+              onChange={(e) =>
+                onHouseFieldChange(groupIdx, 0, 'houseNo', e.target.value)
+              }
+              placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
+              maxLength={64}
+              disabled={disabled || firstHouseReleased}
+              status={firstHouseMissing || firstHouseDuplicate ? 'error' : undefined}
+              allowClear
+            />
+            {!disabled && (
+              <Button
+                type="link"
+                icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
+                onClick={() => onAddHouse(groupIdx)}
+                style={{ padding: '0 2px', height: 32, fontSize: 12, flexShrink: 0 }}
+              >
+                添加分单 ({documentLabels.house})
+              </Button>
+            )}
+            {(group.houses.length > 1 || firstHouse.id || firstHouseReleased || totalGroups > 1) && (
+              <span>
+                {firstHouse.id && !firstHouseReleased && !disabled ? (
+                  <Popconfirm
+                    title="确认删除该分单？"
+                    description="保存订单后，该分单会被删除。"
+                    onConfirm={() => onRemoveHouse(groupIdx, 0)}
+                    okText="删除"
+                    cancelText="取消"
+                  >
+                    {React.cloneElement(removeFirstHouseButton, { onClick: undefined })}
+                  </Popconfirm>
+                ) : (
+                  removeFirstHouseButton
+                )}
+              </span>
+            )}
+          </div>
+        </Form.Item>
+      </Col>
 
-      {/* 共享主单批次轻量提示 */}
       {transportMode === 'sea' && (
-        <Alert
-          type="warning"
-          showIcon
-          title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
-          style={{
-            padding: '4px 10px',
-            fontSize: 12,
-            borderRadius: 4,
-            marginBottom: 10,
-          }}
-        />
+        <>
+          <Col className="col-5">
+            <Form.Item label="主单单证类型" style={{ marginBottom: 12 }}>
+              <Select
+                value={group.masterDocumentType}
+                options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
+                placeholder="请选择主单单证类型"
+                disabled={disabled || groupHasReleased}
+                onChange={(value) =>
+                  onMasterAttributeChange(
+                    groupIdx,
+                    'masterDocumentType',
+                    value,
+                  )
+                }
+                allowClear
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+
+          <Col className="col-5">
+            <Form.Item label="主单签放方式" style={{ marginBottom: 12 }}>
+              <Select
+                value={group.masterReleaseMethod}
+                options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
+                placeholder="请选择主单签放方式"
+                disabled={disabled || groupHasReleased}
+                onChange={(value) =>
+                  onMasterAttributeChange(
+                    groupIdx,
+                    'masterReleaseMethod',
+                    value,
+                  )
+                }
+                allowClear
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+
+          <Col className="col-5">
+            <Form.Item label="分单签放方式" style={{ marginBottom: 12 }}>
+              <AutoComplete
+                value={firstHouse.releaseType}
+                options={releaseTypeOptions}
+                onChange={(val) =>
+                  onHouseFieldChange(groupIdx, 0, 'releaseType', val)
+                }
+                placeholder="请选择或输入分单签放方式"
+                disabled={disabled || firstHouseReleased}
+                allowClear
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+        </>
       )}
 
-      {/* 分单列表 Sub-Table */}
-      <div
-        style={{
-          border: '1px solid #e8e8e8',
-          borderRadius: 6,
-          overflow: 'hidden',
-          background: '#fafafa',
-        }}
-      >
-        {/* 列表表头 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '7px 12px',
-            background: '#fafafa',
-            borderBottom: '1px solid #f0f0f0',
-            fontSize: 12,
-            fontWeight: 600,
-            color: '#595959',
-          }}
-        >
-          <div
-            style={{ width: 36, textAlign: 'center', color: '#8c8c8c' }}
-          >
-            #
-          </div>
-          <div
-            style={{
-              flex: '1 1 200px',
-              minWidth: 160,
-              paddingInline: 4,
-            }}
-          >
-            <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
-            分单号 ({documentLabels.house})
-          </div>
-          <div
-            style={{
-              width: 180,
-              flexShrink: 0,
-              paddingInline: 4,
-            }}
-          >
-            分单签放方式
-          </div>
-          <div
-            style={{
-              flex: '1.5 1 220px',
-              minWidth: 180,
-              paddingInline: 4,
-            }}
-          >
-            分单备注
-          </div>
-          <div style={{ width: 44, textAlign: 'center', flexShrink: 0 }}>操作</div>
-        </div>
+      {/* 共享主单批次说明 */}
+      {transportMode === 'sea' && groupIdx === 0 && (
+        <Col span={24} style={{ marginTop: -6, marginBottom: 8 }}>
+          <Alert
+            type="warning"
+            showIcon
+            title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
+            style={{ padding: '2px 8px', fontSize: 12, borderRadius: 4 }}
+          />
+        </Col>
+      )}
 
-        {/* 列表内容 */}
-        <div style={{ background: '#ffffff' }}>
-          {group.houses.map((house, houseIdx) => {
-            const isOnlyOne = group.houses.length === 1 && totalGroups === 1;
-            const isReleased =
-              house.status ===
-              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
-            const normalizedHouseNo = house.houseNo.trim().toLowerCase();
-            const isDuplicate =
-              Boolean(normalizedHouseNo) &&
-              (houseNoCounts.get(normalizedHouseNo) || 0) > 1;
-            const houseHasContent = Boolean(
-              house.id ||
-                (!house.omitWhenEmpty && group.masterNo.trim()) ||
-                house.houseNo.trim() ||
-                house.releaseType?.trim() ||
-                house.note?.trim(),
-            );
-            const houseMissing = houseHasContent && !house.houseNo.trim();
-            const removeHouseButton = (
-              <Button
-                type="text"
-                size="small"
-                danger
-                aria-label={`删除分单 ${house.houseNo || houseIdx + 1}`}
-                disabled={isReleased}
-                icon={<DeleteOutlined style={{ fontSize: 12 }} />}
-                onClick={() => onRemoveHouse(groupIdx, houseIdx)}
-                style={{
-                  height: 24,
-                  width: 24,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                }}
-              />
-            );
-            return (
-              <div
-                key={house.key}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  padding: '6px 12px',
-                  gap: 8,
-                  background: '#ffffff',
-                  borderBottom:
-                    houseIdx < group.houses.length - 1
-                      ? '1px solid #f0f0f0'
-                      : 'none',
-                }}
+      {/* 附加分单行（如果有 2 张及以上分单） */}
+      {group.houses.slice(1).map((extraHouse, offset) => {
+        const houseIdx = offset + 1;
+        const normalizedNo = extraHouse.houseNo.trim().toLowerCase();
+        const isDuplicate =
+          Boolean(normalizedNo) && (houseNoCounts.get(normalizedNo) || 0) > 1;
+        const hasContent = Boolean(
+          extraHouse.id ||
+            (!extraHouse.omitWhenEmpty && group.masterNo.trim()) ||
+            extraHouse.houseNo.trim() ||
+            extraHouse.releaseType?.trim() ||
+            extraHouse.note?.trim(),
+        );
+        const isMissing = hasContent && !extraHouse.houseNo.trim();
+        const isReleased =
+          extraHouse.status ===
+          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
+
+        return (
+          <React.Fragment key={extraHouse.key}>
+            <Col className="col-5">
+              <Form.Item label="所属主单" style={{ marginBottom: 12 }}>
+                <Input value={group.masterNo || '-'} disabled style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col className="col-5">
+              <Form.Item
+                label={`分单号 #${houseIdx + 1}`}
+                style={{ marginBottom: isMissing || isDuplicate ? 24 : 12 }}
+                validateStatus={isMissing || isDuplicate ? 'error' : undefined}
+                help={isDuplicate ? '分单号重复' : isMissing ? '请填写分单号' : undefined}
               >
-                <div
-                  style={{
-                    width: 36,
-                    textAlign: 'center',
-                    fontSize: 12,
-                    color: '#8c8c8c',
-                    lineHeight: '32px',
-                    fontWeight: 500,
-                  }}
+                <Input
+                  value={extraHouse.houseNo}
+                  onChange={(e) =>
+                    onHouseFieldChange(groupIdx, houseIdx, 'houseNo', e.target.value)
+                  }
+                  placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
+                  maxLength={64}
+                  disabled={disabled || isReleased}
+                  status={isMissing || isDuplicate ? 'error' : undefined}
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+            <Col className="col-5">
+              <Form.Item label="分单签放方式" style={{ marginBottom: 12 }}>
+                <AutoComplete
+                  value={extraHouse.releaseType}
+                  options={releaseTypeOptions}
+                  onChange={(val) =>
+                    onHouseFieldChange(groupIdx, houseIdx, 'releaseType', val)
+                  }
+                  placeholder="请选择或输入分单签放方式"
+                  disabled={disabled || isReleased}
+                  allowClear
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col className="col-5">
+              <Form.Item label="分单备注" style={{ marginBottom: 12 }}>
+                <Input
+                  value={extraHouse.note}
+                  onChange={(e) =>
+                    onHouseFieldChange(groupIdx, houseIdx, 'note', e.target.value)
+                  }
+                  placeholder="分单备注说明 (选填)"
+                  maxLength={500}
+                  disabled={disabled || isReleased}
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+            <Col className="col-5">
+              <Form.Item label="操作" style={{ marginBottom: 12 }}>
+                <Button
+                  type="link"
+                  danger
+                  disabled={disabled || isReleased}
+                  aria-label={`删除分单 ${extraHouse.houseNo || houseIdx + 1}`}
+                  icon={<DeleteOutlined />}
+                  onClick={() => onRemoveHouse(groupIdx, houseIdx)}
                 >
-                  {houseIdx + 1}
-                </div>
-
-                <div style={{ flex: '1 1 200px', minWidth: 160 }}>
-                  <Input
-                    value={house.houseNo}
-                    onChange={(e) =>
-                      onHouseFieldChange(
-                        groupIdx,
-                        houseIdx,
-                        'houseNo',
-                        e.target.value,
-                      )
-                    }
-                    placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
-                    maxLength={64}
-                    disabled={disabled || isReleased}
-                    status={
-                      houseMissing || isDuplicate ? 'error' : undefined
-                    }
-                    allowClear
-                  />
-                  {(houseMissing || isDuplicate) && (
-                    <div
-                      style={{
-                        color: '#ff4d4f',
-                        fontSize: 12,
-                        marginTop: 2,
-                      }}
-                    >
-                      {isDuplicate ? '分单号重复' : '请填写分单号'}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ width: 180, flexShrink: 0 }}>
-                  <AutoComplete
-                    value={house.releaseType}
-                    options={releaseTypeOptions}
-                    onChange={(val) =>
-                      onHouseFieldChange(
-                        groupIdx,
-                        houseIdx,
-                        'releaseType',
-                        val,
-                      )
-                    }
-                    placeholder={
-                      transportMode === 'sea'
-                        ? '请选择或输入分单签放方式'
-                        : '请输入分单签放方式'
-                    }
-                    disabled={disabled || isReleased}
-                    showSearch={{
-                      filterOption: (inputValue, option) =>
-                        Boolean(
-                          option?.value
-                            ?.toString()
-                            .toUpperCase()
-                            .includes(inputValue.toUpperCase()) ||
-                            option?.label
-                              ?.toString()
-                              .toUpperCase()
-                              .includes(inputValue.toUpperCase()),
-                        ),
-                    }}
-                    allowClear
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div style={{ flex: '1.5 1 220px', minWidth: 180 }}>
-                  <Input
-                    value={house.note}
-                    onChange={(e) =>
-                      onHouseFieldChange(
-                        groupIdx,
-                        houseIdx,
-                        'note',
-                        e.target.value,
-                      )
-                    }
-                    placeholder="分单备注说明 (选填)"
-                    maxLength={500}
-                    disabled={disabled || isReleased}
-                    allowClear
-                  />
-                </div>
-
-                <div
-                  style={{
-                    width: 44,
-                    textAlign: 'center',
-                    flexShrink: 0,
-                    lineHeight: '32px',
-                  }}
-                >
-                  {!disabled && (
-                    <Tooltip
-                      title={
-                        isReleased
-                          ? '已放货分单不能修改或删除'
-                          : isOnlyOne
-                            ? '清空该行'
-                            : '删除该分单'
-                      }
-                    >
-                      <span>
-                        {house.id && !isReleased ? (
-                          <Popconfirm
-                            title="确认删除该分单？"
-                            description="保存订单后，该分单会被删除。"
-                            onConfirm={() =>
-                              onRemoveHouse(groupIdx, houseIdx)
-                            }
-                            okText="删除"
-                            cancelText="取消"
-                          >
-                            {React.cloneElement(removeHouseButton, {
-                              onClick: undefined,
-                            })}
-                          </Popconfirm>
-                        ) : (
-                          removeHouseButton
-                        )}
-                      </span>
-                    </Tooltip>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 添加分单按钮 */}
-        {!disabled && (
-          <div
-            style={{
-              padding: '6px 12px',
-              background: '#fafafa',
-              borderTop: '1px dashed #e8e8e8',
-            }}
-          >
-            <Button
-              type="dashed"
-              size="small"
-              icon={<PlusOutlined style={{ fontSize: 11 }} />}
-              onClick={() => onAddHouse(groupIdx)}
-              style={{ fontSize: 12 }}
-            >
-              添加分单 ({documentLabels.house})
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+                  删除分单
+                </Button>
+              </Form.Item>
+            </Col>
+          </React.Fragment>
+        );
+      })}
+    </>
   );
 }
