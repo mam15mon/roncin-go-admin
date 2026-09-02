@@ -11,6 +11,7 @@ import {
 } from '@/constants/statusMeta';
 import {
   ContainerOwnership,
+  MasterDataKind,
   OrderBusinessType,
   OrderPersonnelRole,
   OrderShippingDocumentStatus,
@@ -172,15 +173,15 @@ export const shippingDocumentStatusValueEnum: Record<
 };
 
 export const MASTER_DATA_KINDS = {
-  REGION: 'MASTER_DATA_KIND_REGION',
-  CONTAINER_SPEC: 'MASTER_DATA_KIND_CONTAINER_SPEC',
-  SERVICE_TYPE: 'MASTER_DATA_KIND_SERVICE_TYPE',
-  CARGO_CATEGORY: 'MASTER_DATA_KIND_CARGO_CATEGORY',
+  REGION: MasterDataKind.MASTER_DATA_KIND_REGION,
+  CONTAINER_SPEC: MasterDataKind.MASTER_DATA_KIND_CONTAINER_SPEC,
+  SERVICE_TYPE: MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE,
+  CARGO_CATEGORY: MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
 } as const;
 
 export function isMasterDataKind(
-  value: number | string | undefined,
-  kind: (typeof MASTER_DATA_KINDS)[keyof typeof MASTER_DATA_KINDS],
+  value: number | undefined,
+  kind: MasterDataKind,
 ) {
   return value === kind;
 }
@@ -239,7 +240,7 @@ export async function searchOrderLocations(
 ): Promise<{ label: string; value: string }[]> {
   const [regionsResponse, transportResponse] = await Promise.all([
     masterDataServiceListItems({
-      kind: 3,
+      kind: MASTER_DATA_KINDS.REGION,
       keyword,
       enabled: true,
       page: 1,

@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { searchOrderLocations, searchPartnersByRole } from './common';
+import {
+  MASTER_DATA_KINDS,
+  searchOrderLocations,
+  searchPartnersByRole,
+} from './common';
 
 const listItems = vi.hoisted(() => vi.fn());
 const listPorts = vi.hoisted(() => vi.fn());
@@ -41,7 +45,7 @@ describe('订单远程候选项', () => {
     const options = await searchOrderLocations('sea', 'shang');
 
     expect(listItems).toHaveBeenCalledWith({
-      kind: 3,
+      kind: MASTER_DATA_KINDS.REGION,
       keyword: 'shang',
       enabled: true,
       page: 1,
