@@ -313,3 +313,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 12: 完成海运出口主分单内容阶段
+<!-- trellis-session: v=2 fp=155986cfd7485ab8 -->
+
+**Date**: 2026-09-03
+**Task**: 完成海运出口主分单内容阶段
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成海运出口单证三态、共享 MBL 内容、真实多 HBL、唯一签发主体、乐观锁与审计事务、默认展开页面；Agy 实施并经独立 Trellis 检查和真实 PostgreSQL 验证通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8b2f9519` | feat: 增加海运出口主分单内容 |
+
+### Status
+
+[OK] **Completed**

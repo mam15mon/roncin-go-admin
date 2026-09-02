@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
-- **Last Active**: 2026-09-02
+- **Total Sessions**: 12
+- **Last Active**: 2026-09-03
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~315 | Active |
+| `journal-1.md` | ~338 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 12 | 2026-09-03 | 完成海运出口主分单内容阶段 | `8b2f9519` | `main` |
 | 11 | 2026-09-02 | 完成海运出口共享主单基础 | `294eb6ef` | `main` |
 | 10 | 2026-09-02 | 修复内置海运服务类型读取 | `729a5a2d` | `main` |
 | 9 | 2026-09-02 | 完成外币财务全链路验收 | `1c13e9df` | `main` |
