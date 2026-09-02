@@ -6,14 +6,20 @@
 
 ## Requirements
 
-- TBD
+- 依赖 `09-02-sea-export-split-reassignment` 已完成、检查并提交。
+- MBL/HBL 身份与内容版本分离；确认后内容通过变更申请发布新版本，不原地覆盖。
+- SI、VGM、舱单、运输和财务状态正交；后端返回允许动作和具体阻断原因。
+- 实现改单、作废和 Switch B/L 替代链；同一替代链同一时点只有一张当前有效单证。
+- 下游事实引用具体版本 ID，旧版本永久可重现。
+- 不伪造船公司、海关或港区外部接口回执。
 
 ## Acceptance Criteria
 
-- [ ] TBD
+- [ ] 草稿可按版本编辑，确认后普通更新被拒绝并只能发布新版本。
+- [ ] SI/VGM/舱单并行状态不会被压成错误线性总状态。
+- [ ] Switch 保留旧新单证、交回/作废、审批和影响记录。
+- [ ] 历史申报、打印和财务依据重现时读取原版本而非最新内容。
 
 ## Notes
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 后续依赖：`09-02-sea-export-finance-allocation`。

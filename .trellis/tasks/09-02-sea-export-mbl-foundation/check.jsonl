@@ -1,0 +1,7 @@
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/research/current-model.md","reason":"复核旧静默归组、间接 MBL 推断和跨票覆盖路径是否清除"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查 MBL 数据在所有层和消费者中完整往返"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查事务、锁、版本、唯一约束和真实 PostgreSQL 并发验证"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查驱动错误未泄漏且业务错误语义稳定"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查生成幂等、静态路由顺序和质量门"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查前端测试、类型、Biome 和生成文件边界"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查页面只消费生成契约和枚举"}

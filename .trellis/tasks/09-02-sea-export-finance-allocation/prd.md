@@ -6,14 +6,20 @@
 
 ## Requirements
 
-- TBD
+- 依赖 `09-02-sea-export-document-versioning` 已完成、检查并提交。
+- 费用明确声明计费对象：操作票、运输执行/航段、MBL、HBL 或集装箱。
+- 共享承运人成本通过版本化分摊记录落到操作票/HBL，支持父任务批准的分摊方法。
+- 分摊金额按币种精确守恒；重分摊追加调整历史，不覆盖已确认、开票或核销事实。
+- 拆票、改配、改单和箱货重分配对账单、发票、核销和提成的影响必须显式处理。
+- 不改变未获业务批准的会计、税务或提成口径。
 
 ## Acceptance Criteria
 
-- [ ] TBD
+- [ ] MBL/箱级共享成本可按至少两种已批准方法分摊到多个操作票且金额守恒。
+- [ ] 已确认分摊不可原地覆盖，调整后新旧版本和账单依据可追溯。
+- [ ] 拆票、改配和改单不会重复复制已账单化/核销费用或重复生成提成。
+- [ ] 从订单录入到费用、账单、开票、核销和提成的本位币及多币种真实链路验收通过。
 
 ## Notes
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 这是第六阶段；完成后返回父任务执行整合验收。

@@ -6,14 +6,20 @@
 
 ## Requirements
 
-- TBD
+- 依赖 `09-02-sea-export-cargo-allocation` 已完成、检查并提交。
+- 部分拆票保留原操作票的非零剩余和原订单号，只为拆出部分生成新票和新订单号。
+- 拆分事件保存拆分前快照、父子谱系、继承白名单、箱货/费用分配和守恒结果。
+- 整票甩柜使用整体改配，保留同一操作票并终止旧当前关系；不得伪装为拆票。
+- 普通拆票只允许在父任务已确认的单证、申报、财务和提成门禁全部满足时执行。
+- 本阶段不实现超过门禁后的全自动后置拆票复合更正。
 
 ## Acceptance Criteria
 
-- [ ] TBD
+- [ ] 部分拆票产生一张保留原号的非零原票和至少一张新票，总量守恒且可追溯。
+- [ ] 整票改配不创建新操作票，旧关系终止、新关系建立且审计完整。
+- [ ] 门禁任一不满足时不产生半成品、重复费用或提成。
+- [ ] 并发拆票/改配冲突稳定返回 409，真实 PostgreSQL 回滚测试通过。
 
 ## Notes
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 后续依赖：`09-02-sea-export-document-versioning`。

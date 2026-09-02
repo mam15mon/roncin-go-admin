@@ -1,0 +1,9 @@
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/research/current-model.md","reason":"了解旧主分单模型、受影响链路和禁止继续保留的静默归组行为"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 Proto、service、biz、data、生成客户端和页面之间的数据流"}
+{"file":".trellis/spec/server/backend/index.md","reason":"遵循 Kratos/Ent 分层和开发前检查"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"实施共享事务、唯一约束、固定锁顺序和乐观版本"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"将约束和并发错误映射为领域错误"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循生成物、路由顺序和 PostgreSQL 测试门禁"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"遵循订单页面、权限与生成客户端边界"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"保持订单表单高密度统一视觉和组件结构"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"使用生成类型和枚举，不手改生成物或增加兼容分支"}
