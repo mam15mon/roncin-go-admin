@@ -1,8 +1,8 @@
 {
   "id": "builtin-shipping-service-types",
   "name": "builtin-shipping-service-types",
-  "title": "修复内置海运服务类型初始化",
-  "description": "确保 BOOKING 等订单模板硬依赖的标准海运服务类型由应用正式初始化流程自动、幂等提供，无需用户手工 seed。",
+  "title": "修复内置海运服务类型读取",
+  "description": "修复订单前端把主数据数字枚举与字符串比较造成的 BOOKING 误报缺失；保留应用现有自动、幂等初始化契约。",
   "status": "planning",
   "dev_type": null,
   "scope": null,
