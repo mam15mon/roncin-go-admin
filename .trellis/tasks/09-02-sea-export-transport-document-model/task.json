@@ -23,7 +23,8 @@
     "09-02-sea-export-document-content",
     "09-02-sea-export-cargo-allocation",
     "09-02-sea-export-split-reassignment",
-    "09-02-sea-export-finance-allocation"
+    "09-02-sea-export-finance-allocation",
+    "09-02-sea-export-document-versioning"
   ],
   "parent": null,
   "relatedFiles": [],
