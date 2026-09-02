@@ -1,0 +1,14 @@
+{"file":".trellis/tasks/09-02-sea-export-document-content/research/current-model.md","reason":"了解阶段 2 当前模型证据、旧 HBL 约束和已确认业务门禁"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/prd.md","reason":"遵循父任务的最终领域不变量、页面渐进展示和跨阶段边界"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"保持共享 MBL、成员关系、HBL、版本与后续阶段的整体结构一致"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/design.md","reason":"复用阶段 1 的共享主单数据模型、候选关联和锁顺序"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/implement.md","reason":"了解阶段 1 已实施边界、验证门禁和禁止恢复的旧路径"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 Proto、service、biz、data、生成客户端和页面的完整数据流"}
+{"file":".trellis/spec/server/backend/index.md","reason":"遵循 Kratos/Ent 分层和开发前检查"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"实施共享事务、固定锁顺序、悲观锁、乐观版本和条件唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"将状态、主体、唯一性和版本冲突映射为稳定中文领域错误"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循生成物、迁移和 PostgreSQL 集成测试门禁"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"保持阶段 1 海运出口主单契约并扩展而不恢复双写"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"遵循订单页面、权限和生成客户端边界"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"使用统一订单模板、SectionCard 和高密度页面规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"只消费生成类型和枚举，不手改生成物或增加兼容分支"}

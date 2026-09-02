@@ -1,0 +1,10 @@
+{"file":".trellis/tasks/09-02-sea-export-document-content/prd.md","reason":"逐项核对阶段 2 验收标准和用户确认的状态/主体决策"}
+{"file":".trellis/tasks/09-02-sea-export-document-content/design.md","reason":"检查实体所有权、三态转换、号码唯一性、共享边界和阶段范围"}
+{"file":".trellis/tasks/09-02-sea-export-document-content/research/current-model.md","reason":"对照旧实现证据检查双写、原号覆盖和主体模型残留"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查契约到页面的跨层字段完整往返"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查事务、固定锁序、版本、条件唯一索引和错误回滚"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查领域错误与驱动约束映射"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查生成幂等、迁移、静态检查和真实 PostgreSQL 测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"检查阶段 1 契约未被破坏且未恢复旧主单推断"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查默认展开、紧凑 Tabs、签发主体和订单模板一致性"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查前端只使用生成 API 类型与枚举"}
