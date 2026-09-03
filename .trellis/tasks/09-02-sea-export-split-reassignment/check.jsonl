@@ -1,0 +1,20 @@
+{"file":".trellis/tasks/09-02-sea-export-split-reassignment/prd.md","reason":"逐项核验已确认业务规则和验收标准"}
+{"file":".trellis/tasks/09-02-sea-export-split-reassignment/design.md","reason":"检查数据模型、写入语义、权限、锁序和页面是否按设计落地"}
+{"file":".trellis/tasks/09-02-sea-export-split-reassignment/implement.md","reason":"核验实施范围、生成、测试和迁移门禁全部完成"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"检查阶段 4 未破坏父任务关系和阶段 5/6 边界"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/design.md","reason":"检查共享 MBL 唯一性、候选重验和历史关系"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-document-content/design.md","reason":"检查 DIRECT/HOUSE、真实 HBL 和单证草稿门禁"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-cargo-allocation/design.md","reason":"检查 CONFIRMED 分配、精确守恒和集合版本未被破坏"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查契约到页面的跨层字段、错误和权限完整往返"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查共享事务、Data.client、锁序、版本、幂等和约束映射"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查稳定 reason、中文消息和可定位 metadata"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查正式迁移、生成幂等、静态检查和真实 PostgreSQL 测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"检查阶段 1～3 契约不倒退且无旧模型双写"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查页面默认展开、即时颜色、抽屉和统一组件"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查版本刷新、预览失效和服务端权威结果"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查前端只使用生成类型和精确十进制字符串"}
+{"file":"server/internal/data/order_write.go","reason":"检查新票继承是否复用正确事实且未重跑客户提成归属"}
+{"file":"server/internal/data/sea_cargo_allocation.go","reason":"检查守恒、关系迁移、锁序和确认状态"}
+{"file":"server/internal/data/order_attachment.go","reason":"检查资产引用、最后引用删除和无 Data.db 直连"}
+{"file":"server/internal/access/manifest.go","reason":"检查仅生成 SE split/reassign 且附件键未变化"}
+{"file":"web/src/pages/orders/detail.tsx","reason":"检查入口、阻断、历史与权限一致"}

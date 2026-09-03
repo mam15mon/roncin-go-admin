@@ -1,0 +1,24 @@
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/prd.md","reason":"遵循父任务最终业务术语、六阶段范围和阶段 4 门禁"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"保持 Order、运输执行、共享 MBL、HBL、分配与财务整体关系一致"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/design.md","reason":"复用共享 MBL 候选、活动关系、版本校验和锁序"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-document-content/design.md","reason":"复用 DIRECT/HOUSE、真实多 HBL、单证结构状态和内容边界"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-cargo-allocation/design.md","reason":"复用箱货分配聚合、精确守恒、确认状态和固定锁序"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-cargo-allocation/implement.md","reason":"了解阶段 3 已实现入口、生成命令和 PostgreSQL 验证要求"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 Proto、service、biz、data、权限、页面和生成客户端完整数据流"}
+{"file":".trellis/spec/server/backend/index.md","reason":"遵循 Kratos、Ent 分层和开发前检查"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"实施共享事务、固定锁序、悲观锁、乐观版本和唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"实现稳定领域错误、中文消息和结构化 metadata"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循正式迁移、生成幂等和隔离 PostgreSQL 集成测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"保持阶段 1～3 海运主分单契约且不恢复旧模型"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"遵循订单页面、权限和生成客户端边界"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"使用默认展开的统一页面卡片、抽屉和底部操作栏"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"正确管理上下文版本、预览、刷新失效和命令结果"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"只消费生成类型并保持十进制字符串类型安全"}
+{"file":"server/internal/data/order_write.go","reason":"复用订单号码、白名单创建、人员和提成归属快照逻辑并避免普通 Create 强制 DRAFT"}
+{"file":"server/internal/data/sea_master_bill.go","reason":"复用目标 MBL 候选、航程摘要和组织范围查询"}
+{"file":"server/internal/data/sea_cargo_allocation.go","reason":"复用已确认箱货聚合、精确分配和阶段 3 锁序"}
+{"file":"server/internal/data/order_attachment.go","reason":"重构附件资产/引用并消除当前 Data.db 直连"}
+{"file":"server/internal/data/order_fee.go","reason":"保持草稿费用全部财税汇率快照和标签边界"}
+{"file":"server/internal/access/manifest.go","reason":"新增仅 SE 适用权限并复用附件管理键"}
+{"file":"web/src/pages/orders/detail.tsx","reason":"接入动作摘要、改配抽屉、变更历史和拆票入口"}
+{"file":"web/src/pages/orders/components/drawers/SeaCargoAllocationDrawer.tsx","reason":"复用阶段 3 即时十进制汇总、颜色和具体错误交互"}
