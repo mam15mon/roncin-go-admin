@@ -365,3 +365,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 14: 完成海运出口拆票与改配
+<!-- trellis-session: v=2 fp=72e02eb229fb3494 -->
+
+**Date**: 2026-09-04
+**Task**: 完成海运出口拆票与改配
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成阶段4部分拆票、整体改配、附件资产引用、不可变事件、严格版本与目标契约、前端精确十进制交互；Agy High 实施修正后经独立 trellis-check 复验，真实 PostgreSQL 26 子测试、全量 Go/Web、漏洞扫描与生成幂等均通过，并重建空开发库验证正式 CHECK 约束。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c2ca2f98` | feat: 完成海运出口拆票与改配 |
+
+### Status
+
+[OK] **Completed**
