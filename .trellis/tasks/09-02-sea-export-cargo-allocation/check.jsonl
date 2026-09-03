@@ -1,0 +1,13 @@
+{"file":".trellis/tasks/09-02-sea-export-cargo-allocation/prd.md","reason":"逐项检查阶段 3 用户需求和验收标准"}
+{"file":".trellis/tasks/09-02-sea-export-cargo-allocation/design.md","reason":"检查聚合归属、守恒、状态、错误、锁序和页面交互是否落地"}
+{"file":".trellis/tasks/09-02-sea-export-cargo-allocation/research/current-model.md","reason":"对照既有模型证据检查旧 HBL 单值关系和直接数据库访问残留"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"检查阶段 3 未破坏父任务关系和后续拆票历史边界"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-document-content/design.md","reason":"检查真实多 HBL、显示内容独立和 DIRECT/HOUSE 状态回归"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查契约到页面的跨层字段完整往返"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查事务、固定锁序、版本、数值列和条件唯一索引"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查精确中文错误、reason、metadata 和驱动约束映射"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查生成幂等、迁移、静态检查和真实 PostgreSQL 测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"检查阶段 1/2 主分单契约未被破坏且无双写"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查抽屉默认展开、即时颜色和明确动作符合全站规范"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查聚合版本刷新、局部草稿和服务端权威状态"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查前端只使用生成类型和十进制字符串"}
