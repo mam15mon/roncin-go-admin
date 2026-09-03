@@ -50,24 +50,26 @@ func (s *orderContainerRepoStub) Add(ctx context.Context, organizationID, orderI
 	return s.added, nil
 }
 
-func (s *orderContainerRepoStub) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error) {
+func (s *orderContainerRepoStub) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error) {
 	s.updatedAudit = audit
 	s.updated = &OrderContainer{
 		ID:              id,
 		OrderID:         orderID,
 		ContainerNo:     input.ContainerNo,
 		ContainerSpecID: input.ContainerSpecID,
+		PackageCount:    input.PackageCount,
 		SealNo:          input.SealNo,
 		GrossWeightKg:   input.GrossWeightKg,
 		VolumeCbm:       input.VolumeCbm,
 		Note:            input.Note,
+		Version:         expectedVersion + 1,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}
 	return s.updated, nil
 }
 
-func (s *orderContainerRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error {
+func (s *orderContainerRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) error {
 	s.removed = true
 	s.removedAudit = audit
 	return nil
@@ -104,6 +106,7 @@ func TestOrderContainerAddValidatesAndAudits(t *testing.T) {
 		return &OrderContainer{
 			ContainerNo:     "MSCU1234567",
 			ContainerSpecID: specID,
+			PackageCount:    100,
 			GrossWeightKg:   15000,
 			VolumeCbm:       33.2,
 			SealNo:          stringPtr("SEAL123456"),
@@ -235,6 +238,7 @@ func TestOrderContainerUpdateValidatesAndAudits(t *testing.T) {
 	input := &OrderContainer{
 		ContainerNo:     "COSU9876543",
 		ContainerSpecID: specID,
+		PackageCount:    100,
 		GrossWeightKg:   22000,
 		VolumeCbm:       55.5,
 		SealNo:          stringPtr("SL9999"),
@@ -242,29 +246,32 @@ func TestOrderContainerUpdateValidatesAndAudits(t *testing.T) {
 	}
 
 	// Nil IDs
-	if _, err := usecase.Update(context.Background(), uuid.Nil, actorID, orderID, id, input); err != ErrOrderContainerInvalidArgument {
+	if _, err := usecase.Update(context.Background(), uuid.Nil, actorID, orderID, id, 1, input); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil orgID, got %v", err)
 	}
-	if _, err := usecase.Update(context.Background(), orgID, uuid.Nil, orderID, id, input); err != ErrOrderContainerInvalidArgument {
+	if _, err := usecase.Update(context.Background(), orgID, uuid.Nil, orderID, id, 1, input); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil actorID, got %v", err)
 	}
-	if _, err := usecase.Update(context.Background(), orgID, actorID, uuid.Nil, id, input); err != ErrOrderContainerInvalidArgument {
+	if _, err := usecase.Update(context.Background(), orgID, actorID, uuid.Nil, id, 1, input); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil orderID, got %v", err)
 	}
-	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, uuid.Nil, input); err != ErrOrderContainerInvalidArgument {
+	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, uuid.Nil, 1, input); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil id, got %v", err)
+	}
+	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, 0, input); err != ErrOrderContainerInvalidArgument {
+		t.Fatalf("expected ErrOrderContainerInvalidArgument for zero expectedVersion, got %v", err)
 	}
 
 	// Invalid input
 	invalidIn := *input
 	invalidIn.ContainerNo = ""
-	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, &invalidIn); err != ErrOrderContainerInvalidArgument {
+	if _, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, 1, &invalidIn); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for empty containerNo, got %v", err)
 	}
 
 	// Success path
 	repo.updatedAudit = nil
-	updated, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, input)
+	updated, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, 1, input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -292,22 +299,25 @@ func TestOrderContainerRemoveValidatesAndAudits(t *testing.T) {
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
-	if err := usecase.Remove(context.Background(), uuid.Nil, actorID, orderID, id); err != ErrOrderContainerInvalidArgument {
+	if err := usecase.Remove(context.Background(), uuid.Nil, actorID, orderID, id, 1); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil orgID, got %v", err)
 	}
-	if err := usecase.Remove(context.Background(), orgID, uuid.Nil, orderID, id); err != ErrOrderContainerInvalidArgument {
+	if err := usecase.Remove(context.Background(), orgID, uuid.Nil, orderID, id, 1); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil actorID, got %v", err)
 	}
-	if err := usecase.Remove(context.Background(), orgID, actorID, uuid.Nil, id); err != ErrOrderContainerInvalidArgument {
+	if err := usecase.Remove(context.Background(), orgID, actorID, uuid.Nil, id, 1); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil orderID, got %v", err)
 	}
-	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, uuid.Nil); err != ErrOrderContainerInvalidArgument {
+	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, uuid.Nil, 1); err != ErrOrderContainerInvalidArgument {
 		t.Fatalf("expected ErrOrderContainerInvalidArgument for nil id, got %v", err)
+	}
+	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id, 0); err != ErrOrderContainerInvalidArgument {
+		t.Fatalf("expected ErrOrderContainerInvalidArgument for zero expectedVersion, got %v", err)
 	}
 
 	// Success
 	repo.removedAudit = nil
-	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id); err != nil {
+	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id, 1); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !repo.removed {

@@ -225,6 +225,10 @@ export interface OrderListTemplateProps {
   onOpenContainers?: (record: OrderListItem) => void;
   /** 打开货物明细面板 */
   onOpenCargo?: (record: OrderListItem) => void;
+  /** 打开海运箱货分配面板 */
+  onOpenCargoAllocation?: (record: OrderListItem) => void;
+  /** 当前行是否显示海运箱货分配入口 */
+  canOpenCargoAllocation?: (record: OrderListItem) => boolean;
   /** 打开附件档案面板 */
   onOpenAttachments?: (record: OrderListItem) => void;
   /** 打开协作人员面板 */

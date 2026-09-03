@@ -36,6 +36,7 @@ type OrderCargoItem struct {
 	Note          *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Version       uint64                 `protobuf:"varint,11,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -138,6 +139,13 @@ func (x *OrderCargoItem) GetUpdatedAt() string {
 		return x.UpdatedAt
 	}
 	return ""
+}
+
+func (x *OrderCargoItem) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
 }
 
 // ListCargoItemsRequest 获取订单货物明细列表请求。
@@ -280,17 +288,18 @@ func (x *AddCargoItemRequest) GetNote() string {
 
 // UpdateCargoItemRequest 更新订单货物明细请求。
 type UpdateCargoItemRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	CargoName     string                 `protobuf:"bytes,3,opt,name=cargo_name,json=cargoName,proto3" json:"cargo_name,omitempty"`
-	PackageCount  int32                  `protobuf:"varint,4,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
-	GrossWeightKg float64                `protobuf:"fixed64,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm     float64                `protobuf:"fixed64,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	NetWeightKg   *float64               `protobuf:"fixed64,7,opt,name=net_weight_kg,json=netWeightKg,proto3,oneof" json:"net_weight_kg,omitempty"`
-	Note          *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	CargoName       string                 `protobuf:"bytes,3,opt,name=cargo_name,json=cargoName,proto3" json:"cargo_name,omitempty"`
+	PackageCount    int32                  `protobuf:"varint,4,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg   float64                `protobuf:"fixed64,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm       float64                `protobuf:"fixed64,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	NetWeightKg     *float64               `protobuf:"fixed64,7,opt,name=net_weight_kg,json=netWeightKg,proto3,oneof" json:"net_weight_kg,omitempty"`
+	Note            *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,9,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateCargoItemRequest) Reset() {
@@ -379,13 +388,21 @@ func (x *UpdateCargoItemRequest) GetNote() string {
 	return ""
 }
 
+func (x *UpdateCargoItemRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
 // RemoveCargoItemRequest 移除订单货物明细请求。
 type RemoveCargoItemRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RemoveCargoItemRequest) Reset() {
@@ -430,6 +447,13 @@ func (x *RemoveCargoItemRequest) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *RemoveCargoItemRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
 }
 
 // AddCargoItemResponse 单条订单货物明细响应。
@@ -735,7 +759,7 @@ var File_order_v1_order_cargo_item_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\n" +
-	"\x1forder/v1/order_cargo_item.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe1\x02\n" +
+	"\x1forder/v1/order_cargo_item.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xfb\x02\n" +
 	"\x0eOrderCargoItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1d\n" +
@@ -751,7 +775,8 @@ const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAtB\x10\n" +
+	" \x01(\tR\tupdatedAt\x12\x18\n" +
+	"\aversion\x18\v \x01(\x04R\aversionB\x10\n" +
 	"\x0e_net_weight_kgB\a\n" +
 	"\x05_note\"7\n" +
 	"\x15ListCargoItemsRequest\x12\x1e\n" +
@@ -767,7 +792,7 @@ const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\rnet_weight_kg\x18\x06 \x01(\x01H\x00R\vnetWeightKg\x88\x01\x01\x12\x17\n" +
 	"\x04note\x18\a \x01(\tH\x01R\x04note\x88\x01\x01B\x10\n" +
 	"\x0e_net_weight_kgB\a\n" +
-	"\x05_note\"\xc9\x02\n" +
+	"\x05_note\"\xf9\x02\n" +
 	"\x16UpdateCargoItemRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12\"\n" +
@@ -778,12 +803,14 @@ const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\n" +
 	"volume_cbm\x18\x06 \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12'\n" +
 	"\rnet_weight_kg\x18\a \x01(\x01H\x00R\vnetWeightKg\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01B\x10\n" +
+	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01\x12.\n" +
+	"\x10expected_version\x18\t \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersionB\x10\n" +
 	"\x0e_net_weight_kgB\a\n" +
-	"\x05_note\"M\n" +
+	"\x05_note\"}\n" +
 	"\x16RemoveCargoItemRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa7\x01\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xa7\x01\n" +
 	"\x14AddCargoItemResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

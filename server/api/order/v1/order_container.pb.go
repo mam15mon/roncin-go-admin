@@ -25,20 +25,21 @@ const (
 
 // OrderContainer 订单集装箱信息。
 type OrderContainer struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId            string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ContainerNo        string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
-	ContainerSpecId    string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	CreatedAt          string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,11,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId         string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ContainerNo     string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	SealNo          *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg   float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm       float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note            *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	CreatedAt       string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PackageCount    int32                  `protobuf:"varint,11,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	Version         uint64                 `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *OrderContainer) Reset() {
@@ -141,11 +142,18 @@ func (x *OrderContainer) GetUpdatedAt() string {
 	return ""
 }
 
-func (x *OrderContainer) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
+func (x *OrderContainer) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
 	}
-	return ""
+	return 0
+}
+
+func (x *OrderContainer) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
 }
 
 // ListContainersRequest 获取订单集装箱列表请求。
@@ -195,17 +203,17 @@ func (x *ListContainersRequest) GetOrderId() string {
 
 // AddContainerRequest 添加订单集装箱请求。
 type AddContainerRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	OrderId            string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ContainerNo        string                 `protobuf:"bytes,2,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
-	ContainerSpecId    string                 `protobuf:"bytes,3,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,4,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,8,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ContainerNo     string                 `protobuf:"bytes,2,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId string                 `protobuf:"bytes,3,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	SealNo          *string                `protobuf:"bytes,4,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg   float64                `protobuf:"fixed64,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm       float64                `protobuf:"fixed64,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note            *string                `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	PackageCount    int32                  `protobuf:"varint,8,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *AddContainerRequest) Reset() {
@@ -287,27 +295,28 @@ func (x *AddContainerRequest) GetNote() string {
 	return ""
 }
 
-func (x *AddContainerRequest) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
+func (x *AddContainerRequest) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
 	}
-	return ""
+	return 0
 }
 
 // UpdateContainerRequest 更新订单集装箱请求。
 type UpdateContainerRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	OrderId            string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id                 string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	ContainerNo        string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
-	ContainerSpecId    string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,9,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ContainerNo     string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	SealNo          *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg   float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm       float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note            *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	PackageCount    int32                  `protobuf:"varint,9,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,10,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateContainerRequest) Reset() {
@@ -396,20 +405,28 @@ func (x *UpdateContainerRequest) GetNote() string {
 	return ""
 }
 
-func (x *UpdateContainerRequest) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
+func (x *UpdateContainerRequest) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
 	}
-	return ""
+	return 0
+}
+
+func (x *UpdateContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
 }
 
 // RemoveContainerRequest 移除订单集装箱请求。
 type RemoveContainerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RemoveContainerRequest) Reset() {
@@ -454,6 +471,13 @@ func (x *RemoveContainerRequest) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *RemoveContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
 }
 
 // AddContainerResponse 单条订单集装箱响应。
@@ -759,7 +783,7 @@ var File_order_v1_order_container_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_container_proto_rawDesc = "" +
 	"\n" +
-	"\x1eorder/v1/order_container.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xab\x03\n" +
+	"\x1eorder/v1/order_container.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9a\x03\n" +
 	"\x0eOrderContainer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12!\n" +
@@ -774,14 +798,14 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\x125\n" +
-	"\x14shipping_document_id\x18\v \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
+	" \x01(\tR\tupdatedAt\x12#\n" +
+	"\rpackage_count\x18\v \x01(\x05R\fpackageCount\x12\x18\n" +
+	"\aversion\x18\f \x01(\x04R\aversionB\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_shipping_document_id\"7\n" +
+	"\x05_note\"7\n" +
 	"\x15ListContainersRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xfb\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xd5\x02\n" +
 	"\x13AddContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12&\n" +
 	"\fcontainer_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vcontainerNo\x12/\n" +
@@ -790,12 +814,11 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"\x0fgross_weight_kg\x18\x05 \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
 	"volume_cbm\x18\x06 \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
-	"\x04note\x18\a \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
-	"\x14shipping_document_id\x18\b \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
+	"\x04note\x18\a \x01(\tH\x01R\x04note\x88\x01\x01\x12(\n" +
+	"\rpackage_count\x18\b \x01(\x05B\x03\xe0A\x02R\fpackageCountB\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_shipping_document_id\"\x93\x03\n" +
+	"\x05_note\"\x9d\x03\n" +
 	"\x16UpdateContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12&\n" +
@@ -805,15 +828,17 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"\x0fgross_weight_kg\x18\x06 \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
 	"volume_cbm\x18\a \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
-	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
-	"\x14shipping_document_id\x18\t \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
+	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01\x12(\n" +
+	"\rpackage_count\x18\t \x01(\x05B\x03\xe0A\x02R\fpackageCount\x12.\n" +
+	"\x10expected_version\x18\n" +
+	" \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersionB\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_noteB\x17\n" +
-	"\x15_shipping_document_id\"M\n" +
+	"\x05_note\"}\n" +
 	"\x16RemoveContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa7\x01\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xa7\x01\n" +
 	"\x14AddContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

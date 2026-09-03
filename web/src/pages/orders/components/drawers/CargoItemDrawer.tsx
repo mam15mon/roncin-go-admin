@@ -144,6 +144,7 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
                   ? Number(values.netWeightKg)
                   : undefined,
               note: values.note?.trim() || undefined,
+              expectedVersion: String(record.version ?? '1'),
             },
           )
         }

@@ -41,7 +41,7 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			message: (&OrderContainer{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
 				"seal_no": 5, "gross_weight_kg": 6, "volume_cbm": 7, "note": 8,
-				"created_at": 9, "updated_at": 10, "shipping_document_id": 11,
+				"created_at": 9, "updated_at": 10, "package_count": 11, "version": 12,
 			},
 		},
 		{
@@ -49,7 +49,7 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			message: (&AddContainerRequest{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
 				"seal_no": 4, "gross_weight_kg": 5, "volume_cbm": 6, "note": 7,
-				"shipping_document_id": 8,
+				"package_count": 8,
 			},
 		},
 		{
@@ -57,7 +57,14 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			message: (&UpdateContainerRequest{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
 				"seal_no": 5, "gross_weight_kg": 6, "volume_cbm": 7, "note": 8,
-				"shipping_document_id": 9,
+				"package_count": 9, "expected_version": 10,
+			},
+		},
+		{
+			name:    "RemoveContainerRequest",
+			message: (&RemoveContainerRequest{}).ProtoReflect().Descriptor(),
+			expected: map[protoreflect.Name]protoreflect.FieldNumber{
+				"order_id": 1, "id": 2, "expected_version": 3,
 			},
 		},
 	}

@@ -74,7 +74,9 @@ export async function orderContainerServiceRemoveContainer(
     `/api/v1/orders/${param0}/containers/${param1}`,
     {
       method: "DELETE",
-      params: { ...queryParams },
+      params: {
+        ...queryParams,
+      },
       ...(options || {}),
     }
   );

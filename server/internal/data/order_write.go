@@ -26,6 +26,7 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -201,6 +202,36 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if validateErr := validateOrderReferences(ctx, tx, organizationID, input); validateErr != nil {
 			return validateErr
 		}
+		if existing.BusinessType == orderent.BusinessTypeSE && input.ShipmentType != nil && (existing.ShipmentType == nil || string(*existing.ShipmentType) != string(*input.ShipmentType)) {
+			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, id)
+			if linkErr != nil {
+				return linkErr
+			}
+			if activeLink != nil {
+				if activeLink.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
+					return biz.ErrSeaCargoAllocationStatusConflict
+				}
+				if string(*input.ShipmentType) != string(orderent.ShipmentTypeFCL) {
+					hasAlloc, aErr := tx.SeaCargoAllocation.Query().
+						Where(seacargoallocation.OrganizationIDEQ(organizationID), seacargoallocation.OrderIDEQ(id), seacargoallocation.MasterBillOrderLinkIDEQ(activeLink.ID), seacargoallocation.ContainerIDNotNil()).
+						Exist(ctx)
+					if aErr != nil {
+						return aErr
+					}
+					if hasAlloc {
+						return biz.ErrSeaCargoAllocationStatusConflict
+					}
+				}
+				if activeLink.DocumentStructure == seamasterbillorderlink.DocumentStructureHOUSE {
+					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
+						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
+						Save(ctx); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
 		// 共享 MBL 门禁必须在订单/HBL 等下游数据发生任何写入前完成，避免通过同一请求
 		// 删除既有单证后绕过“无下游事实”校验。后续任一步失败仍由同一事务整体回滚。
 		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit); syncErr != nil {

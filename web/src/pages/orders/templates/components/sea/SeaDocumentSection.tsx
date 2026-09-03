@@ -1,4 +1,5 @@
 import {
+  AppstoreOutlined,
   CopyOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined,
@@ -24,9 +25,11 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useAccess } from '@umijs/max';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
+  OrderBusinessType,
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
@@ -40,6 +43,14 @@ import {
   seaDocumentServiceUpdateSeaHouseBill,
   seaDocumentServiceUpdateSeaMasterBillContent,
 } from '@/services/roncin/seaDocumentService';
+import {
+  seaCargoAllocationServiceApplySeaHouseBillAllocationSummary,
+  seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill,
+  seaCargoAllocationServiceGetSeaCargoAllocation,
+} from '@/services/roncin/seaCargoAllocationService';
+import SeaCargoAllocationDrawer, {
+  type SeaCargoAllocationDrawerRef,
+} from '../../../components/drawers/SeaCargoAllocationDrawer';
 import { searchPartnerOptions } from '@/utils/options';
 import type { TemplateProps, TemplateSection } from '../../types';
 
@@ -239,6 +250,7 @@ export function SeaDocumentSectionComponent({
 }) {
   const form = Form.useFormInstance();
   const { message, modal } = App.useApp();
+  const access = useAccess();
 
   const [activeTabKey, setActiveTabKey] = useState<string>('mbl');
   const [docStructure, setDocStructure] = useState<SeaDocumentStructure>(
@@ -250,6 +262,9 @@ export function SeaDocumentSectionComponent({
   );
   const [houseBills, setHouseBills] = useState<API.SeaHouseBill[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [applyingHblId, setApplyingHblId] = useState<string | null>(null);
+  const [applyingMbl, setApplyingMbl] = useState(false);
+  const allocationDrawerRef = useRef<SeaCargoAllocationDrawerRef>(null);
 
   const orderId = Form.useWatch('id', form) || form.getFieldValue('id');
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
@@ -598,6 +613,65 @@ export function SeaDocumentSectionComponent({
     }
   };
 
+  // 显式用分配汇总填入目标 HBL
+  const handleApplyHblSummary = async (
+    houseBillId: string,
+    houseBillVersion: number,
+  ) => {
+    if (!orderId || !isDetail) return;
+    setApplyingHblId(houseBillId);
+    try {
+      const allocRes =
+        await seaCargoAllocationServiceGetSeaCargoAllocation({
+          orderId: String(orderId),
+        });
+      const allocVersion = allocRes.data?.allocationVersion;
+      if (!allocVersion) {
+        throw new Error('箱货分配版本缺失，请刷新后重试');
+      }
+      await seaCargoAllocationServiceApplySeaHouseBillAllocationSummary(
+        { orderId: String(orderId), houseBillId },
+        {
+          orderId: String(orderId),
+          houseBillId,
+          expectedAllocationVersion: allocVersion,
+          expectedHouseBillVersion: String(houseBillVersion),
+        },
+      );
+      message.success('已用分配汇总填入本张分单件重尺');
+      await loadOrderDocuments();
+    } catch (err: any) {
+      message.error(err.message || '填入分单汇总失败');
+    } finally {
+      setApplyingHblId(null);
+    }
+  };
+
+  // DIRECT 下显式用操作票货物汇总填入 MBL
+  const handleApplyMblSummary = async () => {
+    if (!orderId || !isDetail || !mblDetail) return;
+    setApplyingMbl(true);
+    if (!mblDetail.version) {
+      message.error('主单版本缺失，请刷新后重试');
+      return;
+    }
+    try {
+      await seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill(
+        { orderId: String(orderId) },
+        {
+          orderId: String(orderId),
+          expectedMblVersion: String(mblDetail.version),
+        },
+      );
+      message.success('已用操作票货物汇总填入主单件重尺');
+      await loadOrderDocuments();
+    } catch (err: any) {
+      message.error(err.message || '填入主单汇总失败');
+    } finally {
+      setApplyingMbl(false);
+    }
+  };
+
   // 顶部结构 Tag
   const renderStructureTag = () => {
     switch (docStructure) {
@@ -658,13 +732,24 @@ export function SeaDocumentSectionComponent({
 
           {isDetail && mblDetail && !disabled ? (
             <div style={{ textAlign: 'right', marginTop: 12 }}>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                onClick={handleSaveMblContent}
-              >
-                保存主单内容
-              </Button>
+              <Space>
+                {docStructure ===
+                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (
+                  <Button
+                    loading={applyingMbl}
+                    onClick={handleApplyMblSummary}
+                  >
+                    用操作票货物汇总填入 MBL
+                  </Button>
+                ) : null}
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={handleSaveMblContent}
+                >
+                  保存主单内容
+                </Button>
+              </Space>
             </div>
           ) : null}
         </Card>
@@ -878,13 +963,31 @@ export function SeaDocumentSectionComponent({
 
           {isDetail && !disabled ? (
             <div style={{ textAlign: 'right', marginTop: 12 }}>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                onClick={() => handleSaveHouseBill(idx)}
-              >
-                保存此分单
-              </Button>
+              <Space>
+                {hb.id ? (
+                  <Button
+                    loading={applyingHblId === hb.id}
+                    onClick={() => {
+                      const targetHbId = hb.id;
+                      if (targetHbId) {
+                        handleApplyHblSummary(
+                          targetHbId,
+                          Number(hb.version),
+                        );
+                      }
+                    }}
+                  >
+                    用分配汇总填入本张 HBL
+                  </Button>
+                ) : null}
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={() => handleSaveHouseBill(idx)}
+                >
+                  保存此分单
+                </Button>
+              </Space>
             </div>
           ) : null}
         </Card>
@@ -953,13 +1056,28 @@ export function SeaDocumentSectionComponent({
                 SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
               !disabled &&
               !fetchError ? (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAddHouseBill}
-                >
-                  添加分单 (HBL)
-                </Button>
+                <>
+                  <Button
+                    icon={<AppstoreOutlined />}
+                    onClick={() => {
+                      if (orderId && allocationDrawerRef.current) {
+                        allocationDrawerRef.current.open({
+                          id: String(orderId),
+                          orderNo: form.getFieldValue('orderNo'),
+                        });
+                      }
+                    }}
+                  >
+                    箱货分配
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddHouseBill}
+                  >
+                    添加分单 (HBL)
+                  </Button>
+                </>
               ) : null}
             </Space>
           </Col>
@@ -982,6 +1100,15 @@ export function SeaDocumentSectionComponent({
         activeKey={activeTabKey}
         onChange={setActiveTabKey}
         items={tabItems}
+      />
+
+      <SeaCargoAllocationDrawer
+        ref={allocationDrawerRef}
+        canManage={
+          !disabled &&
+          access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'update')
+        }
+        onSuccess={loadOrderDocuments}
       />
     </Col>
   );

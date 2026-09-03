@@ -13,7 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 )
 
 // OrderContainerCreate is the builder for creating a OrderContainer entity.
@@ -51,6 +52,12 @@ func (_c *OrderContainerCreate) SetNillableUpdatedAt(v *time.Time) *OrderContain
 	return _c
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (_c *OrderContainerCreate) SetOrganizationID(v uuid.UUID) *OrderContainerCreate {
+	_c.mutation.SetOrganizationID(v)
+	return _c
+}
+
 // SetOrderID sets the "order_id" field.
 func (_c *OrderContainerCreate) SetOrderID(v uuid.UUID) *OrderContainerCreate {
 	_c.mutation.SetOrderID(v)
@@ -69,17 +76,9 @@ func (_c *OrderContainerCreate) SetContainerSpecID(v uuid.UUID) *OrderContainerC
 	return _c
 }
 
-// SetShippingDocumentID sets the "shipping_document_id" field.
-func (_c *OrderContainerCreate) SetShippingDocumentID(v uuid.UUID) *OrderContainerCreate {
-	_c.mutation.SetShippingDocumentID(v)
-	return _c
-}
-
-// SetNillableShippingDocumentID sets the "shipping_document_id" field if the given value is not nil.
-func (_c *OrderContainerCreate) SetNillableShippingDocumentID(v *uuid.UUID) *OrderContainerCreate {
-	if v != nil {
-		_c.SetShippingDocumentID(*v)
-	}
+// SetPackageCount sets the "package_count" field.
+func (_c *OrderContainerCreate) SetPackageCount(v int) *OrderContainerCreate {
+	_c.mutation.SetPackageCount(v)
 	return _c
 }
 
@@ -123,6 +122,20 @@ func (_c *OrderContainerCreate) SetNillableNote(v *string) *OrderContainerCreate
 	return _c
 }
 
+// SetVersion sets the "version" field.
+func (_c *OrderContainerCreate) SetVersion(v uint64) *OrderContainerCreate {
+	_c.mutation.SetVersion(v)
+	return _c
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_c *OrderContainerCreate) SetNillableVersion(v *uint64) *OrderContainerCreate {
+	if v != nil {
+		_c.SetVersion(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderContainerCreate) SetID(v uuid.UUID) *OrderContainerCreate {
 	_c.mutation.SetID(v)
@@ -137,14 +150,29 @@ func (_c *OrderContainerCreate) SetNillableID(v *uuid.UUID) *OrderContainerCreat
 	return _c
 }
 
+// SetOrganization sets the "organization" edge to the Organization entity.
+func (_c *OrderContainerCreate) SetOrganization(v *Organization) *OrderContainerCreate {
+	return _c.SetOrganizationID(v.ID)
+}
+
 // SetOrder sets the "order" edge to the Order entity.
 func (_c *OrderContainerCreate) SetOrder(v *Order) *OrderContainerCreate {
 	return _c.SetOrderID(v.ID)
 }
 
-// SetShippingDocument sets the "shipping_document" edge to the OrderShippingDocument entity.
-func (_c *OrderContainerCreate) SetShippingDocument(v *OrderShippingDocument) *OrderContainerCreate {
-	return _c.SetShippingDocumentID(v.ID)
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_c *OrderContainerCreate) AddCargoAllocationIDs(ids ...uuid.UUID) *OrderContainerCreate {
+	_c.mutation.AddCargoAllocationIDs(ids...)
+	return _c
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_c *OrderContainerCreate) AddCargoAllocations(v ...*SeaCargoAllocation) *OrderContainerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCargoAllocationIDs(ids...)
 }
 
 // Mutation returns the OrderContainerMutation object of the builder.
@@ -190,6 +218,10 @@ func (_c *OrderContainerCreate) defaults() {
 		v := ordercontainer.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Version(); !ok {
+		v := ordercontainer.DefaultVersion
+		_c.mutation.SetVersion(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := ordercontainer.DefaultID()
 		_c.mutation.SetID(v)
@@ -204,6 +236,9 @@ func (_c *OrderContainerCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "OrderContainer.updated_at"`)}
 	}
+	if _, ok := _c.mutation.OrganizationID(); !ok {
+		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "OrderContainer.organization_id"`)}
+	}
 	if _, ok := _c.mutation.OrderID(); !ok {
 		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "OrderContainer.order_id"`)}
 	}
@@ -217,6 +252,14 @@ func (_c *OrderContainerCreate) check() error {
 	}
 	if _, ok := _c.mutation.ContainerSpecID(); !ok {
 		return &ValidationError{Name: "container_spec_id", err: errors.New(`ent: missing required field "OrderContainer.container_spec_id"`)}
+	}
+	if _, ok := _c.mutation.PackageCount(); !ok {
+		return &ValidationError{Name: "package_count", err: errors.New(`ent: missing required field "OrderContainer.package_count"`)}
+	}
+	if v, ok := _c.mutation.PackageCount(); ok {
+		if err := ordercontainer.PackageCountValidator(v); err != nil {
+			return &ValidationError{Name: "package_count", err: fmt.Errorf(`ent: validator failed for field "OrderContainer.package_count": %w`, err)}
+		}
 	}
 	if v, ok := _c.mutation.SealNo(); ok {
 		if err := ordercontainer.SealNoValidator(v); err != nil {
@@ -243,6 +286,12 @@ func (_c *OrderContainerCreate) check() error {
 		if err := ordercontainer.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderContainer.note": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "OrderContainer.version"`)}
+	}
+	if len(_c.mutation.OrganizationIDs()) == 0 {
+		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "OrderContainer.organization"`)}
 	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "OrderContainer.order"`)}
@@ -298,6 +347,10 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 		_spec.SetField(ordercontainer.FieldContainerSpecID, field.TypeUUID, value)
 		_node.ContainerSpecID = value
 	}
+	if value, ok := _c.mutation.PackageCount(); ok {
+		_spec.SetField(ordercontainer.FieldPackageCount, field.TypeInt, value)
+		_node.PackageCount = value
+	}
 	if value, ok := _c.mutation.SealNo(); ok {
 		_spec.SetField(ordercontainer.FieldSealNo, field.TypeString, value)
 		_node.SealNo = value
@@ -313,6 +366,27 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(ordercontainer.FieldNote, field.TypeString, value)
 		_node.Note = value
+	}
+	if value, ok := _c.mutation.Version(); ok {
+		_spec.SetField(ordercontainer.FieldVersion, field.TypeUint64, value)
+		_node.Version = value
+	}
+	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.OrganizationTable,
+			Columns: []string{ordercontainer.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -331,21 +405,20 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 		_node.OrderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.ShippingDocumentIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   ordercontainer.ShippingDocumentTable,
-			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ordercontainer.CargoAllocationsTable,
+			Columns: []string{ordercontainer.CargoAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ShippingDocumentID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

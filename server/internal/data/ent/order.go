@@ -206,9 +206,11 @@ type OrderEdges struct {
 	SeaMasterBillLinks []*SeaMasterBillOrderLink `json:"sea_master_bill_links,omitempty"`
 	// SeaHouseBills holds the value of the sea_house_bills edge.
 	SeaHouseBills []*SeaHouseBill `json:"sea_house_bills,omitempty"`
+	// SeaCargoAllocations holds the value of the sea_cargo_allocations edge.
+	SeaCargoAllocations []*SeaCargoAllocation `json:"sea_cargo_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [22]bool
+	loadedTypes [23]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -411,6 +413,15 @@ func (e OrderEdges) SeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
 		return e.SeaHouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bills"}
+}
+
+// SeaCargoAllocationsOrErr returns the SeaCargoAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaCargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+	if e.loadedTypes[22] {
+		return e.SeaCargoAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_cargo_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -998,6 +1009,11 @@ func (_m *Order) QuerySeaMasterBillLinks() *SeaMasterBillOrderLinkQuery {
 // QuerySeaHouseBills queries the "sea_house_bills" edge of the Order entity.
 func (_m *Order) QuerySeaHouseBills() *SeaHouseBillQuery {
 	return NewOrderClient(_m.config).QuerySeaHouseBills(_m)
+}
+
+// QuerySeaCargoAllocations queries the "sea_cargo_allocations" edge of the Order entity.
+func (_m *Order) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
+	return NewOrderClient(_m.config).QuerySeaCargoAllocations(_m)
 }
 
 // Update returns a builder for updating this Order.

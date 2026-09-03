@@ -2954,11 +2954,13 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "cargo_name", Type: field.TypeString, Size: 200},
 		{Name: "package_count", Type: field.TypeInt},
-		{Name: "gross_weight_kg", Type: field.TypeFloat64},
-		{Name: "volume_cbm", Type: field.TypeFloat64},
-		{Name: "net_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
+		{Name: "volume_cbm", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "net_weight_kg", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// OrderCargoItemsTable holds the schema information for the "order_cargo_items" table.
 	OrderCargoItemsTable = &schema.Table{
@@ -2968,8 +2970,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_cargo_items_orders_cargo_items",
-				Columns:    []*schema.Column{OrderCargoItemsColumns[9]},
+				Columns:    []*schema.Column{OrderCargoItemsColumns[10]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_cargo_items_organizations_order_cargo_items",
+				Columns:    []*schema.Column{OrderCargoItemsColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -2980,9 +2988,14 @@ var (
 				Columns: []*schema.Column{OrderCargoItemsColumns[2]},
 			},
 			{
+				Name:    "ordercargoitem_organization_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCargoItemsColumns[11]},
+			},
+			{
 				Name:    "ordercargoitem_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderCargoItemsColumns[9]},
+				Columns: []*schema.Column{OrderCargoItemsColumns[10]},
 			},
 		},
 	}
@@ -3061,12 +3074,14 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "container_no", Type: field.TypeString, Size: 64},
 		{Name: "container_spec_id", Type: field.TypeUUID},
+		{Name: "package_count", Type: field.TypeInt},
 		{Name: "seal_no", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "gross_weight_kg", Type: field.TypeFloat64},
-		{Name: "volume_cbm", Type: field.TypeFloat64},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
+		{Name: "volume_cbm", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "order_id", Type: field.TypeUUID},
-		{Name: "shipping_document_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// OrderContainersTable holds the schema information for the "order_containers" table.
 	OrderContainersTable = &schema.Table{
@@ -3076,15 +3091,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_containers_orders_containers",
-				Columns:    []*schema.Column{OrderContainersColumns[9]},
+				Columns:    []*schema.Column{OrderContainersColumns[11]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_containers_order_shipping_documents_containers",
-				Columns:    []*schema.Column{OrderContainersColumns[10]},
-				RefColumns: []*schema.Column{OrderShippingDocumentsColumns[0]},
-				OnDelete:   schema.SetNull,
+				Symbol:     "order_containers_organizations_order_containers",
+				Columns:    []*schema.Column{OrderContainersColumns[12]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -3096,22 +3111,22 @@ var (
 			{
 				Name:    "ordercontainer_order_id_container_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrderContainersColumns[9], OrderContainersColumns[3]},
+				Columns: []*schema.Column{OrderContainersColumns[11], OrderContainersColumns[3]},
+			},
+			{
+				Name:    "ordercontainer_organization_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainersColumns[12]},
 			},
 			{
 				Name:    "ordercontainer_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderContainersColumns[9]},
+				Columns: []*schema.Column{OrderContainersColumns[11]},
 			},
 			{
 				Name:    "ordercontainer_container_spec_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrderContainersColumns[4]},
-			},
-			{
-				Name:    "ordercontainer_shipping_document_id",
-				Unique:  false,
-				Columns: []*schema.Column{OrderContainersColumns[10]},
 			},
 		},
 	}
@@ -4470,6 +4485,113 @@ var (
 			},
 		},
 	}
+	// SeaCargoAllocationsColumns holds the columns for the "sea_cargo_allocations" table.
+	SeaCargoAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "package_count", Type: field.TypeInt},
+		{Name: "gross_weight_kg", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
+		{Name: "volume_cbm", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "cargo_item_id", Type: field.TypeUUID},
+		{Name: "container_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "house_bill_id", Type: field.TypeUUID},
+		{Name: "master_bill_order_link_id", Type: field.TypeUUID},
+	}
+	// SeaCargoAllocationsTable holds the schema information for the "sea_cargo_allocations" table.
+	SeaCargoAllocationsTable = &schema.Table{
+		Name:       "sea_cargo_allocations",
+		Columns:    SeaCargoAllocationsColumns,
+		PrimaryKey: []*schema.Column{SeaCargoAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_cargo_allocations_orders_sea_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[6]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_cargo_allocations_order_cargo_items_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[7]},
+				RefColumns: []*schema.Column{OrderCargoItemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_cargo_allocations_order_containers_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[8]},
+				RefColumns: []*schema.Column{OrderContainersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_cargo_allocations_organizations_sea_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_cargo_allocations_sea_house_bills_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[10]},
+				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_cargo_allocations_sea_master_bill_order_links_cargo_allocations",
+				Columns:    []*schema.Column{SeaCargoAllocationsColumns[11]},
+				RefColumns: []*schema.Column{SeaMasterBillOrderLinksColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seacargoallocation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[2]},
+			},
+			{
+				Name:    "seacargoallocation_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[9], SeaCargoAllocationsColumns[6]},
+			},
+			{
+				Name:    "seacargoallocation_master_bill_order_link_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[11]},
+			},
+			{
+				Name:    "seacargoallocation_cargo_item_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[7]},
+			},
+			{
+				Name:    "seacargoallocation_house_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[10]},
+			},
+			{
+				Name:    "seacargoallocation_container_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[8]},
+			},
+			{
+				Name:    "idx_sea_cargo_allocations_no_cntr_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[11], SeaCargoAllocationsColumns[7], SeaCargoAllocationsColumns[10]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "container_id IS NULL",
+				},
+			},
+			{
+				Name:    "idx_sea_cargo_allocations_cntr_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaCargoAllocationsColumns[11], SeaCargoAllocationsColumns[7], SeaCargoAllocationsColumns[10], SeaCargoAllocationsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "container_id IS NOT NULL",
+				},
+			},
+		},
+	}
 	// SeaHouseBillsColumns holds the columns for the "sea_house_bills" table.
 	SeaHouseBillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4649,9 +4771,13 @@ var (
 		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
 		{Name: "ended_reason", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "cargo_allocation_status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED"}, Default: "DRAFT"},
+		{Name: "cargo_allocation_version", Type: field.TypeUint64, Default: 1},
+		{Name: "cargo_allocation_confirmed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "master_bill_id", Type: field.TypeUUID},
+		{Name: "cargo_allocation_confirmed_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// SeaMasterBillOrderLinksTable holds the schema information for the "sea_master_bill_order_links" table.
 	SeaMasterBillOrderLinksTable = &schema.Table{
@@ -4661,21 +4787,27 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_order_links_orders_sea_master_bill_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[12]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_organizations_sea_master_bill_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[10]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_sea_master_bills_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[11]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[14]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_master_bill_order_links_users_confirmed_sea_cargo_allocation_links",
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -4687,17 +4819,17 @@ var (
 			{
 				Name:    "seamasterbillorderlink_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[11]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[13], SeaMasterBillOrderLinksColumns[14]},
 			},
 			{
 				Name:    "seamasterbillorderlink_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[9]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[13], SeaMasterBillOrderLinksColumns[12]},
 			},
 			{
 				Name:    "idx_sea_mbl_order_links_active_order",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[12]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status = 'ACTIVE'",
 				},
@@ -5100,6 +5232,7 @@ var (
 		RolesTable,
 		RoleAssignmentsTable,
 		RoleOrderOrganizationAccessesTable,
+		SeaCargoAllocationsTable,
 		SeaHouseBillsTable,
 		SeaMasterBillsTable,
 		SeaMasterBillOrderLinksTable,
@@ -5211,12 +5344,13 @@ func init() {
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderCargoItemsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	OrderCommissionAttributionsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCommissionAttributionsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	OrderCommissionAttributionsTable.ForeignKeys[2].RefTable = PartnersTable
 	OrderCommissionAttributionsTable.ForeignKeys[3].RefTable = UsersTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
+	OrderContainersTable.ForeignKeys[1].RefTable = OrganizationsTable
 	OrderContainerRequestsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
 	OrderEnterpriseTagsTable.ForeignKeys[1].RefTable = OrdersTable
@@ -5259,6 +5393,12 @@ func init() {
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
+	SeaCargoAllocationsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaCargoAllocationsTable.ForeignKeys[1].RefTable = OrderCargoItemsTable
+	SeaCargoAllocationsTable.ForeignKeys[2].RefTable = OrderContainersTable
+	SeaCargoAllocationsTable.ForeignKeys[3].RefTable = OrganizationsTable
+	SeaCargoAllocationsTable.ForeignKeys[4].RefTable = SeaHouseBillsTable
+	SeaCargoAllocationsTable.ForeignKeys[5].RefTable = SeaMasterBillOrderLinksTable
 	SeaHouseBillsTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaHouseBillsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaHouseBillsTable.ForeignKeys[2].RefTable = OrganizationsTable
@@ -5269,6 +5409,7 @@ func init() {
 	SeaMasterBillOrderLinksTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
+	SeaMasterBillOrderLinksTable.ForeignKeys[3].RefTable = UsersTable
 	SeaTransportExecutionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable

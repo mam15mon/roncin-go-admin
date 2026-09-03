@@ -38,12 +38,24 @@ const (
 	FieldEndedReason = "ended_reason"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldCargoAllocationStatus holds the string denoting the cargo_allocation_status field in the database.
+	FieldCargoAllocationStatus = "cargo_allocation_status"
+	// FieldCargoAllocationVersion holds the string denoting the cargo_allocation_version field in the database.
+	FieldCargoAllocationVersion = "cargo_allocation_version"
+	// FieldCargoAllocationConfirmedAt holds the string denoting the cargo_allocation_confirmed_at field in the database.
+	FieldCargoAllocationConfirmedAt = "cargo_allocation_confirmed_at"
+	// FieldCargoAllocationConfirmedBy holds the string denoting the cargo_allocation_confirmed_by field in the database.
+	FieldCargoAllocationConfirmedBy = "cargo_allocation_confirmed_by"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeMasterBill holds the string denoting the master_bill edge name in mutations.
 	EdgeMasterBill = "master_bill"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
+	EdgeCargoAllocations = "cargo_allocations"
+	// EdgeCargoAllocationConfirmedByUser holds the string denoting the cargo_allocation_confirmed_by_user edge name in mutations.
+	EdgeCargoAllocationConfirmedByUser = "cargo_allocation_confirmed_by_user"
 	// Table holds the table name of the seamasterbillorderlink in the database.
 	Table = "sea_master_bill_order_links"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -67,6 +79,20 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
+	CargoAllocationsTable = "sea_cargo_allocations"
+	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
+	CargoAllocationsInverseTable = "sea_cargo_allocations"
+	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
+	CargoAllocationsColumn = "master_bill_order_link_id"
+	// CargoAllocationConfirmedByUserTable is the table that holds the cargo_allocation_confirmed_by_user relation/edge.
+	CargoAllocationConfirmedByUserTable = "sea_master_bill_order_links"
+	// CargoAllocationConfirmedByUserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CargoAllocationConfirmedByUserInverseTable = "users"
+	// CargoAllocationConfirmedByUserColumn is the table column denoting the cargo_allocation_confirmed_by_user relation/edge.
+	CargoAllocationConfirmedByUserColumn = "cargo_allocation_confirmed_by"
 )
 
 // Columns holds all SQL columns for seamasterbillorderlink fields.
@@ -83,6 +109,10 @@ var Columns = []string{
 	FieldEndedAt,
 	FieldEndedReason,
 	FieldVersion,
+	FieldCargoAllocationStatus,
+	FieldCargoAllocationVersion,
+	FieldCargoAllocationConfirmedAt,
+	FieldCargoAllocationConfirmedBy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -108,6 +138,8 @@ var (
 	EndedReasonValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
+	// DefaultCargoAllocationVersion holds the default value on creation for the "cargo_allocation_version" field.
+	DefaultCargoAllocationVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -162,6 +194,32 @@ func DocumentStructureValidator(ds DocumentStructure) error {
 		return nil
 	default:
 		return fmt.Errorf("seamasterbillorderlink: invalid enum value for document_structure field: %q", ds)
+	}
+}
+
+// CargoAllocationStatus defines the type for the "cargo_allocation_status" enum field.
+type CargoAllocationStatus string
+
+// CargoAllocationStatusDRAFT is the default value of the CargoAllocationStatus enum.
+const DefaultCargoAllocationStatus = CargoAllocationStatusDRAFT
+
+// CargoAllocationStatus values.
+const (
+	CargoAllocationStatusDRAFT     CargoAllocationStatus = "DRAFT"
+	CargoAllocationStatusCONFIRMED CargoAllocationStatus = "CONFIRMED"
+)
+
+func (cas CargoAllocationStatus) String() string {
+	return string(cas)
+}
+
+// CargoAllocationStatusValidator is a validator for the "cargo_allocation_status" field enum values. It is called by the builders before save.
+func CargoAllocationStatusValidator(cas CargoAllocationStatus) error {
+	switch cas {
+	case CargoAllocationStatusDRAFT, CargoAllocationStatusCONFIRMED:
+		return nil
+	default:
+		return fmt.Errorf("seamasterbillorderlink: invalid enum value for cargo_allocation_status field: %q", cas)
 	}
 }
 
@@ -228,6 +286,26 @@ func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
+// ByCargoAllocationStatus orders the results by the cargo_allocation_status field.
+func ByCargoAllocationStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoAllocationStatus, opts...).ToFunc()
+}
+
+// ByCargoAllocationVersion orders the results by the cargo_allocation_version field.
+func ByCargoAllocationVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoAllocationVersion, opts...).ToFunc()
+}
+
+// ByCargoAllocationConfirmedAt orders the results by the cargo_allocation_confirmed_at field.
+func ByCargoAllocationConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoAllocationConfirmedAt, opts...).ToFunc()
+}
+
+// ByCargoAllocationConfirmedBy orders the results by the cargo_allocation_confirmed_by field.
+func ByCargoAllocationConfirmedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoAllocationConfirmedBy, opts...).ToFunc()
+}
+
 // ByOrganizationField orders the results by organization field.
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -246,6 +324,27 @@ func ByMasterBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCargoAllocationsCount orders the results by cargo_allocations count.
+func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
+	}
+}
+
+// ByCargoAllocations orders the results by cargo_allocations terms.
+func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCargoAllocationConfirmedByUserField orders the results by cargo_allocation_confirmed_by_user field.
+func ByCargoAllocationConfirmedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationConfirmedByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -267,5 +366,19 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
+	)
+}
+func newCargoAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+	)
+}
+func newCargoAllocationConfirmedByUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CargoAllocationConfirmedByUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CargoAllocationConfirmedByUserTable, CargoAllocationConfirmedByUserColumn),
 	)
 }

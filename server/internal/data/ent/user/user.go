@@ -106,6 +106,8 @@ const (
 	EdgeUploadedEnterpriseResourceImages = "uploaded_enterprise_resource_images"
 	// EdgeEnterpriseResourceAssignments holds the string denoting the enterprise_resource_assignments edge name in mutations.
 	EdgeEnterpriseResourceAssignments = "enterprise_resource_assignments"
+	// EdgeConfirmedSeaCargoAllocationLinks holds the string denoting the confirmed_sea_cargo_allocation_links edge name in mutations.
+	EdgeConfirmedSeaCargoAllocationLinks = "confirmed_sea_cargo_allocation_links"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -325,6 +327,13 @@ const (
 	EnterpriseResourceAssignmentsInverseTable = "enterprise_resource_assignees"
 	// EnterpriseResourceAssignmentsColumn is the table column denoting the enterprise_resource_assignments relation/edge.
 	EnterpriseResourceAssignmentsColumn = "user_id"
+	// ConfirmedSeaCargoAllocationLinksTable is the table that holds the confirmed_sea_cargo_allocation_links relation/edge.
+	ConfirmedSeaCargoAllocationLinksTable = "sea_master_bill_order_links"
+	// ConfirmedSeaCargoAllocationLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillorderlink" package.
+	ConfirmedSeaCargoAllocationLinksInverseTable = "sea_master_bill_order_links"
+	// ConfirmedSeaCargoAllocationLinksColumn is the table column denoting the confirmed_sea_cargo_allocation_links relation/edge.
+	ConfirmedSeaCargoAllocationLinksColumn = "cargo_allocation_confirmed_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -906,6 +915,20 @@ func ByEnterpriseResourceAssignments(term sql.OrderTerm, terms ...sql.OrderTerm)
 		sqlgraph.OrderByNeighborTerms(s, newEnterpriseResourceAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByConfirmedSeaCargoAllocationLinksCount orders the results by confirmed_sea_cargo_allocation_links count.
+func ByConfirmedSeaCargoAllocationLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfirmedSeaCargoAllocationLinksStep(), opts...)
+	}
+}
+
+// ByConfirmedSeaCargoAllocationLinks orders the results by confirmed_sea_cargo_allocation_links terms.
+func ByConfirmedSeaCargoAllocationLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmedSeaCargoAllocationLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1121,5 +1144,12 @@ func newEnterpriseResourceAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EnterpriseResourceAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourceAssignmentsTable, EnterpriseResourceAssignmentsColumn),
+	)
+}
+func newConfirmedSeaCargoAllocationLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmedSeaCargoAllocationLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedSeaCargoAllocationLinksTable, ConfirmedSeaCargoAllocationLinksColumn),
 	)
 }

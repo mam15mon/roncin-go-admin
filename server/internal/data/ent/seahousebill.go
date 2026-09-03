@@ -96,9 +96,11 @@ type SeaHouseBillEdges struct {
 	IssuerOrganization *Organization `json:"issuer_organization,omitempty"`
 	// IssuerPartner holds the value of the issuer_partner edge.
 	IssuerPartner *Partner `json:"issuer_partner,omitempty"`
+	// CargoAllocations holds the value of the cargo_allocations edge.
+	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -154,6 +156,15 @@ func (e SeaHouseBillEdges) IssuerPartnerOrErr() (*Partner, error) {
 		return nil, &NotFoundError{label: partner.Label}
 	}
 	return nil, &NotLoadedError{edge: "issuer_partner"}
+}
+
+// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+	if e.loadedTypes[5] {
+		return e.CargoAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "cargo_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -416,6 +427,11 @@ func (_m *SeaHouseBill) QueryIssuerOrganization() *OrganizationQuery {
 // QueryIssuerPartner queries the "issuer_partner" edge of the SeaHouseBill entity.
 func (_m *SeaHouseBill) QueryIssuerPartner() *PartnerQuery {
 	return NewSeaHouseBillClient(_m.config).QueryIssuerPartner(_m)
+}
+
+// QueryCargoAllocations queries the "cargo_allocations" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	return NewSeaHouseBillClient(_m.config).QueryCargoAllocations(_m)
 }
 
 // Update returns a builder for updating this SeaHouseBill.

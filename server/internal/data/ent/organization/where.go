@@ -1035,6 +1035,75 @@ func HasIssuedSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Organ
 	})
 }
 
+// HasOrderCargoItems applies the HasEdge predicate on the "order_cargo_items" edge.
+func HasOrderCargoItems() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderCargoItemsTable, OrderCargoItemsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderCargoItemsWith applies the HasEdge predicate on the "order_cargo_items" edge with a given conditions (other predicates).
+func HasOrderCargoItemsWith(preds ...predicate.OrderCargoItem) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderCargoItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderContainers applies the HasEdge predicate on the "order_containers" edge.
+func HasOrderContainers() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderContainersTable, OrderContainersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderContainersWith applies the HasEdge predicate on the "order_containers" edge with a given conditions (other predicates).
+func HasOrderContainersWith(preds ...predicate.OrderContainer) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderContainersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaCargoAllocations applies the HasEdge predicate on the "sea_cargo_allocations" edge.
+func HasSeaCargoAllocations() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaCargoAllocationsWith applies the HasEdge predicate on the "sea_cargo_allocations" edge with a given conditions (other predicates).
+func HasSeaCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newSeaCargoAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderPersonnel applies the HasEdge predicate on the "order_personnel" edge.
 func HasOrderPersonnel() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

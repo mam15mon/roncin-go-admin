@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
+func OrganizationID(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldOrganizationID, v))
+}
+
 // OrderID applies equality check predicate on the "order_id" field. It's identical to OrderIDEQ.
 func OrderID(v uuid.UUID) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldOrderID, v))
@@ -81,9 +86,9 @@ func ContainerSpecID(v uuid.UUID) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldContainerSpecID, v))
 }
 
-// ShippingDocumentID applies equality check predicate on the "shipping_document_id" field. It's identical to ShippingDocumentIDEQ.
-func ShippingDocumentID(v uuid.UUID) predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldEQ(FieldShippingDocumentID, v))
+// PackageCount applies equality check predicate on the "package_count" field. It's identical to PackageCountEQ.
+func PackageCount(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldPackageCount, v))
 }
 
 // SealNo applies equality check predicate on the "seal_no" field. It's identical to SealNoEQ.
@@ -104,6 +109,11 @@ func VolumeCbm(v float64) predicate.OrderContainer {
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldNote, v))
+}
+
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldVersion, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -184,6 +194,26 @@ func UpdatedAtLT(v time.Time) predicate.OrderContainer {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
+func OrganizationIDEQ(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldOrganizationID, v))
+}
+
+// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
+func OrganizationIDNEQ(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNEQ(FieldOrganizationID, v))
+}
+
+// OrganizationIDIn applies the In predicate on the "organization_id" field.
+func OrganizationIDIn(vs ...uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldIn(FieldOrganizationID, vs...))
+}
+
+// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
+func OrganizationIDNotIn(vs ...uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
 // OrderIDEQ applies the EQ predicate on the "order_id" field.
@@ -311,34 +341,44 @@ func ContainerSpecIDLTE(v uuid.UUID) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldLTE(FieldContainerSpecID, v))
 }
 
-// ShippingDocumentIDEQ applies the EQ predicate on the "shipping_document_id" field.
-func ShippingDocumentIDEQ(v uuid.UUID) predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldEQ(FieldShippingDocumentID, v))
+// PackageCountEQ applies the EQ predicate on the "package_count" field.
+func PackageCountEQ(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldPackageCount, v))
 }
 
-// ShippingDocumentIDNEQ applies the NEQ predicate on the "shipping_document_id" field.
-func ShippingDocumentIDNEQ(v uuid.UUID) predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldNEQ(FieldShippingDocumentID, v))
+// PackageCountNEQ applies the NEQ predicate on the "package_count" field.
+func PackageCountNEQ(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNEQ(FieldPackageCount, v))
 }
 
-// ShippingDocumentIDIn applies the In predicate on the "shipping_document_id" field.
-func ShippingDocumentIDIn(vs ...uuid.UUID) predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldIn(FieldShippingDocumentID, vs...))
+// PackageCountIn applies the In predicate on the "package_count" field.
+func PackageCountIn(vs ...int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldIn(FieldPackageCount, vs...))
 }
 
-// ShippingDocumentIDNotIn applies the NotIn predicate on the "shipping_document_id" field.
-func ShippingDocumentIDNotIn(vs ...uuid.UUID) predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldNotIn(FieldShippingDocumentID, vs...))
+// PackageCountNotIn applies the NotIn predicate on the "package_count" field.
+func PackageCountNotIn(vs ...int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNotIn(FieldPackageCount, vs...))
 }
 
-// ShippingDocumentIDIsNil applies the IsNil predicate on the "shipping_document_id" field.
-func ShippingDocumentIDIsNil() predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldIsNull(FieldShippingDocumentID))
+// PackageCountGT applies the GT predicate on the "package_count" field.
+func PackageCountGT(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldGT(FieldPackageCount, v))
 }
 
-// ShippingDocumentIDNotNil applies the NotNil predicate on the "shipping_document_id" field.
-func ShippingDocumentIDNotNil() predicate.OrderContainer {
-	return predicate.OrderContainer(sql.FieldNotNull(FieldShippingDocumentID))
+// PackageCountGTE applies the GTE predicate on the "package_count" field.
+func PackageCountGTE(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldGTE(FieldPackageCount, v))
+}
+
+// PackageCountLT applies the LT predicate on the "package_count" field.
+func PackageCountLT(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldLT(FieldPackageCount, v))
+}
+
+// PackageCountLTE applies the LTE predicate on the "package_count" field.
+func PackageCountLTE(v int) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldLTE(FieldPackageCount, v))
 }
 
 // SealNoEQ applies the EQ predicate on the "seal_no" field.
@@ -571,6 +611,69 @@ func NoteContainsFold(v string) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldContainsFold(FieldNote, v))
 }
 
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v uint64) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldLTE(FieldVersion, v))
+}
+
+// HasOrganization applies the HasEdge predicate on the "organization" edge.
+func HasOrganization() predicate.OrderContainer {
+	return predicate.OrderContainer(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
+func HasOrganizationWith(preds ...predicate.Organization) predicate.OrderContainer {
+	return predicate.OrderContainer(func(s *sql.Selector) {
+		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrder applies the HasEdge predicate on the "order" edge.
 func HasOrder() predicate.OrderContainer {
 	return predicate.OrderContainer(func(s *sql.Selector) {
@@ -594,21 +697,21 @@ func HasOrderWith(preds ...predicate.Order) predicate.OrderContainer {
 	})
 }
 
-// HasShippingDocument applies the HasEdge predicate on the "shipping_document" edge.
-func HasShippingDocument() predicate.OrderContainer {
+// HasCargoAllocations applies the HasEdge predicate on the "cargo_allocations" edge.
+func HasCargoAllocations() predicate.OrderContainer {
 	return predicate.OrderContainer(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ShippingDocumentTable, ShippingDocumentColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasShippingDocumentWith applies the HasEdge predicate on the "shipping_document" edge with a given conditions (other predicates).
-func HasShippingDocumentWith(preds ...predicate.OrderShippingDocument) predicate.OrderContainer {
+// HasCargoAllocationsWith applies the HasEdge predicate on the "cargo_allocations" edge with a given conditions (other predicates).
+func HasCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.OrderContainer {
 	return predicate.OrderContainer(func(s *sql.Selector) {
-		step := newShippingDocumentStep()
+		step := newCargoAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

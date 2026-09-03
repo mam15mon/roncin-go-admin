@@ -81,6 +81,12 @@ const (
 	EdgeSeaHouseBills = "sea_house_bills"
 	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
 	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
+	// EdgeOrderCargoItems holds the string denoting the order_cargo_items edge name in mutations.
+	EdgeOrderCargoItems = "order_cargo_items"
+	// EdgeOrderContainers holds the string denoting the order_containers edge name in mutations.
+	EdgeOrderContainers = "order_containers"
+	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
+	EdgeSeaCargoAllocations = "sea_cargo_allocations"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -280,6 +286,27 @@ const (
 	IssuedSeaHouseBillsInverseTable = "sea_house_bills"
 	// IssuedSeaHouseBillsColumn is the table column denoting the issued_sea_house_bills relation/edge.
 	IssuedSeaHouseBillsColumn = "issuer_organization_id"
+	// OrderCargoItemsTable is the table that holds the order_cargo_items relation/edge.
+	OrderCargoItemsTable = "order_cargo_items"
+	// OrderCargoItemsInverseTable is the table name for the OrderCargoItem entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercargoitem" package.
+	OrderCargoItemsInverseTable = "order_cargo_items"
+	// OrderCargoItemsColumn is the table column denoting the order_cargo_items relation/edge.
+	OrderCargoItemsColumn = "organization_id"
+	// OrderContainersTable is the table that holds the order_containers relation/edge.
+	OrderContainersTable = "order_containers"
+	// OrderContainersInverseTable is the table name for the OrderContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercontainer" package.
+	OrderContainersInverseTable = "order_containers"
+	// OrderContainersColumn is the table column denoting the order_containers relation/edge.
+	OrderContainersColumn = "organization_id"
+	// SeaCargoAllocationsTable is the table that holds the sea_cargo_allocations relation/edge.
+	SeaCargoAllocationsTable = "sea_cargo_allocations"
+	// SeaCargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
+	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
+	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
+	SeaCargoAllocationsColumn = "organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -873,6 +900,48 @@ func ByIssuedSeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
+// ByOrderCargoItemsCount orders the results by order_cargo_items count.
+func ByOrderCargoItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderCargoItemsStep(), opts...)
+	}
+}
+
+// ByOrderCargoItems orders the results by order_cargo_items terms.
+func ByOrderCargoItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderCargoItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderContainersCount orders the results by order_containers count.
+func ByOrderContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderContainersStep(), opts...)
+	}
+}
+
+// ByOrderContainers orders the results by order_containers terms.
+func ByOrderContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaCargoAllocationsCount orders the results by sea_cargo_allocations count.
+func BySeaCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaCargoAllocationsStep(), opts...)
+	}
+}
+
+// BySeaCargoAllocations orders the results by sea_cargo_allocations terms.
+func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderPersonnelCount orders the results by order_personnel count.
 func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1325,6 +1394,27 @@ func newIssuedSeaHouseBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IssuedSeaHouseBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillsTable, IssuedSeaHouseBillsColumn),
+	)
+}
+func newOrderCargoItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderCargoItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderCargoItemsTable, OrderCargoItemsColumn),
+	)
+}
+func newOrderContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderContainersTable, OrderContainersColumn),
+	)
+}
+func newSeaCargoAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,8 +16,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 )
 
 // OrderContainerQuery is the builder for querying OrderContainer entities.
@@ -26,8 +28,9 @@ type OrderContainerQuery struct {
 	order                []ordercontainer.OrderOption
 	inters               []Interceptor
 	predicates           []predicate.OrderContainer
+	withOrganization     *OrganizationQuery
 	withOrder            *OrderQuery
-	withShippingDocument *OrderShippingDocumentQuery
+	withCargoAllocations *SeaCargoAllocationQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -65,6 +68,28 @@ func (_q *OrderContainerQuery) Order(o ...ordercontainer.OrderOption) *OrderCont
 	return _q
 }
 
+// QueryOrganization chains the current query on the "organization" edge.
+func (_q *OrderContainerQuery) QueryOrganization() *OrganizationQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercontainer.Table, ordercontainer.FieldID, selector),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercontainer.OrganizationTable, ordercontainer.OrganizationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryOrder chains the current query on the "order" edge.
 func (_q *OrderContainerQuery) QueryOrder() *OrderQuery {
 	query := (&OrderClient{config: _q.config}).Query()
@@ -87,9 +112,9 @@ func (_q *OrderContainerQuery) QueryOrder() *OrderQuery {
 	return query
 }
 
-// QueryShippingDocument chains the current query on the "shipping_document" edge.
-func (_q *OrderContainerQuery) QueryShippingDocument() *OrderShippingDocumentQuery {
-	query := (&OrderShippingDocumentClient{config: _q.config}).Query()
+// QueryCargoAllocations chains the current query on the "cargo_allocations" edge.
+func (_q *OrderContainerQuery) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,8 +125,8 @@ func (_q *OrderContainerQuery) QueryShippingDocument() *OrderShippingDocumentQue
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(ordercontainer.Table, ordercontainer.FieldID, selector),
-			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ordercontainer.ShippingDocumentTable, ordercontainer.ShippingDocumentColumn),
+			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ordercontainer.CargoAllocationsTable, ordercontainer.CargoAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,12 +326,24 @@ func (_q *OrderContainerQuery) Clone() *OrderContainerQuery {
 		order:                append([]ordercontainer.OrderOption{}, _q.order...),
 		inters:               append([]Interceptor{}, _q.inters...),
 		predicates:           append([]predicate.OrderContainer{}, _q.predicates...),
+		withOrganization:     _q.withOrganization.Clone(),
 		withOrder:            _q.withOrder.Clone(),
-		withShippingDocument: _q.withShippingDocument.Clone(),
+		withCargoAllocations: _q.withCargoAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithOrganization tells the query-builder to eager-load the nodes that are connected to
+// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderContainerQuery) WithOrganization(opts ...func(*OrganizationQuery)) *OrderContainerQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrganization = query
+	return _q
 }
 
 // WithOrder tells the query-builder to eager-load the nodes that are connected to
@@ -320,14 +357,14 @@ func (_q *OrderContainerQuery) WithOrder(opts ...func(*OrderQuery)) *OrderContai
 	return _q
 }
 
-// WithShippingDocument tells the query-builder to eager-load the nodes that are connected to
-// the "shipping_document" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderContainerQuery) WithShippingDocument(opts ...func(*OrderShippingDocumentQuery)) *OrderContainerQuery {
-	query := (&OrderShippingDocumentClient{config: _q.config}).Query()
+// WithCargoAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderContainerQuery) WithCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *OrderContainerQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withShippingDocument = query
+	_q.withCargoAllocations = query
 	return _q
 }
 
@@ -409,9 +446,10 @@ func (_q *OrderContainerQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*OrderContainer{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			_q.withOrganization != nil,
 			_q.withOrder != nil,
-			_q.withShippingDocument != nil,
+			_q.withCargoAllocations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -435,21 +473,59 @@ func (_q *OrderContainerQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withOrganization; query != nil {
+		if err := _q.loadOrganization(ctx, query, nodes, nil,
+			func(n *OrderContainer, e *Organization) { n.Edges.Organization = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withOrder; query != nil {
 		if err := _q.loadOrder(ctx, query, nodes, nil,
 			func(n *OrderContainer, e *Order) { n.Edges.Order = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withShippingDocument; query != nil {
-		if err := _q.loadShippingDocument(ctx, query, nodes, nil,
-			func(n *OrderContainer, e *OrderShippingDocument) { n.Edges.ShippingDocument = e }); err != nil {
+	if query := _q.withCargoAllocations; query != nil {
+		if err := _q.loadCargoAllocations(ctx, query, nodes,
+			func(n *OrderContainer) { n.Edges.CargoAllocations = []*SeaCargoAllocation{} },
+			func(n *OrderContainer, e *SeaCargoAllocation) {
+				n.Edges.CargoAllocations = append(n.Edges.CargoAllocations, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
+func (_q *OrderContainerQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*OrderContainer, init func(*OrderContainer), assign func(*OrderContainer, *Organization)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderContainer)
+	for i := range nodes {
+		fk := nodes[i].OrganizationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(organization.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *OrderContainerQuery) loadOrder(ctx context.Context, query *OrderQuery, nodes []*OrderContainer, init func(*OrderContainer), assign func(*OrderContainer, *Order)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*OrderContainer)
@@ -479,35 +555,36 @@ func (_q *OrderContainerQuery) loadOrder(ctx context.Context, query *OrderQuery,
 	}
 	return nil
 }
-func (_q *OrderContainerQuery) loadShippingDocument(ctx context.Context, query *OrderShippingDocumentQuery, nodes []*OrderContainer, init func(*OrderContainer), assign func(*OrderContainer, *OrderShippingDocument)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*OrderContainer)
+func (_q *OrderContainerQuery) loadCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*OrderContainer, init func(*OrderContainer), assign func(*OrderContainer, *SeaCargoAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderContainer)
 	for i := range nodes {
-		if nodes[i].ShippingDocumentID == nil {
-			continue
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		fk := *nodes[i].ShippingDocumentID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seacargoallocation.FieldContainerID)
 	}
-	query.Where(ordershippingdocument.IDIn(ids...))
+	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(ordercontainer.CargoAllocationsColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.ContainerID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "container_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "shipping_document_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "container_id" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -540,11 +617,11 @@ func (_q *OrderContainerQuery) querySpec() *sqlgraph.QuerySpec {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
+		if _q.withOrganization != nil {
+			_spec.Node.AddColumnOnce(ordercontainer.FieldOrganizationID)
+		}
 		if _q.withOrder != nil {
 			_spec.Node.AddColumnOnce(ordercontainer.FieldOrderID)
-		}
-		if _q.withShippingDocument != nil {
-			_spec.Node.AddColumnOnce(ordercontainer.FieldShippingDocumentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

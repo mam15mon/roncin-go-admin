@@ -11,6 +11,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -282,6 +283,19 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 			return biz.ErrSeaDocumentStructureInvalid
 		}
 
+		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
+			return biz.ErrSeaCargoAllocationStatusConflict
+		}
+		hasAlloc, err := tx.SeaCargoAllocation.Query().
+			Where(seacargoallocation.MasterBillOrderLinkIDEQ(link.ID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if hasAlloc {
+			return biz.ErrSeaCargoAllocationStatusConflict
+		}
+
 		if _, err := link.Update().
 			SetDocumentStructure(seamasterbillorderlink.DocumentStructureDIRECT).
 			SetVersion(link.Version + 1).
@@ -377,6 +391,7 @@ func (r *seaDocumentRepo) CancelSeaOrderDirect(ctx context.Context, organization
 		if _, err := link.Update().
 			SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED).
 			SetVersion(link.Version + 1).
+			SetCargoAllocationVersion(link.CargoAllocationVersion + 1).
 			Save(ctx); err != nil {
 			return err
 		}
@@ -478,6 +493,9 @@ func (r *seaDocumentRepo) AddSeaHouseBill(ctx context.Context, organizationID, a
 		if link.DocumentStructure == seamasterbillorderlink.DocumentStructureDIRECT {
 			return biz.ErrSeaDocumentDirectAddHBLBlocked
 		}
+		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
+			return biz.ErrSeaCargoAllocationStatusConflict
+		}
 
 		// 4. 校验签发主体
 		issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, order.OrganizationID, order.CustomerID, input)
@@ -516,7 +534,7 @@ func (r *seaDocumentRepo) AddSeaHouseBill(ctx context.Context, organizationID, a
 		}
 
 		// 结构转换：若当前为 UNDETERMINED，则转为 HOUSE
-		linkUpdate := link.Update().SetVersion(link.Version + 1)
+		linkUpdate := link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1)
 		if link.DocumentStructure == seamasterbillorderlink.DocumentStructureUNDETERMINED {
 			linkUpdate.SetDocumentStructure(seamasterbillorderlink.DocumentStructureHOUSE)
 		}
@@ -609,6 +627,9 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		}
 		if link.Version != expectedLinkVersion {
 			return biz.ErrSeaDocumentStructureConflict
+		}
+		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
+			return biz.ErrSeaCargoAllocationStatusConflict
 		}
 
 		// 4. 固定锁顺序：SeaHouseBill
@@ -765,6 +786,18 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		if hb.Status == seahousebill.StatusRELEASED {
 			return biz.ErrSeaHouseBillStatusConflict
 		}
+		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
+			return biz.ErrSeaCargoAllocationStatusConflict
+		}
+		hasAlloc, err := tx.SeaCargoAllocation.Query().
+			Where(seacargoallocation.HouseBillIDEQ(houseBillID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if hasAlloc {
+			return biz.ErrSeaCargoAllocationInvalidReference
+		}
 
 		// 5. 统计当前 MBL 下该订单剩余 HBL 数量
 		count, err := tx.SeaHouseBill.Query().
@@ -777,7 +810,7 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 			return err
 		}
 
-		linkUpdate := link.Update().SetVersion(link.Version + 1)
+		linkUpdate := link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1)
 		if count == 1 {
 			// 最后一张 HBL 删除，必须显式确认回到未确定
 			if !returnToUndetermined {

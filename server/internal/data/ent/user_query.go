@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -76,6 +77,7 @@ type UserQuery struct {
 	withUpdatedEnterpriseResources            *EnterpriseResourceQuery
 	withUploadedEnterpriseResourceImages      *EnterpriseResourceImageQuery
 	withEnterpriseResourceAssignments         *EnterpriseResourceAssigneeQuery
+	withConfirmedSeaCargoAllocationLinks      *SeaMasterBillOrderLinkQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -795,6 +797,28 @@ func (_q *UserQuery) QueryEnterpriseResourceAssignments() *EnterpriseResourceAss
 	return query
 }
 
+// QueryConfirmedSeaCargoAllocationLinks chains the current query on the "confirmed_sea_cargo_allocation_links" edge.
+func (_q *UserQuery) QueryConfirmedSeaCargoAllocationLinks() *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedSeaCargoAllocationLinksTable, user.ConfirmedSeaCargoAllocationLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -1018,6 +1042,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withUpdatedEnterpriseResources:            _q.withUpdatedEnterpriseResources.Clone(),
 		withUploadedEnterpriseResourceImages:      _q.withUploadedEnterpriseResourceImages.Clone(),
 		withEnterpriseResourceAssignments:         _q.withEnterpriseResourceAssignments.Clone(),
+		withConfirmedSeaCargoAllocationLinks:      _q.withConfirmedSeaCargoAllocationLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1365,6 +1390,17 @@ func (_q *UserQuery) WithEnterpriseResourceAssignments(opts ...func(*EnterpriseR
 	return _q
 }
 
+// WithConfirmedSeaCargoAllocationLinks tells the query-builder to eager-load the nodes that are connected to
+// the "confirmed_sea_cargo_allocation_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConfirmedSeaCargoAllocationLinks(opts ...func(*SeaMasterBillOrderLinkQuery)) *UserQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmedSeaCargoAllocationLinks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1443,7 +1479,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [31]bool{
+		loadedTypes = [32]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1475,6 +1511,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withUpdatedEnterpriseResources != nil,
 			_q.withUploadedEnterpriseResourceImages != nil,
 			_q.withEnterpriseResourceAssignments != nil,
+			_q.withConfirmedSeaCargoAllocationLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1765,6 +1802,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.EnterpriseResourceAssignments = []*EnterpriseResourceAssignee{} },
 			func(n *User, e *EnterpriseResourceAssignee) {
 				n.Edges.EnterpriseResourceAssignments = append(n.Edges.EnterpriseResourceAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmedSeaCargoAllocationLinks; query != nil {
+		if err := _q.loadConfirmedSeaCargoAllocationLinks(ctx, query, nodes,
+			func(n *User) { n.Edges.ConfirmedSeaCargoAllocationLinks = []*SeaMasterBillOrderLink{} },
+			func(n *User, e *SeaMasterBillOrderLink) {
+				n.Edges.ConfirmedSeaCargoAllocationLinks = append(n.Edges.ConfirmedSeaCargoAllocationLinks, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2748,6 +2794,39 @@ func (_q *UserQuery) loadEnterpriseResourceAssignments(ctx context.Context, quer
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConfirmedSeaCargoAllocationLinks(ctx context.Context, query *SeaMasterBillOrderLinkQuery, nodes []*User, init func(*User), assign func(*User, *SeaMasterBillOrderLink)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
+	}
+	query.Where(predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConfirmedSeaCargoAllocationLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CargoAllocationConfirmedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cargo_allocation_confirmed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cargo_allocation_confirmed_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

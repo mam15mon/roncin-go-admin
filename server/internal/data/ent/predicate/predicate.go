@@ -246,6 +246,9 @@ type RoleAssignment func(*sql.Selector)
 // RoleOrderOrganizationAccess is the predicate function for roleorderorganizationaccess builders.
 type RoleOrderOrganizationAccess func(*sql.Selector)
 
+// SeaCargoAllocation is the predicate function for seacargoallocation builders.
+type SeaCargoAllocation func(*sql.Selector)
+
 // SeaHouseBill is the predicate function for seahousebill builders.
 type SeaHouseBill func(*sql.Selector)
 

@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // OrderContainer is the model entity for the OrderContainer schema.
@@ -24,14 +24,16 @@ type OrderContainer struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// OrganizationID holds the value of the "organization_id" field.
+	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// ContainerNo holds the value of the "container_no" field.
 	ContainerNo string `json:"container_no,omitempty"`
 	// ContainerSpecID holds the value of the "container_spec_id" field.
 	ContainerSpecID uuid.UUID `json:"container_spec_id,omitempty"`
-	// ShippingDocumentID holds the value of the "shipping_document_id" field.
-	ShippingDocumentID *uuid.UUID `json:"shipping_document_id,omitempty"`
+	// PackageCount holds the value of the "package_count" field.
+	PackageCount int `json:"package_count,omitempty"`
 	// SealNo holds the value of the "seal_no" field.
 	SealNo string `json:"seal_no,omitempty"`
 	// GrossWeightKg holds the value of the "gross_weight_kg" field.
@@ -40,6 +42,8 @@ type OrderContainer struct {
 	VolumeCbm float64 `json:"volume_cbm,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// Version holds the value of the "version" field.
+	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderContainerQuery when eager-loading is set.
 	Edges        OrderContainerEdges `json:"edges"`
@@ -48,13 +52,26 @@ type OrderContainer struct {
 
 // OrderContainerEdges holds the relations/edges for other nodes in the graph.
 type OrderContainerEdges struct {
+	// Organization holds the value of the organization edge.
+	Organization *Organization `json:"organization,omitempty"`
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
-	// ShippingDocument holds the value of the shipping_document edge.
-	ShippingDocument *OrderShippingDocument `json:"shipping_document,omitempty"`
+	// CargoAllocations holds the value of the cargo_allocations edge.
+	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// OrganizationOrErr returns the Organization value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderContainerEdges) OrganizationOrErr() (*Organization, error) {
+	if e.Organization != nil {
+		return e.Organization, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: organization.Label}
+	}
+	return nil, &NotLoadedError{edge: "organization"}
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -62,21 +79,19 @@ type OrderContainerEdges struct {
 func (e OrderContainerEdges) OrderOrErr() (*Order, error) {
 	if e.Order != nil {
 		return e.Order, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: order.Label}
 	}
 	return nil, &NotLoadedError{edge: "order"}
 }
 
-// ShippingDocumentOrErr returns the ShippingDocument value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e OrderContainerEdges) ShippingDocumentOrErr() (*OrderShippingDocument, error) {
-	if e.ShippingDocument != nil {
-		return e.ShippingDocument, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: ordershippingdocument.Label}
+// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderContainerEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+	if e.loadedTypes[2] {
+		return e.CargoAllocations, nil
 	}
-	return nil, &NotLoadedError{edge: "shipping_document"}
+	return nil, &NotLoadedError{edge: "cargo_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -84,15 +99,15 @@ func (*OrderContainer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case ordercontainer.FieldShippingDocumentID:
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case ordercontainer.FieldGrossWeightKg, ordercontainer.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
+		case ordercontainer.FieldPackageCount, ordercontainer.FieldVersion:
+			values[i] = new(sql.NullInt64)
 		case ordercontainer.FieldContainerNo, ordercontainer.FieldSealNo, ordercontainer.FieldNote:
 			values[i] = new(sql.NullString)
 		case ordercontainer.FieldCreatedAt, ordercontainer.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case ordercontainer.FieldID, ordercontainer.FieldOrderID, ordercontainer.FieldContainerSpecID:
+		case ordercontainer.FieldID, ordercontainer.FieldOrganizationID, ordercontainer.FieldOrderID, ordercontainer.FieldContainerSpecID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -127,6 +142,12 @@ func (_m *OrderContainer) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
+		case ordercontainer.FieldOrganizationID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
+			} else if value != nil {
+				_m.OrganizationID = *value
+			}
 		case ordercontainer.FieldOrderID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
@@ -145,12 +166,11 @@ func (_m *OrderContainer) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ContainerSpecID = *value
 			}
-		case ordercontainer.FieldShippingDocumentID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field shipping_document_id", values[i])
+		case ordercontainer.FieldPackageCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field package_count", values[i])
 			} else if value.Valid {
-				_m.ShippingDocumentID = new(uuid.UUID)
-				*_m.ShippingDocumentID = *value.S.(*uuid.UUID)
+				_m.PackageCount = int(value.Int64)
 			}
 		case ordercontainer.FieldSealNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -176,6 +196,12 @@ func (_m *OrderContainer) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Note = value.String
 			}
+		case ordercontainer.FieldVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				_m.Version = uint64(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -189,14 +215,19 @@ func (_m *OrderContainer) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryOrganization queries the "organization" edge of the OrderContainer entity.
+func (_m *OrderContainer) QueryOrganization() *OrganizationQuery {
+	return NewOrderContainerClient(_m.config).QueryOrganization(_m)
+}
+
 // QueryOrder queries the "order" edge of the OrderContainer entity.
 func (_m *OrderContainer) QueryOrder() *OrderQuery {
 	return NewOrderContainerClient(_m.config).QueryOrder(_m)
 }
 
-// QueryShippingDocument queries the "shipping_document" edge of the OrderContainer entity.
-func (_m *OrderContainer) QueryShippingDocument() *OrderShippingDocumentQuery {
-	return NewOrderContainerClient(_m.config).QueryShippingDocument(_m)
+// QueryCargoAllocations queries the "cargo_allocations" edge of the OrderContainer entity.
+func (_m *OrderContainer) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	return NewOrderContainerClient(_m.config).QueryCargoAllocations(_m)
 }
 
 // Update returns a builder for updating this OrderContainer.
@@ -228,6 +259,9 @@ func (_m *OrderContainer) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("organization_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteString(", ")
@@ -237,10 +271,8 @@ func (_m *OrderContainer) String() string {
 	builder.WriteString("container_spec_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ContainerSpecID))
 	builder.WriteString(", ")
-	if v := _m.ShippingDocumentID; v != nil {
-		builder.WriteString("shipping_document_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("package_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PackageCount))
 	builder.WriteString(", ")
 	builder.WriteString("seal_no=")
 	builder.WriteString(_m.SealNo)
@@ -253,6 +285,9 @@ func (_m *OrderContainer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)
+	builder.WriteString(", ")
+	builder.WriteString("version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -706,6 +707,21 @@ func (_c *UserCreate) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceA
 		ids[i] = v[i].ID
 	}
 	return _c.AddEnterpriseResourceAssignmentIDs(ids...)
+}
+
+// AddConfirmedSeaCargoAllocationLinkIDs adds the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_c *UserCreate) AddConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
+	return _c
+}
+
+// AddConfirmedSeaCargoAllocationLinks adds the "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
+func (_c *UserCreate) AddConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1419,6 +1435,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

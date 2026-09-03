@@ -194,6 +194,8 @@ const (
 	EdgeSeaMasterBillLinks = "sea_master_bill_links"
 	// EdgeSeaHouseBills holds the string denoting the sea_house_bills edge name in mutations.
 	EdgeSeaHouseBills = "sea_house_bills"
+	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
+	EdgeSeaCargoAllocations = "sea_cargo_allocations"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -350,6 +352,13 @@ const (
 	SeaHouseBillsInverseTable = "sea_house_bills"
 	// SeaHouseBillsColumn is the table column denoting the sea_house_bills relation/edge.
 	SeaHouseBillsColumn = "order_id"
+	// SeaCargoAllocationsTable is the table that holds the sea_cargo_allocations relation/edge.
+	SeaCargoAllocationsTable = "sea_cargo_allocations"
+	// SeaCargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
+	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
+	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
+	SeaCargoAllocationsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -1447,6 +1456,20 @@ func BySeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySeaCargoAllocationsCount orders the results by sea_cargo_allocations count.
+func BySeaCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaCargoAllocationsStep(), opts...)
+	}
+}
+
+// BySeaCargoAllocations orders the results by sea_cargo_allocations terms.
+func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1599,5 +1622,12 @@ func newSeaHouseBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaHouseBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillsTable, SeaHouseBillsColumn),
+	)
+}
+func newSeaCargoAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
 	)
 }

@@ -6,37 +6,30 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
-var (
-	ErrOrderContainerNotFound        = errors.NotFound("ORDER_CONTAINER_NOT_FOUND", "订单集装箱不存在")
-	ErrOrderContainerExists          = errors.Conflict("ORDER_CONTAINER_EXISTS", "订单集装箱已存在")
-	ErrOrderContainerInvalidArgument = errors.BadRequest("ORDER_CONTAINER_INVALID_ARGUMENT", "订单集装箱字段不合法")
-	ErrOrderContainerSpecInvalid     = errors.BadRequest("ORDER_CONTAINER_SPEC_INVALID", "箱型必须是当前组织启用的箱型主数据")
-	ErrOrderContainerShipmentType    = errors.BadRequest("ORDER_CONTAINER_SHIPMENT_TYPE_INVALID", "仅整箱订单可维护订单级集装箱，拼箱集装箱应由自拼批次维护")
-)
-
 type OrderContainer struct {
-	ID                 uuid.UUID
-	OrderID            uuid.UUID
-	ContainerNo        string
-	ContainerSpecID    uuid.UUID
-	ShippingDocumentID *uuid.UUID
-	SealNo             *string
-	GrossWeightKg      float64
-	VolumeCbm          float64
-	Note               *string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID              uuid.UUID
+	OrganizationID  uuid.UUID
+	OrderID         uuid.UUID
+	ContainerNo     string
+	ContainerSpecID uuid.UUID
+	PackageCount    int32
+	SealNo          *string
+	GrossWeightKg   float64
+	VolumeCbm       float64
+	Note            *string
+	Version         uint64
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type OrderContainerRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderContainer, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) error
 }
 
 type OrderContainerUsecase struct {
@@ -63,6 +56,9 @@ func (uc *OrderContainerUsecase) Add(ctx context.Context, organizationID, actorI
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
+	normalized.OrganizationID = organizationID
+	normalized.OrderID = orderID
+	normalized.Version = 1
 	return uc.repo.Add(ctx, organizationID, orderID, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
@@ -77,15 +73,15 @@ func (uc *OrderContainerUsecase) Add(ctx context.Context, organizationID, actorI
 	})
 }
 
-func (uc *OrderContainerUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderContainer) (*OrderContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
+func (uc *OrderContainerUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, input *OrderContainer) (*OrderContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrOrderContainerInvalidArgument
 	}
 	normalized, err := normalizeOrderContainer(input)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, &AuditEvent{
+	return uc.repo.Update(ctx, organizationID, orderID, id, expectedVersion, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.container.update",
@@ -99,11 +95,11 @@ func (uc *OrderContainerUsecase) Update(ctx context.Context, organizationID, act
 	})
 }
 
-func (uc *OrderContainerUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
+func (uc *OrderContainerUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64) error {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return ErrOrderContainerInvalidArgument
 	}
-	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, expectedVersion, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.container.remove",
@@ -126,7 +122,13 @@ func normalizeOrderContainer(input *OrderContainer) (*OrderContainer, error) {
 	if input.ContainerSpecID == uuid.Nil {
 		return nil, ErrOrderContainerInvalidArgument
 	}
-	if input.GrossWeightKg <= 0 || input.VolumeCbm <= 0 {
+	if input.PackageCount <= 0 {
+		return nil, ErrOrderContainerInvalidArgument
+	}
+	if _, err := ValidateFloatWeight(input.GrossWeightKg, "毛重"); err != nil {
+		return nil, ErrOrderContainerInvalidArgument
+	}
+	if _, err := ValidateFloatVolume(input.VolumeCbm, "体积"); err != nil {
 		return nil, ErrOrderContainerInvalidArgument
 	}
 	var sealNo *string

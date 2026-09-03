@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -1597,6 +1598,21 @@ func (_u *OrderUpdate) AddSeaHouseBills(v ...*SeaHouseBill) *OrderUpdate {
 	return _u.AddSeaHouseBillIDs(ids...)
 }
 
+// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *OrderUpdate) AddSeaCargoAllocationIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddSeaCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddSeaCargoAllocations adds the "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *OrderUpdate) AddSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaCargoAllocationIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2032,6 +2048,27 @@ func (_u *OrderUpdate) RemoveSeaHouseBills(v ...*SeaHouseBill) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaHouseBillIDs(ids...)
+}
+
+// ClearSeaCargoAllocations clears all "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *OrderUpdate) ClearSeaCargoAllocations() *OrderUpdate {
+	_u.mutation.ClearSeaCargoAllocations()
+	return _u
+}
+
+// RemoveSeaCargoAllocationIDs removes the "sea_cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *OrderUpdate) RemoveSeaCargoAllocationIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveSeaCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveSeaCargoAllocations removes "sea_cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *OrderUpdate) RemoveSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaCargoAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -3635,6 +3672,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaCargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SeaCargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaCargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{order.Label}
@@ -5201,6 +5283,21 @@ func (_u *OrderUpdateOne) AddSeaHouseBills(v ...*SeaHouseBill) *OrderUpdateOne {
 	return _u.AddSeaHouseBillIDs(ids...)
 }
 
+// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *OrderUpdateOne) AddSeaCargoAllocationIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddSeaCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddSeaCargoAllocations adds the "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *OrderUpdateOne) AddSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaCargoAllocationIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -5636,6 +5733,27 @@ func (_u *OrderUpdateOne) RemoveSeaHouseBills(v ...*SeaHouseBill) *OrderUpdateOn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaHouseBillIDs(ids...)
+}
+
+// ClearSeaCargoAllocations clears all "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *OrderUpdateOne) ClearSeaCargoAllocations() *OrderUpdateOne {
+	_u.mutation.ClearSeaCargoAllocations()
+	return _u
+}
+
+// RemoveSeaCargoAllocationIDs removes the "sea_cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *OrderUpdateOne) RemoveSeaCargoAllocationIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveSeaCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveSeaCargoAllocations removes "sea_cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *OrderUpdateOne) RemoveSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaCargoAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -7262,6 +7380,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaCargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SeaCargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaCargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaCargoAllocationsTable,
+			Columns: []string{order.SeaCargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -43,13 +43,11 @@ type OrderShippingDocument struct {
 type OrderShippingDocumentEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
-	// Containers holds the value of the containers edge.
-	Containers []*OrderContainer `json:"containers,omitempty"`
 	// ReleasePods holds the value of the release_pods edge.
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -63,19 +61,10 @@ func (e OrderShippingDocumentEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
-// ContainersOrErr returns the Containers value or an error if the edge
-// was not loaded in eager-loading.
-func (e OrderShippingDocumentEdges) ContainersOrErr() ([]*OrderContainer, error) {
-	if e.loadedTypes[1] {
-		return e.Containers, nil
-	}
-	return nil, &NotLoadedError{edge: "containers"}
-}
-
 // ReleasePodsOrErr returns the ReleasePods value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderShippingDocumentEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.ReleasePods, nil
 	}
 	return nil, &NotLoadedError{edge: "release_pods"}
@@ -171,11 +160,6 @@ func (_m *OrderShippingDocument) Value(name string) (ent.Value, error) {
 // QueryOrder queries the "order" edge of the OrderShippingDocument entity.
 func (_m *OrderShippingDocument) QueryOrder() *OrderQuery {
 	return NewOrderShippingDocumentClient(_m.config).QueryOrder(_m)
-}
-
-// QueryContainers queries the "containers" edge of the OrderShippingDocument entity.
-func (_m *OrderShippingDocument) QueryContainers() *OrderContainerQuery {
-	return NewOrderShippingDocumentClient(_m.config).QueryContainers(_m)
 }
 
 // QueryReleasePods queries the "release_pods" edge of the OrderShippingDocument entity.

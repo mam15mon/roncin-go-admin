@@ -87,6 +87,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -4421,7 +4422,7 @@ func init() {
 	// ordercargoitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ordercargoitem.UpdateDefaultUpdatedAt = ordercargoitemDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// ordercargoitemDescCargoName is the schema descriptor for cargo_name field.
-	ordercargoitemDescCargoName := ordercargoitemFields[1].Descriptor()
+	ordercargoitemDescCargoName := ordercargoitemFields[2].Descriptor()
 	// ordercargoitem.CargoNameValidator is a validator for the "cargo_name" field. It is called by the builders before save.
 	ordercargoitem.CargoNameValidator = func() func(string) error {
 		validators := ordercargoitemDescCargoName.Validators
@@ -4439,25 +4440,29 @@ func init() {
 		}
 	}()
 	// ordercargoitemDescPackageCount is the schema descriptor for package_count field.
-	ordercargoitemDescPackageCount := ordercargoitemFields[2].Descriptor()
+	ordercargoitemDescPackageCount := ordercargoitemFields[3].Descriptor()
 	// ordercargoitem.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	ordercargoitem.PackageCountValidator = ordercargoitemDescPackageCount.Validators[0].(func(int) error)
 	// ordercargoitemDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	ordercargoitemDescGrossWeightKg := ordercargoitemFields[3].Descriptor()
+	ordercargoitemDescGrossWeightKg := ordercargoitemFields[4].Descriptor()
 	// ordercargoitem.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	ordercargoitem.GrossWeightKgValidator = ordercargoitemDescGrossWeightKg.Validators[0].(func(float64) error)
 	// ordercargoitemDescVolumeCbm is the schema descriptor for volume_cbm field.
-	ordercargoitemDescVolumeCbm := ordercargoitemFields[4].Descriptor()
+	ordercargoitemDescVolumeCbm := ordercargoitemFields[5].Descriptor()
 	// ordercargoitem.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	ordercargoitem.VolumeCbmValidator = ordercargoitemDescVolumeCbm.Validators[0].(func(float64) error)
 	// ordercargoitemDescNetWeightKg is the schema descriptor for net_weight_kg field.
-	ordercargoitemDescNetWeightKg := ordercargoitemFields[5].Descriptor()
+	ordercargoitemDescNetWeightKg := ordercargoitemFields[6].Descriptor()
 	// ordercargoitem.NetWeightKgValidator is a validator for the "net_weight_kg" field. It is called by the builders before save.
 	ordercargoitem.NetWeightKgValidator = ordercargoitemDescNetWeightKg.Validators[0].(func(float64) error)
 	// ordercargoitemDescNote is the schema descriptor for note field.
-	ordercargoitemDescNote := ordercargoitemFields[6].Descriptor()
+	ordercargoitemDescNote := ordercargoitemFields[7].Descriptor()
 	// ordercargoitem.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	ordercargoitem.NoteValidator = ordercargoitemDescNote.Validators[0].(func(string) error)
+	// ordercargoitemDescVersion is the schema descriptor for version field.
+	ordercargoitemDescVersion := ordercargoitemFields[8].Descriptor()
+	// ordercargoitem.DefaultVersion holds the default value on creation for the version field.
+	ordercargoitem.DefaultVersion = ordercargoitemDescVersion.Default.(uint64)
 	// ordercargoitemDescID is the schema descriptor for id field.
 	ordercargoitemDescID := ordercargoitemMixinFields0[0].Descriptor()
 	// ordercargoitem.DefaultID holds the default value on creation for the id field.
@@ -4519,7 +4524,7 @@ func init() {
 	// ordercontainer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ordercontainer.UpdateDefaultUpdatedAt = ordercontainerDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// ordercontainerDescContainerNo is the schema descriptor for container_no field.
-	ordercontainerDescContainerNo := ordercontainerFields[1].Descriptor()
+	ordercontainerDescContainerNo := ordercontainerFields[2].Descriptor()
 	// ordercontainer.ContainerNoValidator is a validator for the "container_no" field. It is called by the builders before save.
 	ordercontainer.ContainerNoValidator = func() func(string) error {
 		validators := ordercontainerDescContainerNo.Validators
@@ -4536,22 +4541,30 @@ func init() {
 			return nil
 		}
 	}()
+	// ordercontainerDescPackageCount is the schema descriptor for package_count field.
+	ordercontainerDescPackageCount := ordercontainerFields[4].Descriptor()
+	// ordercontainer.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	ordercontainer.PackageCountValidator = ordercontainerDescPackageCount.Validators[0].(func(int) error)
 	// ordercontainerDescSealNo is the schema descriptor for seal_no field.
-	ordercontainerDescSealNo := ordercontainerFields[4].Descriptor()
+	ordercontainerDescSealNo := ordercontainerFields[5].Descriptor()
 	// ordercontainer.SealNoValidator is a validator for the "seal_no" field. It is called by the builders before save.
 	ordercontainer.SealNoValidator = ordercontainerDescSealNo.Validators[0].(func(string) error)
 	// ordercontainerDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	ordercontainerDescGrossWeightKg := ordercontainerFields[5].Descriptor()
+	ordercontainerDescGrossWeightKg := ordercontainerFields[6].Descriptor()
 	// ordercontainer.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	ordercontainer.GrossWeightKgValidator = ordercontainerDescGrossWeightKg.Validators[0].(func(float64) error)
 	// ordercontainerDescVolumeCbm is the schema descriptor for volume_cbm field.
-	ordercontainerDescVolumeCbm := ordercontainerFields[6].Descriptor()
+	ordercontainerDescVolumeCbm := ordercontainerFields[7].Descriptor()
 	// ordercontainer.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	ordercontainer.VolumeCbmValidator = ordercontainerDescVolumeCbm.Validators[0].(func(float64) error)
 	// ordercontainerDescNote is the schema descriptor for note field.
-	ordercontainerDescNote := ordercontainerFields[7].Descriptor()
+	ordercontainerDescNote := ordercontainerFields[8].Descriptor()
 	// ordercontainer.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	ordercontainer.NoteValidator = ordercontainerDescNote.Validators[0].(func(string) error)
+	// ordercontainerDescVersion is the schema descriptor for version field.
+	ordercontainerDescVersion := ordercontainerFields[9].Descriptor()
+	// ordercontainer.DefaultVersion holds the default value on creation for the version field.
+	ordercontainer.DefaultVersion = ordercontainerDescVersion.Default.(uint64)
 	// ordercontainerDescID is the schema descriptor for id field.
 	ordercontainerDescID := ordercontainerMixinFields0[0].Descriptor()
 	// ordercontainer.DefaultID holds the default value on creation for the id field.
@@ -6163,6 +6176,31 @@ func init() {
 	roleorderorganizationaccessDescID := roleorderorganizationaccessMixinFields0[0].Descriptor()
 	// roleorderorganizationaccess.DefaultID holds the default value on creation for the id field.
 	roleorderorganizationaccess.DefaultID = roleorderorganizationaccessDescID.Default.(func() uuid.UUID)
+	seacargoallocationMixin := schema.SeaCargoAllocation{}.Mixin()
+	seacargoallocationMixinFields0 := seacargoallocationMixin[0].Fields()
+	_ = seacargoallocationMixinFields0
+	seacargoallocationMixinFields1 := seacargoallocationMixin[1].Fields()
+	_ = seacargoallocationMixinFields1
+	seacargoallocationFields := schema.SeaCargoAllocation{}.Fields()
+	_ = seacargoallocationFields
+	// seacargoallocationDescCreatedAt is the schema descriptor for created_at field.
+	seacargoallocationDescCreatedAt := seacargoallocationMixinFields1[0].Descriptor()
+	// seacargoallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seacargoallocation.DefaultCreatedAt = seacargoallocationDescCreatedAt.Default.(func() time.Time)
+	// seacargoallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	seacargoallocationDescUpdatedAt := seacargoallocationMixinFields1[1].Descriptor()
+	// seacargoallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seacargoallocation.DefaultUpdatedAt = seacargoallocationDescUpdatedAt.Default.(func() time.Time)
+	// seacargoallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seacargoallocation.UpdateDefaultUpdatedAt = seacargoallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seacargoallocationDescPackageCount is the schema descriptor for package_count field.
+	seacargoallocationDescPackageCount := seacargoallocationFields[6].Descriptor()
+	// seacargoallocation.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	seacargoallocation.PackageCountValidator = seacargoallocationDescPackageCount.Validators[0].(func(int) error)
+	// seacargoallocationDescID is the schema descriptor for id field.
+	seacargoallocationDescID := seacargoallocationMixinFields0[0].Descriptor()
+	// seacargoallocation.DefaultID holds the default value on creation for the id field.
+	seacargoallocation.DefaultID = seacargoallocationDescID.Default.(func() uuid.UUID)
 	seahousebillMixin := schema.SeaHouseBill{}.Mixin()
 	seahousebillMixinFields0 := seahousebillMixin[0].Fields()
 	_ = seahousebillMixinFields0
@@ -6382,6 +6420,10 @@ func init() {
 	seamasterbillorderlinkDescVersion := seamasterbillorderlinkFields[8].Descriptor()
 	// seamasterbillorderlink.DefaultVersion holds the default value on creation for the version field.
 	seamasterbillorderlink.DefaultVersion = seamasterbillorderlinkDescVersion.Default.(uint64)
+	// seamasterbillorderlinkDescCargoAllocationVersion is the schema descriptor for cargo_allocation_version field.
+	seamasterbillorderlinkDescCargoAllocationVersion := seamasterbillorderlinkFields[10].Descriptor()
+	// seamasterbillorderlink.DefaultCargoAllocationVersion holds the default value on creation for the cargo_allocation_version field.
+	seamasterbillorderlink.DefaultCargoAllocationVersion = seamasterbillorderlinkDescCargoAllocationVersion.Default.(uint64)
 	// seamasterbillorderlinkDescID is the schema descriptor for id field.
 	seamasterbillorderlinkDescID := seamasterbillorderlinkMixinFields0[0].Descriptor()
 	// seamasterbillorderlink.DefaultID holds the default value on creation for the id field.

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // OrderCargoItem is the model entity for the OrderCargoItem schema.
@@ -23,6 +24,8 @@ type OrderCargoItem struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// OrganizationID holds the value of the "organization_id" field.
+	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// CargoName holds the value of the "cargo_name" field.
@@ -37,6 +40,8 @@ type OrderCargoItem struct {
 	NetWeightKg float64 `json:"net_weight_kg,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// Version holds the value of the "version" field.
+	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderCargoItemQuery when eager-loading is set.
 	Edges        OrderCargoItemEdges `json:"edges"`
@@ -45,11 +50,26 @@ type OrderCargoItem struct {
 
 // OrderCargoItemEdges holds the relations/edges for other nodes in the graph.
 type OrderCargoItemEdges struct {
+	// Organization holds the value of the organization edge.
+	Organization *Organization `json:"organization,omitempty"`
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
+	// CargoAllocations holds the value of the cargo_allocations edge.
+	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
+}
+
+// OrganizationOrErr returns the Organization value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderCargoItemEdges) OrganizationOrErr() (*Organization, error) {
+	if e.Organization != nil {
+		return e.Organization, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: organization.Label}
+	}
+	return nil, &NotLoadedError{edge: "organization"}
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -57,10 +77,19 @@ type OrderCargoItemEdges struct {
 func (e OrderCargoItemEdges) OrderOrErr() (*Order, error) {
 	if e.Order != nil {
 		return e.Order, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: order.Label}
 	}
 	return nil, &NotLoadedError{edge: "order"}
+}
+
+// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderCargoItemEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+	if e.loadedTypes[2] {
+		return e.CargoAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "cargo_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -70,13 +99,13 @@ func (*OrderCargoItem) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case ordercargoitem.FieldGrossWeightKg, ordercargoitem.FieldVolumeCbm, ordercargoitem.FieldNetWeightKg:
 			values[i] = new(sql.NullFloat64)
-		case ordercargoitem.FieldPackageCount:
+		case ordercargoitem.FieldPackageCount, ordercargoitem.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case ordercargoitem.FieldCargoName, ordercargoitem.FieldNote:
 			values[i] = new(sql.NullString)
 		case ordercargoitem.FieldCreatedAt, ordercargoitem.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case ordercargoitem.FieldID, ordercargoitem.FieldOrderID:
+		case ordercargoitem.FieldID, ordercargoitem.FieldOrganizationID, ordercargoitem.FieldOrderID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -110,6 +139,12 @@ func (_m *OrderCargoItem) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case ordercargoitem.FieldOrganizationID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
+			} else if value != nil {
+				_m.OrganizationID = *value
 			}
 		case ordercargoitem.FieldOrderID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -153,6 +188,12 @@ func (_m *OrderCargoItem) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Note = value.String
 			}
+		case ordercargoitem.FieldVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				_m.Version = uint64(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -166,9 +207,19 @@ func (_m *OrderCargoItem) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryOrganization queries the "organization" edge of the OrderCargoItem entity.
+func (_m *OrderCargoItem) QueryOrganization() *OrganizationQuery {
+	return NewOrderCargoItemClient(_m.config).QueryOrganization(_m)
+}
+
 // QueryOrder queries the "order" edge of the OrderCargoItem entity.
 func (_m *OrderCargoItem) QueryOrder() *OrderQuery {
 	return NewOrderCargoItemClient(_m.config).QueryOrder(_m)
+}
+
+// QueryCargoAllocations queries the "cargo_allocations" edge of the OrderCargoItem entity.
+func (_m *OrderCargoItem) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	return NewOrderCargoItemClient(_m.config).QueryCargoAllocations(_m)
 }
 
 // Update returns a builder for updating this OrderCargoItem.
@@ -200,6 +251,9 @@ func (_m *OrderCargoItem) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("organization_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteString(", ")
@@ -220,6 +274,9 @@ func (_m *OrderCargoItem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)
+	builder.WriteString(", ")
+	builder.WriteString("version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteByte(')')
 	return builder.String()
 }

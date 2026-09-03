@@ -1734,6 +1734,29 @@ func HasEnterpriseResourceAssignmentsWith(preds ...predicate.EnterpriseResourceA
 	})
 }
 
+// HasConfirmedSeaCargoAllocationLinks applies the HasEdge predicate on the "confirmed_sea_cargo_allocation_links" edge.
+func HasConfirmedSeaCargoAllocationLinks() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedSeaCargoAllocationLinksTable, ConfirmedSeaCargoAllocationLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmedSeaCargoAllocationLinksWith applies the HasEdge predicate on the "confirmed_sea_cargo_allocation_links" edge with a given conditions (other predicates).
+func HasConfirmedSeaCargoAllocationLinksWith(preds ...predicate.SeaMasterBillOrderLink) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfirmedSeaCargoAllocationLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

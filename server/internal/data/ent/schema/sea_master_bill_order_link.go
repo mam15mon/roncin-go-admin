@@ -27,6 +27,10 @@ func (SeaMasterBillOrderLink) Fields() []ent.Field {
 		field.Time("ended_at").Optional().Nillable(),
 		field.String("ended_reason").Optional().Nillable().MaxLen(255),
 		field.Uint64("version").Default(1),
+		field.Enum("cargo_allocation_status").Values("DRAFT", "CONFIRMED").Default("DRAFT"),
+		field.Uint64("cargo_allocation_version").Default(1),
+		field.Time("cargo_allocation_confirmed_at").Optional().Nillable(),
+		field.UUID("cargo_allocation_confirmed_by", uuid.Nil).Optional().Nillable(),
 	}
 }
 
@@ -35,6 +39,8 @@ func (SeaMasterBillOrderLink) Edges() []ent.Edge {
 		edge.From("organization", Organization.Type).Ref("sea_master_bill_order_links").Field("organization_id").Unique().Required(),
 		edge.From("master_bill", SeaMasterBill.Type).Ref("order_links").Field("master_bill_id").Unique().Required(),
 		edge.From("order", Order.Type).Ref("sea_master_bill_links").Field("order_id").Unique().Required(),
+		edge.To("cargo_allocations", SeaCargoAllocation.Type),
+		edge.From("cargo_allocation_confirmed_by_user", User.Type).Ref("confirmed_sea_cargo_allocation_links").Field("cargo_allocation_confirmed_by").Unique(),
 	}
 }
 

@@ -447,6 +447,25 @@ export const OrderShippingDocumentStatus = {
 
 export type OrderShippingDocumentStatus = (typeof OrderShippingDocumentStatus)[keyof typeof OrderShippingDocumentStatus];
 
+export const SeaCargoAllocationStatus = {
+  SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED: 0,
+  SEA_CARGO_ALLOCATION_STATUS_DRAFT: 1,
+  SEA_CARGO_ALLOCATION_STATUS_CONFIRMED: 2,
+} as const;
+
+export type SeaCargoAllocationStatus = (typeof SeaCargoAllocationStatus)[keyof typeof SeaCargoAllocationStatus];
+
+export const SeaCargoAllocationAction = {
+  SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED: 0,
+  SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT: 1,
+  SEA_CARGO_ALLOCATION_ACTION_CONFIRM: 2,
+  SEA_CARGO_ALLOCATION_ACTION_WITHDRAW: 3,
+  SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY: 4,
+  SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY: 5,
+} as const;
+
+export type SeaCargoAllocationAction = (typeof SeaCargoAllocationAction)[keyof typeof SeaCargoAllocationAction];
+
 export const SeaDocumentStructure = {
   SEA_DOCUMENT_STRUCTURE_UNSPECIFIED: 0,
   SEA_DOCUMENT_STRUCTURE_UNDETERMINED: 1,

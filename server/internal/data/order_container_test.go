@@ -40,6 +40,7 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		ID:            uuid.New(),
 		ContainerNo:   "MSCU9999999",
 		SealNo:        &seal,
+		PackageCount:  10,
 		GrossWeightKg: 1000.0,
 		VolumeCbm:     20.0,
 	}
@@ -53,6 +54,14 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	mock.ExpectBegin()
+
+	mock.ExpectQuery(`SELECT "orders"\."id"`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
+
+	mock.ExpectQuery(`SELECT "sea_master_bill_order_links"\."id"`).
+		WithArgs(orgID, orderID, "ACTIVE").
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
 	// Unique constraint error with Postgres constraint name
 	mock.ExpectExec(`INSERT INTO "order_containers"`).
@@ -108,6 +117,7 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 		ID:              uuid.New(),
 		ContainerNo:     "MSCU1234567",
 		ContainerSpecID: uuid.New(),
+		PackageCount:    10,
 		GrossWeightKg:   1000,
 		VolumeCbm:       20,
 	}
@@ -123,6 +133,12 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 		WithArgs(input.ContainerSpecID, orgID, "container_spec").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id"`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
+	mock.ExpectQuery(`SELECT "sea_master_bill_order_links"\."id"`).
+		WithArgs(orgID, orderID, "ACTIVE").
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectExec(`INSERT INTO "order_containers"`).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectExec(`INSERT INTO "audit_logs"`).WillReturnError(errors.New("写入审计失败"))
 	mock.ExpectRollback()

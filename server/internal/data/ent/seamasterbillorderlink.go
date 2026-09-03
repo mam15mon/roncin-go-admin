@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // SeaMasterBillOrderLink is the model entity for the SeaMasterBillOrderLink schema.
@@ -43,6 +44,14 @@ type SeaMasterBillOrderLink struct {
 	EndedReason *string `json:"ended_reason,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
+	// CargoAllocationStatus holds the value of the "cargo_allocation_status" field.
+	CargoAllocationStatus seamasterbillorderlink.CargoAllocationStatus `json:"cargo_allocation_status,omitempty"`
+	// CargoAllocationVersion holds the value of the "cargo_allocation_version" field.
+	CargoAllocationVersion uint64 `json:"cargo_allocation_version,omitempty"`
+	// CargoAllocationConfirmedAt holds the value of the "cargo_allocation_confirmed_at" field.
+	CargoAllocationConfirmedAt *time.Time `json:"cargo_allocation_confirmed_at,omitempty"`
+	// CargoAllocationConfirmedBy holds the value of the "cargo_allocation_confirmed_by" field.
+	CargoAllocationConfirmedBy *uuid.UUID `json:"cargo_allocation_confirmed_by,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaMasterBillOrderLinkQuery when eager-loading is set.
 	Edges        SeaMasterBillOrderLinkEdges `json:"edges"`
@@ -57,9 +66,13 @@ type SeaMasterBillOrderLinkEdges struct {
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
+	// CargoAllocations holds the value of the cargo_allocations edge.
+	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
+	// CargoAllocationConfirmedByUser holds the value of the cargo_allocation_confirmed_by_user edge.
+	CargoAllocationConfirmedByUser *User `json:"cargo_allocation_confirmed_by_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -95,16 +108,38 @@ func (e SeaMasterBillOrderLinkEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
+// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillOrderLinkEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+	if e.loadedTypes[3] {
+		return e.CargoAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "cargo_allocations"}
+}
+
+// CargoAllocationConfirmedByUserOrErr returns the CargoAllocationConfirmedByUser value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaMasterBillOrderLinkEdges) CargoAllocationConfirmedByUserOrErr() (*User, error) {
+	if e.CargoAllocationConfirmedByUser != nil {
+		return e.CargoAllocationConfirmedByUser, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "cargo_allocation_confirmed_by_user"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaMasterBillOrderLink) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seamasterbillorderlink.FieldVersion:
+		case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case seamasterbillorderlink.FieldVersion, seamasterbillorderlink.FieldCargoAllocationVersion:
 			values[i] = new(sql.NullInt64)
-		case seamasterbillorderlink.FieldStatus, seamasterbillorderlink.FieldDocumentStructure, seamasterbillorderlink.FieldEndedReason:
+		case seamasterbillorderlink.FieldStatus, seamasterbillorderlink.FieldDocumentStructure, seamasterbillorderlink.FieldEndedReason, seamasterbillorderlink.FieldCargoAllocationStatus:
 			values[i] = new(sql.NullString)
-		case seamasterbillorderlink.FieldCreatedAt, seamasterbillorderlink.FieldUpdatedAt, seamasterbillorderlink.FieldStartedAt, seamasterbillorderlink.FieldEndedAt:
+		case seamasterbillorderlink.FieldCreatedAt, seamasterbillorderlink.FieldUpdatedAt, seamasterbillorderlink.FieldStartedAt, seamasterbillorderlink.FieldEndedAt, seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
 			values[i] = new(sql.NullTime)
 		case seamasterbillorderlink.FieldID, seamasterbillorderlink.FieldOrganizationID, seamasterbillorderlink.FieldMasterBillID, seamasterbillorderlink.FieldOrderID:
 			values[i] = new(uuid.UUID)
@@ -197,6 +232,32 @@ func (_m *SeaMasterBillOrderLink) assignValues(columns []string, values []any) e
 			} else if value.Valid {
 				_m.Version = uint64(value.Int64)
 			}
+		case seamasterbillorderlink.FieldCargoAllocationStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_allocation_status", values[i])
+			} else if value.Valid {
+				_m.CargoAllocationStatus = seamasterbillorderlink.CargoAllocationStatus(value.String)
+			}
+		case seamasterbillorderlink.FieldCargoAllocationVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_allocation_version", values[i])
+			} else if value.Valid {
+				_m.CargoAllocationVersion = uint64(value.Int64)
+			}
+		case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_allocation_confirmed_at", values[i])
+			} else if value.Valid {
+				_m.CargoAllocationConfirmedAt = new(time.Time)
+				*_m.CargoAllocationConfirmedAt = value.Time
+			}
+		case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_allocation_confirmed_by", values[i])
+			} else if value.Valid {
+				_m.CargoAllocationConfirmedBy = new(uuid.UUID)
+				*_m.CargoAllocationConfirmedBy = *value.S.(*uuid.UUID)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -223,6 +284,16 @@ func (_m *SeaMasterBillOrderLink) QueryMasterBill() *SeaMasterBillQuery {
 // QueryOrder queries the "order" edge of the SeaMasterBillOrderLink entity.
 func (_m *SeaMasterBillOrderLink) QueryOrder() *OrderQuery {
 	return NewSeaMasterBillOrderLinkClient(_m.config).QueryOrder(_m)
+}
+
+// QueryCargoAllocations queries the "cargo_allocations" edge of the SeaMasterBillOrderLink entity.
+func (_m *SeaMasterBillOrderLink) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	return NewSeaMasterBillOrderLinkClient(_m.config).QueryCargoAllocations(_m)
+}
+
+// QueryCargoAllocationConfirmedByUser queries the "cargo_allocation_confirmed_by_user" edge of the SeaMasterBillOrderLink entity.
+func (_m *SeaMasterBillOrderLink) QueryCargoAllocationConfirmedByUser() *UserQuery {
+	return NewSeaMasterBillOrderLinkClient(_m.config).QueryCargoAllocationConfirmedByUser(_m)
 }
 
 // Update returns a builder for updating this SeaMasterBillOrderLink.
@@ -284,6 +355,22 @@ func (_m *SeaMasterBillOrderLink) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	builder.WriteString("cargo_allocation_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CargoAllocationStatus))
+	builder.WriteString(", ")
+	builder.WriteString("cargo_allocation_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CargoAllocationVersion))
+	builder.WriteString(", ")
+	if v := _m.CargoAllocationConfirmedAt; v != nil {
+		builder.WriteString("cargo_allocation_confirmed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.CargoAllocationConfirmedBy; v != nil {
+		builder.WriteString("cargo_allocation_confirmed_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

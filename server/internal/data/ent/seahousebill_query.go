@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
@@ -33,6 +35,7 @@ type SeaHouseBillQuery struct {
 	withMasterBill         *SeaMasterBillQuery
 	withIssuerOrganization *OrganizationQuery
 	withIssuerPartner      *PartnerQuery
+	withCargoAllocations   *SeaCargoAllocationQuery
 	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -173,6 +176,28 @@ func (_q *SeaHouseBillQuery) QueryIssuerPartner() *PartnerQuery {
 			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, selector),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.IssuerPartnerTable, seahousebill.IssuerPartnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCargoAllocations chains the current query on the "cargo_allocations" edge.
+func (_q *SeaHouseBillQuery) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, selector),
+			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.CargoAllocationsTable, seahousebill.CargoAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -377,6 +402,7 @@ func (_q *SeaHouseBillQuery) Clone() *SeaHouseBillQuery {
 		withMasterBill:         _q.withMasterBill.Clone(),
 		withIssuerOrganization: _q.withIssuerOrganization.Clone(),
 		withIssuerPartner:      _q.withIssuerPartner.Clone(),
+		withCargoAllocations:   _q.withCargoAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -435,6 +461,17 @@ func (_q *SeaHouseBillQuery) WithIssuerPartner(opts ...func(*PartnerQuery)) *Sea
 		opt(query)
 	}
 	_q.withIssuerPartner = query
+	return _q
+}
+
+// WithCargoAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaHouseBillQuery) WithCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *SeaHouseBillQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCargoAllocations = query
 	return _q
 }
 
@@ -516,12 +553,13 @@ func (_q *SeaHouseBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*SeaHouseBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withMasterBill != nil,
 			_q.withIssuerOrganization != nil,
 			_q.withIssuerPartner != nil,
+			_q.withCargoAllocations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -572,6 +610,15 @@ func (_q *SeaHouseBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := _q.withIssuerPartner; query != nil {
 		if err := _q.loadIssuerPartner(ctx, query, nodes, nil,
 			func(n *SeaHouseBill, e *Partner) { n.Edges.IssuerPartner = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCargoAllocations; query != nil {
+		if err := _q.loadCargoAllocations(ctx, query, nodes,
+			func(n *SeaHouseBill) { n.Edges.CargoAllocations = []*SeaCargoAllocation{} },
+			func(n *SeaHouseBill, e *SeaCargoAllocation) {
+				n.Edges.CargoAllocations = append(n.Edges.CargoAllocations, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -726,6 +773,36 @@ func (_q *SeaHouseBillQuery) loadIssuerPartner(ctx context.Context, query *Partn
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *SeaHouseBillQuery) loadCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*SeaHouseBill, init func(*SeaHouseBill), assign func(*SeaHouseBill, *SeaCargoAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaHouseBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seacargoallocation.FieldHouseBillID)
+	}
+	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seahousebill.CargoAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.HouseBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "house_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

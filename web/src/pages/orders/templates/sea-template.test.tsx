@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { getSeaTemplateSections } from './sea-template';
 import { splitSeaVesselVoyage } from './components/sea/SeaTransportSection';
 
+vi.mock('@umijs/max', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@umijs/max')>()),
+  useAccess: () => ({ canOrder: () => true }),
+}));
+
 describe('海运订单新增模板', () => {
   it('候选查询按后端相同规则拆分船名航次', () => {
     expect(splitSeaVesselVoyage('EVER GIVEN / 001W')).toEqual({

@@ -54,7 +54,8 @@ message OrderContainer {
   optional string note = 8;
   string created_at = 9;
   string updated_at = 10;
-  optional string shipping_document_id = 11;
+  int32 package_count = 11;
+  uint64 version = 12;
 }
 
 // ListContainersRequest 获取订单集装箱列表请求。
@@ -71,7 +72,7 @@ message AddContainerRequest {
   double gross_weight_kg = 5 [(google.api.field_behavior) = REQUIRED];
   double volume_cbm = 6 [(google.api.field_behavior) = REQUIRED];
   optional string note = 7;
-  optional string shipping_document_id = 8;
+  int32 package_count = 8 [(google.api.field_behavior) = REQUIRED];
 }
 
 // UpdateContainerRequest 更新订单集装箱请求。
@@ -84,13 +85,15 @@ message UpdateContainerRequest {
   double gross_weight_kg = 6 [(google.api.field_behavior) = REQUIRED];
   double volume_cbm = 7 [(google.api.field_behavior) = REQUIRED];
   optional string note = 8;
-  optional string shipping_document_id = 9;
+  int32 package_count = 9 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 10 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RemoveContainerRequest 移除订单集装箱请求。
 message RemoveContainerRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // AddContainerResponse 单条订单集装箱响应。

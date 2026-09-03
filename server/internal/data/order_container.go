@@ -2,14 +2,18 @@ package data
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	seacargoallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 type orderContainerRepo struct {
@@ -21,7 +25,11 @@ func NewOrderContainerRepo(data *Data) biz.OrderContainerRepo {
 }
 
 func (r *orderContainerRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) (*ent.Order, error) {
-	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderContainerNotFound, nil)
 	}
@@ -36,7 +44,11 @@ func validateOrderSupportsContainers(item *ent.Order) error {
 }
 
 func (r *orderContainerRepo) validateContainerSpec(ctx context.Context, organizationID, specID uuid.UUID) error {
-	count, err := r.data.db.MasterDataItem.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	count, err := client.MasterDataItem.Query().
 		Where(
 			masterdataitement.IDEQ(specID),
 			masterdataitement.OrganizationIDEQ(organizationID),
@@ -57,8 +69,12 @@ func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID u
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.OrderContainer.Query().
-		Where(ordercontainerent.OrderIDEQ(orderID)).
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderContainer.Query().
+		Where(ordercontainerent.OrderIDEQ(orderID), ordercontainerent.OrganizationIDEQ(organizationID)).
 		Order(ordercontainerent.ByContainerNo()).
 		All(ctx)
 	if err != nil {
@@ -82,21 +98,47 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
 		return nil, err
 	}
-	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
-		return nil, err
-	}
+
 	var created *ent.OrderContainer
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		// 锁订单
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+
+		if order.BusinessType == orderent.BusinessTypeSE {
+			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
+			if linkErr != nil {
+				return linkErr
+			}
+			if activeLink != nil {
+				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
+					return biz.ErrSeaCargoAllocationStatusConflict
+				}
+				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
+						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
+						Save(ctx); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
 		builder := tx.OrderContainer.Create().
 			SetID(input.ID).
+			SetOrganizationID(organizationID).
 			SetOrderID(orderID).
 			SetContainerNo(input.ContainerNo).
 			SetContainerSpecID(input.ContainerSpecID).
+			SetPackageCount(int(input.PackageCount)).
 			SetGrossWeightKg(input.GrossWeightKg).
-			SetVolumeCbm(input.VolumeCbm)
-		if input.ShippingDocumentID != nil {
-			builder.SetShippingDocumentID(*input.ShippingDocumentID)
-		}
+			SetVolumeCbm(input.VolumeCbm).
+			SetVersion(1)
 		if input.SealNo != nil {
 			builder.SetSealNo(*input.SealNo)
 		}
@@ -108,6 +150,10 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 		if saveErr != nil {
 			return mapEntConstraint(saveErr, "ordercontainer_order_id_container_no", biz.ErrOrderContainerExists)
 		}
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
+		}
+		audit.Details["container.version.new"] = "1"
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -116,62 +162,108 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	return orderContainerToBiz(created), nil
 }
 
-// validateShippingDocument 校验可选的提单引用必须挂在同一订单下。
-func (r *orderContainerRepo) validateShippingDocument(ctx context.Context, orderID uuid.UUID, documentID *uuid.UUID) error {
-	if documentID == nil {
-		return nil
-	}
-	exists, err := r.data.db.OrderShippingDocument.Query().
-		Where(
-			ordershippingdocumentent.IDEQ(*documentID),
-			ordershippingdocumentent.OrderIDEQ(orderID),
-		).
-		Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return biz.ErrOrderShippingDocumentNotFound
-	}
-	return nil
-}
-
-func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
-	order, err := r.order(ctx, organizationID, orderID)
+func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
+	item, err := r.order(ctx, organizationID, orderID)
 	if err != nil {
 		return nil, err
 	}
-	if err := validateOrderSupportsContainers(order); err != nil {
+	if err := validateOrderSupportsContainers(item); err != nil {
 		return nil, err
 	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
 		return nil, err
 	}
-	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
-		return nil, err
-	}
+
 	var updated *ent.OrderContainer
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, queryErr := tx.OrderContainer.Query().
-			Where(
-				ordercontainerent.IDEQ(id),
-				ordercontainerent.OrderIDEQ(orderID),
-			).
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
 		}
-		builder := tx.OrderContainer.UpdateOne(item).
+
+		if order.BusinessType == orderent.BusinessTypeSE {
+			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
+			if linkErr != nil {
+				return linkErr
+			}
+			if activeLink != nil {
+				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
+					return biz.ErrSeaCargoAllocationStatusConflict
+				}
+
+				// 检查草稿分配是否会超出修改后的值
+				allocs, aErr := tx.SeaCargoAllocation.Query().
+					Where(seacargoallocationent.OrganizationIDEQ(organizationID), seacargoallocationent.OrderIDEQ(orderID), seacargoallocationent.ContainerIDEQ(id)).
+					All(ctx)
+				if aErr != nil {
+					return aErr
+				}
+				var allocPkg int32
+				allocWeight := decimal.Zero
+				allocVol := decimal.Zero
+				for _, a := range allocs {
+					allocPkg += int32(a.PackageCount)
+					w, _ := decimal.NewFromString(a.GrossWeightKg)
+					v, _ := decimal.NewFromString(a.VolumeCbm)
+					allocWeight = allocWeight.Add(w)
+					allocVol = allocVol.Add(v)
+				}
+				if allocPkg > input.PackageCount {
+					excess := allocPkg - input.PackageCount
+					return biz.NewErrAllocationExceeded(
+						"container", id.String(), input.ContainerNo, "package_count",
+						fmt.Sprintf("%d", input.PackageCount), fmt.Sprintf("%d", allocPkg), fmt.Sprintf("%d", excess),
+						nil, nil, &id,
+					)
+				}
+				newWeight := decimal.NewFromFloat(input.GrossWeightKg)
+				if allocWeight.GreaterThan(newWeight) {
+					excess := allocWeight.Sub(newWeight)
+					return biz.NewErrAllocationExceeded(
+						"container", id.String(), input.ContainerNo, "gross_weight_kg",
+						newWeight.StringFixed(3), allocWeight.StringFixed(3), excess.StringFixed(3),
+						nil, nil, &id,
+					)
+				}
+				newVol := decimal.NewFromFloat(input.VolumeCbm)
+				if allocVol.GreaterThan(newVol) {
+					excess := allocVol.Sub(newVol)
+					return biz.NewErrAllocationExceeded(
+						"container", id.String(), input.ContainerNo, "volume_cbm",
+						newVol.StringFixed(6), allocVol.StringFixed(6), excess.StringFixed(6),
+						nil, nil, &id,
+					)
+				}
+
+				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
+						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
+						Save(ctx); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		cItem, queryErr := tx.OrderContainer.Query().
+			Where(ordercontainerent.IDEQ(id), ordercontainerent.OrderIDEQ(orderID), ordercontainerent.OrganizationIDEQ(organizationID)).
+			ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+		if cItem.Version != expectedVersion {
+			return biz.ErrOrderContainerConflict
+		}
+
+		builder := tx.OrderContainer.UpdateOne(cItem).
 			SetContainerNo(input.ContainerNo).
 			SetContainerSpecID(input.ContainerSpecID).
+			SetPackageCount(int(input.PackageCount)).
 			SetGrossWeightKg(input.GrossWeightKg).
-			SetVolumeCbm(input.VolumeCbm)
-		if input.ShippingDocumentID != nil {
-			builder.SetShippingDocumentID(*input.ShippingDocumentID)
-		} else {
-			builder.ClearShippingDocumentID()
-		}
+			SetVolumeCbm(input.VolumeCbm).
+			SetVersion(cItem.Version + 1)
 		if input.SealNo != nil {
 			builder.SetSealNo(*input.SealNo)
 		} else {
@@ -187,6 +279,11 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 		if saveErr != nil {
 			return mapEntConstraint(saveErr, "ordercontainer_order_id_container_no", biz.ErrOrderContainerExists)
 		}
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
+		}
+		audit.Details["container.version.old"] = fmt.Sprintf("%d", cItem.Version)
+		audit.Details["container.version.new"] = fmt.Sprintf("%d", cItem.Version+1)
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -195,38 +292,79 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 	return orderContainerToBiz(updated), nil
 }
 
-func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
-	if _, err := r.order(ctx, organizationID, orderID); err != nil {
-		return err
-	}
+func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		n, deleteErr := tx.OrderContainer.Delete().
-			Where(
-				ordercontainerent.IDEQ(id),
-				ordercontainerent.OrderIDEQ(orderID),
-			).
-			Exec(ctx)
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+
+		if order.BusinessType == orderent.BusinessTypeSE {
+			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
+			if linkErr != nil {
+				return linkErr
+			}
+			if activeLink != nil {
+				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
+					return biz.ErrSeaCargoAllocationStatusConflict
+				}
+				hasAlloc, aErr := tx.SeaCargoAllocation.Query().
+					Where(seacargoallocationent.OrganizationIDEQ(organizationID), seacargoallocationent.OrderIDEQ(orderID), seacargoallocationent.ContainerIDEQ(id)).
+					Exist(ctx)
+				if aErr != nil {
+					return aErr
+				}
+				if hasAlloc {
+					return biz.ErrSeaCargoAllocationInvalidReference
+				}
+				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
+						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
+						Save(ctx); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		item, queryErr := tx.OrderContainer.Query().
+			Where(ordercontainerent.IDEQ(id), ordercontainerent.OrderIDEQ(orderID), ordercontainerent.OrganizationIDEQ(organizationID)).
+			ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+		if item.Version != expectedVersion {
+			return biz.ErrOrderContainerConflict
+		}
+
+		deleteErr := tx.OrderContainer.DeleteOne(item).Exec(ctx)
 		if deleteErr != nil {
 			return deleteErr
 		}
-		if n == 0 {
-			return biz.ErrOrderContainerNotFound
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
 		}
+		audit.Details["container.version.old"] = fmt.Sprintf("%d", item.Version)
+		audit.Details["container.version.new"] = "deleted"
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 }
 
 func orderContainerToBiz(item *ent.OrderContainer) *biz.OrderContainer {
 	result := &biz.OrderContainer{
-		ID:                 item.ID,
-		OrderID:            item.OrderID,
-		ContainerNo:        item.ContainerNo,
-		ContainerSpecID:    item.ContainerSpecID,
-		ShippingDocumentID: item.ShippingDocumentID,
-		GrossWeightKg:      item.GrossWeightKg,
-		VolumeCbm:          item.VolumeCbm,
-		CreatedAt:          item.CreatedAt,
-		UpdatedAt:          item.UpdatedAt,
+		ID:              item.ID,
+		OrganizationID:  item.OrganizationID,
+		OrderID:         item.OrderID,
+		ContainerNo:     item.ContainerNo,
+		ContainerSpecID: item.ContainerSpecID,
+		PackageCount:    int32(item.PackageCount),
+		GrossWeightKg:   item.GrossWeightKg,
+		VolumeCbm:       item.VolumeCbm,
+		Version:         item.Version,
+		CreatedAt:       item.CreatedAt,
+		UpdatedAt:       item.UpdatedAt,
 	}
 	if item.SealNo != "" {
 		v := item.SealNo

@@ -15,8 +15,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // SeaMasterBillOrderLinkUpdate is the builder for updating SeaMasterBillOrderLink entities.
@@ -183,6 +185,81 @@ func (_u *SeaMasterBillOrderLinkUpdate) AddVersion(v int64) *SeaMasterBillOrderL
 	return _u
 }
 
+// SetCargoAllocationStatus sets the "cargo_allocation_status" field.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationStatus(v seamasterbillorderlink.CargoAllocationStatus) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.SetCargoAllocationStatus(v)
+	return _u
+}
+
+// SetNillableCargoAllocationStatus sets the "cargo_allocation_status" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableCargoAllocationStatus(v *seamasterbillorderlink.CargoAllocationStatus) *SeaMasterBillOrderLinkUpdate {
+	if v != nil {
+		_u.SetCargoAllocationStatus(*v)
+	}
+	return _u
+}
+
+// SetCargoAllocationVersion sets the "cargo_allocation_version" field.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationVersion(v uint64) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.ResetCargoAllocationVersion()
+	_u.mutation.SetCargoAllocationVersion(v)
+	return _u
+}
+
+// SetNillableCargoAllocationVersion sets the "cargo_allocation_version" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableCargoAllocationVersion(v *uint64) *SeaMasterBillOrderLinkUpdate {
+	if v != nil {
+		_u.SetCargoAllocationVersion(*v)
+	}
+	return _u
+}
+
+// AddCargoAllocationVersion adds value to the "cargo_allocation_version" field.
+func (_u *SeaMasterBillOrderLinkUpdate) AddCargoAllocationVersion(v int64) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.AddCargoAllocationVersion(v)
+	return _u
+}
+
+// SetCargoAllocationConfirmedAt sets the "cargo_allocation_confirmed_at" field.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationConfirmedAt(v time.Time) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.SetCargoAllocationConfirmedAt(v)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedAt sets the "cargo_allocation_confirmed_at" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableCargoAllocationConfirmedAt(v *time.Time) *SeaMasterBillOrderLinkUpdate {
+	if v != nil {
+		_u.SetCargoAllocationConfirmedAt(*v)
+	}
+	return _u
+}
+
+// ClearCargoAllocationConfirmedAt clears the value of the "cargo_allocation_confirmed_at" field.
+func (_u *SeaMasterBillOrderLinkUpdate) ClearCargoAllocationConfirmedAt() *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.ClearCargoAllocationConfirmedAt()
+	return _u
+}
+
+// SetCargoAllocationConfirmedBy sets the "cargo_allocation_confirmed_by" field.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationConfirmedBy(v uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.SetCargoAllocationConfirmedBy(v)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedBy sets the "cargo_allocation_confirmed_by" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableCargoAllocationConfirmedBy(v *uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	if v != nil {
+		_u.SetCargoAllocationConfirmedBy(*v)
+	}
+	return _u
+}
+
+// ClearCargoAllocationConfirmedBy clears the value of the "cargo_allocation_confirmed_by" field.
+func (_u *SeaMasterBillOrderLinkUpdate) ClearCargoAllocationConfirmedBy() *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.ClearCargoAllocationConfirmedBy()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillOrderLinkUpdate) SetOrganization(v *Organization) *SeaMasterBillOrderLinkUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -196,6 +273,40 @@ func (_u *SeaMasterBillOrderLinkUpdate) SetMasterBill(v *SeaMasterBill) *SeaMast
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *SeaMasterBillOrderLinkUpdate) SetOrder(v *Order) *SeaMasterBillOrderLinkUpdate {
 	return _u.SetOrderID(v.ID)
+}
+
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *SeaMasterBillOrderLinkUpdate) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.AddCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaMasterBillOrderLinkUpdate) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaMasterBillOrderLinkUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoAllocationIDs(ids...)
+}
+
+// SetCargoAllocationConfirmedByUserID sets the "cargo_allocation_confirmed_by_user" edge to the User entity by ID.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationConfirmedByUserID(id uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.SetCargoAllocationConfirmedByUserID(id)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedByUserID sets the "cargo_allocation_confirmed_by_user" edge to the User entity by ID if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableCargoAllocationConfirmedByUserID(id *uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	if id != nil {
+		_u = _u.SetCargoAllocationConfirmedByUserID(*id)
+	}
+	return _u
+}
+
+// SetCargoAllocationConfirmedByUser sets the "cargo_allocation_confirmed_by_user" edge to the User entity.
+func (_u *SeaMasterBillOrderLinkUpdate) SetCargoAllocationConfirmedByUser(v *User) *SeaMasterBillOrderLinkUpdate {
+	return _u.SetCargoAllocationConfirmedByUserID(v.ID)
 }
 
 // Mutation returns the SeaMasterBillOrderLinkMutation object of the builder.
@@ -218,6 +329,33 @@ func (_u *SeaMasterBillOrderLinkUpdate) ClearMasterBill() *SeaMasterBillOrderLin
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *SeaMasterBillOrderLinkUpdate) ClearOrder() *SeaMasterBillOrderLinkUpdate {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaMasterBillOrderLinkUpdate) ClearCargoAllocations() *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.ClearCargoAllocations()
+	return _u
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *SeaMasterBillOrderLinkUpdate) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.RemoveCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *SeaMasterBillOrderLinkUpdate) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaMasterBillOrderLinkUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoAllocationIDs(ids...)
+}
+
+// ClearCargoAllocationConfirmedByUser clears the "cargo_allocation_confirmed_by_user" edge to the User entity.
+func (_u *SeaMasterBillOrderLinkUpdate) ClearCargoAllocationConfirmedByUser() *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.ClearCargoAllocationConfirmedByUser()
 	return _u
 }
 
@@ -274,6 +412,11 @@ func (_u *SeaMasterBillOrderLinkUpdate) check() error {
 			return &ValidationError{Name: "ended_reason", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.ended_reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.CargoAllocationStatus(); ok {
+		if err := seamasterbillorderlink.CargoAllocationStatusValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_allocation_status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.cargo_allocation_status": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillOrderLink.organization"`)
 	}
@@ -327,6 +470,21 @@ func (_u *SeaMasterBillOrderLinkUpdate) sqlSave(ctx context.Context) (_node int,
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(seamasterbillorderlink.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationStatus(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationVersion(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedCargoAllocationVersion(); ok {
+		_spec.AddField(seamasterbillorderlink.FieldCargoAllocationVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationConfirmedAt(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationConfirmedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CargoAllocationConfirmedAtCleared() {
+		_spec.ClearField(seamasterbillorderlink.FieldCargoAllocationConfirmedAt, field.TypeTime)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -408,6 +566,80 @@ func (_u *SeaMasterBillOrderLinkUpdate) sqlSave(ctx context.Context) (_node int,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationConfirmedByUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbillorderlink.CargoAllocationConfirmedByUserTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationConfirmedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationConfirmedByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbillorderlink.CargoAllocationConfirmedByUserTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationConfirmedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -586,6 +818,81 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) AddVersion(v int64) *SeaMasterBillOrd
 	return _u
 }
 
+// SetCargoAllocationStatus sets the "cargo_allocation_status" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationStatus(v seamasterbillorderlink.CargoAllocationStatus) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.SetCargoAllocationStatus(v)
+	return _u
+}
+
+// SetNillableCargoAllocationStatus sets the "cargo_allocation_status" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableCargoAllocationStatus(v *seamasterbillorderlink.CargoAllocationStatus) *SeaMasterBillOrderLinkUpdateOne {
+	if v != nil {
+		_u.SetCargoAllocationStatus(*v)
+	}
+	return _u
+}
+
+// SetCargoAllocationVersion sets the "cargo_allocation_version" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationVersion(v uint64) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.ResetCargoAllocationVersion()
+	_u.mutation.SetCargoAllocationVersion(v)
+	return _u
+}
+
+// SetNillableCargoAllocationVersion sets the "cargo_allocation_version" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableCargoAllocationVersion(v *uint64) *SeaMasterBillOrderLinkUpdateOne {
+	if v != nil {
+		_u.SetCargoAllocationVersion(*v)
+	}
+	return _u
+}
+
+// AddCargoAllocationVersion adds value to the "cargo_allocation_version" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) AddCargoAllocationVersion(v int64) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.AddCargoAllocationVersion(v)
+	return _u
+}
+
+// SetCargoAllocationConfirmedAt sets the "cargo_allocation_confirmed_at" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationConfirmedAt(v time.Time) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.SetCargoAllocationConfirmedAt(v)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedAt sets the "cargo_allocation_confirmed_at" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableCargoAllocationConfirmedAt(v *time.Time) *SeaMasterBillOrderLinkUpdateOne {
+	if v != nil {
+		_u.SetCargoAllocationConfirmedAt(*v)
+	}
+	return _u
+}
+
+// ClearCargoAllocationConfirmedAt clears the value of the "cargo_allocation_confirmed_at" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) ClearCargoAllocationConfirmedAt() *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.ClearCargoAllocationConfirmedAt()
+	return _u
+}
+
+// SetCargoAllocationConfirmedBy sets the "cargo_allocation_confirmed_by" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationConfirmedBy(v uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.SetCargoAllocationConfirmedBy(v)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedBy sets the "cargo_allocation_confirmed_by" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableCargoAllocationConfirmedBy(v *uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	if v != nil {
+		_u.SetCargoAllocationConfirmedBy(*v)
+	}
+	return _u
+}
+
+// ClearCargoAllocationConfirmedBy clears the value of the "cargo_allocation_confirmed_by" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) ClearCargoAllocationConfirmedBy() *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.ClearCargoAllocationConfirmedBy()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillOrderLinkUpdateOne) SetOrganization(v *Organization) *SeaMasterBillOrderLinkUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -599,6 +906,40 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) SetMasterBill(v *SeaMasterBill) *SeaM
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *SeaMasterBillOrderLinkUpdateOne) SetOrder(v *Order) *SeaMasterBillOrderLinkUpdateOne {
 	return _u.SetOrderID(v.ID)
+}
+
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *SeaMasterBillOrderLinkUpdateOne) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.AddCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaMasterBillOrderLinkUpdateOne) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaMasterBillOrderLinkUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoAllocationIDs(ids...)
+}
+
+// SetCargoAllocationConfirmedByUserID sets the "cargo_allocation_confirmed_by_user" edge to the User entity by ID.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationConfirmedByUserID(id uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.SetCargoAllocationConfirmedByUserID(id)
+	return _u
+}
+
+// SetNillableCargoAllocationConfirmedByUserID sets the "cargo_allocation_confirmed_by_user" edge to the User entity by ID if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableCargoAllocationConfirmedByUserID(id *uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	if id != nil {
+		_u = _u.SetCargoAllocationConfirmedByUserID(*id)
+	}
+	return _u
+}
+
+// SetCargoAllocationConfirmedByUser sets the "cargo_allocation_confirmed_by_user" edge to the User entity.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetCargoAllocationConfirmedByUser(v *User) *SeaMasterBillOrderLinkUpdateOne {
+	return _u.SetCargoAllocationConfirmedByUserID(v.ID)
 }
 
 // Mutation returns the SeaMasterBillOrderLinkMutation object of the builder.
@@ -621,6 +962,33 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) ClearMasterBill() *SeaMasterBillOrder
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *SeaMasterBillOrderLinkUpdateOne) ClearOrder() *SeaMasterBillOrderLinkUpdateOne {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaMasterBillOrderLinkUpdateOne) ClearCargoAllocations() *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.ClearCargoAllocations()
+	return _u
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *SeaMasterBillOrderLinkUpdateOne) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.RemoveCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *SeaMasterBillOrderLinkUpdateOne) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaMasterBillOrderLinkUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoAllocationIDs(ids...)
+}
+
+// ClearCargoAllocationConfirmedByUser clears the "cargo_allocation_confirmed_by_user" edge to the User entity.
+func (_u *SeaMasterBillOrderLinkUpdateOne) ClearCargoAllocationConfirmedByUser() *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.ClearCargoAllocationConfirmedByUser()
 	return _u
 }
 
@@ -688,6 +1056,11 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) check() error {
 	if v, ok := _u.mutation.EndedReason(); ok {
 		if err := seamasterbillorderlink.EndedReasonValidator(v); err != nil {
 			return &ValidationError{Name: "ended_reason", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.ended_reason": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CargoAllocationStatus(); ok {
+		if err := seamasterbillorderlink.CargoAllocationStatusValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_allocation_status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.cargo_allocation_status": %w`, err)}
 		}
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
@@ -760,6 +1133,21 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) sqlSave(ctx context.Context) (_node *
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(seamasterbillorderlink.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationStatus(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationVersion(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedCargoAllocationVersion(); ok {
+		_spec.AddField(seamasterbillorderlink.FieldCargoAllocationVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CargoAllocationConfirmedAt(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldCargoAllocationConfirmedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CargoAllocationConfirmedAtCleared() {
+		_spec.ClearField(seamasterbillorderlink.FieldCargoAllocationConfirmedAt, field.TypeTime)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -841,6 +1229,80 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) sqlSave(ctx context.Context) (_node *
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillorderlink.CargoAllocationsTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationConfirmedByUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbillorderlink.CargoAllocationConfirmedByUserTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationConfirmedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationConfirmedByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbillorderlink.CargoAllocationConfirmedByUserTable,
+			Columns: []string{seamasterbillorderlink.CargoAllocationConfirmedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

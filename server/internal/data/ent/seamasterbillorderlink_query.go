@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -16,21 +17,25 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // SeaMasterBillOrderLinkQuery is the builder for querying SeaMasterBillOrderLink entities.
 type SeaMasterBillOrderLinkQuery struct {
 	config
-	ctx              *QueryContext
-	order            []seamasterbillorderlink.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.SeaMasterBillOrderLink
-	withOrganization *OrganizationQuery
-	withMasterBill   *SeaMasterBillQuery
-	withOrder        *OrderQuery
-	modifiers        []func(*sql.Selector)
+	ctx                                *QueryContext
+	order                              []seamasterbillorderlink.OrderOption
+	inters                             []Interceptor
+	predicates                         []predicate.SeaMasterBillOrderLink
+	withOrganization                   *OrganizationQuery
+	withMasterBill                     *SeaMasterBillQuery
+	withOrder                          *OrderQuery
+	withCargoAllocations               *SeaCargoAllocationQuery
+	withCargoAllocationConfirmedByUser *UserQuery
+	modifiers                          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -126,6 +131,50 @@ func (_q *SeaMasterBillOrderLinkQuery) QueryOrder() *OrderQuery {
 			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, selector),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.OrderTable, seamasterbillorderlink.OrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCargoAllocations chains the current query on the "cargo_allocations" edge.
+func (_q *SeaMasterBillOrderLinkQuery) QueryCargoAllocations() *SeaCargoAllocationQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, selector),
+			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillorderlink.CargoAllocationsTable, seamasterbillorderlink.CargoAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCargoAllocationConfirmedByUser chains the current query on the "cargo_allocation_confirmed_by_user" edge.
+func (_q *SeaMasterBillOrderLinkQuery) QueryCargoAllocationConfirmedByUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.CargoAllocationConfirmedByUserTable, seamasterbillorderlink.CargoAllocationConfirmedByUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -320,14 +369,16 @@ func (_q *SeaMasterBillOrderLinkQuery) Clone() *SeaMasterBillOrderLinkQuery {
 		return nil
 	}
 	return &SeaMasterBillOrderLinkQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]seamasterbillorderlink.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.SeaMasterBillOrderLink{}, _q.predicates...),
-		withOrganization: _q.withOrganization.Clone(),
-		withMasterBill:   _q.withMasterBill.Clone(),
-		withOrder:        _q.withOrder.Clone(),
+		config:                             _q.config,
+		ctx:                                _q.ctx.Clone(),
+		order:                              append([]seamasterbillorderlink.OrderOption{}, _q.order...),
+		inters:                             append([]Interceptor{}, _q.inters...),
+		predicates:                         append([]predicate.SeaMasterBillOrderLink{}, _q.predicates...),
+		withOrganization:                   _q.withOrganization.Clone(),
+		withMasterBill:                     _q.withMasterBill.Clone(),
+		withOrder:                          _q.withOrder.Clone(),
+		withCargoAllocations:               _q.withCargoAllocations.Clone(),
+		withCargoAllocationConfirmedByUser: _q.withCargoAllocationConfirmedByUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -364,6 +415,28 @@ func (_q *SeaMasterBillOrderLinkQuery) WithOrder(opts ...func(*OrderQuery)) *Sea
 		opt(query)
 	}
 	_q.withOrder = query
+	return _q
+}
+
+// WithCargoAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillOrderLinkQuery) WithCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *SeaMasterBillOrderLinkQuery {
+	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCargoAllocations = query
+	return _q
+}
+
+// WithCargoAllocationConfirmedByUser tells the query-builder to eager-load the nodes that are connected to
+// the "cargo_allocation_confirmed_by_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillOrderLinkQuery) WithCargoAllocationConfirmedByUser(opts ...func(*UserQuery)) *SeaMasterBillOrderLinkQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCargoAllocationConfirmedByUser = query
 	return _q
 }
 
@@ -445,10 +518,12 @@ func (_q *SeaMasterBillOrderLinkQuery) sqlAll(ctx context.Context, hooks ...quer
 	var (
 		nodes       = []*SeaMasterBillOrderLink{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			_q.withOrganization != nil,
 			_q.withMasterBill != nil,
 			_q.withOrder != nil,
+			_q.withCargoAllocations != nil,
+			_q.withCargoAllocationConfirmedByUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -487,6 +562,21 @@ func (_q *SeaMasterBillOrderLinkQuery) sqlAll(ctx context.Context, hooks ...quer
 	if query := _q.withOrder; query != nil {
 		if err := _q.loadOrder(ctx, query, nodes, nil,
 			func(n *SeaMasterBillOrderLink, e *Order) { n.Edges.Order = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCargoAllocations; query != nil {
+		if err := _q.loadCargoAllocations(ctx, query, nodes,
+			func(n *SeaMasterBillOrderLink) { n.Edges.CargoAllocations = []*SeaCargoAllocation{} },
+			func(n *SeaMasterBillOrderLink, e *SeaCargoAllocation) {
+				n.Edges.CargoAllocations = append(n.Edges.CargoAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCargoAllocationConfirmedByUser; query != nil {
+		if err := _q.loadCargoAllocationConfirmedByUser(ctx, query, nodes, nil,
+			func(n *SeaMasterBillOrderLink, e *User) { n.Edges.CargoAllocationConfirmedByUser = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -580,6 +670,68 @@ func (_q *SeaMasterBillOrderLinkQuery) loadOrder(ctx context.Context, query *Ord
 	}
 	return nil
 }
+func (_q *SeaMasterBillOrderLinkQuery) loadCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*SeaMasterBillOrderLink, init func(*SeaMasterBillOrderLink), assign func(*SeaMasterBillOrderLink, *SeaCargoAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBillOrderLink)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seacargoallocation.FieldMasterBillOrderLinkID)
+	}
+	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbillorderlink.CargoAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.MasterBillOrderLinkID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_order_link_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillOrderLinkQuery) loadCargoAllocationConfirmedByUser(ctx context.Context, query *UserQuery, nodes []*SeaMasterBillOrderLink, init func(*SeaMasterBillOrderLink), assign func(*SeaMasterBillOrderLink, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaMasterBillOrderLink)
+	for i := range nodes {
+		if nodes[i].CargoAllocationConfirmedBy == nil {
+			continue
+		}
+		fk := *nodes[i].CargoAllocationConfirmedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "cargo_allocation_confirmed_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *SeaMasterBillOrderLinkQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -617,6 +769,9 @@ func (_q *SeaMasterBillOrderLinkQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withOrder != nil {
 			_spec.Node.AddColumnOnce(seamasterbillorderlink.FieldOrderID)
+		}
+		if _q.withCargoAllocationConfirmedByUser != nil {
+			_spec.Node.AddColumnOnce(seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -81,6 +81,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("updated_enterprise_resources", EnterpriseResource.Type),
 		edge.To("uploaded_enterprise_resource_images", EnterpriseResourceImage.Type),
 		edge.To("enterprise_resource_assignments", EnterpriseResourceAssignee.Type),
+		edge.To("confirmed_sea_cargo_allocation_links", SeaMasterBillOrderLink.Type),
 	}
 }
 

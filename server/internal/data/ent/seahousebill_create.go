@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
@@ -408,6 +409,21 @@ func (_c *SeaHouseBillCreate) SetIssuerPartner(v *Partner) *SeaHouseBillCreate {
 	return _c.SetIssuerPartnerID(v.ID)
 }
 
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_c *SeaHouseBillCreate) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillCreate {
+	_c.mutation.AddCargoAllocationIDs(ids...)
+	return _c
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_c *SeaHouseBillCreate) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCargoAllocationIDs(ids...)
+}
+
 // Mutation returns the SeaHouseBillMutation object of the builder.
 func (_c *SeaHouseBillCreate) Mutation() *SeaHouseBillMutation {
 	return _c.mutation
@@ -781,6 +797,22 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.IssuerPartnerID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

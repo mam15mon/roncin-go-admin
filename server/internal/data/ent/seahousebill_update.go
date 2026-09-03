@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
@@ -564,6 +565,21 @@ func (_u *SeaHouseBillUpdate) SetIssuerPartner(v *Partner) *SeaHouseBillUpdate {
 	return _u.SetIssuerPartnerID(v.ID)
 }
 
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *SeaHouseBillUpdate) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.AddCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaHouseBillUpdate) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoAllocationIDs(ids...)
+}
+
 // Mutation returns the SeaHouseBillMutation object of the builder.
 func (_u *SeaHouseBillUpdate) Mutation() *SeaHouseBillMutation {
 	return _u.mutation
@@ -597,6 +613,27 @@ func (_u *SeaHouseBillUpdate) ClearIssuerOrganization() *SeaHouseBillUpdate {
 func (_u *SeaHouseBillUpdate) ClearIssuerPartner() *SeaHouseBillUpdate {
 	_u.mutation.ClearIssuerPartner()
 	return _u
+}
+
+// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaHouseBillUpdate) ClearCargoAllocations() *SeaHouseBillUpdate {
+	_u.mutation.ClearCargoAllocations()
+	return _u
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *SeaHouseBillUpdate) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.RemoveCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *SeaHouseBillUpdate) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -990,6 +1027,51 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1548,6 +1630,21 @@ func (_u *SeaHouseBillUpdateOne) SetIssuerPartner(v *Partner) *SeaHouseBillUpdat
 	return _u.SetIssuerPartnerID(v.ID)
 }
 
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (_u *SeaHouseBillUpdateOne) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.AddCargoAllocationIDs(ids...)
+	return _u
+}
+
+// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaHouseBillUpdateOne) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoAllocationIDs(ids...)
+}
+
 // Mutation returns the SeaHouseBillMutation object of the builder.
 func (_u *SeaHouseBillUpdateOne) Mutation() *SeaHouseBillMutation {
 	return _u.mutation
@@ -1581,6 +1678,27 @@ func (_u *SeaHouseBillUpdateOne) ClearIssuerOrganization() *SeaHouseBillUpdateOn
 func (_u *SeaHouseBillUpdateOne) ClearIssuerPartner() *SeaHouseBillUpdateOne {
 	_u.mutation.ClearIssuerPartner()
 	return _u
+}
+
+// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
+func (_u *SeaHouseBillUpdateOne) ClearCargoAllocations() *SeaHouseBillUpdateOne {
+	_u.mutation.ClearCargoAllocations()
+	return _u
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
+func (_u *SeaHouseBillUpdateOne) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.RemoveCargoAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
+func (_u *SeaHouseBillUpdateOne) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the SeaHouseBillUpdate builder.
@@ -2004,6 +2122,51 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.CargoAllocationsTable,
+			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

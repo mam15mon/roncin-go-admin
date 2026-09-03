@@ -101,6 +101,21 @@ func Version(v uint64) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldVersion, v))
 }
 
+// CargoAllocationVersion applies equality check predicate on the "cargo_allocation_version" field. It's identical to CargoAllocationVersionEQ.
+func CargoAllocationVersion(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationConfirmedAt applies equality check predicate on the "cargo_allocation_confirmed_at" field. It's identical to CargoAllocationConfirmedAtEQ.
+func CargoAllocationConfirmedAt(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedBy applies equality check predicate on the "cargo_allocation_confirmed_by" field. It's identical to CargoAllocationConfirmedByEQ.
+func CargoAllocationConfirmedBy(v uuid.UUID) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationConfirmedBy, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCreatedAt, v))
@@ -486,6 +501,146 @@ func VersionLTE(v uint64) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(sql.FieldLTE(FieldVersion, v))
 }
 
+// CargoAllocationStatusEQ applies the EQ predicate on the "cargo_allocation_status" field.
+func CargoAllocationStatusEQ(v CargoAllocationStatus) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationStatus, v))
+}
+
+// CargoAllocationStatusNEQ applies the NEQ predicate on the "cargo_allocation_status" field.
+func CargoAllocationStatusNEQ(v CargoAllocationStatus) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNEQ(FieldCargoAllocationStatus, v))
+}
+
+// CargoAllocationStatusIn applies the In predicate on the "cargo_allocation_status" field.
+func CargoAllocationStatusIn(vs ...CargoAllocationStatus) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIn(FieldCargoAllocationStatus, vs...))
+}
+
+// CargoAllocationStatusNotIn applies the NotIn predicate on the "cargo_allocation_status" field.
+func CargoAllocationStatusNotIn(vs ...CargoAllocationStatus) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldCargoAllocationStatus, vs...))
+}
+
+// CargoAllocationVersionEQ applies the EQ predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionEQ(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationVersionNEQ applies the NEQ predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionNEQ(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNEQ(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationVersionIn applies the In predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionIn(vs ...uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIn(FieldCargoAllocationVersion, vs...))
+}
+
+// CargoAllocationVersionNotIn applies the NotIn predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionNotIn(vs ...uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldCargoAllocationVersion, vs...))
+}
+
+// CargoAllocationVersionGT applies the GT predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionGT(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldGT(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationVersionGTE applies the GTE predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionGTE(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldGTE(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationVersionLT applies the LT predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionLT(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldLT(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationVersionLTE applies the LTE predicate on the "cargo_allocation_version" field.
+func CargoAllocationVersionLTE(v uint64) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldLTE(FieldCargoAllocationVersion, v))
+}
+
+// CargoAllocationConfirmedAtEQ applies the EQ predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtEQ(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtNEQ applies the NEQ predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtNEQ(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNEQ(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtIn applies the In predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtIn(vs ...time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIn(FieldCargoAllocationConfirmedAt, vs...))
+}
+
+// CargoAllocationConfirmedAtNotIn applies the NotIn predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtNotIn(vs ...time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldCargoAllocationConfirmedAt, vs...))
+}
+
+// CargoAllocationConfirmedAtGT applies the GT predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtGT(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldGT(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtGTE applies the GTE predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtGTE(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldGTE(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtLT applies the LT predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtLT(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldLT(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtLTE applies the LTE predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtLTE(v time.Time) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldLTE(FieldCargoAllocationConfirmedAt, v))
+}
+
+// CargoAllocationConfirmedAtIsNil applies the IsNil predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtIsNil() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIsNull(FieldCargoAllocationConfirmedAt))
+}
+
+// CargoAllocationConfirmedAtNotNil applies the NotNil predicate on the "cargo_allocation_confirmed_at" field.
+func CargoAllocationConfirmedAtNotNil() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotNull(FieldCargoAllocationConfirmedAt))
+}
+
+// CargoAllocationConfirmedByEQ applies the EQ predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByEQ(v uuid.UUID) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldCargoAllocationConfirmedBy, v))
+}
+
+// CargoAllocationConfirmedByNEQ applies the NEQ predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByNEQ(v uuid.UUID) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNEQ(FieldCargoAllocationConfirmedBy, v))
+}
+
+// CargoAllocationConfirmedByIn applies the In predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByIn(vs ...uuid.UUID) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIn(FieldCargoAllocationConfirmedBy, vs...))
+}
+
+// CargoAllocationConfirmedByNotIn applies the NotIn predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByNotIn(vs ...uuid.UUID) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldCargoAllocationConfirmedBy, vs...))
+}
+
+// CargoAllocationConfirmedByIsNil applies the IsNil predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByIsNil() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIsNull(FieldCargoAllocationConfirmedBy))
+}
+
+// CargoAllocationConfirmedByNotNil applies the NotNil predicate on the "cargo_allocation_confirmed_by" field.
+func CargoAllocationConfirmedByNotNil() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotNull(FieldCargoAllocationConfirmedBy))
+}
+
 // HasOrganization applies the HasEdge predicate on the "organization" edge.
 func HasOrganization() predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
@@ -547,6 +702,52 @@ func HasOrder() predicate.SeaMasterBillOrderLink {
 func HasOrderWith(preds ...predicate.Order) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
 		step := newOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCargoAllocations applies the HasEdge predicate on the "cargo_allocations" edge.
+func HasCargoAllocations() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCargoAllocationsWith applies the HasEdge predicate on the "cargo_allocations" edge with a given conditions (other predicates).
+func HasCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		step := newCargoAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCargoAllocationConfirmedByUser applies the HasEdge predicate on the "cargo_allocation_confirmed_by_user" edge.
+func HasCargoAllocationConfirmedByUser() predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CargoAllocationConfirmedByUserTable, CargoAllocationConfirmedByUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCargoAllocationConfirmedByUserWith applies the HasEdge predicate on the "cargo_allocation_confirmed_by_user" edge with a given conditions (other predicates).
+func HasCargoAllocationConfirmedByUserWith(preds ...predicate.User) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		step := newCargoAllocationConfirmedByUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

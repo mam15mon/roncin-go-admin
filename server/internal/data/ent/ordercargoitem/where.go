@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
+func OrganizationID(v uuid.UUID) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldEQ(FieldOrganizationID, v))
+}
+
 // OrderID applies equality check predicate on the "order_id" field. It's identical to OrderIDEQ.
 func OrderID(v uuid.UUID) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(sql.FieldEQ(FieldOrderID, v))
@@ -99,6 +104,11 @@ func NetWeightKg(v float64) predicate.OrderCargoItem {
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(sql.FieldEQ(FieldNote, v))
+}
+
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldEQ(FieldVersion, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -179,6 +189,26 @@ func UpdatedAtLT(v time.Time) predicate.OrderCargoItem {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
+func OrganizationIDEQ(v uuid.UUID) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldEQ(FieldOrganizationID, v))
+}
+
+// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
+func OrganizationIDNEQ(v uuid.UUID) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldNEQ(FieldOrganizationID, v))
+}
+
+// OrganizationIDIn applies the In predicate on the "organization_id" field.
+func OrganizationIDIn(vs ...uuid.UUID) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldIn(FieldOrganizationID, vs...))
+}
+
+// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
+func OrganizationIDNotIn(vs ...uuid.UUID) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
 // OrderIDEQ applies the EQ predicate on the "order_id" field.
@@ -511,6 +541,69 @@ func NoteContainsFold(v string) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(sql.FieldContainsFold(FieldNote, v))
 }
 
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v uint64) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(sql.FieldLTE(FieldVersion, v))
+}
+
+// HasOrganization applies the HasEdge predicate on the "organization" edge.
+func HasOrganization() predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
+func HasOrganizationWith(preds ...predicate.Organization) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(func(s *sql.Selector) {
+		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrder applies the HasEdge predicate on the "order" edge.
 func HasOrder() predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(func(s *sql.Selector) {
@@ -526,6 +619,29 @@ func HasOrder() predicate.OrderCargoItem {
 func HasOrderWith(preds ...predicate.Order) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(func(s *sql.Selector) {
 		step := newOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCargoAllocations applies the HasEdge predicate on the "cargo_allocations" edge.
+func HasCargoAllocations() predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCargoAllocationsWith applies the HasEdge predicate on the "cargo_allocations" edge with a given conditions (other predicates).
+func HasCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.OrderCargoItem {
+	return predicate.OrderCargoItem(func(s *sql.Selector) {
+		step := newCargoAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

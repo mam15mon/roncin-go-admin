@@ -300,3 +300,262 @@ func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
 		}
 	})
 }
+
+func TestPostgresSeaExportCargoAllocationStage3Migration(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+
+	const stage2Migration = "20260902140000_sea_export_document_content.sql"
+	const stage3Revision = "20260903100000_sea_export_cargo_allocation"
+	fullDir := filepath.Join("..", "..", "..", "migrations")
+	stage2Dir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > stage2Migration {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if err != nil {
+			t.Fatalf("读取阶段 2 迁移 %s 失败: %v", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(stage2Dir, entry.Name()), content, 0o600); err != nil {
+			t.Fatalf("复制阶段 2 迁移 %s 失败: %v", entry.Name(), err)
+		}
+	}
+
+	newIsolatedDB := func(t *testing.T) (*sql.DB, string) {
+		t.Helper()
+		db, err := sql.Open("pgx", source)
+		if err != nil {
+			t.Fatalf("打开 PostgreSQL 失败: %v", err)
+		}
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := db.PingContext(ctx); err != nil {
+			_ = db.Close()
+			t.Fatalf("连接 PostgreSQL 失败: %v", err)
+		}
+		schemaName := "roncin_sea_cargo_alloc_mig_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+		quotedSchema := `"` + schemaName + `"`
+		if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+			_ = db.Close()
+			t.Fatalf("创建临时 Schema 失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+			_, _ = db.ExecContext(ctx, "DROP SCHEMA "+quotedSchema+" CASCADE")
+			_ = db.Close()
+			t.Fatalf("切换临时 Schema 失败: %v", err)
+		}
+		t.Cleanup(func() {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cleanupCancel()
+			if _, err := db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE"); err != nil {
+				t.Errorf("删除临时 Schema 失败: %v", err)
+			}
+			_ = db.Close()
+		})
+		return db, schemaName
+	}
+
+	t.Run("从阶段2真实迁移到阶段3并核对结构与索引", func(t *testing.T) {
+		db, schemaName := newIsolatedDB(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		if err := Apply(ctx, db, stage2Dir); err != nil {
+			t.Fatalf("建立阶段 2 数据库状态失败: %v", err)
+		}
+
+		if err := Apply(ctx, db, fullDir); err != nil {
+			t.Fatalf("应用阶段 3 迁移失败: %v", err)
+		}
+
+		var exists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM schema_migrations WHERE version = $1
+		)`, stage3Revision).Scan(&exists); err != nil || !exists {
+			t.Fatalf("未找到阶段 3 迁移记录: %v", err)
+		}
+
+		// 检查 sea_cargo_allocations 表
+		if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, schemaName+".sea_cargo_allocations").Scan(&exists); err != nil || !exists {
+			t.Fatalf("缺少 sea_cargo_allocations 表: %v", err)
+		}
+
+		// 检查 numeric 精度
+		var weightUdt, volUdt string
+		var weightPrecision, weightScale, volPrecision, volScale int
+		if err := db.QueryRowContext(ctx, `SELECT udt_name, numeric_precision, numeric_scale FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'sea_cargo_allocations' AND column_name = 'gross_weight_kg'`, schemaName).Scan(&weightUdt, &weightPrecision, &weightScale); err != nil {
+			t.Fatalf("查询 gross_weight_kg 列类型失败: %v", err)
+		}
+		if weightUdt != "numeric" || weightPrecision != 18 || weightScale != 3 {
+			t.Errorf("gross_weight_kg 精度期望 numeric(18,3), 实际 %s(%d,%d)", weightUdt, weightPrecision, weightScale)
+		}
+
+		if err := db.QueryRowContext(ctx, `SELECT udt_name, numeric_precision, numeric_scale FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'sea_cargo_allocations' AND column_name = 'volume_cbm'`, schemaName).Scan(&volUdt, &volPrecision, &volScale); err != nil {
+			t.Fatalf("查询 volume_cbm 列类型失败: %v", err)
+		}
+		if volUdt != "numeric" || volPrecision != 18 || volScale != 6 {
+			t.Errorf("volume_cbm 精度期望 numeric(18,6), 实际 %s(%d,%d)", volUdt, volPrecision, volScale)
+		}
+
+		for _, check := range []struct {
+			table, column    string
+			precision, scale int
+		}{
+			{"order_cargo_items", "gross_weight_kg", 18, 3},
+			{"order_cargo_items", "net_weight_kg", 18, 3},
+			{"order_cargo_items", "volume_cbm", 18, 6},
+			{"order_containers", "gross_weight_kg", 18, 3},
+			{"order_containers", "volume_cbm", 18, 6},
+		} {
+			var dataType string
+			var precision, scale int
+			if err := db.QueryRowContext(ctx, `SELECT udt_name, numeric_precision, numeric_scale FROM information_schema.columns
+				WHERE table_schema = $1 AND table_name = $2 AND column_name = $3`, schemaName, check.table, check.column).Scan(&dataType, &precision, &scale); err != nil {
+				t.Fatalf("查询 %s.%s 类型失败: %v", check.table, check.column, err)
+			}
+			if dataType != "numeric" || precision != check.precision || scale != check.scale {
+				t.Errorf("%s.%s 期望 numeric(%d,%d)，实际 %s(%d,%d)", check.table, check.column, check.precision, check.scale, dataType, precision, scale)
+			}
+		}
+
+		var linkColumns int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema = $1
+			AND table_name = 'sea_master_bill_order_links' AND column_name IN
+			('cargo_allocation_status','cargo_allocation_version','cargo_allocation_confirmed_at','cargo_allocation_confirmed_by')`, schemaName).Scan(&linkColumns); err != nil || linkColumns != 4 {
+			t.Errorf("Link 箱货分配状态列不完整，count=%d err=%v", linkColumns, err)
+		}
+
+		var constraintCount int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM information_schema.table_constraints WHERE table_schema = $1 AND constraint_name IN (
+			'sea_master_bill_order_links_cargo_allocation_status_check',
+			'sea_master_bill_order_links_users_cargo_allocation_confirmed_by',
+			'order_cargo_items_organizations_order_cargo_items',
+			'order_containers_organizations_order_containers',
+			'sea_cargo_allocations_package_count_check',
+			'sea_cargo_allocations_gross_weight_kg_check',
+			'sea_cargo_allocations_volume_cbm_check',
+			'sea_cargo_allocations_organizations_sea_cargo_allocations',
+			'sea_cargo_allocations_orders_sea_cargo_allocations',
+			'sea_cargo_allocations_links_cargo_allocations',
+			'sea_cargo_allocations_cargo_items_cargo_allocations',
+			'sea_cargo_allocations_house_bills_cargo_allocations',
+			'sea_cargo_allocations_containers_cargo_allocations'
+		)`, schemaName).Scan(&constraintCount); err != nil || constraintCount != 13 {
+			t.Errorf("阶段 3 关键 CHECK/FK 不完整，count=%d err=%v", constraintCount, err)
+		}
+
+		// 检查 order_containers 移除 shipping_document_id 并增加了 package_count
+		var hasDocID bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'order_containers' AND column_name = 'shipping_document_id'
+		)`, schemaName).Scan(&hasDocID); err != nil {
+			t.Fatalf("检查 order_containers.shipping_document_id 失败: %v", err)
+		}
+		if hasDocID {
+			t.Error("order_containers 不应再包含 shipping_document_id 列")
+		}
+
+		var hasPkgCount bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'order_containers' AND column_name = 'package_count'
+		)`, schemaName).Scan(&hasPkgCount); err != nil {
+			t.Fatalf("检查 order_containers.package_count 失败: %v", err)
+		}
+		if !hasPkgCount {
+			t.Error("order_containers 应包含 package_count 列")
+		}
+
+		// 检查局部唯一索引
+		var hasNoCntrIdx, hasCntrIdx bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM pg_indexes WHERE schemaname = $1 AND tablename = 'sea_cargo_allocations' AND indexname = 'idx_sea_cargo_allocations_no_cntr_unique'
+		)`, schemaName).Scan(&hasNoCntrIdx); err != nil || !hasNoCntrIdx {
+			t.Errorf("缺少 idx_sea_cargo_allocations_no_cntr_unique 索引: %v", err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM pg_indexes WHERE schemaname = $1 AND tablename = 'sea_cargo_allocations' AND indexname = 'idx_sea_cargo_allocations_cntr_unique'
+		)`, schemaName).Scan(&hasCntrIdx); err != nil || !hasCntrIdx {
+			t.Errorf("缺少 idx_sea_cargo_allocations_cntr_unique 索引: %v", err)
+		}
+	})
+
+	t.Run("存在SE货物明细数据时真实迁移原子拒绝", func(t *testing.T) {
+		db, schemaName := newIsolatedDB(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		if err := Apply(ctx, db, stage2Dir); err != nil {
+			t.Fatalf("建立阶段 2 数据库状态失败: %v", err)
+		}
+
+		orgID := uuid.New()
+		partnerID := uuid.New()
+		orderID := uuid.New()
+		cargoItemID := uuid.New()
+
+		if _, err := db.ExecContext(ctx, `INSERT INTO organizations
+			(id, created_at, updated_at, code, name, kind, base_currency)
+			VALUES ($1, now(), now(), $2, '迁移测试组织', 'company', 'CNY')`,
+			orgID, "MIG-ORG-"+orgID.String()[:8]); err != nil {
+			t.Fatalf("插入迁移测试组织失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO partners
+			(id, created_at, updated_at, organization_id, code, legal_name, normalized_name)
+			VALUES ($1, now(), now(), $2, $3, '迁移测试客户', '迁移测试客户')`,
+			partnerID, orgID, "MIG-PARTNER-"+partnerID.String()[:8]); err != nil {
+			t.Fatalf("插入迁移测试客户失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO orders
+			(id, created_at, updated_at, organization_id, order_no, customer_id,
+			 business_type, trade_direction, trade_term, payment_term,
+			 flow_status, termination_status, closure_status, version)
+			VALUES ($1, now(), now(), $2, $3, $4,
+			 'SE', 'export', 'FOB', 'PREPAID', 'DRAFT', 'ACTIVE', 'OPEN', 1)`,
+			orderID, orgID, "MIG-ORDER-"+orderID.String()[:8], partnerID); err != nil {
+			t.Fatalf("插入迁移测试 SE 订单失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO order_cargo_items
+			(id, created_at, updated_at, order_id, cargo_name, package_count, gross_weight_kg, volume_cbm)
+			VALUES ($1, now(), now(), $2, '测试货物', 10, 500, 2.5)`,
+			cargoItemID, orderID); err != nil {
+			t.Fatalf("插入迁移测试 cargo item 失败: %v", err)
+		}
+
+		err := Apply(ctx, db, fullDir)
+		if err == nil || !strings.Contains(err.Error(), "海运箱货分配迁移已停止：") {
+			t.Fatalf("存在 SE 历史数据时应拒绝阶段 3 迁移，实际错误: %v", err)
+		}
+
+		var exists bool
+		if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, schemaName+".sea_cargo_allocations").Scan(&exists); err != nil {
+			t.Fatalf("检查失败迁移后的表失败: %v", err)
+		}
+		if exists {
+			t.Error("失败迁移不得留下 sea_cargo_allocations 表")
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM schema_migrations WHERE version = $1
+		)`, stage3Revision).Scan(&exists); err != nil {
+			t.Fatalf("检查失败迁移记录失败: %v", err)
+		}
+		if exists {
+			t.Error("失败迁移不得写入阶段 3 revision")
+		}
+	})
+}

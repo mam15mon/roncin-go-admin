@@ -6735,6 +6735,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "expectedVersion",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6888,6 +6895,13 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedVersion",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -7779,6 +7793,250 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.TransitionReleasePodStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation": {
+      "get": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "GetSeaCargoAllocation 获取海运箱货分配聚合信息。",
+        "operationId": "SeaCargoAllocationService_GetSeaCargoAllocation",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaCargoAllocationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation/confirm": {
+      "post": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。",
+        "operationId": "SeaCargoAllocationService_ConfirmSeaCargoAllocation",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ConfirmSeaCargoAllocationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ConfirmSeaCargoAllocationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation/draft": {
+      "put": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。",
+        "operationId": "SeaCargoAllocationService_SaveSeaCargoAllocationDraft",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.SaveSeaCargoAllocationDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.SaveSeaCargoAllocationDraftResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation/house-bills/{houseBillId}/apply-summary": {
+      "post": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。",
+        "operationId": "SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "houseBillId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApplySeaHouseBillAllocationSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApplySeaHouseBillAllocationSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation/master-bill/apply-cargo-summary": {
+      "post": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。",
+        "operationId": "SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApplySeaOrderCargoSummaryToMasterBillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-cargo-allocation/withdraw": {
+      "post": {
+        "tags": [
+          "SeaCargoAllocationService"
+        ],
+        "description": "WithdrawSeaCargoAllocation 撤回海运箱货分配确认。",
+        "operationId": "SeaCargoAllocationService_WithdrawSeaCargoAllocation",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.WithdrawSeaCargoAllocationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.WithdrawSeaCargoAllocationResponse"
                 }
               }
             }
@@ -18571,7 +18829,8 @@
           "containerNo",
           "containerSpecId",
           "grossWeightKg",
-          "volumeCbm"
+          "volumeCbm",
+          "packageCount"
         ],
         "type": "object",
         "properties": {
@@ -18598,8 +18857,9 @@
           "note": {
             "type": "string"
           },
-          "shippingDocumentId": {
-            "type": "string"
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "description": "AddContainerRequest 添加订单集装箱请求。"
@@ -18835,6 +19095,90 @@
           }
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
+      },
+      "order.v1.ApplySeaHouseBillAllocationSummaryRequest": {
+        "required": [
+          "orderId",
+          "houseBillId",
+          "expectedAllocationVersion",
+          "expectedHouseBillVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "houseBillId": {
+            "type": "string"
+          },
+          "expectedAllocationVersion": {
+            "type": "string"
+          },
+          "expectedHouseBillVersion": {
+            "type": "string"
+          }
+        },
+        "description": "ApplySeaHouseBillAllocationSummaryRequest 填入 HBL 内容请求。"
+      },
+      "order.v1.ApplySeaHouseBillAllocationSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ApplySeaHouseBillAllocationSummaryResponse 填入 HBL 内容响应。"
+      },
+      "order.v1.ApplySeaOrderCargoSummaryToMasterBillRequest": {
+        "required": [
+          "orderId",
+          "expectedMblVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedMblVersion": {
+            "type": "string"
+          }
+        },
+        "description": "ApplySeaOrderCargoSummaryToMasterBillRequest 填入 MBL 内容请求。"
+      },
+      "order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaMasterBillDetail"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ApplySeaOrderCargoSummaryToMasterBillResponse 填入 MBL 内容响应。"
       },
       "order.v1.AssignPersonnelRequest": {
         "required": [
@@ -19157,6 +19501,44 @@
           }
         }
       },
+      "order.v1.ConfirmSeaCargoAllocationRequest": {
+        "required": [
+          "orderId",
+          "expectedAllocationVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedAllocationVersion": {
+            "type": "string"
+          }
+        },
+        "description": "ConfirmSeaCargoAllocationRequest 确认分配请求。"
+      },
+      "order.v1.ConfirmSeaCargoAllocationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaCargoAllocationAggregate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ConfirmSeaCargoAllocationResponse 确认分配响应。"
+      },
       "order.v1.CreateOrderRequest": {
         "required": [
           "customerId",
@@ -19408,6 +19790,28 @@
           }
         },
         "description": "GetOrderResponse 单条订单响应。"
+      },
+      "order.v1.GetSeaCargoAllocationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaCargoAllocationAggregate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "GetSeaCargoAllocationResponse 获取响应。"
       },
       "order.v1.GetSeaOrderDocumentsResponse": {
         "type": "object",
@@ -20364,6 +20768,9 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "version": {
+            "type": "string"
           }
         },
         "description": "OrderCargoItem 订单货物明细信息。"
@@ -20473,7 +20880,11 @@
           "updatedAt": {
             "type": "string"
           },
-          "shippingDocumentId": {
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
             "type": "string"
           }
         },
@@ -21265,6 +21676,50 @@
           }
         }
       },
+      "order.v1.SaveSeaCargoAllocationDraftRequest": {
+        "required": [
+          "orderId",
+          "expectedAllocationVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedAllocationVersion": {
+            "type": "string"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaCargoAllocationInput"
+            }
+          }
+        },
+        "description": "SaveSeaCargoAllocationDraftRequest 保存草稿请求。"
+      },
+      "order.v1.SaveSeaCargoAllocationDraftResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaCargoAllocationAggregate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "SaveSeaCargoAllocationDraftResponse 保存草稿响应。"
+      },
       "order.v1.SeaBillContent": {
         "type": "object",
         "properties": {
@@ -21318,6 +21773,314 @@
           }
         },
         "description": "SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。"
+      },
+      "order.v1.SeaCargoAllocationAggregate": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentStructure": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "shipmentType": {
+            "type": "string"
+          },
+          "allocationStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "allocationVersion": {
+            "type": "string"
+          },
+          "confirmedAt": {
+            "type": "string"
+          },
+          "confirmedBy": {
+            "type": "string"
+          },
+          "confirmedByName": {
+            "type": "string"
+          },
+          "cargoItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderCargoItem"
+            }
+          },
+          "containers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderContainer"
+            }
+          },
+          "houseBills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+            }
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaCargoAllocationItem"
+            }
+          },
+          "progress": {
+            "$ref": "#/components/schemas/order.v1.SeaCargoAllocationProgress"
+          },
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
+          }
+        },
+        "description": "SeaCargoAllocationAggregate 箱货分配聚合模型。"
+      },
+      "order.v1.SeaCargoAllocationCargoItemSummary": {
+        "type": "object",
+        "properties": {
+          "cargoItemId": {
+            "type": "string"
+          },
+          "cargoName": {
+            "type": "string"
+          },
+          "baselinePackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allocatedPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineGrossWeightKg": {
+            "type": "string"
+          },
+          "allocatedGrossWeightKg": {
+            "type": "string"
+          },
+          "remainingGrossWeightKg": {
+            "type": "string"
+          },
+          "baselineVolumeCbm": {
+            "type": "string"
+          },
+          "allocatedVolumeCbm": {
+            "type": "string"
+          },
+          "remainingVolumeCbm": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "description": "SeaCargoAllocationCargoItemSummary 货物维度进度汇总。"
+      },
+      "order.v1.SeaCargoAllocationContainerSummary": {
+        "type": "object",
+        "properties": {
+          "containerId": {
+            "type": "string"
+          },
+          "containerNo": {
+            "type": "string"
+          },
+          "baselinePackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allocatedPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineGrossWeightKg": {
+            "type": "string"
+          },
+          "allocatedGrossWeightKg": {
+            "type": "string"
+          },
+          "remainingGrossWeightKg": {
+            "type": "string"
+          },
+          "baselineVolumeCbm": {
+            "type": "string"
+          },
+          "allocatedVolumeCbm": {
+            "type": "string"
+          },
+          "remainingVolumeCbm": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "description": "SeaCargoAllocationContainerSummary 实际箱维度进度汇总。"
+      },
+      "order.v1.SeaCargoAllocationHouseBillSummary": {
+        "type": "object",
+        "properties": {
+          "houseBillId": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "allocatedPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allocatedGrossWeightKg": {
+            "type": "string"
+          },
+          "allocatedVolumeCbm": {
+            "type": "string"
+          },
+          "orderRemainingPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderRemainingGrossWeightKg": {
+            "type": "string"
+          },
+          "orderRemainingVolumeCbm": {
+            "type": "string"
+          },
+          "displayPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayGrossWeightKg": {
+            "type": "string"
+          },
+          "displayVolumeCbm": {
+            "type": "string"
+          },
+          "diffPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "diffGrossWeightKg": {
+            "type": "string"
+          },
+          "diffVolumeCbm": {
+            "type": "string"
+          },
+          "displayMatches": {
+            "type": "boolean"
+          }
+        },
+        "description": "SeaCargoAllocationHouseBillSummary HBL 分单维度进度汇总。"
+      },
+      "order.v1.SeaCargoAllocationInput": {
+        "required": [
+          "cargoItemId",
+          "houseBillId",
+          "packageCount",
+          "grossWeightKg",
+          "volumeCbm"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cargoItemId": {
+            "type": "string"
+          },
+          "houseBillId": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          }
+        },
+        "description": "SeaCargoAllocationInput 保存草稿请求行。"
+      },
+      "order.v1.SeaCargoAllocationItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cargoItemId": {
+            "type": "string"
+          },
+          "houseBillId": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          }
+        },
+        "description": "SeaCargoAllocationItem 箱货定量分配行。"
+      },
+      "order.v1.SeaCargoAllocationProgress": {
+        "type": "object",
+        "properties": {
+          "cargoSummaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaCargoAllocationCargoItemSummary"
+            }
+          },
+          "containerSummaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaCargoAllocationContainerSummary"
+            }
+          },
+          "houseBillSummaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaCargoAllocationHouseBillSummary"
+            }
+          },
+          "orderRemainingPackageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderRemainingGrossWeightKg": {
+            "type": "string"
+          },
+          "orderRemainingVolumeCbm": {
+            "type": "string"
+          }
+        },
+        "description": "SeaCargoAllocationProgress 三视角进度汇总。"
       },
       "order.v1.SeaHouseBill": {
         "type": "object",
@@ -22016,7 +22779,8 @@
           "cargoName",
           "packageCount",
           "grossWeightKg",
-          "volumeCbm"
+          "volumeCbm",
+          "expectedVersion"
         ],
         "type": "object",
         "properties": {
@@ -22046,6 +22810,9 @@
             "format": "double"
           },
           "note": {
+            "type": "string"
+          },
+          "expectedVersion": {
             "type": "string"
           }
         },
@@ -22079,7 +22846,9 @@
           "containerNo",
           "containerSpecId",
           "grossWeightKg",
-          "volumeCbm"
+          "volumeCbm",
+          "packageCount",
+          "expectedVersion"
         ],
         "type": "object",
         "properties": {
@@ -22109,7 +22878,11 @@
           "note": {
             "type": "string"
           },
-          "shippingDocumentId": {
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expectedVersion": {
             "type": "string"
           }
         },
@@ -22640,6 +23413,44 @@
             "type": "string"
           }
         }
+      },
+      "order.v1.WithdrawSeaCargoAllocationRequest": {
+        "required": [
+          "orderId",
+          "expectedAllocationVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedAllocationVersion": {
+            "type": "string"
+          }
+        },
+        "description": "WithdrawSeaCargoAllocationRequest 撤回确认请求。"
+      },
+      "order.v1.WithdrawSeaCargoAllocationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaCargoAllocationAggregate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "WithdrawSeaCargoAllocationResponse 撤回确认响应。"
       },
       "partner.v1.CreatePartnerAccountRequest": {
         "required": [
@@ -24803,6 +25614,10 @@
     },
     {
       "name": "PartnerService"
+    },
+    {
+      "name": "SeaCargoAllocationService",
+      "description": "SeaCargoAllocationService 海运出口箱货定量分配服务。"
     },
     {
       "name": "SeaDocumentService",

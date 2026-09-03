@@ -54,6 +54,7 @@ message OrderCargoItem {
   optional string note = 8;
   string created_at = 9;
   string updated_at = 10;
+  uint64 version = 11;
 }
 
 // ListCargoItemsRequest 获取订单货物明细列表请求。
@@ -82,12 +83,14 @@ message UpdateCargoItemRequest {
   double volume_cbm = 6 [(google.api.field_behavior) = REQUIRED];
   optional double net_weight_kg = 7;
   optional string note = 8;
+  uint64 expected_version = 9 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RemoveCargoItemRequest 移除订单货物明细请求。
 message RemoveCargoItemRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // AddCargoItemResponse 单条订单货物明细响应。

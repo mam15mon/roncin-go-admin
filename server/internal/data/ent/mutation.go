@@ -95,6 +95,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -195,6 +196,7 @@ const (
 	TypeRole                           = "Role"
 	TypeRoleAssignment                 = "RoleAssignment"
 	TypeRoleOrderOrganizationAccess    = "RoleOrderOrganizationAccess"
+	TypeSeaCargoAllocation             = "SeaCargoAllocation"
 	TypeSeaHouseBill                   = "SeaHouseBill"
 	TypeSeaMasterBill                  = "SeaMasterBill"
 	TypeSeaMasterBillOrderLink         = "SeaMasterBillOrderLink"
@@ -58260,6 +58262,9 @@ type OrderMutation struct {
 	sea_house_bills                       map[uuid.UUID]struct{}
 	removedsea_house_bills                map[uuid.UUID]struct{}
 	clearedsea_house_bills                bool
+	sea_cargo_allocations                 map[uuid.UUID]struct{}
+	removedsea_cargo_allocations          map[uuid.UUID]struct{}
+	clearedsea_cargo_allocations          bool
 	done                                  bool
 	oldValue                              func(context.Context) (*Order, error)
 	predicates                            []predicate.Order
@@ -62661,6 +62666,60 @@ func (m *OrderMutation) ResetSeaHouseBills() {
 	m.removedsea_house_bills = nil
 }
 
+// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *OrderMutation) AddSeaCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.sea_cargo_allocations == nil {
+		m.sea_cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaCargoAllocations clears the "sea_cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderMutation) ClearSeaCargoAllocations() {
+	m.clearedsea_cargo_allocations = true
+}
+
+// SeaCargoAllocationsCleared reports if the "sea_cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *OrderMutation) SeaCargoAllocationsCleared() bool {
+	return m.clearedsea_cargo_allocations
+}
+
+// RemoveSeaCargoAllocationIDs removes the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *OrderMutation) RemoveSeaCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedsea_cargo_allocations == nil {
+		m.removedsea_cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_cargo_allocations, ids[i])
+		m.removedsea_cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaCargoAllocations returns the removed IDs of the "sea_cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderMutation) RemovedSeaCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaCargoAllocationsIDs returns the "sea_cargo_allocations" edge IDs in the mutation.
+func (m *OrderMutation) SeaCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaCargoAllocations resets all changes to the "sea_cargo_allocations" edge.
+func (m *OrderMutation) ResetSeaCargoAllocations() {
+	m.sea_cargo_allocations = nil
+	m.clearedsea_cargo_allocations = false
+	m.removedsea_cargo_allocations = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -64276,7 +64335,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64342,6 +64401,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.sea_house_bills != nil {
 		edges = append(edges, order.EdgeSeaHouseBills)
+	}
+	if m.sea_cargo_allocations != nil {
+		edges = append(edges, order.EdgeSeaCargoAllocations)
 	}
 	return edges
 }
@@ -64478,13 +64540,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.sea_cargo_allocations))
+		for id := range m.sea_cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -64544,6 +64612,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_house_bills != nil {
 		edges = append(edges, order.EdgeSeaHouseBills)
+	}
+	if m.removedsea_cargo_allocations != nil {
+		edges = append(edges, order.EdgeSeaCargoAllocations)
 	}
 	return edges
 }
@@ -64672,13 +64743,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedsea_cargo_allocations))
+		for id := range m.removedsea_cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64745,6 +64822,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedsea_house_bills {
 		edges = append(edges, order.EdgeSeaHouseBills)
 	}
+	if m.clearedsea_cargo_allocations {
+		edges = append(edges, order.EdgeSeaCargoAllocations)
+	}
 	return edges
 }
 
@@ -64796,6 +64876,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_master_bill_links
 	case order.EdgeSeaHouseBills:
 		return m.clearedsea_house_bills
+	case order.EdgeSeaCargoAllocations:
+		return m.clearedsea_cargo_allocations
 	}
 	return false
 }
@@ -64883,6 +64965,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeSeaHouseBills:
 		m.ResetSeaHouseBills()
+		return nil
+	case order.EdgeSeaCargoAllocations:
+		m.ResetSeaCargoAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -67301,27 +67386,34 @@ func (m *OrderCargoCategoryMutation) ResetEdge(name string) error {
 // OrderCargoItemMutation represents an operation that mutates the OrderCargoItem nodes in the graph.
 type OrderCargoItemMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	cargo_name         *string
-	package_count      *int
-	addpackage_count   *int
-	gross_weight_kg    *float64
-	addgross_weight_kg *float64
-	volume_cbm         *float64
-	addvolume_cbm      *float64
-	net_weight_kg      *float64
-	addnet_weight_kg   *float64
-	note               *string
-	clearedFields      map[string]struct{}
-	_order             *uuid.UUID
-	cleared_order      bool
-	done               bool
-	oldValue           func(context.Context) (*OrderCargoItem, error)
-	predicates         []predicate.OrderCargoItem
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	cargo_name               *string
+	package_count            *int
+	addpackage_count         *int
+	gross_weight_kg          *float64
+	addgross_weight_kg       *float64
+	volume_cbm               *float64
+	addvolume_cbm            *float64
+	net_weight_kg            *float64
+	addnet_weight_kg         *float64
+	note                     *string
+	version                  *uint64
+	addversion               *int64
+	clearedFields            map[string]struct{}
+	organization             *uuid.UUID
+	clearedorganization      bool
+	_order                   *uuid.UUID
+	cleared_order            bool
+	cargo_allocations        map[uuid.UUID]struct{}
+	removedcargo_allocations map[uuid.UUID]struct{}
+	clearedcargo_allocations bool
+	done                     bool
+	oldValue                 func(context.Context) (*OrderCargoItem, error)
+	predicates               []predicate.OrderCargoItem
 }
 
 var _ ent.Mutation = (*OrderCargoItemMutation)(nil)
@@ -67498,6 +67590,42 @@ func (m *OrderCargoItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time,
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *OrderCargoItemMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderCargoItemMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderCargoItemMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderCargoItemMutation) ResetOrganizationID() {
+	m.organization = nil
 }
 
 // SetOrderID sets the "order_id" field.
@@ -67859,6 +67987,89 @@ func (m *OrderCargoItemMutation) ResetNote() {
 	delete(m.clearedFields, ordercargoitem.FieldNote)
 }
 
+// SetVersion sets the "version" field.
+func (m *OrderCargoItemMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *OrderCargoItemMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *OrderCargoItemMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *OrderCargoItemMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *OrderCargoItemMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderCargoItemMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[ordercargoitem.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderCargoItemMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderCargoItemMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderCargoItemMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
 // ClearOrder clears the "order" edge to the Order entity.
 func (m *OrderCargoItemMutation) ClearOrder() {
 	m.cleared_order = true
@@ -67884,6 +68095,60 @@ func (m *OrderCargoItemMutation) OrderIDs() (ids []uuid.UUID) {
 func (m *OrderCargoItemMutation) ResetOrder() {
 	m._order = nil
 	m.cleared_order = false
+}
+
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *OrderCargoItemMutation) AddCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.cargo_allocations == nil {
+		m.cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCargoAllocations clears the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderCargoItemMutation) ClearCargoAllocations() {
+	m.clearedcargo_allocations = true
+}
+
+// CargoAllocationsCleared reports if the "cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *OrderCargoItemMutation) CargoAllocationsCleared() bool {
+	return m.clearedcargo_allocations
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *OrderCargoItemMutation) RemoveCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedcargo_allocations == nil {
+		m.removedcargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cargo_allocations, ids[i])
+		m.removedcargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCargoAllocations returns the removed IDs of the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderCargoItemMutation) RemovedCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CargoAllocationsIDs returns the "cargo_allocations" edge IDs in the mutation.
+func (m *OrderCargoItemMutation) CargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCargoAllocations resets all changes to the "cargo_allocations" edge.
+func (m *OrderCargoItemMutation) ResetCargoAllocations() {
+	m.cargo_allocations = nil
+	m.clearedcargo_allocations = false
+	m.removedcargo_allocations = nil
 }
 
 // Where appends a list predicates to the OrderCargoItemMutation builder.
@@ -67920,12 +68185,15 @@ func (m *OrderCargoItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderCargoItemMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, ordercargoitem.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, ordercargoitem.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, ordercargoitem.FieldOrganizationID)
 	}
 	if m._order != nil {
 		fields = append(fields, ordercargoitem.FieldOrderID)
@@ -67948,6 +68216,9 @@ func (m *OrderCargoItemMutation) Fields() []string {
 	if m.note != nil {
 		fields = append(fields, ordercargoitem.FieldNote)
 	}
+	if m.version != nil {
+		fields = append(fields, ordercargoitem.FieldVersion)
+	}
 	return fields
 }
 
@@ -67960,6 +68231,8 @@ func (m *OrderCargoItemMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case ordercargoitem.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case ordercargoitem.FieldOrganizationID:
+		return m.OrganizationID()
 	case ordercargoitem.FieldOrderID:
 		return m.OrderID()
 	case ordercargoitem.FieldCargoName:
@@ -67974,6 +68247,8 @@ func (m *OrderCargoItemMutation) Field(name string) (ent.Value, bool) {
 		return m.NetWeightKg()
 	case ordercargoitem.FieldNote:
 		return m.Note()
+	case ordercargoitem.FieldVersion:
+		return m.Version()
 	}
 	return nil, false
 }
@@ -67987,6 +68262,8 @@ func (m *OrderCargoItemMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreatedAt(ctx)
 	case ordercargoitem.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case ordercargoitem.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
 	case ordercargoitem.FieldOrderID:
 		return m.OldOrderID(ctx)
 	case ordercargoitem.FieldCargoName:
@@ -68001,6 +68278,8 @@ func (m *OrderCargoItemMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldNetWeightKg(ctx)
 	case ordercargoitem.FieldNote:
 		return m.OldNote(ctx)
+	case ordercargoitem.FieldVersion:
+		return m.OldVersion(ctx)
 	}
 	return nil, fmt.Errorf("unknown OrderCargoItem field %s", name)
 }
@@ -68023,6 +68302,13 @@ func (m *OrderCargoItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case ordercargoitem.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
 		return nil
 	case ordercargoitem.FieldOrderID:
 		v, ok := value.(uuid.UUID)
@@ -68073,6 +68359,13 @@ func (m *OrderCargoItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNote(v)
 		return nil
+	case ordercargoitem.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoItem field %s", name)
 }
@@ -68093,6 +68386,9 @@ func (m *OrderCargoItemMutation) AddedFields() []string {
 	if m.addnet_weight_kg != nil {
 		fields = append(fields, ordercargoitem.FieldNetWeightKg)
 	}
+	if m.addversion != nil {
+		fields = append(fields, ordercargoitem.FieldVersion)
+	}
 	return fields
 }
 
@@ -68109,6 +68405,8 @@ func (m *OrderCargoItemMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedVolumeCbm()
 	case ordercargoitem.FieldNetWeightKg:
 		return m.AddedNetWeightKg()
+	case ordercargoitem.FieldVersion:
+		return m.AddedVersion()
 	}
 	return nil, false
 }
@@ -68145,6 +68443,13 @@ func (m *OrderCargoItemMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddNetWeightKg(v)
+		return nil
+	case ordercargoitem.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
 		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoItem numeric field %s", name)
@@ -68194,6 +68499,9 @@ func (m *OrderCargoItemMutation) ResetField(name string) error {
 	case ordercargoitem.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case ordercargoitem.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
 	case ordercargoitem.FieldOrderID:
 		m.ResetOrderID()
 		return nil
@@ -68215,15 +68523,24 @@ func (m *OrderCargoItemMutation) ResetField(name string) error {
 	case ordercargoitem.FieldNote:
 		m.ResetNote()
 		return nil
+	case ordercargoitem.FieldVersion:
+		m.ResetVersion()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoItem field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderCargoItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, ordercargoitem.EdgeOrganization)
+	}
 	if m._order != nil {
 		edges = append(edges, ordercargoitem.EdgeOrder)
+	}
+	if m.cargo_allocations != nil {
+		edges = append(edges, ordercargoitem.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -68232,31 +68549,58 @@ func (m *OrderCargoItemMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *OrderCargoItemMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case ordercargoitem.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
 	case ordercargoitem.EdgeOrder:
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case ordercargoitem.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.cargo_allocations))
+		for id := range m.cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderCargoItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.removedcargo_allocations != nil {
+		edges = append(edges, ordercargoitem.EdgeCargoAllocations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *OrderCargoItemMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case ordercargoitem.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedcargo_allocations))
+		for id := range m.removedcargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderCargoItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, ordercargoitem.EdgeOrganization)
+	}
 	if m.cleared_order {
 		edges = append(edges, ordercargoitem.EdgeOrder)
+	}
+	if m.clearedcargo_allocations {
+		edges = append(edges, ordercargoitem.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -68265,8 +68609,12 @@ func (m *OrderCargoItemMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *OrderCargoItemMutation) EdgeCleared(name string) bool {
 	switch name {
+	case ordercargoitem.EdgeOrganization:
+		return m.clearedorganization
 	case ordercargoitem.EdgeOrder:
 		return m.cleared_order
+	case ordercargoitem.EdgeCargoAllocations:
+		return m.clearedcargo_allocations
 	}
 	return false
 }
@@ -68275,6 +68623,9 @@ func (m *OrderCargoItemMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *OrderCargoItemMutation) ClearEdge(name string) error {
 	switch name {
+	case ordercargoitem.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
 	case ordercargoitem.EdgeOrder:
 		m.ClearOrder()
 		return nil
@@ -68286,8 +68637,14 @@ func (m *OrderCargoItemMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *OrderCargoItemMutation) ResetEdge(name string) error {
 	switch name {
+	case ordercargoitem.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
 	case ordercargoitem.EdgeOrder:
 		m.ResetOrder()
+		return nil
+	case ordercargoitem.EdgeCargoAllocations:
+		m.ResetCargoAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoItem edge %s", name)
@@ -69313,17 +69670,24 @@ type OrderContainerMutation struct {
 	updated_at               *time.Time
 	container_no             *string
 	container_spec_id        *uuid.UUID
+	package_count            *int
+	addpackage_count         *int
 	seal_no                  *string
 	gross_weight_kg          *float64
 	addgross_weight_kg       *float64
 	volume_cbm               *float64
 	addvolume_cbm            *float64
 	note                     *string
+	version                  *uint64
+	addversion               *int64
 	clearedFields            map[string]struct{}
+	organization             *uuid.UUID
+	clearedorganization      bool
 	_order                   *uuid.UUID
 	cleared_order            bool
-	shipping_document        *uuid.UUID
-	clearedshipping_document bool
+	cargo_allocations        map[uuid.UUID]struct{}
+	removedcargo_allocations map[uuid.UUID]struct{}
+	clearedcargo_allocations bool
 	done                     bool
 	oldValue                 func(context.Context) (*OrderContainer, error)
 	predicates               []predicate.OrderContainer
@@ -69505,6 +69869,42 @@ func (m *OrderContainerMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderContainerMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderContainerMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderContainerMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
 // SetOrderID sets the "order_id" field.
 func (m *OrderContainerMutation) SetOrderID(u uuid.UUID) {
 	m._order = &u
@@ -69613,53 +70013,60 @@ func (m *OrderContainerMutation) ResetContainerSpecID() {
 	m.container_spec_id = nil
 }
 
-// SetShippingDocumentID sets the "shipping_document_id" field.
-func (m *OrderContainerMutation) SetShippingDocumentID(u uuid.UUID) {
-	m.shipping_document = &u
+// SetPackageCount sets the "package_count" field.
+func (m *OrderContainerMutation) SetPackageCount(i int) {
+	m.package_count = &i
+	m.addpackage_count = nil
 }
 
-// ShippingDocumentID returns the value of the "shipping_document_id" field in the mutation.
-func (m *OrderContainerMutation) ShippingDocumentID() (r uuid.UUID, exists bool) {
-	v := m.shipping_document
+// PackageCount returns the value of the "package_count" field in the mutation.
+func (m *OrderContainerMutation) PackageCount() (r int, exists bool) {
+	v := m.package_count
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldShippingDocumentID returns the old "shipping_document_id" field's value of the OrderContainer entity.
+// OldPackageCount returns the old "package_count" field's value of the OrderContainer entity.
 // If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderContainerMutation) OldShippingDocumentID(ctx context.Context) (v *uuid.UUID, err error) {
+func (m *OrderContainerMutation) OldPackageCount(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldShippingDocumentID is only allowed on UpdateOne operations")
+		return v, errors.New("OldPackageCount is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldShippingDocumentID requires an ID field in the mutation")
+		return v, errors.New("OldPackageCount requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldShippingDocumentID: %w", err)
+		return v, fmt.Errorf("querying old value for OldPackageCount: %w", err)
 	}
-	return oldValue.ShippingDocumentID, nil
+	return oldValue.PackageCount, nil
 }
 
-// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
-func (m *OrderContainerMutation) ClearShippingDocumentID() {
-	m.shipping_document = nil
-	m.clearedFields[ordercontainer.FieldShippingDocumentID] = struct{}{}
+// AddPackageCount adds i to the "package_count" field.
+func (m *OrderContainerMutation) AddPackageCount(i int) {
+	if m.addpackage_count != nil {
+		*m.addpackage_count += i
+	} else {
+		m.addpackage_count = &i
+	}
 }
 
-// ShippingDocumentIDCleared returns if the "shipping_document_id" field was cleared in this mutation.
-func (m *OrderContainerMutation) ShippingDocumentIDCleared() bool {
-	_, ok := m.clearedFields[ordercontainer.FieldShippingDocumentID]
-	return ok
+// AddedPackageCount returns the value that was added to the "package_count" field in this mutation.
+func (m *OrderContainerMutation) AddedPackageCount() (r int, exists bool) {
+	v := m.addpackage_count
+	if v == nil {
+		return
+	}
+	return *v, true
 }
 
-// ResetShippingDocumentID resets all changes to the "shipping_document_id" field.
-func (m *OrderContainerMutation) ResetShippingDocumentID() {
-	m.shipping_document = nil
-	delete(m.clearedFields, ordercontainer.FieldShippingDocumentID)
+// ResetPackageCount resets all changes to the "package_count" field.
+func (m *OrderContainerMutation) ResetPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
 }
 
 // SetSealNo sets the "seal_no" field.
@@ -69872,6 +70279,89 @@ func (m *OrderContainerMutation) ResetNote() {
 	delete(m.clearedFields, ordercontainer.FieldNote)
 }
 
+// SetVersion sets the "version" field.
+func (m *OrderContainerMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *OrderContainerMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *OrderContainerMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *OrderContainerMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *OrderContainerMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderContainerMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[ordercontainer.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderContainerMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderContainerMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderContainerMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
 // ClearOrder clears the "order" edge to the Order entity.
 func (m *OrderContainerMutation) ClearOrder() {
 	m.cleared_order = true
@@ -69899,31 +70389,58 @@ func (m *OrderContainerMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
-// ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
-func (m *OrderContainerMutation) ClearShippingDocument() {
-	m.clearedshipping_document = true
-	m.clearedFields[ordercontainer.FieldShippingDocumentID] = struct{}{}
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *OrderContainerMutation) AddCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.cargo_allocations == nil {
+		m.cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cargo_allocations[ids[i]] = struct{}{}
+	}
 }
 
-// ShippingDocumentCleared reports if the "shipping_document" edge to the OrderShippingDocument entity was cleared.
-func (m *OrderContainerMutation) ShippingDocumentCleared() bool {
-	return m.ShippingDocumentIDCleared() || m.clearedshipping_document
+// ClearCargoAllocations clears the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderContainerMutation) ClearCargoAllocations() {
+	m.clearedcargo_allocations = true
 }
 
-// ShippingDocumentIDs returns the "shipping_document" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ShippingDocumentID instead. It exists only for internal usage by the builders.
-func (m *OrderContainerMutation) ShippingDocumentIDs() (ids []uuid.UUID) {
-	if id := m.shipping_document; id != nil {
-		ids = append(ids, *id)
+// CargoAllocationsCleared reports if the "cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *OrderContainerMutation) CargoAllocationsCleared() bool {
+	return m.clearedcargo_allocations
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *OrderContainerMutation) RemoveCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedcargo_allocations == nil {
+		m.removedcargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cargo_allocations, ids[i])
+		m.removedcargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCargoAllocations returns the removed IDs of the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrderContainerMutation) RemovedCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcargo_allocations {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetShippingDocument resets all changes to the "shipping_document" edge.
-func (m *OrderContainerMutation) ResetShippingDocument() {
-	m.shipping_document = nil
-	m.clearedshipping_document = false
+// CargoAllocationsIDs returns the "cargo_allocations" edge IDs in the mutation.
+func (m *OrderContainerMutation) CargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCargoAllocations resets all changes to the "cargo_allocations" edge.
+func (m *OrderContainerMutation) ResetCargoAllocations() {
+	m.cargo_allocations = nil
+	m.clearedcargo_allocations = false
+	m.removedcargo_allocations = nil
 }
 
 // Where appends a list predicates to the OrderContainerMutation builder.
@@ -69960,12 +70477,15 @@ func (m *OrderContainerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderContainerMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, ordercontainer.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, ordercontainer.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, ordercontainer.FieldOrganizationID)
 	}
 	if m._order != nil {
 		fields = append(fields, ordercontainer.FieldOrderID)
@@ -69976,8 +70496,8 @@ func (m *OrderContainerMutation) Fields() []string {
 	if m.container_spec_id != nil {
 		fields = append(fields, ordercontainer.FieldContainerSpecID)
 	}
-	if m.shipping_document != nil {
-		fields = append(fields, ordercontainer.FieldShippingDocumentID)
+	if m.package_count != nil {
+		fields = append(fields, ordercontainer.FieldPackageCount)
 	}
 	if m.seal_no != nil {
 		fields = append(fields, ordercontainer.FieldSealNo)
@@ -69991,6 +70511,9 @@ func (m *OrderContainerMutation) Fields() []string {
 	if m.note != nil {
 		fields = append(fields, ordercontainer.FieldNote)
 	}
+	if m.version != nil {
+		fields = append(fields, ordercontainer.FieldVersion)
+	}
 	return fields
 }
 
@@ -70003,14 +70526,16 @@ func (m *OrderContainerMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case ordercontainer.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case ordercontainer.FieldOrganizationID:
+		return m.OrganizationID()
 	case ordercontainer.FieldOrderID:
 		return m.OrderID()
 	case ordercontainer.FieldContainerNo:
 		return m.ContainerNo()
 	case ordercontainer.FieldContainerSpecID:
 		return m.ContainerSpecID()
-	case ordercontainer.FieldShippingDocumentID:
-		return m.ShippingDocumentID()
+	case ordercontainer.FieldPackageCount:
+		return m.PackageCount()
 	case ordercontainer.FieldSealNo:
 		return m.SealNo()
 	case ordercontainer.FieldGrossWeightKg:
@@ -70019,6 +70544,8 @@ func (m *OrderContainerMutation) Field(name string) (ent.Value, bool) {
 		return m.VolumeCbm()
 	case ordercontainer.FieldNote:
 		return m.Note()
+	case ordercontainer.FieldVersion:
+		return m.Version()
 	}
 	return nil, false
 }
@@ -70032,14 +70559,16 @@ func (m *OrderContainerMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreatedAt(ctx)
 	case ordercontainer.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case ordercontainer.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
 	case ordercontainer.FieldOrderID:
 		return m.OldOrderID(ctx)
 	case ordercontainer.FieldContainerNo:
 		return m.OldContainerNo(ctx)
 	case ordercontainer.FieldContainerSpecID:
 		return m.OldContainerSpecID(ctx)
-	case ordercontainer.FieldShippingDocumentID:
-		return m.OldShippingDocumentID(ctx)
+	case ordercontainer.FieldPackageCount:
+		return m.OldPackageCount(ctx)
 	case ordercontainer.FieldSealNo:
 		return m.OldSealNo(ctx)
 	case ordercontainer.FieldGrossWeightKg:
@@ -70048,6 +70577,8 @@ func (m *OrderContainerMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldVolumeCbm(ctx)
 	case ordercontainer.FieldNote:
 		return m.OldNote(ctx)
+	case ordercontainer.FieldVersion:
+		return m.OldVersion(ctx)
 	}
 	return nil, fmt.Errorf("unknown OrderContainer field %s", name)
 }
@@ -70071,6 +70602,13 @@ func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
+	case ordercontainer.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
 	case ordercontainer.FieldOrderID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -70092,12 +70630,12 @@ func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetContainerSpecID(v)
 		return nil
-	case ordercontainer.FieldShippingDocumentID:
-		v, ok := value.(uuid.UUID)
+	case ordercontainer.FieldPackageCount:
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetShippingDocumentID(v)
+		m.SetPackageCount(v)
 		return nil
 	case ordercontainer.FieldSealNo:
 		v, ok := value.(string)
@@ -70127,6 +70665,13 @@ func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNote(v)
 		return nil
+	case ordercontainer.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer field %s", name)
 }
@@ -70135,11 +70680,17 @@ func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *OrderContainerMutation) AddedFields() []string {
 	var fields []string
+	if m.addpackage_count != nil {
+		fields = append(fields, ordercontainer.FieldPackageCount)
+	}
 	if m.addgross_weight_kg != nil {
 		fields = append(fields, ordercontainer.FieldGrossWeightKg)
 	}
 	if m.addvolume_cbm != nil {
 		fields = append(fields, ordercontainer.FieldVolumeCbm)
+	}
+	if m.addversion != nil {
+		fields = append(fields, ordercontainer.FieldVersion)
 	}
 	return fields
 }
@@ -70149,10 +70700,14 @@ func (m *OrderContainerMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *OrderContainerMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case ordercontainer.FieldPackageCount:
+		return m.AddedPackageCount()
 	case ordercontainer.FieldGrossWeightKg:
 		return m.AddedGrossWeightKg()
 	case ordercontainer.FieldVolumeCbm:
 		return m.AddedVolumeCbm()
+	case ordercontainer.FieldVersion:
+		return m.AddedVersion()
 	}
 	return nil, false
 }
@@ -70162,6 +70717,13 @@ func (m *OrderContainerMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OrderContainerMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case ordercontainer.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPackageCount(v)
+		return nil
 	case ordercontainer.FieldGrossWeightKg:
 		v, ok := value.(float64)
 		if !ok {
@@ -70176,6 +70738,13 @@ func (m *OrderContainerMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddVolumeCbm(v)
 		return nil
+	case ordercontainer.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer numeric field %s", name)
 }
@@ -70184,9 +70753,6 @@ func (m *OrderContainerMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderContainerMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(ordercontainer.FieldShippingDocumentID) {
-		fields = append(fields, ordercontainer.FieldShippingDocumentID)
-	}
 	if m.FieldCleared(ordercontainer.FieldSealNo) {
 		fields = append(fields, ordercontainer.FieldSealNo)
 	}
@@ -70207,9 +70773,6 @@ func (m *OrderContainerMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderContainerMutation) ClearField(name string) error {
 	switch name {
-	case ordercontainer.FieldShippingDocumentID:
-		m.ClearShippingDocumentID()
-		return nil
 	case ordercontainer.FieldSealNo:
 		m.ClearSealNo()
 		return nil
@@ -70230,6 +70793,9 @@ func (m *OrderContainerMutation) ResetField(name string) error {
 	case ordercontainer.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case ordercontainer.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
 	case ordercontainer.FieldOrderID:
 		m.ResetOrderID()
 		return nil
@@ -70239,8 +70805,8 @@ func (m *OrderContainerMutation) ResetField(name string) error {
 	case ordercontainer.FieldContainerSpecID:
 		m.ResetContainerSpecID()
 		return nil
-	case ordercontainer.FieldShippingDocumentID:
-		m.ResetShippingDocumentID()
+	case ordercontainer.FieldPackageCount:
+		m.ResetPackageCount()
 		return nil
 	case ordercontainer.FieldSealNo:
 		m.ResetSealNo()
@@ -70254,18 +70820,24 @@ func (m *OrderContainerMutation) ResetField(name string) error {
 	case ordercontainer.FieldNote:
 		m.ResetNote()
 		return nil
+	case ordercontainer.FieldVersion:
+		m.ResetVersion()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderContainerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, ordercontainer.EdgeOrganization)
+	}
 	if m._order != nil {
 		edges = append(edges, ordercontainer.EdgeOrder)
 	}
-	if m.shipping_document != nil {
-		edges = append(edges, ordercontainer.EdgeShippingDocument)
+	if m.cargo_allocations != nil {
+		edges = append(edges, ordercontainer.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -70274,38 +70846,58 @@ func (m *OrderContainerMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *OrderContainerMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case ordercontainer.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
 	case ordercontainer.EdgeOrder:
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
-	case ordercontainer.EdgeShippingDocument:
-		if id := m.shipping_document; id != nil {
-			return []ent.Value{*id}
+	case ordercontainer.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.cargo_allocations))
+		for id := range m.cargo_allocations {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderContainerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedcargo_allocations != nil {
+		edges = append(edges, ordercontainer.EdgeCargoAllocations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *OrderContainerMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case ordercontainer.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedcargo_allocations))
+		for id := range m.removedcargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderContainerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, ordercontainer.EdgeOrganization)
+	}
 	if m.cleared_order {
 		edges = append(edges, ordercontainer.EdgeOrder)
 	}
-	if m.clearedshipping_document {
-		edges = append(edges, ordercontainer.EdgeShippingDocument)
+	if m.clearedcargo_allocations {
+		edges = append(edges, ordercontainer.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -70314,10 +70906,12 @@ func (m *OrderContainerMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *OrderContainerMutation) EdgeCleared(name string) bool {
 	switch name {
+	case ordercontainer.EdgeOrganization:
+		return m.clearedorganization
 	case ordercontainer.EdgeOrder:
 		return m.cleared_order
-	case ordercontainer.EdgeShippingDocument:
-		return m.clearedshipping_document
+	case ordercontainer.EdgeCargoAllocations:
+		return m.clearedcargo_allocations
 	}
 	return false
 }
@@ -70326,11 +70920,11 @@ func (m *OrderContainerMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *OrderContainerMutation) ClearEdge(name string) error {
 	switch name {
+	case ordercontainer.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
 	case ordercontainer.EdgeOrder:
 		m.ClearOrder()
-		return nil
-	case ordercontainer.EdgeShippingDocument:
-		m.ClearShippingDocument()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer unique edge %s", name)
@@ -70340,11 +70934,14 @@ func (m *OrderContainerMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *OrderContainerMutation) ResetEdge(name string) error {
 	switch name {
+	case ordercontainer.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
 	case ordercontainer.EdgeOrder:
 		m.ResetOrder()
 		return nil
-	case ordercontainer.EdgeShippingDocument:
-		m.ResetShippingDocument()
+	case ordercontainer.EdgeCargoAllocations:
+		m.ResetCargoAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer edge %s", name)
@@ -79291,9 +79888,6 @@ type OrderShippingDocumentMutation struct {
 	clearedFields       map[string]struct{}
 	_order              *uuid.UUID
 	cleared_order       bool
-	containers          map[uuid.UUID]struct{}
-	removedcontainers   map[uuid.UUID]struct{}
-	clearedcontainers   bool
 	release_pods        map[uuid.UUID]struct{}
 	removedrelease_pods map[uuid.UUID]struct{}
 	clearedrelease_pods bool
@@ -79711,60 +80305,6 @@ func (m *OrderShippingDocumentMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
-// AddContainerIDs adds the "containers" edge to the OrderContainer entity by ids.
-func (m *OrderShippingDocumentMutation) AddContainerIDs(ids ...uuid.UUID) {
-	if m.containers == nil {
-		m.containers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.containers[ids[i]] = struct{}{}
-	}
-}
-
-// ClearContainers clears the "containers" edge to the OrderContainer entity.
-func (m *OrderShippingDocumentMutation) ClearContainers() {
-	m.clearedcontainers = true
-}
-
-// ContainersCleared reports if the "containers" edge to the OrderContainer entity was cleared.
-func (m *OrderShippingDocumentMutation) ContainersCleared() bool {
-	return m.clearedcontainers
-}
-
-// RemoveContainerIDs removes the "containers" edge to the OrderContainer entity by IDs.
-func (m *OrderShippingDocumentMutation) RemoveContainerIDs(ids ...uuid.UUID) {
-	if m.removedcontainers == nil {
-		m.removedcontainers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.containers, ids[i])
-		m.removedcontainers[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedContainers returns the removed IDs of the "containers" edge to the OrderContainer entity.
-func (m *OrderShippingDocumentMutation) RemovedContainersIDs() (ids []uuid.UUID) {
-	for id := range m.removedcontainers {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ContainersIDs returns the "containers" edge IDs in the mutation.
-func (m *OrderShippingDocumentMutation) ContainersIDs() (ids []uuid.UUID) {
-	for id := range m.containers {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetContainers resets all changes to the "containers" edge.
-func (m *OrderShippingDocumentMutation) ResetContainers() {
-	m.containers = nil
-	m.clearedcontainers = false
-	m.removedcontainers = nil
-}
-
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by ids.
 func (m *OrderShippingDocumentMutation) AddReleasePodIDs(ids ...uuid.UUID) {
 	if m.release_pods == nil {
@@ -80069,12 +80609,9 @@ func (m *OrderShippingDocumentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderShippingDocumentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m._order != nil {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
-	}
-	if m.containers != nil {
-		edges = append(edges, ordershippingdocument.EdgeContainers)
 	}
 	if m.release_pods != nil {
 		edges = append(edges, ordershippingdocument.EdgeReleasePods)
@@ -80090,12 +80627,6 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
-	case ordershippingdocument.EdgeContainers:
-		ids := make([]ent.Value, 0, len(m.containers))
-		for id := range m.containers {
-			ids = append(ids, id)
-		}
-		return ids
 	case ordershippingdocument.EdgeReleasePods:
 		ids := make([]ent.Value, 0, len(m.release_pods))
 		for id := range m.release_pods {
@@ -80108,10 +80639,7 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.removedcontainers != nil {
-		edges = append(edges, ordershippingdocument.EdgeContainers)
-	}
+	edges := make([]string, 0, 2)
 	if m.removedrelease_pods != nil {
 		edges = append(edges, ordershippingdocument.EdgeReleasePods)
 	}
@@ -80122,12 +80650,6 @@ func (m *OrderShippingDocumentMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case ordershippingdocument.EdgeContainers:
-		ids := make([]ent.Value, 0, len(m.removedcontainers))
-		for id := range m.removedcontainers {
-			ids = append(ids, id)
-		}
-		return ids
 	case ordershippingdocument.EdgeReleasePods:
 		ids := make([]ent.Value, 0, len(m.removedrelease_pods))
 		for id := range m.removedrelease_pods {
@@ -80140,12 +80662,9 @@ func (m *OrderShippingDocumentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderShippingDocumentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.cleared_order {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
-	}
-	if m.clearedcontainers {
-		edges = append(edges, ordershippingdocument.EdgeContainers)
 	}
 	if m.clearedrelease_pods {
 		edges = append(edges, ordershippingdocument.EdgeReleasePods)
@@ -80159,8 +80678,6 @@ func (m *OrderShippingDocumentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		return m.cleared_order
-	case ordershippingdocument.EdgeContainers:
-		return m.clearedcontainers
 	case ordershippingdocument.EdgeReleasePods:
 		return m.clearedrelease_pods
 	}
@@ -80184,9 +80701,6 @@ func (m *OrderShippingDocumentMutation) ResetEdge(name string) error {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		m.ResetOrder()
-		return nil
-	case ordershippingdocument.EdgeContainers:
-		m.ResetContainers()
 		return nil
 	case ordershippingdocument.EdgeReleasePods:
 		m.ResetReleasePods()
@@ -80278,6 +80792,15 @@ type OrganizationMutation struct {
 	issued_sea_house_bills                  map[uuid.UUID]struct{}
 	removedissued_sea_house_bills           map[uuid.UUID]struct{}
 	clearedissued_sea_house_bills           bool
+	order_cargo_items                       map[uuid.UUID]struct{}
+	removedorder_cargo_items                map[uuid.UUID]struct{}
+	clearedorder_cargo_items                bool
+	order_containers                        map[uuid.UUID]struct{}
+	removedorder_containers                 map[uuid.UUID]struct{}
+	clearedorder_containers                 bool
+	sea_cargo_allocations                   map[uuid.UUID]struct{}
+	removedsea_cargo_allocations            map[uuid.UUID]struct{}
+	clearedsea_cargo_allocations            bool
 	order_personnel                         map[uuid.UUID]struct{}
 	removedorder_personnel                  map[uuid.UUID]struct{}
 	clearedorder_personnel                  bool
@@ -82015,6 +82538,168 @@ func (m *OrganizationMutation) ResetIssuedSeaHouseBills() {
 	m.removedissued_sea_house_bills = nil
 }
 
+// AddOrderCargoItemIDs adds the "order_cargo_items" edge to the OrderCargoItem entity by ids.
+func (m *OrganizationMutation) AddOrderCargoItemIDs(ids ...uuid.UUID) {
+	if m.order_cargo_items == nil {
+		m.order_cargo_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_cargo_items[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderCargoItems clears the "order_cargo_items" edge to the OrderCargoItem entity.
+func (m *OrganizationMutation) ClearOrderCargoItems() {
+	m.clearedorder_cargo_items = true
+}
+
+// OrderCargoItemsCleared reports if the "order_cargo_items" edge to the OrderCargoItem entity was cleared.
+func (m *OrganizationMutation) OrderCargoItemsCleared() bool {
+	return m.clearedorder_cargo_items
+}
+
+// RemoveOrderCargoItemIDs removes the "order_cargo_items" edge to the OrderCargoItem entity by IDs.
+func (m *OrganizationMutation) RemoveOrderCargoItemIDs(ids ...uuid.UUID) {
+	if m.removedorder_cargo_items == nil {
+		m.removedorder_cargo_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_cargo_items, ids[i])
+		m.removedorder_cargo_items[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderCargoItems returns the removed IDs of the "order_cargo_items" edge to the OrderCargoItem entity.
+func (m *OrganizationMutation) RemovedOrderCargoItemsIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_cargo_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderCargoItemsIDs returns the "order_cargo_items" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderCargoItemsIDs() (ids []uuid.UUID) {
+	for id := range m.order_cargo_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderCargoItems resets all changes to the "order_cargo_items" edge.
+func (m *OrganizationMutation) ResetOrderCargoItems() {
+	m.order_cargo_items = nil
+	m.clearedorder_cargo_items = false
+	m.removedorder_cargo_items = nil
+}
+
+// AddOrderContainerIDs adds the "order_containers" edge to the OrderContainer entity by ids.
+func (m *OrganizationMutation) AddOrderContainerIDs(ids ...uuid.UUID) {
+	if m.order_containers == nil {
+		m.order_containers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_containers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderContainers clears the "order_containers" edge to the OrderContainer entity.
+func (m *OrganizationMutation) ClearOrderContainers() {
+	m.clearedorder_containers = true
+}
+
+// OrderContainersCleared reports if the "order_containers" edge to the OrderContainer entity was cleared.
+func (m *OrganizationMutation) OrderContainersCleared() bool {
+	return m.clearedorder_containers
+}
+
+// RemoveOrderContainerIDs removes the "order_containers" edge to the OrderContainer entity by IDs.
+func (m *OrganizationMutation) RemoveOrderContainerIDs(ids ...uuid.UUID) {
+	if m.removedorder_containers == nil {
+		m.removedorder_containers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_containers, ids[i])
+		m.removedorder_containers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderContainers returns the removed IDs of the "order_containers" edge to the OrderContainer entity.
+func (m *OrganizationMutation) RemovedOrderContainersIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_containers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderContainersIDs returns the "order_containers" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderContainersIDs() (ids []uuid.UUID) {
+	for id := range m.order_containers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderContainers resets all changes to the "order_containers" edge.
+func (m *OrganizationMutation) ResetOrderContainers() {
+	m.order_containers = nil
+	m.clearedorder_containers = false
+	m.removedorder_containers = nil
+}
+
+// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *OrganizationMutation) AddSeaCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.sea_cargo_allocations == nil {
+		m.sea_cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaCargoAllocations clears the "sea_cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrganizationMutation) ClearSeaCargoAllocations() {
+	m.clearedsea_cargo_allocations = true
+}
+
+// SeaCargoAllocationsCleared reports if the "sea_cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *OrganizationMutation) SeaCargoAllocationsCleared() bool {
+	return m.clearedsea_cargo_allocations
+}
+
+// RemoveSeaCargoAllocationIDs removes the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *OrganizationMutation) RemoveSeaCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedsea_cargo_allocations == nil {
+		m.removedsea_cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_cargo_allocations, ids[i])
+		m.removedsea_cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaCargoAllocations returns the removed IDs of the "sea_cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *OrganizationMutation) RemovedSeaCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaCargoAllocationsIDs returns the "sea_cargo_allocations" edge IDs in the mutation.
+func (m *OrganizationMutation) SeaCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaCargoAllocations resets all changes to the "sea_cargo_allocations" edge.
+func (m *OrganizationMutation) ResetSeaCargoAllocations() {
+	m.sea_cargo_allocations = nil
+	m.clearedsea_cargo_allocations = false
+	m.removedsea_cargo_allocations = nil
+}
+
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by ids.
 func (m *OrganizationMutation) AddOrderPersonnelIDs(ids ...uuid.UUID) {
 	if m.order_personnel == nil {
@@ -83433,7 +84118,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 44)
+	edges := make([]string, 0, 47)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -83502,6 +84187,15 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.issued_sea_house_bills != nil {
 		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
+	}
+	if m.order_cargo_items != nil {
+		edges = append(edges, organization.EdgeOrderCargoItems)
+	}
+	if m.order_containers != nil {
+		edges = append(edges, organization.EdgeOrderContainers)
+	}
+	if m.sea_cargo_allocations != nil {
+		edges = append(edges, organization.EdgeSeaCargoAllocations)
 	}
 	if m.order_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -83709,6 +84403,24 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderCargoItems:
+		ids := make([]ent.Value, 0, len(m.order_cargo_items))
+		for id := range m.order_cargo_items {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeOrderContainers:
+		ids := make([]ent.Value, 0, len(m.order_containers))
+		for id := range m.order_containers {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.sea_cargo_allocations))
+		for id := range m.sea_cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.order_personnel))
 		for id := range m.order_personnel {
@@ -83841,7 +84553,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 44)
+	edges := make([]string, 0, 47)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -83907,6 +84619,15 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedissued_sea_house_bills != nil {
 		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
+	}
+	if m.removedorder_cargo_items != nil {
+		edges = append(edges, organization.EdgeOrderCargoItems)
+	}
+	if m.removedorder_containers != nil {
+		edges = append(edges, organization.EdgeOrderContainers)
+	}
+	if m.removedsea_cargo_allocations != nil {
+		edges = append(edges, organization.EdgeSeaCargoAllocations)
 	}
 	if m.removedorder_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -84110,6 +84831,24 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderCargoItems:
+		ids := make([]ent.Value, 0, len(m.removedorder_cargo_items))
+		for id := range m.removedorder_cargo_items {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeOrderContainers:
+		ids := make([]ent.Value, 0, len(m.removedorder_containers))
+		for id := range m.removedorder_containers {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedsea_cargo_allocations))
+		for id := range m.removedsea_cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.removedorder_personnel))
 		for id := range m.removedorder_personnel {
@@ -84242,7 +84981,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 44)
+	edges := make([]string, 0, 47)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -84311,6 +85050,15 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedissued_sea_house_bills {
 		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
+	}
+	if m.clearedorder_cargo_items {
+		edges = append(edges, organization.EdgeOrderCargoItems)
+	}
+	if m.clearedorder_containers {
+		edges = append(edges, organization.EdgeOrderContainers)
+	}
+	if m.clearedsea_cargo_allocations {
+		edges = append(edges, organization.EdgeSeaCargoAllocations)
 	}
 	if m.clearedorder_personnel {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -84428,6 +85176,12 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_house_bills
 	case organization.EdgeIssuedSeaHouseBills:
 		return m.clearedissued_sea_house_bills
+	case organization.EdgeOrderCargoItems:
+		return m.clearedorder_cargo_items
+	case organization.EdgeOrderContainers:
+		return m.clearedorder_containers
+	case organization.EdgeSeaCargoAllocations:
+		return m.clearedsea_cargo_allocations
 	case organization.EdgeOrderPersonnel:
 		return m.clearedorder_personnel
 	case organization.EdgeBackgroundTasks:
@@ -84557,6 +85311,15 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeIssuedSeaHouseBills:
 		m.ResetIssuedSeaHouseBills()
+		return nil
+	case organization.EdgeOrderCargoItems:
+		m.ResetOrderCargoItems()
+		return nil
+	case organization.EdgeOrderContainers:
+		m.ResetOrderContainers()
+		return nil
+	case organization.EdgeSeaCargoAllocations:
+		m.ResetSeaCargoAllocations()
 		return nil
 	case organization.EdgeOrderPersonnel:
 		m.ResetOrderPersonnel()
@@ -101346,6 +102109,1233 @@ func (m *RoleOrderOrganizationAccessMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown RoleOrderOrganizationAccess edge %s", name)
 }
 
+// SeaCargoAllocationMutation represents an operation that mutates the SeaCargoAllocation nodes in the graph.
+type SeaCargoAllocationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	package_count       *int
+	addpackage_count    *int
+	gross_weight_kg     *string
+	volume_cbm          *string
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	_order              *uuid.UUID
+	cleared_order       bool
+	order_link          *uuid.UUID
+	clearedorder_link   bool
+	cargo_item          *uuid.UUID
+	clearedcargo_item   bool
+	house_bill          *uuid.UUID
+	clearedhouse_bill   bool
+	container           *uuid.UUID
+	clearedcontainer    bool
+	done                bool
+	oldValue            func(context.Context) (*SeaCargoAllocation, error)
+	predicates          []predicate.SeaCargoAllocation
+}
+
+var _ ent.Mutation = (*SeaCargoAllocationMutation)(nil)
+
+// seacargoallocationOption allows management of the mutation configuration using functional options.
+type seacargoallocationOption func(*SeaCargoAllocationMutation)
+
+// newSeaCargoAllocationMutation creates new mutation for the SeaCargoAllocation entity.
+func newSeaCargoAllocationMutation(c config, op Op, opts ...seacargoallocationOption) *SeaCargoAllocationMutation {
+	m := &SeaCargoAllocationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSeaCargoAllocation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSeaCargoAllocationID sets the ID field of the mutation.
+func withSeaCargoAllocationID(id uuid.UUID) seacargoallocationOption {
+	return func(m *SeaCargoAllocationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SeaCargoAllocation
+		)
+		m.oldValue = func(ctx context.Context) (*SeaCargoAllocation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SeaCargoAllocation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSeaCargoAllocation sets the old SeaCargoAllocation of the mutation.
+func withSeaCargoAllocation(node *SeaCargoAllocation) seacargoallocationOption {
+	return func(m *SeaCargoAllocationMutation) {
+		m.oldValue = func(context.Context) (*SeaCargoAllocation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SeaCargoAllocationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SeaCargoAllocationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SeaCargoAllocation entities.
+func (m *SeaCargoAllocationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SeaCargoAllocationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SeaCargoAllocationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SeaCargoAllocation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SeaCargoAllocationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SeaCargoAllocationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SeaCargoAllocationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SeaCargoAllocationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SeaCargoAllocationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SeaCargoAllocationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *SeaCargoAllocationMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *SeaCargoAllocationMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *SeaCargoAllocationMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *SeaCargoAllocationMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetMasterBillOrderLinkID sets the "master_bill_order_link_id" field.
+func (m *SeaCargoAllocationMutation) SetMasterBillOrderLinkID(u uuid.UUID) {
+	m.order_link = &u
+}
+
+// MasterBillOrderLinkID returns the value of the "master_bill_order_link_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) MasterBillOrderLinkID() (r uuid.UUID, exists bool) {
+	v := m.order_link
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterBillOrderLinkID returns the old "master_bill_order_link_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldMasterBillOrderLinkID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterBillOrderLinkID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterBillOrderLinkID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterBillOrderLinkID: %w", err)
+	}
+	return oldValue.MasterBillOrderLinkID, nil
+}
+
+// ResetMasterBillOrderLinkID resets all changes to the "master_bill_order_link_id" field.
+func (m *SeaCargoAllocationMutation) ResetMasterBillOrderLinkID() {
+	m.order_link = nil
+}
+
+// SetCargoItemID sets the "cargo_item_id" field.
+func (m *SeaCargoAllocationMutation) SetCargoItemID(u uuid.UUID) {
+	m.cargo_item = &u
+}
+
+// CargoItemID returns the value of the "cargo_item_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) CargoItemID() (r uuid.UUID, exists bool) {
+	v := m.cargo_item
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoItemID returns the old "cargo_item_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldCargoItemID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoItemID: %w", err)
+	}
+	return oldValue.CargoItemID, nil
+}
+
+// ResetCargoItemID resets all changes to the "cargo_item_id" field.
+func (m *SeaCargoAllocationMutation) ResetCargoItemID() {
+	m.cargo_item = nil
+}
+
+// SetHouseBillID sets the "house_bill_id" field.
+func (m *SeaCargoAllocationMutation) SetHouseBillID(u uuid.UUID) {
+	m.house_bill = &u
+}
+
+// HouseBillID returns the value of the "house_bill_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) HouseBillID() (r uuid.UUID, exists bool) {
+	v := m.house_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHouseBillID returns the old "house_bill_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldHouseBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHouseBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHouseBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHouseBillID: %w", err)
+	}
+	return oldValue.HouseBillID, nil
+}
+
+// ResetHouseBillID resets all changes to the "house_bill_id" field.
+func (m *SeaCargoAllocationMutation) ResetHouseBillID() {
+	m.house_bill = nil
+}
+
+// SetContainerID sets the "container_id" field.
+func (m *SeaCargoAllocationMutation) SetContainerID(u uuid.UUID) {
+	m.container = &u
+}
+
+// ContainerID returns the value of the "container_id" field in the mutation.
+func (m *SeaCargoAllocationMutation) ContainerID() (r uuid.UUID, exists bool) {
+	v := m.container
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerID returns the old "container_id" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldContainerID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerID: %w", err)
+	}
+	return oldValue.ContainerID, nil
+}
+
+// ClearContainerID clears the value of the "container_id" field.
+func (m *SeaCargoAllocationMutation) ClearContainerID() {
+	m.container = nil
+	m.clearedFields[seacargoallocation.FieldContainerID] = struct{}{}
+}
+
+// ContainerIDCleared returns if the "container_id" field was cleared in this mutation.
+func (m *SeaCargoAllocationMutation) ContainerIDCleared() bool {
+	_, ok := m.clearedFields[seacargoallocation.FieldContainerID]
+	return ok
+}
+
+// ResetContainerID resets all changes to the "container_id" field.
+func (m *SeaCargoAllocationMutation) ResetContainerID() {
+	m.container = nil
+	delete(m.clearedFields, seacargoallocation.FieldContainerID)
+}
+
+// SetPackageCount sets the "package_count" field.
+func (m *SeaCargoAllocationMutation) SetPackageCount(i int) {
+	m.package_count = &i
+	m.addpackage_count = nil
+}
+
+// PackageCount returns the value of the "package_count" field in the mutation.
+func (m *SeaCargoAllocationMutation) PackageCount() (r int, exists bool) {
+	v := m.package_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageCount returns the old "package_count" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldPackageCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageCount: %w", err)
+	}
+	return oldValue.PackageCount, nil
+}
+
+// AddPackageCount adds i to the "package_count" field.
+func (m *SeaCargoAllocationMutation) AddPackageCount(i int) {
+	if m.addpackage_count != nil {
+		*m.addpackage_count += i
+	} else {
+		m.addpackage_count = &i
+	}
+}
+
+// AddedPackageCount returns the value that was added to the "package_count" field in this mutation.
+func (m *SeaCargoAllocationMutation) AddedPackageCount() (r int, exists bool) {
+	v := m.addpackage_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPackageCount resets all changes to the "package_count" field.
+func (m *SeaCargoAllocationMutation) ResetPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (m *SeaCargoAllocationMutation) SetGrossWeightKg(s string) {
+	m.gross_weight_kg = &s
+}
+
+// GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
+func (m *SeaCargoAllocationMutation) GrossWeightKg() (r string, exists bool) {
+	v := m.gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGrossWeightKg returns the old "gross_weight_kg" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldGrossWeightKg(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGrossWeightKg: %w", err)
+	}
+	return oldValue.GrossWeightKg, nil
+}
+
+// ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
+func (m *SeaCargoAllocationMutation) ResetGrossWeightKg() {
+	m.gross_weight_kg = nil
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (m *SeaCargoAllocationMutation) SetVolumeCbm(s string) {
+	m.volume_cbm = &s
+}
+
+// VolumeCbm returns the value of the "volume_cbm" field in the mutation.
+func (m *SeaCargoAllocationMutation) VolumeCbm() (r string, exists bool) {
+	v := m.volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVolumeCbm returns the old "volume_cbm" field's value of the SeaCargoAllocation entity.
+// If the SeaCargoAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaCargoAllocationMutation) OldVolumeCbm(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVolumeCbm: %w", err)
+	}
+	return oldValue.VolumeCbm, nil
+}
+
+// ResetVolumeCbm resets all changes to the "volume_cbm" field.
+func (m *SeaCargoAllocationMutation) ResetVolumeCbm() {
+	m.volume_cbm = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *SeaCargoAllocationMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[seacargoallocation.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *SeaCargoAllocationMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *SeaCargoAllocationMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *SeaCargoAllocationMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[seacargoallocation.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *SeaCargoAllocationMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *SeaCargoAllocationMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// SetOrderLinkID sets the "order_link" edge to the SeaMasterBillOrderLink entity by id.
+func (m *SeaCargoAllocationMutation) SetOrderLinkID(id uuid.UUID) {
+	m.order_link = &id
+}
+
+// ClearOrderLink clears the "order_link" edge to the SeaMasterBillOrderLink entity.
+func (m *SeaCargoAllocationMutation) ClearOrderLink() {
+	m.clearedorder_link = true
+	m.clearedFields[seacargoallocation.FieldMasterBillOrderLinkID] = struct{}{}
+}
+
+// OrderLinkCleared reports if the "order_link" edge to the SeaMasterBillOrderLink entity was cleared.
+func (m *SeaCargoAllocationMutation) OrderLinkCleared() bool {
+	return m.clearedorder_link
+}
+
+// OrderLinkID returns the "order_link" edge ID in the mutation.
+func (m *SeaCargoAllocationMutation) OrderLinkID() (id uuid.UUID, exists bool) {
+	if m.order_link != nil {
+		return *m.order_link, true
+	}
+	return
+}
+
+// OrderLinkIDs returns the "order_link" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderLinkID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) OrderLinkIDs() (ids []uuid.UUID) {
+	if id := m.order_link; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrderLink resets all changes to the "order_link" edge.
+func (m *SeaCargoAllocationMutation) ResetOrderLink() {
+	m.order_link = nil
+	m.clearedorder_link = false
+}
+
+// ClearCargoItem clears the "cargo_item" edge to the OrderCargoItem entity.
+func (m *SeaCargoAllocationMutation) ClearCargoItem() {
+	m.clearedcargo_item = true
+	m.clearedFields[seacargoallocation.FieldCargoItemID] = struct{}{}
+}
+
+// CargoItemCleared reports if the "cargo_item" edge to the OrderCargoItem entity was cleared.
+func (m *SeaCargoAllocationMutation) CargoItemCleared() bool {
+	return m.clearedcargo_item
+}
+
+// CargoItemIDs returns the "cargo_item" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CargoItemID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) CargoItemIDs() (ids []uuid.UUID) {
+	if id := m.cargo_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCargoItem resets all changes to the "cargo_item" edge.
+func (m *SeaCargoAllocationMutation) ResetCargoItem() {
+	m.cargo_item = nil
+	m.clearedcargo_item = false
+}
+
+// ClearHouseBill clears the "house_bill" edge to the SeaHouseBill entity.
+func (m *SeaCargoAllocationMutation) ClearHouseBill() {
+	m.clearedhouse_bill = true
+	m.clearedFields[seacargoallocation.FieldHouseBillID] = struct{}{}
+}
+
+// HouseBillCleared reports if the "house_bill" edge to the SeaHouseBill entity was cleared.
+func (m *SeaCargoAllocationMutation) HouseBillCleared() bool {
+	return m.clearedhouse_bill
+}
+
+// HouseBillIDs returns the "house_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// HouseBillID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) HouseBillIDs() (ids []uuid.UUID) {
+	if id := m.house_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetHouseBill resets all changes to the "house_bill" edge.
+func (m *SeaCargoAllocationMutation) ResetHouseBill() {
+	m.house_bill = nil
+	m.clearedhouse_bill = false
+}
+
+// ClearContainer clears the "container" edge to the OrderContainer entity.
+func (m *SeaCargoAllocationMutation) ClearContainer() {
+	m.clearedcontainer = true
+	m.clearedFields[seacargoallocation.FieldContainerID] = struct{}{}
+}
+
+// ContainerCleared reports if the "container" edge to the OrderContainer entity was cleared.
+func (m *SeaCargoAllocationMutation) ContainerCleared() bool {
+	return m.ContainerIDCleared() || m.clearedcontainer
+}
+
+// ContainerIDs returns the "container" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ContainerID instead. It exists only for internal usage by the builders.
+func (m *SeaCargoAllocationMutation) ContainerIDs() (ids []uuid.UUID) {
+	if id := m.container; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetContainer resets all changes to the "container" edge.
+func (m *SeaCargoAllocationMutation) ResetContainer() {
+	m.container = nil
+	m.clearedcontainer = false
+}
+
+// Where appends a list predicates to the SeaCargoAllocationMutation builder.
+func (m *SeaCargoAllocationMutation) Where(ps ...predicate.SeaCargoAllocation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SeaCargoAllocationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SeaCargoAllocationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SeaCargoAllocation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SeaCargoAllocationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SeaCargoAllocationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SeaCargoAllocation).
+func (m *SeaCargoAllocationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SeaCargoAllocationMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, seacargoallocation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, seacargoallocation.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, seacargoallocation.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, seacargoallocation.FieldOrderID)
+	}
+	if m.order_link != nil {
+		fields = append(fields, seacargoallocation.FieldMasterBillOrderLinkID)
+	}
+	if m.cargo_item != nil {
+		fields = append(fields, seacargoallocation.FieldCargoItemID)
+	}
+	if m.house_bill != nil {
+		fields = append(fields, seacargoallocation.FieldHouseBillID)
+	}
+	if m.container != nil {
+		fields = append(fields, seacargoallocation.FieldContainerID)
+	}
+	if m.package_count != nil {
+		fields = append(fields, seacargoallocation.FieldPackageCount)
+	}
+	if m.gross_weight_kg != nil {
+		fields = append(fields, seacargoallocation.FieldGrossWeightKg)
+	}
+	if m.volume_cbm != nil {
+		fields = append(fields, seacargoallocation.FieldVolumeCbm)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SeaCargoAllocationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case seacargoallocation.FieldCreatedAt:
+		return m.CreatedAt()
+	case seacargoallocation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case seacargoallocation.FieldOrganizationID:
+		return m.OrganizationID()
+	case seacargoallocation.FieldOrderID:
+		return m.OrderID()
+	case seacargoallocation.FieldMasterBillOrderLinkID:
+		return m.MasterBillOrderLinkID()
+	case seacargoallocation.FieldCargoItemID:
+		return m.CargoItemID()
+	case seacargoallocation.FieldHouseBillID:
+		return m.HouseBillID()
+	case seacargoallocation.FieldContainerID:
+		return m.ContainerID()
+	case seacargoallocation.FieldPackageCount:
+		return m.PackageCount()
+	case seacargoallocation.FieldGrossWeightKg:
+		return m.GrossWeightKg()
+	case seacargoallocation.FieldVolumeCbm:
+		return m.VolumeCbm()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SeaCargoAllocationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case seacargoallocation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case seacargoallocation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case seacargoallocation.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case seacargoallocation.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case seacargoallocation.FieldMasterBillOrderLinkID:
+		return m.OldMasterBillOrderLinkID(ctx)
+	case seacargoallocation.FieldCargoItemID:
+		return m.OldCargoItemID(ctx)
+	case seacargoallocation.FieldHouseBillID:
+		return m.OldHouseBillID(ctx)
+	case seacargoallocation.FieldContainerID:
+		return m.OldContainerID(ctx)
+	case seacargoallocation.FieldPackageCount:
+		return m.OldPackageCount(ctx)
+	case seacargoallocation.FieldGrossWeightKg:
+		return m.OldGrossWeightKg(ctx)
+	case seacargoallocation.FieldVolumeCbm:
+		return m.OldVolumeCbm(ctx)
+	}
+	return nil, fmt.Errorf("unknown SeaCargoAllocation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaCargoAllocationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case seacargoallocation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case seacargoallocation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case seacargoallocation.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case seacargoallocation.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case seacargoallocation.FieldMasterBillOrderLinkID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterBillOrderLinkID(v)
+		return nil
+	case seacargoallocation.FieldCargoItemID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoItemID(v)
+		return nil
+	case seacargoallocation.FieldHouseBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHouseBillID(v)
+		return nil
+	case seacargoallocation.FieldContainerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerID(v)
+		return nil
+	case seacargoallocation.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageCount(v)
+		return nil
+	case seacargoallocation.FieldGrossWeightKg:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGrossWeightKg(v)
+		return nil
+	case seacargoallocation.FieldVolumeCbm:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVolumeCbm(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SeaCargoAllocationMutation) AddedFields() []string {
+	var fields []string
+	if m.addpackage_count != nil {
+		fields = append(fields, seacargoallocation.FieldPackageCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SeaCargoAllocationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seacargoallocation.FieldPackageCount:
+		return m.AddedPackageCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaCargoAllocationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case seacargoallocation.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPackageCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SeaCargoAllocationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(seacargoallocation.FieldContainerID) {
+		fields = append(fields, seacargoallocation.FieldContainerID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SeaCargoAllocationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SeaCargoAllocationMutation) ClearField(name string) error {
+	switch name {
+	case seacargoallocation.FieldContainerID:
+		m.ClearContainerID()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SeaCargoAllocationMutation) ResetField(name string) error {
+	switch name {
+	case seacargoallocation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case seacargoallocation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case seacargoallocation.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case seacargoallocation.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case seacargoallocation.FieldMasterBillOrderLinkID:
+		m.ResetMasterBillOrderLinkID()
+		return nil
+	case seacargoallocation.FieldCargoItemID:
+		m.ResetCargoItemID()
+		return nil
+	case seacargoallocation.FieldHouseBillID:
+		m.ResetHouseBillID()
+		return nil
+	case seacargoallocation.FieldContainerID:
+		m.ResetContainerID()
+		return nil
+	case seacargoallocation.FieldPackageCount:
+		m.ResetPackageCount()
+		return nil
+	case seacargoallocation.FieldGrossWeightKg:
+		m.ResetGrossWeightKg()
+		return nil
+	case seacargoallocation.FieldVolumeCbm:
+		m.ResetVolumeCbm()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SeaCargoAllocationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.organization != nil {
+		edges = append(edges, seacargoallocation.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, seacargoallocation.EdgeOrder)
+	}
+	if m.order_link != nil {
+		edges = append(edges, seacargoallocation.EdgeOrderLink)
+	}
+	if m.cargo_item != nil {
+		edges = append(edges, seacargoallocation.EdgeCargoItem)
+	}
+	if m.house_bill != nil {
+		edges = append(edges, seacargoallocation.EdgeHouseBill)
+	}
+	if m.container != nil {
+		edges = append(edges, seacargoallocation.EdgeContainer)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SeaCargoAllocationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seacargoallocation.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seacargoallocation.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case seacargoallocation.EdgeOrderLink:
+		if id := m.order_link; id != nil {
+			return []ent.Value{*id}
+		}
+	case seacargoallocation.EdgeCargoItem:
+		if id := m.cargo_item; id != nil {
+			return []ent.Value{*id}
+		}
+	case seacargoallocation.EdgeHouseBill:
+		if id := m.house_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seacargoallocation.EdgeContainer:
+		if id := m.container; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SeaCargoAllocationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SeaCargoAllocationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SeaCargoAllocationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.clearedorganization {
+		edges = append(edges, seacargoallocation.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, seacargoallocation.EdgeOrder)
+	}
+	if m.clearedorder_link {
+		edges = append(edges, seacargoallocation.EdgeOrderLink)
+	}
+	if m.clearedcargo_item {
+		edges = append(edges, seacargoallocation.EdgeCargoItem)
+	}
+	if m.clearedhouse_bill {
+		edges = append(edges, seacargoallocation.EdgeHouseBill)
+	}
+	if m.clearedcontainer {
+		edges = append(edges, seacargoallocation.EdgeContainer)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SeaCargoAllocationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seacargoallocation.EdgeOrganization:
+		return m.clearedorganization
+	case seacargoallocation.EdgeOrder:
+		return m.cleared_order
+	case seacargoallocation.EdgeOrderLink:
+		return m.clearedorder_link
+	case seacargoallocation.EdgeCargoItem:
+		return m.clearedcargo_item
+	case seacargoallocation.EdgeHouseBill:
+		return m.clearedhouse_bill
+	case seacargoallocation.EdgeContainer:
+		return m.clearedcontainer
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SeaCargoAllocationMutation) ClearEdge(name string) error {
+	switch name {
+	case seacargoallocation.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case seacargoallocation.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case seacargoallocation.EdgeOrderLink:
+		m.ClearOrderLink()
+		return nil
+	case seacargoallocation.EdgeCargoItem:
+		m.ClearCargoItem()
+		return nil
+	case seacargoallocation.EdgeHouseBill:
+		m.ClearHouseBill()
+		return nil
+	case seacargoallocation.EdgeContainer:
+		m.ClearContainer()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SeaCargoAllocationMutation) ResetEdge(name string) error {
+	switch name {
+	case seacargoallocation.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case seacargoallocation.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case seacargoallocation.EdgeOrderLink:
+		m.ResetOrderLink()
+		return nil
+	case seacargoallocation.EdgeCargoItem:
+		m.ResetCargoItem()
+		return nil
+	case seacargoallocation.EdgeHouseBill:
+		m.ResetHouseBill()
+		return nil
+	case seacargoallocation.EdgeContainer:
+		m.ResetContainer()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaCargoAllocation edge %s", name)
+}
+
 // SeaHouseBillMutation represents an operation that mutates the SeaHouseBill nodes in the graph.
 type SeaHouseBillMutation struct {
 	config
@@ -101390,6 +103380,9 @@ type SeaHouseBillMutation struct {
 	clearedissuer_organization bool
 	issuer_partner             *uuid.UUID
 	clearedissuer_partner      bool
+	cargo_allocations          map[uuid.UUID]struct{}
+	removedcargo_allocations   map[uuid.UUID]struct{}
+	clearedcargo_allocations   bool
 	done                       bool
 	oldValue                   func(context.Context) (*SeaHouseBill, error)
 	predicates                 []predicate.SeaHouseBill
@@ -102959,6 +104952,60 @@ func (m *SeaHouseBillMutation) ResetIssuerPartner() {
 	m.clearedissuer_partner = false
 }
 
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *SeaHouseBillMutation) AddCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.cargo_allocations == nil {
+		m.cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCargoAllocations clears the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *SeaHouseBillMutation) ClearCargoAllocations() {
+	m.clearedcargo_allocations = true
+}
+
+// CargoAllocationsCleared reports if the "cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *SeaHouseBillMutation) CargoAllocationsCleared() bool {
+	return m.clearedcargo_allocations
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *SeaHouseBillMutation) RemoveCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedcargo_allocations == nil {
+		m.removedcargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cargo_allocations, ids[i])
+		m.removedcargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCargoAllocations returns the removed IDs of the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *SeaHouseBillMutation) RemovedCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CargoAllocationsIDs returns the "cargo_allocations" edge IDs in the mutation.
+func (m *SeaHouseBillMutation) CargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCargoAllocations resets all changes to the "cargo_allocations" edge.
+func (m *SeaHouseBillMutation) ResetCargoAllocations() {
+	m.cargo_allocations = nil
+	m.clearedcargo_allocations = false
+	m.removedcargo_allocations = nil
+}
+
 // Where appends a list predicates to the SeaHouseBillMutation builder.
 func (m *SeaHouseBillMutation) Where(ps ...predicate.SeaHouseBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -103713,7 +105760,7 @@ func (m *SeaHouseBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaHouseBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.organization != nil {
 		edges = append(edges, seahousebill.EdgeOrganization)
 	}
@@ -103728,6 +105775,9 @@ func (m *SeaHouseBillMutation) AddedEdges() []string {
 	}
 	if m.issuer_partner != nil {
 		edges = append(edges, seahousebill.EdgeIssuerPartner)
+	}
+	if m.cargo_allocations != nil {
+		edges = append(edges, seahousebill.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -103756,25 +105806,42 @@ func (m *SeaHouseBillMutation) AddedIDs(name string) []ent.Value {
 		if id := m.issuer_partner; id != nil {
 			return []ent.Value{*id}
 		}
+	case seahousebill.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.cargo_allocations))
+		for id := range m.cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaHouseBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
+	if m.removedcargo_allocations != nil {
+		edges = append(edges, seahousebill.EdgeCargoAllocations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SeaHouseBillMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case seahousebill.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedcargo_allocations))
+		for id := range m.removedcargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaHouseBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedorganization {
 		edges = append(edges, seahousebill.EdgeOrganization)
 	}
@@ -103789,6 +105856,9 @@ func (m *SeaHouseBillMutation) ClearedEdges() []string {
 	}
 	if m.clearedissuer_partner {
 		edges = append(edges, seahousebill.EdgeIssuerPartner)
+	}
+	if m.clearedcargo_allocations {
+		edges = append(edges, seahousebill.EdgeCargoAllocations)
 	}
 	return edges
 }
@@ -103807,6 +105877,8 @@ func (m *SeaHouseBillMutation) EdgeCleared(name string) bool {
 		return m.clearedissuer_organization
 	case seahousebill.EdgeIssuerPartner:
 		return m.clearedissuer_partner
+	case seahousebill.EdgeCargoAllocations:
+		return m.clearedcargo_allocations
 	}
 	return false
 }
@@ -103852,6 +105924,9 @@ func (m *SeaHouseBillMutation) ResetEdge(name string) error {
 		return nil
 	case seahousebill.EdgeIssuerPartner:
 		m.ResetIssuerPartner()
+		return nil
+	case seahousebill.EdgeCargoAllocations:
+		m.ResetCargoAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBill edge %s", name)
@@ -106128,28 +108203,37 @@ func (m *SeaMasterBillMutation) ResetEdge(name string) error {
 // SeaMasterBillOrderLinkMutation represents an operation that mutates the SeaMasterBillOrderLink nodes in the graph.
 type SeaMasterBillOrderLinkMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	status              *seamasterbillorderlink.Status
-	document_structure  *seamasterbillorderlink.DocumentStructure
-	started_at          *time.Time
-	ended_at            *time.Time
-	ended_reason        *string
-	version             *uint64
-	addversion          *int64
-	clearedFields       map[string]struct{}
-	organization        *uuid.UUID
-	clearedorganization bool
-	master_bill         *uuid.UUID
-	clearedmaster_bill  bool
-	_order              *uuid.UUID
-	cleared_order       bool
-	done                bool
-	oldValue            func(context.Context) (*SeaMasterBillOrderLink, error)
-	predicates          []predicate.SeaMasterBillOrderLink
+	op                                        Op
+	typ                                       string
+	id                                        *uuid.UUID
+	created_at                                *time.Time
+	updated_at                                *time.Time
+	status                                    *seamasterbillorderlink.Status
+	document_structure                        *seamasterbillorderlink.DocumentStructure
+	started_at                                *time.Time
+	ended_at                                  *time.Time
+	ended_reason                              *string
+	version                                   *uint64
+	addversion                                *int64
+	cargo_allocation_status                   *seamasterbillorderlink.CargoAllocationStatus
+	cargo_allocation_version                  *uint64
+	addcargo_allocation_version               *int64
+	cargo_allocation_confirmed_at             *time.Time
+	clearedFields                             map[string]struct{}
+	organization                              *uuid.UUID
+	clearedorganization                       bool
+	master_bill                               *uuid.UUID
+	clearedmaster_bill                        bool
+	_order                                    *uuid.UUID
+	cleared_order                             bool
+	cargo_allocations                         map[uuid.UUID]struct{}
+	removedcargo_allocations                  map[uuid.UUID]struct{}
+	clearedcargo_allocations                  bool
+	cargo_allocation_confirmed_by_user        *uuid.UUID
+	clearedcargo_allocation_confirmed_by_user bool
+	done                                      bool
+	oldValue                                  func(context.Context) (*SeaMasterBillOrderLink, error)
+	predicates                                []predicate.SeaMasterBillOrderLink
 }
 
 var _ ent.Mutation = (*SeaMasterBillOrderLinkMutation)(nil)
@@ -106698,6 +108782,196 @@ func (m *SeaMasterBillOrderLinkMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetCargoAllocationStatus sets the "cargo_allocation_status" field.
+func (m *SeaMasterBillOrderLinkMutation) SetCargoAllocationStatus(sas seamasterbillorderlink.CargoAllocationStatus) {
+	m.cargo_allocation_status = &sas
+}
+
+// CargoAllocationStatus returns the value of the "cargo_allocation_status" field in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationStatus() (r seamasterbillorderlink.CargoAllocationStatus, exists bool) {
+	v := m.cargo_allocation_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoAllocationStatus returns the old "cargo_allocation_status" field's value of the SeaMasterBillOrderLink entity.
+// If the SeaMasterBillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillOrderLinkMutation) OldCargoAllocationStatus(ctx context.Context) (v seamasterbillorderlink.CargoAllocationStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoAllocationStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoAllocationStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoAllocationStatus: %w", err)
+	}
+	return oldValue.CargoAllocationStatus, nil
+}
+
+// ResetCargoAllocationStatus resets all changes to the "cargo_allocation_status" field.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocationStatus() {
+	m.cargo_allocation_status = nil
+}
+
+// SetCargoAllocationVersion sets the "cargo_allocation_version" field.
+func (m *SeaMasterBillOrderLinkMutation) SetCargoAllocationVersion(u uint64) {
+	m.cargo_allocation_version = &u
+	m.addcargo_allocation_version = nil
+}
+
+// CargoAllocationVersion returns the value of the "cargo_allocation_version" field in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationVersion() (r uint64, exists bool) {
+	v := m.cargo_allocation_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoAllocationVersion returns the old "cargo_allocation_version" field's value of the SeaMasterBillOrderLink entity.
+// If the SeaMasterBillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillOrderLinkMutation) OldCargoAllocationVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoAllocationVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoAllocationVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoAllocationVersion: %w", err)
+	}
+	return oldValue.CargoAllocationVersion, nil
+}
+
+// AddCargoAllocationVersion adds u to the "cargo_allocation_version" field.
+func (m *SeaMasterBillOrderLinkMutation) AddCargoAllocationVersion(u int64) {
+	if m.addcargo_allocation_version != nil {
+		*m.addcargo_allocation_version += u
+	} else {
+		m.addcargo_allocation_version = &u
+	}
+}
+
+// AddedCargoAllocationVersion returns the value that was added to the "cargo_allocation_version" field in this mutation.
+func (m *SeaMasterBillOrderLinkMutation) AddedCargoAllocationVersion() (r int64, exists bool) {
+	v := m.addcargo_allocation_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCargoAllocationVersion resets all changes to the "cargo_allocation_version" field.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocationVersion() {
+	m.cargo_allocation_version = nil
+	m.addcargo_allocation_version = nil
+}
+
+// SetCargoAllocationConfirmedAt sets the "cargo_allocation_confirmed_at" field.
+func (m *SeaMasterBillOrderLinkMutation) SetCargoAllocationConfirmedAt(t time.Time) {
+	m.cargo_allocation_confirmed_at = &t
+}
+
+// CargoAllocationConfirmedAt returns the value of the "cargo_allocation_confirmed_at" field in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedAt() (r time.Time, exists bool) {
+	v := m.cargo_allocation_confirmed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoAllocationConfirmedAt returns the old "cargo_allocation_confirmed_at" field's value of the SeaMasterBillOrderLink entity.
+// If the SeaMasterBillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillOrderLinkMutation) OldCargoAllocationConfirmedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoAllocationConfirmedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoAllocationConfirmedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoAllocationConfirmedAt: %w", err)
+	}
+	return oldValue.CargoAllocationConfirmedAt, nil
+}
+
+// ClearCargoAllocationConfirmedAt clears the value of the "cargo_allocation_confirmed_at" field.
+func (m *SeaMasterBillOrderLinkMutation) ClearCargoAllocationConfirmedAt() {
+	m.cargo_allocation_confirmed_at = nil
+	m.clearedFields[seamasterbillorderlink.FieldCargoAllocationConfirmedAt] = struct{}{}
+}
+
+// CargoAllocationConfirmedAtCleared returns if the "cargo_allocation_confirmed_at" field was cleared in this mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedAtCleared() bool {
+	_, ok := m.clearedFields[seamasterbillorderlink.FieldCargoAllocationConfirmedAt]
+	return ok
+}
+
+// ResetCargoAllocationConfirmedAt resets all changes to the "cargo_allocation_confirmed_at" field.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocationConfirmedAt() {
+	m.cargo_allocation_confirmed_at = nil
+	delete(m.clearedFields, seamasterbillorderlink.FieldCargoAllocationConfirmedAt)
+}
+
+// SetCargoAllocationConfirmedBy sets the "cargo_allocation_confirmed_by" field.
+func (m *SeaMasterBillOrderLinkMutation) SetCargoAllocationConfirmedBy(u uuid.UUID) {
+	m.cargo_allocation_confirmed_by_user = &u
+}
+
+// CargoAllocationConfirmedBy returns the value of the "cargo_allocation_confirmed_by" field in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedBy() (r uuid.UUID, exists bool) {
+	v := m.cargo_allocation_confirmed_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoAllocationConfirmedBy returns the old "cargo_allocation_confirmed_by" field's value of the SeaMasterBillOrderLink entity.
+// If the SeaMasterBillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillOrderLinkMutation) OldCargoAllocationConfirmedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoAllocationConfirmedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoAllocationConfirmedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoAllocationConfirmedBy: %w", err)
+	}
+	return oldValue.CargoAllocationConfirmedBy, nil
+}
+
+// ClearCargoAllocationConfirmedBy clears the value of the "cargo_allocation_confirmed_by" field.
+func (m *SeaMasterBillOrderLinkMutation) ClearCargoAllocationConfirmedBy() {
+	m.cargo_allocation_confirmed_by_user = nil
+	m.clearedFields[seamasterbillorderlink.FieldCargoAllocationConfirmedBy] = struct{}{}
+}
+
+// CargoAllocationConfirmedByCleared returns if the "cargo_allocation_confirmed_by" field was cleared in this mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedByCleared() bool {
+	_, ok := m.clearedFields[seamasterbillorderlink.FieldCargoAllocationConfirmedBy]
+	return ok
+}
+
+// ResetCargoAllocationConfirmedBy resets all changes to the "cargo_allocation_confirmed_by" field.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocationConfirmedBy() {
+	m.cargo_allocation_confirmed_by_user = nil
+	delete(m.clearedFields, seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaMasterBillOrderLinkMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -106779,6 +109053,100 @@ func (m *SeaMasterBillOrderLinkMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
+// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by ids.
+func (m *SeaMasterBillOrderLinkMutation) AddCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.cargo_allocations == nil {
+		m.cargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCargoAllocations clears the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *SeaMasterBillOrderLinkMutation) ClearCargoAllocations() {
+	m.clearedcargo_allocations = true
+}
+
+// CargoAllocationsCleared reports if the "cargo_allocations" edge to the SeaCargoAllocation entity was cleared.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationsCleared() bool {
+	return m.clearedcargo_allocations
+}
+
+// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
+func (m *SeaMasterBillOrderLinkMutation) RemoveCargoAllocationIDs(ids ...uuid.UUID) {
+	if m.removedcargo_allocations == nil {
+		m.removedcargo_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cargo_allocations, ids[i])
+		m.removedcargo_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCargoAllocations returns the removed IDs of the "cargo_allocations" edge to the SeaCargoAllocation entity.
+func (m *SeaMasterBillOrderLinkMutation) RemovedCargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CargoAllocationsIDs returns the "cargo_allocations" edge IDs in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.cargo_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCargoAllocations resets all changes to the "cargo_allocations" edge.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocations() {
+	m.cargo_allocations = nil
+	m.clearedcargo_allocations = false
+	m.removedcargo_allocations = nil
+}
+
+// SetCargoAllocationConfirmedByUserID sets the "cargo_allocation_confirmed_by_user" edge to the User entity by id.
+func (m *SeaMasterBillOrderLinkMutation) SetCargoAllocationConfirmedByUserID(id uuid.UUID) {
+	m.cargo_allocation_confirmed_by_user = &id
+}
+
+// ClearCargoAllocationConfirmedByUser clears the "cargo_allocation_confirmed_by_user" edge to the User entity.
+func (m *SeaMasterBillOrderLinkMutation) ClearCargoAllocationConfirmedByUser() {
+	m.clearedcargo_allocation_confirmed_by_user = true
+	m.clearedFields[seamasterbillorderlink.FieldCargoAllocationConfirmedBy] = struct{}{}
+}
+
+// CargoAllocationConfirmedByUserCleared reports if the "cargo_allocation_confirmed_by_user" edge to the User entity was cleared.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedByUserCleared() bool {
+	return m.CargoAllocationConfirmedByCleared() || m.clearedcargo_allocation_confirmed_by_user
+}
+
+// CargoAllocationConfirmedByUserID returns the "cargo_allocation_confirmed_by_user" edge ID in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedByUserID() (id uuid.UUID, exists bool) {
+	if m.cargo_allocation_confirmed_by_user != nil {
+		return *m.cargo_allocation_confirmed_by_user, true
+	}
+	return
+}
+
+// CargoAllocationConfirmedByUserIDs returns the "cargo_allocation_confirmed_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CargoAllocationConfirmedByUserID instead. It exists only for internal usage by the builders.
+func (m *SeaMasterBillOrderLinkMutation) CargoAllocationConfirmedByUserIDs() (ids []uuid.UUID) {
+	if id := m.cargo_allocation_confirmed_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCargoAllocationConfirmedByUser resets all changes to the "cargo_allocation_confirmed_by_user" edge.
+func (m *SeaMasterBillOrderLinkMutation) ResetCargoAllocationConfirmedByUser() {
+	m.cargo_allocation_confirmed_by_user = nil
+	m.clearedcargo_allocation_confirmed_by_user = false
+}
+
 // Where appends a list predicates to the SeaMasterBillOrderLinkMutation builder.
 func (m *SeaMasterBillOrderLinkMutation) Where(ps ...predicate.SeaMasterBillOrderLink) {
 	m.predicates = append(m.predicates, ps...)
@@ -106813,7 +109181,7 @@ func (m *SeaMasterBillOrderLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillOrderLinkMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillorderlink.FieldCreatedAt)
 	}
@@ -106847,6 +109215,18 @@ func (m *SeaMasterBillOrderLinkMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, seamasterbillorderlink.FieldVersion)
 	}
+	if m.cargo_allocation_status != nil {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationStatus)
+	}
+	if m.cargo_allocation_version != nil {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationVersion)
+	}
+	if m.cargo_allocation_confirmed_at != nil {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationConfirmedAt)
+	}
+	if m.cargo_allocation_confirmed_by_user != nil {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
+	}
 	return fields
 }
 
@@ -106877,6 +109257,14 @@ func (m *SeaMasterBillOrderLinkMutation) Field(name string) (ent.Value, bool) {
 		return m.EndedReason()
 	case seamasterbillorderlink.FieldVersion:
 		return m.Version()
+	case seamasterbillorderlink.FieldCargoAllocationStatus:
+		return m.CargoAllocationStatus()
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		return m.CargoAllocationVersion()
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+		return m.CargoAllocationConfirmedAt()
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+		return m.CargoAllocationConfirmedBy()
 	}
 	return nil, false
 }
@@ -106908,6 +109296,14 @@ func (m *SeaMasterBillOrderLinkMutation) OldField(ctx context.Context, name stri
 		return m.OldEndedReason(ctx)
 	case seamasterbillorderlink.FieldVersion:
 		return m.OldVersion(ctx)
+	case seamasterbillorderlink.FieldCargoAllocationStatus:
+		return m.OldCargoAllocationStatus(ctx)
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		return m.OldCargoAllocationVersion(ctx)
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+		return m.OldCargoAllocationConfirmedAt(ctx)
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+		return m.OldCargoAllocationConfirmedBy(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaMasterBillOrderLink field %s", name)
 }
@@ -106994,6 +109390,34 @@ func (m *SeaMasterBillOrderLinkMutation) SetField(name string, value ent.Value) 
 		}
 		m.SetVersion(v)
 		return nil
+	case seamasterbillorderlink.FieldCargoAllocationStatus:
+		v, ok := value.(seamasterbillorderlink.CargoAllocationStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoAllocationStatus(v)
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoAllocationVersion(v)
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoAllocationConfirmedAt(v)
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoAllocationConfirmedBy(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink field %s", name)
 }
@@ -107005,6 +109429,9 @@ func (m *SeaMasterBillOrderLinkMutation) AddedFields() []string {
 	if m.addversion != nil {
 		fields = append(fields, seamasterbillorderlink.FieldVersion)
 	}
+	if m.addcargo_allocation_version != nil {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationVersion)
+	}
 	return fields
 }
 
@@ -107015,6 +109442,8 @@ func (m *SeaMasterBillOrderLinkMutation) AddedField(name string) (ent.Value, boo
 	switch name {
 	case seamasterbillorderlink.FieldVersion:
 		return m.AddedVersion()
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		return m.AddedCargoAllocationVersion()
 	}
 	return nil, false
 }
@@ -107031,6 +109460,13 @@ func (m *SeaMasterBillOrderLinkMutation) AddField(name string, value ent.Value) 
 		}
 		m.AddVersion(v)
 		return nil
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCargoAllocationVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink numeric field %s", name)
 }
@@ -107044,6 +109480,12 @@ func (m *SeaMasterBillOrderLinkMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(seamasterbillorderlink.FieldEndedReason) {
 		fields = append(fields, seamasterbillorderlink.FieldEndedReason)
+	}
+	if m.FieldCleared(seamasterbillorderlink.FieldCargoAllocationConfirmedAt) {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationConfirmedAt)
+	}
+	if m.FieldCleared(seamasterbillorderlink.FieldCargoAllocationConfirmedBy) {
+		fields = append(fields, seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
 	}
 	return fields
 }
@@ -107064,6 +109506,12 @@ func (m *SeaMasterBillOrderLinkMutation) ClearField(name string) error {
 		return nil
 	case seamasterbillorderlink.FieldEndedReason:
 		m.ClearEndedReason()
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+		m.ClearCargoAllocationConfirmedAt()
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+		m.ClearCargoAllocationConfirmedBy()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink nullable field %s", name)
@@ -107106,13 +109554,25 @@ func (m *SeaMasterBillOrderLinkMutation) ResetField(name string) error {
 	case seamasterbillorderlink.FieldVersion:
 		m.ResetVersion()
 		return nil
+	case seamasterbillorderlink.FieldCargoAllocationStatus:
+		m.ResetCargoAllocationStatus()
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationVersion:
+		m.ResetCargoAllocationVersion()
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedAt:
+		m.ResetCargoAllocationConfirmedAt()
+		return nil
+	case seamasterbillorderlink.FieldCargoAllocationConfirmedBy:
+		m.ResetCargoAllocationConfirmedBy()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillOrderLinkMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.organization != nil {
 		edges = append(edges, seamasterbillorderlink.EdgeOrganization)
 	}
@@ -107121,6 +109581,12 @@ func (m *SeaMasterBillOrderLinkMutation) AddedEdges() []string {
 	}
 	if m._order != nil {
 		edges = append(edges, seamasterbillorderlink.EdgeOrder)
+	}
+	if m.cargo_allocations != nil {
+		edges = append(edges, seamasterbillorderlink.EdgeCargoAllocations)
+	}
+	if m.cargo_allocation_confirmed_by_user != nil {
+		edges = append(edges, seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser)
 	}
 	return edges
 }
@@ -107141,25 +109607,46 @@ func (m *SeaMasterBillOrderLinkMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case seamasterbillorderlink.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.cargo_allocations))
+		for id := range m.cargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser:
+		if id := m.cargo_allocation_confirmed_by_user; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillOrderLinkMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
+	if m.removedcargo_allocations != nil {
+		edges = append(edges, seamasterbillorderlink.EdgeCargoAllocations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SeaMasterBillOrderLinkMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case seamasterbillorderlink.EdgeCargoAllocations:
+		ids := make([]ent.Value, 0, len(m.removedcargo_allocations))
+		for id := range m.removedcargo_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillOrderLinkMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbillorderlink.EdgeOrganization)
 	}
@@ -107168,6 +109655,12 @@ func (m *SeaMasterBillOrderLinkMutation) ClearedEdges() []string {
 	}
 	if m.cleared_order {
 		edges = append(edges, seamasterbillorderlink.EdgeOrder)
+	}
+	if m.clearedcargo_allocations {
+		edges = append(edges, seamasterbillorderlink.EdgeCargoAllocations)
+	}
+	if m.clearedcargo_allocation_confirmed_by_user {
+		edges = append(edges, seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser)
 	}
 	return edges
 }
@@ -107182,6 +109675,10 @@ func (m *SeaMasterBillOrderLinkMutation) EdgeCleared(name string) bool {
 		return m.clearedmaster_bill
 	case seamasterbillorderlink.EdgeOrder:
 		return m.cleared_order
+	case seamasterbillorderlink.EdgeCargoAllocations:
+		return m.clearedcargo_allocations
+	case seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser:
+		return m.clearedcargo_allocation_confirmed_by_user
 	}
 	return false
 }
@@ -107199,6 +109696,9 @@ func (m *SeaMasterBillOrderLinkMutation) ClearEdge(name string) error {
 	case seamasterbillorderlink.EdgeOrder:
 		m.ClearOrder()
 		return nil
+	case seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser:
+		m.ClearCargoAllocationConfirmedByUser()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink unique edge %s", name)
 }
@@ -107215,6 +109715,12 @@ func (m *SeaMasterBillOrderLinkMutation) ResetEdge(name string) error {
 		return nil
 	case seamasterbillorderlink.EdgeOrder:
 		m.ResetOrder()
+		return nil
+	case seamasterbillorderlink.EdgeCargoAllocations:
+		m.ResetCargoAllocations()
+		return nil
+	case seamasterbillorderlink.EdgeCargoAllocationConfirmedByUser:
+		m.ResetCargoAllocationConfirmedByUser()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink edge %s", name)
@@ -112272,6 +114778,9 @@ type UserMutation struct {
 	enterprise_resource_assignments                 map[uuid.UUID]struct{}
 	removedenterprise_resource_assignments          map[uuid.UUID]struct{}
 	clearedenterprise_resource_assignments          bool
+	confirmed_sea_cargo_allocation_links            map[uuid.UUID]struct{}
+	removedconfirmed_sea_cargo_allocation_links     map[uuid.UUID]struct{}
+	clearedconfirmed_sea_cargo_allocation_links     bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -114676,6 +117185,60 @@ func (m *UserMutation) ResetEnterpriseResourceAssignments() {
 	m.removedenterprise_resource_assignments = nil
 }
 
+// AddConfirmedSeaCargoAllocationLinkIDs adds the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by ids.
+func (m *UserMutation) AddConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) {
+	if m.confirmed_sea_cargo_allocation_links == nil {
+		m.confirmed_sea_cargo_allocation_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.confirmed_sea_cargo_allocation_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearConfirmedSeaCargoAllocationLinks clears the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity.
+func (m *UserMutation) ClearConfirmedSeaCargoAllocationLinks() {
+	m.clearedconfirmed_sea_cargo_allocation_links = true
+}
+
+// ConfirmedSeaCargoAllocationLinksCleared reports if the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity was cleared.
+func (m *UserMutation) ConfirmedSeaCargoAllocationLinksCleared() bool {
+	return m.clearedconfirmed_sea_cargo_allocation_links
+}
+
+// RemoveConfirmedSeaCargoAllocationLinkIDs removes the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (m *UserMutation) RemoveConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) {
+	if m.removedconfirmed_sea_cargo_allocation_links == nil {
+		m.removedconfirmed_sea_cargo_allocation_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.confirmed_sea_cargo_allocation_links, ids[i])
+		m.removedconfirmed_sea_cargo_allocation_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedConfirmedSeaCargoAllocationLinks returns the removed IDs of the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity.
+func (m *UserMutation) RemovedConfirmedSeaCargoAllocationLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedconfirmed_sea_cargo_allocation_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ConfirmedSeaCargoAllocationLinksIDs returns the "confirmed_sea_cargo_allocation_links" edge IDs in the mutation.
+func (m *UserMutation) ConfirmedSeaCargoAllocationLinksIDs() (ids []uuid.UUID) {
+	for id := range m.confirmed_sea_cargo_allocation_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetConfirmedSeaCargoAllocationLinks resets all changes to the "confirmed_sea_cargo_allocation_links" edge.
+func (m *UserMutation) ResetConfirmedSeaCargoAllocationLinks() {
+	m.confirmed_sea_cargo_allocation_links = nil
+	m.clearedconfirmed_sea_cargo_allocation_links = false
+	m.removedconfirmed_sea_cargo_allocation_links = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -115087,7 +117650,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 31)
+	edges := make([]string, 0, 32)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -115180,6 +117743,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.enterprise_resource_assignments != nil {
 		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
+	}
+	if m.confirmed_sea_cargo_allocation_links != nil {
+		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
 	}
 	return edges
 }
@@ -115374,13 +117940,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeConfirmedSeaCargoAllocationLinks:
+		ids := make([]ent.Value, 0, len(m.confirmed_sea_cargo_allocation_links))
+		for id := range m.confirmed_sea_cargo_allocation_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 31)
+	edges := make([]string, 0, 32)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -115473,6 +118045,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedenterprise_resource_assignments != nil {
 		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
+	}
+	if m.removedconfirmed_sea_cargo_allocation_links != nil {
+		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
 	}
 	return edges
 }
@@ -115667,13 +118242,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeConfirmedSeaCargoAllocationLinks:
+		ids := make([]ent.Value, 0, len(m.removedconfirmed_sea_cargo_allocation_links))
+		for id := range m.removedconfirmed_sea_cargo_allocation_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 31)
+	edges := make([]string, 0, 32)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -115767,6 +118348,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedenterprise_resource_assignments {
 		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
 	}
+	if m.clearedconfirmed_sea_cargo_allocation_links {
+		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
+	}
 	return edges
 }
 
@@ -115836,6 +118420,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.cleareduploaded_enterprise_resource_images
 	case user.EdgeEnterpriseResourceAssignments:
 		return m.clearedenterprise_resource_assignments
+	case user.EdgeConfirmedSeaCargoAllocationLinks:
+		return m.clearedconfirmed_sea_cargo_allocation_links
 	}
 	return false
 }
@@ -115944,6 +118530,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeEnterpriseResourceAssignments:
 		m.ResetEnterpriseResourceAssignments()
+		return nil
+	case user.EdgeConfirmedSeaCargoAllocationLinks:
+		m.ResetConfirmedSeaCargoAllocationLinks()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

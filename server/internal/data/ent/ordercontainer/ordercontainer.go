@@ -19,14 +19,16 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldOrganizationID holds the string denoting the organization_id field in the database.
+	FieldOrganizationID = "organization_id"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
 	// FieldContainerNo holds the string denoting the container_no field in the database.
 	FieldContainerNo = "container_no"
 	// FieldContainerSpecID holds the string denoting the container_spec_id field in the database.
 	FieldContainerSpecID = "container_spec_id"
-	// FieldShippingDocumentID holds the string denoting the shipping_document_id field in the database.
-	FieldShippingDocumentID = "shipping_document_id"
+	// FieldPackageCount holds the string denoting the package_count field in the database.
+	FieldPackageCount = "package_count"
 	// FieldSealNo holds the string denoting the seal_no field in the database.
 	FieldSealNo = "seal_no"
 	// FieldGrossWeightKg holds the string denoting the gross_weight_kg field in the database.
@@ -35,12 +37,23 @@ const (
 	FieldVolumeCbm = "volume_cbm"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
+	// EdgeOrganization holds the string denoting the organization edge name in mutations.
+	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
-	// EdgeShippingDocument holds the string denoting the shipping_document edge name in mutations.
-	EdgeShippingDocument = "shipping_document"
+	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
+	EdgeCargoAllocations = "cargo_allocations"
 	// Table holds the table name of the ordercontainer in the database.
 	Table = "order_containers"
+	// OrganizationTable is the table that holds the organization relation/edge.
+	OrganizationTable = "order_containers"
+	// OrganizationInverseTable is the table name for the Organization entity.
+	// It exists in this package in order to avoid circular dependency with the "organization" package.
+	OrganizationInverseTable = "organizations"
+	// OrganizationColumn is the table column denoting the organization relation/edge.
+	OrganizationColumn = "organization_id"
 	// OrderTable is the table that holds the order relation/edge.
 	OrderTable = "order_containers"
 	// OrderInverseTable is the table name for the Order entity.
@@ -48,13 +61,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
-	// ShippingDocumentTable is the table that holds the shipping_document relation/edge.
-	ShippingDocumentTable = "order_containers"
-	// ShippingDocumentInverseTable is the table name for the OrderShippingDocument entity.
-	// It exists in this package in order to avoid circular dependency with the "ordershippingdocument" package.
-	ShippingDocumentInverseTable = "order_shipping_documents"
-	// ShippingDocumentColumn is the table column denoting the shipping_document relation/edge.
-	ShippingDocumentColumn = "shipping_document_id"
+	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
+	CargoAllocationsTable = "sea_cargo_allocations"
+	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
+	CargoAllocationsInverseTable = "sea_cargo_allocations"
+	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
+	CargoAllocationsColumn = "container_id"
 )
 
 // Columns holds all SQL columns for ordercontainer fields.
@@ -62,14 +75,16 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldOrganizationID,
 	FieldOrderID,
 	FieldContainerNo,
 	FieldContainerSpecID,
-	FieldShippingDocumentID,
+	FieldPackageCount,
 	FieldSealNo,
 	FieldGrossWeightKg,
 	FieldVolumeCbm,
 	FieldNote,
+	FieldVersion,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -91,6 +106,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// ContainerNoValidator is a validator for the "container_no" field. It is called by the builders before save.
 	ContainerNoValidator func(string) error
+	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	PackageCountValidator func(int) error
 	// SealNoValidator is a validator for the "seal_no" field. It is called by the builders before save.
 	SealNoValidator func(string) error
 	// GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
@@ -99,6 +116,8 @@ var (
 	VolumeCbmValidator func(float64) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
+	// DefaultVersion holds the default value on creation for the "version" field.
+	DefaultVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -121,6 +140,11 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
+// ByOrganizationID orders the results by the organization_id field.
+func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
+}
+
 // ByOrderID orders the results by the order_id field.
 func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
@@ -136,9 +160,9 @@ func ByContainerSpecID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContainerSpecID, opts...).ToFunc()
 }
 
-// ByShippingDocumentID orders the results by the shipping_document_id field.
-func ByShippingDocumentID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldShippingDocumentID, opts...).ToFunc()
+// ByPackageCount orders the results by the package_count field.
+func ByPackageCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPackageCount, opts...).ToFunc()
 }
 
 // BySealNo orders the results by the seal_no field.
@@ -161,6 +185,18 @@ func ByNote(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNote, opts...).ToFunc()
 }
 
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByOrganizationField orders the results by organization field.
+func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByOrderField orders the results by order field.
 func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -168,11 +204,25 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByShippingDocumentField orders the results by shipping_document field.
-func ByShippingDocumentField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByCargoAllocationsCount orders the results by cargo_allocations count.
+func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newShippingDocumentStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
 	}
+}
+
+// ByCargoAllocations orders the results by cargo_allocations terms.
+func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newOrganizationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrganizationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
 }
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
@@ -181,10 +231,10 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
 	)
 }
-func newShippingDocumentStep() *sqlgraph.Step {
+func newCargoAllocationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ShippingDocumentInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ShippingDocumentTable, ShippingDocumentColumn),
+		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
 	)
 }

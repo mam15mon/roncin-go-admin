@@ -82,6 +82,8 @@ const (
 	EdgeIssuerOrganization = "issuer_organization"
 	// EdgeIssuerPartner holds the string denoting the issuer_partner edge name in mutations.
 	EdgeIssuerPartner = "issuer_partner"
+	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
+	EdgeCargoAllocations = "cargo_allocations"
 	// Table holds the table name of the seahousebill in the database.
 	Table = "sea_house_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -119,6 +121,13 @@ const (
 	IssuerPartnerInverseTable = "partners"
 	// IssuerPartnerColumn is the table column denoting the issuer_partner relation/edge.
 	IssuerPartnerColumn = "issuer_partner_id"
+	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
+	CargoAllocationsTable = "sea_cargo_allocations"
+	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
+	CargoAllocationsInverseTable = "sea_cargo_allocations"
+	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
+	CargoAllocationsColumn = "house_bill_id"
 )
 
 // Columns holds all SQL columns for seahousebill fields.
@@ -432,6 +441,20 @@ func ByIssuerPartnerField(field string, opts ...sql.OrderTermOption) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newIssuerPartnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCargoAllocationsCount orders the results by cargo_allocations count.
+func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
+	}
+}
+
+// ByCargoAllocations orders the results by cargo_allocations terms.
+func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -465,5 +488,12 @@ func newIssuerPartnerStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IssuerPartnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, IssuerPartnerTable, IssuerPartnerColumn),
+	)
+}
+func newCargoAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
 	)
 }

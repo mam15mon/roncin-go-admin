@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -742,6 +743,21 @@ func (_u *UserUpdate) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceA
 	return _u.AddEnterpriseResourceAssignmentIDs(ids...)
 }
 
+// AddConfirmedSeaCargoAllocationLinkIDs adds the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_u *UserUpdate) AddConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
+	return _u
+}
+
+// AddConfirmedSeaCargoAllocationLinks adds the "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *UserUpdate) AddConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -1396,6 +1412,27 @@ func (_u *UserUpdate) RemoveEnterpriseResourceAssignments(v ...*EnterpriseResour
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEnterpriseResourceAssignmentIDs(ids...)
+}
+
+// ClearConfirmedSeaCargoAllocationLinks clears all "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *UserUpdate) ClearConfirmedSeaCargoAllocationLinks() *UserUpdate {
+	_u.mutation.ClearConfirmedSeaCargoAllocationLinks()
+	return _u
+}
+
+// RemoveConfirmedSeaCargoAllocationLinkIDs removes the "confirmed_sea_cargo_allocation_links" edge to SeaMasterBillOrderLink entities by IDs.
+func (_u *UserUpdate) RemoveConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveConfirmedSeaCargoAllocationLinkIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedSeaCargoAllocationLinks removes "confirmed_sea_cargo_allocation_links" edges to SeaMasterBillOrderLink entities.
+func (_u *UserUpdate) RemoveConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedSeaCargoAllocationLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2963,6 +3000,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ConfirmedSeaCargoAllocationLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedSeaCargoAllocationLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -3676,6 +3758,21 @@ func (_u *UserUpdateOne) AddEnterpriseResourceAssignments(v ...*EnterpriseResour
 	return _u.AddEnterpriseResourceAssignmentIDs(ids...)
 }
 
+// AddConfirmedSeaCargoAllocationLinkIDs adds the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_u *UserUpdateOne) AddConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
+	return _u
+}
+
+// AddConfirmedSeaCargoAllocationLinks adds the "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *UserUpdateOne) AddConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -4330,6 +4427,27 @@ func (_u *UserUpdateOne) RemoveEnterpriseResourceAssignments(v ...*EnterpriseRes
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEnterpriseResourceAssignmentIDs(ids...)
+}
+
+// ClearConfirmedSeaCargoAllocationLinks clears all "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
+func (_u *UserUpdateOne) ClearConfirmedSeaCargoAllocationLinks() *UserUpdateOne {
+	_u.mutation.ClearConfirmedSeaCargoAllocationLinks()
+	return _u
+}
+
+// RemoveConfirmedSeaCargoAllocationLinkIDs removes the "confirmed_sea_cargo_allocation_links" edge to SeaMasterBillOrderLink entities by IDs.
+func (_u *UserUpdateOne) RemoveConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveConfirmedSeaCargoAllocationLinkIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedSeaCargoAllocationLinks removes "confirmed_sea_cargo_allocation_links" edges to SeaMasterBillOrderLink entities.
+func (_u *UserUpdateOne) RemoveConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedSeaCargoAllocationLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -5920,6 +6038,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfirmedSeaCargoAllocationLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedSeaCargoAllocationLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
+			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

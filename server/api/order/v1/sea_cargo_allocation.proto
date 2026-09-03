@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "order/v1/order_cargo_item.proto";
+import "order/v1/order_container.proto";
+import "order/v1/sea_document.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// SeaCargoAllocationService 海运出口箱货定量分配服务。
+service SeaCargoAllocationService {
+  // GetSeaCargoAllocation 获取海运箱货分配聚合信息。
+  rpc GetSeaCargoAllocation(GetSeaCargoAllocationRequest) returns (GetSeaCargoAllocationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-cargo-allocation"};
+  }
+
+  // SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
+  rpc SaveSeaCargoAllocationDraft(SaveSeaCargoAllocationDraftRequest) returns (SaveSeaCargoAllocationDraftResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/sea-cargo-allocation/draft"
+      body: "*"
+    };
+  }
+
+  // ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
+  rpc ConfirmSeaCargoAllocation(ConfirmSeaCargoAllocationRequest) returns (ConfirmSeaCargoAllocationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-cargo-allocation/confirm"
+      body: "*"
+    };
+  }
+
+  // WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
+  rpc WithdrawSeaCargoAllocation(WithdrawSeaCargoAllocationRequest) returns (WithdrawSeaCargoAllocationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-cargo-allocation/withdraw"
+      body: "*"
+    };
+  }
+
+  // ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
+  rpc ApplySeaOrderCargoSummaryToMasterBill(ApplySeaOrderCargoSummaryToMasterBillRequest) returns (ApplySeaOrderCargoSummaryToMasterBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-cargo-allocation/master-bill/apply-cargo-summary"
+      body: "*"
+    };
+  }
+
+  // ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
+  rpc ApplySeaHouseBillAllocationSummary(ApplySeaHouseBillAllocationSummaryRequest) returns (ApplySeaHouseBillAllocationSummaryResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-cargo-allocation/house-bills/{house_bill_id}/apply-summary"
+      body: "*"
+    };
+  }
+}
+
+// SeaCargoAllocationStatus 箱货分配状态枚举。
+enum SeaCargoAllocationStatus {
+  SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED = 0;
+  SEA_CARGO_ALLOCATION_STATUS_DRAFT = 1;
+  SEA_CARGO_ALLOCATION_STATUS_CONFIRMED = 2;
+}
+
+// SeaCargoAllocationAction 箱货分配允许动作枚举。
+enum SeaCargoAllocationAction {
+  SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED = 0;
+  SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT = 1;
+  SEA_CARGO_ALLOCATION_ACTION_CONFIRM = 2;
+  SEA_CARGO_ALLOCATION_ACTION_WITHDRAW = 3;
+  SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY = 4;
+  SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY = 5;
+}
+
+// SeaCargoAllocationItem 箱货定量分配行。
+message SeaCargoAllocationItem {
+  string id = 1;
+  string cargo_item_id = 2;
+  string house_bill_id = 3;
+  optional string container_id = 4;
+  int32 package_count = 5;
+  string gross_weight_kg = 6;
+  string volume_cbm = 7;
+}
+
+// SeaCargoAllocationInput 保存草稿请求行。
+message SeaCargoAllocationInput {
+  optional string id = 1;
+  string cargo_item_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string house_bill_id = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string container_id = 4;
+  int32 package_count = 5 [(google.api.field_behavior) = REQUIRED];
+  string gross_weight_kg = 6 [(google.api.field_behavior) = REQUIRED];
+  string volume_cbm = 7 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SeaCargoAllocationCargoItemSummary 货物维度进度汇总。
+message SeaCargoAllocationCargoItemSummary {
+  string cargo_item_id = 1;
+  string cargo_name = 2;
+  int32 baseline_package_count = 3;
+  int32 allocated_package_count = 4;
+  int32 remaining_package_count = 5;
+  string baseline_gross_weight_kg = 6;
+  string allocated_gross_weight_kg = 7;
+  string remaining_gross_weight_kg = 8;
+  string baseline_volume_cbm = 9;
+  string allocated_volume_cbm = 10;
+  string remaining_volume_cbm = 11;
+  string status = 12; // IN_PROGRESS, COMPLETED, EXCEEDED
+}
+
+// SeaCargoAllocationContainerSummary 实际箱维度进度汇总。
+message SeaCargoAllocationContainerSummary {
+  string container_id = 1;
+  string container_no = 2;
+  int32 baseline_package_count = 3;
+  int32 allocated_package_count = 4;
+  int32 remaining_package_count = 5;
+  string baseline_gross_weight_kg = 6;
+  string allocated_gross_weight_kg = 7;
+  string remaining_gross_weight_kg = 8;
+  string baseline_volume_cbm = 9;
+  string allocated_volume_cbm = 10;
+  string remaining_volume_cbm = 11;
+  string status = 12; // IN_PROGRESS, COMPLETED, EXCEEDED
+}
+
+// SeaCargoAllocationHouseBillSummary HBL 分单维度进度汇总。
+message SeaCargoAllocationHouseBillSummary {
+  string house_bill_id = 1;
+  string house_no = 2;
+  int32 allocated_package_count = 3;
+  string allocated_gross_weight_kg = 4;
+  string allocated_volume_cbm = 5;
+  int32 order_remaining_package_count = 6;
+  string order_remaining_gross_weight_kg = 7;
+  string order_remaining_volume_cbm = 8;
+  optional int32 display_package_count = 9;
+  optional string display_gross_weight_kg = 10;
+  optional string display_volume_cbm = 11;
+  int32 diff_package_count = 12;
+  string diff_gross_weight_kg = 13;
+  string diff_volume_cbm = 14;
+  bool display_matches = 15;
+}
+
+// SeaCargoAllocationProgress 三视角进度汇总。
+message SeaCargoAllocationProgress {
+  repeated SeaCargoAllocationCargoItemSummary cargo_summaries = 1;
+  repeated SeaCargoAllocationContainerSummary container_summaries = 2;
+  repeated SeaCargoAllocationHouseBillSummary house_bill_summaries = 3;
+  int32 order_remaining_package_count = 4;
+  string order_remaining_gross_weight_kg = 5;
+  string order_remaining_volume_cbm = 6;
+}
+
+// SeaCargoAllocationAggregate 箱货分配聚合模型。
+message SeaCargoAllocationAggregate {
+  string order_id = 1;
+  SeaDocumentStructure document_structure = 2;
+  string shipment_type = 3;
+  SeaCargoAllocationStatus allocation_status = 4;
+  uint64 allocation_version = 5;
+  optional string confirmed_at = 6;
+  optional string confirmed_by = 7;
+  optional string confirmed_by_name = 8;
+  repeated OrderCargoItem cargo_items = 9;
+  repeated OrderContainer containers = 10;
+  repeated SeaHouseBill house_bills = 11;
+  repeated SeaCargoAllocationItem allocations = 12;
+  SeaCargoAllocationProgress progress = 13;
+  repeated SeaCargoAllocationAction allowed_actions = 14;
+}
+
+// GetSeaCargoAllocationRequest 获取请求。
+message GetSeaCargoAllocationRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// GetSeaCargoAllocationResponse 获取响应。
+message GetSeaCargoAllocationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaCargoAllocationAggregate data = 4;
+  string trace_id = 5;
+}
+
+// SaveSeaCargoAllocationDraftRequest 保存草稿请求。
+message SaveSeaCargoAllocationDraftRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_allocation_version = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated SeaCargoAllocationInput allocations = 3;
+}
+
+// SaveSeaCargoAllocationDraftResponse 保存草稿响应。
+message SaveSeaCargoAllocationDraftResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaCargoAllocationAggregate data = 4;
+  string trace_id = 5;
+}
+
+// ConfirmSeaCargoAllocationRequest 确认分配请求。
+message ConfirmSeaCargoAllocationRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_allocation_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ConfirmSeaCargoAllocationResponse 确认分配响应。
+message ConfirmSeaCargoAllocationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaCargoAllocationAggregate data = 4;
+  string trace_id = 5;
+}
+
+// WithdrawSeaCargoAllocationRequest 撤回确认请求。
+message WithdrawSeaCargoAllocationRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_allocation_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// WithdrawSeaCargoAllocationResponse 撤回确认响应。
+message WithdrawSeaCargoAllocationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaCargoAllocationAggregate data = 4;
+  string trace_id = 5;
+}
+
+// ApplySeaOrderCargoSummaryToMasterBillRequest 填入 MBL 内容请求。
+message ApplySeaOrderCargoSummaryToMasterBillRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_mbl_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ApplySeaOrderCargoSummaryToMasterBillResponse 填入 MBL 内容响应。
+message ApplySeaOrderCargoSummaryToMasterBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaMasterBillDetail data = 4;
+  string trace_id = 5;
+}
+
+// ApplySeaHouseBillAllocationSummaryRequest 填入 HBL 内容请求。
+message ApplySeaHouseBillAllocationSummaryRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_allocation_version = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ApplySeaHouseBillAllocationSummaryResponse 填入 HBL 内容响应。
+message ApplySeaHouseBillAllocationSummaryResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaHouseBill data = 4;
+  string trace_id = 5;
+}

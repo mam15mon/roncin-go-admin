@@ -25,7 +25,7 @@ declare namespace API {
     grossWeightKg: number;
     volumeCbm: number;
     note?: string;
-    shippingDocumentId?: string;
+    packageCount: number;
   };
 
   type AddContainerResponse = {
@@ -306,6 +306,34 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
+  };
+
+  type ApplySeaHouseBillAllocationSummaryRequest = {
+    orderId: string;
+    houseBillId: string;
+    expectedAllocationVersion: string;
+    expectedHouseBillVersion: string;
+  };
+
+  type ApplySeaHouseBillAllocationSummaryResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaHouseBill;
+    traceId?: string;
+  };
+
+  type ApplySeaOrderCargoSummaryToMasterBillRequest = {
+    orderId: string;
+    expectedMblVersion: string;
+  };
+
+  type ApplySeaOrderCargoSummaryToMasterBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaMasterBillDetail;
+    traceId?: string;
   };
 
   type AssignPersonnelRequest = {
@@ -915,6 +943,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee;
+    traceId?: string;
+  };
+
+  type ConfirmSeaCargoAllocationRequest = {
+    orderId: string;
+    expectedAllocationVersion: string;
+  };
+
+  type ConfirmSeaCargoAllocationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaCargoAllocationAggregate;
     traceId?: string;
   };
 
@@ -2463,6 +2504,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetSeaCargoAllocationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaCargoAllocationAggregate;
+    traceId?: string;
+  };
+
   type GetSeaOrderDocumentsResponse = {
     success?: boolean;
     code?: number;
@@ -3450,6 +3499,7 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+    version?: string;
   };
 
   type OrderCargoItemServiceAddCargoItemParams = {
@@ -3463,6 +3513,7 @@ declare namespace API {
   type OrderCargoItemServiceRemoveCargoItemParams = {
     orderId: string;
     id: string;
+    expectedVersion?: string;
   };
 
   type OrderCargoItemServiceUpdateCargoItemParams = {
@@ -3505,7 +3556,8 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
-    shippingDocumentId?: string;
+    packageCount?: number;
+    version?: string;
   };
 
   type OrderContainerRequest = {
@@ -3534,6 +3586,7 @@ declare namespace API {
   type OrderContainerServiceRemoveContainerParams = {
     orderId: string;
     id: string;
+    expectedVersion?: string;
   };
 
   type OrderContainerServiceUpdateContainerParams = {
@@ -4626,6 +4679,20 @@ declare namespace API {
     dataScope?: string;
   };
 
+  type SaveSeaCargoAllocationDraftRequest = {
+    orderId: string;
+    expectedAllocationVersion: string;
+    allocations?: SeaCargoAllocationInput[];
+  };
+
+  type SaveSeaCargoAllocationDraftResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaCargoAllocationAggregate;
+    traceId?: string;
+  };
+
   type SeaBillContent = {
     shipperText?: string;
     consigneeText?: string;
@@ -4642,6 +4709,125 @@ declare namespace API {
     billForm?: string;
     releaseType?: string;
     clauses?: string;
+  };
+
+  type SeaCargoAllocationAggregate = {
+    orderId?: string;
+    documentStructure?: number;
+    shipmentType?: string;
+    allocationStatus?: number;
+    allocationVersion?: string;
+    confirmedAt?: string;
+    confirmedBy?: string;
+    confirmedByName?: string;
+    cargoItems?: OrderCargoItem[];
+    containers?: OrderContainer[];
+    houseBills?: SeaHouseBill[];
+    allocations?: SeaCargoAllocationItem[];
+    progress?: SeaCargoAllocationProgress;
+    allowedActions?: number[];
+  };
+
+  type SeaCargoAllocationCargoItemSummary = {
+    cargoItemId?: string;
+    cargoName?: string;
+    baselinePackageCount?: number;
+    allocatedPackageCount?: number;
+    remainingPackageCount?: number;
+    baselineGrossWeightKg?: string;
+    allocatedGrossWeightKg?: string;
+    remainingGrossWeightKg?: string;
+    baselineVolumeCbm?: string;
+    allocatedVolumeCbm?: string;
+    remainingVolumeCbm?: string;
+    status?: string;
+  };
+
+  type SeaCargoAllocationContainerSummary = {
+    containerId?: string;
+    containerNo?: string;
+    baselinePackageCount?: number;
+    allocatedPackageCount?: number;
+    remainingPackageCount?: number;
+    baselineGrossWeightKg?: string;
+    allocatedGrossWeightKg?: string;
+    remainingGrossWeightKg?: string;
+    baselineVolumeCbm?: string;
+    allocatedVolumeCbm?: string;
+    remainingVolumeCbm?: string;
+    status?: string;
+  };
+
+  type SeaCargoAllocationHouseBillSummary = {
+    houseBillId?: string;
+    houseNo?: string;
+    allocatedPackageCount?: number;
+    allocatedGrossWeightKg?: string;
+    allocatedVolumeCbm?: string;
+    orderRemainingPackageCount?: number;
+    orderRemainingGrossWeightKg?: string;
+    orderRemainingVolumeCbm?: string;
+    displayPackageCount?: number;
+    displayGrossWeightKg?: string;
+    displayVolumeCbm?: string;
+    diffPackageCount?: number;
+    diffGrossWeightKg?: string;
+    diffVolumeCbm?: string;
+    displayMatches?: boolean;
+  };
+
+  type SeaCargoAllocationInput = {
+    id?: string;
+    cargoItemId: string;
+    houseBillId: string;
+    containerId?: string;
+    packageCount: number;
+    grossWeightKg: string;
+    volumeCbm: string;
+  };
+
+  type SeaCargoAllocationItem = {
+    id?: string;
+    cargoItemId?: string;
+    houseBillId?: string;
+    containerId?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+  };
+
+  type SeaCargoAllocationProgress = {
+    cargoSummaries?: SeaCargoAllocationCargoItemSummary[];
+    containerSummaries?: SeaCargoAllocationContainerSummary[];
+    houseBillSummaries?: SeaCargoAllocationHouseBillSummary[];
+    orderRemainingPackageCount?: number;
+    orderRemainingGrossWeightKg?: string;
+    orderRemainingVolumeCbm?: string;
+  };
+
+  type SeaCargoAllocationServiceApplySeaHouseBillAllocationSummaryParams = {
+    orderId: string;
+    houseBillId: string;
+  };
+
+  type SeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBillParams = {
+    orderId: string;
+  };
+
+  type SeaCargoAllocationServiceConfirmSeaCargoAllocationParams = {
+    orderId: string;
+  };
+
+  type SeaCargoAllocationServiceGetSeaCargoAllocationParams = {
+    orderId: string;
+  };
+
+  type SeaCargoAllocationServiceSaveSeaCargoAllocationDraftParams = {
+    orderId: string;
+  };
+
+  type SeaCargoAllocationServiceWithdrawSeaCargoAllocationParams = {
+    orderId: string;
   };
 
   type SeaDocumentServiceAddSeaHouseBillParams = {
@@ -5342,6 +5528,7 @@ declare namespace API {
     volumeCbm: number;
     netWeightKg?: number;
     note?: string;
+    expectedVersion: string;
   };
 
   type UpdateCargoItemResponse = {
@@ -5375,7 +5562,8 @@ declare namespace API {
     grossWeightKg: number;
     volumeCbm: number;
     note?: string;
-    shippingDocumentId?: string;
+    packageCount: number;
+    expectedVersion: string;
   };
 
   type UpdateContainerResponse = {
@@ -5949,6 +6137,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type WithdrawSeaCargoAllocationRequest = {
+    orderId: string;
+    expectedAllocationVersion: string;
+  };
+
+  type WithdrawSeaCargoAllocationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaCargoAllocationAggregate;
     traceId?: string;
   };
 }

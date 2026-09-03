@@ -38,6 +38,7 @@ func (SeaHouseBill) Edges() []ent.Edge {
 		edge.From("master_bill", SeaMasterBill.Type).Ref("house_bills").Field("master_bill_id").Unique().Required(),
 		edge.From("issuer_organization", Organization.Type).Ref("issued_sea_house_bills").Field("issuer_organization_id").Unique(),
 		edge.From("issuer_partner", Partner.Type).Ref("issued_sea_house_bills").Field("issuer_partner_id").Unique(),
+		edge.To("cargo_allocations", SeaCargoAllocation.Type),
 	}
 }
 

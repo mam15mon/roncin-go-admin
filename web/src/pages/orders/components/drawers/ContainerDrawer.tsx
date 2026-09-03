@@ -5,8 +5,8 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { App, Typography } from 'antd';
-import React, { forwardRef, useRef, useState } from 'react';
+import { Typography } from 'antd';
+import React, { forwardRef } from 'react';
 import {
   SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
@@ -17,8 +17,6 @@ import {
   orderContainerServiceRemoveContainer,
   orderContainerServiceUpdateContainer,
 } from '@/services/roncin/orderContainerService';
-import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
-import { unwrapList } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -35,8 +33,8 @@ type ContainerDrawerProps = {
 type ContainerFormValues = {
   containerNo: string;
   containerSpecId: string;
-  shippingDocumentId?: string;
   sealNo?: string;
+  packageCount: number;
   grossWeightKg: number;
   volumeCbm: number;
   note?: string;
@@ -53,26 +51,6 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     },
     ref,
   ) {
-    const { message } = App.useApp();
-    const documentRequestRef = useRef(0);
-    const [containerDocuments, setContainerDocuments] = useState<
-      API.OrderShippingDocument[]
-    >([]);
-
-    const containerDocumentOptions = containerDocuments.map((doc) => ({
-      label: doc.houseNo ? `分单: ${doc.houseNo}` : (doc.id ?? ''),
-      value: doc.id ?? '',
-    }));
-
-    const containerDocumentMap = Object.fromEntries(
-      containerDocuments
-        .filter((doc) => doc.id)
-        .map((doc) => [
-          doc.id as string,
-          doc.houseNo ? `分单: ${doc.houseNo}` : (doc.id as string),
-        ]),
-    );
-
     const columns: ProColumns<API.OrderContainer>[] = [
       {
         title: '箱号',
@@ -96,24 +74,17 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             : '-',
       },
       {
-        title: '关联提单',
-        dataIndex: 'shippingDocumentId',
-        width: 180,
-        ellipsis: true,
-        render: (_, record) =>
-          record.shippingDocumentId ? (
-            containerDocumentMap[record.shippingDocumentId] ||
-            record.shippingDocumentId
-          ) : (
-            <Text type="secondary">未关联</Text>
-          ),
-      },
-      {
         title: '铅封号',
         dataIndex: 'sealNo',
         copyable: true,
         ellipsis: true,
         render: (_, record) => record.sealNo || '-',
+      },
+      {
+        title: '件数 (PCS)',
+        dataIndex: 'packageCount',
+        width: 100,
+        render: (_, record) => record.packageCount ?? '-',
       },
       {
         title: '毛重(KG)',
@@ -152,24 +123,6 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
         canUpdate={canUpdate}
         canRemove={canRemove}
         columns={columns}
-        onOpen={(order) => {
-          if (!order?.id) return;
-          const requestSequence = ++documentRequestRef.current;
-          setContainerDocuments([]);
-          orderShippingDocumentServiceListShippingDocuments({
-            orderId: order.id as string,
-          })
-            .then((res) => {
-              if (requestSequence === documentRequestRef.current) {
-                setContainerDocuments(unwrapList(res));
-              }
-            })
-            .catch((error: Error) => {
-              if (requestSequence === documentRequestRef.current) {
-                message.error(error.message || '关联提单加载失败');
-              }
-            });
-        }}
         fetchList={(order) =>
           orderContainerServiceListContainers({
             orderId: order.id as string,
@@ -182,8 +135,8 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
               orderId: order.id as string,
               containerNo: values.containerNo.trim(),
               containerSpecId: values.containerSpecId,
-              shippingDocumentId: values.shippingDocumentId || undefined,
               sealNo: values.sealNo?.trim() || undefined,
+              packageCount: Number(values.packageCount),
               grossWeightKg: Number(values.grossWeightKg),
               volumeCbm: Number(values.volumeCbm),
               note: values.note?.trim() || undefined,
@@ -201,11 +154,12 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
               orderId: order.id as string,
               containerNo: values.containerNo.trim(),
               containerSpecId: values.containerSpecId,
-              shippingDocumentId: values.shippingDocumentId || undefined,
               sealNo: values.sealNo?.trim() || undefined,
+              packageCount: Number(values.packageCount),
               grossWeightKg: Number(values.grossWeightKg),
               volumeCbm: Number(values.volumeCbm),
               note: values.note?.trim() || undefined,
+              expectedVersion: String(record.version ?? '1'),
             },
           )
         }
@@ -220,8 +174,8 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             ? {
                 containerNo: editing.containerNo ?? '',
                 containerSpecId: editing.containerSpecId ?? '',
-                shippingDocumentId: editing.shippingDocumentId,
                 sealNo: editing.sealNo,
+                packageCount: editing.packageCount ?? 1,
                 grossWeightKg: editing.grossWeightKg ?? 0,
                 volumeCbm: editing.volumeCbm ?? 0,
                 note: editing.note,
@@ -229,6 +183,7 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             : {
                 containerNo: '',
                 containerSpecId: '',
+                packageCount: 1,
                 grossWeightKg: 0,
                 volumeCbm: 0,
               }
@@ -248,16 +203,18 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
               options={containerSpecOptions}
               placeholder="请选择箱型"
             />
-            <ProFormSearchableSelect
-              name="shippingDocumentId"
-              label="关联提单"
-              options={containerDocumentOptions}
-              placeholder="请选择关联提单 (可选)"
-            />
             <ProFormText
               name="sealNo"
               label="铅封号"
               placeholder="请输入铅封号 (可选)"
+            />
+            <ProFormDigit
+              name="packageCount"
+              label="件数 (PCS)"
+              min={1}
+              fieldProps={{ precision: 0 }}
+              placeholder="请输入件数"
+              rules={[{ required: true, message: '请输入件数' }]}
             />
             <ProFormDigit
               name="grossWeightKg"

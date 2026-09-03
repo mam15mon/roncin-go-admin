@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -125,21 +124,6 @@ func (_u *OrderShippingDocumentUpdate) SetOrder(v *Order) *OrderShippingDocument
 	return _u.SetOrderID(v.ID)
 }
 
-// AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
-func (_u *OrderShippingDocumentUpdate) AddContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdate {
-	_u.mutation.AddContainerIDs(ids...)
-	return _u
-}
-
-// AddContainers adds the "containers" edges to the OrderContainer entity.
-func (_u *OrderShippingDocumentUpdate) AddContainers(v ...*OrderContainer) *OrderShippingDocumentUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddContainerIDs(ids...)
-}
-
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
 func (_u *OrderShippingDocumentUpdate) AddReleasePodIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdate {
 	_u.mutation.AddReleasePodIDs(ids...)
@@ -164,27 +148,6 @@ func (_u *OrderShippingDocumentUpdate) Mutation() *OrderShippingDocumentMutation
 func (_u *OrderShippingDocumentUpdate) ClearOrder() *OrderShippingDocumentUpdate {
 	_u.mutation.ClearOrder()
 	return _u
-}
-
-// ClearContainers clears all "containers" edges to the OrderContainer entity.
-func (_u *OrderShippingDocumentUpdate) ClearContainers() *OrderShippingDocumentUpdate {
-	_u.mutation.ClearContainers()
-	return _u
-}
-
-// RemoveContainerIDs removes the "containers" edge to OrderContainer entities by IDs.
-func (_u *OrderShippingDocumentUpdate) RemoveContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdate {
-	_u.mutation.RemoveContainerIDs(ids...)
-	return _u
-}
-
-// RemoveContainers removes "containers" edges to OrderContainer entities.
-func (_u *OrderShippingDocumentUpdate) RemoveContainers(v ...*OrderContainer) *OrderShippingDocumentUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveContainerIDs(ids...)
 }
 
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
@@ -327,51 +290,6 @@ func (_u *OrderShippingDocumentUpdate) sqlSave(ctx context.Context) (_node int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ContainersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedContainersIDs(); len(nodes) > 0 && !_u.mutation.ContainersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ContainersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -537,21 +455,6 @@ func (_u *OrderShippingDocumentUpdateOne) SetOrder(v *Order) *OrderShippingDocum
 	return _u.SetOrderID(v.ID)
 }
 
-// AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
-func (_u *OrderShippingDocumentUpdateOne) AddContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdateOne {
-	_u.mutation.AddContainerIDs(ids...)
-	return _u
-}
-
-// AddContainers adds the "containers" edges to the OrderContainer entity.
-func (_u *OrderShippingDocumentUpdateOne) AddContainers(v ...*OrderContainer) *OrderShippingDocumentUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddContainerIDs(ids...)
-}
-
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
 func (_u *OrderShippingDocumentUpdateOne) AddReleasePodIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdateOne {
 	_u.mutation.AddReleasePodIDs(ids...)
@@ -576,27 +479,6 @@ func (_u *OrderShippingDocumentUpdateOne) Mutation() *OrderShippingDocumentMutat
 func (_u *OrderShippingDocumentUpdateOne) ClearOrder() *OrderShippingDocumentUpdateOne {
 	_u.mutation.ClearOrder()
 	return _u
-}
-
-// ClearContainers clears all "containers" edges to the OrderContainer entity.
-func (_u *OrderShippingDocumentUpdateOne) ClearContainers() *OrderShippingDocumentUpdateOne {
-	_u.mutation.ClearContainers()
-	return _u
-}
-
-// RemoveContainerIDs removes the "containers" edge to OrderContainer entities by IDs.
-func (_u *OrderShippingDocumentUpdateOne) RemoveContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdateOne {
-	_u.mutation.RemoveContainerIDs(ids...)
-	return _u
-}
-
-// RemoveContainers removes "containers" edges to OrderContainer entities.
-func (_u *OrderShippingDocumentUpdateOne) RemoveContainers(v ...*OrderContainer) *OrderShippingDocumentUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveContainerIDs(ids...)
 }
 
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
@@ -769,51 +651,6 @@ func (_u *OrderShippingDocumentUpdateOne) sqlSave(ctx context.Context) (_node *O
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ContainersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedContainersIDs(); len(nodes) > 0 && !_u.mutation.ContainersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ContainersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordershippingdocument.ContainersTable,
-			Columns: []string{ordershippingdocument.ContainersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

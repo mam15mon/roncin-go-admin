@@ -32,8 +32,6 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
-	// EdgeContainers holds the string denoting the containers edge name in mutations.
-	EdgeContainers = "containers"
 	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
 	EdgeReleasePods = "release_pods"
 	// Table holds the table name of the ordershippingdocument in the database.
@@ -45,13 +43,6 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
-	// ContainersTable is the table that holds the containers relation/edge.
-	ContainersTable = "order_containers"
-	// ContainersInverseTable is the table name for the OrderContainer entity.
-	// It exists in this package in order to avoid circular dependency with the "ordercontainer" package.
-	ContainersInverseTable = "order_containers"
-	// ContainersColumn is the table column denoting the containers relation/edge.
-	ContainersColumn = "shipping_document_id"
 	// ReleasePodsTable is the table that holds the release_pods relation/edge.
 	ReleasePodsTable = "order_release_pods"
 	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
@@ -177,20 +168,6 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByContainersCount orders the results by containers count.
-func ByContainersCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newContainersStep(), opts...)
-	}
-}
-
-// ByContainers orders the results by containers terms.
-func ByContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByReleasePodsCount orders the results by release_pods count.
 func ByReleasePodsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -209,13 +186,6 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
-	)
-}
-func newContainersStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ContainersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
 	)
 }
 func newReleasePodsStep() *sqlgraph.Step {

@@ -74,7 +74,9 @@ export async function orderCargoItemServiceRemoveCargoItem(
     `/api/v1/orders/${param0}/cargo-items/${param1}`,
     {
       method: "DELETE",
-      params: { ...queryParams },
+      params: {
+        ...queryParams,
+      },
       ...(options || {}),
     }
   );

@@ -172,6 +172,8 @@ type Tx struct {
 	RoleAssignment *RoleAssignmentClient
 	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// SeaCargoAllocation is the client for interacting with the SeaCargoAllocation builders.
+	SeaCargoAllocation *SeaCargoAllocationClient
 	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
 	SeaHouseBill *SeaHouseBillClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
@@ -401,6 +403,7 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
+	tx.SeaCargoAllocation = NewSeaCargoAllocationClient(tx.config)
 	tx.SeaHouseBill = NewSeaHouseBillClient(tx.config)
 	tx.SeaMasterBill = NewSeaMasterBillClient(tx.config)
 	tx.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(tx.config)
