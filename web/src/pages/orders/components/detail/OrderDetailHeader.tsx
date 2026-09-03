@@ -4,9 +4,11 @@ import {
   DownOutlined,
   FileDoneOutlined,
   SaveOutlined,
+  ScissorOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
-import { Button, Dropdown, type MenuProps } from 'antd';
+import { Button, Dropdown, Tooltip, type MenuProps } from 'antd';
 import React from 'react';
 import { DocumentDetailLayout } from '@/components/ui/document-detail-layout';
 import {
@@ -25,6 +27,12 @@ type OrderDetailHeaderProps = {
   canManageFee: boolean;
   canCreatePod: boolean;
   canCreateAbnormal: boolean;
+  canSplit?: boolean;
+  canReassign?: boolean;
+  splitDisabled?: boolean;
+  splitBlockedReasons?: string[];
+  reassignDisabled?: boolean;
+  reassignBlockedReasons?: string[];
   moreMenuItems: MenuProps['items'];
   hasAction: (action: number) => boolean;
   onSave: () => void;
@@ -32,6 +40,8 @@ type OrderDetailHeaderProps = {
   onConfirmClosure: (targetStatus: number) => void;
   onOpenReleasePod: () => void;
   onOpenAbnormalCase: () => void;
+  onOpenSplit?: () => void;
+  onOpenReassign?: () => void;
 };
 
 export default function OrderDetailHeader({
@@ -43,6 +53,12 @@ export default function OrderDetailHeader({
   canManageFee,
   canCreatePod,
   canCreateAbnormal,
+  canSplit,
+  canReassign,
+  splitDisabled,
+  splitBlockedReasons,
+  reassignDisabled,
+  reassignBlockedReasons,
   moreMenuItems,
   hasAction,
   onSave,
@@ -50,6 +66,8 @@ export default function OrderDetailHeader({
   onConfirmClosure,
   onOpenReleasePod,
   onOpenAbnormalCase,
+  onOpenSplit,
+  onOpenReassign,
 }: OrderDetailHeaderProps) {
   return (
     <DocumentDetailLayout
@@ -165,6 +183,50 @@ export default function OrderDetailHeader({
             >
               异常情况
             </Button>
+          )}
+
+          {/* 拆票 */}
+          {canSplit && (
+            <Tooltip
+              title={
+                splitDisabled && splitBlockedReasons && splitBlockedReasons.length > 0
+                  ? splitBlockedReasons.join('；')
+                  : undefined
+              }
+            >
+              <span>
+                <Button
+                  style={{ color: '#722ed1', borderColor: '#722ed1' }}
+                  icon={<ScissorOutlined />}
+                  disabled={splitDisabled}
+                  onClick={onOpenSplit}
+                >
+                  拆票
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+
+          {/* 改配 */}
+          {canReassign && (
+            <Tooltip
+              title={
+                reassignDisabled && reassignBlockedReasons && reassignBlockedReasons.length > 0
+                  ? reassignBlockedReasons.join('；')
+                  : undefined
+              }
+            >
+              <span>
+                <Button
+                  style={{ color: '#fa8c16', borderColor: '#fa8c16' }}
+                  icon={<SwapOutlined />}
+                  disabled={reassignDisabled}
+                  onClick={onOpenReassign}
+                >
+                  改配
+                </Button>
+              </span>
+            </Tooltip>
           )}
 
           {/* 更多操作 */}

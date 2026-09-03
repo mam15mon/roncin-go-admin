@@ -29,12 +29,16 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -78,6 +82,10 @@ type UserQuery struct {
 	withUploadedEnterpriseResourceImages      *EnterpriseResourceImageQuery
 	withEnterpriseResourceAssignments         *EnterpriseResourceAssigneeQuery
 	withConfirmedSeaCargoAllocationLinks      *SeaMasterBillOrderLinkQuery
+	withCreatedSeaOrderSplitEvents            *SeaOrderSplitEventQuery
+	withCreatedSeaOrderReassignmentEvents     *SeaOrderReassignmentEventQuery
+	withUploadedAttachmentAssets              *OrderAttachmentAssetQuery
+	withCreatedOrderAttachments               *OrderAttachmentQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -819,6 +827,94 @@ func (_q *UserQuery) QueryConfirmedSeaCargoAllocationLinks() *SeaMasterBillOrder
 	return query
 }
 
+// QueryCreatedSeaOrderSplitEvents chains the current query on the "created_sea_order_split_events" edge.
+func (_q *UserQuery) QueryCreatedSeaOrderSplitEvents() *SeaOrderSplitEventQuery {
+	query := (&SeaOrderSplitEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(seaordersplitevent.Table, seaordersplitevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaOrderSplitEventsTable, user.CreatedSeaOrderSplitEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaOrderReassignmentEvents chains the current query on the "created_sea_order_reassignment_events" edge.
+func (_q *UserQuery) QueryCreatedSeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaOrderReassignmentEventsTable, user.CreatedSeaOrderReassignmentEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUploadedAttachmentAssets chains the current query on the "uploaded_attachment_assets" edge.
+func (_q *UserQuery) QueryUploadedAttachmentAssets() *OrderAttachmentAssetQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderattachmentasset.Table, orderattachmentasset.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UploadedAttachmentAssetsTable, user.UploadedAttachmentAssetsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedOrderAttachments chains the current query on the "created_order_attachments" edge.
+func (_q *UserQuery) QueryCreatedOrderAttachments() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedOrderAttachmentsTable, user.CreatedOrderAttachmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -1043,6 +1139,10 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withUploadedEnterpriseResourceImages:      _q.withUploadedEnterpriseResourceImages.Clone(),
 		withEnterpriseResourceAssignments:         _q.withEnterpriseResourceAssignments.Clone(),
 		withConfirmedSeaCargoAllocationLinks:      _q.withConfirmedSeaCargoAllocationLinks.Clone(),
+		withCreatedSeaOrderSplitEvents:            _q.withCreatedSeaOrderSplitEvents.Clone(),
+		withCreatedSeaOrderReassignmentEvents:     _q.withCreatedSeaOrderReassignmentEvents.Clone(),
+		withUploadedAttachmentAssets:              _q.withUploadedAttachmentAssets.Clone(),
+		withCreatedOrderAttachments:               _q.withCreatedOrderAttachments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1401,6 +1501,50 @@ func (_q *UserQuery) WithConfirmedSeaCargoAllocationLinks(opts ...func(*SeaMaste
 	return _q
 }
 
+// WithCreatedSeaOrderSplitEvents tells the query-builder to eager-load the nodes that are connected to
+// the "created_sea_order_split_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedSeaOrderSplitEvents(opts ...func(*SeaOrderSplitEventQuery)) *UserQuery {
+	query := (&SeaOrderSplitEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedSeaOrderSplitEvents = query
+	return _q
+}
+
+// WithCreatedSeaOrderReassignmentEvents tells the query-builder to eager-load the nodes that are connected to
+// the "created_sea_order_reassignment_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedSeaOrderReassignmentEvents(opts ...func(*SeaOrderReassignmentEventQuery)) *UserQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedSeaOrderReassignmentEvents = query
+	return _q
+}
+
+// WithUploadedAttachmentAssets tells the query-builder to eager-load the nodes that are connected to
+// the "uploaded_attachment_assets" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithUploadedAttachmentAssets(opts ...func(*OrderAttachmentAssetQuery)) *UserQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUploadedAttachmentAssets = query
+	return _q
+}
+
+// WithCreatedOrderAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "created_order_attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedOrderAttachments(opts ...func(*OrderAttachmentQuery)) *UserQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedOrderAttachments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1479,7 +1623,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [32]bool{
+		loadedTypes = [36]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1512,6 +1656,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withUploadedEnterpriseResourceImages != nil,
 			_q.withEnterpriseResourceAssignments != nil,
 			_q.withConfirmedSeaCargoAllocationLinks != nil,
+			_q.withCreatedSeaOrderSplitEvents != nil,
+			_q.withCreatedSeaOrderReassignmentEvents != nil,
+			_q.withUploadedAttachmentAssets != nil,
+			_q.withCreatedOrderAttachments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1811,6 +1959,42 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.ConfirmedSeaCargoAllocationLinks = []*SeaMasterBillOrderLink{} },
 			func(n *User, e *SeaMasterBillOrderLink) {
 				n.Edges.ConfirmedSeaCargoAllocationLinks = append(n.Edges.ConfirmedSeaCargoAllocationLinks, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedSeaOrderSplitEvents; query != nil {
+		if err := _q.loadCreatedSeaOrderSplitEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedSeaOrderSplitEvents = []*SeaOrderSplitEvent{} },
+			func(n *User, e *SeaOrderSplitEvent) {
+				n.Edges.CreatedSeaOrderSplitEvents = append(n.Edges.CreatedSeaOrderSplitEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedSeaOrderReassignmentEvents; query != nil {
+		if err := _q.loadCreatedSeaOrderReassignmentEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedSeaOrderReassignmentEvents = []*SeaOrderReassignmentEvent{} },
+			func(n *User, e *SeaOrderReassignmentEvent) {
+				n.Edges.CreatedSeaOrderReassignmentEvents = append(n.Edges.CreatedSeaOrderReassignmentEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUploadedAttachmentAssets; query != nil {
+		if err := _q.loadUploadedAttachmentAssets(ctx, query, nodes,
+			func(n *User) { n.Edges.UploadedAttachmentAssets = []*OrderAttachmentAsset{} },
+			func(n *User, e *OrderAttachmentAsset) {
+				n.Edges.UploadedAttachmentAssets = append(n.Edges.UploadedAttachmentAssets, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedOrderAttachments; query != nil {
+		if err := _q.loadCreatedOrderAttachments(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedOrderAttachments = []*OrderAttachment{} },
+			func(n *User, e *OrderAttachment) {
+				n.Edges.CreatedOrderAttachments = append(n.Edges.CreatedOrderAttachments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2827,6 +3011,138 @@ func (_q *UserQuery) loadConfirmedSeaCargoAllocationLinks(ctx context.Context, q
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cargo_allocation_confirmed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedSeaOrderSplitEvents(ctx context.Context, query *SeaOrderSplitEventQuery, nodes []*User, init func(*User), assign func(*User, *SeaOrderSplitEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaordersplitevent.FieldCreatedBy)
+	}
+	query.Where(predicate.SeaOrderSplitEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedSeaOrderSplitEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "created_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedSeaOrderReassignmentEvents(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*User, init func(*User), assign func(*User, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldCreatedBy)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedSeaOrderReassignmentEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "created_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadUploadedAttachmentAssets(ctx context.Context, query *OrderAttachmentAssetQuery, nodes []*User, init func(*User), assign func(*User, *OrderAttachmentAsset)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderattachmentasset.FieldUploadedBy)
+	}
+	query.Where(predicate.OrderAttachmentAsset(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UploadedAttachmentAssetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UploadedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "uploaded_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "uploaded_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedOrderAttachments(ctx context.Context, query *OrderAttachmentQuery, nodes []*User, init func(*User), assign func(*User, *OrderAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderattachment.FieldCreatedBy)
+	}
+	query.Where(predicate.OrderAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedOrderAttachmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "created_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

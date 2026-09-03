@@ -84,9 +84,17 @@ type SeaMasterBillEdges struct {
 	OrderLinks []*SeaMasterBillOrderLink `json:"order_links,omitempty"`
 	// HouseBills holds the value of the house_bills edge.
 	HouseBills []*SeaHouseBill `json:"house_bills,omitempty"`
+	// InitialSeaOrderSplitResults holds the value of the initial_sea_order_split_results edge.
+	InitialSeaOrderSplitResults []*SeaOrderSplitResult `json:"initial_sea_order_split_results,omitempty"`
+	// FinalSeaOrderSplitResults holds the value of the final_sea_order_split_results edge.
+	FinalSeaOrderSplitResults []*SeaOrderSplitResult `json:"final_sea_order_split_results,omitempty"`
+	// PreviousSeaOrderReassignments holds the value of the previous_sea_order_reassignments edge.
+	PreviousSeaOrderReassignments []*SeaOrderReassignmentEvent `json:"previous_sea_order_reassignments,omitempty"`
+	// TargetSeaOrderReassignments holds the value of the target_sea_order_reassignments edge.
+	TargetSeaOrderReassignments []*SeaOrderReassignmentEvent `json:"target_sea_order_reassignments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -127,6 +135,42 @@ func (e SeaMasterBillEdges) HouseBillsOrErr() ([]*SeaHouseBill, error) {
 		return e.HouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bills"}
+}
+
+// InitialSeaOrderSplitResultsOrErr returns the InitialSeaOrderSplitResults value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillEdges) InitialSeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
+	if e.loadedTypes[4] {
+		return e.InitialSeaOrderSplitResults, nil
+	}
+	return nil, &NotLoadedError{edge: "initial_sea_order_split_results"}
+}
+
+// FinalSeaOrderSplitResultsOrErr returns the FinalSeaOrderSplitResults value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillEdges) FinalSeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
+	if e.loadedTypes[5] {
+		return e.FinalSeaOrderSplitResults, nil
+	}
+	return nil, &NotLoadedError{edge: "final_sea_order_split_results"}
+}
+
+// PreviousSeaOrderReassignmentsOrErr returns the PreviousSeaOrderReassignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillEdges) PreviousSeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[6] {
+		return e.PreviousSeaOrderReassignments, nil
+	}
+	return nil, &NotLoadedError{edge: "previous_sea_order_reassignments"}
+}
+
+// TargetSeaOrderReassignmentsOrErr returns the TargetSeaOrderReassignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillEdges) TargetSeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[7] {
+		return e.TargetSeaOrderReassignments, nil
+	}
+	return nil, &NotLoadedError{edge: "target_sea_order_reassignments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -355,6 +399,26 @@ func (_m *SeaMasterBill) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
 // QueryHouseBills queries the "house_bills" edge of the SeaMasterBill entity.
 func (_m *SeaMasterBill) QueryHouseBills() *SeaHouseBillQuery {
 	return NewSeaMasterBillClient(_m.config).QueryHouseBills(_m)
+}
+
+// QueryInitialSeaOrderSplitResults queries the "initial_sea_order_split_results" edge of the SeaMasterBill entity.
+func (_m *SeaMasterBill) QueryInitialSeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	return NewSeaMasterBillClient(_m.config).QueryInitialSeaOrderSplitResults(_m)
+}
+
+// QueryFinalSeaOrderSplitResults queries the "final_sea_order_split_results" edge of the SeaMasterBill entity.
+func (_m *SeaMasterBill) QueryFinalSeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	return NewSeaMasterBillClient(_m.config).QueryFinalSeaOrderSplitResults(_m)
+}
+
+// QueryPreviousSeaOrderReassignments queries the "previous_sea_order_reassignments" edge of the SeaMasterBill entity.
+func (_m *SeaMasterBill) QueryPreviousSeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	return NewSeaMasterBillClient(_m.config).QueryPreviousSeaOrderReassignments(_m)
+}
+
+// QueryTargetSeaOrderReassignments queries the "target_sea_order_reassignments" edge of the SeaMasterBill entity.
+func (_m *SeaMasterBill) QueryTargetSeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	return NewSeaMasterBillClient(_m.config).QueryTargetSeaOrderReassignments(_m)
 }
 
 // Update returns a builder for updating this SeaMasterBill.

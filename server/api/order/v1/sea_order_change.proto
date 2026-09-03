@@ -1,0 +1,550 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// SeaOrderChangeService 海运出口拆票与改配服务。
+service SeaOrderChangeService {
+  // GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。
+  rpc GetSeaOrderChangeActions(GetSeaOrderChangeActionsRequest) returns (GetSeaOrderChangeActionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-order-change/actions"};
+  }
+
+  // GetSeaOrderSplitContext 获取拆票上下文事实与可分配数据。
+  rpc GetSeaOrderSplitContext(GetSeaOrderSplitContextRequest) returns (GetSeaOrderSplitContextResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "split" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-order-change/split-context"};
+  }
+
+  // PreviewSeaOrderSplit 预览拆票结果、守恒计算与计划重算。
+  rpc PreviewSeaOrderSplit(PreviewSeaOrderSplitRequest) returns (PreviewSeaOrderSplitResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "split" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/split/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaOrderSplit 执行部分拆票。
+  rpc ExecuteSeaOrderSplit(ExecuteSeaOrderSplitRequest) returns (ExecuteSeaOrderSplitResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "split" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/split/execute"
+      body: "*"
+    };
+  }
+
+  // PreviewSeaOrderReassignment 预览整体改配航程差异。
+  rpc PreviewSeaOrderReassignment(PreviewSeaOrderReassignmentRequest) returns (PreviewSeaOrderReassignmentResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/reassignment/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaOrderReassignment 执行整体改配。
+  rpc ExecuteSeaOrderReassignment(ExecuteSeaOrderReassignmentRequest) returns (ExecuteSeaOrderReassignmentResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/reassignment/execute"
+      body: "*"
+    };
+  }
+
+  // ListSeaOrderChangeEvents 查询订单拆票与改配事件历史。
+  rpc ListSeaOrderChangeEvents(ListSeaOrderChangeEventsRequest) returns (ListSeaOrderChangeEventsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-order-change/events"};
+  }
+
+  // GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。
+  rpc GetSeaOrderChangeEvent(GetSeaOrderChangeEventRequest) returns (GetSeaOrderChangeEventResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-order-change/events/{event_id}"};
+  }
+}
+
+// -------------------------------------------------------------
+// 1. 动作摘要
+// -------------------------------------------------------------
+
+message GetSeaOrderChangeActionsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetSeaOrderChangeActionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderChangeActionsData data = 4;
+  string trace_id = 5;
+}
+
+message SeaOrderChangeActionsData {
+  bool can_split = 1;
+  bool can_reassign = 2;
+  repeated string split_blocked_reasons = 3;
+  repeated string reassign_blocked_reasons = 4;
+}
+
+// -------------------------------------------------------------
+// 2. 拆票上下文
+// -------------------------------------------------------------
+
+message GetSeaOrderSplitContextRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetSeaOrderSplitContextResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderSplitContextData data = 4;
+  string trace_id = 5;
+}
+
+message SeaOrderSplitContextData {
+  string order_id = 1;
+  string order_no = 2;
+  string business_type = 3;
+  string shipment_type = 4;
+  string flow_status = 5;
+  uint64 order_version = 6;
+  string customer_reference_no = 7;
+  string internal_reference_no = 8;
+  string booking_notes = 9;
+  string allocation_notes = 10;
+  string operation_notes = 11;
+  SeaOrderSplitMasterBillSummary current_master_bill = 12;
+  string current_link_id = 13;
+  uint64 current_link_version = 14;
+  string document_structure = 15;
+  string cargo_allocation_status = 16;
+  uint64 cargo_allocation_version = 17;
+  repeated SeaOrderSplitHouseBillItem house_bills = 18;
+  repeated SeaOrderSplitCargoItem cargo_items = 19;
+  repeated SeaOrderSplitContainerItem containers = 20;
+  repeated SeaOrderSplitAllocationItem allocations = 21;
+  repeated SeaOrderSplitDraftFeeItem draft_fees = 22;
+  repeated SeaOrderSplitAttachmentItem attachments = 23;
+  repeated SeaOrderSplitContainerPlanItem container_plans = 24;
+  optional string attachment_reference_fingerprint = 25;
+}
+
+message SeaOrderSplitMasterBillSummary {
+  string id = 1;
+  string master_no = 2;
+  string issuer_partner_id = 3;
+  string issuer_partner_name = 4;
+  string carrier_id = 5;
+  string carrier_name = 6;
+  string vessel_name = 7;
+  string voyage_no = 8;
+  string etd = 9;
+  string eta = 10;
+  uint64 version = 11;
+  string origin_location_id = 12;
+  string origin_location_name = 13;
+  string discharge_location_id = 14;
+  string discharge_location_name = 15;
+  string transit_location_id = 16;
+  string transit_location_name = 17;
+  string transport_execution_id = 18;
+  uint64 transport_execution_version = 19;
+}
+
+message SeaOrderSplitHouseBillItem {
+  string id = 1;
+  string house_no = 2;
+  string status = 3;
+  uint64 version = 4;
+}
+
+message SeaOrderSplitCargoItem {
+  string id = 1;
+  string cargo_name = 2;
+  int32 package_count = 3;
+  string gross_weight_kg = 4;
+  string volume_cbm = 5;
+  uint64 version = 6;
+}
+
+message SeaOrderSplitContainerItem {
+  string id = 1;
+  string container_no = 2;
+  string container_spec_id = 3;
+  string container_spec_name = 4;
+  int32 package_count = 5;
+  string gross_weight_kg = 6;
+  string volume_cbm = 7;
+  uint64 version = 8;
+}
+
+message SeaOrderSplitAllocationItem {
+  string id = 1;
+  string cargo_item_id = 2;
+  string house_bill_id = 3;
+  string container_id = 4;
+  int32 package_count = 5;
+  string gross_weight_kg = 6;
+  string volume_cbm = 7;
+}
+
+message SeaOrderSplitDraftFeeItem {
+  string id = 1;
+  string fee_code = 2;
+  string fee_name = 3;
+  string direction = 4;
+  string settlement_party_id = 5;
+  string settlement_party_name = 6;
+  string currency = 7;
+  string total_amount = 8;
+  string base_currency = 9;
+  string base_currency_amount = 10;
+  uint64 version = 11;
+}
+
+message SeaOrderSplitAttachmentItem {
+  string id = 1;
+  string asset_id = 2;
+  string file_name = 3;
+  string mime_type = 4;
+  int64 file_size = 5;
+  string doc_type = 6;
+}
+
+message SeaOrderSplitContainerPlanItem {
+  string container_spec_id = 1;
+  string container_spec_name = 2;
+  int32 quantity = 3;
+}
+
+// -------------------------------------------------------------
+// 3. 拆票请求与预览/执行
+// -------------------------------------------------------------
+
+message SeaOrderSplitTargetInput {
+  string client_target_key = 1 [(google.api.field_behavior) = REQUIRED];
+  string target_type = 2 [(google.api.field_behavior) = REQUIRED]; // CURRENT | CANDIDATE | NEW
+  optional string candidate_id = 3;
+  optional uint64 candidate_version = 4;
+  optional string master_no = 5;
+  optional string issuer_partner_id = 6;
+  optional string carrier_id = 7;
+  optional string vessel_name = 8;
+  optional string voyage_no = 9;
+  optional string etd = 10;
+  optional string eta = 11;
+  optional string origin_location_id = 12;
+  optional string discharge_location_id = 13;
+  optional string transit_location_id = 14;
+  optional string candidate_te_id = 15;
+  optional uint64 candidate_te_version = 16;
+}
+
+message SeaOrderSplitResultInput {
+  string client_result_key = 1 [(google.api.field_behavior) = REQUIRED];
+  string result_role = 2 [(google.api.field_behavior) = REQUIRED]; // ORIGINAL | CREATED
+  string client_target_key = 3 [(google.api.field_behavior) = REQUIRED];
+  repeated string house_bill_ids = 4;
+  repeated string draft_fee_ids = 5;
+  repeated string attachment_reference_ids = 6;
+  optional string internal_reference_no = 7;
+  optional string booking_notes = 8;
+  optional string allocation_notes = 9;
+  optional string operation_notes = 10;
+}
+
+message SeaOrderSplitExpectedVersions {
+  uint64 order_version = 1;
+  uint64 link_version = 2;
+  uint64 allocation_version = 3;
+  map<string, uint64> house_bill_versions = 4;
+  map<string, uint64> cargo_item_versions = 5;
+  map<string, uint64> container_versions = 6;
+  map<string, uint64> fee_versions = 7;
+  map<string, uint64> candidate_mbl_versions = 8;
+  optional string attachment_reference_fingerprint = 9;
+  map<string, uint64> candidate_te_versions = 10;
+}
+
+message PreviewSeaOrderSplitRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 2;
+  repeated SeaOrderSplitTargetInput targets = 3 [(google.api.field_behavior) = REQUIRED];
+  repeated SeaOrderSplitResultInput results = 4 [(google.api.field_behavior) = REQUIRED];
+  optional SeaOrderSplitExpectedVersions expected_versions = 5;
+}
+
+message PreviewSeaOrderSplitResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderSplitPreviewData data = 4;
+  string trace_id = 5;
+}
+
+message SeaOrderSplitPreviewData {
+  bool is_valid = 1;
+  bool conservation_passed = 2;
+  repeated SeaOrderSplitValidationError validation_errors = 3;
+  SeaOrderSplitQuantitySummary baseline = 4;
+  SeaOrderSplitQuantitySummary allocated = 5;
+  SeaOrderSplitQuantitySummary remaining = 6;
+  repeated SeaOrderSplitPreviewResultItem results = 7;
+}
+
+message SeaOrderSplitValidationError {
+  string reason = 1;
+  string message = 2;
+  string field = 3;
+  string client_result_key = 4;
+  string house_bill_id = 5;
+  string container_id = 6;
+  string cargo_item_id = 7;
+  string fee_id = 8;
+  string baseline_value = 9;
+  string allocated_value = 10;
+  string diff_value = 11;
+}
+
+message SeaOrderSplitQuantitySummary {
+  int32 package_count = 1;
+  string gross_weight_kg = 2;
+  string volume_cbm = 3;
+  int32 container_count = 4;
+  int32 house_bill_count = 5;
+  int32 fee_count = 6;
+}
+
+message SeaOrderSplitPreviewResultItem {
+  string client_result_key = 1;
+  string result_role = 2;
+  string client_target_key = 3;
+  int32 package_count = 4;
+  string gross_weight_kg = 5;
+  string volume_cbm = 6;
+  int32 container_count = 7;
+  int32 house_bill_count = 8;
+  int32 fee_count = 9;
+  int32 attachment_count = 10;
+  repeated SeaOrderSplitContainerPlanItem container_plans = 11;
+  optional string internal_reference_no = 12;
+  string booking_notes = 13;
+  string allocation_notes = 14;
+  string operation_notes = 15;
+}
+
+message ExecuteSeaOrderSplitRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_fingerprint = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 4;
+  repeated SeaOrderSplitTargetInput targets = 5 [(google.api.field_behavior) = REQUIRED];
+  repeated SeaOrderSplitResultInput results = 6 [(google.api.field_behavior) = REQUIRED];
+  SeaOrderSplitExpectedVersions expected_versions = 7 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExecuteSeaOrderSplitResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExecuteSeaOrderSplitData data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaOrderSplitData {
+  string split_event_id = 1;
+  string created_at = 2;
+  SeaOrderSplitOrderReference original_order = 3;
+  repeated SeaOrderSplitCreatedOrder created_orders = 4;
+  repeated string reassignment_event_ids = 5;
+}
+
+message SeaOrderSplitOrderReference {
+  string order_id = 1;
+  string order_no = 2;
+}
+
+message SeaOrderSplitCreatedOrder {
+  string order_id = 1;
+  string order_no = 2;
+  string client_result_key = 3;
+}
+
+// -------------------------------------------------------------
+// 4. 改配请求与预览/执行
+// -------------------------------------------------------------
+
+message SeaOrderReassignmentTargetInput {
+  string target_type = 1 [(google.api.field_behavior) = REQUIRED]; // CANDIDATE | NEW
+  optional string candidate_id = 2;
+  optional uint64 candidate_version = 3;
+  optional string master_no = 4;
+  optional string issuer_partner_id = 5;
+  optional string carrier_id = 6;
+  optional string vessel_name = 7;
+  optional string voyage_no = 8;
+  optional string etd = 9;
+  optional string eta = 10;
+  optional string origin_location_id = 11;
+  optional string discharge_location_id = 12;
+  optional string transit_location_id = 13;
+  optional string candidate_te_id = 14;
+  optional uint64 candidate_te_version = 15;
+}
+
+message PreviewSeaOrderReassignmentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaOrderReassignmentTargetInput target = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PreviewSeaOrderReassignmentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderReassignmentPreviewData data = 4;
+  string trace_id = 5;
+}
+
+message SeaOrderReassignmentPreviewData {
+  bool is_valid = 1;
+  repeated string errors = 2;
+  SeaOrderSplitMasterBillSummary current_master_bill = 3;
+  SeaOrderSplitMasterBillSummary target_master_bill = 4;
+  int32 target_member_count = 5;
+  repeated VoyageDifferenceItem differences = 6;
+  uint64 order_version = 7;
+  uint64 current_link_version = 8;
+}
+
+message VoyageDifferenceItem {
+  string field_name = 1;
+  string label = 2;
+  string current_value = 3;
+  string target_value = 4;
+  bool is_different = 5;
+}
+
+message ExecuteSeaOrderReassignmentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_fingerprint = 3 [(google.api.field_behavior) = REQUIRED];
+  SeaOrderReassignmentTargetInput target = 4 [(google.api.field_behavior) = REQUIRED];
+  string reason = 5 [(google.api.field_behavior) = REQUIRED];
+  string responsibility_type = 6 [(google.api.field_behavior) = REQUIRED]; // CARRIER | CUSTOMER | CUSTOMS | OWN_COMPANY | FORCE_MAJEURE | OTHER
+  optional string responsible_partner_id = 7;
+  uint64 expected_order_version = 8 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 9 [(google.api.field_behavior) = REQUIRED];
+  optional uint64 expected_candidate_mbl_version = 10;
+  optional uint64 expected_candidate_te_version = 11;
+}
+
+message ExecuteSeaOrderReassignmentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExecuteSeaOrderReassignmentData data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaOrderReassignmentData {
+  string reassignment_event_id = 1;
+  string created_at = 2;
+  string order_id = 3;
+  string order_no = 4;
+  string target_master_bill_id = 5;
+  string target_master_no = 6;
+}
+
+// -------------------------------------------------------------
+// 5. 变更历史事件列表与详情
+// -------------------------------------------------------------
+
+message ListSeaOrderChangeEventsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListSeaOrderChangeEventsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated SeaOrderChangeEventSummary data = 4;
+  int32 total = 5;
+  string trace_id = 6;
+}
+
+message SeaOrderChangeEventSummary {
+  string id = 1;
+  string event_type = 2; // SPLIT | REASSIGNMENT
+  string created_at = 3;
+  string operator_id = 4;
+  string operator_name = 5;
+  string note_or_reason = 6;
+  optional SeaOrderSplitEventSummary split_summary = 7;
+  optional SeaOrderReassignmentEventSummary reassignment_summary = 8;
+}
+
+message SeaOrderSplitEventSummary {
+  string source_order_id = 1;
+  string source_order_no = 2;
+  int32 result_count = 3;
+  repeated SeaOrderSplitResultSummaryItem results = 4;
+}
+
+message SeaOrderSplitResultSummaryItem {
+  string result_role = 1;
+  string order_id = 2;
+  string order_no = 3;
+  string final_master_no = 4;
+  int32 package_count = 5;
+  string gross_weight_kg = 6;
+  string volume_cbm = 7;
+}
+
+message SeaOrderReassignmentEventSummary {
+  string order_id = 1;
+  string order_no = 2;
+  string previous_master_no = 3;
+  string target_master_no = 4;
+  string responsibility_type = 5;
+  string responsible_partner_name = 6;
+  string reason = 7;
+}
+
+message GetSeaOrderChangeEventRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string event_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string event_type = 3 [(google.api.field_behavior) = REQUIRED]; // SPLIT | REASSIGNMENT
+}
+
+message GetSeaOrderChangeEventResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderChangeEventDetailData data = 4;
+  string trace_id = 5;
+}
+
+message SeaOrderChangeEventDetailData {
+  string id = 1;
+  string event_type = 2;
+  string created_at = 3;
+  string operator_id = 4;
+  string operator_name = 5;
+  string note_or_reason = 6;
+  string before_snapshot_json = 7;
+  string after_snapshot_json = 8;
+  string conservation_snapshot_json = 9;
+  optional SeaOrderSplitEventSummary split_summary = 10;
+  optional SeaOrderReassignmentEventSummary reassignment_summary = 11;
+}

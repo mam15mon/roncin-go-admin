@@ -108,6 +108,9 @@ func (Order) Edges() []ent.Edge {
 		edge.To("sea_master_bill_links", SeaMasterBillOrderLink.Type),
 		edge.To("sea_house_bills", SeaHouseBill.Type),
 		edge.To("sea_cargo_allocations", SeaCargoAllocation.Type),
+		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
+		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),
+		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
 	}
 }
 

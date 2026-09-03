@@ -72,6 +72,8 @@ const (
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
 	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
+	// EdgeSeaOrderReassignments holds the string denoting the sea_order_reassignments edge name in mutations.
+	EdgeSeaOrderReassignments = "sea_order_reassignments"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -200,6 +202,13 @@ const (
 	IssuedSeaHouseBillsInverseTable = "sea_house_bills"
 	// IssuedSeaHouseBillsColumn is the table column denoting the issued_sea_house_bills relation/edge.
 	IssuedSeaHouseBillsColumn = "issuer_partner_id"
+	// SeaOrderReassignmentsTable is the table that holds the sea_order_reassignments relation/edge.
+	SeaOrderReassignmentsTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	SeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentsColumn is the table column denoting the sea_order_reassignments relation/edge.
+	SeaOrderReassignmentsColumn = "responsible_partner_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -553,6 +562,20 @@ func ByIssuedSeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newIssuedSeaHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySeaOrderReassignmentsCount orders the results by sea_order_reassignments count.
+func BySeaOrderReassignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderReassignmentsStep(), opts...)
+	}
+}
+
+// BySeaOrderReassignments orders the results by sea_order_reassignments terms.
+func BySeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -677,5 +700,12 @@ func newIssuedSeaHouseBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IssuedSeaHouseBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillsTable, IssuedSeaHouseBillsColumn),
+	)
+}
+func newSeaOrderReassignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderReassignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentsTable, SeaOrderReassignmentsColumn),
 	)
 }

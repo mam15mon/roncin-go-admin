@@ -49,6 +49,19 @@ func SplitVesselVoyage(vesselVoyage string) (string, string) {
 	return v, ""
 }
 
+// CombineVesselVoyage 拼接船名航次组合字符串。
+func CombineVesselVoyage(vessel, voyage string) string {
+	v := strings.TrimSpace(vessel)
+	vy := strings.TrimSpace(voyage)
+	if v == "" {
+		return vy
+	}
+	if vy == "" {
+		return v
+	}
+	return v + " / " + vy
+}
+
 type SeaMasterBillStatus string
 
 const (
@@ -161,26 +174,27 @@ type SeaMasterBillMatchResult struct {
 
 // SeaMasterBillSummary 订单当前关联主单摘要。
 type SeaMasterBillSummary struct {
-	MasterBillID          uuid.UUID
-	MasterNo              string
-	IssuerPartnerID       uuid.UUID
-	IssuerPartnerName     string
-	TransportExecutionID  uuid.UUID
-	CarrierID             *uuid.UUID
-	CarrierName           string
-	OriginLocationID      *uuid.UUID
-	OriginLocationName    string
-	DischargeLocationID   *uuid.UUID
-	DischargeLocationName string
-	TransitLocationID     *uuid.UUID
-	TransitLocationName   string
-	VesselName            string
-	VoyageNo              string
-	ETD                   string
-	ETA                   string
-	Status                string
-	Version               uint64
-	MemberCount           int
+	MasterBillID              uuid.UUID
+	MasterNo                  string
+	IssuerPartnerID           uuid.UUID
+	IssuerPartnerName         string
+	TransportExecutionID      uuid.UUID
+	TransportExecutionVersion uint64
+	CarrierID                 *uuid.UUID
+	CarrierName               string
+	OriginLocationID          *uuid.UUID
+	OriginLocationName        string
+	DischargeLocationID       *uuid.UUID
+	DischargeLocationName     string
+	TransitLocationID         *uuid.UUID
+	TransitLocationName       string
+	VesselName                string
+	VoyageNo                  string
+	ETD                       string
+	ETA                       string
+	Status                    string
+	Version                   uint64
+	MemberCount               int
 }
 
 // CheckSeaVoyageConflicts 比对已有运输执行与本票航程是否一致。

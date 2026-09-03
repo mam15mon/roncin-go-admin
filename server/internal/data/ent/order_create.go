@@ -35,6 +35,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 )
 
 // OrderCreate is the builder for creating a Order entity.
@@ -1265,6 +1268,51 @@ func (_c *OrderCreate) AddSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderCr
 	return _c.AddSeaCargoAllocationIDs(ids...)
 }
 
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (_c *OrderCreate) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaOrderSplitEventIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderSplitEvents adds the "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_c *OrderCreate) AddSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderSplitEventIDs(ids...)
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_c *OrderCreate) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaOrderSplitResultIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderSplitResults adds the "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_c *OrderCreate) AddSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderSplitResultIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *OrderCreate) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_c *OrderCreate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -2291,6 +2339,54 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderSplitEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaOrderSplitEventsTable,
+			Columns: []string{order.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaOrderSplitResultsTable,
+			Columns: []string{order.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaOrderReassignmentEventsTable,
+			Columns: []string{order.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

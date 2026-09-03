@@ -15,18 +15,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderAttachmentQuery is the builder for querying OrderAttachment entities.
 type OrderAttachmentQuery struct {
 	config
-	ctx        *QueryContext
-	order      []orderattachment.OrderOption
-	inters     []Interceptor
-	predicates []predicate.OrderAttachment
-	withOrder  *OrderQuery
-	modifiers  []func(*sql.Selector)
+	ctx         *QueryContext
+	order       []orderattachment.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.OrderAttachment
+	withOrder   *OrderQuery
+	withAsset   *OrderAttachmentAssetQuery
+	withCreator *UserQuery
+	modifiers   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +82,50 @@ func (_q *OrderAttachmentQuery) QueryOrder() *OrderQuery {
 			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderattachment.OrderTable, orderattachment.OrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAsset chains the current query on the "asset" edge.
+func (_q *OrderAttachmentQuery) QueryAsset() *OrderAttachmentAssetQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(orderattachmentasset.Table, orderattachmentasset.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderattachment.AssetTable, orderattachment.AssetColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreator chains the current query on the "creator" edge.
+func (_q *OrderAttachmentQuery) QueryCreator() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderattachment.CreatorTable, orderattachment.CreatorColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -272,12 +320,14 @@ func (_q *OrderAttachmentQuery) Clone() *OrderAttachmentQuery {
 		return nil
 	}
 	return &OrderAttachmentQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]orderattachment.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.OrderAttachment{}, _q.predicates...),
-		withOrder:  _q.withOrder.Clone(),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]orderattachment.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.OrderAttachment{}, _q.predicates...),
+		withOrder:   _q.withOrder.Clone(),
+		withAsset:   _q.withAsset.Clone(),
+		withCreator: _q.withCreator.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -292,6 +342,28 @@ func (_q *OrderAttachmentQuery) WithOrder(opts ...func(*OrderQuery)) *OrderAttac
 		opt(query)
 	}
 	_q.withOrder = query
+	return _q
+}
+
+// WithAsset tells the query-builder to eager-load the nodes that are connected to
+// the "asset" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithAsset(opts ...func(*OrderAttachmentAssetQuery)) *OrderAttachmentQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAsset = query
+	return _q
+}
+
+// WithCreator tells the query-builder to eager-load the nodes that are connected to
+// the "creator" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithCreator(opts ...func(*UserQuery)) *OrderAttachmentQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreator = query
 	return _q
 }
 
@@ -373,8 +445,10 @@ func (_q *OrderAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderAttachment{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			_q.withOrder != nil,
+			_q.withAsset != nil,
+			_q.withCreator != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -404,6 +478,18 @@ func (_q *OrderAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
+	if query := _q.withAsset; query != nil {
+		if err := _q.loadAsset(ctx, query, nodes, nil,
+			func(n *OrderAttachment, e *OrderAttachmentAsset) { n.Edges.Asset = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreator; query != nil {
+		if err := _q.loadCreator(ctx, query, nodes, nil,
+			func(n *OrderAttachment, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -429,6 +515,67 @@ func (_q *OrderAttachmentQuery) loadOrder(ctx context.Context, query *OrderQuery
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "order_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadAsset(ctx context.Context, query *OrderAttachmentAssetQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *OrderAttachmentAsset)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderAttachment)
+	for i := range nodes {
+		fk := nodes[i].AssetID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderattachmentasset.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "asset_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderAttachment)
+	for i := range nodes {
+		if nodes[i].CreatedBy == nil {
+			continue
+		}
+		fk := *nodes[i].CreatedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -467,6 +614,12 @@ func (_q *OrderAttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withOrder != nil {
 			_spec.Node.AddColumnOnce(orderattachment.FieldOrderID)
+		}
+		if _q.withAsset != nil {
+			_spec.Node.AddColumnOnce(orderattachment.FieldAssetID)
+		}
+		if _q.withCreator != nil {
+			_spec.Node.AddColumnOnce(orderattachment.FieldCreatedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

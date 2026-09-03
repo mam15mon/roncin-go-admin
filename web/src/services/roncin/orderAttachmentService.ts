@@ -40,3 +40,20 @@ export async function orderAttachmentServiceRegisterAttachment(
     }
   );
 }
+
+/** RemoveAttachmentReference 解除订单附件引用。 DELETE /api/v1/orders/${param0}/attachments/${param1} */
+export async function orderAttachmentServiceRemoveAttachmentReference(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderAttachmentServiceRemoveAttachmentReferenceParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.RemoveAttachmentReferenceResponse>(
+    `/api/v1/orders/${param0}/attachments/${param1}`,
+    {
+      method: "DELETE",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}

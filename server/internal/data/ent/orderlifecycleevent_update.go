@@ -88,6 +88,12 @@ func (_u *OrderLifecycleEventUpdate) sqlSave(ctx context.Context) (_node int, er
 	if _u.mutation.OperatorIDCleared() {
 		_spec.ClearField(orderlifecycleevent.FieldOperatorID, field.TypeUUID)
 	}
+	if _u.mutation.ReferenceTypeCleared() {
+		_spec.ClearField(orderlifecycleevent.FieldReferenceType, field.TypeString)
+	}
+	if _u.mutation.ReferenceIDCleared() {
+		_spec.ClearField(orderlifecycleevent.FieldReferenceID, field.TypeUUID)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderlifecycleevent.Label}
@@ -198,6 +204,12 @@ func (_u *OrderLifecycleEventUpdateOne) sqlSave(ctx context.Context) (_node *Ord
 	}
 	if _u.mutation.OperatorIDCleared() {
 		_spec.ClearField(orderlifecycleevent.FieldOperatorID, field.TypeUUID)
+	}
+	if _u.mutation.ReferenceTypeCleared() {
+		_spec.ClearField(orderlifecycleevent.FieldReferenceType, field.TypeString)
+	}
+	if _u.mutation.ReferenceIDCleared() {
+		_spec.ClearField(orderlifecycleevent.FieldReferenceID, field.TypeUUID)
 	}
 	_node = &OrderLifecycleEvent{config: _u.config}
 	_spec.Assign = _node.assignValues

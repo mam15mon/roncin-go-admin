@@ -7,6 +7,75 @@
 - 禁止在业务代码散落手写 SQL；确有必要时集中封装在 `internal/data` 并说明原因。
 - 唯一性靠数据库唯一索引兜底，不用先查后插。
 
+## Scenario：正式 CHECK 与 Ent Schema 同源
+
+### 1. Scope / Trigger
+
+- 正式 PostgreSQL 迁移新增、删除或修改 `CHECK` 约束时适用。
+- `field.Enum(...)`、`field.Int64(...).Positive()` 等 Go 侧声明不能替代数据库
+  `CHECK` 的真相源声明；凡迁移中要求数据库强制执行的条件，都必须在 Ent Schema
+  同步声明。
+
+### 2. Signatures
+
+- Ent 表级约束：
+  `Annotations() []schema.Annotation { return []schema.Annotation{entsql.Checks(...)}}`。
+- 正式迁移：`ALTER TABLE ... ADD CONSTRAINT <stable_name> CHECK (...)` 或建表内同名
+  `CONSTRAINT`。
+- 生成验证对象：`server/internal/data/ent/migrate.<Table>.Annotation.Checks`。
+
+### 3. Contracts
+
+- Ent 注解、生成的 `ent/migrate/schema.go` 与正式 SQL 迁移必须使用相同的稳定约束名
+  和等价表达式。
+- 生产迁移仍以 `pnpm run migrate:server` 执行；Ent 注解用于保持 Schema 真相源完整，
+  防止开发期 `Schema.Create` 或后续差异生成把正式约束识别为漂移。
+- 生成文件只能通过 `go -C server generate ./...` 更新，不得手改。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 行为 |
+|------|------|
+| SQL 有 CHECK，Ent Schema 没有 | 阻断提交；补 Ent 注解和生成元数据测试 |
+| Ent 与 SQL 约束名不同 | 阻断提交；统一稳定名称，避免被识别成删除再重建 |
+| Ent 与 SQL 表达式语义不同 | 阻断提交；以已批准的业务约束修正两处 |
+| 生成后 `Annotation.Checks` 缺项 | 生成/测试失败，不得手改 `ent/migrate/schema.go` |
+| 开发库迁移后 `pg_constraint` 缺项 | 数据库验收失败，不得只凭 Go 测试宣告完成 |
+
+### 5. Good / Base / Bad Cases
+
+- Good：迁移与 `entsql.Checks` 都声明 `file_size > 0`，测试断言生成表注解中存在同名
+  约束，并在空库迁移后查询 `pg_constraint`。
+- Base：纯应用层格式校验无需数据库强制时，不额外添加推测性的 CHECK。
+- Bad：只在 SQL 迁移写 CHECK，认为 `field.Enum` 会自动让后续 Schema 同步保留它。
+
+### 6. Tests Required
+
+- 生成元数据测试：断言表名、约束名和完整表达式。
+- 空 PostgreSQL Schema 迁移测试：断言 `pg_constraint` 中约束存在且迁移 revision/checksum
+  正确。
+- 生成幂等：重跑 `go -C server generate ./...` 后 tracked/untracked 内容指纹不变。
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```go
+// 正式迁移有 CHECK，但 Ent 真相源没有对应声明。
+field.Enum("result_role").Values("ORIGINAL", "CREATED")
+```
+
+#### Correct
+
+```go
+func (SeaOrderSplitResult) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"sea_order_split_results_result_role_check":
+			"result_role IN ('ORIGINAL', 'CREATED')",
+	})}
+}
+```
+
 ## 事务统一封装（`internal/data/transaction.go`）
 
 所有事务必须走统一封装，禁止手写 `db.Tx` + `Rollback`/`Commit` 模板，禁止

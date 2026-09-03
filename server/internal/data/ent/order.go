@@ -208,9 +208,15 @@ type OrderEdges struct {
 	SeaHouseBills []*SeaHouseBill `json:"sea_house_bills,omitempty"`
 	// SeaCargoAllocations holds the value of the sea_cargo_allocations edge.
 	SeaCargoAllocations []*SeaCargoAllocation `json:"sea_cargo_allocations,omitempty"`
+	// SeaOrderSplitEvents holds the value of the sea_order_split_events edge.
+	SeaOrderSplitEvents []*SeaOrderSplitEvent `json:"sea_order_split_events,omitempty"`
+	// SeaOrderSplitResults holds the value of the sea_order_split_results edge.
+	SeaOrderSplitResults []*SeaOrderSplitResult `json:"sea_order_split_results,omitempty"`
+	// SeaOrderReassignmentEvents holds the value of the sea_order_reassignment_events edge.
+	SeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"sea_order_reassignment_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [23]bool
+	loadedTypes [26]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -422,6 +428,33 @@ func (e OrderEdges) SeaCargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
 		return e.SeaCargoAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_cargo_allocations"}
+}
+
+// SeaOrderSplitEventsOrErr returns the SeaOrderSplitEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
+	if e.loadedTypes[23] {
+		return e.SeaOrderSplitEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_split_events"}
+}
+
+// SeaOrderSplitResultsOrErr returns the SeaOrderSplitResults value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
+	if e.loadedTypes[24] {
+		return e.SeaOrderSplitResults, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_split_results"}
+}
+
+// SeaOrderReassignmentEventsOrErr returns the SeaOrderReassignmentEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[25] {
+		return e.SeaOrderReassignmentEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -1014,6 +1047,21 @@ func (_m *Order) QuerySeaHouseBills() *SeaHouseBillQuery {
 // QuerySeaCargoAllocations queries the "sea_cargo_allocations" edge of the Order entity.
 func (_m *Order) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
 	return NewOrderClient(_m.config).QuerySeaCargoAllocations(_m)
+}
+
+// QuerySeaOrderSplitEvents queries the "sea_order_split_events" edge of the Order entity.
+func (_m *Order) QuerySeaOrderSplitEvents() *SeaOrderSplitEventQuery {
+	return NewOrderClient(_m.config).QuerySeaOrderSplitEvents(_m)
+}
+
+// QuerySeaOrderSplitResults queries the "sea_order_split_results" edge of the Order entity.
+func (_m *Order) QuerySeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	return NewOrderClient(_m.config).QuerySeaOrderSplitResults(_m)
+}
+
+// QuerySeaOrderReassignmentEvents queries the "sea_order_reassignment_events" edge of the Order entity.
+func (_m *Order) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	return NewOrderClient(_m.config).QuerySeaOrderReassignmentEvents(_m)
 }
 
 // Update returns a builder for updating this Order.

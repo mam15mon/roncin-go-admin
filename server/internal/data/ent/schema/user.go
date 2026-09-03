@@ -82,6 +82,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("uploaded_enterprise_resource_images", EnterpriseResourceImage.Type),
 		edge.To("enterprise_resource_assignments", EnterpriseResourceAssignee.Type),
 		edge.To("confirmed_sea_cargo_allocation_links", SeaMasterBillOrderLink.Type),
+		edge.To("created_sea_order_split_events", SeaOrderSplitEvent.Type),
+		edge.To("created_sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
+		edge.To("uploaded_attachment_assets", OrderAttachmentAsset.Type),
+		edge.To("created_order_attachments", OrderAttachment.Type),
 	}
 }
 

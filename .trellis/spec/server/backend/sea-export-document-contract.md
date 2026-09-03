@@ -171,3 +171,85 @@ if link.Status != seamasterbillorderlink.StatusACTIVE || link.MasterBillID != mb
 // 不静默改写或丢弃；所有表单行进入 payload，再由明确校验给出错误。
 const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
 ```
+
+## Scenario：拆票与改配目标引用闭环
+
+### 1. Scope / Trigger
+
+- 拆票请求用客户端键关联“结果票”和“目标 MBL”，或整体改配在候选 MBL 与本次新建
+  MBL 之间选择目标时适用。
+- 该键只用于同一次命令内建图；不能被 data 层解释成可缺省的提示字段。
+
+### 2. Signatures
+
+- 拆票：`targets[].client_target_key` 定义目标，
+  `results[].client_target_key` 必须引用其中恰好一个目标。
+- 拆票目标类型：`CURRENT | CANDIDATE | NEW`。
+- 整体改配目标类型：`CANDIDATE | NEW`，不接受 `CURRENT`。
+- 候选目标必须携带 MBL ID/version 与运输执行 ID/version；预期版本必须与候选字段一致。
+
+### 3. Contracts
+
+- `targets[].client_target_key` 去首尾空白后非空，并在请求内唯一；重复键不得按数组顺序
+  覆盖。
+- 每个结果键必须命中已定义目标；缺失目标不得按 `CURRENT` 处理。
+- `CURRENT` 不得夹带候选或新建字段；`CANDIDATE` 必须提供完整候选身份与版本；`NEW`
+  不得夹带候选字段，并满足新 MBL 的号码、主体、港口和日期规则。
+- Preview 与 Execute 必须复用同一个 biz 输入校验；Execute 仍在事务锁内重验候选身份、
+  版本、唯一性和共享航程。
+- data 层按已验证的显式类型 `switch`，`default` 返回领域错误，禁止依据某个可空 ID
+  猜测目标类型。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 行为 |
+|------|------|
+| 目标键为空或重复 | 400 `SEA_ORDER_SPLIT_INVALID_ARGUMENT` |
+| 结果引用未知目标键 | 400 `SEA_ORDER_SPLIT_INVALID_ARGUMENT`，不得回退当前 MBL |
+| 拆票目标类型未知 | 400 `SEA_ORDER_SPLIT_INVALID_ARGUMENT` |
+| 改配目标为 `CURRENT`、空值或未知类型 | 400 `SEA_ORDER_REASSIGNMENT_INVALID_ARGUMENT` |
+| CURRENT/NEW 夹带其他类型字段 | 对应 400 InvalidArgument |
+| 候选身份字段缺失或版本与 expected map 不一致 | 对应 400/409，Preview 与 Execute 一致 |
+| NEW 主体、港口、日期或 MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
+
+### 5. Good / Base / Bad Cases
+
+- Good：两张结果票都引用同一个已定义 `NEW_A`，服务端只创建一个目标 MBL 并分别建立
+  显式关系。
+- Base：结果引用 `CURRENT` 目标，顶层仍显式声明该键和类型，不靠空字符串表达沿用。
+- Bad：结果传入 `MISSING`，data 查询不到后自动沿用当前 MBL。
+- Bad：整体改配传 `UNKNOWN`，因候选 ID 为空而被猜成 NEW。
+
+### 6. Tests Required
+
+- Biz：空键、重复键、未知引用、未知类型、CURRENT/NEW 夹带字段、CANDIDATE 缺字段与
+  expected version 不一致；Preview/Execute 断言相同错误。
+- Service：畸形 DTO 转换后仍被领域校验拒绝，错误 reason 不变化。
+- Data/PostgreSQL：未知键不写入；共享 NEW 键只建一个 MBL；候选版本锁后变化返回 409；
+  Preview/Execute 对非法主体、港口、日期和重复 MBL 一致。
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```go
+target := targetMap[result.ClientTargetKey]
+if target == nil || target.TargetType == SplitTargetTypeCurrent {
+	return useCurrentMasterBill()
+}
+```
+
+#### Correct
+
+```go
+target, ok := targetMap[result.ClientTargetKey]
+if !ok {
+	return ErrSeaOrderSplitInvalidArgument
+}
+switch target.TargetType {
+case SplitTargetTypeCurrent, SplitTargetTypeCandidate, SplitTargetTypeNew:
+	// 按显式类型处理；各分支的互斥字段已由共享 biz 校验确认。
+default:
+	return ErrSeaOrderSplitInvalidArgument
+}
+```

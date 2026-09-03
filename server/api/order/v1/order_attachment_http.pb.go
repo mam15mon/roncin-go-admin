@@ -19,18 +19,22 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationOrderAttachmentServiceListAttachments = "/order.v1.OrderAttachmentService/ListAttachments"
 const OperationOrderAttachmentServiceRegisterAttachment = "/order.v1.OrderAttachmentService/RegisterAttachment"
+const OperationOrderAttachmentServiceRemoveAttachmentReference = "/order.v1.OrderAttachmentService/RemoveAttachmentReference"
 
 type OrderAttachmentServiceHTTPServer interface {
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
 	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
 	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
+	// RemoveAttachmentReference RemoveAttachmentReference 解除订单附件引用。
+	RemoveAttachmentReference(context.Context, *RemoveAttachmentReferenceRequest) (*RemoveAttachmentReferenceResponse, error)
 }
 
 func RegisterOrderAttachmentServiceHTTPServer(s *http.Server, srv OrderAttachmentServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/orders/{order_id}/attachments", _OrderAttachmentService_ListAttachments0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/attachments", _OrderAttachmentService_RegisterAttachment0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/api/v1/orders/{order_id}/attachments/{id}", _OrderAttachmentService_RemoveAttachmentReference0_HTTP_Handler(srv))
 }
 
 func _OrderAttachmentService_ListAttachments0_HTTP_Handler(srv OrderAttachmentServiceHTTPServer) func(ctx http.Context) error {
@@ -77,11 +81,35 @@ func _OrderAttachmentService_RegisterAttachment0_HTTP_Handler(srv OrderAttachmen
 	}
 }
 
+func _OrderAttachmentService_RemoveAttachmentReference0_HTTP_Handler(srv OrderAttachmentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RemoveAttachmentReferenceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderAttachmentServiceRemoveAttachmentReference)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RemoveAttachmentReference(ctx, req.(*RemoveAttachmentReferenceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RemoveAttachmentReferenceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type OrderAttachmentServiceHTTPClient interface {
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
 	ListAttachments(ctx context.Context, req *ListAttachmentsRequest, opts ...http.CallOption) (rsp *ListAttachmentsResponse, err error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
 	RegisterAttachment(ctx context.Context, req *RegisterAttachmentRequest, opts ...http.CallOption) (rsp *RegisterAttachmentResponse, err error)
+	// RemoveAttachmentReference RemoveAttachmentReference 解除订单附件引用。
+	RemoveAttachmentReference(ctx context.Context, req *RemoveAttachmentReferenceRequest, opts ...http.CallOption) (rsp *RemoveAttachmentReferenceResponse, err error)
 }
 
 type OrderAttachmentServiceHTTPClientImpl struct {
@@ -121,6 +149,23 @@ func (c *OrderAttachmentServiceHTTPClientImpl) RegisterAttachment(ctx context.Co
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RemoveAttachmentReference RemoveAttachmentReference 解除订单附件引用。
+func (c *OrderAttachmentServiceHTTPClientImpl) RemoveAttachmentReference(ctx context.Context, in *RemoveAttachmentReferenceRequest, opts ...http.CallOption) (*RemoveAttachmentReferenceResponse, error) {
+	var out RemoveAttachmentReferenceResponse
+	pattern := "/api/v1/orders/{order_id}/attachments/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderAttachmentServiceRemoveAttachmentReference),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -35,6 +35,10 @@ type OrderLifecycleEvent struct {
 	OperatorID *uuid.UUID `json:"operator_id,omitempty"`
 	// ChangedAt holds the value of the "changed_at" field.
 	ChangedAt time.Time `json:"changed_at,omitempty"`
+	// ReferenceType holds the value of the "reference_type" field.
+	ReferenceType *string `json:"reference_type,omitempty"`
+	// ReferenceID holds the value of the "reference_id" field.
+	ReferenceID *uuid.UUID `json:"reference_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderLifecycleEventQuery when eager-loading is set.
 	Edges        OrderLifecycleEventEdges `json:"edges"`
@@ -66,9 +70,9 @@ func (*OrderLifecycleEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderlifecycleevent.FieldOperatorID:
+		case orderlifecycleevent.FieldOperatorID, orderlifecycleevent.FieldReferenceID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderlifecycleevent.FieldDimension, orderlifecycleevent.FieldFromStatus, orderlifecycleevent.FieldToStatus, orderlifecycleevent.FieldAction, orderlifecycleevent.FieldReason:
+		case orderlifecycleevent.FieldDimension, orderlifecycleevent.FieldFromStatus, orderlifecycleevent.FieldToStatus, orderlifecycleevent.FieldAction, orderlifecycleevent.FieldReason, orderlifecycleevent.FieldReferenceType:
 			values[i] = new(sql.NullString)
 		case orderlifecycleevent.FieldChangedAt:
 			values[i] = new(sql.NullTime)
@@ -146,6 +150,20 @@ func (_m *OrderLifecycleEvent) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				_m.ChangedAt = value.Time
 			}
+		case orderlifecycleevent.FieldReferenceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reference_type", values[i])
+			} else if value.Valid {
+				_m.ReferenceType = new(string)
+				*_m.ReferenceType = value.String
+			}
+		case orderlifecycleevent.FieldReferenceID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field reference_id", values[i])
+			} else if value.Valid {
+				_m.ReferenceID = new(uuid.UUID)
+				*_m.ReferenceID = *value.S.(*uuid.UUID)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -216,6 +234,16 @@ func (_m *OrderLifecycleEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("changed_at=")
 	builder.WriteString(_m.ChangedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := _m.ReferenceType; v != nil {
+		builder.WriteString("reference_type=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ReferenceID; v != nil {
+		builder.WriteString("reference_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

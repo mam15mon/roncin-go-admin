@@ -14,7 +14,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderAttachmentUpdate is the builder for updating OrderAttachment entities.
@@ -50,6 +52,20 @@ func (_u *OrderAttachmentUpdate) SetNillableOrderID(v *uuid.UUID) *OrderAttachme
 	return _u
 }
 
+// SetAssetID sets the "asset_id" field.
+func (_u *OrderAttachmentUpdate) SetAssetID(v uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.SetAssetID(v)
+	return _u
+}
+
+// SetNillableAssetID sets the "asset_id" field if the given value is not nil.
+func (_u *OrderAttachmentUpdate) SetNillableAssetID(v *uuid.UUID) *OrderAttachmentUpdate {
+	if v != nil {
+		_u.SetAssetID(*v)
+	}
+	return _u
+}
+
 // SetDocType sets the "doc_type" field.
 func (_u *OrderAttachmentUpdate) SetDocType(v string) *OrderAttachmentUpdate {
 	_u.mutation.SetDocType(v)
@@ -78,112 +94,53 @@ func (_u *OrderAttachmentUpdate) SetNillableIdempotencyKey(v *string) *OrderAtta
 	return _u
 }
 
-// SetFileName sets the "file_name" field.
-func (_u *OrderAttachmentUpdate) SetFileName(v string) *OrderAttachmentUpdate {
-	_u.mutation.SetFileName(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *OrderAttachmentUpdate) SetCreatedBy(v uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableFileName(v *string) *OrderAttachmentUpdate {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *OrderAttachmentUpdate) SetNillableCreatedBy(v *uuid.UUID) *OrderAttachmentUpdate {
 	if v != nil {
-		_u.SetFileName(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// SetMimeType sets the "mime_type" field.
-func (_u *OrderAttachmentUpdate) SetMimeType(v string) *OrderAttachmentUpdate {
-	_u.mutation.SetMimeType(v)
-	return _u
-}
-
-// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableMimeType(v *string) *OrderAttachmentUpdate {
-	if v != nil {
-		_u.SetMimeType(*v)
-	}
-	return _u
-}
-
-// SetFileSize sets the "file_size" field.
-func (_u *OrderAttachmentUpdate) SetFileSize(v int64) *OrderAttachmentUpdate {
-	_u.mutation.ResetFileSize()
-	_u.mutation.SetFileSize(v)
-	return _u
-}
-
-// SetNillableFileSize sets the "file_size" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableFileSize(v *int64) *OrderAttachmentUpdate {
-	if v != nil {
-		_u.SetFileSize(*v)
-	}
-	return _u
-}
-
-// AddFileSize adds value to the "file_size" field.
-func (_u *OrderAttachmentUpdate) AddFileSize(v int64) *OrderAttachmentUpdate {
-	_u.mutation.AddFileSize(v)
-	return _u
-}
-
-// SetObjectKey sets the "object_key" field.
-func (_u *OrderAttachmentUpdate) SetObjectKey(v string) *OrderAttachmentUpdate {
-	_u.mutation.SetObjectKey(v)
-	return _u
-}
-
-// SetNillableObjectKey sets the "object_key" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableObjectKey(v *string) *OrderAttachmentUpdate {
-	if v != nil {
-		_u.SetObjectKey(*v)
-	}
-	return _u
-}
-
-// SetChecksum sets the "checksum" field.
-func (_u *OrderAttachmentUpdate) SetChecksum(v string) *OrderAttachmentUpdate {
-	_u.mutation.SetChecksum(v)
-	return _u
-}
-
-// SetNillableChecksum sets the "checksum" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableChecksum(v *string) *OrderAttachmentUpdate {
-	if v != nil {
-		_u.SetChecksum(*v)
-	}
-	return _u
-}
-
-// ClearChecksum clears the value of the "checksum" field.
-func (_u *OrderAttachmentUpdate) ClearChecksum() *OrderAttachmentUpdate {
-	_u.mutation.ClearChecksum()
-	return _u
-}
-
-// SetUploadedBy sets the "uploaded_by" field.
-func (_u *OrderAttachmentUpdate) SetUploadedBy(v uuid.UUID) *OrderAttachmentUpdate {
-	_u.mutation.SetUploadedBy(v)
-	return _u
-}
-
-// SetNillableUploadedBy sets the "uploaded_by" field if the given value is not nil.
-func (_u *OrderAttachmentUpdate) SetNillableUploadedBy(v *uuid.UUID) *OrderAttachmentUpdate {
-	if v != nil {
-		_u.SetUploadedBy(*v)
-	}
-	return _u
-}
-
-// ClearUploadedBy clears the value of the "uploaded_by" field.
-func (_u *OrderAttachmentUpdate) ClearUploadedBy() *OrderAttachmentUpdate {
-	_u.mutation.ClearUploadedBy()
+// ClearCreatedBy clears the value of the "created_by" field.
+func (_u *OrderAttachmentUpdate) ClearCreatedBy() *OrderAttachmentUpdate {
+	_u.mutation.ClearCreatedBy()
 	return _u
 }
 
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *OrderAttachmentUpdate) SetOrder(v *Order) *OrderAttachmentUpdate {
 	return _u.SetOrderID(v.ID)
+}
+
+// SetAsset sets the "asset" edge to the OrderAttachmentAsset entity.
+func (_u *OrderAttachmentUpdate) SetAsset(v *OrderAttachmentAsset) *OrderAttachmentUpdate {
+	return _u.SetAssetID(v.ID)
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (_u *OrderAttachmentUpdate) SetCreatorID(id uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.SetCreatorID(id)
+	return _u
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (_u *OrderAttachmentUpdate) SetNillableCreatorID(id *uuid.UUID) *OrderAttachmentUpdate {
+	if id != nil {
+		_u = _u.SetCreatorID(*id)
+	}
+	return _u
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (_u *OrderAttachmentUpdate) SetCreator(v *User) *OrderAttachmentUpdate {
+	return _u.SetCreatorID(v.ID)
 }
 
 // Mutation returns the OrderAttachmentMutation object of the builder.
@@ -194,6 +151,18 @@ func (_u *OrderAttachmentUpdate) Mutation() *OrderAttachmentMutation {
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderAttachmentUpdate) ClearOrder() *OrderAttachmentUpdate {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearAsset clears the "asset" edge to the OrderAttachmentAsset entity.
+func (_u *OrderAttachmentUpdate) ClearAsset() *OrderAttachmentUpdate {
+	_u.mutation.ClearAsset()
+	return _u
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (_u *OrderAttachmentUpdate) ClearCreator() *OrderAttachmentUpdate {
+	_u.mutation.ClearCreator()
 	return _u
 }
 
@@ -245,33 +214,11 @@ func (_u *OrderAttachmentUpdate) check() error {
 			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.idempotency_key": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.FileName(); ok {
-		if err := orderattachment.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "file_name", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.MimeType(); ok {
-		if err := orderattachment.MimeTypeValidator(v); err != nil {
-			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.mime_type": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.FileSize(); ok {
-		if err := orderattachment.FileSizeValidator(v); err != nil {
-			return &ValidationError{Name: "file_size", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_size": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.ObjectKey(); ok {
-		if err := orderattachment.ObjectKeyValidator(v); err != nil {
-			return &ValidationError{Name: "object_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.object_key": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Checksum(); ok {
-		if err := orderattachment.ChecksumValidator(v); err != nil {
-			return &ValidationError{Name: "checksum", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.checksum": %w`, err)}
-		}
-	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderAttachment.order"`)
+	}
+	if _u.mutation.AssetCleared() && len(_u.mutation.AssetIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderAttachment.asset"`)
 	}
 	return nil
 }
@@ -297,33 +244,6 @@ func (_u *OrderAttachmentUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.IdempotencyKey(); ok {
 		_spec.SetField(orderattachment.FieldIdempotencyKey, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.FileName(); ok {
-		_spec.SetField(orderattachment.FieldFileName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.MimeType(); ok {
-		_spec.SetField(orderattachment.FieldMimeType, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.FileSize(); ok {
-		_spec.SetField(orderattachment.FieldFileSize, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedFileSize(); ok {
-		_spec.AddField(orderattachment.FieldFileSize, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.ObjectKey(); ok {
-		_spec.SetField(orderattachment.FieldObjectKey, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Checksum(); ok {
-		_spec.SetField(orderattachment.FieldChecksum, field.TypeString, value)
-	}
-	if _u.mutation.ChecksumCleared() {
-		_spec.ClearField(orderattachment.FieldChecksum, field.TypeString)
-	}
-	if value, ok := _u.mutation.UploadedBy(); ok {
-		_spec.SetField(orderattachment.FieldUploadedBy, field.TypeUUID, value)
-	}
-	if _u.mutation.UploadedByCleared() {
-		_spec.ClearField(orderattachment.FieldUploadedBy, field.TypeUUID)
-	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -346,6 +266,64 @@ func (_u *OrderAttachmentUpdate) sqlSave(ctx context.Context) (_node int, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.AssetTable,
+			Columns: []string{orderattachment.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.AssetTable,
+			Columns: []string{orderattachment.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.CreatorTable,
+			Columns: []string{orderattachment.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.CreatorTable,
+			Columns: []string{orderattachment.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -393,6 +371,20 @@ func (_u *OrderAttachmentUpdateOne) SetNillableOrderID(v *uuid.UUID) *OrderAttac
 	return _u
 }
 
+// SetAssetID sets the "asset_id" field.
+func (_u *OrderAttachmentUpdateOne) SetAssetID(v uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.SetAssetID(v)
+	return _u
+}
+
+// SetNillableAssetID sets the "asset_id" field if the given value is not nil.
+func (_u *OrderAttachmentUpdateOne) SetNillableAssetID(v *uuid.UUID) *OrderAttachmentUpdateOne {
+	if v != nil {
+		_u.SetAssetID(*v)
+	}
+	return _u
+}
+
 // SetDocType sets the "doc_type" field.
 func (_u *OrderAttachmentUpdateOne) SetDocType(v string) *OrderAttachmentUpdateOne {
 	_u.mutation.SetDocType(v)
@@ -421,112 +413,53 @@ func (_u *OrderAttachmentUpdateOne) SetNillableIdempotencyKey(v *string) *OrderA
 	return _u
 }
 
-// SetFileName sets the "file_name" field.
-func (_u *OrderAttachmentUpdateOne) SetFileName(v string) *OrderAttachmentUpdateOne {
-	_u.mutation.SetFileName(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *OrderAttachmentUpdateOne) SetCreatedBy(v uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableFileName(v *string) *OrderAttachmentUpdateOne {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *OrderAttachmentUpdateOne) SetNillableCreatedBy(v *uuid.UUID) *OrderAttachmentUpdateOne {
 	if v != nil {
-		_u.SetFileName(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// SetMimeType sets the "mime_type" field.
-func (_u *OrderAttachmentUpdateOne) SetMimeType(v string) *OrderAttachmentUpdateOne {
-	_u.mutation.SetMimeType(v)
-	return _u
-}
-
-// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableMimeType(v *string) *OrderAttachmentUpdateOne {
-	if v != nil {
-		_u.SetMimeType(*v)
-	}
-	return _u
-}
-
-// SetFileSize sets the "file_size" field.
-func (_u *OrderAttachmentUpdateOne) SetFileSize(v int64) *OrderAttachmentUpdateOne {
-	_u.mutation.ResetFileSize()
-	_u.mutation.SetFileSize(v)
-	return _u
-}
-
-// SetNillableFileSize sets the "file_size" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableFileSize(v *int64) *OrderAttachmentUpdateOne {
-	if v != nil {
-		_u.SetFileSize(*v)
-	}
-	return _u
-}
-
-// AddFileSize adds value to the "file_size" field.
-func (_u *OrderAttachmentUpdateOne) AddFileSize(v int64) *OrderAttachmentUpdateOne {
-	_u.mutation.AddFileSize(v)
-	return _u
-}
-
-// SetObjectKey sets the "object_key" field.
-func (_u *OrderAttachmentUpdateOne) SetObjectKey(v string) *OrderAttachmentUpdateOne {
-	_u.mutation.SetObjectKey(v)
-	return _u
-}
-
-// SetNillableObjectKey sets the "object_key" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableObjectKey(v *string) *OrderAttachmentUpdateOne {
-	if v != nil {
-		_u.SetObjectKey(*v)
-	}
-	return _u
-}
-
-// SetChecksum sets the "checksum" field.
-func (_u *OrderAttachmentUpdateOne) SetChecksum(v string) *OrderAttachmentUpdateOne {
-	_u.mutation.SetChecksum(v)
-	return _u
-}
-
-// SetNillableChecksum sets the "checksum" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableChecksum(v *string) *OrderAttachmentUpdateOne {
-	if v != nil {
-		_u.SetChecksum(*v)
-	}
-	return _u
-}
-
-// ClearChecksum clears the value of the "checksum" field.
-func (_u *OrderAttachmentUpdateOne) ClearChecksum() *OrderAttachmentUpdateOne {
-	_u.mutation.ClearChecksum()
-	return _u
-}
-
-// SetUploadedBy sets the "uploaded_by" field.
-func (_u *OrderAttachmentUpdateOne) SetUploadedBy(v uuid.UUID) *OrderAttachmentUpdateOne {
-	_u.mutation.SetUploadedBy(v)
-	return _u
-}
-
-// SetNillableUploadedBy sets the "uploaded_by" field if the given value is not nil.
-func (_u *OrderAttachmentUpdateOne) SetNillableUploadedBy(v *uuid.UUID) *OrderAttachmentUpdateOne {
-	if v != nil {
-		_u.SetUploadedBy(*v)
-	}
-	return _u
-}
-
-// ClearUploadedBy clears the value of the "uploaded_by" field.
-func (_u *OrderAttachmentUpdateOne) ClearUploadedBy() *OrderAttachmentUpdateOne {
-	_u.mutation.ClearUploadedBy()
+// ClearCreatedBy clears the value of the "created_by" field.
+func (_u *OrderAttachmentUpdateOne) ClearCreatedBy() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearCreatedBy()
 	return _u
 }
 
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *OrderAttachmentUpdateOne) SetOrder(v *Order) *OrderAttachmentUpdateOne {
 	return _u.SetOrderID(v.ID)
+}
+
+// SetAsset sets the "asset" edge to the OrderAttachmentAsset entity.
+func (_u *OrderAttachmentUpdateOne) SetAsset(v *OrderAttachmentAsset) *OrderAttachmentUpdateOne {
+	return _u.SetAssetID(v.ID)
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (_u *OrderAttachmentUpdateOne) SetCreatorID(id uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.SetCreatorID(id)
+	return _u
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (_u *OrderAttachmentUpdateOne) SetNillableCreatorID(id *uuid.UUID) *OrderAttachmentUpdateOne {
+	if id != nil {
+		_u = _u.SetCreatorID(*id)
+	}
+	return _u
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (_u *OrderAttachmentUpdateOne) SetCreator(v *User) *OrderAttachmentUpdateOne {
+	return _u.SetCreatorID(v.ID)
 }
 
 // Mutation returns the OrderAttachmentMutation object of the builder.
@@ -537,6 +470,18 @@ func (_u *OrderAttachmentUpdateOne) Mutation() *OrderAttachmentMutation {
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderAttachmentUpdateOne) ClearOrder() *OrderAttachmentUpdateOne {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearAsset clears the "asset" edge to the OrderAttachmentAsset entity.
+func (_u *OrderAttachmentUpdateOne) ClearAsset() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearAsset()
+	return _u
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (_u *OrderAttachmentUpdateOne) ClearCreator() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearCreator()
 	return _u
 }
 
@@ -601,33 +546,11 @@ func (_u *OrderAttachmentUpdateOne) check() error {
 			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.idempotency_key": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.FileName(); ok {
-		if err := orderattachment.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "file_name", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.MimeType(); ok {
-		if err := orderattachment.MimeTypeValidator(v); err != nil {
-			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.mime_type": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.FileSize(); ok {
-		if err := orderattachment.FileSizeValidator(v); err != nil {
-			return &ValidationError{Name: "file_size", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_size": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.ObjectKey(); ok {
-		if err := orderattachment.ObjectKeyValidator(v); err != nil {
-			return &ValidationError{Name: "object_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.object_key": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Checksum(); ok {
-		if err := orderattachment.ChecksumValidator(v); err != nil {
-			return &ValidationError{Name: "checksum", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.checksum": %w`, err)}
-		}
-	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderAttachment.order"`)
+	}
+	if _u.mutation.AssetCleared() && len(_u.mutation.AssetIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderAttachment.asset"`)
 	}
 	return nil
 }
@@ -670,33 +593,6 @@ func (_u *OrderAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *OrderAt
 	if value, ok := _u.mutation.IdempotencyKey(); ok {
 		_spec.SetField(orderattachment.FieldIdempotencyKey, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.FileName(); ok {
-		_spec.SetField(orderattachment.FieldFileName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.MimeType(); ok {
-		_spec.SetField(orderattachment.FieldMimeType, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.FileSize(); ok {
-		_spec.SetField(orderattachment.FieldFileSize, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedFileSize(); ok {
-		_spec.AddField(orderattachment.FieldFileSize, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.ObjectKey(); ok {
-		_spec.SetField(orderattachment.FieldObjectKey, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Checksum(); ok {
-		_spec.SetField(orderattachment.FieldChecksum, field.TypeString, value)
-	}
-	if _u.mutation.ChecksumCleared() {
-		_spec.ClearField(orderattachment.FieldChecksum, field.TypeString)
-	}
-	if value, ok := _u.mutation.UploadedBy(); ok {
-		_spec.SetField(orderattachment.FieldUploadedBy, field.TypeUUID, value)
-	}
-	if _u.mutation.UploadedByCleared() {
-		_spec.ClearField(orderattachment.FieldUploadedBy, field.TypeUUID)
-	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -719,6 +615,64 @@ func (_u *OrderAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *OrderAt
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.AssetTable,
+			Columns: []string{orderattachment.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.AssetTable,
+			Columns: []string{orderattachment.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.CreatorTable,
+			Columns: []string{orderattachment.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.CreatorTable,
+			Columns: []string{orderattachment.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

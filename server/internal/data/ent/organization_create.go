@@ -35,6 +35,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
@@ -52,6 +53,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -874,6 +878,66 @@ func (_c *OrganizationCreate) AddFinanceBillEnterpriseTags(v ...*FinanceBillEnte
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceBillEnterpriseTagIDs(ids...)
+}
+
+// AddAttachmentAssetIDs adds the "attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
+func (_c *OrganizationCreate) AddAttachmentAssetIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddAttachmentAssetIDs(ids...)
+	return _c
+}
+
+// AddAttachmentAssets adds the "attachment_assets" edges to the OrderAttachmentAsset entity.
+func (_c *OrganizationCreate) AddAttachmentAssets(v ...*OrderAttachmentAsset) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAttachmentAssetIDs(ids...)
+}
+
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (_c *OrganizationCreate) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaOrderSplitEventIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderSplitEvents adds the "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_c *OrganizationCreate) AddSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderSplitEventIDs(ids...)
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_c *OrganizationCreate) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaOrderSplitResultIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderSplitResults adds the "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_c *OrganizationCreate) AddSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderSplitResultIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *OrganizationCreate) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_c *OrganizationCreate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderReassignmentEventIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1801,6 +1865,70 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AttachmentAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderSplitEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

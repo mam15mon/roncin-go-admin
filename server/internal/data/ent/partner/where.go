@@ -1040,6 +1040,29 @@ func HasIssuedSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Partn
 	})
 }
 
+// HasSeaOrderReassignments applies the HasEdge predicate on the "sea_order_reassignments" edge.
+func HasSeaOrderReassignments() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentsTable, SeaOrderReassignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaOrderReassignmentsWith applies the HasEdge predicate on the "sea_order_reassignments" edge with a given conditions (other predicates).
+func HasSeaOrderReassignmentsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newSeaOrderReassignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Partner) predicate.Partner {
 	return predicate.Partner(sql.AndPredicates(predicates...))

@@ -108,6 +108,14 @@ const (
 	EdgeEnterpriseResourceAssignments = "enterprise_resource_assignments"
 	// EdgeConfirmedSeaCargoAllocationLinks holds the string denoting the confirmed_sea_cargo_allocation_links edge name in mutations.
 	EdgeConfirmedSeaCargoAllocationLinks = "confirmed_sea_cargo_allocation_links"
+	// EdgeCreatedSeaOrderSplitEvents holds the string denoting the created_sea_order_split_events edge name in mutations.
+	EdgeCreatedSeaOrderSplitEvents = "created_sea_order_split_events"
+	// EdgeCreatedSeaOrderReassignmentEvents holds the string denoting the created_sea_order_reassignment_events edge name in mutations.
+	EdgeCreatedSeaOrderReassignmentEvents = "created_sea_order_reassignment_events"
+	// EdgeUploadedAttachmentAssets holds the string denoting the uploaded_attachment_assets edge name in mutations.
+	EdgeUploadedAttachmentAssets = "uploaded_attachment_assets"
+	// EdgeCreatedOrderAttachments holds the string denoting the created_order_attachments edge name in mutations.
+	EdgeCreatedOrderAttachments = "created_order_attachments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -334,6 +342,34 @@ const (
 	ConfirmedSeaCargoAllocationLinksInverseTable = "sea_master_bill_order_links"
 	// ConfirmedSeaCargoAllocationLinksColumn is the table column denoting the confirmed_sea_cargo_allocation_links relation/edge.
 	ConfirmedSeaCargoAllocationLinksColumn = "cargo_allocation_confirmed_by"
+	// CreatedSeaOrderSplitEventsTable is the table that holds the created_sea_order_split_events relation/edge.
+	CreatedSeaOrderSplitEventsTable = "sea_order_split_events"
+	// CreatedSeaOrderSplitEventsInverseTable is the table name for the SeaOrderSplitEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitevent" package.
+	CreatedSeaOrderSplitEventsInverseTable = "sea_order_split_events"
+	// CreatedSeaOrderSplitEventsColumn is the table column denoting the created_sea_order_split_events relation/edge.
+	CreatedSeaOrderSplitEventsColumn = "created_by"
+	// CreatedSeaOrderReassignmentEventsTable is the table that holds the created_sea_order_reassignment_events relation/edge.
+	CreatedSeaOrderReassignmentEventsTable = "sea_order_reassignment_events"
+	// CreatedSeaOrderReassignmentEventsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	CreatedSeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
+	// CreatedSeaOrderReassignmentEventsColumn is the table column denoting the created_sea_order_reassignment_events relation/edge.
+	CreatedSeaOrderReassignmentEventsColumn = "created_by"
+	// UploadedAttachmentAssetsTable is the table that holds the uploaded_attachment_assets relation/edge.
+	UploadedAttachmentAssetsTable = "order_attachment_assets"
+	// UploadedAttachmentAssetsInverseTable is the table name for the OrderAttachmentAsset entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachmentasset" package.
+	UploadedAttachmentAssetsInverseTable = "order_attachment_assets"
+	// UploadedAttachmentAssetsColumn is the table column denoting the uploaded_attachment_assets relation/edge.
+	UploadedAttachmentAssetsColumn = "uploaded_by"
+	// CreatedOrderAttachmentsTable is the table that holds the created_order_attachments relation/edge.
+	CreatedOrderAttachmentsTable = "order_attachments"
+	// CreatedOrderAttachmentsInverseTable is the table name for the OrderAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachment" package.
+	CreatedOrderAttachmentsInverseTable = "order_attachments"
+	// CreatedOrderAttachmentsColumn is the table column denoting the created_order_attachments relation/edge.
+	CreatedOrderAttachmentsColumn = "created_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -929,6 +965,62 @@ func ByConfirmedSeaCargoAllocationLinks(term sql.OrderTerm, terms ...sql.OrderTe
 		sqlgraph.OrderByNeighborTerms(s, newConfirmedSeaCargoAllocationLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCreatedSeaOrderSplitEventsCount orders the results by created_sea_order_split_events count.
+func ByCreatedSeaOrderSplitEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedSeaOrderSplitEventsStep(), opts...)
+	}
+}
+
+// ByCreatedSeaOrderSplitEvents orders the results by created_sea_order_split_events terms.
+func ByCreatedSeaOrderSplitEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedSeaOrderSplitEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCreatedSeaOrderReassignmentEventsCount orders the results by created_sea_order_reassignment_events count.
+func ByCreatedSeaOrderReassignmentEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedSeaOrderReassignmentEventsStep(), opts...)
+	}
+}
+
+// ByCreatedSeaOrderReassignmentEvents orders the results by created_sea_order_reassignment_events terms.
+func ByCreatedSeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUploadedAttachmentAssetsCount orders the results by uploaded_attachment_assets count.
+func ByUploadedAttachmentAssetsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUploadedAttachmentAssetsStep(), opts...)
+	}
+}
+
+// ByUploadedAttachmentAssets orders the results by uploaded_attachment_assets terms.
+func ByUploadedAttachmentAssets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUploadedAttachmentAssetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCreatedOrderAttachmentsCount orders the results by created_order_attachments count.
+func ByCreatedOrderAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedOrderAttachmentsStep(), opts...)
+	}
+}
+
+// ByCreatedOrderAttachments orders the results by created_order_attachments terms.
+func ByCreatedOrderAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedOrderAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1151,5 +1243,33 @@ func newConfirmedSeaCargoAllocationLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ConfirmedSeaCargoAllocationLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedSeaCargoAllocationLinksTable, ConfirmedSeaCargoAllocationLinksColumn),
+	)
+}
+func newCreatedSeaOrderSplitEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedSeaOrderSplitEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaOrderSplitEventsTable, CreatedSeaOrderSplitEventsColumn),
+	)
+}
+func newCreatedSeaOrderReassignmentEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedSeaOrderReassignmentEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaOrderReassignmentEventsTable, CreatedSeaOrderReassignmentEventsColumn),
+	)
+}
+func newUploadedAttachmentAssetsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UploadedAttachmentAssetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UploadedAttachmentAssetsTable, UploadedAttachmentAssetsColumn),
+	)
+}
+func newCreatedOrderAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedOrderAttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedOrderAttachmentsTable, CreatedOrderAttachmentsColumn),
 	)
 }

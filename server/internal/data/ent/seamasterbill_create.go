@@ -15,6 +15,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
@@ -375,6 +377,66 @@ func (_c *SeaMasterBillCreate) AddHouseBills(v ...*SeaHouseBill) *SeaMasterBillC
 	return _c.AddHouseBillIDs(ids...)
 }
 
+// AddInitialSeaOrderSplitResultIDs adds the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_c *SeaMasterBillCreate) AddInitialSeaOrderSplitResultIDs(ids ...uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.AddInitialSeaOrderSplitResultIDs(ids...)
+	return _c
+}
+
+// AddInitialSeaOrderSplitResults adds the "initial_sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_c *SeaMasterBillCreate) AddInitialSeaOrderSplitResults(v ...*SeaOrderSplitResult) *SeaMasterBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddInitialSeaOrderSplitResultIDs(ids...)
+}
+
+// AddFinalSeaOrderSplitResultIDs adds the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_c *SeaMasterBillCreate) AddFinalSeaOrderSplitResultIDs(ids ...uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.AddFinalSeaOrderSplitResultIDs(ids...)
+	return _c
+}
+
+// AddFinalSeaOrderSplitResults adds the "final_sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_c *SeaMasterBillCreate) AddFinalSeaOrderSplitResults(v ...*SeaOrderSplitResult) *SeaMasterBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinalSeaOrderSplitResultIDs(ids...)
+}
+
+// AddPreviousSeaOrderReassignmentIDs adds the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *SeaMasterBillCreate) AddPreviousSeaOrderReassignmentIDs(ids ...uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.AddPreviousSeaOrderReassignmentIDs(ids...)
+	return _c
+}
+
+// AddPreviousSeaOrderReassignments adds the "previous_sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_c *SeaMasterBillCreate) AddPreviousSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *SeaMasterBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPreviousSeaOrderReassignmentIDs(ids...)
+}
+
+// AddTargetSeaOrderReassignmentIDs adds the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *SeaMasterBillCreate) AddTargetSeaOrderReassignmentIDs(ids ...uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.AddTargetSeaOrderReassignmentIDs(ids...)
+	return _c
+}
+
+// AddTargetSeaOrderReassignments adds the "target_sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_c *SeaMasterBillCreate) AddTargetSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *SeaMasterBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTargetSeaOrderReassignmentIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillMutation object of the builder.
 func (_c *SeaMasterBillCreate) Mutation() *SeaMasterBillMutation {
 	return _c.mutation
@@ -704,6 +766,70 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.InitialSeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.InitialSeaOrderSplitResultsTable,
+			Columns: []string{seamasterbill.InitialSeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinalSeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.FinalSeaOrderSplitResultsTable,
+			Columns: []string{seamasterbill.FinalSeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PreviousSeaOrderReassignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.PreviousSeaOrderReassignmentsTable,
+			Columns: []string{seamasterbill.PreviousSeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TargetSeaOrderReassignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.TargetSeaOrderReassignmentsTable,
+			Columns: []string{seamasterbill.TargetSeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

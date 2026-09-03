@@ -4615,6 +4615,75 @@ func HasSeaCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate
 	})
 }
 
+// HasSeaOrderSplitEvents applies the HasEdge predicate on the "sea_order_split_events" edge.
+func HasSeaOrderSplitEvents() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitEventsTable, SeaOrderSplitEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaOrderSplitEventsWith applies the HasEdge predicate on the "sea_order_split_events" edge with a given conditions (other predicates).
+func HasSeaOrderSplitEventsWith(preds ...predicate.SeaOrderSplitEvent) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaOrderSplitEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaOrderSplitResults applies the HasEdge predicate on the "sea_order_split_results" edge.
+func HasSeaOrderSplitResults() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitResultsTable, SeaOrderSplitResultsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaOrderSplitResultsWith applies the HasEdge predicate on the "sea_order_split_results" edge with a given conditions (other predicates).
+func HasSeaOrderSplitResultsWith(preds ...predicate.SeaOrderSplitResult) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaOrderSplitResultsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaOrderReassignmentEvents applies the HasEdge predicate on the "sea_order_reassignment_events" edge.
+func HasSeaOrderReassignmentEvents() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaOrderReassignmentEventsWith applies the HasEdge predicate on the "sea_order_reassignment_events" edge with a given conditions (other predicates).
+func HasSeaOrderReassignmentEventsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaOrderReassignmentEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Order) predicate.Order {
 	return predicate.Order(sql.AndPredicates(predicates...))

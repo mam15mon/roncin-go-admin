@@ -32,6 +32,10 @@ const (
 	FieldOperatorID = "operator_id"
 	// FieldChangedAt holds the string denoting the changed_at field in the database.
 	FieldChangedAt = "changed_at"
+	// FieldReferenceType holds the string denoting the reference_type field in the database.
+	FieldReferenceType = "reference_type"
+	// FieldReferenceID holds the string denoting the reference_id field in the database.
+	FieldReferenceID = "reference_id"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
 	// Table holds the table name of the orderlifecycleevent in the database.
@@ -56,6 +60,8 @@ var Columns = []string{
 	FieldReason,
 	FieldOperatorID,
 	FieldChangedAt,
+	FieldReferenceType,
+	FieldReferenceID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -79,6 +85,8 @@ var (
 	ReasonValidator func(string) error
 	// DefaultChangedAt holds the default value on creation for the "changed_at" field.
 	DefaultChangedAt func() time.Time
+	// ReferenceTypeValidator is a validator for the "reference_type" field. It is called by the builders before save.
+	ReferenceTypeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -91,6 +99,7 @@ const (
 	DimensionFLOW        Dimension = "FLOW"
 	DimensionTERMINATION Dimension = "TERMINATION"
 	DimensionCLOSURE     Dimension = "CLOSURE"
+	DimensionORIGIN      Dimension = "ORIGIN"
 )
 
 func (d Dimension) String() string {
@@ -100,7 +109,7 @@ func (d Dimension) String() string {
 // DimensionValidator is a validator for the "dimension" field enum values. It is called by the builders before save.
 func DimensionValidator(d Dimension) error {
 	switch d {
-	case DimensionFLOW, DimensionTERMINATION, DimensionCLOSURE:
+	case DimensionFLOW, DimensionTERMINATION, DimensionCLOSURE, DimensionORIGIN:
 		return nil
 	default:
 		return fmt.Errorf("orderlifecycleevent: invalid enum value for dimension field: %q", d)
@@ -153,6 +162,16 @@ func ByOperatorID(opts ...sql.OrderTermOption) OrderOption {
 // ByChangedAt orders the results by the changed_at field.
 func ByChangedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldChangedAt, opts...).ToFunc()
+}
+
+// ByReferenceType orders the results by the reference_type field.
+func ByReferenceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReferenceType, opts...).ToFunc()
+}
+
+// ByReferenceID orders the results by the reference_id field.
+func ByReferenceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReferenceID, opts...).ToFunc()
 }
 
 // ByOrderField orders the results by order field.

@@ -72,6 +72,14 @@ const (
 	EdgeOrderLinks = "order_links"
 	// EdgeHouseBills holds the string denoting the house_bills edge name in mutations.
 	EdgeHouseBills = "house_bills"
+	// EdgeInitialSeaOrderSplitResults holds the string denoting the initial_sea_order_split_results edge name in mutations.
+	EdgeInitialSeaOrderSplitResults = "initial_sea_order_split_results"
+	// EdgeFinalSeaOrderSplitResults holds the string denoting the final_sea_order_split_results edge name in mutations.
+	EdgeFinalSeaOrderSplitResults = "final_sea_order_split_results"
+	// EdgePreviousSeaOrderReassignments holds the string denoting the previous_sea_order_reassignments edge name in mutations.
+	EdgePreviousSeaOrderReassignments = "previous_sea_order_reassignments"
+	// EdgeTargetSeaOrderReassignments holds the string denoting the target_sea_order_reassignments edge name in mutations.
+	EdgeTargetSeaOrderReassignments = "target_sea_order_reassignments"
 	// Table holds the table name of the seamasterbill in the database.
 	Table = "sea_master_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -102,6 +110,34 @@ const (
 	HouseBillsInverseTable = "sea_house_bills"
 	// HouseBillsColumn is the table column denoting the house_bills relation/edge.
 	HouseBillsColumn = "master_bill_id"
+	// InitialSeaOrderSplitResultsTable is the table that holds the initial_sea_order_split_results relation/edge.
+	InitialSeaOrderSplitResultsTable = "sea_order_split_results"
+	// InitialSeaOrderSplitResultsInverseTable is the table name for the SeaOrderSplitResult entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitresult" package.
+	InitialSeaOrderSplitResultsInverseTable = "sea_order_split_results"
+	// InitialSeaOrderSplitResultsColumn is the table column denoting the initial_sea_order_split_results relation/edge.
+	InitialSeaOrderSplitResultsColumn = "initial_master_bill_id"
+	// FinalSeaOrderSplitResultsTable is the table that holds the final_sea_order_split_results relation/edge.
+	FinalSeaOrderSplitResultsTable = "sea_order_split_results"
+	// FinalSeaOrderSplitResultsInverseTable is the table name for the SeaOrderSplitResult entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitresult" package.
+	FinalSeaOrderSplitResultsInverseTable = "sea_order_split_results"
+	// FinalSeaOrderSplitResultsColumn is the table column denoting the final_sea_order_split_results relation/edge.
+	FinalSeaOrderSplitResultsColumn = "final_master_bill_id"
+	// PreviousSeaOrderReassignmentsTable is the table that holds the previous_sea_order_reassignments relation/edge.
+	PreviousSeaOrderReassignmentsTable = "sea_order_reassignment_events"
+	// PreviousSeaOrderReassignmentsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	PreviousSeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
+	// PreviousSeaOrderReassignmentsColumn is the table column denoting the previous_sea_order_reassignments relation/edge.
+	PreviousSeaOrderReassignmentsColumn = "previous_master_bill_id"
+	// TargetSeaOrderReassignmentsTable is the table that holds the target_sea_order_reassignments relation/edge.
+	TargetSeaOrderReassignmentsTable = "sea_order_reassignment_events"
+	// TargetSeaOrderReassignmentsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	TargetSeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
+	// TargetSeaOrderReassignmentsColumn is the table column denoting the target_sea_order_reassignments relation/edge.
+	TargetSeaOrderReassignmentsColumn = "target_master_bill_id"
 )
 
 // Columns holds all SQL columns for seamasterbill fields.
@@ -372,6 +408,62 @@ func ByHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByInitialSeaOrderSplitResultsCount orders the results by initial_sea_order_split_results count.
+func ByInitialSeaOrderSplitResultsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInitialSeaOrderSplitResultsStep(), opts...)
+	}
+}
+
+// ByInitialSeaOrderSplitResults orders the results by initial_sea_order_split_results terms.
+func ByInitialSeaOrderSplitResults(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInitialSeaOrderSplitResultsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinalSeaOrderSplitResultsCount orders the results by final_sea_order_split_results count.
+func ByFinalSeaOrderSplitResultsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinalSeaOrderSplitResultsStep(), opts...)
+	}
+}
+
+// ByFinalSeaOrderSplitResults orders the results by final_sea_order_split_results terms.
+func ByFinalSeaOrderSplitResults(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinalSeaOrderSplitResultsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPreviousSeaOrderReassignmentsCount orders the results by previous_sea_order_reassignments count.
+func ByPreviousSeaOrderReassignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPreviousSeaOrderReassignmentsStep(), opts...)
+	}
+}
+
+// ByPreviousSeaOrderReassignments orders the results by previous_sea_order_reassignments terms.
+func ByPreviousSeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPreviousSeaOrderReassignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTargetSeaOrderReassignmentsCount orders the results by target_sea_order_reassignments count.
+func ByTargetSeaOrderReassignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTargetSeaOrderReassignmentsStep(), opts...)
+	}
+}
+
+// ByTargetSeaOrderReassignments orders the results by target_sea_order_reassignments terms.
+func ByTargetSeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTargetSeaOrderReassignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -398,5 +490,33 @@ func newHouseBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(HouseBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, HouseBillsTable, HouseBillsColumn),
+	)
+}
+func newInitialSeaOrderSplitResultsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InitialSeaOrderSplitResultsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InitialSeaOrderSplitResultsTable, InitialSeaOrderSplitResultsColumn),
+	)
+}
+func newFinalSeaOrderSplitResultsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinalSeaOrderSplitResultsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinalSeaOrderSplitResultsTable, FinalSeaOrderSplitResultsColumn),
+	)
+}
+func newPreviousSeaOrderReassignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PreviousSeaOrderReassignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PreviousSeaOrderReassignmentsTable, PreviousSeaOrderReassignmentsColumn),
+	)
+}
+func newTargetSeaOrderReassignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TargetSeaOrderReassignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TargetSeaOrderReassignmentsTable, TargetSeaOrderReassignmentsColumn),
 	)
 }

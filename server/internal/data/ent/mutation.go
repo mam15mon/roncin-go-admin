@@ -62,6 +62,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -99,6 +100,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -165,6 +169,7 @@ const (
 	TypeOrder                          = "Order"
 	TypeOrderAbnormalCase              = "OrderAbnormalCase"
 	TypeOrderAttachment                = "OrderAttachment"
+	TypeOrderAttachmentAsset           = "OrderAttachmentAsset"
 	TypeOrderCargoCategory             = "OrderCargoCategory"
 	TypeOrderCargoItem                 = "OrderCargoItem"
 	TypeOrderCommissionAttribution     = "OrderCommissionAttribution"
@@ -200,6 +205,9 @@ const (
 	TypeSeaHouseBill                   = "SeaHouseBill"
 	TypeSeaMasterBill                  = "SeaMasterBill"
 	TypeSeaMasterBillOrderLink         = "SeaMasterBillOrderLink"
+	TypeSeaOrderReassignmentEvent      = "SeaOrderReassignmentEvent"
+	TypeSeaOrderSplitEvent             = "SeaOrderSplitEvent"
+	TypeSeaOrderSplitResult            = "SeaOrderSplitResult"
 	TypeSeaTransportExecution          = "SeaTransportExecution"
 	TypeSession                        = "Session"
 	TypeShippingLine                   = "ShippingLine"
@@ -58265,6 +58273,15 @@ type OrderMutation struct {
 	sea_cargo_allocations                 map[uuid.UUID]struct{}
 	removedsea_cargo_allocations          map[uuid.UUID]struct{}
 	clearedsea_cargo_allocations          bool
+	sea_order_split_events                map[uuid.UUID]struct{}
+	removedsea_order_split_events         map[uuid.UUID]struct{}
+	clearedsea_order_split_events         bool
+	sea_order_split_results               map[uuid.UUID]struct{}
+	removedsea_order_split_results        map[uuid.UUID]struct{}
+	clearedsea_order_split_results        bool
+	sea_order_reassignment_events         map[uuid.UUID]struct{}
+	removedsea_order_reassignment_events  map[uuid.UUID]struct{}
+	clearedsea_order_reassignment_events  bool
 	done                                  bool
 	oldValue                              func(context.Context) (*Order, error)
 	predicates                            []predicate.Order
@@ -62720,6 +62737,168 @@ func (m *OrderMutation) ResetSeaCargoAllocations() {
 	m.removedsea_cargo_allocations = nil
 }
 
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by ids.
+func (m *OrderMutation) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.sea_order_split_events == nil {
+		m.sea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderSplitEvents clears the "sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *OrderMutation) ClearSeaOrderSplitEvents() {
+	m.clearedsea_order_split_events = true
+}
+
+// SeaOrderSplitEventsCleared reports if the "sea_order_split_events" edge to the SeaOrderSplitEvent entity was cleared.
+func (m *OrderMutation) SeaOrderSplitEventsCleared() bool {
+	return m.clearedsea_order_split_events
+}
+
+// RemoveSeaOrderSplitEventIDs removes the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (m *OrderMutation) RemoveSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_split_events == nil {
+		m.removedsea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_split_events, ids[i])
+		m.removedsea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderSplitEvents returns the removed IDs of the "sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *OrderMutation) RemovedSeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderSplitEventsIDs returns the "sea_order_split_events" edge IDs in the mutation.
+func (m *OrderMutation) SeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderSplitEvents resets all changes to the "sea_order_split_events" edge.
+func (m *OrderMutation) ResetSeaOrderSplitEvents() {
+	m.sea_order_split_events = nil
+	m.clearedsea_order_split_events = false
+	m.removedsea_order_split_events = nil
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by ids.
+func (m *OrderMutation) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.sea_order_split_results == nil {
+		m.sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderSplitResults clears the "sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *OrderMutation) ClearSeaOrderSplitResults() {
+	m.clearedsea_order_split_results = true
+}
+
+// SeaOrderSplitResultsCleared reports if the "sea_order_split_results" edge to the SeaOrderSplitResult entity was cleared.
+func (m *OrderMutation) SeaOrderSplitResultsCleared() bool {
+	return m.clearedsea_order_split_results
+}
+
+// RemoveSeaOrderSplitResultIDs removes the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (m *OrderMutation) RemoveSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_split_results == nil {
+		m.removedsea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_split_results, ids[i])
+		m.removedsea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderSplitResults returns the removed IDs of the "sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *OrderMutation) RemovedSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderSplitResultsIDs returns the "sea_order_split_results" edge IDs in the mutation.
+func (m *OrderMutation) SeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderSplitResults resets all changes to the "sea_order_split_results" edge.
+func (m *OrderMutation) ResetSeaOrderSplitResults() {
+	m.sea_order_split_results = nil
+	m.clearedsea_order_split_results = false
+	m.removedsea_order_split_results = nil
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *OrderMutation) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.sea_order_reassignment_events == nil {
+		m.sea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderReassignmentEvents clears the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *OrderMutation) ClearSeaOrderReassignmentEvents() {
+	m.clearedsea_order_reassignment_events = true
+}
+
+// SeaOrderReassignmentEventsCleared reports if the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *OrderMutation) SeaOrderReassignmentEventsCleared() bool {
+	return m.clearedsea_order_reassignment_events
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *OrderMutation) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_reassignment_events == nil {
+		m.removedsea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_reassignment_events, ids[i])
+		m.removedsea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderReassignmentEvents returns the removed IDs of the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *OrderMutation) RemovedSeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderReassignmentEventsIDs returns the "sea_order_reassignment_events" edge IDs in the mutation.
+func (m *OrderMutation) SeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderReassignmentEvents resets all changes to the "sea_order_reassignment_events" edge.
+func (m *OrderMutation) ResetSeaOrderReassignmentEvents() {
+	m.sea_order_reassignment_events = nil
+	m.clearedsea_order_reassignment_events = false
+	m.removedsea_order_reassignment_events = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -64335,7 +64514,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 26)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64404,6 +64583,15 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.sea_cargo_allocations != nil {
 		edges = append(edges, order.EdgeSeaCargoAllocations)
+	}
+	if m.sea_order_split_events != nil {
+		edges = append(edges, order.EdgeSeaOrderSplitEvents)
+	}
+	if m.sea_order_split_results != nil {
+		edges = append(edges, order.EdgeSeaOrderSplitResults)
+	}
+	if m.sea_order_reassignment_events != nil {
+		edges = append(edges, order.EdgeSeaOrderReassignmentEvents)
 	}
 	return edges
 }
@@ -64546,13 +64734,31 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.sea_order_split_events))
+		for id := range m.sea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.sea_order_split_results))
+		for id := range m.sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.sea_order_reassignment_events))
+		for id := range m.sea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 26)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -64615,6 +64821,15 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_cargo_allocations != nil {
 		edges = append(edges, order.EdgeSeaCargoAllocations)
+	}
+	if m.removedsea_order_split_events != nil {
+		edges = append(edges, order.EdgeSeaOrderSplitEvents)
+	}
+	if m.removedsea_order_split_results != nil {
+		edges = append(edges, order.EdgeSeaOrderSplitResults)
+	}
+	if m.removedsea_order_reassignment_events != nil {
+		edges = append(edges, order.EdgeSeaOrderReassignmentEvents)
 	}
 	return edges
 }
@@ -64749,13 +64964,31 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_split_events))
+		for id := range m.removedsea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_split_results))
+		for id := range m.removedsea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_reassignment_events))
+		for id := range m.removedsea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 26)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64825,6 +65058,15 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedsea_cargo_allocations {
 		edges = append(edges, order.EdgeSeaCargoAllocations)
 	}
+	if m.clearedsea_order_split_events {
+		edges = append(edges, order.EdgeSeaOrderSplitEvents)
+	}
+	if m.clearedsea_order_split_results {
+		edges = append(edges, order.EdgeSeaOrderSplitResults)
+	}
+	if m.clearedsea_order_reassignment_events {
+		edges = append(edges, order.EdgeSeaOrderReassignmentEvents)
+	}
 	return edges
 }
 
@@ -64878,6 +65120,12 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_house_bills
 	case order.EdgeSeaCargoAllocations:
 		return m.clearedsea_cargo_allocations
+	case order.EdgeSeaOrderSplitEvents:
+		return m.clearedsea_order_split_events
+	case order.EdgeSeaOrderSplitResults:
+		return m.clearedsea_order_split_results
+	case order.EdgeSeaOrderReassignmentEvents:
+		return m.clearedsea_order_reassignment_events
 	}
 	return false
 }
@@ -64968,6 +65216,15 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeSeaCargoAllocations:
 		m.ResetSeaCargoAllocations()
+		return nil
+	case order.EdgeSeaOrderSplitEvents:
+		m.ResetSeaOrderSplitEvents()
+		return nil
+	case order.EdgeSeaOrderSplitResults:
+		m.ResetSeaOrderSplitResults()
+		return nil
+	case order.EdgeSeaOrderReassignmentEvents:
+		m.ResetSeaOrderReassignmentEvents()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -65842,16 +66099,13 @@ type OrderAttachmentMutation struct {
 	updated_at      *time.Time
 	doc_type        *string
 	idempotency_key *string
-	file_name       *string
-	mime_type       *string
-	file_size       *int64
-	addfile_size    *int64
-	object_key      *string
-	checksum        *string
-	uploaded_by     *uuid.UUID
 	clearedFields   map[string]struct{}
 	_order          *uuid.UUID
 	cleared_order   bool
+	asset           *uuid.UUID
+	clearedasset    bool
+	creator         *uuid.UUID
+	clearedcreator  bool
 	done            bool
 	oldValue        func(context.Context) (*OrderAttachment, error)
 	predicates      []predicate.OrderAttachment
@@ -66069,6 +66323,42 @@ func (m *OrderAttachmentMutation) ResetOrderID() {
 	m._order = nil
 }
 
+// SetAssetID sets the "asset_id" field.
+func (m *OrderAttachmentMutation) SetAssetID(u uuid.UUID) {
+	m.asset = &u
+}
+
+// AssetID returns the value of the "asset_id" field in the mutation.
+func (m *OrderAttachmentMutation) AssetID() (r uuid.UUID, exists bool) {
+	v := m.asset
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssetID returns the old "asset_id" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldAssetID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssetID: %w", err)
+	}
+	return oldValue.AssetID, nil
+}
+
+// ResetAssetID resets all changes to the "asset_id" field.
+func (m *OrderAttachmentMutation) ResetAssetID() {
+	m.asset = nil
+}
+
 // SetDocType sets the "doc_type" field.
 func (m *OrderAttachmentMutation) SetDocType(s string) {
 	m.doc_type = &s
@@ -66141,266 +66431,53 @@ func (m *OrderAttachmentMutation) ResetIdempotencyKey() {
 	m.idempotency_key = nil
 }
 
-// SetFileName sets the "file_name" field.
-func (m *OrderAttachmentMutation) SetFileName(s string) {
-	m.file_name = &s
+// SetCreatedBy sets the "created_by" field.
+func (m *OrderAttachmentMutation) SetCreatedBy(u uuid.UUID) {
+	m.creator = &u
 }
 
-// FileName returns the value of the "file_name" field in the mutation.
-func (m *OrderAttachmentMutation) FileName() (r string, exists bool) {
-	v := m.file_name
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *OrderAttachmentMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.creator
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldFileName returns the old "file_name" field's value of the OrderAttachment entity.
+// OldCreatedBy returns the old "created_by" field's value of the OrderAttachment entity.
 // If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldFileName(ctx context.Context) (v string, err error) {
+func (m *OrderAttachmentMutation) OldCreatedBy(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileName requires an ID field in the mutation")
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
 	}
-	return oldValue.FileName, nil
+	return oldValue.CreatedBy, nil
 }
 
-// ResetFileName resets all changes to the "file_name" field.
-func (m *OrderAttachmentMutation) ResetFileName() {
-	m.file_name = nil
+// ClearCreatedBy clears the value of the "created_by" field.
+func (m *OrderAttachmentMutation) ClearCreatedBy() {
+	m.creator = nil
+	m.clearedFields[orderattachment.FieldCreatedBy] = struct{}{}
 }
 
-// SetMimeType sets the "mime_type" field.
-func (m *OrderAttachmentMutation) SetMimeType(s string) {
-	m.mime_type = &s
-}
-
-// MimeType returns the value of the "mime_type" field in the mutation.
-func (m *OrderAttachmentMutation) MimeType() (r string, exists bool) {
-	v := m.mime_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMimeType returns the old "mime_type" field's value of the OrderAttachment entity.
-// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldMimeType(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMimeType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
-	}
-	return oldValue.MimeType, nil
-}
-
-// ResetMimeType resets all changes to the "mime_type" field.
-func (m *OrderAttachmentMutation) ResetMimeType() {
-	m.mime_type = nil
-}
-
-// SetFileSize sets the "file_size" field.
-func (m *OrderAttachmentMutation) SetFileSize(i int64) {
-	m.file_size = &i
-	m.addfile_size = nil
-}
-
-// FileSize returns the value of the "file_size" field in the mutation.
-func (m *OrderAttachmentMutation) FileSize() (r int64, exists bool) {
-	v := m.file_size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFileSize returns the old "file_size" field's value of the OrderAttachment entity.
-// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldFileSize(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileSize is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileSize requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileSize: %w", err)
-	}
-	return oldValue.FileSize, nil
-}
-
-// AddFileSize adds i to the "file_size" field.
-func (m *OrderAttachmentMutation) AddFileSize(i int64) {
-	if m.addfile_size != nil {
-		*m.addfile_size += i
-	} else {
-		m.addfile_size = &i
-	}
-}
-
-// AddedFileSize returns the value that was added to the "file_size" field in this mutation.
-func (m *OrderAttachmentMutation) AddedFileSize() (r int64, exists bool) {
-	v := m.addfile_size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetFileSize resets all changes to the "file_size" field.
-func (m *OrderAttachmentMutation) ResetFileSize() {
-	m.file_size = nil
-	m.addfile_size = nil
-}
-
-// SetObjectKey sets the "object_key" field.
-func (m *OrderAttachmentMutation) SetObjectKey(s string) {
-	m.object_key = &s
-}
-
-// ObjectKey returns the value of the "object_key" field in the mutation.
-func (m *OrderAttachmentMutation) ObjectKey() (r string, exists bool) {
-	v := m.object_key
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldObjectKey returns the old "object_key" field's value of the OrderAttachment entity.
-// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldObjectKey(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldObjectKey is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldObjectKey requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldObjectKey: %w", err)
-	}
-	return oldValue.ObjectKey, nil
-}
-
-// ResetObjectKey resets all changes to the "object_key" field.
-func (m *OrderAttachmentMutation) ResetObjectKey() {
-	m.object_key = nil
-}
-
-// SetChecksum sets the "checksum" field.
-func (m *OrderAttachmentMutation) SetChecksum(s string) {
-	m.checksum = &s
-}
-
-// Checksum returns the value of the "checksum" field in the mutation.
-func (m *OrderAttachmentMutation) Checksum() (r string, exists bool) {
-	v := m.checksum
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChecksum returns the old "checksum" field's value of the OrderAttachment entity.
-// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldChecksum(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChecksum requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
-	}
-	return oldValue.Checksum, nil
-}
-
-// ClearChecksum clears the value of the "checksum" field.
-func (m *OrderAttachmentMutation) ClearChecksum() {
-	m.checksum = nil
-	m.clearedFields[orderattachment.FieldChecksum] = struct{}{}
-}
-
-// ChecksumCleared returns if the "checksum" field was cleared in this mutation.
-func (m *OrderAttachmentMutation) ChecksumCleared() bool {
-	_, ok := m.clearedFields[orderattachment.FieldChecksum]
+// CreatedByCleared returns if the "created_by" field was cleared in this mutation.
+func (m *OrderAttachmentMutation) CreatedByCleared() bool {
+	_, ok := m.clearedFields[orderattachment.FieldCreatedBy]
 	return ok
 }
 
-// ResetChecksum resets all changes to the "checksum" field.
-func (m *OrderAttachmentMutation) ResetChecksum() {
-	m.checksum = nil
-	delete(m.clearedFields, orderattachment.FieldChecksum)
-}
-
-// SetUploadedBy sets the "uploaded_by" field.
-func (m *OrderAttachmentMutation) SetUploadedBy(u uuid.UUID) {
-	m.uploaded_by = &u
-}
-
-// UploadedBy returns the value of the "uploaded_by" field in the mutation.
-func (m *OrderAttachmentMutation) UploadedBy() (r uuid.UUID, exists bool) {
-	v := m.uploaded_by
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUploadedBy returns the old "uploaded_by" field's value of the OrderAttachment entity.
-// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderAttachmentMutation) OldUploadedBy(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUploadedBy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUploadedBy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUploadedBy: %w", err)
-	}
-	return oldValue.UploadedBy, nil
-}
-
-// ClearUploadedBy clears the value of the "uploaded_by" field.
-func (m *OrderAttachmentMutation) ClearUploadedBy() {
-	m.uploaded_by = nil
-	m.clearedFields[orderattachment.FieldUploadedBy] = struct{}{}
-}
-
-// UploadedByCleared returns if the "uploaded_by" field was cleared in this mutation.
-func (m *OrderAttachmentMutation) UploadedByCleared() bool {
-	_, ok := m.clearedFields[orderattachment.FieldUploadedBy]
-	return ok
-}
-
-// ResetUploadedBy resets all changes to the "uploaded_by" field.
-func (m *OrderAttachmentMutation) ResetUploadedBy() {
-	m.uploaded_by = nil
-	delete(m.clearedFields, orderattachment.FieldUploadedBy)
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *OrderAttachmentMutation) ResetCreatedBy() {
+	m.creator = nil
+	delete(m.clearedFields, orderattachment.FieldCreatedBy)
 }
 
 // ClearOrder clears the "order" edge to the Order entity.
@@ -66428,6 +66505,73 @@ func (m *OrderAttachmentMutation) OrderIDs() (ids []uuid.UUID) {
 func (m *OrderAttachmentMutation) ResetOrder() {
 	m._order = nil
 	m.cleared_order = false
+}
+
+// ClearAsset clears the "asset" edge to the OrderAttachmentAsset entity.
+func (m *OrderAttachmentMutation) ClearAsset() {
+	m.clearedasset = true
+	m.clearedFields[orderattachment.FieldAssetID] = struct{}{}
+}
+
+// AssetCleared reports if the "asset" edge to the OrderAttachmentAsset entity was cleared.
+func (m *OrderAttachmentMutation) AssetCleared() bool {
+	return m.clearedasset
+}
+
+// AssetIDs returns the "asset" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AssetID instead. It exists only for internal usage by the builders.
+func (m *OrderAttachmentMutation) AssetIDs() (ids []uuid.UUID) {
+	if id := m.asset; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAsset resets all changes to the "asset" edge.
+func (m *OrderAttachmentMutation) ResetAsset() {
+	m.asset = nil
+	m.clearedasset = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *OrderAttachmentMutation) SetCreatorID(id uuid.UUID) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *OrderAttachmentMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[orderattachment.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *OrderAttachmentMutation) CreatorCleared() bool {
+	return m.CreatedByCleared() || m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *OrderAttachmentMutation) CreatorID() (id uuid.UUID, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *OrderAttachmentMutation) CreatorIDs() (ids []uuid.UUID) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *OrderAttachmentMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
 }
 
 // Where appends a list predicates to the OrderAttachmentMutation builder.
@@ -66464,7 +66608,7 @@ func (m *OrderAttachmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderAttachmentMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, orderattachment.FieldCreatedAt)
 	}
@@ -66474,29 +66618,17 @@ func (m *OrderAttachmentMutation) Fields() []string {
 	if m._order != nil {
 		fields = append(fields, orderattachment.FieldOrderID)
 	}
+	if m.asset != nil {
+		fields = append(fields, orderattachment.FieldAssetID)
+	}
 	if m.doc_type != nil {
 		fields = append(fields, orderattachment.FieldDocType)
 	}
 	if m.idempotency_key != nil {
 		fields = append(fields, orderattachment.FieldIdempotencyKey)
 	}
-	if m.file_name != nil {
-		fields = append(fields, orderattachment.FieldFileName)
-	}
-	if m.mime_type != nil {
-		fields = append(fields, orderattachment.FieldMimeType)
-	}
-	if m.file_size != nil {
-		fields = append(fields, orderattachment.FieldFileSize)
-	}
-	if m.object_key != nil {
-		fields = append(fields, orderattachment.FieldObjectKey)
-	}
-	if m.checksum != nil {
-		fields = append(fields, orderattachment.FieldChecksum)
-	}
-	if m.uploaded_by != nil {
-		fields = append(fields, orderattachment.FieldUploadedBy)
+	if m.creator != nil {
+		fields = append(fields, orderattachment.FieldCreatedBy)
 	}
 	return fields
 }
@@ -66512,22 +66644,14 @@ func (m *OrderAttachmentMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case orderattachment.FieldOrderID:
 		return m.OrderID()
+	case orderattachment.FieldAssetID:
+		return m.AssetID()
 	case orderattachment.FieldDocType:
 		return m.DocType()
 	case orderattachment.FieldIdempotencyKey:
 		return m.IdempotencyKey()
-	case orderattachment.FieldFileName:
-		return m.FileName()
-	case orderattachment.FieldMimeType:
-		return m.MimeType()
-	case orderattachment.FieldFileSize:
-		return m.FileSize()
-	case orderattachment.FieldObjectKey:
-		return m.ObjectKey()
-	case orderattachment.FieldChecksum:
-		return m.Checksum()
-	case orderattachment.FieldUploadedBy:
-		return m.UploadedBy()
+	case orderattachment.FieldCreatedBy:
+		return m.CreatedBy()
 	}
 	return nil, false
 }
@@ -66543,22 +66667,14 @@ func (m *OrderAttachmentMutation) OldField(ctx context.Context, name string) (en
 		return m.OldUpdatedAt(ctx)
 	case orderattachment.FieldOrderID:
 		return m.OldOrderID(ctx)
+	case orderattachment.FieldAssetID:
+		return m.OldAssetID(ctx)
 	case orderattachment.FieldDocType:
 		return m.OldDocType(ctx)
 	case orderattachment.FieldIdempotencyKey:
 		return m.OldIdempotencyKey(ctx)
-	case orderattachment.FieldFileName:
-		return m.OldFileName(ctx)
-	case orderattachment.FieldMimeType:
-		return m.OldMimeType(ctx)
-	case orderattachment.FieldFileSize:
-		return m.OldFileSize(ctx)
-	case orderattachment.FieldObjectKey:
-		return m.OldObjectKey(ctx)
-	case orderattachment.FieldChecksum:
-		return m.OldChecksum(ctx)
-	case orderattachment.FieldUploadedBy:
-		return m.OldUploadedBy(ctx)
+	case orderattachment.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
 	}
 	return nil, fmt.Errorf("unknown OrderAttachment field %s", name)
 }
@@ -66589,6 +66705,13 @@ func (m *OrderAttachmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOrderID(v)
 		return nil
+	case orderattachment.FieldAssetID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssetID(v)
+		return nil
 	case orderattachment.FieldDocType:
 		v, ok := value.(string)
 		if !ok {
@@ -66603,47 +66726,12 @@ func (m *OrderAttachmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIdempotencyKey(v)
 		return nil
-	case orderattachment.FieldFileName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFileName(v)
-		return nil
-	case orderattachment.FieldMimeType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMimeType(v)
-		return nil
-	case orderattachment.FieldFileSize:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFileSize(v)
-		return nil
-	case orderattachment.FieldObjectKey:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetObjectKey(v)
-		return nil
-	case orderattachment.FieldChecksum:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChecksum(v)
-		return nil
-	case orderattachment.FieldUploadedBy:
+	case orderattachment.FieldCreatedBy:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUploadedBy(v)
+		m.SetCreatedBy(v)
 		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment field %s", name)
@@ -66652,21 +66740,13 @@ func (m *OrderAttachmentMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *OrderAttachmentMutation) AddedFields() []string {
-	var fields []string
-	if m.addfile_size != nil {
-		fields = append(fields, orderattachment.FieldFileSize)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *OrderAttachmentMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case orderattachment.FieldFileSize:
-		return m.AddedFileSize()
-	}
 	return nil, false
 }
 
@@ -66675,13 +66755,6 @@ func (m *OrderAttachmentMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OrderAttachmentMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case orderattachment.FieldFileSize:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddFileSize(v)
-		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment numeric field %s", name)
 }
@@ -66690,11 +66763,8 @@ func (m *OrderAttachmentMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderAttachmentMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(orderattachment.FieldChecksum) {
-		fields = append(fields, orderattachment.FieldChecksum)
-	}
-	if m.FieldCleared(orderattachment.FieldUploadedBy) {
-		fields = append(fields, orderattachment.FieldUploadedBy)
+	if m.FieldCleared(orderattachment.FieldCreatedBy) {
+		fields = append(fields, orderattachment.FieldCreatedBy)
 	}
 	return fields
 }
@@ -66710,11 +66780,8 @@ func (m *OrderAttachmentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderAttachmentMutation) ClearField(name string) error {
 	switch name {
-	case orderattachment.FieldChecksum:
-		m.ClearChecksum()
-		return nil
-	case orderattachment.FieldUploadedBy:
-		m.ClearUploadedBy()
+	case orderattachment.FieldCreatedBy:
+		m.ClearCreatedBy()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment nullable field %s", name)
@@ -66733,29 +66800,17 @@ func (m *OrderAttachmentMutation) ResetField(name string) error {
 	case orderattachment.FieldOrderID:
 		m.ResetOrderID()
 		return nil
+	case orderattachment.FieldAssetID:
+		m.ResetAssetID()
+		return nil
 	case orderattachment.FieldDocType:
 		m.ResetDocType()
 		return nil
 	case orderattachment.FieldIdempotencyKey:
 		m.ResetIdempotencyKey()
 		return nil
-	case orderattachment.FieldFileName:
-		m.ResetFileName()
-		return nil
-	case orderattachment.FieldMimeType:
-		m.ResetMimeType()
-		return nil
-	case orderattachment.FieldFileSize:
-		m.ResetFileSize()
-		return nil
-	case orderattachment.FieldObjectKey:
-		m.ResetObjectKey()
-		return nil
-	case orderattachment.FieldChecksum:
-		m.ResetChecksum()
-		return nil
-	case orderattachment.FieldUploadedBy:
-		m.ResetUploadedBy()
+	case orderattachment.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment field %s", name)
@@ -66763,9 +66818,15 @@ func (m *OrderAttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderAttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m._order != nil {
 		edges = append(edges, orderattachment.EdgeOrder)
+	}
+	if m.asset != nil {
+		edges = append(edges, orderattachment.EdgeAsset)
+	}
+	if m.creator != nil {
+		edges = append(edges, orderattachment.EdgeCreator)
 	}
 	return edges
 }
@@ -66778,13 +66839,21 @@ func (m *OrderAttachmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderattachment.EdgeAsset:
+		if id := m.asset; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderattachment.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderAttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -66796,9 +66865,15 @@ func (m *OrderAttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderAttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.cleared_order {
 		edges = append(edges, orderattachment.EdgeOrder)
+	}
+	if m.clearedasset {
+		edges = append(edges, orderattachment.EdgeAsset)
+	}
+	if m.clearedcreator {
+		edges = append(edges, orderattachment.EdgeCreator)
 	}
 	return edges
 }
@@ -66809,6 +66884,10 @@ func (m *OrderAttachmentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case orderattachment.EdgeOrder:
 		return m.cleared_order
+	case orderattachment.EdgeAsset:
+		return m.clearedasset
+	case orderattachment.EdgeCreator:
+		return m.clearedcreator
 	}
 	return false
 }
@@ -66819,6 +66898,12 @@ func (m *OrderAttachmentMutation) ClearEdge(name string) error {
 	switch name {
 	case orderattachment.EdgeOrder:
 		m.ClearOrder()
+		return nil
+	case orderattachment.EdgeAsset:
+		m.ClearAsset()
+		return nil
+	case orderattachment.EdgeCreator:
+		m.ClearCreator()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment unique edge %s", name)
@@ -66831,8 +66916,1053 @@ func (m *OrderAttachmentMutation) ResetEdge(name string) error {
 	case orderattachment.EdgeOrder:
 		m.ResetOrder()
 		return nil
+	case orderattachment.EdgeAsset:
+		m.ResetAsset()
+		return nil
+	case orderattachment.EdgeCreator:
+		m.ResetCreator()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderAttachment edge %s", name)
+}
+
+// OrderAttachmentAssetMutation represents an operation that mutates the OrderAttachmentAsset nodes in the graph.
+type OrderAttachmentAssetMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	object_key          *string
+	file_name           *string
+	mime_type           *string
+	file_size           *int64
+	addfile_size        *int64
+	checksum            *string
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	uploader            *uuid.UUID
+	cleareduploader     bool
+	attachments         map[uuid.UUID]struct{}
+	removedattachments  map[uuid.UUID]struct{}
+	clearedattachments  bool
+	done                bool
+	oldValue            func(context.Context) (*OrderAttachmentAsset, error)
+	predicates          []predicate.OrderAttachmentAsset
+}
+
+var _ ent.Mutation = (*OrderAttachmentAssetMutation)(nil)
+
+// orderattachmentassetOption allows management of the mutation configuration using functional options.
+type orderattachmentassetOption func(*OrderAttachmentAssetMutation)
+
+// newOrderAttachmentAssetMutation creates new mutation for the OrderAttachmentAsset entity.
+func newOrderAttachmentAssetMutation(c config, op Op, opts ...orderattachmentassetOption) *OrderAttachmentAssetMutation {
+	m := &OrderAttachmentAssetMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderAttachmentAsset,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderAttachmentAssetID sets the ID field of the mutation.
+func withOrderAttachmentAssetID(id uuid.UUID) orderattachmentassetOption {
+	return func(m *OrderAttachmentAssetMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderAttachmentAsset
+		)
+		m.oldValue = func(ctx context.Context) (*OrderAttachmentAsset, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderAttachmentAsset.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderAttachmentAsset sets the old OrderAttachmentAsset of the mutation.
+func withOrderAttachmentAsset(node *OrderAttachmentAsset) orderattachmentassetOption {
+	return func(m *OrderAttachmentAssetMutation) {
+		m.oldValue = func(context.Context) (*OrderAttachmentAsset, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderAttachmentAssetMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderAttachmentAssetMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderAttachmentAsset entities.
+func (m *OrderAttachmentAssetMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderAttachmentAssetMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderAttachmentAssetMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderAttachmentAsset.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderAttachmentAssetMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderAttachmentAssetMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderAttachmentAssetMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderAttachmentAssetMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderAttachmentAssetMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderAttachmentAssetMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderAttachmentAssetMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderAttachmentAssetMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderAttachmentAssetMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetObjectKey sets the "object_key" field.
+func (m *OrderAttachmentAssetMutation) SetObjectKey(s string) {
+	m.object_key = &s
+}
+
+// ObjectKey returns the value of the "object_key" field in the mutation.
+func (m *OrderAttachmentAssetMutation) ObjectKey() (r string, exists bool) {
+	v := m.object_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldObjectKey returns the old "object_key" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldObjectKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldObjectKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldObjectKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldObjectKey: %w", err)
+	}
+	return oldValue.ObjectKey, nil
+}
+
+// ResetObjectKey resets all changes to the "object_key" field.
+func (m *OrderAttachmentAssetMutation) ResetObjectKey() {
+	m.object_key = nil
+}
+
+// SetFileName sets the "file_name" field.
+func (m *OrderAttachmentAssetMutation) SetFileName(s string) {
+	m.file_name = &s
+}
+
+// FileName returns the value of the "file_name" field in the mutation.
+func (m *OrderAttachmentAssetMutation) FileName() (r string, exists bool) {
+	v := m.file_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "file_name" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "file_name" field.
+func (m *OrderAttachmentAssetMutation) ResetFileName() {
+	m.file_name = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *OrderAttachmentAssetMutation) SetMimeType(s string) {
+	m.mime_type = &s
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *OrderAttachmentAssetMutation) MimeType() (r string, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldMimeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *OrderAttachmentAssetMutation) ResetMimeType() {
+	m.mime_type = nil
+}
+
+// SetFileSize sets the "file_size" field.
+func (m *OrderAttachmentAssetMutation) SetFileSize(i int64) {
+	m.file_size = &i
+	m.addfile_size = nil
+}
+
+// FileSize returns the value of the "file_size" field in the mutation.
+func (m *OrderAttachmentAssetMutation) FileSize() (r int64, exists bool) {
+	v := m.file_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileSize returns the old "file_size" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldFileSize(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileSize: %w", err)
+	}
+	return oldValue.FileSize, nil
+}
+
+// AddFileSize adds i to the "file_size" field.
+func (m *OrderAttachmentAssetMutation) AddFileSize(i int64) {
+	if m.addfile_size != nil {
+		*m.addfile_size += i
+	} else {
+		m.addfile_size = &i
+	}
+}
+
+// AddedFileSize returns the value that was added to the "file_size" field in this mutation.
+func (m *OrderAttachmentAssetMutation) AddedFileSize() (r int64, exists bool) {
+	v := m.addfile_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFileSize resets all changes to the "file_size" field.
+func (m *OrderAttachmentAssetMutation) ResetFileSize() {
+	m.file_size = nil
+	m.addfile_size = nil
+}
+
+// SetChecksum sets the "checksum" field.
+func (m *OrderAttachmentAssetMutation) SetChecksum(s string) {
+	m.checksum = &s
+}
+
+// Checksum returns the value of the "checksum" field in the mutation.
+func (m *OrderAttachmentAssetMutation) Checksum() (r string, exists bool) {
+	v := m.checksum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChecksum returns the old "checksum" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldChecksum(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChecksum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
+	}
+	return oldValue.Checksum, nil
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (m *OrderAttachmentAssetMutation) ClearChecksum() {
+	m.checksum = nil
+	m.clearedFields[orderattachmentasset.FieldChecksum] = struct{}{}
+}
+
+// ChecksumCleared returns if the "checksum" field was cleared in this mutation.
+func (m *OrderAttachmentAssetMutation) ChecksumCleared() bool {
+	_, ok := m.clearedFields[orderattachmentasset.FieldChecksum]
+	return ok
+}
+
+// ResetChecksum resets all changes to the "checksum" field.
+func (m *OrderAttachmentAssetMutation) ResetChecksum() {
+	m.checksum = nil
+	delete(m.clearedFields, orderattachmentasset.FieldChecksum)
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (m *OrderAttachmentAssetMutation) SetUploadedBy(u uuid.UUID) {
+	m.uploader = &u
+}
+
+// UploadedBy returns the value of the "uploaded_by" field in the mutation.
+func (m *OrderAttachmentAssetMutation) UploadedBy() (r uuid.UUID, exists bool) {
+	v := m.uploader
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadedBy returns the old "uploaded_by" field's value of the OrderAttachmentAsset entity.
+// If the OrderAttachmentAsset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentAssetMutation) OldUploadedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadedBy: %w", err)
+	}
+	return oldValue.UploadedBy, nil
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (m *OrderAttachmentAssetMutation) ClearUploadedBy() {
+	m.uploader = nil
+	m.clearedFields[orderattachmentasset.FieldUploadedBy] = struct{}{}
+}
+
+// UploadedByCleared returns if the "uploaded_by" field was cleared in this mutation.
+func (m *OrderAttachmentAssetMutation) UploadedByCleared() bool {
+	_, ok := m.clearedFields[orderattachmentasset.FieldUploadedBy]
+	return ok
+}
+
+// ResetUploadedBy resets all changes to the "uploaded_by" field.
+func (m *OrderAttachmentAssetMutation) ResetUploadedBy() {
+	m.uploader = nil
+	delete(m.clearedFields, orderattachmentasset.FieldUploadedBy)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderAttachmentAssetMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderattachmentasset.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderAttachmentAssetMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderAttachmentAssetMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderAttachmentAssetMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// SetUploaderID sets the "uploader" edge to the User entity by id.
+func (m *OrderAttachmentAssetMutation) SetUploaderID(id uuid.UUID) {
+	m.uploader = &id
+}
+
+// ClearUploader clears the "uploader" edge to the User entity.
+func (m *OrderAttachmentAssetMutation) ClearUploader() {
+	m.cleareduploader = true
+	m.clearedFields[orderattachmentasset.FieldUploadedBy] = struct{}{}
+}
+
+// UploaderCleared reports if the "uploader" edge to the User entity was cleared.
+func (m *OrderAttachmentAssetMutation) UploaderCleared() bool {
+	return m.UploadedByCleared() || m.cleareduploader
+}
+
+// UploaderID returns the "uploader" edge ID in the mutation.
+func (m *OrderAttachmentAssetMutation) UploaderID() (id uuid.UUID, exists bool) {
+	if m.uploader != nil {
+		return *m.uploader, true
+	}
+	return
+}
+
+// UploaderIDs returns the "uploader" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UploaderID instead. It exists only for internal usage by the builders.
+func (m *OrderAttachmentAssetMutation) UploaderIDs() (ids []uuid.UUID) {
+	if id := m.uploader; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUploader resets all changes to the "uploader" edge.
+func (m *OrderAttachmentAssetMutation) ResetUploader() {
+	m.uploader = nil
+	m.cleareduploader = false
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by ids.
+func (m *OrderAttachmentAssetMutation) AddAttachmentIDs(ids ...uuid.UUID) {
+	if m.attachments == nil {
+		m.attachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachments clears the "attachments" edge to the OrderAttachment entity.
+func (m *OrderAttachmentAssetMutation) ClearAttachments() {
+	m.clearedattachments = true
+}
+
+// AttachmentsCleared reports if the "attachments" edge to the OrderAttachment entity was cleared.
+func (m *OrderAttachmentAssetMutation) AttachmentsCleared() bool {
+	return m.clearedattachments
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to the OrderAttachment entity by IDs.
+func (m *OrderAttachmentAssetMutation) RemoveAttachmentIDs(ids ...uuid.UUID) {
+	if m.removedattachments == nil {
+		m.removedattachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachments, ids[i])
+		m.removedattachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachments returns the removed IDs of the "attachments" edge to the OrderAttachment entity.
+func (m *OrderAttachmentAssetMutation) RemovedAttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentsIDs returns the "attachments" edge IDs in the mutation.
+func (m *OrderAttachmentAssetMutation) AttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachments resets all changes to the "attachments" edge.
+func (m *OrderAttachmentAssetMutation) ResetAttachments() {
+	m.attachments = nil
+	m.clearedattachments = false
+	m.removedattachments = nil
+}
+
+// Where appends a list predicates to the OrderAttachmentAssetMutation builder.
+func (m *OrderAttachmentAssetMutation) Where(ps ...predicate.OrderAttachmentAsset) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderAttachmentAssetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderAttachmentAssetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderAttachmentAsset, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderAttachmentAssetMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderAttachmentAssetMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderAttachmentAsset).
+func (m *OrderAttachmentAssetMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderAttachmentAssetMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, orderattachmentasset.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderattachmentasset.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderattachmentasset.FieldOrganizationID)
+	}
+	if m.object_key != nil {
+		fields = append(fields, orderattachmentasset.FieldObjectKey)
+	}
+	if m.file_name != nil {
+		fields = append(fields, orderattachmentasset.FieldFileName)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, orderattachmentasset.FieldMimeType)
+	}
+	if m.file_size != nil {
+		fields = append(fields, orderattachmentasset.FieldFileSize)
+	}
+	if m.checksum != nil {
+		fields = append(fields, orderattachmentasset.FieldChecksum)
+	}
+	if m.uploader != nil {
+		fields = append(fields, orderattachmentasset.FieldUploadedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderAttachmentAssetMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderattachmentasset.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderattachmentasset.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderattachmentasset.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderattachmentasset.FieldObjectKey:
+		return m.ObjectKey()
+	case orderattachmentasset.FieldFileName:
+		return m.FileName()
+	case orderattachmentasset.FieldMimeType:
+		return m.MimeType()
+	case orderattachmentasset.FieldFileSize:
+		return m.FileSize()
+	case orderattachmentasset.FieldChecksum:
+		return m.Checksum()
+	case orderattachmentasset.FieldUploadedBy:
+		return m.UploadedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderAttachmentAssetMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderattachmentasset.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderattachmentasset.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderattachmentasset.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderattachmentasset.FieldObjectKey:
+		return m.OldObjectKey(ctx)
+	case orderattachmentasset.FieldFileName:
+		return m.OldFileName(ctx)
+	case orderattachmentasset.FieldMimeType:
+		return m.OldMimeType(ctx)
+	case orderattachmentasset.FieldFileSize:
+		return m.OldFileSize(ctx)
+	case orderattachmentasset.FieldChecksum:
+		return m.OldChecksum(ctx)
+	case orderattachmentasset.FieldUploadedBy:
+		return m.OldUploadedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderAttachmentAsset field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAttachmentAssetMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderattachmentasset.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderattachmentasset.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderattachmentasset.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderattachmentasset.FieldObjectKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetObjectKey(v)
+		return nil
+	case orderattachmentasset.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case orderattachmentasset.FieldMimeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
+		return nil
+	case orderattachmentasset.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileSize(v)
+		return nil
+	case orderattachmentasset.FieldChecksum:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChecksum(v)
+		return nil
+	case orderattachmentasset.FieldUploadedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderAttachmentAssetMutation) AddedFields() []string {
+	var fields []string
+	if m.addfile_size != nil {
+		fields = append(fields, orderattachmentasset.FieldFileSize)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderAttachmentAssetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case orderattachmentasset.FieldFileSize:
+		return m.AddedFileSize()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAttachmentAssetMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case orderattachmentasset.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFileSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderAttachmentAssetMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderattachmentasset.FieldChecksum) {
+		fields = append(fields, orderattachmentasset.FieldChecksum)
+	}
+	if m.FieldCleared(orderattachmentasset.FieldUploadedBy) {
+		fields = append(fields, orderattachmentasset.FieldUploadedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderAttachmentAssetMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderAttachmentAssetMutation) ClearField(name string) error {
+	switch name {
+	case orderattachmentasset.FieldChecksum:
+		m.ClearChecksum()
+		return nil
+	case orderattachmentasset.FieldUploadedBy:
+		m.ClearUploadedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderAttachmentAssetMutation) ResetField(name string) error {
+	switch name {
+	case orderattachmentasset.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderattachmentasset.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderattachmentasset.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderattachmentasset.FieldObjectKey:
+		m.ResetObjectKey()
+		return nil
+	case orderattachmentasset.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case orderattachmentasset.FieldMimeType:
+		m.ResetMimeType()
+		return nil
+	case orderattachmentasset.FieldFileSize:
+		m.ResetFileSize()
+		return nil
+	case orderattachmentasset.FieldChecksum:
+		m.ResetChecksum()
+		return nil
+	case orderattachmentasset.FieldUploadedBy:
+		m.ResetUploadedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderAttachmentAssetMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, orderattachmentasset.EdgeOrganization)
+	}
+	if m.uploader != nil {
+		edges = append(edges, orderattachmentasset.EdgeUploader)
+	}
+	if m.attachments != nil {
+		edges = append(edges, orderattachmentasset.EdgeAttachments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderAttachmentAssetMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderattachmentasset.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderattachmentasset.EdgeUploader:
+		if id := m.uploader; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderattachmentasset.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.attachments))
+		for id := range m.attachments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderAttachmentAssetMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedattachments != nil {
+		edges = append(edges, orderattachmentasset.EdgeAttachments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderAttachmentAssetMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case orderattachmentasset.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.removedattachments))
+		for id := range m.removedattachments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderAttachmentAssetMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, orderattachmentasset.EdgeOrganization)
+	}
+	if m.cleareduploader {
+		edges = append(edges, orderattachmentasset.EdgeUploader)
+	}
+	if m.clearedattachments {
+		edges = append(edges, orderattachmentasset.EdgeAttachments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderAttachmentAssetMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderattachmentasset.EdgeOrganization:
+		return m.clearedorganization
+	case orderattachmentasset.EdgeUploader:
+		return m.cleareduploader
+	case orderattachmentasset.EdgeAttachments:
+		return m.clearedattachments
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderAttachmentAssetMutation) ClearEdge(name string) error {
+	switch name {
+	case orderattachmentasset.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case orderattachmentasset.EdgeUploader:
+		m.ClearUploader()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderAttachmentAssetMutation) ResetEdge(name string) error {
+	switch name {
+	case orderattachmentasset.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case orderattachmentasset.EdgeUploader:
+		m.ResetUploader()
+		return nil
+	case orderattachmentasset.EdgeAttachments:
+		m.ResetAttachments()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachmentAsset edge %s", name)
 }
 
 // OrderCargoCategoryMutation represents an operation that mutates the OrderCargoCategory nodes in the graph.
@@ -75751,22 +76881,24 @@ func (m *OrderFeeEnterpriseTagMutation) ResetEdge(name string) error {
 // OrderLifecycleEventMutation represents an operation that mutates the OrderLifecycleEvent nodes in the graph.
 type OrderLifecycleEventMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	dimension     *orderlifecycleevent.Dimension
-	from_status   *string
-	to_status     *string
-	action        *string
-	reason        *string
-	operator_id   *uuid.UUID
-	changed_at    *time.Time
-	clearedFields map[string]struct{}
-	_order        *uuid.UUID
-	cleared_order bool
-	done          bool
-	oldValue      func(context.Context) (*OrderLifecycleEvent, error)
-	predicates    []predicate.OrderLifecycleEvent
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	dimension      *orderlifecycleevent.Dimension
+	from_status    *string
+	to_status      *string
+	action         *string
+	reason         *string
+	operator_id    *uuid.UUID
+	changed_at     *time.Time
+	reference_type *string
+	reference_id   *uuid.UUID
+	clearedFields  map[string]struct{}
+	_order         *uuid.UUID
+	cleared_order  bool
+	done           bool
+	oldValue       func(context.Context) (*OrderLifecycleEvent, error)
+	predicates     []predicate.OrderLifecycleEvent
 }
 
 var _ ent.Mutation = (*OrderLifecycleEventMutation)(nil)
@@ -76200,6 +77332,104 @@ func (m *OrderLifecycleEventMutation) ResetChangedAt() {
 	m.changed_at = nil
 }
 
+// SetReferenceType sets the "reference_type" field.
+func (m *OrderLifecycleEventMutation) SetReferenceType(s string) {
+	m.reference_type = &s
+}
+
+// ReferenceType returns the value of the "reference_type" field in the mutation.
+func (m *OrderLifecycleEventMutation) ReferenceType() (r string, exists bool) {
+	v := m.reference_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReferenceType returns the old "reference_type" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldReferenceType(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReferenceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReferenceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReferenceType: %w", err)
+	}
+	return oldValue.ReferenceType, nil
+}
+
+// ClearReferenceType clears the value of the "reference_type" field.
+func (m *OrderLifecycleEventMutation) ClearReferenceType() {
+	m.reference_type = nil
+	m.clearedFields[orderlifecycleevent.FieldReferenceType] = struct{}{}
+}
+
+// ReferenceTypeCleared returns if the "reference_type" field was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) ReferenceTypeCleared() bool {
+	_, ok := m.clearedFields[orderlifecycleevent.FieldReferenceType]
+	return ok
+}
+
+// ResetReferenceType resets all changes to the "reference_type" field.
+func (m *OrderLifecycleEventMutation) ResetReferenceType() {
+	m.reference_type = nil
+	delete(m.clearedFields, orderlifecycleevent.FieldReferenceType)
+}
+
+// SetReferenceID sets the "reference_id" field.
+func (m *OrderLifecycleEventMutation) SetReferenceID(u uuid.UUID) {
+	m.reference_id = &u
+}
+
+// ReferenceID returns the value of the "reference_id" field in the mutation.
+func (m *OrderLifecycleEventMutation) ReferenceID() (r uuid.UUID, exists bool) {
+	v := m.reference_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReferenceID returns the old "reference_id" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldReferenceID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReferenceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReferenceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReferenceID: %w", err)
+	}
+	return oldValue.ReferenceID, nil
+}
+
+// ClearReferenceID clears the value of the "reference_id" field.
+func (m *OrderLifecycleEventMutation) ClearReferenceID() {
+	m.reference_id = nil
+	m.clearedFields[orderlifecycleevent.FieldReferenceID] = struct{}{}
+}
+
+// ReferenceIDCleared returns if the "reference_id" field was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) ReferenceIDCleared() bool {
+	_, ok := m.clearedFields[orderlifecycleevent.FieldReferenceID]
+	return ok
+}
+
+// ResetReferenceID resets all changes to the "reference_id" field.
+func (m *OrderLifecycleEventMutation) ResetReferenceID() {
+	m.reference_id = nil
+	delete(m.clearedFields, orderlifecycleevent.FieldReferenceID)
+}
+
 // ClearOrder clears the "order" edge to the Order entity.
 func (m *OrderLifecycleEventMutation) ClearOrder() {
 	m.cleared_order = true
@@ -76261,7 +77491,7 @@ func (m *OrderLifecycleEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderLifecycleEventMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m._order != nil {
 		fields = append(fields, orderlifecycleevent.FieldOrderID)
 	}
@@ -76285,6 +77515,12 @@ func (m *OrderLifecycleEventMutation) Fields() []string {
 	}
 	if m.changed_at != nil {
 		fields = append(fields, orderlifecycleevent.FieldChangedAt)
+	}
+	if m.reference_type != nil {
+		fields = append(fields, orderlifecycleevent.FieldReferenceType)
+	}
+	if m.reference_id != nil {
+		fields = append(fields, orderlifecycleevent.FieldReferenceID)
 	}
 	return fields
 }
@@ -76310,6 +77546,10 @@ func (m *OrderLifecycleEventMutation) Field(name string) (ent.Value, bool) {
 		return m.OperatorID()
 	case orderlifecycleevent.FieldChangedAt:
 		return m.ChangedAt()
+	case orderlifecycleevent.FieldReferenceType:
+		return m.ReferenceType()
+	case orderlifecycleevent.FieldReferenceID:
+		return m.ReferenceID()
 	}
 	return nil, false
 }
@@ -76335,6 +77575,10 @@ func (m *OrderLifecycleEventMutation) OldField(ctx context.Context, name string)
 		return m.OldOperatorID(ctx)
 	case orderlifecycleevent.FieldChangedAt:
 		return m.OldChangedAt(ctx)
+	case orderlifecycleevent.FieldReferenceType:
+		return m.OldReferenceType(ctx)
+	case orderlifecycleevent.FieldReferenceID:
+		return m.OldReferenceID(ctx)
 	}
 	return nil, fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
 }
@@ -76400,6 +77644,20 @@ func (m *OrderLifecycleEventMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetChangedAt(v)
 		return nil
+	case orderlifecycleevent.FieldReferenceType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReferenceType(v)
+		return nil
+	case orderlifecycleevent.FieldReferenceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReferenceID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
 }
@@ -76439,6 +77697,12 @@ func (m *OrderLifecycleEventMutation) ClearedFields() []string {
 	if m.FieldCleared(orderlifecycleevent.FieldOperatorID) {
 		fields = append(fields, orderlifecycleevent.FieldOperatorID)
 	}
+	if m.FieldCleared(orderlifecycleevent.FieldReferenceType) {
+		fields = append(fields, orderlifecycleevent.FieldReferenceType)
+	}
+	if m.FieldCleared(orderlifecycleevent.FieldReferenceID) {
+		fields = append(fields, orderlifecycleevent.FieldReferenceID)
+	}
 	return fields
 }
 
@@ -76461,6 +77725,12 @@ func (m *OrderLifecycleEventMutation) ClearField(name string) error {
 		return nil
 	case orderlifecycleevent.FieldOperatorID:
 		m.ClearOperatorID()
+		return nil
+	case orderlifecycleevent.FieldReferenceType:
+		m.ClearReferenceType()
+		return nil
+	case orderlifecycleevent.FieldReferenceID:
+		m.ClearReferenceID()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderLifecycleEvent nullable field %s", name)
@@ -76493,6 +77763,12 @@ func (m *OrderLifecycleEventMutation) ResetField(name string) error {
 		return nil
 	case orderlifecycleevent.FieldChangedAt:
 		m.ResetChangedAt()
+		return nil
+	case orderlifecycleevent.FieldReferenceType:
+		m.ResetReferenceType()
+		return nil
+	case orderlifecycleevent.FieldReferenceID:
+		m.ResetReferenceID()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
@@ -80864,6 +82140,18 @@ type OrganizationMutation struct {
 	finance_bill_enterprise_tags            map[uuid.UUID]struct{}
 	removedfinance_bill_enterprise_tags     map[uuid.UUID]struct{}
 	clearedfinance_bill_enterprise_tags     bool
+	attachment_assets                       map[uuid.UUID]struct{}
+	removedattachment_assets                map[uuid.UUID]struct{}
+	clearedattachment_assets                bool
+	sea_order_split_events                  map[uuid.UUID]struct{}
+	removedsea_order_split_events           map[uuid.UUID]struct{}
+	clearedsea_order_split_events           bool
+	sea_order_split_results                 map[uuid.UUID]struct{}
+	removedsea_order_split_results          map[uuid.UUID]struct{}
+	clearedsea_order_split_results          bool
+	sea_order_reassignment_events           map[uuid.UUID]struct{}
+	removedsea_order_reassignment_events    map[uuid.UUID]struct{}
+	clearedsea_order_reassignment_events    bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -83834,6 +85122,222 @@ func (m *OrganizationMutation) ResetFinanceBillEnterpriseTags() {
 	m.removedfinance_bill_enterprise_tags = nil
 }
 
+// AddAttachmentAssetIDs adds the "attachment_assets" edge to the OrderAttachmentAsset entity by ids.
+func (m *OrganizationMutation) AddAttachmentAssetIDs(ids ...uuid.UUID) {
+	if m.attachment_assets == nil {
+		m.attachment_assets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_assets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentAssets clears the "attachment_assets" edge to the OrderAttachmentAsset entity.
+func (m *OrganizationMutation) ClearAttachmentAssets() {
+	m.clearedattachment_assets = true
+}
+
+// AttachmentAssetsCleared reports if the "attachment_assets" edge to the OrderAttachmentAsset entity was cleared.
+func (m *OrganizationMutation) AttachmentAssetsCleared() bool {
+	return m.clearedattachment_assets
+}
+
+// RemoveAttachmentAssetIDs removes the "attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
+func (m *OrganizationMutation) RemoveAttachmentAssetIDs(ids ...uuid.UUID) {
+	if m.removedattachment_assets == nil {
+		m.removedattachment_assets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_assets, ids[i])
+		m.removedattachment_assets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentAssets returns the removed IDs of the "attachment_assets" edge to the OrderAttachmentAsset entity.
+func (m *OrganizationMutation) RemovedAttachmentAssetsIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_assets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentAssetsIDs returns the "attachment_assets" edge IDs in the mutation.
+func (m *OrganizationMutation) AttachmentAssetsIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_assets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentAssets resets all changes to the "attachment_assets" edge.
+func (m *OrganizationMutation) ResetAttachmentAssets() {
+	m.attachment_assets = nil
+	m.clearedattachment_assets = false
+	m.removedattachment_assets = nil
+}
+
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by ids.
+func (m *OrganizationMutation) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.sea_order_split_events == nil {
+		m.sea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderSplitEvents clears the "sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *OrganizationMutation) ClearSeaOrderSplitEvents() {
+	m.clearedsea_order_split_events = true
+}
+
+// SeaOrderSplitEventsCleared reports if the "sea_order_split_events" edge to the SeaOrderSplitEvent entity was cleared.
+func (m *OrganizationMutation) SeaOrderSplitEventsCleared() bool {
+	return m.clearedsea_order_split_events
+}
+
+// RemoveSeaOrderSplitEventIDs removes the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (m *OrganizationMutation) RemoveSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_split_events == nil {
+		m.removedsea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_split_events, ids[i])
+		m.removedsea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderSplitEvents returns the removed IDs of the "sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *OrganizationMutation) RemovedSeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderSplitEventsIDs returns the "sea_order_split_events" edge IDs in the mutation.
+func (m *OrganizationMutation) SeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderSplitEvents resets all changes to the "sea_order_split_events" edge.
+func (m *OrganizationMutation) ResetSeaOrderSplitEvents() {
+	m.sea_order_split_events = nil
+	m.clearedsea_order_split_events = false
+	m.removedsea_order_split_events = nil
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by ids.
+func (m *OrganizationMutation) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.sea_order_split_results == nil {
+		m.sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderSplitResults clears the "sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *OrganizationMutation) ClearSeaOrderSplitResults() {
+	m.clearedsea_order_split_results = true
+}
+
+// SeaOrderSplitResultsCleared reports if the "sea_order_split_results" edge to the SeaOrderSplitResult entity was cleared.
+func (m *OrganizationMutation) SeaOrderSplitResultsCleared() bool {
+	return m.clearedsea_order_split_results
+}
+
+// RemoveSeaOrderSplitResultIDs removes the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (m *OrganizationMutation) RemoveSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_split_results == nil {
+		m.removedsea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_split_results, ids[i])
+		m.removedsea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderSplitResults returns the removed IDs of the "sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *OrganizationMutation) RemovedSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderSplitResultsIDs returns the "sea_order_split_results" edge IDs in the mutation.
+func (m *OrganizationMutation) SeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderSplitResults resets all changes to the "sea_order_split_results" edge.
+func (m *OrganizationMutation) ResetSeaOrderSplitResults() {
+	m.sea_order_split_results = nil
+	m.clearedsea_order_split_results = false
+	m.removedsea_order_split_results = nil
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *OrganizationMutation) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.sea_order_reassignment_events == nil {
+		m.sea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderReassignmentEvents clears the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *OrganizationMutation) ClearSeaOrderReassignmentEvents() {
+	m.clearedsea_order_reassignment_events = true
+}
+
+// SeaOrderReassignmentEventsCleared reports if the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *OrganizationMutation) SeaOrderReassignmentEventsCleared() bool {
+	return m.clearedsea_order_reassignment_events
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *OrganizationMutation) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_reassignment_events == nil {
+		m.removedsea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_reassignment_events, ids[i])
+		m.removedsea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderReassignmentEvents returns the removed IDs of the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *OrganizationMutation) RemovedSeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderReassignmentEventsIDs returns the "sea_order_reassignment_events" edge IDs in the mutation.
+func (m *OrganizationMutation) SeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderReassignmentEvents resets all changes to the "sea_order_reassignment_events" edge.
+func (m *OrganizationMutation) ResetSeaOrderReassignmentEvents() {
+	m.sea_order_reassignment_events = nil
+	m.clearedsea_order_reassignment_events = false
+	m.removedsea_order_reassignment_events = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -84118,7 +85622,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 47)
+	edges := make([]string, 0, 51)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -84259,6 +85763,18 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_bill_enterprise_tags != nil {
 		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
+	}
+	if m.attachment_assets != nil {
+		edges = append(edges, organization.EdgeAttachmentAssets)
+	}
+	if m.sea_order_split_events != nil {
+		edges = append(edges, organization.EdgeSeaOrderSplitEvents)
+	}
+	if m.sea_order_split_results != nil {
+		edges = append(edges, organization.EdgeSeaOrderSplitResults)
+	}
+	if m.sea_order_reassignment_events != nil {
+		edges = append(edges, organization.EdgeSeaOrderReassignmentEvents)
 	}
 	return edges
 }
@@ -84547,13 +86063,37 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeAttachmentAssets:
+		ids := make([]ent.Value, 0, len(m.attachment_assets))
+		for id := range m.attachment_assets {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.sea_order_split_events))
+		for id := range m.sea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.sea_order_split_results))
+		for id := range m.sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.sea_order_reassignment_events))
+		for id := range m.sea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 47)
+	edges := make([]string, 0, 51)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -84691,6 +86231,18 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_bill_enterprise_tags != nil {
 		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
+	}
+	if m.removedattachment_assets != nil {
+		edges = append(edges, organization.EdgeAttachmentAssets)
+	}
+	if m.removedsea_order_split_events != nil {
+		edges = append(edges, organization.EdgeSeaOrderSplitEvents)
+	}
+	if m.removedsea_order_split_results != nil {
+		edges = append(edges, organization.EdgeSeaOrderSplitResults)
+	}
+	if m.removedsea_order_reassignment_events != nil {
+		edges = append(edges, organization.EdgeSeaOrderReassignmentEvents)
 	}
 	return edges
 }
@@ -84975,13 +86527,37 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeAttachmentAssets:
+		ids := make([]ent.Value, 0, len(m.removedattachment_assets))
+		for id := range m.removedattachment_assets {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_split_events))
+		for id := range m.removedsea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_split_results))
+		for id := range m.removedsea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_reassignment_events))
+		for id := range m.removedsea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 47)
+	edges := make([]string, 0, 51)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -85123,6 +86699,18 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedfinance_bill_enterprise_tags {
 		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
 	}
+	if m.clearedattachment_assets {
+		edges = append(edges, organization.EdgeAttachmentAssets)
+	}
+	if m.clearedsea_order_split_events {
+		edges = append(edges, organization.EdgeSeaOrderSplitEvents)
+	}
+	if m.clearedsea_order_split_results {
+		edges = append(edges, organization.EdgeSeaOrderSplitResults)
+	}
+	if m.clearedsea_order_reassignment_events {
+		edges = append(edges, organization.EdgeSeaOrderReassignmentEvents)
+	}
 	return edges
 }
 
@@ -85224,6 +86812,14 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedorder_fee_enterprise_tags
 	case organization.EdgeFinanceBillEnterpriseTags:
 		return m.clearedfinance_bill_enterprise_tags
+	case organization.EdgeAttachmentAssets:
+		return m.clearedattachment_assets
+	case organization.EdgeSeaOrderSplitEvents:
+		return m.clearedsea_order_split_events
+	case organization.EdgeSeaOrderSplitResults:
+		return m.clearedsea_order_split_results
+	case organization.EdgeSeaOrderReassignmentEvents:
+		return m.clearedsea_order_reassignment_events
 	}
 	return false
 }
@@ -85384,6 +86980,18 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 	case organization.EdgeFinanceBillEnterpriseTags:
 		m.ResetFinanceBillEnterpriseTags()
 		return nil
+	case organization.EdgeAttachmentAssets:
+		m.ResetAttachmentAssets()
+		return nil
+	case organization.EdgeSeaOrderSplitEvents:
+		m.ResetSeaOrderSplitEvents()
+		return nil
+	case organization.EdgeSeaOrderSplitResults:
+		m.ResetSeaOrderSplitResults()
+		return nil
+	case organization.EdgeSeaOrderReassignmentEvents:
+		m.ResetSeaOrderReassignmentEvents()
+		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
 }
@@ -85456,6 +87064,9 @@ type PartnerMutation struct {
 	issued_sea_house_bills               map[uuid.UUID]struct{}
 	removedissued_sea_house_bills        map[uuid.UUID]struct{}
 	clearedissued_sea_house_bills        bool
+	sea_order_reassignments              map[uuid.UUID]struct{}
+	removedsea_order_reassignments       map[uuid.UUID]struct{}
+	clearedsea_order_reassignments       bool
 	done                                 bool
 	oldValue                             func(context.Context) (*Partner, error)
 	predicates                           []predicate.Partner
@@ -86881,6 +88492,60 @@ func (m *PartnerMutation) ResetIssuedSeaHouseBills() {
 	m.removedissued_sea_house_bills = nil
 }
 
+// AddSeaOrderReassignmentIDs adds the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *PartnerMutation) AddSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.sea_order_reassignments == nil {
+		m.sea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaOrderReassignments clears the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *PartnerMutation) ClearSeaOrderReassignments() {
+	m.clearedsea_order_reassignments = true
+}
+
+// SeaOrderReassignmentsCleared reports if the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *PartnerMutation) SeaOrderReassignmentsCleared() bool {
+	return m.clearedsea_order_reassignments
+}
+
+// RemoveSeaOrderReassignmentIDs removes the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *PartnerMutation) RemoveSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.removedsea_order_reassignments == nil {
+		m.removedsea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_order_reassignments, ids[i])
+		m.removedsea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaOrderReassignments returns the removed IDs of the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *PartnerMutation) RemovedSeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaOrderReassignmentsIDs returns the "sea_order_reassignments" edge IDs in the mutation.
+func (m *PartnerMutation) SeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaOrderReassignments resets all changes to the "sea_order_reassignments" edge.
+func (m *PartnerMutation) ResetSeaOrderReassignments() {
+	m.sea_order_reassignments = nil
+	m.clearedsea_order_reassignments = false
+	m.removedsea_order_reassignments = nil
+}
+
 // Where appends a list predicates to the PartnerMutation builder.
 func (m *PartnerMutation) Where(ps ...predicate.Partner) {
 	m.predicates = append(m.predicates, ps...)
@@ -87182,7 +88847,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -87236,6 +88901,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.issued_sea_house_bills != nil {
 		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
+	}
+	if m.sea_order_reassignments != nil {
+		edges = append(edges, partner.EdgeSeaOrderReassignments)
 	}
 	return edges
 }
@@ -87348,13 +89016,19 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.sea_order_reassignments))
+		for id := range m.sea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -87402,6 +89076,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedissued_sea_house_bills != nil {
 		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
+	}
+	if m.removedsea_order_reassignments != nil {
+		edges = append(edges, partner.EdgeSeaOrderReassignments)
 	}
 	return edges
 }
@@ -87506,13 +89183,19 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.removedsea_order_reassignments))
+		for id := range m.removedsea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -87567,6 +89250,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedissued_sea_house_bills {
 		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
 	}
+	if m.clearedsea_order_reassignments {
+		edges = append(edges, partner.EdgeSeaOrderReassignments)
+	}
 	return edges
 }
 
@@ -87610,6 +89296,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedorder_commission_attributions
 	case partner.EdgeIssuedSeaHouseBills:
 		return m.clearedissued_sea_house_bills
+	case partner.EdgeSeaOrderReassignments:
+		return m.clearedsea_order_reassignments
 	}
 	return false
 }
@@ -87685,6 +89373,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeIssuedSeaHouseBills:
 		m.ResetIssuedSeaHouseBills()
+		return nil
+	case partner.EdgeSeaOrderReassignments:
+		m.ResetSeaOrderReassignments()
 		return nil
 	}
 	return fmt.Errorf("unknown Partner edge %s", name)
@@ -105935,49 +107626,61 @@ func (m *SeaHouseBillMutation) ResetEdge(name string) error {
 // SeaMasterBillMutation represents an operation that mutates the SeaMasterBill nodes in the graph.
 type SeaMasterBillMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	issuer_partner_id          *uuid.UUID
-	master_no                  *string
-	normalized_master_no       *string
-	status                     *seamasterbill.Status
-	version                    *uint64
-	addversion                 *int64
-	shipper_text               *string
-	consignee_text             *string
-	notify_party_text          *string
-	second_notify_party_text   *string
-	marks_text                 *string
-	goods_description_text     *string
-	package_count              *int
-	addpackage_count           *int
-	package_unit               *string
-	gross_weight_kg            *float64
-	addgross_weight_kg         *float64
-	volume_cbm                 *float64
-	addvolume_cbm              *float64
-	freight_terms              *string
-	transport_terms            *string
-	bill_form                  *string
-	release_type               *string
-	clauses                    *string
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	transport_execution        *uuid.UUID
-	clearedtransport_execution bool
-	order_links                map[uuid.UUID]struct{}
-	removedorder_links         map[uuid.UUID]struct{}
-	clearedorder_links         bool
-	house_bills                map[uuid.UUID]struct{}
-	removedhouse_bills         map[uuid.UUID]struct{}
-	clearedhouse_bills         bool
-	done                       bool
-	oldValue                   func(context.Context) (*SeaMasterBill, error)
-	predicates                 []predicate.SeaMasterBill
+	op                                      Op
+	typ                                     string
+	id                                      *uuid.UUID
+	created_at                              *time.Time
+	updated_at                              *time.Time
+	issuer_partner_id                       *uuid.UUID
+	master_no                               *string
+	normalized_master_no                    *string
+	status                                  *seamasterbill.Status
+	version                                 *uint64
+	addversion                              *int64
+	shipper_text                            *string
+	consignee_text                          *string
+	notify_party_text                       *string
+	second_notify_party_text                *string
+	marks_text                              *string
+	goods_description_text                  *string
+	package_count                           *int
+	addpackage_count                        *int
+	package_unit                            *string
+	gross_weight_kg                         *float64
+	addgross_weight_kg                      *float64
+	volume_cbm                              *float64
+	addvolume_cbm                           *float64
+	freight_terms                           *string
+	transport_terms                         *string
+	bill_form                               *string
+	release_type                            *string
+	clauses                                 *string
+	clearedFields                           map[string]struct{}
+	organization                            *uuid.UUID
+	clearedorganization                     bool
+	transport_execution                     *uuid.UUID
+	clearedtransport_execution              bool
+	order_links                             map[uuid.UUID]struct{}
+	removedorder_links                      map[uuid.UUID]struct{}
+	clearedorder_links                      bool
+	house_bills                             map[uuid.UUID]struct{}
+	removedhouse_bills                      map[uuid.UUID]struct{}
+	clearedhouse_bills                      bool
+	initial_sea_order_split_results         map[uuid.UUID]struct{}
+	removedinitial_sea_order_split_results  map[uuid.UUID]struct{}
+	clearedinitial_sea_order_split_results  bool
+	final_sea_order_split_results           map[uuid.UUID]struct{}
+	removedfinal_sea_order_split_results    map[uuid.UUID]struct{}
+	clearedfinal_sea_order_split_results    bool
+	previous_sea_order_reassignments        map[uuid.UUID]struct{}
+	removedprevious_sea_order_reassignments map[uuid.UUID]struct{}
+	clearedprevious_sea_order_reassignments bool
+	target_sea_order_reassignments          map[uuid.UUID]struct{}
+	removedtarget_sea_order_reassignments   map[uuid.UUID]struct{}
+	clearedtarget_sea_order_reassignments   bool
+	done                                    bool
+	oldValue                                func(context.Context) (*SeaMasterBill, error)
+	predicates                              []predicate.SeaMasterBill
 }
 
 var _ ent.Mutation = (*SeaMasterBillMutation)(nil)
@@ -107388,6 +109091,222 @@ func (m *SeaMasterBillMutation) ResetHouseBills() {
 	m.removedhouse_bills = nil
 }
 
+// AddInitialSeaOrderSplitResultIDs adds the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity by ids.
+func (m *SeaMasterBillMutation) AddInitialSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.initial_sea_order_split_results == nil {
+		m.initial_sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.initial_sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInitialSeaOrderSplitResults clears the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *SeaMasterBillMutation) ClearInitialSeaOrderSplitResults() {
+	m.clearedinitial_sea_order_split_results = true
+}
+
+// InitialSeaOrderSplitResultsCleared reports if the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity was cleared.
+func (m *SeaMasterBillMutation) InitialSeaOrderSplitResultsCleared() bool {
+	return m.clearedinitial_sea_order_split_results
+}
+
+// RemoveInitialSeaOrderSplitResultIDs removes the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (m *SeaMasterBillMutation) RemoveInitialSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.removedinitial_sea_order_split_results == nil {
+		m.removedinitial_sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.initial_sea_order_split_results, ids[i])
+		m.removedinitial_sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInitialSeaOrderSplitResults returns the removed IDs of the "initial_sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *SeaMasterBillMutation) RemovedInitialSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedinitial_sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InitialSeaOrderSplitResultsIDs returns the "initial_sea_order_split_results" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) InitialSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.initial_sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInitialSeaOrderSplitResults resets all changes to the "initial_sea_order_split_results" edge.
+func (m *SeaMasterBillMutation) ResetInitialSeaOrderSplitResults() {
+	m.initial_sea_order_split_results = nil
+	m.clearedinitial_sea_order_split_results = false
+	m.removedinitial_sea_order_split_results = nil
+}
+
+// AddFinalSeaOrderSplitResultIDs adds the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity by ids.
+func (m *SeaMasterBillMutation) AddFinalSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.final_sea_order_split_results == nil {
+		m.final_sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.final_sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinalSeaOrderSplitResults clears the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *SeaMasterBillMutation) ClearFinalSeaOrderSplitResults() {
+	m.clearedfinal_sea_order_split_results = true
+}
+
+// FinalSeaOrderSplitResultsCleared reports if the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity was cleared.
+func (m *SeaMasterBillMutation) FinalSeaOrderSplitResultsCleared() bool {
+	return m.clearedfinal_sea_order_split_results
+}
+
+// RemoveFinalSeaOrderSplitResultIDs removes the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (m *SeaMasterBillMutation) RemoveFinalSeaOrderSplitResultIDs(ids ...uuid.UUID) {
+	if m.removedfinal_sea_order_split_results == nil {
+		m.removedfinal_sea_order_split_results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.final_sea_order_split_results, ids[i])
+		m.removedfinal_sea_order_split_results[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinalSeaOrderSplitResults returns the removed IDs of the "final_sea_order_split_results" edge to the SeaOrderSplitResult entity.
+func (m *SeaMasterBillMutation) RemovedFinalSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinal_sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinalSeaOrderSplitResultsIDs returns the "final_sea_order_split_results" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) FinalSeaOrderSplitResultsIDs() (ids []uuid.UUID) {
+	for id := range m.final_sea_order_split_results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinalSeaOrderSplitResults resets all changes to the "final_sea_order_split_results" edge.
+func (m *SeaMasterBillMutation) ResetFinalSeaOrderSplitResults() {
+	m.final_sea_order_split_results = nil
+	m.clearedfinal_sea_order_split_results = false
+	m.removedfinal_sea_order_split_results = nil
+}
+
+// AddPreviousSeaOrderReassignmentIDs adds the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *SeaMasterBillMutation) AddPreviousSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.previous_sea_order_reassignments == nil {
+		m.previous_sea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.previous_sea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPreviousSeaOrderReassignments clears the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaMasterBillMutation) ClearPreviousSeaOrderReassignments() {
+	m.clearedprevious_sea_order_reassignments = true
+}
+
+// PreviousSeaOrderReassignmentsCleared reports if the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *SeaMasterBillMutation) PreviousSeaOrderReassignmentsCleared() bool {
+	return m.clearedprevious_sea_order_reassignments
+}
+
+// RemovePreviousSeaOrderReassignmentIDs removes the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *SeaMasterBillMutation) RemovePreviousSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.removedprevious_sea_order_reassignments == nil {
+		m.removedprevious_sea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.previous_sea_order_reassignments, ids[i])
+		m.removedprevious_sea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPreviousSeaOrderReassignments returns the removed IDs of the "previous_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaMasterBillMutation) RemovedPreviousSeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedprevious_sea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PreviousSeaOrderReassignmentsIDs returns the "previous_sea_order_reassignments" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) PreviousSeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.previous_sea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPreviousSeaOrderReassignments resets all changes to the "previous_sea_order_reassignments" edge.
+func (m *SeaMasterBillMutation) ResetPreviousSeaOrderReassignments() {
+	m.previous_sea_order_reassignments = nil
+	m.clearedprevious_sea_order_reassignments = false
+	m.removedprevious_sea_order_reassignments = nil
+}
+
+// AddTargetSeaOrderReassignmentIDs adds the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *SeaMasterBillMutation) AddTargetSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.target_sea_order_reassignments == nil {
+		m.target_sea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.target_sea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTargetSeaOrderReassignments clears the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaMasterBillMutation) ClearTargetSeaOrderReassignments() {
+	m.clearedtarget_sea_order_reassignments = true
+}
+
+// TargetSeaOrderReassignmentsCleared reports if the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *SeaMasterBillMutation) TargetSeaOrderReassignmentsCleared() bool {
+	return m.clearedtarget_sea_order_reassignments
+}
+
+// RemoveTargetSeaOrderReassignmentIDs removes the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *SeaMasterBillMutation) RemoveTargetSeaOrderReassignmentIDs(ids ...uuid.UUID) {
+	if m.removedtarget_sea_order_reassignments == nil {
+		m.removedtarget_sea_order_reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.target_sea_order_reassignments, ids[i])
+		m.removedtarget_sea_order_reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTargetSeaOrderReassignments returns the removed IDs of the "target_sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaMasterBillMutation) RemovedTargetSeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtarget_sea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TargetSeaOrderReassignmentsIDs returns the "target_sea_order_reassignments" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) TargetSeaOrderReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.target_sea_order_reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTargetSeaOrderReassignments resets all changes to the "target_sea_order_reassignments" edge.
+func (m *SeaMasterBillMutation) ResetTargetSeaOrderReassignments() {
+	m.target_sea_order_reassignments = nil
+	m.clearedtarget_sea_order_reassignments = false
+	m.removedtarget_sea_order_reassignments = nil
+}
+
 // Where appends a list predicates to the SeaMasterBillMutation builder.
 func (m *SeaMasterBillMutation) Where(ps ...predicate.SeaMasterBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -108056,7 +109975,7 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.organization != nil {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -108068,6 +109987,18 @@ func (m *SeaMasterBillMutation) AddedEdges() []string {
 	}
 	if m.house_bills != nil {
 		edges = append(edges, seamasterbill.EdgeHouseBills)
+	}
+	if m.initial_sea_order_split_results != nil {
+		edges = append(edges, seamasterbill.EdgeInitialSeaOrderSplitResults)
+	}
+	if m.final_sea_order_split_results != nil {
+		edges = append(edges, seamasterbill.EdgeFinalSeaOrderSplitResults)
+	}
+	if m.previous_sea_order_reassignments != nil {
+		edges = append(edges, seamasterbill.EdgePreviousSeaOrderReassignments)
+	}
+	if m.target_sea_order_reassignments != nil {
+		edges = append(edges, seamasterbill.EdgeTargetSeaOrderReassignments)
 	}
 	return edges
 }
@@ -108096,18 +110027,54 @@ func (m *SeaMasterBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeInitialSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.initial_sea_order_split_results))
+		for id := range m.initial_sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgeFinalSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.final_sea_order_split_results))
+		for id := range m.final_sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgePreviousSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.previous_sea_order_reassignments))
+		for id := range m.previous_sea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgeTargetSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.target_sea_order_reassignments))
+		for id := range m.target_sea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.removedorder_links != nil {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
 	}
 	if m.removedhouse_bills != nil {
 		edges = append(edges, seamasterbill.EdgeHouseBills)
+	}
+	if m.removedinitial_sea_order_split_results != nil {
+		edges = append(edges, seamasterbill.EdgeInitialSeaOrderSplitResults)
+	}
+	if m.removedfinal_sea_order_split_results != nil {
+		edges = append(edges, seamasterbill.EdgeFinalSeaOrderSplitResults)
+	}
+	if m.removedprevious_sea_order_reassignments != nil {
+		edges = append(edges, seamasterbill.EdgePreviousSeaOrderReassignments)
+	}
+	if m.removedtarget_sea_order_reassignments != nil {
+		edges = append(edges, seamasterbill.EdgeTargetSeaOrderReassignments)
 	}
 	return edges
 }
@@ -108128,13 +110095,37 @@ func (m *SeaMasterBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeInitialSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.removedinitial_sea_order_split_results))
+		for id := range m.removedinitial_sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgeFinalSeaOrderSplitResults:
+		ids := make([]ent.Value, 0, len(m.removedfinal_sea_order_split_results))
+		for id := range m.removedfinal_sea_order_split_results {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgePreviousSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.removedprevious_sea_order_reassignments))
+		for id := range m.removedprevious_sea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case seamasterbill.EdgeTargetSeaOrderReassignments:
+		ids := make([]ent.Value, 0, len(m.removedtarget_sea_order_reassignments))
+		for id := range m.removedtarget_sea_order_reassignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -108146,6 +110137,18 @@ func (m *SeaMasterBillMutation) ClearedEdges() []string {
 	}
 	if m.clearedhouse_bills {
 		edges = append(edges, seamasterbill.EdgeHouseBills)
+	}
+	if m.clearedinitial_sea_order_split_results {
+		edges = append(edges, seamasterbill.EdgeInitialSeaOrderSplitResults)
+	}
+	if m.clearedfinal_sea_order_split_results {
+		edges = append(edges, seamasterbill.EdgeFinalSeaOrderSplitResults)
+	}
+	if m.clearedprevious_sea_order_reassignments {
+		edges = append(edges, seamasterbill.EdgePreviousSeaOrderReassignments)
+	}
+	if m.clearedtarget_sea_order_reassignments {
+		edges = append(edges, seamasterbill.EdgeTargetSeaOrderReassignments)
 	}
 	return edges
 }
@@ -108162,6 +110165,14 @@ func (m *SeaMasterBillMutation) EdgeCleared(name string) bool {
 		return m.clearedorder_links
 	case seamasterbill.EdgeHouseBills:
 		return m.clearedhouse_bills
+	case seamasterbill.EdgeInitialSeaOrderSplitResults:
+		return m.clearedinitial_sea_order_split_results
+	case seamasterbill.EdgeFinalSeaOrderSplitResults:
+		return m.clearedfinal_sea_order_split_results
+	case seamasterbill.EdgePreviousSeaOrderReassignments:
+		return m.clearedprevious_sea_order_reassignments
+	case seamasterbill.EdgeTargetSeaOrderReassignments:
+		return m.clearedtarget_sea_order_reassignments
 	}
 	return false
 }
@@ -108195,6 +110206,18 @@ func (m *SeaMasterBillMutation) ResetEdge(name string) error {
 		return nil
 	case seamasterbill.EdgeHouseBills:
 		m.ResetHouseBills()
+		return nil
+	case seamasterbill.EdgeInitialSeaOrderSplitResults:
+		m.ResetInitialSeaOrderSplitResults()
+		return nil
+	case seamasterbill.EdgeFinalSeaOrderSplitResults:
+		m.ResetFinalSeaOrderSplitResults()
+		return nil
+	case seamasterbill.EdgePreviousSeaOrderReassignments:
+		m.ResetPreviousSeaOrderReassignments()
+		return nil
+	case seamasterbill.EdgeTargetSeaOrderReassignments:
+		m.ResetTargetSeaOrderReassignments()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill edge %s", name)
@@ -109724,6 +111747,4897 @@ func (m *SeaMasterBillOrderLinkMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillOrderLink edge %s", name)
+}
+
+// SeaOrderReassignmentEventMutation represents an operation that mutates the SeaOrderReassignmentEvent nodes in the graph.
+type SeaOrderReassignmentEventMutation struct {
+	config
+	op                              Op
+	typ                             string
+	id                              *uuid.UUID
+	created_at                      *time.Time
+	order_no                        *string
+	idempotency_key                 *string
+	request_fingerprint             *string
+	previous_transport_execution_id *uuid.UUID
+	target_transport_execution_id   *uuid.UUID
+	previous_link_id                *uuid.UUID
+	target_link_id                  *uuid.UUID
+	previous_link_version           *uint64
+	addprevious_link_version        *int64
+	target_link_version             *uint64
+	addtarget_link_version          *int64
+	reason                          *string
+	responsibility_type             *seaorderreassignmentevent.ResponsibilityType
+	responsible_partner_name        *string
+	before_snapshot                 *json.RawMessage
+	appendbefore_snapshot           json.RawMessage
+	after_snapshot                  *json.RawMessage
+	appendafter_snapshot            json.RawMessage
+	clearedFields                   map[string]struct{}
+	organization                    *uuid.UUID
+	clearedorganization             bool
+	_order                          *uuid.UUID
+	cleared_order                   bool
+	split_event                     *uuid.UUID
+	clearedsplit_event              bool
+	split_result                    *uuid.UUID
+	clearedsplit_result             bool
+	previous_master_bill            *uuid.UUID
+	clearedprevious_master_bill     bool
+	target_master_bill              *uuid.UUID
+	clearedtarget_master_bill       bool
+	responsible_partner             *uuid.UUID
+	clearedresponsible_partner      bool
+	creator                         *uuid.UUID
+	clearedcreator                  bool
+	done                            bool
+	oldValue                        func(context.Context) (*SeaOrderReassignmentEvent, error)
+	predicates                      []predicate.SeaOrderReassignmentEvent
+}
+
+var _ ent.Mutation = (*SeaOrderReassignmentEventMutation)(nil)
+
+// seaorderreassignmenteventOption allows management of the mutation configuration using functional options.
+type seaorderreassignmenteventOption func(*SeaOrderReassignmentEventMutation)
+
+// newSeaOrderReassignmentEventMutation creates new mutation for the SeaOrderReassignmentEvent entity.
+func newSeaOrderReassignmentEventMutation(c config, op Op, opts ...seaorderreassignmenteventOption) *SeaOrderReassignmentEventMutation {
+	m := &SeaOrderReassignmentEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSeaOrderReassignmentEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSeaOrderReassignmentEventID sets the ID field of the mutation.
+func withSeaOrderReassignmentEventID(id uuid.UUID) seaorderreassignmenteventOption {
+	return func(m *SeaOrderReassignmentEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SeaOrderReassignmentEvent
+		)
+		m.oldValue = func(ctx context.Context) (*SeaOrderReassignmentEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SeaOrderReassignmentEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSeaOrderReassignmentEvent sets the old SeaOrderReassignmentEvent of the mutation.
+func withSeaOrderReassignmentEvent(node *SeaOrderReassignmentEvent) seaorderreassignmenteventOption {
+	return func(m *SeaOrderReassignmentEventMutation) {
+		m.oldValue = func(context.Context) (*SeaOrderReassignmentEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SeaOrderReassignmentEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SeaOrderReassignmentEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SeaOrderReassignmentEvent entities.
+func (m *SeaOrderReassignmentEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SeaOrderReassignmentEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SeaOrderReassignmentEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SeaOrderReassignmentEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SeaOrderReassignmentEventMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SeaOrderReassignmentEventMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetOrderNo sets the "order_no" field.
+func (m *SeaOrderReassignmentEventMutation) SetOrderNo(s string) {
+	m.order_no = &s
+}
+
+// OrderNo returns the value of the "order_no" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) OrderNo() (r string, exists bool) {
+	v := m.order_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderNo returns the old "order_no" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldOrderNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderNo: %w", err)
+	}
+	return oldValue.OrderNo, nil
+}
+
+// ResetOrderNo resets all changes to the "order_no" field.
+func (m *SeaOrderReassignmentEventMutation) ResetOrderNo() {
+	m.order_no = nil
+}
+
+// SetSplitEventID sets the "split_event_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetSplitEventID(u uuid.UUID) {
+	m.split_event = &u
+}
+
+// SplitEventID returns the value of the "split_event_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) SplitEventID() (r uuid.UUID, exists bool) {
+	v := m.split_event
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSplitEventID returns the old "split_event_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldSplitEventID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSplitEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSplitEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSplitEventID: %w", err)
+	}
+	return oldValue.SplitEventID, nil
+}
+
+// ClearSplitEventID clears the value of the "split_event_id" field.
+func (m *SeaOrderReassignmentEventMutation) ClearSplitEventID() {
+	m.split_event = nil
+	m.clearedFields[seaorderreassignmentevent.FieldSplitEventID] = struct{}{}
+}
+
+// SplitEventIDCleared returns if the "split_event_id" field was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) SplitEventIDCleared() bool {
+	_, ok := m.clearedFields[seaorderreassignmentevent.FieldSplitEventID]
+	return ok
+}
+
+// ResetSplitEventID resets all changes to the "split_event_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetSplitEventID() {
+	m.split_event = nil
+	delete(m.clearedFields, seaorderreassignmentevent.FieldSplitEventID)
+}
+
+// SetSplitResultID sets the "split_result_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetSplitResultID(u uuid.UUID) {
+	m.split_result = &u
+}
+
+// SplitResultID returns the value of the "split_result_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) SplitResultID() (r uuid.UUID, exists bool) {
+	v := m.split_result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSplitResultID returns the old "split_result_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldSplitResultID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSplitResultID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSplitResultID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSplitResultID: %w", err)
+	}
+	return oldValue.SplitResultID, nil
+}
+
+// ClearSplitResultID clears the value of the "split_result_id" field.
+func (m *SeaOrderReassignmentEventMutation) ClearSplitResultID() {
+	m.split_result = nil
+	m.clearedFields[seaorderreassignmentevent.FieldSplitResultID] = struct{}{}
+}
+
+// SplitResultIDCleared returns if the "split_result_id" field was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) SplitResultIDCleared() bool {
+	_, ok := m.clearedFields[seaorderreassignmentevent.FieldSplitResultID]
+	return ok
+}
+
+// ResetSplitResultID resets all changes to the "split_result_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetSplitResultID() {
+	m.split_result = nil
+	delete(m.clearedFields, seaorderreassignmentevent.FieldSplitResultID)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *SeaOrderReassignmentEventMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *SeaOrderReassignmentEventMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *SeaOrderReassignmentEventMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldRequestFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *SeaOrderReassignmentEventMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+}
+
+// SetPreviousMasterBillID sets the "previous_master_bill_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetPreviousMasterBillID(u uuid.UUID) {
+	m.previous_master_bill = &u
+}
+
+// PreviousMasterBillID returns the value of the "previous_master_bill_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) PreviousMasterBillID() (r uuid.UUID, exists bool) {
+	v := m.previous_master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousMasterBillID returns the old "previous_master_bill_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldPreviousMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousMasterBillID: %w", err)
+	}
+	return oldValue.PreviousMasterBillID, nil
+}
+
+// ResetPreviousMasterBillID resets all changes to the "previous_master_bill_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetPreviousMasterBillID() {
+	m.previous_master_bill = nil
+}
+
+// SetTargetMasterBillID sets the "target_master_bill_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetTargetMasterBillID(u uuid.UUID) {
+	m.target_master_bill = &u
+}
+
+// TargetMasterBillID returns the value of the "target_master_bill_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) TargetMasterBillID() (r uuid.UUID, exists bool) {
+	v := m.target_master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetMasterBillID returns the old "target_master_bill_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldTargetMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetMasterBillID: %w", err)
+	}
+	return oldValue.TargetMasterBillID, nil
+}
+
+// ResetTargetMasterBillID resets all changes to the "target_master_bill_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetTargetMasterBillID() {
+	m.target_master_bill = nil
+}
+
+// SetPreviousTransportExecutionID sets the "previous_transport_execution_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetPreviousTransportExecutionID(u uuid.UUID) {
+	m.previous_transport_execution_id = &u
+}
+
+// PreviousTransportExecutionID returns the value of the "previous_transport_execution_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) PreviousTransportExecutionID() (r uuid.UUID, exists bool) {
+	v := m.previous_transport_execution_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousTransportExecutionID returns the old "previous_transport_execution_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldPreviousTransportExecutionID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousTransportExecutionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousTransportExecutionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousTransportExecutionID: %w", err)
+	}
+	return oldValue.PreviousTransportExecutionID, nil
+}
+
+// ResetPreviousTransportExecutionID resets all changes to the "previous_transport_execution_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetPreviousTransportExecutionID() {
+	m.previous_transport_execution_id = nil
+}
+
+// SetTargetTransportExecutionID sets the "target_transport_execution_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetTargetTransportExecutionID(u uuid.UUID) {
+	m.target_transport_execution_id = &u
+}
+
+// TargetTransportExecutionID returns the value of the "target_transport_execution_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) TargetTransportExecutionID() (r uuid.UUID, exists bool) {
+	v := m.target_transport_execution_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetTransportExecutionID returns the old "target_transport_execution_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldTargetTransportExecutionID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetTransportExecutionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetTransportExecutionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetTransportExecutionID: %w", err)
+	}
+	return oldValue.TargetTransportExecutionID, nil
+}
+
+// ResetTargetTransportExecutionID resets all changes to the "target_transport_execution_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetTargetTransportExecutionID() {
+	m.target_transport_execution_id = nil
+}
+
+// SetPreviousLinkID sets the "previous_link_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetPreviousLinkID(u uuid.UUID) {
+	m.previous_link_id = &u
+}
+
+// PreviousLinkID returns the value of the "previous_link_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) PreviousLinkID() (r uuid.UUID, exists bool) {
+	v := m.previous_link_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousLinkID returns the old "previous_link_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldPreviousLinkID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousLinkID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousLinkID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousLinkID: %w", err)
+	}
+	return oldValue.PreviousLinkID, nil
+}
+
+// ResetPreviousLinkID resets all changes to the "previous_link_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetPreviousLinkID() {
+	m.previous_link_id = nil
+}
+
+// SetTargetLinkID sets the "target_link_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetTargetLinkID(u uuid.UUID) {
+	m.target_link_id = &u
+}
+
+// TargetLinkID returns the value of the "target_link_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) TargetLinkID() (r uuid.UUID, exists bool) {
+	v := m.target_link_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetLinkID returns the old "target_link_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldTargetLinkID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetLinkID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetLinkID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetLinkID: %w", err)
+	}
+	return oldValue.TargetLinkID, nil
+}
+
+// ResetTargetLinkID resets all changes to the "target_link_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetTargetLinkID() {
+	m.target_link_id = nil
+}
+
+// SetPreviousLinkVersion sets the "previous_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) SetPreviousLinkVersion(u uint64) {
+	m.previous_link_version = &u
+	m.addprevious_link_version = nil
+}
+
+// PreviousLinkVersion returns the value of the "previous_link_version" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) PreviousLinkVersion() (r uint64, exists bool) {
+	v := m.previous_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousLinkVersion returns the old "previous_link_version" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldPreviousLinkVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousLinkVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousLinkVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousLinkVersion: %w", err)
+	}
+	return oldValue.PreviousLinkVersion, nil
+}
+
+// AddPreviousLinkVersion adds u to the "previous_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) AddPreviousLinkVersion(u int64) {
+	if m.addprevious_link_version != nil {
+		*m.addprevious_link_version += u
+	} else {
+		m.addprevious_link_version = &u
+	}
+}
+
+// AddedPreviousLinkVersion returns the value that was added to the "previous_link_version" field in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AddedPreviousLinkVersion() (r int64, exists bool) {
+	v := m.addprevious_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPreviousLinkVersion resets all changes to the "previous_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) ResetPreviousLinkVersion() {
+	m.previous_link_version = nil
+	m.addprevious_link_version = nil
+}
+
+// SetTargetLinkVersion sets the "target_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) SetTargetLinkVersion(u uint64) {
+	m.target_link_version = &u
+	m.addtarget_link_version = nil
+}
+
+// TargetLinkVersion returns the value of the "target_link_version" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) TargetLinkVersion() (r uint64, exists bool) {
+	v := m.target_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetLinkVersion returns the old "target_link_version" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldTargetLinkVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetLinkVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetLinkVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetLinkVersion: %w", err)
+	}
+	return oldValue.TargetLinkVersion, nil
+}
+
+// AddTargetLinkVersion adds u to the "target_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) AddTargetLinkVersion(u int64) {
+	if m.addtarget_link_version != nil {
+		*m.addtarget_link_version += u
+	} else {
+		m.addtarget_link_version = &u
+	}
+}
+
+// AddedTargetLinkVersion returns the value that was added to the "target_link_version" field in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AddedTargetLinkVersion() (r int64, exists bool) {
+	v := m.addtarget_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTargetLinkVersion resets all changes to the "target_link_version" field.
+func (m *SeaOrderReassignmentEventMutation) ResetTargetLinkVersion() {
+	m.target_link_version = nil
+	m.addtarget_link_version = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *SeaOrderReassignmentEventMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *SeaOrderReassignmentEventMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetResponsibilityType sets the "responsibility_type" field.
+func (m *SeaOrderReassignmentEventMutation) SetResponsibilityType(st seaorderreassignmentevent.ResponsibilityType) {
+	m.responsibility_type = &st
+}
+
+// ResponsibilityType returns the value of the "responsibility_type" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) ResponsibilityType() (r seaorderreassignmentevent.ResponsibilityType, exists bool) {
+	v := m.responsibility_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponsibilityType returns the old "responsibility_type" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldResponsibilityType(ctx context.Context) (v seaorderreassignmentevent.ResponsibilityType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponsibilityType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponsibilityType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponsibilityType: %w", err)
+	}
+	return oldValue.ResponsibilityType, nil
+}
+
+// ResetResponsibilityType resets all changes to the "responsibility_type" field.
+func (m *SeaOrderReassignmentEventMutation) ResetResponsibilityType() {
+	m.responsibility_type = nil
+}
+
+// SetResponsiblePartnerID sets the "responsible_partner_id" field.
+func (m *SeaOrderReassignmentEventMutation) SetResponsiblePartnerID(u uuid.UUID) {
+	m.responsible_partner = &u
+}
+
+// ResponsiblePartnerID returns the value of the "responsible_partner_id" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerID() (r uuid.UUID, exists bool) {
+	v := m.responsible_partner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponsiblePartnerID returns the old "responsible_partner_id" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldResponsiblePartnerID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponsiblePartnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponsiblePartnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponsiblePartnerID: %w", err)
+	}
+	return oldValue.ResponsiblePartnerID, nil
+}
+
+// ClearResponsiblePartnerID clears the value of the "responsible_partner_id" field.
+func (m *SeaOrderReassignmentEventMutation) ClearResponsiblePartnerID() {
+	m.responsible_partner = nil
+	m.clearedFields[seaorderreassignmentevent.FieldResponsiblePartnerID] = struct{}{}
+}
+
+// ResponsiblePartnerIDCleared returns if the "responsible_partner_id" field was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerIDCleared() bool {
+	_, ok := m.clearedFields[seaorderreassignmentevent.FieldResponsiblePartnerID]
+	return ok
+}
+
+// ResetResponsiblePartnerID resets all changes to the "responsible_partner_id" field.
+func (m *SeaOrderReassignmentEventMutation) ResetResponsiblePartnerID() {
+	m.responsible_partner = nil
+	delete(m.clearedFields, seaorderreassignmentevent.FieldResponsiblePartnerID)
+}
+
+// SetResponsiblePartnerName sets the "responsible_partner_name" field.
+func (m *SeaOrderReassignmentEventMutation) SetResponsiblePartnerName(s string) {
+	m.responsible_partner_name = &s
+}
+
+// ResponsiblePartnerName returns the value of the "responsible_partner_name" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerName() (r string, exists bool) {
+	v := m.responsible_partner_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponsiblePartnerName returns the old "responsible_partner_name" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldResponsiblePartnerName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponsiblePartnerName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponsiblePartnerName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponsiblePartnerName: %w", err)
+	}
+	return oldValue.ResponsiblePartnerName, nil
+}
+
+// ClearResponsiblePartnerName clears the value of the "responsible_partner_name" field.
+func (m *SeaOrderReassignmentEventMutation) ClearResponsiblePartnerName() {
+	m.responsible_partner_name = nil
+	m.clearedFields[seaorderreassignmentevent.FieldResponsiblePartnerName] = struct{}{}
+}
+
+// ResponsiblePartnerNameCleared returns if the "responsible_partner_name" field was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerNameCleared() bool {
+	_, ok := m.clearedFields[seaorderreassignmentevent.FieldResponsiblePartnerName]
+	return ok
+}
+
+// ResetResponsiblePartnerName resets all changes to the "responsible_partner_name" field.
+func (m *SeaOrderReassignmentEventMutation) ResetResponsiblePartnerName() {
+	m.responsible_partner_name = nil
+	delete(m.clearedFields, seaorderreassignmentevent.FieldResponsiblePartnerName)
+}
+
+// SetBeforeSnapshot sets the "before_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) SetBeforeSnapshot(jm json.RawMessage) {
+	m.before_snapshot = &jm
+	m.appendbefore_snapshot = nil
+}
+
+// BeforeSnapshot returns the value of the "before_snapshot" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) BeforeSnapshot() (r json.RawMessage, exists bool) {
+	v := m.before_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBeforeSnapshot returns the old "before_snapshot" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldBeforeSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBeforeSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBeforeSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBeforeSnapshot: %w", err)
+	}
+	return oldValue.BeforeSnapshot, nil
+}
+
+// AppendBeforeSnapshot adds jm to the "before_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) AppendBeforeSnapshot(jm json.RawMessage) {
+	m.appendbefore_snapshot = append(m.appendbefore_snapshot, jm...)
+}
+
+// AppendedBeforeSnapshot returns the list of values that were appended to the "before_snapshot" field in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AppendedBeforeSnapshot() (json.RawMessage, bool) {
+	if len(m.appendbefore_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendbefore_snapshot, true
+}
+
+// ResetBeforeSnapshot resets all changes to the "before_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) ResetBeforeSnapshot() {
+	m.before_snapshot = nil
+	m.appendbefore_snapshot = nil
+}
+
+// SetAfterSnapshot sets the "after_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) SetAfterSnapshot(jm json.RawMessage) {
+	m.after_snapshot = &jm
+	m.appendafter_snapshot = nil
+}
+
+// AfterSnapshot returns the value of the "after_snapshot" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) AfterSnapshot() (r json.RawMessage, exists bool) {
+	v := m.after_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAfterSnapshot returns the old "after_snapshot" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldAfterSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAfterSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAfterSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAfterSnapshot: %w", err)
+	}
+	return oldValue.AfterSnapshot, nil
+}
+
+// AppendAfterSnapshot adds jm to the "after_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) AppendAfterSnapshot(jm json.RawMessage) {
+	m.appendafter_snapshot = append(m.appendafter_snapshot, jm...)
+}
+
+// AppendedAfterSnapshot returns the list of values that were appended to the "after_snapshot" field in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AppendedAfterSnapshot() (json.RawMessage, bool) {
+	if len(m.appendafter_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendafter_snapshot, true
+}
+
+// ResetAfterSnapshot resets all changes to the "after_snapshot" field.
+func (m *SeaOrderReassignmentEventMutation) ResetAfterSnapshot() {
+	m.after_snapshot = nil
+	m.appendafter_snapshot = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *SeaOrderReassignmentEventMutation) SetCreatedBy(u uuid.UUID) {
+	m.creator = &u
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *SeaOrderReassignmentEventMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the SeaOrderReassignmentEvent entity.
+// If the SeaOrderReassignmentEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderReassignmentEventMutation) OldCreatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (m *SeaOrderReassignmentEventMutation) ClearCreatedBy() {
+	m.creator = nil
+	m.clearedFields[seaorderreassignmentevent.FieldCreatedBy] = struct{}{}
+}
+
+// CreatedByCleared returns if the "created_by" field was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) CreatedByCleared() bool {
+	_, ok := m.clearedFields[seaorderreassignmentevent.FieldCreatedBy]
+	return ok
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *SeaOrderReassignmentEventMutation) ResetCreatedBy() {
+	m.creator = nil
+	delete(m.clearedFields, seaorderreassignmentevent.FieldCreatedBy)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *SeaOrderReassignmentEventMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[seaorderreassignmentevent.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *SeaOrderReassignmentEventMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[seaorderreassignmentevent.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearSplitEvent clears the "split_event" edge to the SeaOrderSplitEvent entity.
+func (m *SeaOrderReassignmentEventMutation) ClearSplitEvent() {
+	m.clearedsplit_event = true
+	m.clearedFields[seaorderreassignmentevent.FieldSplitEventID] = struct{}{}
+}
+
+// SplitEventCleared reports if the "split_event" edge to the SeaOrderSplitEvent entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) SplitEventCleared() bool {
+	return m.SplitEventIDCleared() || m.clearedsplit_event
+}
+
+// SplitEventIDs returns the "split_event" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SplitEventID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) SplitEventIDs() (ids []uuid.UUID) {
+	if id := m.split_event; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSplitEvent resets all changes to the "split_event" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetSplitEvent() {
+	m.split_event = nil
+	m.clearedsplit_event = false
+}
+
+// ClearSplitResult clears the "split_result" edge to the SeaOrderSplitResult entity.
+func (m *SeaOrderReassignmentEventMutation) ClearSplitResult() {
+	m.clearedsplit_result = true
+	m.clearedFields[seaorderreassignmentevent.FieldSplitResultID] = struct{}{}
+}
+
+// SplitResultCleared reports if the "split_result" edge to the SeaOrderSplitResult entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) SplitResultCleared() bool {
+	return m.SplitResultIDCleared() || m.clearedsplit_result
+}
+
+// SplitResultIDs returns the "split_result" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SplitResultID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) SplitResultIDs() (ids []uuid.UUID) {
+	if id := m.split_result; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSplitResult resets all changes to the "split_result" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetSplitResult() {
+	m.split_result = nil
+	m.clearedsplit_result = false
+}
+
+// ClearPreviousMasterBill clears the "previous_master_bill" edge to the SeaMasterBill entity.
+func (m *SeaOrderReassignmentEventMutation) ClearPreviousMasterBill() {
+	m.clearedprevious_master_bill = true
+	m.clearedFields[seaorderreassignmentevent.FieldPreviousMasterBillID] = struct{}{}
+}
+
+// PreviousMasterBillCleared reports if the "previous_master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) PreviousMasterBillCleared() bool {
+	return m.clearedprevious_master_bill
+}
+
+// PreviousMasterBillIDs returns the "previous_master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PreviousMasterBillID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) PreviousMasterBillIDs() (ids []uuid.UUID) {
+	if id := m.previous_master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPreviousMasterBill resets all changes to the "previous_master_bill" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetPreviousMasterBill() {
+	m.previous_master_bill = nil
+	m.clearedprevious_master_bill = false
+}
+
+// ClearTargetMasterBill clears the "target_master_bill" edge to the SeaMasterBill entity.
+func (m *SeaOrderReassignmentEventMutation) ClearTargetMasterBill() {
+	m.clearedtarget_master_bill = true
+	m.clearedFields[seaorderreassignmentevent.FieldTargetMasterBillID] = struct{}{}
+}
+
+// TargetMasterBillCleared reports if the "target_master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) TargetMasterBillCleared() bool {
+	return m.clearedtarget_master_bill
+}
+
+// TargetMasterBillIDs returns the "target_master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TargetMasterBillID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) TargetMasterBillIDs() (ids []uuid.UUID) {
+	if id := m.target_master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTargetMasterBill resets all changes to the "target_master_bill" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetTargetMasterBill() {
+	m.target_master_bill = nil
+	m.clearedtarget_master_bill = false
+}
+
+// ClearResponsiblePartner clears the "responsible_partner" edge to the Partner entity.
+func (m *SeaOrderReassignmentEventMutation) ClearResponsiblePartner() {
+	m.clearedresponsible_partner = true
+	m.clearedFields[seaorderreassignmentevent.FieldResponsiblePartnerID] = struct{}{}
+}
+
+// ResponsiblePartnerCleared reports if the "responsible_partner" edge to the Partner entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerCleared() bool {
+	return m.ResponsiblePartnerIDCleared() || m.clearedresponsible_partner
+}
+
+// ResponsiblePartnerIDs returns the "responsible_partner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResponsiblePartnerID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) ResponsiblePartnerIDs() (ids []uuid.UUID) {
+	if id := m.responsible_partner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResponsiblePartner resets all changes to the "responsible_partner" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetResponsiblePartner() {
+	m.responsible_partner = nil
+	m.clearedresponsible_partner = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *SeaOrderReassignmentEventMutation) SetCreatorID(id uuid.UUID) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *SeaOrderReassignmentEventMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[seaorderreassignmentevent.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *SeaOrderReassignmentEventMutation) CreatorCleared() bool {
+	return m.CreatedByCleared() || m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *SeaOrderReassignmentEventMutation) CreatorID() (id uuid.UUID, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderReassignmentEventMutation) CreatorIDs() (ids []uuid.UUID) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *SeaOrderReassignmentEventMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// Where appends a list predicates to the SeaOrderReassignmentEventMutation builder.
+func (m *SeaOrderReassignmentEventMutation) Where(ps ...predicate.SeaOrderReassignmentEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SeaOrderReassignmentEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SeaOrderReassignmentEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SeaOrderReassignmentEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SeaOrderReassignmentEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SeaOrderReassignmentEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SeaOrderReassignmentEvent).
+func (m *SeaOrderReassignmentEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SeaOrderReassignmentEventMutation) Fields() []string {
+	fields := make([]string, 0, 23)
+	if m.created_at != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldCreatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldOrderID)
+	}
+	if m.order_no != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldOrderNo)
+	}
+	if m.split_event != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldSplitEventID)
+	}
+	if m.split_result != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldSplitResultID)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldRequestFingerprint)
+	}
+	if m.previous_master_bill != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldPreviousMasterBillID)
+	}
+	if m.target_master_bill != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldTargetMasterBillID)
+	}
+	if m.previous_transport_execution_id != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldPreviousTransportExecutionID)
+	}
+	if m.target_transport_execution_id != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldTargetTransportExecutionID)
+	}
+	if m.previous_link_id != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldPreviousLinkID)
+	}
+	if m.target_link_id != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldTargetLinkID)
+	}
+	if m.previous_link_version != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldPreviousLinkVersion)
+	}
+	if m.target_link_version != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldTargetLinkVersion)
+	}
+	if m.reason != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldReason)
+	}
+	if m.responsibility_type != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldResponsibilityType)
+	}
+	if m.responsible_partner != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldResponsiblePartnerID)
+	}
+	if m.responsible_partner_name != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldResponsiblePartnerName)
+	}
+	if m.before_snapshot != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldBeforeSnapshot)
+	}
+	if m.after_snapshot != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldAfterSnapshot)
+	}
+	if m.creator != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldCreatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SeaOrderReassignmentEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case seaorderreassignmentevent.FieldCreatedAt:
+		return m.CreatedAt()
+	case seaorderreassignmentevent.FieldOrganizationID:
+		return m.OrganizationID()
+	case seaorderreassignmentevent.FieldOrderID:
+		return m.OrderID()
+	case seaorderreassignmentevent.FieldOrderNo:
+		return m.OrderNo()
+	case seaorderreassignmentevent.FieldSplitEventID:
+		return m.SplitEventID()
+	case seaorderreassignmentevent.FieldSplitResultID:
+		return m.SplitResultID()
+	case seaorderreassignmentevent.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case seaorderreassignmentevent.FieldRequestFingerprint:
+		return m.RequestFingerprint()
+	case seaorderreassignmentevent.FieldPreviousMasterBillID:
+		return m.PreviousMasterBillID()
+	case seaorderreassignmentevent.FieldTargetMasterBillID:
+		return m.TargetMasterBillID()
+	case seaorderreassignmentevent.FieldPreviousTransportExecutionID:
+		return m.PreviousTransportExecutionID()
+	case seaorderreassignmentevent.FieldTargetTransportExecutionID:
+		return m.TargetTransportExecutionID()
+	case seaorderreassignmentevent.FieldPreviousLinkID:
+		return m.PreviousLinkID()
+	case seaorderreassignmentevent.FieldTargetLinkID:
+		return m.TargetLinkID()
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		return m.PreviousLinkVersion()
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		return m.TargetLinkVersion()
+	case seaorderreassignmentevent.FieldReason:
+		return m.Reason()
+	case seaorderreassignmentevent.FieldResponsibilityType:
+		return m.ResponsibilityType()
+	case seaorderreassignmentevent.FieldResponsiblePartnerID:
+		return m.ResponsiblePartnerID()
+	case seaorderreassignmentevent.FieldResponsiblePartnerName:
+		return m.ResponsiblePartnerName()
+	case seaorderreassignmentevent.FieldBeforeSnapshot:
+		return m.BeforeSnapshot()
+	case seaorderreassignmentevent.FieldAfterSnapshot:
+		return m.AfterSnapshot()
+	case seaorderreassignmentevent.FieldCreatedBy:
+		return m.CreatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SeaOrderReassignmentEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case seaorderreassignmentevent.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case seaorderreassignmentevent.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case seaorderreassignmentevent.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case seaorderreassignmentevent.FieldOrderNo:
+		return m.OldOrderNo(ctx)
+	case seaorderreassignmentevent.FieldSplitEventID:
+		return m.OldSplitEventID(ctx)
+	case seaorderreassignmentevent.FieldSplitResultID:
+		return m.OldSplitResultID(ctx)
+	case seaorderreassignmentevent.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case seaorderreassignmentevent.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
+	case seaorderreassignmentevent.FieldPreviousMasterBillID:
+		return m.OldPreviousMasterBillID(ctx)
+	case seaorderreassignmentevent.FieldTargetMasterBillID:
+		return m.OldTargetMasterBillID(ctx)
+	case seaorderreassignmentevent.FieldPreviousTransportExecutionID:
+		return m.OldPreviousTransportExecutionID(ctx)
+	case seaorderreassignmentevent.FieldTargetTransportExecutionID:
+		return m.OldTargetTransportExecutionID(ctx)
+	case seaorderreassignmentevent.FieldPreviousLinkID:
+		return m.OldPreviousLinkID(ctx)
+	case seaorderreassignmentevent.FieldTargetLinkID:
+		return m.OldTargetLinkID(ctx)
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		return m.OldPreviousLinkVersion(ctx)
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		return m.OldTargetLinkVersion(ctx)
+	case seaorderreassignmentevent.FieldReason:
+		return m.OldReason(ctx)
+	case seaorderreassignmentevent.FieldResponsibilityType:
+		return m.OldResponsibilityType(ctx)
+	case seaorderreassignmentevent.FieldResponsiblePartnerID:
+		return m.OldResponsiblePartnerID(ctx)
+	case seaorderreassignmentevent.FieldResponsiblePartnerName:
+		return m.OldResponsiblePartnerName(ctx)
+	case seaorderreassignmentevent.FieldBeforeSnapshot:
+		return m.OldBeforeSnapshot(ctx)
+	case seaorderreassignmentevent.FieldAfterSnapshot:
+		return m.OldAfterSnapshot(ctx)
+	case seaorderreassignmentevent.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown SeaOrderReassignmentEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderReassignmentEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case seaorderreassignmentevent.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case seaorderreassignmentevent.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case seaorderreassignmentevent.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case seaorderreassignmentevent.FieldOrderNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderNo(v)
+		return nil
+	case seaorderreassignmentevent.FieldSplitEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSplitEventID(v)
+		return nil
+	case seaorderreassignmentevent.FieldSplitResultID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSplitResultID(v)
+		return nil
+	case seaorderreassignmentevent.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case seaorderreassignmentevent.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
+		return nil
+	case seaorderreassignmentevent.FieldPreviousMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousMasterBillID(v)
+		return nil
+	case seaorderreassignmentevent.FieldTargetMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetMasterBillID(v)
+		return nil
+	case seaorderreassignmentevent.FieldPreviousTransportExecutionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousTransportExecutionID(v)
+		return nil
+	case seaorderreassignmentevent.FieldTargetTransportExecutionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetTransportExecutionID(v)
+		return nil
+	case seaorderreassignmentevent.FieldPreviousLinkID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousLinkID(v)
+		return nil
+	case seaorderreassignmentevent.FieldTargetLinkID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetLinkID(v)
+		return nil
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousLinkVersion(v)
+		return nil
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetLinkVersion(v)
+		return nil
+	case seaorderreassignmentevent.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case seaorderreassignmentevent.FieldResponsibilityType:
+		v, ok := value.(seaorderreassignmentevent.ResponsibilityType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponsibilityType(v)
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponsiblePartnerID(v)
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponsiblePartnerName(v)
+		return nil
+	case seaorderreassignmentevent.FieldBeforeSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBeforeSnapshot(v)
+		return nil
+	case seaorderreassignmentevent.FieldAfterSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAfterSnapshot(v)
+		return nil
+	case seaorderreassignmentevent.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SeaOrderReassignmentEventMutation) AddedFields() []string {
+	var fields []string
+	if m.addprevious_link_version != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldPreviousLinkVersion)
+	}
+	if m.addtarget_link_version != nil {
+		fields = append(fields, seaorderreassignmentevent.FieldTargetLinkVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SeaOrderReassignmentEventMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		return m.AddedPreviousLinkVersion()
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		return m.AddedTargetLinkVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderReassignmentEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPreviousLinkVersion(v)
+		return nil
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTargetLinkVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SeaOrderReassignmentEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(seaorderreassignmentevent.FieldSplitEventID) {
+		fields = append(fields, seaorderreassignmentevent.FieldSplitEventID)
+	}
+	if m.FieldCleared(seaorderreassignmentevent.FieldSplitResultID) {
+		fields = append(fields, seaorderreassignmentevent.FieldSplitResultID)
+	}
+	if m.FieldCleared(seaorderreassignmentevent.FieldResponsiblePartnerID) {
+		fields = append(fields, seaorderreassignmentevent.FieldResponsiblePartnerID)
+	}
+	if m.FieldCleared(seaorderreassignmentevent.FieldResponsiblePartnerName) {
+		fields = append(fields, seaorderreassignmentevent.FieldResponsiblePartnerName)
+	}
+	if m.FieldCleared(seaorderreassignmentevent.FieldCreatedBy) {
+		fields = append(fields, seaorderreassignmentevent.FieldCreatedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SeaOrderReassignmentEventMutation) ClearField(name string) error {
+	switch name {
+	case seaorderreassignmentevent.FieldSplitEventID:
+		m.ClearSplitEventID()
+		return nil
+	case seaorderreassignmentevent.FieldSplitResultID:
+		m.ClearSplitResultID()
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerID:
+		m.ClearResponsiblePartnerID()
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerName:
+		m.ClearResponsiblePartnerName()
+		return nil
+	case seaorderreassignmentevent.FieldCreatedBy:
+		m.ClearCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SeaOrderReassignmentEventMutation) ResetField(name string) error {
+	switch name {
+	case seaorderreassignmentevent.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case seaorderreassignmentevent.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case seaorderreassignmentevent.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case seaorderreassignmentevent.FieldOrderNo:
+		m.ResetOrderNo()
+		return nil
+	case seaorderreassignmentevent.FieldSplitEventID:
+		m.ResetSplitEventID()
+		return nil
+	case seaorderreassignmentevent.FieldSplitResultID:
+		m.ResetSplitResultID()
+		return nil
+	case seaorderreassignmentevent.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case seaorderreassignmentevent.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
+	case seaorderreassignmentevent.FieldPreviousMasterBillID:
+		m.ResetPreviousMasterBillID()
+		return nil
+	case seaorderreassignmentevent.FieldTargetMasterBillID:
+		m.ResetTargetMasterBillID()
+		return nil
+	case seaorderreassignmentevent.FieldPreviousTransportExecutionID:
+		m.ResetPreviousTransportExecutionID()
+		return nil
+	case seaorderreassignmentevent.FieldTargetTransportExecutionID:
+		m.ResetTargetTransportExecutionID()
+		return nil
+	case seaorderreassignmentevent.FieldPreviousLinkID:
+		m.ResetPreviousLinkID()
+		return nil
+	case seaorderreassignmentevent.FieldTargetLinkID:
+		m.ResetTargetLinkID()
+		return nil
+	case seaorderreassignmentevent.FieldPreviousLinkVersion:
+		m.ResetPreviousLinkVersion()
+		return nil
+	case seaorderreassignmentevent.FieldTargetLinkVersion:
+		m.ResetTargetLinkVersion()
+		return nil
+	case seaorderreassignmentevent.FieldReason:
+		m.ResetReason()
+		return nil
+	case seaorderreassignmentevent.FieldResponsibilityType:
+		m.ResetResponsibilityType()
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerID:
+		m.ResetResponsiblePartnerID()
+		return nil
+	case seaorderreassignmentevent.FieldResponsiblePartnerName:
+		m.ResetResponsiblePartnerName()
+		return nil
+	case seaorderreassignmentevent.FieldBeforeSnapshot:
+		m.ResetBeforeSnapshot()
+		return nil
+	case seaorderreassignmentevent.FieldAfterSnapshot:
+		m.ResetAfterSnapshot()
+		return nil
+	case seaorderreassignmentevent.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 8)
+	if m.organization != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeOrder)
+	}
+	if m.split_event != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeSplitEvent)
+	}
+	if m.split_result != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeSplitResult)
+	}
+	if m.previous_master_bill != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgePreviousMasterBill)
+	}
+	if m.target_master_bill != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeTargetMasterBill)
+	}
+	if m.responsible_partner != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeResponsiblePartner)
+	}
+	if m.creator != nil {
+		edges = append(edges, seaorderreassignmentevent.EdgeCreator)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SeaOrderReassignmentEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seaorderreassignmentevent.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeSplitEvent:
+		if id := m.split_event; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeSplitResult:
+		if id := m.split_result; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgePreviousMasterBill:
+		if id := m.previous_master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeTargetMasterBill:
+		if id := m.target_master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeResponsiblePartner:
+		if id := m.responsible_partner; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaorderreassignmentevent.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SeaOrderReassignmentEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 8)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SeaOrderReassignmentEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 8)
+	if m.clearedorganization {
+		edges = append(edges, seaorderreassignmentevent.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, seaorderreassignmentevent.EdgeOrder)
+	}
+	if m.clearedsplit_event {
+		edges = append(edges, seaorderreassignmentevent.EdgeSplitEvent)
+	}
+	if m.clearedsplit_result {
+		edges = append(edges, seaorderreassignmentevent.EdgeSplitResult)
+	}
+	if m.clearedprevious_master_bill {
+		edges = append(edges, seaorderreassignmentevent.EdgePreviousMasterBill)
+	}
+	if m.clearedtarget_master_bill {
+		edges = append(edges, seaorderreassignmentevent.EdgeTargetMasterBill)
+	}
+	if m.clearedresponsible_partner {
+		edges = append(edges, seaorderreassignmentevent.EdgeResponsiblePartner)
+	}
+	if m.clearedcreator {
+		edges = append(edges, seaorderreassignmentevent.EdgeCreator)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SeaOrderReassignmentEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seaorderreassignmentevent.EdgeOrganization:
+		return m.clearedorganization
+	case seaorderreassignmentevent.EdgeOrder:
+		return m.cleared_order
+	case seaorderreassignmentevent.EdgeSplitEvent:
+		return m.clearedsplit_event
+	case seaorderreassignmentevent.EdgeSplitResult:
+		return m.clearedsplit_result
+	case seaorderreassignmentevent.EdgePreviousMasterBill:
+		return m.clearedprevious_master_bill
+	case seaorderreassignmentevent.EdgeTargetMasterBill:
+		return m.clearedtarget_master_bill
+	case seaorderreassignmentevent.EdgeResponsiblePartner:
+		return m.clearedresponsible_partner
+	case seaorderreassignmentevent.EdgeCreator:
+		return m.clearedcreator
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SeaOrderReassignmentEventMutation) ClearEdge(name string) error {
+	switch name {
+	case seaorderreassignmentevent.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case seaorderreassignmentevent.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case seaorderreassignmentevent.EdgeSplitEvent:
+		m.ClearSplitEvent()
+		return nil
+	case seaorderreassignmentevent.EdgeSplitResult:
+		m.ClearSplitResult()
+		return nil
+	case seaorderreassignmentevent.EdgePreviousMasterBill:
+		m.ClearPreviousMasterBill()
+		return nil
+	case seaorderreassignmentevent.EdgeTargetMasterBill:
+		m.ClearTargetMasterBill()
+		return nil
+	case seaorderreassignmentevent.EdgeResponsiblePartner:
+		m.ClearResponsiblePartner()
+		return nil
+	case seaorderreassignmentevent.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SeaOrderReassignmentEventMutation) ResetEdge(name string) error {
+	switch name {
+	case seaorderreassignmentevent.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case seaorderreassignmentevent.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case seaorderreassignmentevent.EdgeSplitEvent:
+		m.ResetSplitEvent()
+		return nil
+	case seaorderreassignmentevent.EdgeSplitResult:
+		m.ResetSplitResult()
+		return nil
+	case seaorderreassignmentevent.EdgePreviousMasterBill:
+		m.ResetPreviousMasterBill()
+		return nil
+	case seaorderreassignmentevent.EdgeTargetMasterBill:
+		m.ResetTargetMasterBill()
+		return nil
+	case seaorderreassignmentevent.EdgeResponsiblePartner:
+		m.ResetResponsiblePartner()
+		return nil
+	case seaorderreassignmentevent.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderReassignmentEvent edge %s", name)
+}
+
+// SeaOrderSplitEventMutation represents an operation that mutates the SeaOrderSplitEvent nodes in the graph.
+type SeaOrderSplitEventMutation struct {
+	config
+	op                           Op
+	typ                          string
+	id                           *uuid.UUID
+	created_at                   *time.Time
+	source_order_no              *string
+	idempotency_key              *string
+	request_fingerprint          *string
+	note                         *string
+	source_order_version         *uint64
+	addsource_order_version      *int64
+	source_link_id               *uuid.UUID
+	source_link_version          *uint64
+	addsource_link_version       *int64
+	source_allocation_version    *uint64
+	addsource_allocation_version *int64
+	before_snapshot              *json.RawMessage
+	appendbefore_snapshot        json.RawMessage
+	conservation_snapshot        *json.RawMessage
+	appendconservation_snapshot  json.RawMessage
+	clearedFields                map[string]struct{}
+	organization                 *uuid.UUID
+	clearedorganization          bool
+	source_order                 *uuid.UUID
+	clearedsource_order          bool
+	creator                      *uuid.UUID
+	clearedcreator               bool
+	results                      map[uuid.UUID]struct{}
+	removedresults               map[uuid.UUID]struct{}
+	clearedresults               bool
+	reassignments                map[uuid.UUID]struct{}
+	removedreassignments         map[uuid.UUID]struct{}
+	clearedreassignments         bool
+	done                         bool
+	oldValue                     func(context.Context) (*SeaOrderSplitEvent, error)
+	predicates                   []predicate.SeaOrderSplitEvent
+}
+
+var _ ent.Mutation = (*SeaOrderSplitEventMutation)(nil)
+
+// seaorderspliteventOption allows management of the mutation configuration using functional options.
+type seaorderspliteventOption func(*SeaOrderSplitEventMutation)
+
+// newSeaOrderSplitEventMutation creates new mutation for the SeaOrderSplitEvent entity.
+func newSeaOrderSplitEventMutation(c config, op Op, opts ...seaorderspliteventOption) *SeaOrderSplitEventMutation {
+	m := &SeaOrderSplitEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSeaOrderSplitEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSeaOrderSplitEventID sets the ID field of the mutation.
+func withSeaOrderSplitEventID(id uuid.UUID) seaorderspliteventOption {
+	return func(m *SeaOrderSplitEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SeaOrderSplitEvent
+		)
+		m.oldValue = func(ctx context.Context) (*SeaOrderSplitEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SeaOrderSplitEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSeaOrderSplitEvent sets the old SeaOrderSplitEvent of the mutation.
+func withSeaOrderSplitEvent(node *SeaOrderSplitEvent) seaorderspliteventOption {
+	return func(m *SeaOrderSplitEventMutation) {
+		m.oldValue = func(context.Context) (*SeaOrderSplitEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SeaOrderSplitEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SeaOrderSplitEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SeaOrderSplitEvent entities.
+func (m *SeaOrderSplitEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SeaOrderSplitEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SeaOrderSplitEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SeaOrderSplitEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SeaOrderSplitEventMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SeaOrderSplitEventMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SeaOrderSplitEventMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *SeaOrderSplitEventMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *SeaOrderSplitEventMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *SeaOrderSplitEventMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetSourceOrderID sets the "source_order_id" field.
+func (m *SeaOrderSplitEventMutation) SetSourceOrderID(u uuid.UUID) {
+	m.source_order = &u
+}
+
+// SourceOrderID returns the value of the "source_order_id" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceOrderID() (r uuid.UUID, exists bool) {
+	v := m.source_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceOrderID returns the old "source_order_id" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceOrderID: %w", err)
+	}
+	return oldValue.SourceOrderID, nil
+}
+
+// ResetSourceOrderID resets all changes to the "source_order_id" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceOrderID() {
+	m.source_order = nil
+}
+
+// SetSourceOrderNo sets the "source_order_no" field.
+func (m *SeaOrderSplitEventMutation) SetSourceOrderNo(s string) {
+	m.source_order_no = &s
+}
+
+// SourceOrderNo returns the value of the "source_order_no" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceOrderNo() (r string, exists bool) {
+	v := m.source_order_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceOrderNo returns the old "source_order_no" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceOrderNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceOrderNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceOrderNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceOrderNo: %w", err)
+	}
+	return oldValue.SourceOrderNo, nil
+}
+
+// ResetSourceOrderNo resets all changes to the "source_order_no" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceOrderNo() {
+	m.source_order_no = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *SeaOrderSplitEventMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *SeaOrderSplitEventMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *SeaOrderSplitEventMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *SeaOrderSplitEventMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *SeaOrderSplitEventMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldRequestFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *SeaOrderSplitEventMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+}
+
+// SetNote sets the "note" field.
+func (m *SeaOrderSplitEventMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *SeaOrderSplitEventMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldNote(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *SeaOrderSplitEventMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[seaordersplitevent.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *SeaOrderSplitEventMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[seaordersplitevent.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *SeaOrderSplitEventMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, seaordersplitevent.FieldNote)
+}
+
+// SetSourceOrderVersion sets the "source_order_version" field.
+func (m *SeaOrderSplitEventMutation) SetSourceOrderVersion(u uint64) {
+	m.source_order_version = &u
+	m.addsource_order_version = nil
+}
+
+// SourceOrderVersion returns the value of the "source_order_version" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceOrderVersion() (r uint64, exists bool) {
+	v := m.source_order_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceOrderVersion returns the old "source_order_version" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceOrderVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceOrderVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceOrderVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceOrderVersion: %w", err)
+	}
+	return oldValue.SourceOrderVersion, nil
+}
+
+// AddSourceOrderVersion adds u to the "source_order_version" field.
+func (m *SeaOrderSplitEventMutation) AddSourceOrderVersion(u int64) {
+	if m.addsource_order_version != nil {
+		*m.addsource_order_version += u
+	} else {
+		m.addsource_order_version = &u
+	}
+}
+
+// AddedSourceOrderVersion returns the value that was added to the "source_order_version" field in this mutation.
+func (m *SeaOrderSplitEventMutation) AddedSourceOrderVersion() (r int64, exists bool) {
+	v := m.addsource_order_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSourceOrderVersion resets all changes to the "source_order_version" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceOrderVersion() {
+	m.source_order_version = nil
+	m.addsource_order_version = nil
+}
+
+// SetSourceLinkID sets the "source_link_id" field.
+func (m *SeaOrderSplitEventMutation) SetSourceLinkID(u uuid.UUID) {
+	m.source_link_id = &u
+}
+
+// SourceLinkID returns the value of the "source_link_id" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceLinkID() (r uuid.UUID, exists bool) {
+	v := m.source_link_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceLinkID returns the old "source_link_id" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceLinkID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceLinkID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceLinkID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceLinkID: %w", err)
+	}
+	return oldValue.SourceLinkID, nil
+}
+
+// ResetSourceLinkID resets all changes to the "source_link_id" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceLinkID() {
+	m.source_link_id = nil
+}
+
+// SetSourceLinkVersion sets the "source_link_version" field.
+func (m *SeaOrderSplitEventMutation) SetSourceLinkVersion(u uint64) {
+	m.source_link_version = &u
+	m.addsource_link_version = nil
+}
+
+// SourceLinkVersion returns the value of the "source_link_version" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceLinkVersion() (r uint64, exists bool) {
+	v := m.source_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceLinkVersion returns the old "source_link_version" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceLinkVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceLinkVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceLinkVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceLinkVersion: %w", err)
+	}
+	return oldValue.SourceLinkVersion, nil
+}
+
+// AddSourceLinkVersion adds u to the "source_link_version" field.
+func (m *SeaOrderSplitEventMutation) AddSourceLinkVersion(u int64) {
+	if m.addsource_link_version != nil {
+		*m.addsource_link_version += u
+	} else {
+		m.addsource_link_version = &u
+	}
+}
+
+// AddedSourceLinkVersion returns the value that was added to the "source_link_version" field in this mutation.
+func (m *SeaOrderSplitEventMutation) AddedSourceLinkVersion() (r int64, exists bool) {
+	v := m.addsource_link_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSourceLinkVersion resets all changes to the "source_link_version" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceLinkVersion() {
+	m.source_link_version = nil
+	m.addsource_link_version = nil
+}
+
+// SetSourceAllocationVersion sets the "source_allocation_version" field.
+func (m *SeaOrderSplitEventMutation) SetSourceAllocationVersion(u uint64) {
+	m.source_allocation_version = &u
+	m.addsource_allocation_version = nil
+}
+
+// SourceAllocationVersion returns the value of the "source_allocation_version" field in the mutation.
+func (m *SeaOrderSplitEventMutation) SourceAllocationVersion() (r uint64, exists bool) {
+	v := m.source_allocation_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceAllocationVersion returns the old "source_allocation_version" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldSourceAllocationVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceAllocationVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceAllocationVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceAllocationVersion: %w", err)
+	}
+	return oldValue.SourceAllocationVersion, nil
+}
+
+// AddSourceAllocationVersion adds u to the "source_allocation_version" field.
+func (m *SeaOrderSplitEventMutation) AddSourceAllocationVersion(u int64) {
+	if m.addsource_allocation_version != nil {
+		*m.addsource_allocation_version += u
+	} else {
+		m.addsource_allocation_version = &u
+	}
+}
+
+// AddedSourceAllocationVersion returns the value that was added to the "source_allocation_version" field in this mutation.
+func (m *SeaOrderSplitEventMutation) AddedSourceAllocationVersion() (r int64, exists bool) {
+	v := m.addsource_allocation_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSourceAllocationVersion resets all changes to the "source_allocation_version" field.
+func (m *SeaOrderSplitEventMutation) ResetSourceAllocationVersion() {
+	m.source_allocation_version = nil
+	m.addsource_allocation_version = nil
+}
+
+// SetBeforeSnapshot sets the "before_snapshot" field.
+func (m *SeaOrderSplitEventMutation) SetBeforeSnapshot(jm json.RawMessage) {
+	m.before_snapshot = &jm
+	m.appendbefore_snapshot = nil
+}
+
+// BeforeSnapshot returns the value of the "before_snapshot" field in the mutation.
+func (m *SeaOrderSplitEventMutation) BeforeSnapshot() (r json.RawMessage, exists bool) {
+	v := m.before_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBeforeSnapshot returns the old "before_snapshot" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldBeforeSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBeforeSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBeforeSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBeforeSnapshot: %w", err)
+	}
+	return oldValue.BeforeSnapshot, nil
+}
+
+// AppendBeforeSnapshot adds jm to the "before_snapshot" field.
+func (m *SeaOrderSplitEventMutation) AppendBeforeSnapshot(jm json.RawMessage) {
+	m.appendbefore_snapshot = append(m.appendbefore_snapshot, jm...)
+}
+
+// AppendedBeforeSnapshot returns the list of values that were appended to the "before_snapshot" field in this mutation.
+func (m *SeaOrderSplitEventMutation) AppendedBeforeSnapshot() (json.RawMessage, bool) {
+	if len(m.appendbefore_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendbefore_snapshot, true
+}
+
+// ResetBeforeSnapshot resets all changes to the "before_snapshot" field.
+func (m *SeaOrderSplitEventMutation) ResetBeforeSnapshot() {
+	m.before_snapshot = nil
+	m.appendbefore_snapshot = nil
+}
+
+// SetConservationSnapshot sets the "conservation_snapshot" field.
+func (m *SeaOrderSplitEventMutation) SetConservationSnapshot(jm json.RawMessage) {
+	m.conservation_snapshot = &jm
+	m.appendconservation_snapshot = nil
+}
+
+// ConservationSnapshot returns the value of the "conservation_snapshot" field in the mutation.
+func (m *SeaOrderSplitEventMutation) ConservationSnapshot() (r json.RawMessage, exists bool) {
+	v := m.conservation_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConservationSnapshot returns the old "conservation_snapshot" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldConservationSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConservationSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConservationSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConservationSnapshot: %w", err)
+	}
+	return oldValue.ConservationSnapshot, nil
+}
+
+// AppendConservationSnapshot adds jm to the "conservation_snapshot" field.
+func (m *SeaOrderSplitEventMutation) AppendConservationSnapshot(jm json.RawMessage) {
+	m.appendconservation_snapshot = append(m.appendconservation_snapshot, jm...)
+}
+
+// AppendedConservationSnapshot returns the list of values that were appended to the "conservation_snapshot" field in this mutation.
+func (m *SeaOrderSplitEventMutation) AppendedConservationSnapshot() (json.RawMessage, bool) {
+	if len(m.appendconservation_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendconservation_snapshot, true
+}
+
+// ResetConservationSnapshot resets all changes to the "conservation_snapshot" field.
+func (m *SeaOrderSplitEventMutation) ResetConservationSnapshot() {
+	m.conservation_snapshot = nil
+	m.appendconservation_snapshot = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *SeaOrderSplitEventMutation) SetCreatedBy(u uuid.UUID) {
+	m.creator = &u
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *SeaOrderSplitEventMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the SeaOrderSplitEvent entity.
+// If the SeaOrderSplitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitEventMutation) OldCreatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (m *SeaOrderSplitEventMutation) ClearCreatedBy() {
+	m.creator = nil
+	m.clearedFields[seaordersplitevent.FieldCreatedBy] = struct{}{}
+}
+
+// CreatedByCleared returns if the "created_by" field was cleared in this mutation.
+func (m *SeaOrderSplitEventMutation) CreatedByCleared() bool {
+	_, ok := m.clearedFields[seaordersplitevent.FieldCreatedBy]
+	return ok
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *SeaOrderSplitEventMutation) ResetCreatedBy() {
+	m.creator = nil
+	delete(m.clearedFields, seaordersplitevent.FieldCreatedBy)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *SeaOrderSplitEventMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[seaordersplitevent.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *SeaOrderSplitEventMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitEventMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *SeaOrderSplitEventMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearSourceOrder clears the "source_order" edge to the Order entity.
+func (m *SeaOrderSplitEventMutation) ClearSourceOrder() {
+	m.clearedsource_order = true
+	m.clearedFields[seaordersplitevent.FieldSourceOrderID] = struct{}{}
+}
+
+// SourceOrderCleared reports if the "source_order" edge to the Order entity was cleared.
+func (m *SeaOrderSplitEventMutation) SourceOrderCleared() bool {
+	return m.clearedsource_order
+}
+
+// SourceOrderIDs returns the "source_order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SourceOrderID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitEventMutation) SourceOrderIDs() (ids []uuid.UUID) {
+	if id := m.source_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSourceOrder resets all changes to the "source_order" edge.
+func (m *SeaOrderSplitEventMutation) ResetSourceOrder() {
+	m.source_order = nil
+	m.clearedsource_order = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *SeaOrderSplitEventMutation) SetCreatorID(id uuid.UUID) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *SeaOrderSplitEventMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[seaordersplitevent.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *SeaOrderSplitEventMutation) CreatorCleared() bool {
+	return m.CreatedByCleared() || m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *SeaOrderSplitEventMutation) CreatorID() (id uuid.UUID, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitEventMutation) CreatorIDs() (ids []uuid.UUID) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *SeaOrderSplitEventMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// AddResultIDs adds the "results" edge to the SeaOrderSplitResult entity by ids.
+func (m *SeaOrderSplitEventMutation) AddResultIDs(ids ...uuid.UUID) {
+	if m.results == nil {
+		m.results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResults clears the "results" edge to the SeaOrderSplitResult entity.
+func (m *SeaOrderSplitEventMutation) ClearResults() {
+	m.clearedresults = true
+}
+
+// ResultsCleared reports if the "results" edge to the SeaOrderSplitResult entity was cleared.
+func (m *SeaOrderSplitEventMutation) ResultsCleared() bool {
+	return m.clearedresults
+}
+
+// RemoveResultIDs removes the "results" edge to the SeaOrderSplitResult entity by IDs.
+func (m *SeaOrderSplitEventMutation) RemoveResultIDs(ids ...uuid.UUID) {
+	if m.removedresults == nil {
+		m.removedresults = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.results, ids[i])
+		m.removedresults[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResults returns the removed IDs of the "results" edge to the SeaOrderSplitResult entity.
+func (m *SeaOrderSplitEventMutation) RemovedResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedresults {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResultsIDs returns the "results" edge IDs in the mutation.
+func (m *SeaOrderSplitEventMutation) ResultsIDs() (ids []uuid.UUID) {
+	for id := range m.results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResults resets all changes to the "results" edge.
+func (m *SeaOrderSplitEventMutation) ResetResults() {
+	m.results = nil
+	m.clearedresults = false
+	m.removedresults = nil
+}
+
+// AddReassignmentIDs adds the "reassignments" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *SeaOrderSplitEventMutation) AddReassignmentIDs(ids ...uuid.UUID) {
+	if m.reassignments == nil {
+		m.reassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.reassignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReassignments clears the "reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaOrderSplitEventMutation) ClearReassignments() {
+	m.clearedreassignments = true
+}
+
+// ReassignmentsCleared reports if the "reassignments" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *SeaOrderSplitEventMutation) ReassignmentsCleared() bool {
+	return m.clearedreassignments
+}
+
+// RemoveReassignmentIDs removes the "reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *SeaOrderSplitEventMutation) RemoveReassignmentIDs(ids ...uuid.UUID) {
+	if m.removedreassignments == nil {
+		m.removedreassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.reassignments, ids[i])
+		m.removedreassignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReassignments returns the removed IDs of the "reassignments" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaOrderSplitEventMutation) RemovedReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedreassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReassignmentsIDs returns the "reassignments" edge IDs in the mutation.
+func (m *SeaOrderSplitEventMutation) ReassignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.reassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReassignments resets all changes to the "reassignments" edge.
+func (m *SeaOrderSplitEventMutation) ResetReassignments() {
+	m.reassignments = nil
+	m.clearedreassignments = false
+	m.removedreassignments = nil
+}
+
+// Where appends a list predicates to the SeaOrderSplitEventMutation builder.
+func (m *SeaOrderSplitEventMutation) Where(ps ...predicate.SeaOrderSplitEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SeaOrderSplitEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SeaOrderSplitEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SeaOrderSplitEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SeaOrderSplitEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SeaOrderSplitEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SeaOrderSplitEvent).
+func (m *SeaOrderSplitEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SeaOrderSplitEventMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.created_at != nil {
+		fields = append(fields, seaordersplitevent.FieldCreatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, seaordersplitevent.FieldOrganizationID)
+	}
+	if m.source_order != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceOrderID)
+	}
+	if m.source_order_no != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceOrderNo)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, seaordersplitevent.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, seaordersplitevent.FieldRequestFingerprint)
+	}
+	if m.note != nil {
+		fields = append(fields, seaordersplitevent.FieldNote)
+	}
+	if m.source_order_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceOrderVersion)
+	}
+	if m.source_link_id != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceLinkID)
+	}
+	if m.source_link_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceLinkVersion)
+	}
+	if m.source_allocation_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceAllocationVersion)
+	}
+	if m.before_snapshot != nil {
+		fields = append(fields, seaordersplitevent.FieldBeforeSnapshot)
+	}
+	if m.conservation_snapshot != nil {
+		fields = append(fields, seaordersplitevent.FieldConservationSnapshot)
+	}
+	if m.creator != nil {
+		fields = append(fields, seaordersplitevent.FieldCreatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SeaOrderSplitEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case seaordersplitevent.FieldCreatedAt:
+		return m.CreatedAt()
+	case seaordersplitevent.FieldOrganizationID:
+		return m.OrganizationID()
+	case seaordersplitevent.FieldSourceOrderID:
+		return m.SourceOrderID()
+	case seaordersplitevent.FieldSourceOrderNo:
+		return m.SourceOrderNo()
+	case seaordersplitevent.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case seaordersplitevent.FieldRequestFingerprint:
+		return m.RequestFingerprint()
+	case seaordersplitevent.FieldNote:
+		return m.Note()
+	case seaordersplitevent.FieldSourceOrderVersion:
+		return m.SourceOrderVersion()
+	case seaordersplitevent.FieldSourceLinkID:
+		return m.SourceLinkID()
+	case seaordersplitevent.FieldSourceLinkVersion:
+		return m.SourceLinkVersion()
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		return m.SourceAllocationVersion()
+	case seaordersplitevent.FieldBeforeSnapshot:
+		return m.BeforeSnapshot()
+	case seaordersplitevent.FieldConservationSnapshot:
+		return m.ConservationSnapshot()
+	case seaordersplitevent.FieldCreatedBy:
+		return m.CreatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SeaOrderSplitEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case seaordersplitevent.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case seaordersplitevent.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case seaordersplitevent.FieldSourceOrderID:
+		return m.OldSourceOrderID(ctx)
+	case seaordersplitevent.FieldSourceOrderNo:
+		return m.OldSourceOrderNo(ctx)
+	case seaordersplitevent.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case seaordersplitevent.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
+	case seaordersplitevent.FieldNote:
+		return m.OldNote(ctx)
+	case seaordersplitevent.FieldSourceOrderVersion:
+		return m.OldSourceOrderVersion(ctx)
+	case seaordersplitevent.FieldSourceLinkID:
+		return m.OldSourceLinkID(ctx)
+	case seaordersplitevent.FieldSourceLinkVersion:
+		return m.OldSourceLinkVersion(ctx)
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		return m.OldSourceAllocationVersion(ctx)
+	case seaordersplitevent.FieldBeforeSnapshot:
+		return m.OldBeforeSnapshot(ctx)
+	case seaordersplitevent.FieldConservationSnapshot:
+		return m.OldConservationSnapshot(ctx)
+	case seaordersplitevent.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown SeaOrderSplitEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderSplitEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case seaordersplitevent.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case seaordersplitevent.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case seaordersplitevent.FieldSourceOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceOrderID(v)
+		return nil
+	case seaordersplitevent.FieldSourceOrderNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceOrderNo(v)
+		return nil
+	case seaordersplitevent.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case seaordersplitevent.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
+		return nil
+	case seaordersplitevent.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case seaordersplitevent.FieldSourceOrderVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceOrderVersion(v)
+		return nil
+	case seaordersplitevent.FieldSourceLinkID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceLinkID(v)
+		return nil
+	case seaordersplitevent.FieldSourceLinkVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceLinkVersion(v)
+		return nil
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceAllocationVersion(v)
+		return nil
+	case seaordersplitevent.FieldBeforeSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBeforeSnapshot(v)
+		return nil
+	case seaordersplitevent.FieldConservationSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConservationSnapshot(v)
+		return nil
+	case seaordersplitevent.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SeaOrderSplitEventMutation) AddedFields() []string {
+	var fields []string
+	if m.addsource_order_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceOrderVersion)
+	}
+	if m.addsource_link_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceLinkVersion)
+	}
+	if m.addsource_allocation_version != nil {
+		fields = append(fields, seaordersplitevent.FieldSourceAllocationVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SeaOrderSplitEventMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seaordersplitevent.FieldSourceOrderVersion:
+		return m.AddedSourceOrderVersion()
+	case seaordersplitevent.FieldSourceLinkVersion:
+		return m.AddedSourceLinkVersion()
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		return m.AddedSourceAllocationVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderSplitEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case seaordersplitevent.FieldSourceOrderVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceOrderVersion(v)
+		return nil
+	case seaordersplitevent.FieldSourceLinkVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceLinkVersion(v)
+		return nil
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceAllocationVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SeaOrderSplitEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(seaordersplitevent.FieldNote) {
+		fields = append(fields, seaordersplitevent.FieldNote)
+	}
+	if m.FieldCleared(seaordersplitevent.FieldCreatedBy) {
+		fields = append(fields, seaordersplitevent.FieldCreatedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SeaOrderSplitEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SeaOrderSplitEventMutation) ClearField(name string) error {
+	switch name {
+	case seaordersplitevent.FieldNote:
+		m.ClearNote()
+		return nil
+	case seaordersplitevent.FieldCreatedBy:
+		m.ClearCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SeaOrderSplitEventMutation) ResetField(name string) error {
+	switch name {
+	case seaordersplitevent.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case seaordersplitevent.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case seaordersplitevent.FieldSourceOrderID:
+		m.ResetSourceOrderID()
+		return nil
+	case seaordersplitevent.FieldSourceOrderNo:
+		m.ResetSourceOrderNo()
+		return nil
+	case seaordersplitevent.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case seaordersplitevent.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
+	case seaordersplitevent.FieldNote:
+		m.ResetNote()
+		return nil
+	case seaordersplitevent.FieldSourceOrderVersion:
+		m.ResetSourceOrderVersion()
+		return nil
+	case seaordersplitevent.FieldSourceLinkID:
+		m.ResetSourceLinkID()
+		return nil
+	case seaordersplitevent.FieldSourceLinkVersion:
+		m.ResetSourceLinkVersion()
+		return nil
+	case seaordersplitevent.FieldSourceAllocationVersion:
+		m.ResetSourceAllocationVersion()
+		return nil
+	case seaordersplitevent.FieldBeforeSnapshot:
+		m.ResetBeforeSnapshot()
+		return nil
+	case seaordersplitevent.FieldConservationSnapshot:
+		m.ResetConservationSnapshot()
+		return nil
+	case seaordersplitevent.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SeaOrderSplitEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.organization != nil {
+		edges = append(edges, seaordersplitevent.EdgeOrganization)
+	}
+	if m.source_order != nil {
+		edges = append(edges, seaordersplitevent.EdgeSourceOrder)
+	}
+	if m.creator != nil {
+		edges = append(edges, seaordersplitevent.EdgeCreator)
+	}
+	if m.results != nil {
+		edges = append(edges, seaordersplitevent.EdgeResults)
+	}
+	if m.reassignments != nil {
+		edges = append(edges, seaordersplitevent.EdgeReassignments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SeaOrderSplitEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seaordersplitevent.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitevent.EdgeSourceOrder:
+		if id := m.source_order; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitevent.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitevent.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.results))
+		for id := range m.results {
+			ids = append(ids, id)
+		}
+		return ids
+	case seaordersplitevent.EdgeReassignments:
+		ids := make([]ent.Value, 0, len(m.reassignments))
+		for id := range m.reassignments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SeaOrderSplitEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.removedresults != nil {
+		edges = append(edges, seaordersplitevent.EdgeResults)
+	}
+	if m.removedreassignments != nil {
+		edges = append(edges, seaordersplitevent.EdgeReassignments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SeaOrderSplitEventMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case seaordersplitevent.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.removedresults))
+		for id := range m.removedresults {
+			ids = append(ids, id)
+		}
+		return ids
+	case seaordersplitevent.EdgeReassignments:
+		ids := make([]ent.Value, 0, len(m.removedreassignments))
+		for id := range m.removedreassignments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SeaOrderSplitEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedorganization {
+		edges = append(edges, seaordersplitevent.EdgeOrganization)
+	}
+	if m.clearedsource_order {
+		edges = append(edges, seaordersplitevent.EdgeSourceOrder)
+	}
+	if m.clearedcreator {
+		edges = append(edges, seaordersplitevent.EdgeCreator)
+	}
+	if m.clearedresults {
+		edges = append(edges, seaordersplitevent.EdgeResults)
+	}
+	if m.clearedreassignments {
+		edges = append(edges, seaordersplitevent.EdgeReassignments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SeaOrderSplitEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seaordersplitevent.EdgeOrganization:
+		return m.clearedorganization
+	case seaordersplitevent.EdgeSourceOrder:
+		return m.clearedsource_order
+	case seaordersplitevent.EdgeCreator:
+		return m.clearedcreator
+	case seaordersplitevent.EdgeResults:
+		return m.clearedresults
+	case seaordersplitevent.EdgeReassignments:
+		return m.clearedreassignments
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SeaOrderSplitEventMutation) ClearEdge(name string) error {
+	switch name {
+	case seaordersplitevent.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case seaordersplitevent.EdgeSourceOrder:
+		m.ClearSourceOrder()
+		return nil
+	case seaordersplitevent.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SeaOrderSplitEventMutation) ResetEdge(name string) error {
+	switch name {
+	case seaordersplitevent.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case seaordersplitevent.EdgeSourceOrder:
+		m.ResetSourceOrder()
+		return nil
+	case seaordersplitevent.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case seaordersplitevent.EdgeResults:
+		m.ResetResults()
+		return nil
+	case seaordersplitevent.EdgeReassignments:
+		m.ResetReassignments()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitEvent edge %s", name)
+}
+
+// SeaOrderSplitResultMutation represents an operation that mutates the SeaOrderSplitResult nodes in the graph.
+type SeaOrderSplitResultMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	order_no                   *string
+	result_role                *seaordersplitresult.ResultRole
+	sequence                   *int
+	addsequence                *int
+	client_result_key          *string
+	result_snapshot            *json.RawMessage
+	appendresult_snapshot      json.RawMessage
+	clearedFields              map[string]struct{}
+	split_event                *uuid.UUID
+	clearedsplit_event         bool
+	organization               *uuid.UUID
+	clearedorganization        bool
+	_order                     *uuid.UUID
+	cleared_order              bool
+	initial_master_bill        *uuid.UUID
+	clearedinitial_master_bill bool
+	final_master_bill          *uuid.UUID
+	clearedfinal_master_bill   bool
+	reassignment_events        map[uuid.UUID]struct{}
+	removedreassignment_events map[uuid.UUID]struct{}
+	clearedreassignment_events bool
+	done                       bool
+	oldValue                   func(context.Context) (*SeaOrderSplitResult, error)
+	predicates                 []predicate.SeaOrderSplitResult
+}
+
+var _ ent.Mutation = (*SeaOrderSplitResultMutation)(nil)
+
+// seaordersplitresultOption allows management of the mutation configuration using functional options.
+type seaordersplitresultOption func(*SeaOrderSplitResultMutation)
+
+// newSeaOrderSplitResultMutation creates new mutation for the SeaOrderSplitResult entity.
+func newSeaOrderSplitResultMutation(c config, op Op, opts ...seaordersplitresultOption) *SeaOrderSplitResultMutation {
+	m := &SeaOrderSplitResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSeaOrderSplitResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSeaOrderSplitResultID sets the ID field of the mutation.
+func withSeaOrderSplitResultID(id uuid.UUID) seaordersplitresultOption {
+	return func(m *SeaOrderSplitResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SeaOrderSplitResult
+		)
+		m.oldValue = func(ctx context.Context) (*SeaOrderSplitResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SeaOrderSplitResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSeaOrderSplitResult sets the old SeaOrderSplitResult of the mutation.
+func withSeaOrderSplitResult(node *SeaOrderSplitResult) seaordersplitresultOption {
+	return func(m *SeaOrderSplitResultMutation) {
+		m.oldValue = func(context.Context) (*SeaOrderSplitResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SeaOrderSplitResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SeaOrderSplitResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SeaOrderSplitResult entities.
+func (m *SeaOrderSplitResultMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SeaOrderSplitResultMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SeaOrderSplitResultMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SeaOrderSplitResult.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SeaOrderSplitResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SeaOrderSplitResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SeaOrderSplitResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetSplitEventID sets the "split_event_id" field.
+func (m *SeaOrderSplitResultMutation) SetSplitEventID(u uuid.UUID) {
+	m.split_event = &u
+}
+
+// SplitEventID returns the value of the "split_event_id" field in the mutation.
+func (m *SeaOrderSplitResultMutation) SplitEventID() (r uuid.UUID, exists bool) {
+	v := m.split_event
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSplitEventID returns the old "split_event_id" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldSplitEventID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSplitEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSplitEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSplitEventID: %w", err)
+	}
+	return oldValue.SplitEventID, nil
+}
+
+// ResetSplitEventID resets all changes to the "split_event_id" field.
+func (m *SeaOrderSplitResultMutation) ResetSplitEventID() {
+	m.split_event = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *SeaOrderSplitResultMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *SeaOrderSplitResultMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *SeaOrderSplitResultMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *SeaOrderSplitResultMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *SeaOrderSplitResultMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *SeaOrderSplitResultMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetOrderNo sets the "order_no" field.
+func (m *SeaOrderSplitResultMutation) SetOrderNo(s string) {
+	m.order_no = &s
+}
+
+// OrderNo returns the value of the "order_no" field in the mutation.
+func (m *SeaOrderSplitResultMutation) OrderNo() (r string, exists bool) {
+	v := m.order_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderNo returns the old "order_no" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldOrderNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderNo: %w", err)
+	}
+	return oldValue.OrderNo, nil
+}
+
+// ResetOrderNo resets all changes to the "order_no" field.
+func (m *SeaOrderSplitResultMutation) ResetOrderNo() {
+	m.order_no = nil
+}
+
+// SetResultRole sets the "result_role" field.
+func (m *SeaOrderSplitResultMutation) SetResultRole(sr seaordersplitresult.ResultRole) {
+	m.result_role = &sr
+}
+
+// ResultRole returns the value of the "result_role" field in the mutation.
+func (m *SeaOrderSplitResultMutation) ResultRole() (r seaordersplitresult.ResultRole, exists bool) {
+	v := m.result_role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResultRole returns the old "result_role" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldResultRole(ctx context.Context) (v seaordersplitresult.ResultRole, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResultRole is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResultRole requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResultRole: %w", err)
+	}
+	return oldValue.ResultRole, nil
+}
+
+// ResetResultRole resets all changes to the "result_role" field.
+func (m *SeaOrderSplitResultMutation) ResetResultRole() {
+	m.result_role = nil
+}
+
+// SetSequence sets the "sequence" field.
+func (m *SeaOrderSplitResultMutation) SetSequence(i int) {
+	m.sequence = &i
+	m.addsequence = nil
+}
+
+// Sequence returns the value of the "sequence" field in the mutation.
+func (m *SeaOrderSplitResultMutation) Sequence() (r int, exists bool) {
+	v := m.sequence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSequence returns the old "sequence" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldSequence(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSequence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSequence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSequence: %w", err)
+	}
+	return oldValue.Sequence, nil
+}
+
+// AddSequence adds i to the "sequence" field.
+func (m *SeaOrderSplitResultMutation) AddSequence(i int) {
+	if m.addsequence != nil {
+		*m.addsequence += i
+	} else {
+		m.addsequence = &i
+	}
+}
+
+// AddedSequence returns the value that was added to the "sequence" field in this mutation.
+func (m *SeaOrderSplitResultMutation) AddedSequence() (r int, exists bool) {
+	v := m.addsequence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSequence resets all changes to the "sequence" field.
+func (m *SeaOrderSplitResultMutation) ResetSequence() {
+	m.sequence = nil
+	m.addsequence = nil
+}
+
+// SetClientResultKey sets the "client_result_key" field.
+func (m *SeaOrderSplitResultMutation) SetClientResultKey(s string) {
+	m.client_result_key = &s
+}
+
+// ClientResultKey returns the value of the "client_result_key" field in the mutation.
+func (m *SeaOrderSplitResultMutation) ClientResultKey() (r string, exists bool) {
+	v := m.client_result_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientResultKey returns the old "client_result_key" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldClientResultKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientResultKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientResultKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientResultKey: %w", err)
+	}
+	return oldValue.ClientResultKey, nil
+}
+
+// ResetClientResultKey resets all changes to the "client_result_key" field.
+func (m *SeaOrderSplitResultMutation) ResetClientResultKey() {
+	m.client_result_key = nil
+}
+
+// SetInitialMasterBillID sets the "initial_master_bill_id" field.
+func (m *SeaOrderSplitResultMutation) SetInitialMasterBillID(u uuid.UUID) {
+	m.initial_master_bill = &u
+}
+
+// InitialMasterBillID returns the value of the "initial_master_bill_id" field in the mutation.
+func (m *SeaOrderSplitResultMutation) InitialMasterBillID() (r uuid.UUID, exists bool) {
+	v := m.initial_master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInitialMasterBillID returns the old "initial_master_bill_id" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldInitialMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInitialMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInitialMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInitialMasterBillID: %w", err)
+	}
+	return oldValue.InitialMasterBillID, nil
+}
+
+// ResetInitialMasterBillID resets all changes to the "initial_master_bill_id" field.
+func (m *SeaOrderSplitResultMutation) ResetInitialMasterBillID() {
+	m.initial_master_bill = nil
+}
+
+// SetFinalMasterBillID sets the "final_master_bill_id" field.
+func (m *SeaOrderSplitResultMutation) SetFinalMasterBillID(u uuid.UUID) {
+	m.final_master_bill = &u
+}
+
+// FinalMasterBillID returns the value of the "final_master_bill_id" field in the mutation.
+func (m *SeaOrderSplitResultMutation) FinalMasterBillID() (r uuid.UUID, exists bool) {
+	v := m.final_master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinalMasterBillID returns the old "final_master_bill_id" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldFinalMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinalMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinalMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinalMasterBillID: %w", err)
+	}
+	return oldValue.FinalMasterBillID, nil
+}
+
+// ResetFinalMasterBillID resets all changes to the "final_master_bill_id" field.
+func (m *SeaOrderSplitResultMutation) ResetFinalMasterBillID() {
+	m.final_master_bill = nil
+}
+
+// SetResultSnapshot sets the "result_snapshot" field.
+func (m *SeaOrderSplitResultMutation) SetResultSnapshot(jm json.RawMessage) {
+	m.result_snapshot = &jm
+	m.appendresult_snapshot = nil
+}
+
+// ResultSnapshot returns the value of the "result_snapshot" field in the mutation.
+func (m *SeaOrderSplitResultMutation) ResultSnapshot() (r json.RawMessage, exists bool) {
+	v := m.result_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResultSnapshot returns the old "result_snapshot" field's value of the SeaOrderSplitResult entity.
+// If the SeaOrderSplitResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaOrderSplitResultMutation) OldResultSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResultSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResultSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResultSnapshot: %w", err)
+	}
+	return oldValue.ResultSnapshot, nil
+}
+
+// AppendResultSnapshot adds jm to the "result_snapshot" field.
+func (m *SeaOrderSplitResultMutation) AppendResultSnapshot(jm json.RawMessage) {
+	m.appendresult_snapshot = append(m.appendresult_snapshot, jm...)
+}
+
+// AppendedResultSnapshot returns the list of values that were appended to the "result_snapshot" field in this mutation.
+func (m *SeaOrderSplitResultMutation) AppendedResultSnapshot() (json.RawMessage, bool) {
+	if len(m.appendresult_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendresult_snapshot, true
+}
+
+// ResetResultSnapshot resets all changes to the "result_snapshot" field.
+func (m *SeaOrderSplitResultMutation) ResetResultSnapshot() {
+	m.result_snapshot = nil
+	m.appendresult_snapshot = nil
+}
+
+// ClearSplitEvent clears the "split_event" edge to the SeaOrderSplitEvent entity.
+func (m *SeaOrderSplitResultMutation) ClearSplitEvent() {
+	m.clearedsplit_event = true
+	m.clearedFields[seaordersplitresult.FieldSplitEventID] = struct{}{}
+}
+
+// SplitEventCleared reports if the "split_event" edge to the SeaOrderSplitEvent entity was cleared.
+func (m *SeaOrderSplitResultMutation) SplitEventCleared() bool {
+	return m.clearedsplit_event
+}
+
+// SplitEventIDs returns the "split_event" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SplitEventID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitResultMutation) SplitEventIDs() (ids []uuid.UUID) {
+	if id := m.split_event; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSplitEvent resets all changes to the "split_event" edge.
+func (m *SeaOrderSplitResultMutation) ResetSplitEvent() {
+	m.split_event = nil
+	m.clearedsplit_event = false
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *SeaOrderSplitResultMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[seaordersplitresult.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *SeaOrderSplitResultMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitResultMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *SeaOrderSplitResultMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *SeaOrderSplitResultMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[seaordersplitresult.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *SeaOrderSplitResultMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitResultMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *SeaOrderSplitResultMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearInitialMasterBill clears the "initial_master_bill" edge to the SeaMasterBill entity.
+func (m *SeaOrderSplitResultMutation) ClearInitialMasterBill() {
+	m.clearedinitial_master_bill = true
+	m.clearedFields[seaordersplitresult.FieldInitialMasterBillID] = struct{}{}
+}
+
+// InitialMasterBillCleared reports if the "initial_master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *SeaOrderSplitResultMutation) InitialMasterBillCleared() bool {
+	return m.clearedinitial_master_bill
+}
+
+// InitialMasterBillIDs returns the "initial_master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InitialMasterBillID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitResultMutation) InitialMasterBillIDs() (ids []uuid.UUID) {
+	if id := m.initial_master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInitialMasterBill resets all changes to the "initial_master_bill" edge.
+func (m *SeaOrderSplitResultMutation) ResetInitialMasterBill() {
+	m.initial_master_bill = nil
+	m.clearedinitial_master_bill = false
+}
+
+// ClearFinalMasterBill clears the "final_master_bill" edge to the SeaMasterBill entity.
+func (m *SeaOrderSplitResultMutation) ClearFinalMasterBill() {
+	m.clearedfinal_master_bill = true
+	m.clearedFields[seaordersplitresult.FieldFinalMasterBillID] = struct{}{}
+}
+
+// FinalMasterBillCleared reports if the "final_master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *SeaOrderSplitResultMutation) FinalMasterBillCleared() bool {
+	return m.clearedfinal_master_bill
+}
+
+// FinalMasterBillIDs returns the "final_master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FinalMasterBillID instead. It exists only for internal usage by the builders.
+func (m *SeaOrderSplitResultMutation) FinalMasterBillIDs() (ids []uuid.UUID) {
+	if id := m.final_master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFinalMasterBill resets all changes to the "final_master_bill" edge.
+func (m *SeaOrderSplitResultMutation) ResetFinalMasterBill() {
+	m.final_master_bill = nil
+	m.clearedfinal_master_bill = false
+}
+
+// AddReassignmentEventIDs adds the "reassignment_events" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *SeaOrderSplitResultMutation) AddReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.reassignment_events == nil {
+		m.reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReassignmentEvents clears the "reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaOrderSplitResultMutation) ClearReassignmentEvents() {
+	m.clearedreassignment_events = true
+}
+
+// ReassignmentEventsCleared reports if the "reassignment_events" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *SeaOrderSplitResultMutation) ReassignmentEventsCleared() bool {
+	return m.clearedreassignment_events
+}
+
+// RemoveReassignmentEventIDs removes the "reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *SeaOrderSplitResultMutation) RemoveReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.removedreassignment_events == nil {
+		m.removedreassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.reassignment_events, ids[i])
+		m.removedreassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReassignmentEvents returns the removed IDs of the "reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *SeaOrderSplitResultMutation) RemovedReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedreassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReassignmentEventsIDs returns the "reassignment_events" edge IDs in the mutation.
+func (m *SeaOrderSplitResultMutation) ReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReassignmentEvents resets all changes to the "reassignment_events" edge.
+func (m *SeaOrderSplitResultMutation) ResetReassignmentEvents() {
+	m.reassignment_events = nil
+	m.clearedreassignment_events = false
+	m.removedreassignment_events = nil
+}
+
+// Where appends a list predicates to the SeaOrderSplitResultMutation builder.
+func (m *SeaOrderSplitResultMutation) Where(ps ...predicate.SeaOrderSplitResult) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SeaOrderSplitResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SeaOrderSplitResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SeaOrderSplitResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SeaOrderSplitResultMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SeaOrderSplitResultMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SeaOrderSplitResult).
+func (m *SeaOrderSplitResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SeaOrderSplitResultMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, seaordersplitresult.FieldCreatedAt)
+	}
+	if m.split_event != nil {
+		fields = append(fields, seaordersplitresult.FieldSplitEventID)
+	}
+	if m.organization != nil {
+		fields = append(fields, seaordersplitresult.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, seaordersplitresult.FieldOrderID)
+	}
+	if m.order_no != nil {
+		fields = append(fields, seaordersplitresult.FieldOrderNo)
+	}
+	if m.result_role != nil {
+		fields = append(fields, seaordersplitresult.FieldResultRole)
+	}
+	if m.sequence != nil {
+		fields = append(fields, seaordersplitresult.FieldSequence)
+	}
+	if m.client_result_key != nil {
+		fields = append(fields, seaordersplitresult.FieldClientResultKey)
+	}
+	if m.initial_master_bill != nil {
+		fields = append(fields, seaordersplitresult.FieldInitialMasterBillID)
+	}
+	if m.final_master_bill != nil {
+		fields = append(fields, seaordersplitresult.FieldFinalMasterBillID)
+	}
+	if m.result_snapshot != nil {
+		fields = append(fields, seaordersplitresult.FieldResultSnapshot)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SeaOrderSplitResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case seaordersplitresult.FieldCreatedAt:
+		return m.CreatedAt()
+	case seaordersplitresult.FieldSplitEventID:
+		return m.SplitEventID()
+	case seaordersplitresult.FieldOrganizationID:
+		return m.OrganizationID()
+	case seaordersplitresult.FieldOrderID:
+		return m.OrderID()
+	case seaordersplitresult.FieldOrderNo:
+		return m.OrderNo()
+	case seaordersplitresult.FieldResultRole:
+		return m.ResultRole()
+	case seaordersplitresult.FieldSequence:
+		return m.Sequence()
+	case seaordersplitresult.FieldClientResultKey:
+		return m.ClientResultKey()
+	case seaordersplitresult.FieldInitialMasterBillID:
+		return m.InitialMasterBillID()
+	case seaordersplitresult.FieldFinalMasterBillID:
+		return m.FinalMasterBillID()
+	case seaordersplitresult.FieldResultSnapshot:
+		return m.ResultSnapshot()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SeaOrderSplitResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case seaordersplitresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case seaordersplitresult.FieldSplitEventID:
+		return m.OldSplitEventID(ctx)
+	case seaordersplitresult.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case seaordersplitresult.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case seaordersplitresult.FieldOrderNo:
+		return m.OldOrderNo(ctx)
+	case seaordersplitresult.FieldResultRole:
+		return m.OldResultRole(ctx)
+	case seaordersplitresult.FieldSequence:
+		return m.OldSequence(ctx)
+	case seaordersplitresult.FieldClientResultKey:
+		return m.OldClientResultKey(ctx)
+	case seaordersplitresult.FieldInitialMasterBillID:
+		return m.OldInitialMasterBillID(ctx)
+	case seaordersplitresult.FieldFinalMasterBillID:
+		return m.OldFinalMasterBillID(ctx)
+	case seaordersplitresult.FieldResultSnapshot:
+		return m.OldResultSnapshot(ctx)
+	}
+	return nil, fmt.Errorf("unknown SeaOrderSplitResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderSplitResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case seaordersplitresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case seaordersplitresult.FieldSplitEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSplitEventID(v)
+		return nil
+	case seaordersplitresult.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case seaordersplitresult.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case seaordersplitresult.FieldOrderNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderNo(v)
+		return nil
+	case seaordersplitresult.FieldResultRole:
+		v, ok := value.(seaordersplitresult.ResultRole)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResultRole(v)
+		return nil
+	case seaordersplitresult.FieldSequence:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSequence(v)
+		return nil
+	case seaordersplitresult.FieldClientResultKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientResultKey(v)
+		return nil
+	case seaordersplitresult.FieldInitialMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInitialMasterBillID(v)
+		return nil
+	case seaordersplitresult.FieldFinalMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinalMasterBillID(v)
+		return nil
+	case seaordersplitresult.FieldResultSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResultSnapshot(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SeaOrderSplitResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addsequence != nil {
+		fields = append(fields, seaordersplitresult.FieldSequence)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SeaOrderSplitResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seaordersplitresult.FieldSequence:
+		return m.AddedSequence()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaOrderSplitResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case seaordersplitresult.FieldSequence:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSequence(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SeaOrderSplitResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SeaOrderSplitResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SeaOrderSplitResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SeaOrderSplitResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SeaOrderSplitResultMutation) ResetField(name string) error {
+	switch name {
+	case seaordersplitresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case seaordersplitresult.FieldSplitEventID:
+		m.ResetSplitEventID()
+		return nil
+	case seaordersplitresult.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case seaordersplitresult.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case seaordersplitresult.FieldOrderNo:
+		m.ResetOrderNo()
+		return nil
+	case seaordersplitresult.FieldResultRole:
+		m.ResetResultRole()
+		return nil
+	case seaordersplitresult.FieldSequence:
+		m.ResetSequence()
+		return nil
+	case seaordersplitresult.FieldClientResultKey:
+		m.ResetClientResultKey()
+		return nil
+	case seaordersplitresult.FieldInitialMasterBillID:
+		m.ResetInitialMasterBillID()
+		return nil
+	case seaordersplitresult.FieldFinalMasterBillID:
+		m.ResetFinalMasterBillID()
+		return nil
+	case seaordersplitresult.FieldResultSnapshot:
+		m.ResetResultSnapshot()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SeaOrderSplitResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.split_event != nil {
+		edges = append(edges, seaordersplitresult.EdgeSplitEvent)
+	}
+	if m.organization != nil {
+		edges = append(edges, seaordersplitresult.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, seaordersplitresult.EdgeOrder)
+	}
+	if m.initial_master_bill != nil {
+		edges = append(edges, seaordersplitresult.EdgeInitialMasterBill)
+	}
+	if m.final_master_bill != nil {
+		edges = append(edges, seaordersplitresult.EdgeFinalMasterBill)
+	}
+	if m.reassignment_events != nil {
+		edges = append(edges, seaordersplitresult.EdgeReassignmentEvents)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SeaOrderSplitResultMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seaordersplitresult.EdgeSplitEvent:
+		if id := m.split_event; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitresult.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitresult.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitresult.EdgeInitialMasterBill:
+		if id := m.initial_master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitresult.EdgeFinalMasterBill:
+		if id := m.final_master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seaordersplitresult.EdgeReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.reassignment_events))
+		for id := range m.reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SeaOrderSplitResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.removedreassignment_events != nil {
+		edges = append(edges, seaordersplitresult.EdgeReassignmentEvents)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SeaOrderSplitResultMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case seaordersplitresult.EdgeReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.removedreassignment_events))
+		for id := range m.removedreassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SeaOrderSplitResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.clearedsplit_event {
+		edges = append(edges, seaordersplitresult.EdgeSplitEvent)
+	}
+	if m.clearedorganization {
+		edges = append(edges, seaordersplitresult.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, seaordersplitresult.EdgeOrder)
+	}
+	if m.clearedinitial_master_bill {
+		edges = append(edges, seaordersplitresult.EdgeInitialMasterBill)
+	}
+	if m.clearedfinal_master_bill {
+		edges = append(edges, seaordersplitresult.EdgeFinalMasterBill)
+	}
+	if m.clearedreassignment_events {
+		edges = append(edges, seaordersplitresult.EdgeReassignmentEvents)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SeaOrderSplitResultMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seaordersplitresult.EdgeSplitEvent:
+		return m.clearedsplit_event
+	case seaordersplitresult.EdgeOrganization:
+		return m.clearedorganization
+	case seaordersplitresult.EdgeOrder:
+		return m.cleared_order
+	case seaordersplitresult.EdgeInitialMasterBill:
+		return m.clearedinitial_master_bill
+	case seaordersplitresult.EdgeFinalMasterBill:
+		return m.clearedfinal_master_bill
+	case seaordersplitresult.EdgeReassignmentEvents:
+		return m.clearedreassignment_events
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SeaOrderSplitResultMutation) ClearEdge(name string) error {
+	switch name {
+	case seaordersplitresult.EdgeSplitEvent:
+		m.ClearSplitEvent()
+		return nil
+	case seaordersplitresult.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case seaordersplitresult.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case seaordersplitresult.EdgeInitialMasterBill:
+		m.ClearInitialMasterBill()
+		return nil
+	case seaordersplitresult.EdgeFinalMasterBill:
+		m.ClearFinalMasterBill()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SeaOrderSplitResultMutation) ResetEdge(name string) error {
+	switch name {
+	case seaordersplitresult.EdgeSplitEvent:
+		m.ResetSplitEvent()
+		return nil
+	case seaordersplitresult.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case seaordersplitresult.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case seaordersplitresult.EdgeInitialMasterBill:
+		m.ResetInitialMasterBill()
+		return nil
+	case seaordersplitresult.EdgeFinalMasterBill:
+		m.ResetFinalMasterBill()
+		return nil
+	case seaordersplitresult.EdgeReassignmentEvents:
+		m.ResetReassignmentEvents()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaOrderSplitResult edge %s", name)
 }
 
 // SeaTransportExecutionMutation represents an operation that mutates the SeaTransportExecution nodes in the graph.
@@ -114781,6 +121695,18 @@ type UserMutation struct {
 	confirmed_sea_cargo_allocation_links            map[uuid.UUID]struct{}
 	removedconfirmed_sea_cargo_allocation_links     map[uuid.UUID]struct{}
 	clearedconfirmed_sea_cargo_allocation_links     bool
+	created_sea_order_split_events                  map[uuid.UUID]struct{}
+	removedcreated_sea_order_split_events           map[uuid.UUID]struct{}
+	clearedcreated_sea_order_split_events           bool
+	created_sea_order_reassignment_events           map[uuid.UUID]struct{}
+	removedcreated_sea_order_reassignment_events    map[uuid.UUID]struct{}
+	clearedcreated_sea_order_reassignment_events    bool
+	uploaded_attachment_assets                      map[uuid.UUID]struct{}
+	removeduploaded_attachment_assets               map[uuid.UUID]struct{}
+	cleareduploaded_attachment_assets               bool
+	created_order_attachments                       map[uuid.UUID]struct{}
+	removedcreated_order_attachments                map[uuid.UUID]struct{}
+	clearedcreated_order_attachments                bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -117239,6 +124165,222 @@ func (m *UserMutation) ResetConfirmedSeaCargoAllocationLinks() {
 	m.removedconfirmed_sea_cargo_allocation_links = nil
 }
 
+// AddCreatedSeaOrderSplitEventIDs adds the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity by ids.
+func (m *UserMutation) AddCreatedSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.created_sea_order_split_events == nil {
+		m.created_sea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_sea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedSeaOrderSplitEvents clears the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *UserMutation) ClearCreatedSeaOrderSplitEvents() {
+	m.clearedcreated_sea_order_split_events = true
+}
+
+// CreatedSeaOrderSplitEventsCleared reports if the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity was cleared.
+func (m *UserMutation) CreatedSeaOrderSplitEventsCleared() bool {
+	return m.clearedcreated_sea_order_split_events
+}
+
+// RemoveCreatedSeaOrderSplitEventIDs removes the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (m *UserMutation) RemoveCreatedSeaOrderSplitEventIDs(ids ...uuid.UUID) {
+	if m.removedcreated_sea_order_split_events == nil {
+		m.removedcreated_sea_order_split_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_sea_order_split_events, ids[i])
+		m.removedcreated_sea_order_split_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedSeaOrderSplitEvents returns the removed IDs of the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity.
+func (m *UserMutation) RemovedCreatedSeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_sea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedSeaOrderSplitEventsIDs returns the "created_sea_order_split_events" edge IDs in the mutation.
+func (m *UserMutation) CreatedSeaOrderSplitEventsIDs() (ids []uuid.UUID) {
+	for id := range m.created_sea_order_split_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedSeaOrderSplitEvents resets all changes to the "created_sea_order_split_events" edge.
+func (m *UserMutation) ResetCreatedSeaOrderSplitEvents() {
+	m.created_sea_order_split_events = nil
+	m.clearedcreated_sea_order_split_events = false
+	m.removedcreated_sea_order_split_events = nil
+}
+
+// AddCreatedSeaOrderReassignmentEventIDs adds the "created_sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by ids.
+func (m *UserMutation) AddCreatedSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.created_sea_order_reassignment_events == nil {
+		m.created_sea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_sea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedSeaOrderReassignmentEvents clears the "created_sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *UserMutation) ClearCreatedSeaOrderReassignmentEvents() {
+	m.clearedcreated_sea_order_reassignment_events = true
+}
+
+// CreatedSeaOrderReassignmentEventsCleared reports if the "created_sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity was cleared.
+func (m *UserMutation) CreatedSeaOrderReassignmentEventsCleared() bool {
+	return m.clearedcreated_sea_order_reassignment_events
+}
+
+// RemoveCreatedSeaOrderReassignmentEventIDs removes the "created_sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (m *UserMutation) RemoveCreatedSeaOrderReassignmentEventIDs(ids ...uuid.UUID) {
+	if m.removedcreated_sea_order_reassignment_events == nil {
+		m.removedcreated_sea_order_reassignment_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_sea_order_reassignment_events, ids[i])
+		m.removedcreated_sea_order_reassignment_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedSeaOrderReassignmentEvents returns the removed IDs of the "created_sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity.
+func (m *UserMutation) RemovedCreatedSeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_sea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedSeaOrderReassignmentEventsIDs returns the "created_sea_order_reassignment_events" edge IDs in the mutation.
+func (m *UserMutation) CreatedSeaOrderReassignmentEventsIDs() (ids []uuid.UUID) {
+	for id := range m.created_sea_order_reassignment_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedSeaOrderReassignmentEvents resets all changes to the "created_sea_order_reassignment_events" edge.
+func (m *UserMutation) ResetCreatedSeaOrderReassignmentEvents() {
+	m.created_sea_order_reassignment_events = nil
+	m.clearedcreated_sea_order_reassignment_events = false
+	m.removedcreated_sea_order_reassignment_events = nil
+}
+
+// AddUploadedAttachmentAssetIDs adds the "uploaded_attachment_assets" edge to the OrderAttachmentAsset entity by ids.
+func (m *UserMutation) AddUploadedAttachmentAssetIDs(ids ...uuid.UUID) {
+	if m.uploaded_attachment_assets == nil {
+		m.uploaded_attachment_assets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.uploaded_attachment_assets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUploadedAttachmentAssets clears the "uploaded_attachment_assets" edge to the OrderAttachmentAsset entity.
+func (m *UserMutation) ClearUploadedAttachmentAssets() {
+	m.cleareduploaded_attachment_assets = true
+}
+
+// UploadedAttachmentAssetsCleared reports if the "uploaded_attachment_assets" edge to the OrderAttachmentAsset entity was cleared.
+func (m *UserMutation) UploadedAttachmentAssetsCleared() bool {
+	return m.cleareduploaded_attachment_assets
+}
+
+// RemoveUploadedAttachmentAssetIDs removes the "uploaded_attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
+func (m *UserMutation) RemoveUploadedAttachmentAssetIDs(ids ...uuid.UUID) {
+	if m.removeduploaded_attachment_assets == nil {
+		m.removeduploaded_attachment_assets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.uploaded_attachment_assets, ids[i])
+		m.removeduploaded_attachment_assets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUploadedAttachmentAssets returns the removed IDs of the "uploaded_attachment_assets" edge to the OrderAttachmentAsset entity.
+func (m *UserMutation) RemovedUploadedAttachmentAssetsIDs() (ids []uuid.UUID) {
+	for id := range m.removeduploaded_attachment_assets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UploadedAttachmentAssetsIDs returns the "uploaded_attachment_assets" edge IDs in the mutation.
+func (m *UserMutation) UploadedAttachmentAssetsIDs() (ids []uuid.UUID) {
+	for id := range m.uploaded_attachment_assets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUploadedAttachmentAssets resets all changes to the "uploaded_attachment_assets" edge.
+func (m *UserMutation) ResetUploadedAttachmentAssets() {
+	m.uploaded_attachment_assets = nil
+	m.cleareduploaded_attachment_assets = false
+	m.removeduploaded_attachment_assets = nil
+}
+
+// AddCreatedOrderAttachmentIDs adds the "created_order_attachments" edge to the OrderAttachment entity by ids.
+func (m *UserMutation) AddCreatedOrderAttachmentIDs(ids ...uuid.UUID) {
+	if m.created_order_attachments == nil {
+		m.created_order_attachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_order_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedOrderAttachments clears the "created_order_attachments" edge to the OrderAttachment entity.
+func (m *UserMutation) ClearCreatedOrderAttachments() {
+	m.clearedcreated_order_attachments = true
+}
+
+// CreatedOrderAttachmentsCleared reports if the "created_order_attachments" edge to the OrderAttachment entity was cleared.
+func (m *UserMutation) CreatedOrderAttachmentsCleared() bool {
+	return m.clearedcreated_order_attachments
+}
+
+// RemoveCreatedOrderAttachmentIDs removes the "created_order_attachments" edge to the OrderAttachment entity by IDs.
+func (m *UserMutation) RemoveCreatedOrderAttachmentIDs(ids ...uuid.UUID) {
+	if m.removedcreated_order_attachments == nil {
+		m.removedcreated_order_attachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_order_attachments, ids[i])
+		m.removedcreated_order_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedOrderAttachments returns the removed IDs of the "created_order_attachments" edge to the OrderAttachment entity.
+func (m *UserMutation) RemovedCreatedOrderAttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_order_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedOrderAttachmentsIDs returns the "created_order_attachments" edge IDs in the mutation.
+func (m *UserMutation) CreatedOrderAttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.created_order_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedOrderAttachments resets all changes to the "created_order_attachments" edge.
+func (m *UserMutation) ResetCreatedOrderAttachments() {
+	m.created_order_attachments = nil
+	m.clearedcreated_order_attachments = false
+	m.removedcreated_order_attachments = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -117650,7 +124792,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 36)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -117746,6 +124888,18 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.confirmed_sea_cargo_allocation_links != nil {
 		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
+	}
+	if m.created_sea_order_split_events != nil {
+		edges = append(edges, user.EdgeCreatedSeaOrderSplitEvents)
+	}
+	if m.created_sea_order_reassignment_events != nil {
+		edges = append(edges, user.EdgeCreatedSeaOrderReassignmentEvents)
+	}
+	if m.uploaded_attachment_assets != nil {
+		edges = append(edges, user.EdgeUploadedAttachmentAssets)
+	}
+	if m.created_order_attachments != nil {
+		edges = append(edges, user.EdgeCreatedOrderAttachments)
 	}
 	return edges
 }
@@ -117946,13 +125100,37 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.created_sea_order_split_events))
+		for id := range m.created_sea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.created_sea_order_reassignment_events))
+		for id := range m.created_sea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUploadedAttachmentAssets:
+		ids := make([]ent.Value, 0, len(m.uploaded_attachment_assets))
+		for id := range m.uploaded_attachment_assets {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedOrderAttachments:
+		ids := make([]ent.Value, 0, len(m.created_order_attachments))
+		for id := range m.created_order_attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 36)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -118048,6 +125226,18 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedconfirmed_sea_cargo_allocation_links != nil {
 		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
+	}
+	if m.removedcreated_sea_order_split_events != nil {
+		edges = append(edges, user.EdgeCreatedSeaOrderSplitEvents)
+	}
+	if m.removedcreated_sea_order_reassignment_events != nil {
+		edges = append(edges, user.EdgeCreatedSeaOrderReassignmentEvents)
+	}
+	if m.removeduploaded_attachment_assets != nil {
+		edges = append(edges, user.EdgeUploadedAttachmentAssets)
+	}
+	if m.removedcreated_order_attachments != nil {
+		edges = append(edges, user.EdgeCreatedOrderAttachments)
 	}
 	return edges
 }
@@ -118248,13 +125438,37 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedSeaOrderSplitEvents:
+		ids := make([]ent.Value, 0, len(m.removedcreated_sea_order_split_events))
+		for id := range m.removedcreated_sea_order_split_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedSeaOrderReassignmentEvents:
+		ids := make([]ent.Value, 0, len(m.removedcreated_sea_order_reassignment_events))
+		for id := range m.removedcreated_sea_order_reassignment_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUploadedAttachmentAssets:
+		ids := make([]ent.Value, 0, len(m.removeduploaded_attachment_assets))
+		for id := range m.removeduploaded_attachment_assets {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedOrderAttachments:
+		ids := make([]ent.Value, 0, len(m.removedcreated_order_attachments))
+		for id := range m.removedcreated_order_attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 36)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -118351,6 +125565,18 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedconfirmed_sea_cargo_allocation_links {
 		edges = append(edges, user.EdgeConfirmedSeaCargoAllocationLinks)
 	}
+	if m.clearedcreated_sea_order_split_events {
+		edges = append(edges, user.EdgeCreatedSeaOrderSplitEvents)
+	}
+	if m.clearedcreated_sea_order_reassignment_events {
+		edges = append(edges, user.EdgeCreatedSeaOrderReassignmentEvents)
+	}
+	if m.cleareduploaded_attachment_assets {
+		edges = append(edges, user.EdgeUploadedAttachmentAssets)
+	}
+	if m.clearedcreated_order_attachments {
+		edges = append(edges, user.EdgeCreatedOrderAttachments)
+	}
 	return edges
 }
 
@@ -118422,6 +125648,14 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedenterprise_resource_assignments
 	case user.EdgeConfirmedSeaCargoAllocationLinks:
 		return m.clearedconfirmed_sea_cargo_allocation_links
+	case user.EdgeCreatedSeaOrderSplitEvents:
+		return m.clearedcreated_sea_order_split_events
+	case user.EdgeCreatedSeaOrderReassignmentEvents:
+		return m.clearedcreated_sea_order_reassignment_events
+	case user.EdgeUploadedAttachmentAssets:
+		return m.cleareduploaded_attachment_assets
+	case user.EdgeCreatedOrderAttachments:
+		return m.clearedcreated_order_attachments
 	}
 	return false
 }
@@ -118533,6 +125767,18 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeConfirmedSeaCargoAllocationLinks:
 		m.ResetConfirmedSeaCargoAllocationLinks()
+		return nil
+	case user.EdgeCreatedSeaOrderSplitEvents:
+		m.ResetCreatedSeaOrderSplitEvents()
+		return nil
+	case user.EdgeCreatedSeaOrderReassignmentEvents:
+		m.ResetCreatedSeaOrderReassignmentEvents()
+		return nil
+	case user.EdgeUploadedAttachmentAssets:
+		m.ResetUploadedAttachmentAssets()
+		return nil
+	case user.EdgeCreatedOrderAttachments:
+		m.ResetCreatedOrderAttachments()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

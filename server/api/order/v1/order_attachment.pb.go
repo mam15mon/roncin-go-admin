@@ -38,6 +38,7 @@ type OrderAttachment struct {
 	UploadedBy     *string                `protobuf:"bytes,10,opt,name=uploaded_by,json=uploadedBy,proto3,oneof" json:"uploaded_by,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AssetId        *string                `protobuf:"bytes,13,opt,name=asset_id,json=assetId,proto3,oneof" json:"asset_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -152,6 +153,13 @@ func (x *OrderAttachment) GetCreatedAt() string {
 func (x *OrderAttachment) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *OrderAttachment) GetAssetId() string {
+	if x != nil && x.AssetId != nil {
+		return *x.AssetId
 	}
 	return ""
 }
@@ -456,11 +464,133 @@ func (x *ListAttachmentsResponse) GetTraceId() string {
 	return ""
 }
 
+// RemoveAttachmentReferenceRequest 解除订单附件引用请求。
+type RemoveAttachmentReferenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveAttachmentReferenceRequest) Reset() {
+	*x = RemoveAttachmentReferenceRequest{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveAttachmentReferenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveAttachmentReferenceRequest) ProtoMessage() {}
+
+func (x *RemoveAttachmentReferenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveAttachmentReferenceRequest.ProtoReflect.Descriptor instead.
+func (*RemoveAttachmentReferenceRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RemoveAttachmentReferenceRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *RemoveAttachmentReferenceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// RemoveAttachmentReferenceResponse 解除订单附件引用响应。
+type RemoveAttachmentReferenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveAttachmentReferenceResponse) Reset() {
+	*x = RemoveAttachmentReferenceResponse{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveAttachmentReferenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveAttachmentReferenceResponse) ProtoMessage() {}
+
+func (x *RemoveAttachmentReferenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveAttachmentReferenceResponse.ProtoReflect.Descriptor instead.
+func (*RemoveAttachmentReferenceResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RemoveAttachmentReferenceResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RemoveAttachmentReferenceResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RemoveAttachmentReferenceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RemoveAttachmentReferenceResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_order_v1_order_attachment_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\n" +
-	"\x1forder/v1/order_attachment.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x98\x03\n" +
+	"\x1forder/v1/order_attachment.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc5\x03\n" +
 	"\x0fOrderAttachment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -478,9 +608,11 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\tR\tupdatedAtB\v\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAt\x12\x1e\n" +
+	"\basset_id\x18\r \x01(\tH\x02R\aassetId\x88\x01\x01B\v\n" +
 	"\t_checksumB\x0e\n" +
-	"\f_uploaded_by\"8\n" +
+	"\f_uploaded_byB\v\n" +
+	"\t_asset_id\"8\n" +
 	"\x16ListAttachmentsRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xc1\x02\n" +
 	"\x19RegisterAttachmentRequest\x12\x1e\n" +
@@ -505,10 +637,19 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.order.v1.OrderAttachmentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xea\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"W\n" +
+	" RemoveAttachmentReferenceRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\x86\x01\n" +
+	"!RemoveAttachmentReferenceResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xb2\x04\n" +
 	"\x16OrderAttachmentService\x12\x9e\x01\n" +
 	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a!.order.v1.ListAttachmentsResponse\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xae\x01\n" +
-	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a$.order.v1.RegisterAttachmentResponse\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachmentsB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a$.order.v1.RegisterAttachmentResponse\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachments\x12\xc5\x01\n" +
+	"\x19RemoveAttachmentReference\x12*.order.v1.RemoveAttachmentReferenceRequest\x1a+.order.v1.RemoveAttachmentReferenceResponse\"O\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/attachments/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_attachment_proto_rawDescOnce sync.Once
@@ -522,23 +663,27 @@ func file_order_v1_order_attachment_proto_rawDescGZIP() []byte {
 	return file_order_v1_order_attachment_proto_rawDescData
 }
 
-var file_order_v1_order_attachment_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_order_v1_order_attachment_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_order_v1_order_attachment_proto_goTypes = []any{
-	(*OrderAttachment)(nil),            // 0: order.v1.OrderAttachment
-	(*ListAttachmentsRequest)(nil),     // 1: order.v1.ListAttachmentsRequest
-	(*RegisterAttachmentRequest)(nil),  // 2: order.v1.RegisterAttachmentRequest
-	(*RegisterAttachmentResponse)(nil), // 3: order.v1.RegisterAttachmentResponse
-	(*ListAttachmentsResponse)(nil),    // 4: order.v1.ListAttachmentsResponse
+	(*OrderAttachment)(nil),                   // 0: order.v1.OrderAttachment
+	(*ListAttachmentsRequest)(nil),            // 1: order.v1.ListAttachmentsRequest
+	(*RegisterAttachmentRequest)(nil),         // 2: order.v1.RegisterAttachmentRequest
+	(*RegisterAttachmentResponse)(nil),        // 3: order.v1.RegisterAttachmentResponse
+	(*ListAttachmentsResponse)(nil),           // 4: order.v1.ListAttachmentsResponse
+	(*RemoveAttachmentReferenceRequest)(nil),  // 5: order.v1.RemoveAttachmentReferenceRequest
+	(*RemoveAttachmentReferenceResponse)(nil), // 6: order.v1.RemoveAttachmentReferenceResponse
 }
 var file_order_v1_order_attachment_proto_depIdxs = []int32{
 	0, // 0: order.v1.RegisterAttachmentResponse.data:type_name -> order.v1.OrderAttachment
 	0, // 1: order.v1.ListAttachmentsResponse.data:type_name -> order.v1.OrderAttachment
 	1, // 2: order.v1.OrderAttachmentService.ListAttachments:input_type -> order.v1.ListAttachmentsRequest
 	2, // 3: order.v1.OrderAttachmentService.RegisterAttachment:input_type -> order.v1.RegisterAttachmentRequest
-	4, // 4: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.ListAttachmentsResponse
-	3, // 5: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.RegisterAttachmentResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	5, // 4: order.v1.OrderAttachmentService.RemoveAttachmentReference:input_type -> order.v1.RemoveAttachmentReferenceRequest
+	4, // 5: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.ListAttachmentsResponse
+	3, // 6: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.RegisterAttachmentResponse
+	6, // 7: order.v1.OrderAttachmentService.RemoveAttachmentReference:output_type -> order.v1.RemoveAttachmentReferenceResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -557,7 +702,7 @@ func file_order_v1_order_attachment_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_attachment_proto_rawDesc), len(file_order_v1_order_attachment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

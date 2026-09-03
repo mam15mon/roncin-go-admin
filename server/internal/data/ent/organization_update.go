@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
@@ -54,6 +55,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -854,6 +858,66 @@ func (_u *OrganizationUpdate) AddFinanceBillEnterpriseTags(v ...*FinanceBillEnte
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceBillEnterpriseTagIDs(ids...)
+}
+
+// AddAttachmentAssetIDs adds the "attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
+func (_u *OrganizationUpdate) AddAttachmentAssetIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddAttachmentAssetIDs(ids...)
+	return _u
+}
+
+// AddAttachmentAssets adds the "attachment_assets" edges to the OrderAttachmentAsset entity.
+func (_u *OrganizationUpdate) AddAttachmentAssets(v ...*OrderAttachmentAsset) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentAssetIDs(ids...)
+}
+
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (_u *OrganizationUpdate) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaOrderSplitEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderSplitEvents adds the "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_u *OrganizationUpdate) AddSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderSplitEventIDs(ids...)
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_u *OrganizationUpdate) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaOrderSplitResultIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderSplitResults adds the "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_u *OrganizationUpdate) AddSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderSplitResultIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *OrganizationUpdate) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrganizationUpdate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentEventIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1831,6 +1895,90 @@ func (_u *OrganizationUpdate) RemoveFinanceBillEnterpriseTags(v ...*FinanceBillE
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillEnterpriseTagIDs(ids...)
+}
+
+// ClearAttachmentAssets clears all "attachment_assets" edges to the OrderAttachmentAsset entity.
+func (_u *OrganizationUpdate) ClearAttachmentAssets() *OrganizationUpdate {
+	_u.mutation.ClearAttachmentAssets()
+	return _u
+}
+
+// RemoveAttachmentAssetIDs removes the "attachment_assets" edge to OrderAttachmentAsset entities by IDs.
+func (_u *OrganizationUpdate) RemoveAttachmentAssetIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveAttachmentAssetIDs(ids...)
+	return _u
+}
+
+// RemoveAttachmentAssets removes "attachment_assets" edges to OrderAttachmentAsset entities.
+func (_u *OrganizationUpdate) RemoveAttachmentAssets(v ...*OrderAttachmentAsset) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentAssetIDs(ids...)
+}
+
+// ClearSeaOrderSplitEvents clears all "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_u *OrganizationUpdate) ClearSeaOrderSplitEvents() *OrganizationUpdate {
+	_u.mutation.ClearSeaOrderSplitEvents()
+	return _u
+}
+
+// RemoveSeaOrderSplitEventIDs removes the "sea_order_split_events" edge to SeaOrderSplitEvent entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaOrderSplitEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderSplitEvents removes "sea_order_split_events" edges to SeaOrderSplitEvent entities.
+func (_u *OrganizationUpdate) RemoveSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderSplitEventIDs(ids...)
+}
+
+// ClearSeaOrderSplitResults clears all "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_u *OrganizationUpdate) ClearSeaOrderSplitResults() *OrganizationUpdate {
+	_u.mutation.ClearSeaOrderSplitResults()
+	return _u
+}
+
+// RemoveSeaOrderSplitResultIDs removes the "sea_order_split_results" edge to SeaOrderSplitResult entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaOrderSplitResultIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderSplitResults removes "sea_order_split_results" edges to SeaOrderSplitResult entities.
+func (_u *OrganizationUpdate) RemoveSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderSplitResultIDs(ids...)
+}
+
+// ClearSeaOrderReassignmentEvents clears all "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrganizationUpdate) ClearSeaOrderReassignmentEvents() *OrganizationUpdate {
+	_u.mutation.ClearSeaOrderReassignmentEvents()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEvents removes "sea_order_reassignment_events" edges to SeaOrderReassignmentEvent entities.
+func (_u *OrganizationUpdate) RemoveSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -4019,6 +4167,186 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AttachmentAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentAssetsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderSplitEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderSplitEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderSplitEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderSplitEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderSplitResultsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderSplitResultsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderSplitResultsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -4820,6 +5148,66 @@ func (_u *OrganizationUpdateOne) AddFinanceBillEnterpriseTags(v ...*FinanceBillE
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceBillEnterpriseTagIDs(ids...)
+}
+
+// AddAttachmentAssetIDs adds the "attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
+func (_u *OrganizationUpdateOne) AddAttachmentAssetIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddAttachmentAssetIDs(ids...)
+	return _u
+}
+
+// AddAttachmentAssets adds the "attachment_assets" edges to the OrderAttachmentAsset entity.
+func (_u *OrganizationUpdateOne) AddAttachmentAssets(v ...*OrderAttachmentAsset) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentAssetIDs(ids...)
+}
+
+// AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaOrderSplitEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderSplitEvents adds the "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_u *OrganizationUpdateOne) AddSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderSplitEventIDs(ids...)
+}
+
+// AddSeaOrderSplitResultIDs adds the "sea_order_split_results" edge to the SeaOrderSplitResult entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaOrderSplitResultIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderSplitResults adds the "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_u *OrganizationUpdateOne) AddSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderSplitResultIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrganizationUpdateOne) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentEventIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -5797,6 +6185,90 @@ func (_u *OrganizationUpdateOne) RemoveFinanceBillEnterpriseTags(v ...*FinanceBi
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillEnterpriseTagIDs(ids...)
+}
+
+// ClearAttachmentAssets clears all "attachment_assets" edges to the OrderAttachmentAsset entity.
+func (_u *OrganizationUpdateOne) ClearAttachmentAssets() *OrganizationUpdateOne {
+	_u.mutation.ClearAttachmentAssets()
+	return _u
+}
+
+// RemoveAttachmentAssetIDs removes the "attachment_assets" edge to OrderAttachmentAsset entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveAttachmentAssetIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveAttachmentAssetIDs(ids...)
+	return _u
+}
+
+// RemoveAttachmentAssets removes "attachment_assets" edges to OrderAttachmentAsset entities.
+func (_u *OrganizationUpdateOne) RemoveAttachmentAssets(v ...*OrderAttachmentAsset) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentAssetIDs(ids...)
+}
+
+// ClearSeaOrderSplitEvents clears all "sea_order_split_events" edges to the SeaOrderSplitEvent entity.
+func (_u *OrganizationUpdateOne) ClearSeaOrderSplitEvents() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaOrderSplitEvents()
+	return _u
+}
+
+// RemoveSeaOrderSplitEventIDs removes the "sea_order_split_events" edge to SeaOrderSplitEvent entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderSplitEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaOrderSplitEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderSplitEvents removes "sea_order_split_events" edges to SeaOrderSplitEvent entities.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderSplitEvents(v ...*SeaOrderSplitEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderSplitEventIDs(ids...)
+}
+
+// ClearSeaOrderSplitResults clears all "sea_order_split_results" edges to the SeaOrderSplitResult entity.
+func (_u *OrganizationUpdateOne) ClearSeaOrderSplitResults() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaOrderSplitResults()
+	return _u
+}
+
+// RemoveSeaOrderSplitResultIDs removes the "sea_order_split_results" edge to SeaOrderSplitResult entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderSplitResultIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaOrderSplitResultIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderSplitResults removes "sea_order_split_results" edges to SeaOrderSplitResult entities.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderSplitResults(v ...*SeaOrderSplitResult) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderSplitResultIDs(ids...)
+}
+
+// ClearSeaOrderReassignmentEvents clears all "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrganizationUpdateOne) ClearSeaOrderReassignmentEvents() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaOrderReassignmentEvents()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEvents removes "sea_order_reassignment_events" edges to SeaOrderReassignmentEvent entities.
+func (_u *OrganizationUpdateOne) RemoveSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -8008,6 +8480,186 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttachmentAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentAssetsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AttachmentAssetsTable,
+			Columns: []string{organization.AttachmentAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderSplitEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderSplitEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderSplitEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderSplitEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitEventsTable,
+			Columns: []string{organization.SeaOrderSplitEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderSplitResultsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderSplitResultsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderSplitResultsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderSplitResultsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderSplitResultsTable,
+			Columns: []string{organization.SeaOrderSplitResultsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaordersplitresult.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaOrderReassignmentEventsTable,
+			Columns: []string{organization.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

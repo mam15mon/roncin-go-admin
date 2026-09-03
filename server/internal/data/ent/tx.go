@@ -110,6 +110,8 @@ type Tx struct {
 	OrderAbnormalCase *OrderAbnormalCaseClient
 	// OrderAttachment is the client for interacting with the OrderAttachment builders.
 	OrderAttachment *OrderAttachmentClient
+	// OrderAttachmentAsset is the client for interacting with the OrderAttachmentAsset builders.
+	OrderAttachmentAsset *OrderAttachmentAssetClient
 	// OrderCargoCategory is the client for interacting with the OrderCargoCategory builders.
 	OrderCargoCategory *OrderCargoCategoryClient
 	// OrderCargoItem is the client for interacting with the OrderCargoItem builders.
@@ -180,6 +182,12 @@ type Tx struct {
 	SeaMasterBill *SeaMasterBillClient
 	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
 	SeaMasterBillOrderLink *SeaMasterBillOrderLinkClient
+	// SeaOrderReassignmentEvent is the client for interacting with the SeaOrderReassignmentEvent builders.
+	SeaOrderReassignmentEvent *SeaOrderReassignmentEventClient
+	// SeaOrderSplitEvent is the client for interacting with the SeaOrderSplitEvent builders.
+	SeaOrderSplitEvent *SeaOrderSplitEventClient
+	// SeaOrderSplitResult is the client for interacting with the SeaOrderSplitResult builders.
+	SeaOrderSplitResult *SeaOrderSplitResultClient
 	// SeaTransportExecution is the client for interacting with the SeaTransportExecution builders.
 	SeaTransportExecution *SeaTransportExecutionClient
 	// Session is the client for interacting with the Session builders.
@@ -372,6 +380,7 @@ func (tx *Tx) init() {
 	tx.Order = NewOrderClient(tx.config)
 	tx.OrderAbnormalCase = NewOrderAbnormalCaseClient(tx.config)
 	tx.OrderAttachment = NewOrderAttachmentClient(tx.config)
+	tx.OrderAttachmentAsset = NewOrderAttachmentAssetClient(tx.config)
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderCargoItem = NewOrderCargoItemClient(tx.config)
 	tx.OrderCommissionAttribution = NewOrderCommissionAttributionClient(tx.config)
@@ -407,6 +416,9 @@ func (tx *Tx) init() {
 	tx.SeaHouseBill = NewSeaHouseBillClient(tx.config)
 	tx.SeaMasterBill = NewSeaMasterBillClient(tx.config)
 	tx.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(tx.config)
+	tx.SeaOrderReassignmentEvent = NewSeaOrderReassignmentEventClient(tx.config)
+	tx.SeaOrderSplitEvent = NewSeaOrderSplitEventClient(tx.config)
+	tx.SeaOrderSplitResult = NewSeaOrderSplitResultClient(tx.config)
 	tx.SeaTransportExecution = NewSeaTransportExecutionClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.ShippingLine = NewShippingLineClient(tx.config)

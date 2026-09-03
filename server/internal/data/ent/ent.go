@@ -61,6 +61,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -96,6 +97,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -211,6 +215,7 @@ func checkColumn(t, c string) error {
 			order.Table:                          order.ValidColumn,
 			orderabnormalcase.Table:              orderabnormalcase.ValidColumn,
 			orderattachment.Table:                orderattachment.ValidColumn,
+			orderattachmentasset.Table:           orderattachmentasset.ValidColumn,
 			ordercargocategory.Table:             ordercargocategory.ValidColumn,
 			ordercargoitem.Table:                 ordercargoitem.ValidColumn,
 			ordercommissionattribution.Table:     ordercommissionattribution.ValidColumn,
@@ -246,6 +251,9 @@ func checkColumn(t, c string) error {
 			seahousebill.Table:                   seahousebill.ValidColumn,
 			seamasterbill.Table:                  seamasterbill.ValidColumn,
 			seamasterbillorderlink.Table:         seamasterbillorderlink.ValidColumn,
+			seaorderreassignmentevent.Table:      seaorderreassignmentevent.ValidColumn,
+			seaordersplitevent.Table:             seaordersplitevent.ValidColumn,
+			seaordersplitresult.Table:            seaordersplitresult.ValidColumn,
 			seatransportexecution.Table:          seatransportexecution.ValidColumn,
 			session.Table:                        session.ValidColumn,
 			shippingline.Table:                   shippingline.ValidColumn,

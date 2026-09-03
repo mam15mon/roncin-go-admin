@@ -597,6 +597,18 @@ func (f OrderAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderAttachmentMutation", m)
 }
 
+// The OrderAttachmentAssetFunc type is an adapter to allow the use of ordinary
+// function as OrderAttachmentAsset mutator.
+type OrderAttachmentAssetFunc func(context.Context, *ent.OrderAttachmentAssetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderAttachmentAssetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderAttachmentAssetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderAttachmentAssetMutation", m)
+}
+
 // The OrderCargoCategoryFunc type is an adapter to allow the use of ordinary
 // function as OrderCargoCategory mutator.
 type OrderCargoCategoryFunc func(context.Context, *ent.OrderCargoCategoryMutation) (ent.Value, error)
@@ -1015,6 +1027,42 @@ func (f SeaMasterBillOrderLinkFunc) Mutate(ctx context.Context, m ent.Mutation) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaMasterBillOrderLinkMutation", m)
+}
+
+// The SeaOrderReassignmentEventFunc type is an adapter to allow the use of ordinary
+// function as SeaOrderReassignmentEvent mutator.
+type SeaOrderReassignmentEventFunc func(context.Context, *ent.SeaOrderReassignmentEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaOrderReassignmentEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaOrderReassignmentEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaOrderReassignmentEventMutation", m)
+}
+
+// The SeaOrderSplitEventFunc type is an adapter to allow the use of ordinary
+// function as SeaOrderSplitEvent mutator.
+type SeaOrderSplitEventFunc func(context.Context, *ent.SeaOrderSplitEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaOrderSplitEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaOrderSplitEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaOrderSplitEventMutation", m)
+}
+
+// The SeaOrderSplitResultFunc type is an adapter to allow the use of ordinary
+// function as SeaOrderSplitResult mutator.
+type SeaOrderSplitResultFunc func(context.Context, *ent.SeaOrderSplitResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaOrderSplitResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaOrderSplitResultMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaOrderSplitResultMutation", m)
 }
 
 // The SeaTransportExecutionFunc type is an adapter to allow the use of ordinary

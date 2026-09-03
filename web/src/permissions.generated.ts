@@ -125,6 +125,8 @@ export const manifestPermissionKeys = [
   'business.order.se.fee.create',
   'business.order.se.fee.update',
   'business.order.se.fee.delete',
+  'business.order.se.split',
+  'business.order.se.reassign',
   'business.order.si.read',
   'business.order.si.create',
   'business.order.si.update',

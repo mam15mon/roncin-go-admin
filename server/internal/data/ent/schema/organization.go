@@ -75,6 +75,10 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("order_enterprise_tags", OrderEnterpriseTag.Type),
 		edge.To("order_fee_enterprise_tags", OrderFeeEnterpriseTag.Type),
 		edge.To("finance_bill_enterprise_tags", FinanceBillEnterpriseTag.Type),
+		edge.To("attachment_assets", OrderAttachmentAsset.Type),
+		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
+		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),
+		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
 	}
 }
 

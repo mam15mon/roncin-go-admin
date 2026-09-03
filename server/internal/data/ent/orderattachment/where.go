@@ -71,6 +71,11 @@ func OrderID(v uuid.UUID) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.FieldEQ(FieldOrderID, v))
 }
 
+// AssetID applies equality check predicate on the "asset_id" field. It's identical to AssetIDEQ.
+func AssetID(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldEQ(FieldAssetID, v))
+}
+
 // DocType applies equality check predicate on the "doc_type" field. It's identical to DocTypeEQ.
 func DocType(v string) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.FieldEQ(FieldDocType, v))
@@ -81,34 +86,9 @@ func IdempotencyKey(v string) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.FieldEQ(FieldIdempotencyKey, v))
 }
 
-// FileName applies equality check predicate on the "file_name" field. It's identical to FileNameEQ.
-func FileName(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldFileName, v))
-}
-
-// MimeType applies equality check predicate on the "mime_type" field. It's identical to MimeTypeEQ.
-func MimeType(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldMimeType, v))
-}
-
-// FileSize applies equality check predicate on the "file_size" field. It's identical to FileSizeEQ.
-func FileSize(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldFileSize, v))
-}
-
-// ObjectKey applies equality check predicate on the "object_key" field. It's identical to ObjectKeyEQ.
-func ObjectKey(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldObjectKey, v))
-}
-
-// Checksum applies equality check predicate on the "checksum" field. It's identical to ChecksumEQ.
-func Checksum(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldChecksum, v))
-}
-
-// UploadedBy applies equality check predicate on the "uploaded_by" field. It's identical to UploadedByEQ.
-func UploadedBy(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldUploadedBy, v))
+// CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
+func CreatedBy(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldEQ(FieldCreatedBy, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -209,6 +189,26 @@ func OrderIDIn(vs ...uuid.UUID) predicate.OrderAttachment {
 // OrderIDNotIn applies the NotIn predicate on the "order_id" field.
 func OrderIDNotIn(vs ...uuid.UUID) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.FieldNotIn(FieldOrderID, vs...))
+}
+
+// AssetIDEQ applies the EQ predicate on the "asset_id" field.
+func AssetIDEQ(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldEQ(FieldAssetID, v))
+}
+
+// AssetIDNEQ applies the NEQ predicate on the "asset_id" field.
+func AssetIDNEQ(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldNEQ(FieldAssetID, v))
+}
+
+// AssetIDIn applies the In predicate on the "asset_id" field.
+func AssetIDIn(vs ...uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldIn(FieldAssetID, vs...))
+}
+
+// AssetIDNotIn applies the NotIn predicate on the "asset_id" field.
+func AssetIDNotIn(vs ...uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldNotIn(FieldAssetID, vs...))
 }
 
 // DocTypeEQ applies the EQ predicate on the "doc_type" field.
@@ -341,364 +341,34 @@ func IdempotencyKeyContainsFold(v string) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.FieldContainsFold(FieldIdempotencyKey, v))
 }
 
-// FileNameEQ applies the EQ predicate on the "file_name" field.
-func FileNameEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldFileName, v))
+// CreatedByEQ applies the EQ predicate on the "created_by" field.
+func CreatedByEQ(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldEQ(FieldCreatedBy, v))
 }
 
-// FileNameNEQ applies the NEQ predicate on the "file_name" field.
-func FileNameNEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldFileName, v))
+// CreatedByNEQ applies the NEQ predicate on the "created_by" field.
+func CreatedByNEQ(v uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldNEQ(FieldCreatedBy, v))
 }
 
-// FileNameIn applies the In predicate on the "file_name" field.
-func FileNameIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldFileName, vs...))
+// CreatedByIn applies the In predicate on the "created_by" field.
+func CreatedByIn(vs ...uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldIn(FieldCreatedBy, vs...))
 }
 
-// FileNameNotIn applies the NotIn predicate on the "file_name" field.
-func FileNameNotIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldFileName, vs...))
+// CreatedByNotIn applies the NotIn predicate on the "created_by" field.
+func CreatedByNotIn(vs ...uuid.UUID) predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldNotIn(FieldCreatedBy, vs...))
 }
 
-// FileNameGT applies the GT predicate on the "file_name" field.
-func FileNameGT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldFileName, v))
+// CreatedByIsNil applies the IsNil predicate on the "created_by" field.
+func CreatedByIsNil() predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldIsNull(FieldCreatedBy))
 }
 
-// FileNameGTE applies the GTE predicate on the "file_name" field.
-func FileNameGTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldFileName, v))
-}
-
-// FileNameLT applies the LT predicate on the "file_name" field.
-func FileNameLT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldFileName, v))
-}
-
-// FileNameLTE applies the LTE predicate on the "file_name" field.
-func FileNameLTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldFileName, v))
-}
-
-// FileNameContains applies the Contains predicate on the "file_name" field.
-func FileNameContains(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContains(FieldFileName, v))
-}
-
-// FileNameHasPrefix applies the HasPrefix predicate on the "file_name" field.
-func FileNameHasPrefix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasPrefix(FieldFileName, v))
-}
-
-// FileNameHasSuffix applies the HasSuffix predicate on the "file_name" field.
-func FileNameHasSuffix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasSuffix(FieldFileName, v))
-}
-
-// FileNameEqualFold applies the EqualFold predicate on the "file_name" field.
-func FileNameEqualFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEqualFold(FieldFileName, v))
-}
-
-// FileNameContainsFold applies the ContainsFold predicate on the "file_name" field.
-func FileNameContainsFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContainsFold(FieldFileName, v))
-}
-
-// MimeTypeEQ applies the EQ predicate on the "mime_type" field.
-func MimeTypeEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldMimeType, v))
-}
-
-// MimeTypeNEQ applies the NEQ predicate on the "mime_type" field.
-func MimeTypeNEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldMimeType, v))
-}
-
-// MimeTypeIn applies the In predicate on the "mime_type" field.
-func MimeTypeIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldMimeType, vs...))
-}
-
-// MimeTypeNotIn applies the NotIn predicate on the "mime_type" field.
-func MimeTypeNotIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldMimeType, vs...))
-}
-
-// MimeTypeGT applies the GT predicate on the "mime_type" field.
-func MimeTypeGT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldMimeType, v))
-}
-
-// MimeTypeGTE applies the GTE predicate on the "mime_type" field.
-func MimeTypeGTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldMimeType, v))
-}
-
-// MimeTypeLT applies the LT predicate on the "mime_type" field.
-func MimeTypeLT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldMimeType, v))
-}
-
-// MimeTypeLTE applies the LTE predicate on the "mime_type" field.
-func MimeTypeLTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldMimeType, v))
-}
-
-// MimeTypeContains applies the Contains predicate on the "mime_type" field.
-func MimeTypeContains(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContains(FieldMimeType, v))
-}
-
-// MimeTypeHasPrefix applies the HasPrefix predicate on the "mime_type" field.
-func MimeTypeHasPrefix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasPrefix(FieldMimeType, v))
-}
-
-// MimeTypeHasSuffix applies the HasSuffix predicate on the "mime_type" field.
-func MimeTypeHasSuffix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasSuffix(FieldMimeType, v))
-}
-
-// MimeTypeEqualFold applies the EqualFold predicate on the "mime_type" field.
-func MimeTypeEqualFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEqualFold(FieldMimeType, v))
-}
-
-// MimeTypeContainsFold applies the ContainsFold predicate on the "mime_type" field.
-func MimeTypeContainsFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContainsFold(FieldMimeType, v))
-}
-
-// FileSizeEQ applies the EQ predicate on the "file_size" field.
-func FileSizeEQ(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldFileSize, v))
-}
-
-// FileSizeNEQ applies the NEQ predicate on the "file_size" field.
-func FileSizeNEQ(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldFileSize, v))
-}
-
-// FileSizeIn applies the In predicate on the "file_size" field.
-func FileSizeIn(vs ...int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldFileSize, vs...))
-}
-
-// FileSizeNotIn applies the NotIn predicate on the "file_size" field.
-func FileSizeNotIn(vs ...int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldFileSize, vs...))
-}
-
-// FileSizeGT applies the GT predicate on the "file_size" field.
-func FileSizeGT(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldFileSize, v))
-}
-
-// FileSizeGTE applies the GTE predicate on the "file_size" field.
-func FileSizeGTE(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldFileSize, v))
-}
-
-// FileSizeLT applies the LT predicate on the "file_size" field.
-func FileSizeLT(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldFileSize, v))
-}
-
-// FileSizeLTE applies the LTE predicate on the "file_size" field.
-func FileSizeLTE(v int64) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldFileSize, v))
-}
-
-// ObjectKeyEQ applies the EQ predicate on the "object_key" field.
-func ObjectKeyEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldObjectKey, v))
-}
-
-// ObjectKeyNEQ applies the NEQ predicate on the "object_key" field.
-func ObjectKeyNEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldObjectKey, v))
-}
-
-// ObjectKeyIn applies the In predicate on the "object_key" field.
-func ObjectKeyIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldObjectKey, vs...))
-}
-
-// ObjectKeyNotIn applies the NotIn predicate on the "object_key" field.
-func ObjectKeyNotIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldObjectKey, vs...))
-}
-
-// ObjectKeyGT applies the GT predicate on the "object_key" field.
-func ObjectKeyGT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldObjectKey, v))
-}
-
-// ObjectKeyGTE applies the GTE predicate on the "object_key" field.
-func ObjectKeyGTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldObjectKey, v))
-}
-
-// ObjectKeyLT applies the LT predicate on the "object_key" field.
-func ObjectKeyLT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldObjectKey, v))
-}
-
-// ObjectKeyLTE applies the LTE predicate on the "object_key" field.
-func ObjectKeyLTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldObjectKey, v))
-}
-
-// ObjectKeyContains applies the Contains predicate on the "object_key" field.
-func ObjectKeyContains(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContains(FieldObjectKey, v))
-}
-
-// ObjectKeyHasPrefix applies the HasPrefix predicate on the "object_key" field.
-func ObjectKeyHasPrefix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasPrefix(FieldObjectKey, v))
-}
-
-// ObjectKeyHasSuffix applies the HasSuffix predicate on the "object_key" field.
-func ObjectKeyHasSuffix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasSuffix(FieldObjectKey, v))
-}
-
-// ObjectKeyEqualFold applies the EqualFold predicate on the "object_key" field.
-func ObjectKeyEqualFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEqualFold(FieldObjectKey, v))
-}
-
-// ObjectKeyContainsFold applies the ContainsFold predicate on the "object_key" field.
-func ObjectKeyContainsFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContainsFold(FieldObjectKey, v))
-}
-
-// ChecksumEQ applies the EQ predicate on the "checksum" field.
-func ChecksumEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldChecksum, v))
-}
-
-// ChecksumNEQ applies the NEQ predicate on the "checksum" field.
-func ChecksumNEQ(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldChecksum, v))
-}
-
-// ChecksumIn applies the In predicate on the "checksum" field.
-func ChecksumIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldChecksum, vs...))
-}
-
-// ChecksumNotIn applies the NotIn predicate on the "checksum" field.
-func ChecksumNotIn(vs ...string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldChecksum, vs...))
-}
-
-// ChecksumGT applies the GT predicate on the "checksum" field.
-func ChecksumGT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldChecksum, v))
-}
-
-// ChecksumGTE applies the GTE predicate on the "checksum" field.
-func ChecksumGTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldChecksum, v))
-}
-
-// ChecksumLT applies the LT predicate on the "checksum" field.
-func ChecksumLT(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldChecksum, v))
-}
-
-// ChecksumLTE applies the LTE predicate on the "checksum" field.
-func ChecksumLTE(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldChecksum, v))
-}
-
-// ChecksumContains applies the Contains predicate on the "checksum" field.
-func ChecksumContains(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContains(FieldChecksum, v))
-}
-
-// ChecksumHasPrefix applies the HasPrefix predicate on the "checksum" field.
-func ChecksumHasPrefix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasPrefix(FieldChecksum, v))
-}
-
-// ChecksumHasSuffix applies the HasSuffix predicate on the "checksum" field.
-func ChecksumHasSuffix(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldHasSuffix(FieldChecksum, v))
-}
-
-// ChecksumIsNil applies the IsNil predicate on the "checksum" field.
-func ChecksumIsNil() predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIsNull(FieldChecksum))
-}
-
-// ChecksumNotNil applies the NotNil predicate on the "checksum" field.
-func ChecksumNotNil() predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotNull(FieldChecksum))
-}
-
-// ChecksumEqualFold applies the EqualFold predicate on the "checksum" field.
-func ChecksumEqualFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEqualFold(FieldChecksum, v))
-}
-
-// ChecksumContainsFold applies the ContainsFold predicate on the "checksum" field.
-func ChecksumContainsFold(v string) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldContainsFold(FieldChecksum, v))
-}
-
-// UploadedByEQ applies the EQ predicate on the "uploaded_by" field.
-func UploadedByEQ(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldEQ(FieldUploadedBy, v))
-}
-
-// UploadedByNEQ applies the NEQ predicate on the "uploaded_by" field.
-func UploadedByNEQ(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNEQ(FieldUploadedBy, v))
-}
-
-// UploadedByIn applies the In predicate on the "uploaded_by" field.
-func UploadedByIn(vs ...uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIn(FieldUploadedBy, vs...))
-}
-
-// UploadedByNotIn applies the NotIn predicate on the "uploaded_by" field.
-func UploadedByNotIn(vs ...uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotIn(FieldUploadedBy, vs...))
-}
-
-// UploadedByGT applies the GT predicate on the "uploaded_by" field.
-func UploadedByGT(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGT(FieldUploadedBy, v))
-}
-
-// UploadedByGTE applies the GTE predicate on the "uploaded_by" field.
-func UploadedByGTE(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldGTE(FieldUploadedBy, v))
-}
-
-// UploadedByLT applies the LT predicate on the "uploaded_by" field.
-func UploadedByLT(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLT(FieldUploadedBy, v))
-}
-
-// UploadedByLTE applies the LTE predicate on the "uploaded_by" field.
-func UploadedByLTE(v uuid.UUID) predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldLTE(FieldUploadedBy, v))
-}
-
-// UploadedByIsNil applies the IsNil predicate on the "uploaded_by" field.
-func UploadedByIsNil() predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldIsNull(FieldUploadedBy))
-}
-
-// UploadedByNotNil applies the NotNil predicate on the "uploaded_by" field.
-func UploadedByNotNil() predicate.OrderAttachment {
-	return predicate.OrderAttachment(sql.FieldNotNull(FieldUploadedBy))
+// CreatedByNotNil applies the NotNil predicate on the "created_by" field.
+func CreatedByNotNil() predicate.OrderAttachment {
+	return predicate.OrderAttachment(sql.FieldNotNull(FieldCreatedBy))
 }
 
 // HasOrder applies the HasEdge predicate on the "order" edge.
@@ -716,6 +386,52 @@ func HasOrder() predicate.OrderAttachment {
 func HasOrderWith(preds ...predicate.Order) predicate.OrderAttachment {
 	return predicate.OrderAttachment(func(s *sql.Selector) {
 		step := newOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAsset applies the HasEdge predicate on the "asset" edge.
+func HasAsset() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AssetTable, AssetColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAssetWith applies the HasEdge predicate on the "asset" edge with a given conditions (other predicates).
+func HasAssetWith(preds ...predicate.OrderAttachmentAsset) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newAssetStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreator applies the HasEdge predicate on the "creator" edge.
+func HasCreator() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatorWith applies the HasEdge predicate on the "creator" edge with a given conditions (other predicates).
+func HasCreatorWith(preds ...predicate.User) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newCreatorStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

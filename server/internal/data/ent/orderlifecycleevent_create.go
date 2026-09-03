@@ -102,6 +102,34 @@ func (_c *OrderLifecycleEventCreate) SetNillableChangedAt(v *time.Time) *OrderLi
 	return _c
 }
 
+// SetReferenceType sets the "reference_type" field.
+func (_c *OrderLifecycleEventCreate) SetReferenceType(v string) *OrderLifecycleEventCreate {
+	_c.mutation.SetReferenceType(v)
+	return _c
+}
+
+// SetNillableReferenceType sets the "reference_type" field if the given value is not nil.
+func (_c *OrderLifecycleEventCreate) SetNillableReferenceType(v *string) *OrderLifecycleEventCreate {
+	if v != nil {
+		_c.SetReferenceType(*v)
+	}
+	return _c
+}
+
+// SetReferenceID sets the "reference_id" field.
+func (_c *OrderLifecycleEventCreate) SetReferenceID(v uuid.UUID) *OrderLifecycleEventCreate {
+	_c.mutation.SetReferenceID(v)
+	return _c
+}
+
+// SetNillableReferenceID sets the "reference_id" field if the given value is not nil.
+func (_c *OrderLifecycleEventCreate) SetNillableReferenceID(v *uuid.UUID) *OrderLifecycleEventCreate {
+	if v != nil {
+		_c.SetReferenceID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderLifecycleEventCreate) SetID(v uuid.UUID) *OrderLifecycleEventCreate {
 	_c.mutation.SetID(v)
@@ -208,6 +236,11 @@ func (_c *OrderLifecycleEventCreate) check() error {
 	if _, ok := _c.mutation.ChangedAt(); !ok {
 		return &ValidationError{Name: "changed_at", err: errors.New(`ent: missing required field "OrderLifecycleEvent.changed_at"`)}
 	}
+	if v, ok := _c.mutation.ReferenceType(); ok {
+		if err := orderlifecycleevent.ReferenceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "OrderLifecycleEvent.reference_type": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "OrderLifecycleEvent.order"`)}
 	}
@@ -273,6 +306,14 @@ func (_c *OrderLifecycleEventCreate) createSpec() (*OrderLifecycleEvent, *sqlgra
 	if value, ok := _c.mutation.ChangedAt(); ok {
 		_spec.SetField(orderlifecycleevent.FieldChangedAt, field.TypeTime, value)
 		_node.ChangedAt = value
+	}
+	if value, ok := _c.mutation.ReferenceType(); ok {
+		_spec.SetField(orderlifecycleevent.FieldReferenceType, field.TypeString, value)
+		_node.ReferenceType = &value
+	}
+	if value, ok := _c.mutation.ReferenceID(); ok {
+		_spec.SetField(orderlifecycleevent.FieldReferenceID, field.TypeUUID, value)
+		_node.ReferenceID = &value
 	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

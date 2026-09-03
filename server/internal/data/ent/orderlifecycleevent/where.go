@@ -91,6 +91,16 @@ func ChangedAt(v time.Time) predicate.OrderLifecycleEvent {
 	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldChangedAt, v))
 }
 
+// ReferenceType applies equality check predicate on the "reference_type" field. It's identical to ReferenceTypeEQ.
+func ReferenceType(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldReferenceType, v))
+}
+
+// ReferenceID applies equality check predicate on the "reference_id" field. It's identical to ReferenceIDEQ.
+func ReferenceID(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldReferenceID, v))
+}
+
 // OrderIDEQ applies the EQ predicate on the "order_id" field.
 func OrderIDEQ(v uuid.UUID) predicate.OrderLifecycleEvent {
 	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldOrderID, v))
@@ -499,6 +509,131 @@ func ChangedAtLT(v time.Time) predicate.OrderLifecycleEvent {
 // ChangedAtLTE applies the LTE predicate on the "changed_at" field.
 func ChangedAtLTE(v time.Time) predicate.OrderLifecycleEvent {
 	return predicate.OrderLifecycleEvent(sql.FieldLTE(FieldChangedAt, v))
+}
+
+// ReferenceTypeEQ applies the EQ predicate on the "reference_type" field.
+func ReferenceTypeEQ(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldReferenceType, v))
+}
+
+// ReferenceTypeNEQ applies the NEQ predicate on the "reference_type" field.
+func ReferenceTypeNEQ(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNEQ(FieldReferenceType, v))
+}
+
+// ReferenceTypeIn applies the In predicate on the "reference_type" field.
+func ReferenceTypeIn(vs ...string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldIn(FieldReferenceType, vs...))
+}
+
+// ReferenceTypeNotIn applies the NotIn predicate on the "reference_type" field.
+func ReferenceTypeNotIn(vs ...string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNotIn(FieldReferenceType, vs...))
+}
+
+// ReferenceTypeGT applies the GT predicate on the "reference_type" field.
+func ReferenceTypeGT(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldGT(FieldReferenceType, v))
+}
+
+// ReferenceTypeGTE applies the GTE predicate on the "reference_type" field.
+func ReferenceTypeGTE(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldGTE(FieldReferenceType, v))
+}
+
+// ReferenceTypeLT applies the LT predicate on the "reference_type" field.
+func ReferenceTypeLT(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldLT(FieldReferenceType, v))
+}
+
+// ReferenceTypeLTE applies the LTE predicate on the "reference_type" field.
+func ReferenceTypeLTE(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldLTE(FieldReferenceType, v))
+}
+
+// ReferenceTypeContains applies the Contains predicate on the "reference_type" field.
+func ReferenceTypeContains(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldContains(FieldReferenceType, v))
+}
+
+// ReferenceTypeHasPrefix applies the HasPrefix predicate on the "reference_type" field.
+func ReferenceTypeHasPrefix(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldHasPrefix(FieldReferenceType, v))
+}
+
+// ReferenceTypeHasSuffix applies the HasSuffix predicate on the "reference_type" field.
+func ReferenceTypeHasSuffix(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldHasSuffix(FieldReferenceType, v))
+}
+
+// ReferenceTypeIsNil applies the IsNil predicate on the "reference_type" field.
+func ReferenceTypeIsNil() predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldIsNull(FieldReferenceType))
+}
+
+// ReferenceTypeNotNil applies the NotNil predicate on the "reference_type" field.
+func ReferenceTypeNotNil() predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNotNull(FieldReferenceType))
+}
+
+// ReferenceTypeEqualFold applies the EqualFold predicate on the "reference_type" field.
+func ReferenceTypeEqualFold(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldEqualFold(FieldReferenceType, v))
+}
+
+// ReferenceTypeContainsFold applies the ContainsFold predicate on the "reference_type" field.
+func ReferenceTypeContainsFold(v string) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldContainsFold(FieldReferenceType, v))
+}
+
+// ReferenceIDEQ applies the EQ predicate on the "reference_id" field.
+func ReferenceIDEQ(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldEQ(FieldReferenceID, v))
+}
+
+// ReferenceIDNEQ applies the NEQ predicate on the "reference_id" field.
+func ReferenceIDNEQ(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNEQ(FieldReferenceID, v))
+}
+
+// ReferenceIDIn applies the In predicate on the "reference_id" field.
+func ReferenceIDIn(vs ...uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldIn(FieldReferenceID, vs...))
+}
+
+// ReferenceIDNotIn applies the NotIn predicate on the "reference_id" field.
+func ReferenceIDNotIn(vs ...uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNotIn(FieldReferenceID, vs...))
+}
+
+// ReferenceIDGT applies the GT predicate on the "reference_id" field.
+func ReferenceIDGT(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldGT(FieldReferenceID, v))
+}
+
+// ReferenceIDGTE applies the GTE predicate on the "reference_id" field.
+func ReferenceIDGTE(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldGTE(FieldReferenceID, v))
+}
+
+// ReferenceIDLT applies the LT predicate on the "reference_id" field.
+func ReferenceIDLT(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldLT(FieldReferenceID, v))
+}
+
+// ReferenceIDLTE applies the LTE predicate on the "reference_id" field.
+func ReferenceIDLTE(v uuid.UUID) predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldLTE(FieldReferenceID, v))
+}
+
+// ReferenceIDIsNil applies the IsNil predicate on the "reference_id" field.
+func ReferenceIDIsNil() predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldIsNull(FieldReferenceID))
+}
+
+// ReferenceIDNotNil applies the NotNil predicate on the "reference_id" field.
+func ReferenceIDNotNil() predicate.OrderLifecycleEvent {
+	return predicate.OrderLifecycleEvent(sql.FieldNotNull(FieldReferenceID))
 }
 
 // HasOrder applies the HasEdge predicate on the "order" edge.

@@ -13,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderAttachmentCreate is the builder for creating a OrderAttachment entity.
@@ -56,6 +58,12 @@ func (_c *OrderAttachmentCreate) SetOrderID(v uuid.UUID) *OrderAttachmentCreate 
 	return _c
 }
 
+// SetAssetID sets the "asset_id" field.
+func (_c *OrderAttachmentCreate) SetAssetID(v uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.SetAssetID(v)
+	return _c
+}
+
 // SetDocType sets the "doc_type" field.
 func (_c *OrderAttachmentCreate) SetDocType(v string) *OrderAttachmentCreate {
 	_c.mutation.SetDocType(v)
@@ -68,54 +76,16 @@ func (_c *OrderAttachmentCreate) SetIdempotencyKey(v string) *OrderAttachmentCre
 	return _c
 }
 
-// SetFileName sets the "file_name" field.
-func (_c *OrderAttachmentCreate) SetFileName(v string) *OrderAttachmentCreate {
-	_c.mutation.SetFileName(v)
+// SetCreatedBy sets the "created_by" field.
+func (_c *OrderAttachmentCreate) SetCreatedBy(v uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.SetCreatedBy(v)
 	return _c
 }
 
-// SetMimeType sets the "mime_type" field.
-func (_c *OrderAttachmentCreate) SetMimeType(v string) *OrderAttachmentCreate {
-	_c.mutation.SetMimeType(v)
-	return _c
-}
-
-// SetFileSize sets the "file_size" field.
-func (_c *OrderAttachmentCreate) SetFileSize(v int64) *OrderAttachmentCreate {
-	_c.mutation.SetFileSize(v)
-	return _c
-}
-
-// SetObjectKey sets the "object_key" field.
-func (_c *OrderAttachmentCreate) SetObjectKey(v string) *OrderAttachmentCreate {
-	_c.mutation.SetObjectKey(v)
-	return _c
-}
-
-// SetChecksum sets the "checksum" field.
-func (_c *OrderAttachmentCreate) SetChecksum(v string) *OrderAttachmentCreate {
-	_c.mutation.SetChecksum(v)
-	return _c
-}
-
-// SetNillableChecksum sets the "checksum" field if the given value is not nil.
-func (_c *OrderAttachmentCreate) SetNillableChecksum(v *string) *OrderAttachmentCreate {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_c *OrderAttachmentCreate) SetNillableCreatedBy(v *uuid.UUID) *OrderAttachmentCreate {
 	if v != nil {
-		_c.SetChecksum(*v)
-	}
-	return _c
-}
-
-// SetUploadedBy sets the "uploaded_by" field.
-func (_c *OrderAttachmentCreate) SetUploadedBy(v uuid.UUID) *OrderAttachmentCreate {
-	_c.mutation.SetUploadedBy(v)
-	return _c
-}
-
-// SetNillableUploadedBy sets the "uploaded_by" field if the given value is not nil.
-func (_c *OrderAttachmentCreate) SetNillableUploadedBy(v *uuid.UUID) *OrderAttachmentCreate {
-	if v != nil {
-		_c.SetUploadedBy(*v)
+		_c.SetCreatedBy(*v)
 	}
 	return _c
 }
@@ -137,6 +107,30 @@ func (_c *OrderAttachmentCreate) SetNillableID(v *uuid.UUID) *OrderAttachmentCre
 // SetOrder sets the "order" edge to the Order entity.
 func (_c *OrderAttachmentCreate) SetOrder(v *Order) *OrderAttachmentCreate {
 	return _c.SetOrderID(v.ID)
+}
+
+// SetAsset sets the "asset" edge to the OrderAttachmentAsset entity.
+func (_c *OrderAttachmentCreate) SetAsset(v *OrderAttachmentAsset) *OrderAttachmentCreate {
+	return _c.SetAssetID(v.ID)
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (_c *OrderAttachmentCreate) SetCreatorID(id uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.SetCreatorID(id)
+	return _c
+}
+
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (_c *OrderAttachmentCreate) SetNillableCreatorID(id *uuid.UUID) *OrderAttachmentCreate {
+	if id != nil {
+		_c = _c.SetCreatorID(*id)
+	}
+	return _c
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (_c *OrderAttachmentCreate) SetCreator(v *User) *OrderAttachmentCreate {
+	return _c.SetCreatorID(v.ID)
 }
 
 // Mutation returns the OrderAttachmentMutation object of the builder.
@@ -199,6 +193,9 @@ func (_c *OrderAttachmentCreate) check() error {
 	if _, ok := _c.mutation.OrderID(); !ok {
 		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "OrderAttachment.order_id"`)}
 	}
+	if _, ok := _c.mutation.AssetID(); !ok {
+		return &ValidationError{Name: "asset_id", err: errors.New(`ent: missing required field "OrderAttachment.asset_id"`)}
+	}
 	if _, ok := _c.mutation.DocType(); !ok {
 		return &ValidationError{Name: "doc_type", err: errors.New(`ent: missing required field "OrderAttachment.doc_type"`)}
 	}
@@ -215,45 +212,11 @@ func (_c *OrderAttachmentCreate) check() error {
 			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.idempotency_key": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.FileName(); !ok {
-		return &ValidationError{Name: "file_name", err: errors.New(`ent: missing required field "OrderAttachment.file_name"`)}
-	}
-	if v, ok := _c.mutation.FileName(); ok {
-		if err := orderattachment.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "file_name", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_name": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.MimeType(); !ok {
-		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "OrderAttachment.mime_type"`)}
-	}
-	if v, ok := _c.mutation.MimeType(); ok {
-		if err := orderattachment.MimeTypeValidator(v); err != nil {
-			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.mime_type": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.FileSize(); !ok {
-		return &ValidationError{Name: "file_size", err: errors.New(`ent: missing required field "OrderAttachment.file_size"`)}
-	}
-	if v, ok := _c.mutation.FileSize(); ok {
-		if err := orderattachment.FileSizeValidator(v); err != nil {
-			return &ValidationError{Name: "file_size", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.file_size": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.ObjectKey(); !ok {
-		return &ValidationError{Name: "object_key", err: errors.New(`ent: missing required field "OrderAttachment.object_key"`)}
-	}
-	if v, ok := _c.mutation.ObjectKey(); ok {
-		if err := orderattachment.ObjectKeyValidator(v); err != nil {
-			return &ValidationError{Name: "object_key", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.object_key": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.Checksum(); ok {
-		if err := orderattachment.ChecksumValidator(v); err != nil {
-			return &ValidationError{Name: "checksum", err: fmt.Errorf(`ent: validator failed for field "OrderAttachment.checksum": %w`, err)}
-		}
-	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "OrderAttachment.order"`)}
+	}
+	if len(_c.mutation.AssetIDs()) == 0 {
+		return &ValidationError{Name: "asset", err: errors.New(`ent: missing required edge "OrderAttachment.asset"`)}
 	}
 	return nil
 }
@@ -306,30 +269,6 @@ func (_c *OrderAttachmentCreate) createSpec() (*OrderAttachment, *sqlgraph.Creat
 		_spec.SetField(orderattachment.FieldIdempotencyKey, field.TypeString, value)
 		_node.IdempotencyKey = value
 	}
-	if value, ok := _c.mutation.FileName(); ok {
-		_spec.SetField(orderattachment.FieldFileName, field.TypeString, value)
-		_node.FileName = value
-	}
-	if value, ok := _c.mutation.MimeType(); ok {
-		_spec.SetField(orderattachment.FieldMimeType, field.TypeString, value)
-		_node.MimeType = value
-	}
-	if value, ok := _c.mutation.FileSize(); ok {
-		_spec.SetField(orderattachment.FieldFileSize, field.TypeInt64, value)
-		_node.FileSize = value
-	}
-	if value, ok := _c.mutation.ObjectKey(); ok {
-		_spec.SetField(orderattachment.FieldObjectKey, field.TypeString, value)
-		_node.ObjectKey = value
-	}
-	if value, ok := _c.mutation.Checksum(); ok {
-		_spec.SetField(orderattachment.FieldChecksum, field.TypeString, value)
-		_node.Checksum = &value
-	}
-	if value, ok := _c.mutation.UploadedBy(); ok {
-		_spec.SetField(orderattachment.FieldUploadedBy, field.TypeUUID, value)
-		_node.UploadedBy = &value
-	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -345,6 +284,40 @@ func (_c *OrderAttachmentCreate) createSpec() (*OrderAttachment, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrderID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.AssetTable,
+			Columns: []string{orderattachment.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.AssetID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderattachment.CreatorTable,
+			Columns: []string{orderattachment.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CreatedBy = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

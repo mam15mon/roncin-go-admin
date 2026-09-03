@@ -1663,6 +1663,98 @@ func HasHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.SeaMasterBill 
 	})
 }
 
+// HasInitialSeaOrderSplitResults applies the HasEdge predicate on the "initial_sea_order_split_results" edge.
+func HasInitialSeaOrderSplitResults() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InitialSeaOrderSplitResultsTable, InitialSeaOrderSplitResultsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInitialSeaOrderSplitResultsWith applies the HasEdge predicate on the "initial_sea_order_split_results" edge with a given conditions (other predicates).
+func HasInitialSeaOrderSplitResultsWith(preds ...predicate.SeaOrderSplitResult) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newInitialSeaOrderSplitResultsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFinalSeaOrderSplitResults applies the HasEdge predicate on the "final_sea_order_split_results" edge.
+func HasFinalSeaOrderSplitResults() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinalSeaOrderSplitResultsTable, FinalSeaOrderSplitResultsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinalSeaOrderSplitResultsWith applies the HasEdge predicate on the "final_sea_order_split_results" edge with a given conditions (other predicates).
+func HasFinalSeaOrderSplitResultsWith(preds ...predicate.SeaOrderSplitResult) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newFinalSeaOrderSplitResultsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPreviousSeaOrderReassignments applies the HasEdge predicate on the "previous_sea_order_reassignments" edge.
+func HasPreviousSeaOrderReassignments() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PreviousSeaOrderReassignmentsTable, PreviousSeaOrderReassignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPreviousSeaOrderReassignmentsWith applies the HasEdge predicate on the "previous_sea_order_reassignments" edge with a given conditions (other predicates).
+func HasPreviousSeaOrderReassignmentsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newPreviousSeaOrderReassignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTargetSeaOrderReassignments applies the HasEdge predicate on the "target_sea_order_reassignments" edge.
+func HasTargetSeaOrderReassignments() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TargetSeaOrderReassignmentsTable, TargetSeaOrderReassignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTargetSeaOrderReassignmentsWith applies the HasEdge predicate on the "target_sea_order_reassignments" edge with a given conditions (other predicates).
+func HasTargetSeaOrderReassignmentsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newTargetSeaOrderReassignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.SeaMasterBill) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.AndPredicates(predicates...))

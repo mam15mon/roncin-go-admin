@@ -84,9 +84,11 @@ type PartnerEdges struct {
 	OrderCommissionAttributions []*OrderCommissionAttribution `json:"order_commission_attributions,omitempty"`
 	// IssuedSeaHouseBills holds the value of the issued_sea_house_bills edge.
 	IssuedSeaHouseBills []*SeaHouseBill `json:"issued_sea_house_bills,omitempty"`
+	// SeaOrderReassignments holds the value of the sea_order_reassignments edge.
+	SeaOrderReassignments []*SeaOrderReassignmentEvent `json:"sea_order_reassignments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [18]bool
+	loadedTypes [19]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -253,6 +255,15 @@ func (e PartnerEdges) IssuedSeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
 		return e.IssuedSeaHouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "issued_sea_house_bills"}
+}
+
+// SeaOrderReassignmentsOrErr returns the SeaOrderReassignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) SeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[18] {
+		return e.SeaOrderReassignments, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_reassignments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -451,6 +462,11 @@ func (_m *Partner) QueryOrderCommissionAttributions() *OrderCommissionAttributio
 // QueryIssuedSeaHouseBills queries the "issued_sea_house_bills" edge of the Partner entity.
 func (_m *Partner) QueryIssuedSeaHouseBills() *SeaHouseBillQuery {
 	return NewPartnerClient(_m.config).QueryIssuedSeaHouseBills(_m)
+}
+
+// QuerySeaOrderReassignments queries the "sea_order_reassignments" edge of the Partner entity.
+func (_m *Partner) QuerySeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	return NewPartnerClient(_m.config).QuerySeaOrderReassignments(_m)
 }
 
 // Update returns a builder for updating this Partner.

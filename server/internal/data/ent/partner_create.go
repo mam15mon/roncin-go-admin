@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
 // PartnerCreate is the builder for creating a Partner entity.
@@ -423,6 +424,21 @@ func (_c *PartnerCreate) AddIssuedSeaHouseBills(v ...*SeaHouseBill) *PartnerCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddIssuedSeaHouseBillIDs(ids...)
+}
+
+// AddSeaOrderReassignmentIDs adds the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *PartnerCreate) AddSeaOrderReassignmentIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddSeaOrderReassignmentIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderReassignments adds the "sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_c *PartnerCreate) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderReassignmentIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -901,6 +917,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderReassignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -55,6 +55,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -91,6 +92,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -4282,7 +4286,7 @@ func init() {
 	// orderattachment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderattachment.UpdateDefaultUpdatedAt = orderattachmentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderattachmentDescDocType is the schema descriptor for doc_type field.
-	orderattachmentDescDocType := orderattachmentFields[1].Descriptor()
+	orderattachmentDescDocType := orderattachmentFields[2].Descriptor()
 	// orderattachment.DocTypeValidator is a validator for the "doc_type" field. It is called by the builders before save.
 	orderattachment.DocTypeValidator = func() func(string) error {
 		validators := orderattachmentDescDocType.Validators
@@ -4300,7 +4304,7 @@ func init() {
 		}
 	}()
 	// orderattachmentDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderattachmentDescIdempotencyKey := orderattachmentFields[2].Descriptor()
+	orderattachmentDescIdempotencyKey := orderattachmentFields[3].Descriptor()
 	// orderattachment.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderattachment.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderattachmentDescIdempotencyKey.Validators
@@ -4317,51 +4321,32 @@ func init() {
 			return nil
 		}
 	}()
-	// orderattachmentDescFileName is the schema descriptor for file_name field.
-	orderattachmentDescFileName := orderattachmentFields[3].Descriptor()
-	// orderattachment.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
-	orderattachment.FileNameValidator = func() func(string) error {
-		validators := orderattachmentDescFileName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(file_name string) error {
-			for _, fn := range fns {
-				if err := fn(file_name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// orderattachmentDescMimeType is the schema descriptor for mime_type field.
-	orderattachmentDescMimeType := orderattachmentFields[4].Descriptor()
-	// orderattachment.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
-	orderattachment.MimeTypeValidator = func() func(string) error {
-		validators := orderattachmentDescMimeType.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(mime_type string) error {
-			for _, fn := range fns {
-				if err := fn(mime_type); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// orderattachmentDescFileSize is the schema descriptor for file_size field.
-	orderattachmentDescFileSize := orderattachmentFields[5].Descriptor()
-	// orderattachment.FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
-	orderattachment.FileSizeValidator = orderattachmentDescFileSize.Validators[0].(func(int64) error)
-	// orderattachmentDescObjectKey is the schema descriptor for object_key field.
-	orderattachmentDescObjectKey := orderattachmentFields[6].Descriptor()
-	// orderattachment.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
-	orderattachment.ObjectKeyValidator = func() func(string) error {
-		validators := orderattachmentDescObjectKey.Validators
+	// orderattachmentDescID is the schema descriptor for id field.
+	orderattachmentDescID := orderattachmentMixinFields0[0].Descriptor()
+	// orderattachment.DefaultID holds the default value on creation for the id field.
+	orderattachment.DefaultID = orderattachmentDescID.Default.(func() uuid.UUID)
+	orderattachmentassetMixin := schema.OrderAttachmentAsset{}.Mixin()
+	orderattachmentassetMixinFields0 := orderattachmentassetMixin[0].Fields()
+	_ = orderattachmentassetMixinFields0
+	orderattachmentassetMixinFields1 := orderattachmentassetMixin[1].Fields()
+	_ = orderattachmentassetMixinFields1
+	orderattachmentassetFields := schema.OrderAttachmentAsset{}.Fields()
+	_ = orderattachmentassetFields
+	// orderattachmentassetDescCreatedAt is the schema descriptor for created_at field.
+	orderattachmentassetDescCreatedAt := orderattachmentassetMixinFields1[0].Descriptor()
+	// orderattachmentasset.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderattachmentasset.DefaultCreatedAt = orderattachmentassetDescCreatedAt.Default.(func() time.Time)
+	// orderattachmentassetDescUpdatedAt is the schema descriptor for updated_at field.
+	orderattachmentassetDescUpdatedAt := orderattachmentassetMixinFields1[1].Descriptor()
+	// orderattachmentasset.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderattachmentasset.DefaultUpdatedAt = orderattachmentassetDescUpdatedAt.Default.(func() time.Time)
+	// orderattachmentasset.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderattachmentasset.UpdateDefaultUpdatedAt = orderattachmentassetDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderattachmentassetDescObjectKey is the schema descriptor for object_key field.
+	orderattachmentassetDescObjectKey := orderattachmentassetFields[1].Descriptor()
+	// orderattachmentasset.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	orderattachmentasset.ObjectKeyValidator = func() func(string) error {
+		validators := orderattachmentassetDescObjectKey.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
@@ -4375,14 +4360,54 @@ func init() {
 			return nil
 		}
 	}()
-	// orderattachmentDescChecksum is the schema descriptor for checksum field.
-	orderattachmentDescChecksum := orderattachmentFields[7].Descriptor()
-	// orderattachment.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
-	orderattachment.ChecksumValidator = orderattachmentDescChecksum.Validators[0].(func(string) error)
-	// orderattachmentDescID is the schema descriptor for id field.
-	orderattachmentDescID := orderattachmentMixinFields0[0].Descriptor()
-	// orderattachment.DefaultID holds the default value on creation for the id field.
-	orderattachment.DefaultID = orderattachmentDescID.Default.(func() uuid.UUID)
+	// orderattachmentassetDescFileName is the schema descriptor for file_name field.
+	orderattachmentassetDescFileName := orderattachmentassetFields[2].Descriptor()
+	// orderattachmentasset.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	orderattachmentasset.FileNameValidator = func() func(string) error {
+		validators := orderattachmentassetDescFileName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_name string) error {
+			for _, fn := range fns {
+				if err := fn(file_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentassetDescMimeType is the schema descriptor for mime_type field.
+	orderattachmentassetDescMimeType := orderattachmentassetFields[3].Descriptor()
+	// orderattachmentasset.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	orderattachmentasset.MimeTypeValidator = func() func(string) error {
+		validators := orderattachmentassetDescMimeType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mime_type string) error {
+			for _, fn := range fns {
+				if err := fn(mime_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentassetDescFileSize is the schema descriptor for file_size field.
+	orderattachmentassetDescFileSize := orderattachmentassetFields[4].Descriptor()
+	// orderattachmentasset.FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
+	orderattachmentasset.FileSizeValidator = orderattachmentassetDescFileSize.Validators[0].(func(int64) error)
+	// orderattachmentassetDescChecksum is the schema descriptor for checksum field.
+	orderattachmentassetDescChecksum := orderattachmentassetFields[5].Descriptor()
+	// orderattachmentasset.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
+	orderattachmentasset.ChecksumValidator = orderattachmentassetDescChecksum.Validators[0].(func(string) error)
+	// orderattachmentassetDescID is the schema descriptor for id field.
+	orderattachmentassetDescID := orderattachmentassetMixinFields0[0].Descriptor()
+	// orderattachmentasset.DefaultID holds the default value on creation for the id field.
+	orderattachmentasset.DefaultID = orderattachmentassetDescID.Default.(func() uuid.UUID)
 	ordercargocategoryMixin := schema.OrderCargoCategory{}.Mixin()
 	ordercargocategoryMixinFields0 := ordercargocategoryMixin[0].Fields()
 	_ = ordercargocategoryMixinFields0
@@ -4882,6 +4907,10 @@ func init() {
 	orderlifecycleeventDescChangedAt := orderlifecycleeventFields[7].Descriptor()
 	// orderlifecycleevent.DefaultChangedAt holds the default value on creation for the changed_at field.
 	orderlifecycleevent.DefaultChangedAt = orderlifecycleeventDescChangedAt.Default.(func() time.Time)
+	// orderlifecycleeventDescReferenceType is the schema descriptor for reference_type field.
+	orderlifecycleeventDescReferenceType := orderlifecycleeventFields[8].Descriptor()
+	// orderlifecycleevent.ReferenceTypeValidator is a validator for the "reference_type" field. It is called by the builders before save.
+	orderlifecycleevent.ReferenceTypeValidator = orderlifecycleeventDescReferenceType.Validators[0].(func(string) error)
 	// orderlifecycleeventDescID is the schema descriptor for id field.
 	orderlifecycleeventDescID := orderlifecycleeventMixinFields0[0].Descriptor()
 	// orderlifecycleevent.DefaultID holds the default value on creation for the id field.
@@ -6428,6 +6457,215 @@ func init() {
 	seamasterbillorderlinkDescID := seamasterbillorderlinkMixinFields0[0].Descriptor()
 	// seamasterbillorderlink.DefaultID holds the default value on creation for the id field.
 	seamasterbillorderlink.DefaultID = seamasterbillorderlinkDescID.Default.(func() uuid.UUID)
+	seaorderreassignmenteventMixin := schema.SeaOrderReassignmentEvent{}.Mixin()
+	seaorderreassignmenteventMixinFields0 := seaorderreassignmenteventMixin[0].Fields()
+	_ = seaorderreassignmenteventMixinFields0
+	seaorderreassignmenteventFields := schema.SeaOrderReassignmentEvent{}.Fields()
+	_ = seaorderreassignmenteventFields
+	// seaorderreassignmenteventDescCreatedAt is the schema descriptor for created_at field.
+	seaorderreassignmenteventDescCreatedAt := seaorderreassignmenteventFields[0].Descriptor()
+	// seaorderreassignmentevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seaorderreassignmentevent.DefaultCreatedAt = seaorderreassignmenteventDescCreatedAt.Default.(func() time.Time)
+	// seaorderreassignmenteventDescOrderNo is the schema descriptor for order_no field.
+	seaorderreassignmenteventDescOrderNo := seaorderreassignmenteventFields[3].Descriptor()
+	// seaorderreassignmentevent.OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
+	seaorderreassignmentevent.OrderNoValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescOrderNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(order_no string) error {
+			for _, fn := range fns {
+				if err := fn(order_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderreassignmenteventDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	seaorderreassignmenteventDescIdempotencyKey := seaorderreassignmenteventFields[6].Descriptor()
+	// seaorderreassignmentevent.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	seaorderreassignmentevent.IdempotencyKeyValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderreassignmenteventDescRequestFingerprint is the schema descriptor for request_fingerprint field.
+	seaorderreassignmenteventDescRequestFingerprint := seaorderreassignmenteventFields[7].Descriptor()
+	// seaorderreassignmentevent.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	seaorderreassignmentevent.RequestFingerprintValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescRequestFingerprint.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_fingerprint string) error {
+			for _, fn := range fns {
+				if err := fn(request_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderreassignmenteventDescReason is the schema descriptor for reason field.
+	seaorderreassignmenteventDescReason := seaorderreassignmenteventFields[16].Descriptor()
+	// seaorderreassignmentevent.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	seaorderreassignmentevent.ReasonValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescReason.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(reason string) error {
+			for _, fn := range fns {
+				if err := fn(reason); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderreassignmenteventDescResponsiblePartnerName is the schema descriptor for responsible_partner_name field.
+	seaorderreassignmenteventDescResponsiblePartnerName := seaorderreassignmenteventFields[19].Descriptor()
+	// seaorderreassignmentevent.ResponsiblePartnerNameValidator is a validator for the "responsible_partner_name" field. It is called by the builders before save.
+	seaorderreassignmentevent.ResponsiblePartnerNameValidator = seaorderreassignmenteventDescResponsiblePartnerName.Validators[0].(func(string) error)
+	// seaorderreassignmenteventDescID is the schema descriptor for id field.
+	seaorderreassignmenteventDescID := seaorderreassignmenteventMixinFields0[0].Descriptor()
+	// seaorderreassignmentevent.DefaultID holds the default value on creation for the id field.
+	seaorderreassignmentevent.DefaultID = seaorderreassignmenteventDescID.Default.(func() uuid.UUID)
+	seaorderspliteventMixin := schema.SeaOrderSplitEvent{}.Mixin()
+	seaorderspliteventMixinFields0 := seaorderspliteventMixin[0].Fields()
+	_ = seaorderspliteventMixinFields0
+	seaorderspliteventFields := schema.SeaOrderSplitEvent{}.Fields()
+	_ = seaorderspliteventFields
+	// seaorderspliteventDescCreatedAt is the schema descriptor for created_at field.
+	seaorderspliteventDescCreatedAt := seaorderspliteventFields[0].Descriptor()
+	// seaordersplitevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seaordersplitevent.DefaultCreatedAt = seaorderspliteventDescCreatedAt.Default.(func() time.Time)
+	// seaorderspliteventDescSourceOrderNo is the schema descriptor for source_order_no field.
+	seaorderspliteventDescSourceOrderNo := seaorderspliteventFields[3].Descriptor()
+	// seaordersplitevent.SourceOrderNoValidator is a validator for the "source_order_no" field. It is called by the builders before save.
+	seaordersplitevent.SourceOrderNoValidator = func() func(string) error {
+		validators := seaorderspliteventDescSourceOrderNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(source_order_no string) error {
+			for _, fn := range fns {
+				if err := fn(source_order_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderspliteventDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	seaorderspliteventDescIdempotencyKey := seaorderspliteventFields[4].Descriptor()
+	// seaordersplitevent.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	seaordersplitevent.IdempotencyKeyValidator = func() func(string) error {
+		validators := seaorderspliteventDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderspliteventDescRequestFingerprint is the schema descriptor for request_fingerprint field.
+	seaorderspliteventDescRequestFingerprint := seaorderspliteventFields[5].Descriptor()
+	// seaordersplitevent.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	seaordersplitevent.RequestFingerprintValidator = func() func(string) error {
+		validators := seaorderspliteventDescRequestFingerprint.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_fingerprint string) error {
+			for _, fn := range fns {
+				if err := fn(request_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderspliteventDescNote is the schema descriptor for note field.
+	seaorderspliteventDescNote := seaorderspliteventFields[6].Descriptor()
+	// seaordersplitevent.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	seaordersplitevent.NoteValidator = seaorderspliteventDescNote.Validators[0].(func(string) error)
+	// seaorderspliteventDescID is the schema descriptor for id field.
+	seaorderspliteventDescID := seaorderspliteventMixinFields0[0].Descriptor()
+	// seaordersplitevent.DefaultID holds the default value on creation for the id field.
+	seaordersplitevent.DefaultID = seaorderspliteventDescID.Default.(func() uuid.UUID)
+	seaordersplitresultMixin := schema.SeaOrderSplitResult{}.Mixin()
+	seaordersplitresultMixinFields0 := seaordersplitresultMixin[0].Fields()
+	_ = seaordersplitresultMixinFields0
+	seaordersplitresultFields := schema.SeaOrderSplitResult{}.Fields()
+	_ = seaordersplitresultFields
+	// seaordersplitresultDescCreatedAt is the schema descriptor for created_at field.
+	seaordersplitresultDescCreatedAt := seaordersplitresultFields[0].Descriptor()
+	// seaordersplitresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seaordersplitresult.DefaultCreatedAt = seaordersplitresultDescCreatedAt.Default.(func() time.Time)
+	// seaordersplitresultDescOrderNo is the schema descriptor for order_no field.
+	seaordersplitresultDescOrderNo := seaordersplitresultFields[4].Descriptor()
+	// seaordersplitresult.OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
+	seaordersplitresult.OrderNoValidator = func() func(string) error {
+		validators := seaordersplitresultDescOrderNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(order_no string) error {
+			for _, fn := range fns {
+				if err := fn(order_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaordersplitresultDescClientResultKey is the schema descriptor for client_result_key field.
+	seaordersplitresultDescClientResultKey := seaordersplitresultFields[7].Descriptor()
+	// seaordersplitresult.ClientResultKeyValidator is a validator for the "client_result_key" field. It is called by the builders before save.
+	seaordersplitresult.ClientResultKeyValidator = func() func(string) error {
+		validators := seaordersplitresultDescClientResultKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(client_result_key string) error {
+			for _, fn := range fns {
+				if err := fn(client_result_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaordersplitresultDescID is the schema descriptor for id field.
+	seaordersplitresultDescID := seaordersplitresultMixinFields0[0].Descriptor()
+	// seaordersplitresult.DefaultID holds the default value on creation for the id field.
+	seaordersplitresult.DefaultID = seaordersplitresultDescID.Default.(func() uuid.UUID)
 	seatransportexecutionMixin := schema.SeaTransportExecution{}.Mixin()
 	seatransportexecutionMixinFields0 := seatransportexecutionMixin[0].Fields()
 	_ = seatransportexecutionMixinFields0

@@ -118,9 +118,17 @@ type UserEdges struct {
 	EnterpriseResourceAssignments []*EnterpriseResourceAssignee `json:"enterprise_resource_assignments,omitempty"`
 	// ConfirmedSeaCargoAllocationLinks holds the value of the confirmed_sea_cargo_allocation_links edge.
 	ConfirmedSeaCargoAllocationLinks []*SeaMasterBillOrderLink `json:"confirmed_sea_cargo_allocation_links,omitempty"`
+	// CreatedSeaOrderSplitEvents holds the value of the created_sea_order_split_events edge.
+	CreatedSeaOrderSplitEvents []*SeaOrderSplitEvent `json:"created_sea_order_split_events,omitempty"`
+	// CreatedSeaOrderReassignmentEvents holds the value of the created_sea_order_reassignment_events edge.
+	CreatedSeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"created_sea_order_reassignment_events,omitempty"`
+	// UploadedAttachmentAssets holds the value of the uploaded_attachment_assets edge.
+	UploadedAttachmentAssets []*OrderAttachmentAsset `json:"uploaded_attachment_assets,omitempty"`
+	// CreatedOrderAttachments holds the value of the created_order_attachments edge.
+	CreatedOrderAttachments []*OrderAttachment `json:"created_order_attachments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [32]bool
+	loadedTypes [36]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -409,6 +417,42 @@ func (e UserEdges) ConfirmedSeaCargoAllocationLinksOrErr() ([]*SeaMasterBillOrde
 		return e.ConfirmedSeaCargoAllocationLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_sea_cargo_allocation_links"}
+}
+
+// CreatedSeaOrderSplitEventsOrErr returns the CreatedSeaOrderSplitEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
+	if e.loadedTypes[32] {
+		return e.CreatedSeaOrderSplitEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_order_split_events"}
+}
+
+// CreatedSeaOrderReassignmentEventsOrErr returns the CreatedSeaOrderReassignmentEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[33] {
+		return e.CreatedSeaOrderReassignmentEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_order_reassignment_events"}
+}
+
+// UploadedAttachmentAssetsOrErr returns the UploadedAttachmentAssets value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UploadedAttachmentAssetsOrErr() ([]*OrderAttachmentAsset, error) {
+	if e.loadedTypes[34] {
+		return e.UploadedAttachmentAssets, nil
+	}
+	return nil, &NotLoadedError{edge: "uploaded_attachment_assets"}
+}
+
+// CreatedOrderAttachmentsOrErr returns the CreatedOrderAttachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedOrderAttachmentsOrErr() ([]*OrderAttachment, error) {
+	if e.loadedTypes[35] {
+		return e.CreatedOrderAttachments, nil
+	}
+	return nil, &NotLoadedError{edge: "created_order_attachments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -708,6 +752,26 @@ func (_m *User) QueryEnterpriseResourceAssignments() *EnterpriseResourceAssignee
 // QueryConfirmedSeaCargoAllocationLinks queries the "confirmed_sea_cargo_allocation_links" edge of the User entity.
 func (_m *User) QueryConfirmedSeaCargoAllocationLinks() *SeaMasterBillOrderLinkQuery {
 	return NewUserClient(_m.config).QueryConfirmedSeaCargoAllocationLinks(_m)
+}
+
+// QueryCreatedSeaOrderSplitEvents queries the "created_sea_order_split_events" edge of the User entity.
+func (_m *User) QueryCreatedSeaOrderSplitEvents() *SeaOrderSplitEventQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaOrderSplitEvents(_m)
+}
+
+// QueryCreatedSeaOrderReassignmentEvents queries the "created_sea_order_reassignment_events" edge of the User entity.
+func (_m *User) QueryCreatedSeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaOrderReassignmentEvents(_m)
+}
+
+// QueryUploadedAttachmentAssets queries the "uploaded_attachment_assets" edge of the User entity.
+func (_m *User) QueryUploadedAttachmentAssets() *OrderAttachmentAssetQuery {
+	return NewUserClient(_m.config).QueryUploadedAttachmentAssets(_m)
+}
+
+// QueryCreatedOrderAttachments queries the "created_order_attachments" edge of the User entity.
+func (_m *User) QueryCreatedOrderAttachments() *OrderAttachmentQuery {
+	return NewUserClient(_m.config).QueryCreatedOrderAttachments(_m)
 }
 
 // Update returns a builder for updating this User.

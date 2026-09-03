@@ -196,6 +196,12 @@ const (
 	EdgeSeaHouseBills = "sea_house_bills"
 	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
 	EdgeSeaCargoAllocations = "sea_cargo_allocations"
+	// EdgeSeaOrderSplitEvents holds the string denoting the sea_order_split_events edge name in mutations.
+	EdgeSeaOrderSplitEvents = "sea_order_split_events"
+	// EdgeSeaOrderSplitResults holds the string denoting the sea_order_split_results edge name in mutations.
+	EdgeSeaOrderSplitResults = "sea_order_split_results"
+	// EdgeSeaOrderReassignmentEvents holds the string denoting the sea_order_reassignment_events edge name in mutations.
+	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -359,6 +365,27 @@ const (
 	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
 	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
 	SeaCargoAllocationsColumn = "order_id"
+	// SeaOrderSplitEventsTable is the table that holds the sea_order_split_events relation/edge.
+	SeaOrderSplitEventsTable = "sea_order_split_events"
+	// SeaOrderSplitEventsInverseTable is the table name for the SeaOrderSplitEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitevent" package.
+	SeaOrderSplitEventsInverseTable = "sea_order_split_events"
+	// SeaOrderSplitEventsColumn is the table column denoting the sea_order_split_events relation/edge.
+	SeaOrderSplitEventsColumn = "source_order_id"
+	// SeaOrderSplitResultsTable is the table that holds the sea_order_split_results relation/edge.
+	SeaOrderSplitResultsTable = "sea_order_split_results"
+	// SeaOrderSplitResultsInverseTable is the table name for the SeaOrderSplitResult entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitresult" package.
+	SeaOrderSplitResultsInverseTable = "sea_order_split_results"
+	// SeaOrderSplitResultsColumn is the table column denoting the sea_order_split_results relation/edge.
+	SeaOrderSplitResultsColumn = "order_id"
+	// SeaOrderReassignmentEventsTable is the table that holds the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	SeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsColumn is the table column denoting the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -1470,6 +1497,48 @@ func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySeaOrderSplitEventsCount orders the results by sea_order_split_events count.
+func BySeaOrderSplitEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderSplitEventsStep(), opts...)
+	}
+}
+
+// BySeaOrderSplitEvents orders the results by sea_order_split_events terms.
+func BySeaOrderSplitEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderSplitEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderSplitResultsCount orders the results by sea_order_split_results count.
+func BySeaOrderSplitResultsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderSplitResultsStep(), opts...)
+	}
+}
+
+// BySeaOrderSplitResults orders the results by sea_order_split_results terms.
+func BySeaOrderSplitResults(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderSplitResultsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderReassignmentEventsCount orders the results by sea_order_reassignment_events count.
+func BySeaOrderReassignmentEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderReassignmentEventsStep(), opts...)
+	}
+}
+
+// BySeaOrderReassignmentEvents orders the results by sea_order_reassignment_events terms.
+func BySeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1629,5 +1698,26 @@ func newSeaCargoAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
+	)
+}
+func newSeaOrderSplitEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderSplitEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitEventsTable, SeaOrderSplitEventsColumn),
+	)
+}
+func newSeaOrderSplitResultsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderSplitResultsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitResultsTable, SeaOrderSplitResultsColumn),
+	)
+}
+func newSeaOrderReassignmentEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderReassignmentEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
 	)
 }

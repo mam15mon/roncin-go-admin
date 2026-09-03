@@ -21,6 +21,7 @@ var (
 type OrderAttachment struct {
 	ID             uuid.UUID
 	OrderID        uuid.UUID
+	AssetID        uuid.UUID
 	DocType        string
 	IdempotencyKey string
 	FileName       string
@@ -29,6 +30,7 @@ type OrderAttachment struct {
 	ObjectKey      string
 	Checksum       string
 	UploadedBy     *uuid.UUID
+	CreatedBy      *uuid.UUID
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -36,6 +38,7 @@ type OrderAttachment struct {
 type OrderAttachmentRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderAttachment, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *OrderAttachment, *AuditEvent) (*OrderAttachment, error)
+	RemoveReference(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, *AuditEvent) error
 }
 
 type OrderAttachmentUsecase struct {
@@ -73,6 +76,20 @@ func (uc *OrderAttachmentUsecase) Register(ctx context.Context, organizationID, 
 		return nil, err
 	}
 	return created, nil
+}
+
+func (uc *OrderAttachmentUsecase) RemoveReference(ctx context.Context, organizationID, actorID, orderID, attachmentID uuid.UUID) error {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || attachmentID == uuid.Nil {
+		return ErrOrderAttachmentInvalidArgument
+	}
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "order.attachment.remove_reference",
+		Result:         "success",
+		Details:        map[string]string{"order.id": orderID.String(), "attachment.id": attachmentID.String()},
+	}
+	return uc.repo.RemoveReference(ctx, organizationID, actorID, orderID, attachmentID, audit)
 }
 
 func normalizeOrderAttachment(input *OrderAttachment, actorID uuid.UUID) (*OrderAttachment, error) {

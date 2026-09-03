@@ -1,6 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormDigit, ProFormText } from '@ant-design/pro-components';
-import { Alert, Tag, Typography } from 'antd';
+import { Alert, Button, Popconfirm, Tag, Typography } from 'antd';
 import React, { forwardRef } from 'react';
 import {
   SubEntityDrawerTemplate,
@@ -9,6 +9,7 @@ import {
 import {
   orderAttachmentServiceListAttachments,
   orderAttachmentServiceRegisterAttachment,
+  orderAttachmentServiceRemoveAttachmentReference,
 } from '@/services/roncin/orderAttachmentService';
 
 const { Text } = Typography;
@@ -81,6 +82,36 @@ const columns: ProColumns<API.OrderAttachment>[] = [
   },
 ];
 
+const buildColumns = (canRegister: boolean): ProColumns<API.OrderAttachment>[] => [
+  ...columns,
+  {
+    title: '操作',
+    valueType: 'option',
+    width: 110,
+    fixed: 'right',
+    render: (_, record, __, action) =>
+      canRegister ? (
+        <Popconfirm
+          title="解除附件引用"
+          description="仅解除当前订单关联，不删除物理文件。确定继续？"
+          okText="确定解除"
+          cancelText="取消"
+          onConfirm={async () => {
+            await orderAttachmentServiceRemoveAttachmentReference({
+              orderId: record.orderId as string,
+              id: record.id as string,
+            });
+            action?.reload();
+          }}
+        >
+          <Button type="link" danger size="small">
+            解除引用
+          </Button>
+        </Popconfirm>
+      ) : null,
+  },
+];
+
 const AttachmentDrawer = forwardRef<
   AttachmentDrawerRef,
   AttachmentDrawerProps
@@ -101,7 +132,7 @@ const AttachmentDrawer = forwardRef<
       canCreate={canRegister}
       canUpdate={false}
       canRemove={false}
-      columns={columns}
+      columns={buildColumns(canRegister)}
       fetchList={(order) =>
         orderAttachmentServiceListAttachments({
           orderId: order.id as string,

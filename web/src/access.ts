@@ -358,6 +358,7 @@ export default function access(
       canOrder(businessType, 'read'),
     ),
     canReadSEOrders: canOrder(1, 'read'),
+    canSplitSEOrders: canOrder(1, 'split'),
     canReadSIOrders: canOrder(2, 'read'),
     canReadAEOrders: canOrder(3, 'read'),
     canReadAIOrders: canOrder(4, 'read'),

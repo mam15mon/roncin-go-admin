@@ -38,6 +38,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
@@ -56,6 +57,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -116,6 +120,10 @@ type OrganizationQuery struct {
 	withOrderEnterpriseTags           *OrderEnterpriseTagQuery
 	withOrderFeeEnterpriseTags        *OrderFeeEnterpriseTagQuery
 	withFinanceBillEnterpriseTags     *FinanceBillEnterpriseTagQuery
+	withAttachmentAssets              *OrderAttachmentAssetQuery
+	withSeaOrderSplitEvents           *SeaOrderSplitEventQuery
+	withSeaOrderSplitResults          *SeaOrderSplitResultQuery
+	withSeaOrderReassignmentEvents    *SeaOrderReassignmentEventQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -1187,6 +1195,94 @@ func (_q *OrganizationQuery) QueryFinanceBillEnterpriseTags() *FinanceBillEnterp
 	return query
 }
 
+// QueryAttachmentAssets chains the current query on the "attachment_assets" edge.
+func (_q *OrganizationQuery) QueryAttachmentAssets() *OrderAttachmentAssetQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderattachmentasset.Table, orderattachmentasset.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AttachmentAssetsTable, organization.AttachmentAssetsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaOrderSplitEvents chains the current query on the "sea_order_split_events" edge.
+func (_q *OrganizationQuery) QuerySeaOrderSplitEvents() *SeaOrderSplitEventQuery {
+	query := (&SeaOrderSplitEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seaordersplitevent.Table, seaordersplitevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaOrderSplitEventsTable, organization.SeaOrderSplitEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaOrderSplitResults chains the current query on the "sea_order_split_results" edge.
+func (_q *OrganizationQuery) QuerySeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seaordersplitresult.Table, seaordersplitresult.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaOrderSplitResultsTable, organization.SeaOrderSplitResultsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaOrderReassignmentEvents chains the current query on the "sea_order_reassignment_events" edge.
+func (_q *OrganizationQuery) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaOrderReassignmentEventsTable, organization.SeaOrderReassignmentEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -1426,6 +1522,10 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withOrderEnterpriseTags:           _q.withOrderEnterpriseTags.Clone(),
 		withOrderFeeEnterpriseTags:        _q.withOrderFeeEnterpriseTags.Clone(),
 		withFinanceBillEnterpriseTags:     _q.withFinanceBillEnterpriseTags.Clone(),
+		withAttachmentAssets:              _q.withAttachmentAssets.Clone(),
+		withSeaOrderSplitEvents:           _q.withSeaOrderSplitEvents.Clone(),
+		withSeaOrderSplitResults:          _q.withSeaOrderSplitResults.Clone(),
+		withSeaOrderReassignmentEvents:    _q.withSeaOrderReassignmentEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1949,6 +2049,50 @@ func (_q *OrganizationQuery) WithFinanceBillEnterpriseTags(opts ...func(*Finance
 	return _q
 }
 
+// WithAttachmentAssets tells the query-builder to eager-load the nodes that are connected to
+// the "attachment_assets" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithAttachmentAssets(opts ...func(*OrderAttachmentAssetQuery)) *OrganizationQuery {
+	query := (&OrderAttachmentAssetClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAttachmentAssets = query
+	return _q
+}
+
+// WithSeaOrderSplitEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_order_split_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaOrderSplitEvents(opts ...func(*SeaOrderSplitEventQuery)) *OrganizationQuery {
+	query := (&SeaOrderSplitEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaOrderSplitEvents = query
+	return _q
+}
+
+// WithSeaOrderSplitResults tells the query-builder to eager-load the nodes that are connected to
+// the "sea_order_split_results" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaOrderSplitResults(opts ...func(*SeaOrderSplitResultQuery)) *OrganizationQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaOrderSplitResults = query
+	return _q
+}
+
+// WithSeaOrderReassignmentEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_order_reassignment_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaOrderReassignmentEvents(opts ...func(*SeaOrderReassignmentEventQuery)) *OrganizationQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaOrderReassignmentEvents = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -2027,7 +2171,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [47]bool{
+		loadedTypes = [51]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2075,6 +2219,10 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withOrderEnterpriseTags != nil,
 			_q.withOrderFeeEnterpriseTags != nil,
 			_q.withFinanceBillEnterpriseTags != nil,
+			_q.withAttachmentAssets != nil,
+			_q.withSeaOrderSplitEvents != nil,
+			_q.withSeaOrderSplitResults != nil,
+			_q.withSeaOrderReassignmentEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2468,6 +2616,42 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceBillEnterpriseTags = []*FinanceBillEnterpriseTag{} },
 			func(n *Organization, e *FinanceBillEnterpriseTag) {
 				n.Edges.FinanceBillEnterpriseTags = append(n.Edges.FinanceBillEnterpriseTags, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAttachmentAssets; query != nil {
+		if err := _q.loadAttachmentAssets(ctx, query, nodes,
+			func(n *Organization) { n.Edges.AttachmentAssets = []*OrderAttachmentAsset{} },
+			func(n *Organization, e *OrderAttachmentAsset) {
+				n.Edges.AttachmentAssets = append(n.Edges.AttachmentAssets, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaOrderSplitEvents; query != nil {
+		if err := _q.loadSeaOrderSplitEvents(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaOrderSplitEvents = []*SeaOrderSplitEvent{} },
+			func(n *Organization, e *SeaOrderSplitEvent) {
+				n.Edges.SeaOrderSplitEvents = append(n.Edges.SeaOrderSplitEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaOrderSplitResults; query != nil {
+		if err := _q.loadSeaOrderSplitResults(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaOrderSplitResults = []*SeaOrderSplitResult{} },
+			func(n *Organization, e *SeaOrderSplitResult) {
+				n.Edges.SeaOrderSplitResults = append(n.Edges.SeaOrderSplitResults, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaOrderReassignmentEvents; query != nil {
+		if err := _q.loadSeaOrderReassignmentEvents(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaOrderReassignmentEvents = []*SeaOrderReassignmentEvent{} },
+			func(n *Organization, e *SeaOrderReassignmentEvent) {
+				n.Edges.SeaOrderReassignmentEvents = append(n.Edges.SeaOrderReassignmentEvents, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -3878,6 +4062,126 @@ func (_q *OrganizationQuery) loadFinanceBillEnterpriseTags(ctx context.Context, 
 	}
 	query.Where(predicate.FinanceBillEnterpriseTag(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceBillEnterpriseTagsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadAttachmentAssets(ctx context.Context, query *OrderAttachmentAssetQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderAttachmentAsset)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderattachmentasset.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderAttachmentAsset(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.AttachmentAssetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaOrderSplitEvents(ctx context.Context, query *SeaOrderSplitEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaOrderSplitEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaordersplitevent.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaOrderSplitEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaOrderSplitEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaOrderSplitResults(ctx context.Context, query *SeaOrderSplitResultQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaOrderSplitResult)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaordersplitresult.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaOrderSplitResult(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaOrderSplitResultsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaOrderReassignmentEvents(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaOrderReassignmentEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

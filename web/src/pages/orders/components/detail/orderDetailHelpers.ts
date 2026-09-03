@@ -5,6 +5,22 @@ import {
   ShipmentMode,
   ShipmentType,
 } from '@/enums.generated';
+import type { CreateOrderFormValues } from '../../order-create-payload';
+
+export type OrderDetailFormValues = Omit<
+  CreateOrderFormValues,
+  'containerRequests' | 'seaMasterBill' | 'shippingDocuments'
+> & {
+  containerRequests?: Array<
+    API.OrderContainerRequest | API.OrderContainerRequestInput
+  >;
+  shippingDocuments?: Array<
+    API.OrderShippingDocument | API.OrderShippingDocumentInput
+  >;
+  orderNo?: string;
+  seaMasterBill?: API.SeaMasterBillInput | API.SeaMasterBillSummary;
+  seaDocumentLinkVersion?: string;
+};
 
 export function buildInitialValues(
   order?: API.Order,
@@ -139,7 +155,7 @@ export function buildInitialValues(
 export function buildUpdatePayload(
   orderId: string,
   orderVersion: string,
-  values: any,
+  values: OrderDetailFormValues,
 ): API.UpdateOrderRequest {
   const isSea =
     values.seaDocumentStructure !== undefined ||
@@ -227,14 +243,25 @@ export function buildUpdatePayload(
     shippingDocuments: isSea
       ? undefined
       : values.shippingDocuments
-          ?.map((doc: { id?: string; houseNo?: string; releaseType?: string; note?: string }) => ({
+          ?.map((doc) => ({
             id: doc.id,
             houseNo: doc.houseNo?.trim() || '',
             releaseType: doc.releaseType?.trim() || undefined,
             note: doc.note?.trim() || undefined,
           }))
-          .filter((doc: { houseNo?: string }) => !!doc.houseNo),
-    containerRequests: values.containerRequests,
+          .filter((doc) => !!doc.houseNo),
+    containerRequests: values.containerRequests
+      ?.filter(
+        (request) =>
+          typeof request.containerSpecId === 'string' &&
+          request.containerSpecId !== '' &&
+          typeof request.quantity === 'number',
+      )
+      .map((request) => ({
+        id: request.id,
+        containerSpecId: request.containerSpecId as string,
+        quantity: request.quantity as number,
+      })),
     seaMasterBill:
       values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId
         ? {

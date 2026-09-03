@@ -25,6 +25,11 @@ func (s *orderAttachmentRepoStub) Create(_ context.Context, _, actorID, orderID 
 	return input, nil
 }
 
+func (s *orderAttachmentRepoStub) RemoveReference(_ context.Context, _, _, _, _ uuid.UUID, audit *AuditEvent) error {
+	s.audit = audit
+	return nil
+}
+
 func TestOrderAttachmentRegisterNormalizesAndAudits(t *testing.T) {
 	repo := &orderAttachmentRepoStub{}
 	usecase := NewOrderAttachmentUsecase(repo)

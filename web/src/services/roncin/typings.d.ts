@@ -1898,6 +1898,63 @@ declare namespace API {
     timeStandards?: string[];
   };
 
+  type ExecuteSeaOrderReassignmentData = {
+    reassignmentEventId?: string;
+    createdAt?: string;
+    orderId?: string;
+    orderNo?: string;
+    targetMasterBillId?: string;
+    targetMasterNo?: string;
+  };
+
+  type ExecuteSeaOrderReassignmentRequest = {
+    orderId: string;
+    idempotencyKey: string;
+    requestFingerprint: string;
+    target: SeaOrderReassignmentTargetInput;
+    reason: string;
+    responsibilityType: string;
+    responsiblePartnerId?: string;
+    expectedOrderVersion: string;
+    expectedLinkVersion: string;
+    expectedCandidateMblVersion?: string;
+    expectedCandidateTeVersion?: string;
+  };
+
+  type ExecuteSeaOrderReassignmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExecuteSeaOrderReassignmentData;
+    traceId?: string;
+  };
+
+  type ExecuteSeaOrderSplitData = {
+    splitEventId?: string;
+    createdAt?: string;
+    originalOrder?: SeaOrderSplitOrderReference;
+    createdOrders?: SeaOrderSplitCreatedOrder[];
+    reassignmentEventIds?: string[];
+  };
+
+  type ExecuteSeaOrderSplitRequest = {
+    orderId: string;
+    idempotencyKey: string;
+    requestFingerprint: string;
+    note?: string;
+    targets: SeaOrderSplitTargetInput[];
+    results: SeaOrderSplitResultInput[];
+    expectedVersions: SeaOrderSplitExpectedVersions;
+  };
+
+  type ExecuteSeaOrderSplitResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExecuteSeaOrderSplitData;
+    traceId?: string;
+  };
+
   type ExportCommissionsResponse = {
     success?: boolean;
     code?: number;
@@ -2512,11 +2569,35 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetSeaOrderChangeActionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderChangeActionsData;
+    traceId?: string;
+  };
+
+  type GetSeaOrderChangeEventResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderChangeEventDetailData;
+    traceId?: string;
+  };
+
   type GetSeaOrderDocumentsResponse = {
     success?: boolean;
     code?: number;
     message?: string;
     data?: SeaOrderDocuments;
+    traceId?: string;
+  };
+
+  type GetSeaOrderSplitContextResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderSplitContextData;
     traceId?: string;
   };
 
@@ -3076,6 +3157,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListSeaOrderChangeEventsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderChangeEventSummary[];
+    total?: number;
+    traceId?: string;
+  };
+
   type ListShippingDocumentsResponse = {
     success?: boolean;
     code?: number;
@@ -3478,6 +3568,7 @@ declare namespace API {
     uploadedBy?: string;
     createdAt?: string;
     updatedAt?: string;
+    assetId?: string;
   };
 
   type OrderAttachmentServiceListAttachmentsParams = {
@@ -3486,6 +3577,11 @@ declare namespace API {
 
   type OrderAttachmentServiceRegisterAttachmentParams = {
     orderId: string;
+  };
+
+  type OrderAttachmentServiceRemoveAttachmentReferenceParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderCargoItem = {
@@ -4469,6 +4565,35 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewSeaOrderReassignmentRequest = {
+    orderId: string;
+    target: SeaOrderReassignmentTargetInput;
+  };
+
+  type PreviewSeaOrderReassignmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderReassignmentPreviewData;
+    traceId?: string;
+  };
+
+  type PreviewSeaOrderSplitRequest = {
+    orderId: string;
+    note?: string;
+    targets: SeaOrderSplitTargetInput[];
+    results: SeaOrderSplitResultInput[];
+    expectedVersions?: SeaOrderSplitExpectedVersions;
+  };
+
+  type PreviewSeaOrderSplitResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderSplitPreviewData;
+    traceId?: string;
+  };
+
   type RedFlushInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -4533,6 +4658,13 @@ declare namespace API {
   };
 
   type RemoveAbnormalCaseResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemoveAttachmentReferenceResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -4951,6 +5083,74 @@ declare namespace API {
     memberCount?: number;
   };
 
+  type SeaOrderChangeActionsData = {
+    canSplit?: boolean;
+    canReassign?: boolean;
+    splitBlockedReasons?: string[];
+    reassignBlockedReasons?: string[];
+  };
+
+  type SeaOrderChangeEventDetailData = {
+    id?: string;
+    eventType?: string;
+    createdAt?: string;
+    operatorId?: string;
+    operatorName?: string;
+    noteOrReason?: string;
+    beforeSnapshotJson?: string;
+    afterSnapshotJson?: string;
+    conservationSnapshotJson?: string;
+    splitSummary?: SeaOrderSplitEventSummary;
+    reassignmentSummary?: SeaOrderReassignmentEventSummary;
+  };
+
+  type SeaOrderChangeEventSummary = {
+    id?: string;
+    eventType?: string;
+    createdAt?: string;
+    operatorId?: string;
+    operatorName?: string;
+    noteOrReason?: string;
+    splitSummary?: SeaOrderSplitEventSummary;
+    reassignmentSummary?: SeaOrderReassignmentEventSummary;
+  };
+
+  type SeaOrderChangeServiceExecuteSeaOrderReassignmentParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServiceExecuteSeaOrderSplitParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServiceGetSeaOrderChangeActionsParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServiceGetSeaOrderChangeEventParams = {
+    orderId: string;
+    eventId: string;
+    eventType?: string;
+  };
+
+  type SeaOrderChangeServiceGetSeaOrderSplitContextParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServiceListSeaOrderChangeEventsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SeaOrderChangeServicePreviewSeaOrderReassignmentParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServicePreviewSeaOrderSplitParams = {
+    orderId: string;
+  };
+
   type SeaOrderDocumentInput = {
     documentStructure?: number;
     expectedLinkVersion?: string;
@@ -4973,6 +5173,285 @@ declare namespace API {
     linkVersion?: string;
     houseBillCount?: number;
     houseNos?: string[];
+  };
+
+  type SeaOrderReassignmentEventSummary = {
+    orderId?: string;
+    orderNo?: string;
+    previousMasterNo?: string;
+    targetMasterNo?: string;
+    responsibilityType?: string;
+    responsiblePartnerName?: string;
+    reason?: string;
+  };
+
+  type SeaOrderReassignmentPreviewData = {
+    isValid?: boolean;
+    errors?: string[];
+    currentMasterBill?: SeaOrderSplitMasterBillSummary;
+    targetMasterBill?: SeaOrderSplitMasterBillSummary;
+    targetMemberCount?: number;
+    differences?: VoyageDifferenceItem[];
+    orderVersion?: string;
+    currentLinkVersion?: string;
+  };
+
+  type SeaOrderReassignmentTargetInput = {
+    targetType: string;
+    candidateId?: string;
+    candidateVersion?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    carrierId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    originLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    candidateTeId?: string;
+    candidateTeVersion?: string;
+  };
+
+  type SeaOrderSplitAllocationItem = {
+    id?: string;
+    cargoItemId?: string;
+    houseBillId?: string;
+    containerId?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+  };
+
+  type SeaOrderSplitAttachmentItem = {
+    id?: string;
+    assetId?: string;
+    fileName?: string;
+    mimeType?: string;
+    fileSize?: string;
+    docType?: string;
+  };
+
+  type SeaOrderSplitCargoItem = {
+    id?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+  };
+
+  type SeaOrderSplitContainerItem = {
+    id?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    containerSpecName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+  };
+
+  type SeaOrderSplitContainerPlanItem = {
+    containerSpecId?: string;
+    containerSpecName?: string;
+    quantity?: number;
+  };
+
+  type SeaOrderSplitContextData = {
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    shipmentType?: string;
+    flowStatus?: string;
+    orderVersion?: string;
+    customerReferenceNo?: string;
+    internalReferenceNo?: string;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
+    currentMasterBill?: SeaOrderSplitMasterBillSummary;
+    currentLinkId?: string;
+    currentLinkVersion?: string;
+    documentStructure?: string;
+    cargoAllocationStatus?: string;
+    cargoAllocationVersion?: string;
+    houseBills?: SeaOrderSplitHouseBillItem[];
+    cargoItems?: SeaOrderSplitCargoItem[];
+    containers?: SeaOrderSplitContainerItem[];
+    allocations?: SeaOrderSplitAllocationItem[];
+    draftFees?: SeaOrderSplitDraftFeeItem[];
+    attachments?: SeaOrderSplitAttachmentItem[];
+    containerPlans?: SeaOrderSplitContainerPlanItem[];
+    attachmentReferenceFingerprint?: string;
+  };
+
+  type SeaOrderSplitCreatedOrder = {
+    orderId?: string;
+    orderNo?: string;
+    clientResultKey?: string;
+  };
+
+  type SeaOrderSplitDraftFeeItem = {
+    id?: string;
+    feeCode?: string;
+    feeName?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    totalAmount?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    version?: string;
+  };
+
+  type SeaOrderSplitEventSummary = {
+    sourceOrderId?: string;
+    sourceOrderNo?: string;
+    resultCount?: number;
+    results?: SeaOrderSplitResultSummaryItem[];
+  };
+
+  type SeaOrderSplitExpectedVersions = {
+    orderVersion?: string;
+    linkVersion?: string;
+    allocationVersion?: string;
+    houseBillVersions?: Record<string, any>;
+    cargoItemVersions?: Record<string, any>;
+    containerVersions?: Record<string, any>;
+    feeVersions?: Record<string, any>;
+    candidateMblVersions?: Record<string, any>;
+    attachmentReferenceFingerprint?: string;
+    candidateTeVersions?: Record<string, any>;
+  };
+
+  type SeaOrderSplitHouseBillItem = {
+    id?: string;
+    houseNo?: string;
+    status?: string;
+    version?: string;
+  };
+
+  type SeaOrderSplitMasterBillSummary = {
+    id?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    issuerPartnerName?: string;
+    carrierId?: string;
+    carrierName?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    version?: string;
+    originLocationId?: string;
+    originLocationName?: string;
+    dischargeLocationId?: string;
+    dischargeLocationName?: string;
+    transitLocationId?: string;
+    transitLocationName?: string;
+    transportExecutionId?: string;
+    transportExecutionVersion?: string;
+  };
+
+  type SeaOrderSplitOrderReference = {
+    orderId?: string;
+    orderNo?: string;
+  };
+
+  type SeaOrderSplitPreviewData = {
+    isValid?: boolean;
+    conservationPassed?: boolean;
+    validationErrors?: SeaOrderSplitValidationError[];
+    baseline?: SeaOrderSplitQuantitySummary;
+    allocated?: SeaOrderSplitQuantitySummary;
+    remaining?: SeaOrderSplitQuantitySummary;
+    results?: SeaOrderSplitPreviewResultItem[];
+  };
+
+  type SeaOrderSplitPreviewResultItem = {
+    clientResultKey?: string;
+    resultRole?: string;
+    clientTargetKey?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    containerCount?: number;
+    houseBillCount?: number;
+    feeCount?: number;
+    attachmentCount?: number;
+    containerPlans?: SeaOrderSplitContainerPlanItem[];
+    internalReferenceNo?: string;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
+  };
+
+  type SeaOrderSplitQuantitySummary = {
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    containerCount?: number;
+    houseBillCount?: number;
+    feeCount?: number;
+  };
+
+  type SeaOrderSplitResultInput = {
+    clientResultKey: string;
+    resultRole: string;
+    clientTargetKey: string;
+    houseBillIds?: string[];
+    draftFeeIds?: string[];
+    attachmentReferenceIds?: string[];
+    internalReferenceNo?: string;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
+  };
+
+  type SeaOrderSplitResultSummaryItem = {
+    resultRole?: string;
+    orderId?: string;
+    orderNo?: string;
+    finalMasterNo?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+  };
+
+  type SeaOrderSplitTargetInput = {
+    clientTargetKey: string;
+    targetType: string;
+    candidateId?: string;
+    candidateVersion?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    carrierId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    originLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    candidateTeId?: string;
+    candidateTeVersion?: string;
+  };
+
+  type SeaOrderSplitValidationError = {
+    reason?: string;
+    message?: string;
+    field?: string;
+    clientResultKey?: string;
+    houseBillId?: string;
+    containerId?: string;
+    cargoItemId?: string;
+    feeId?: string;
+    baselineValue?: string;
+    allocatedValue?: string;
+    diffValue?: string;
   };
 
   type SearchBillingUnitsResponse = {
@@ -6120,6 +6599,14 @@ declare namespace API {
     cashflowId: string;
     billId: string;
     amount: string;
+  };
+
+  type VoyageDifferenceItem = {
+    fieldName?: string;
+    label?: string;
+    currentValue?: string;
+    targetValue?: string;
+    isDifferent?: boolean;
   };
 
   type WeComLoginConfig = {

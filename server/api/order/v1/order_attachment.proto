@@ -24,6 +24,14 @@ service OrderAttachmentService {
       body: "*"
     };
   }
+
+  // RemoveAttachmentReference 解除订单附件引用。
+  rpc RemoveAttachmentReference(RemoveAttachmentReferenceRequest) returns (RemoveAttachmentReferenceResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.register" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      delete: "/api/v1/orders/{order_id}/attachments/{id}"
+    };
+  }
 }
 
 // OrderAttachment 订单附件信息。
@@ -40,6 +48,7 @@ message OrderAttachment {
   optional string uploaded_by = 10;
   string created_at = 11;
   string updated_at = 12;
+  optional string asset_id = 13;
 }
 
 // ListAttachmentsRequest 获取订单附件列表请求。
@@ -75,4 +84,18 @@ message ListAttachmentsResponse {
   string message = 3;
   repeated OrderAttachment data = 4;
   string trace_id = 5;
+}
+
+// RemoveAttachmentReferenceRequest 解除订单附件引用请求。
+message RemoveAttachmentReferenceRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemoveAttachmentReferenceResponse 解除订单附件引用响应。
+message RemoveAttachmentReferenceResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
 }

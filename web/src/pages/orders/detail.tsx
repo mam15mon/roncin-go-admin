@@ -2,6 +2,7 @@ import {
   CheckOutlined,
   CopyOutlined,
   DollarOutlined,
+  HistoryOutlined,
   ReloadOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
@@ -44,6 +45,7 @@ import { buildOrderStatusSection } from './components/detail/OrderStatusSection'
 import {
   buildInitialValues,
   buildUpdatePayload,
+  type OrderDetailFormValues,
 } from './components/detail/orderDetailHelpers';
 import {
   confirmOrderClosure,
@@ -56,6 +58,11 @@ import {
   getSeaTemplateSections,
 } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
+import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
+import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
+import SeaOrderChangeHistoryDrawer, {
+  SeaOrderChangeHistorySection,
+} from './components/drawers/SeaOrderChangeHistoryDrawer';
 
 const { Text } = Typography;
 
@@ -95,6 +102,33 @@ export default function OrderDetailPage() {
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
+
+  const [changeActions, setChangeActions] =
+    useState<API.SeaOrderChangeActionsData | null>(null);
+  const [reassignModalOpen, setReassignModalOpen] = useState(false);
+  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+
+  const loadChangeActions = async () => {
+    if (!orderId || config.category !== 'sea') return;
+    try {
+      const resp = await seaOrderChangeServiceGetSeaOrderChangeActions({
+        orderId,
+      });
+      if (resp?.data) {
+        setChangeActions(resp.data);
+      }
+    } catch (error: unknown) {
+      message.error(
+        error instanceof Error ? error.message : '加载拆票与改配动作失败',
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (orderId && config.category === 'sea') {
+      loadChangeActions();
+    }
+  }, [orderId, order?.version]);
 
   useEffect(() => {
     if (order?.orderNo && typeof window !== 'undefined') {
@@ -173,14 +207,30 @@ export default function OrderDetailPage() {
     [order],
   );
 
-  // 5. 后置区块：操作记录日志
+  // 5. 后置区块：拆票/改配历史与操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(
-    () => [buildOrderAuditTimelineSection(order)],
-    [order],
+    () => [
+      ...(config.category === 'sea' && orderId
+        ? [
+            {
+              key: 'sea-order-change-history',
+              title: '拆票与改配记录',
+              content: (
+                <SeaOrderChangeHistorySection
+                  orderId={orderId}
+                  onOpenAll={() => setHistoryDrawerOpen(true)}
+                />
+              ),
+            },
+          ]
+        : []),
+      buildOrderAuditTimelineSection(order),
+    ],
+    [config.category, order, orderId],
   );
 
   // 6. 保存修改提交处理
-  const handleSaveEdit = async (values: any) => {
+  const handleSaveEdit = async (values: OrderDetailFormValues) => {
     if (!orderId) return false;
     setSaving(true);
     try {
@@ -193,8 +243,8 @@ export default function OrderDetailPage() {
       message.success('保存订单成功');
       await loadData();
       return true;
-    } catch (error: any) {
-      message.error(error.message || '保存订单失败');
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '保存订单失败');
       return false;
     } finally {
       setSaving(false);
@@ -283,6 +333,12 @@ export default function OrderDetailPage() {
       },
     },
     {
+      key: 'change-history',
+      icon: <HistoryOutlined />,
+      label: '拆票与改配历史',
+      onClick: () => setHistoryDrawerOpen(true),
+    },
+    {
       key: 'reload-data',
       icon: <ReloadOutlined />,
       label: '刷新数据',
@@ -292,7 +348,7 @@ export default function OrderDetailPage() {
 
   return (
     <>
-      <OrderFormTemplate<any>
+      <OrderFormTemplate<OrderDetailFormValues>
         loading={false}
         readonly={!hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT)}
         formRef={formRef}
@@ -315,6 +371,18 @@ export default function OrderDetailPage() {
               config.businessType,
               'abnormal_case.create',
             )}
+            canSplit={
+              config.category === 'sea' &&
+              access.canOrder(config.businessType, 'split')
+            }
+            canReassign={
+              config.category === 'sea' &&
+              access.canOrder(config.businessType, 'reassign')
+            }
+            splitDisabled={!changeActions?.canSplit}
+            splitBlockedReasons={changeActions?.splitBlockedReasons}
+            reassignDisabled={!changeActions?.canReassign}
+            reassignBlockedReasons={changeActions?.reassignBlockedReasons}
             moreMenuItems={moreMenuItems}
             hasAction={hasAction}
             onSave={() => formRef.current?.submit()}
@@ -324,6 +392,10 @@ export default function OrderDetailPage() {
             onOpenAbnormalCase={() =>
               abnormalCasePanelRef.current?.open(order)
             }
+            onOpenSplit={() =>
+              history.push(`/orders/sea-export/${orderId}/split`)
+            }
+            onOpenReassign={() => setReassignModalOpen(true)}
           />
         }
         prependSections={prependSections}
@@ -371,6 +443,29 @@ export default function OrderDetailPage() {
         canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
         masterOptions={[]}
       />
+
+      {orderId && (
+        <>
+          <SeaOrderReassignmentModal
+            orderId={orderId}
+            orderNo={order?.orderNo}
+            open={reassignModalOpen}
+            onClose={() => setReassignModalOpen(false)}
+            onSuccess={async () => {
+              await loadData();
+              await loadChangeActions();
+            }}
+            searchCarriers={templateProps.searchCarriers}
+            searchIssuers={templateProps.searchIssuers}
+            searchLocations={templateProps.searchLocations}
+          />
+          <SeaOrderChangeHistoryDrawer
+            orderId={orderId}
+            open={historyDrawerOpen}
+            onClose={() => setHistoryDrawerOpen(false)}
+          />
+        </>
+      )}
     </>
   );
 }

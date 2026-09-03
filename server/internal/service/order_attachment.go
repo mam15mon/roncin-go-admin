@@ -65,6 +65,25 @@ func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request
 	return orderAttachmentResponse(ctx, created), nil
 }
 
+func (s *OrderAttachmentService) RemoveAttachmentReference(ctx context.Context, request *v1.RemoveAttachmentReferenceRequest) (*v1.RemoveAttachmentReferenceResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderAttachmentInvalidArgument
+	}
+	attachmentID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderAttachmentInvalidArgument
+	}
+	if err := s.usecase.RemoveReference(ctx, principal.Organization.ID, principal.UserID, orderID, attachmentID); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.RemoveAttachmentReferenceResponse{}), nil
+}
+
 func orderAttachmentResponse(ctx context.Context, value *biz.OrderAttachment) *v1.RegisterAttachmentResponse {
 	return ok(ctx, &v1.RegisterAttachmentResponse{
 		Data: orderAttachmentToAPI(value),
@@ -92,6 +111,10 @@ func orderAttachmentToAPI(value *biz.OrderAttachment) *v1.OrderAttachment {
 	if value.UploadedBy != nil {
 		uploadedBy := value.UploadedBy.String()
 		result.UploadedBy = &uploadedBy
+	}
+	if value.AssetID != uuid.Nil {
+		assetID := value.AssetID.String()
+		result.AssetId = &assetID
 	}
 	return result
 }

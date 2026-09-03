@@ -132,6 +132,13 @@ export default [
         component: './orders/new',
       },
       {
+        path: '/orders/sea-export/:id/split',
+        name: '海运出口拆票',
+        access: 'canSplitSEOrders',
+        hideInMenu: true,
+        component: './orders/split',
+      },
+      {
         path: '/orders/:kind/:id',
         name: '订单详情',
         hideInMenu: true,

@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
 // PartnerUpdate is the builder for updating Partner entities.
@@ -427,6 +428,21 @@ func (_u *PartnerUpdate) AddIssuedSeaHouseBills(v ...*SeaHouseBill) *PartnerUpda
 	return _u.AddIssuedSeaHouseBillIDs(ids...)
 }
 
+// AddSeaOrderReassignmentIDs adds the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *PartnerUpdate) AddSeaOrderReassignmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddSeaOrderReassignmentIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignments adds the "sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_u *PartnerUpdate) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -778,6 +794,27 @@ func (_u *PartnerUpdate) RemoveIssuedSeaHouseBills(v ...*SeaHouseBill) *PartnerU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIssuedSeaHouseBillIDs(ids...)
+}
+
+// ClearSeaOrderReassignments clears all "sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_u *PartnerUpdate) ClearSeaOrderReassignments() *PartnerUpdate {
+	_u.mutation.ClearSeaOrderReassignments()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentIDs removes the "sea_order_reassignments" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *PartnerUpdate) RemoveSeaOrderReassignmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveSeaOrderReassignmentIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignments removes "sea_order_reassignments" edges to SeaOrderReassignmentEvent entities.
+func (_u *PartnerUpdate) RemoveSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1667,6 +1704,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaOrderReassignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partner.Label}
@@ -2067,6 +2149,21 @@ func (_u *PartnerUpdateOne) AddIssuedSeaHouseBills(v ...*SeaHouseBill) *PartnerU
 	return _u.AddIssuedSeaHouseBillIDs(ids...)
 }
 
+// AddSeaOrderReassignmentIDs adds the "sea_order_reassignments" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *PartnerUpdateOne) AddSeaOrderReassignmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddSeaOrderReassignmentIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignments adds the "sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_u *PartnerUpdateOne) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -2418,6 +2515,27 @@ func (_u *PartnerUpdateOne) RemoveIssuedSeaHouseBills(v ...*SeaHouseBill) *Partn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIssuedSeaHouseBillIDs(ids...)
+}
+
+// ClearSeaOrderReassignments clears all "sea_order_reassignments" edges to the SeaOrderReassignmentEvent entity.
+func (_u *PartnerUpdateOne) ClearSeaOrderReassignments() *PartnerUpdateOne {
+	_u.mutation.ClearSeaOrderReassignments()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentIDs removes the "sea_order_reassignments" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *PartnerUpdateOne) RemoveSeaOrderReassignmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveSeaOrderReassignmentIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignments removes "sea_order_reassignments" edges to SeaOrderReassignmentEvent entities.
+func (_u *PartnerUpdateOne) RemoveSeaOrderReassignments(v ...*SeaOrderReassignmentEvent) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -3330,6 +3448,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderReassignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaOrderReassignmentsTable,
+			Columns: []string{partner.SeaOrderReassignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -2869,13 +2869,9 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "doc_type", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
-		{Name: "file_name", Type: field.TypeString, Size: 255},
-		{Name: "mime_type", Type: field.TypeString, Size: 127},
-		{Name: "file_size", Type: field.TypeInt64},
-		{Name: "object_key", Type: field.TypeString, Size: 1024},
-		{Name: "checksum", Type: field.TypeString, Nullable: true, Size: 128},
-		{Name: "uploaded_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "asset_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrderAttachmentsTable holds the schema information for the "order_attachments" table.
 	OrderAttachmentsTable = &schema.Table{
@@ -2885,9 +2881,21 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_attachments_orders_attachments",
-				Columns:    []*schema.Column{OrderAttachmentsColumns[11]},
+				Columns:    []*schema.Column{OrderAttachmentsColumns[5]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_attachments_order_attachment_assets_attachments",
+				Columns:    []*schema.Column{OrderAttachmentsColumns[6]},
+				RefColumns: []*schema.Column{OrderAttachmentAssetsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_attachments_users_created_order_attachments",
+				Columns:    []*schema.Column{OrderAttachmentsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -2897,19 +2905,74 @@ var (
 				Columns: []*schema.Column{OrderAttachmentsColumns[2]},
 			},
 			{
-				Name:    "order_attachment_idempotency_key",
+				Name:    "order_attachment_order_asset",
 				Unique:  true,
-				Columns: []*schema.Column{OrderAttachmentsColumns[11], OrderAttachmentsColumns[4]},
+				Columns: []*schema.Column{OrderAttachmentsColumns[5], OrderAttachmentsColumns[6]},
 			},
 			{
-				Name:    "order_attachment_object_key",
+				Name:    "order_attachment_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderAttachmentsColumns[8]},
+				Columns: []*schema.Column{OrderAttachmentsColumns[5], OrderAttachmentsColumns[4]},
 			},
 			{
 				Name:    "orderattachment_order_id_doc_type_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderAttachmentsColumns[11], OrderAttachmentsColumns[3], OrderAttachmentsColumns[1]},
+				Columns: []*schema.Column{OrderAttachmentsColumns[5], OrderAttachmentsColumns[3], OrderAttachmentsColumns[1]},
+			},
+			{
+				Name:    "orderattachment_asset_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAttachmentsColumns[6]},
+			},
+		},
+	}
+	// OrderAttachmentAssetsColumns holds the columns for the "order_attachment_assets" table.
+	OrderAttachmentAssetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "object_key", Type: field.TypeString, Size: 1024},
+		{Name: "file_name", Type: field.TypeString, Size: 255},
+		{Name: "mime_type", Type: field.TypeString, Size: 127},
+		{Name: "file_size", Type: field.TypeInt64},
+		{Name: "checksum", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "uploaded_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderAttachmentAssetsTable holds the schema information for the "order_attachment_assets" table.
+	OrderAttachmentAssetsTable = &schema.Table{
+		Name:       "order_attachment_assets",
+		Columns:    OrderAttachmentAssetsColumns,
+		PrimaryKey: []*schema.Column{OrderAttachmentAssetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_attachment_assets_organizations_attachment_assets",
+				Columns:    []*schema.Column{OrderAttachmentAssetsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_attachment_assets_users_uploaded_attachment_assets",
+				Columns:    []*schema.Column{OrderAttachmentAssetsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderattachmentasset_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAttachmentAssetsColumns[2]},
+			},
+			{
+				Name:    "order_attachment_asset_object_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderAttachmentAssetsColumns[3]},
+			},
+			{
+				Name:    "orderattachmentasset_organization_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAttachmentAssetsColumns[8], OrderAttachmentAssetsColumns[1]},
 			},
 		},
 	}
@@ -3400,13 +3463,15 @@ var (
 	// OrderLifecycleEventsColumns holds the columns for the "order_lifecycle_events" table.
 	OrderLifecycleEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "dimension", Type: field.TypeEnum, Enums: []string{"FLOW", "TERMINATION", "CLOSURE"}},
+		{Name: "dimension", Type: field.TypeEnum, Enums: []string{"FLOW", "TERMINATION", "CLOSURE", "ORIGIN"}},
 		{Name: "from_status", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "to_status", Type: field.TypeString, Size: 64},
 		{Name: "action", Type: field.TypeString, Size: 64},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "operator_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "changed_at", Type: field.TypeTime},
+		{Name: "reference_type", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "reference_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 	}
 	// OrderLifecycleEventsTable holds the schema information for the "order_lifecycle_events" table.
@@ -3417,7 +3482,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_lifecycle_events_orders_lifecycle_events",
-				Columns:    []*schema.Column{OrderLifecycleEventsColumns[8]},
+				Columns:    []*schema.Column{OrderLifecycleEventsColumns[10]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -3426,7 +3491,7 @@ var (
 			{
 				Name:    "orderlifecycleevent_order_id_dimension_changed_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLifecycleEventsColumns[8], OrderLifecycleEventsColumns[1], OrderLifecycleEventsColumns[7]},
+				Columns: []*schema.Column{OrderLifecycleEventsColumns[10], OrderLifecycleEventsColumns[1], OrderLifecycleEventsColumns[7]},
 			},
 		},
 	}
@@ -4836,6 +4901,237 @@ var (
 			},
 		},
 	}
+	// SeaOrderReassignmentEventsColumns holds the columns for the "sea_order_reassignment_events" table.
+	SeaOrderReassignmentEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
+		{Name: "previous_transport_execution_id", Type: field.TypeUUID},
+		{Name: "target_transport_execution_id", Type: field.TypeUUID},
+		{Name: "previous_link_id", Type: field.TypeUUID},
+		{Name: "target_link_id", Type: field.TypeUUID},
+		{Name: "previous_link_version", Type: field.TypeUint64},
+		{Name: "target_link_version", Type: field.TypeUint64},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "responsibility_type", Type: field.TypeEnum, Enums: []string{"CARRIER", "CUSTOMER", "CUSTOMS", "OWN_COMPANY", "FORCE_MAJEURE", "OTHER"}},
+		{Name: "responsible_partner_name", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "before_snapshot", Type: field.TypeJSON},
+		{Name: "after_snapshot", Type: field.TypeJSON},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "responsible_partner_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "previous_master_bill_id", Type: field.TypeUUID},
+		{Name: "target_master_bill_id", Type: field.TypeUUID},
+		{Name: "split_event_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "split_result_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// SeaOrderReassignmentEventsTable holds the schema information for the "sea_order_reassignment_events" table.
+	SeaOrderReassignmentEventsTable = &schema.Table{
+		Name:       "sea_order_reassignment_events",
+		Columns:    SeaOrderReassignmentEventsColumns,
+		PrimaryKey: []*schema.Column{SeaOrderReassignmentEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_order_reassignment_events_orders_sea_order_reassignment_events",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[16]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_organizations_sea_order_reassignment_events",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[17]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_partners_sea_order_reassignments",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[18]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_sea_master_bills_previous_sea_order_reassignments",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[19]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_sea_master_bills_target_sea_order_reassignments",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[20]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_sea_order_split_events_reassignments",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[21]},
+				RefColumns: []*schema.Column{SeaOrderSplitEventsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_sea_order_split_results_reassignment_events",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[22]},
+				RefColumns: []*schema.Column{SeaOrderSplitResultsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_order_reassignment_events_users_created_sea_order_reassignment_events",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[23]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sea_order_reassignment_event_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[3]},
+			},
+			{
+				Name:    "seaorderreassignmentevent_organization_id_order_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[16], SeaOrderReassignmentEventsColumns[1]},
+			},
+			{
+				Name:    "seaorderreassignmentevent_organization_id_request_fingerprint",
+				Unique:  false,
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[4]},
+			},
+		},
+	}
+	// SeaOrderSplitEventsColumns holds the columns for the "sea_order_split_events" table.
+	SeaOrderSplitEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "source_order_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "source_order_version", Type: field.TypeUint64},
+		{Name: "source_link_id", Type: field.TypeUUID},
+		{Name: "source_link_version", Type: field.TypeUint64},
+		{Name: "source_allocation_version", Type: field.TypeUint64},
+		{Name: "before_snapshot", Type: field.TypeJSON},
+		{Name: "conservation_snapshot", Type: field.TypeJSON},
+		{Name: "source_order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// SeaOrderSplitEventsTable holds the schema information for the "sea_order_split_events" table.
+	SeaOrderSplitEventsTable = &schema.Table{
+		Name:       "sea_order_split_events",
+		Columns:    SeaOrderSplitEventsColumns,
+		PrimaryKey: []*schema.Column{SeaOrderSplitEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_order_split_events_orders_sea_order_split_events",
+				Columns:    []*schema.Column{SeaOrderSplitEventsColumns[12]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_events_organizations_sea_order_split_events",
+				Columns:    []*schema.Column{SeaOrderSplitEventsColumns[13]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_events_users_created_sea_order_split_events",
+				Columns:    []*schema.Column{SeaOrderSplitEventsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sea_order_split_event_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaOrderSplitEventsColumns[13], SeaOrderSplitEventsColumns[3]},
+			},
+			{
+				Name:    "seaordersplitevent_organization_id_source_order_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaOrderSplitEventsColumns[13], SeaOrderSplitEventsColumns[12], SeaOrderSplitEventsColumns[1]},
+			},
+			{
+				Name:    "seaordersplitevent_organization_id_request_fingerprint",
+				Unique:  false,
+				Columns: []*schema.Column{SeaOrderSplitEventsColumns[13], SeaOrderSplitEventsColumns[4]},
+			},
+		},
+	}
+	// SeaOrderSplitResultsColumns holds the columns for the "sea_order_split_results" table.
+	SeaOrderSplitResultsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "result_role", Type: field.TypeEnum, Enums: []string{"ORIGINAL", "CREATED"}},
+		{Name: "sequence", Type: field.TypeInt},
+		{Name: "client_result_key", Type: field.TypeString, Size: 128},
+		{Name: "result_snapshot", Type: field.TypeJSON},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "initial_master_bill_id", Type: field.TypeUUID},
+		{Name: "final_master_bill_id", Type: field.TypeUUID},
+		{Name: "split_event_id", Type: field.TypeUUID},
+	}
+	// SeaOrderSplitResultsTable holds the schema information for the "sea_order_split_results" table.
+	SeaOrderSplitResultsTable = &schema.Table{
+		Name:       "sea_order_split_results",
+		Columns:    SeaOrderSplitResultsColumns,
+		PrimaryKey: []*schema.Column{SeaOrderSplitResultsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_order_split_results_orders_sea_order_split_results",
+				Columns:    []*schema.Column{SeaOrderSplitResultsColumns[7]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_results_organizations_sea_order_split_results",
+				Columns:    []*schema.Column{SeaOrderSplitResultsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_results_sea_master_bills_initial_sea_order_split_results",
+				Columns:    []*schema.Column{SeaOrderSplitResultsColumns[9]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_results_sea_master_bills_final_sea_order_split_results",
+				Columns:    []*schema.Column{SeaOrderSplitResultsColumns[10]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_order_split_results_sea_order_split_events_results",
+				Columns:    []*schema.Column{SeaOrderSplitResultsColumns[11]},
+				RefColumns: []*schema.Column{SeaOrderSplitEventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sea_order_split_result_sequence",
+				Unique:  true,
+				Columns: []*schema.Column{SeaOrderSplitResultsColumns[11], SeaOrderSplitResultsColumns[4]},
+			},
+			{
+				Name:    "sea_order_split_result_client_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaOrderSplitResultsColumns[11], SeaOrderSplitResultsColumns[5]},
+			},
+			{
+				Name:    "seaordersplitresult_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaOrderSplitResultsColumns[8], SeaOrderSplitResultsColumns[7]},
+			},
+		},
+	}
 	// SeaTransportExecutionsColumns holds the columns for the "sea_transport_executions" table.
 	SeaTransportExecutionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -5201,6 +5497,7 @@ var (
 		OrdersTable,
 		OrderAbnormalCasesTable,
 		OrderAttachmentsTable,
+		OrderAttachmentAssetsTable,
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
 		OrderCommissionAttributionsTable,
@@ -5236,6 +5533,9 @@ var (
 		SeaHouseBillsTable,
 		SeaMasterBillsTable,
 		SeaMasterBillOrderLinksTable,
+		SeaOrderReassignmentEventsTable,
+		SeaOrderSplitEventsTable,
+		SeaOrderSplitResultsTable,
 		SeaTransportExecutionsTable,
 		SessionsTable,
 		ShippingLinesTable,
@@ -5342,6 +5642,14 @@ func init() {
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
 	OrderAbnormalCasesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderAttachmentsTable.ForeignKeys[1].RefTable = OrderAttachmentAssetsTable
+	OrderAttachmentsTable.ForeignKeys[2].RefTable = UsersTable
+	OrderAttachmentAssetsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	OrderAttachmentAssetsTable.ForeignKeys[1].RefTable = UsersTable
+	OrderAttachmentAssetsTable.Annotation = &entsql.Annotation{}
+	OrderAttachmentAssetsTable.Annotation.Checks = map[string]string{
+		"order_attachment_assets_file_size_check": "file_size > 0",
+	}
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[1].RefTable = OrganizationsTable
@@ -5364,6 +5672,10 @@ func init() {
 	OrderFeeEnterpriseTagsTable.ForeignKeys[1].RefTable = OrderFeesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	OrderLifecycleEventsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderLifecycleEventsTable.Annotation = &entsql.Annotation{}
+	OrderLifecycleEventsTable.Annotation.Checks = map[string]string{
+		"order_lifecycle_events_dimension_check": "dimension IN ('FLOW', 'TERMINATION', 'CLOSURE', 'ORIGIN')",
+	}
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable
@@ -5410,6 +5722,30 @@ func init() {
 	SeaMasterBillOrderLinksTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[3].RefTable = UsersTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[2].RefTable = PartnersTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[3].RefTable = SeaMasterBillsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[4].RefTable = SeaMasterBillsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[5].RefTable = SeaOrderSplitEventsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[6].RefTable = SeaOrderSplitResultsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[7].RefTable = UsersTable
+	SeaOrderReassignmentEventsTable.Annotation = &entsql.Annotation{}
+	SeaOrderReassignmentEventsTable.Annotation.Checks = map[string]string{
+		"sea_order_reassignment_events_responsibility_type_check": "responsibility_type IN ('CARRIER', 'CUSTOMER', 'CUSTOMS', 'OWN_COMPANY', 'FORCE_MAJEURE', 'OTHER')",
+	}
+	SeaOrderSplitEventsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaOrderSplitEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaOrderSplitEventsTable.ForeignKeys[2].RefTable = UsersTable
+	SeaOrderSplitResultsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaOrderSplitResultsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaOrderSplitResultsTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
+	SeaOrderSplitResultsTable.ForeignKeys[3].RefTable = SeaMasterBillsTable
+	SeaOrderSplitResultsTable.ForeignKeys[4].RefTable = SeaOrderSplitEventsTable
+	SeaOrderSplitResultsTable.Annotation = &entsql.Annotation{}
+	SeaOrderSplitResultsTable.Annotation.Checks = map[string]string{
+		"sea_order_split_results_result_role_check": "result_role IN ('ORIGINAL', 'CREATED')",
+	}
 	SeaTransportExecutionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable

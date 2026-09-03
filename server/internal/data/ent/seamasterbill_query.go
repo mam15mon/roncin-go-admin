@@ -19,21 +19,27 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
 // SeaMasterBillQuery is the builder for querying SeaMasterBill entities.
 type SeaMasterBillQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []seamasterbill.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.SeaMasterBill
-	withOrganization       *OrganizationQuery
-	withTransportExecution *SeaTransportExecutionQuery
-	withOrderLinks         *SeaMasterBillOrderLinkQuery
-	withHouseBills         *SeaHouseBillQuery
-	modifiers              []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []seamasterbill.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.SeaMasterBill
+	withOrganization                  *OrganizationQuery
+	withTransportExecution            *SeaTransportExecutionQuery
+	withOrderLinks                    *SeaMasterBillOrderLinkQuery
+	withHouseBills                    *SeaHouseBillQuery
+	withInitialSeaOrderSplitResults   *SeaOrderSplitResultQuery
+	withFinalSeaOrderSplitResults     *SeaOrderSplitResultQuery
+	withPreviousSeaOrderReassignments *SeaOrderReassignmentEventQuery
+	withTargetSeaOrderReassignments   *SeaOrderReassignmentEventQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -151,6 +157,94 @@ func (_q *SeaMasterBillQuery) QueryHouseBills() *SeaHouseBillQuery {
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
 			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.HouseBillsTable, seamasterbill.HouseBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInitialSeaOrderSplitResults chains the current query on the "initial_sea_order_split_results" edge.
+func (_q *SeaMasterBillQuery) QueryInitialSeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(seaordersplitresult.Table, seaordersplitresult.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.InitialSeaOrderSplitResultsTable, seamasterbill.InitialSeaOrderSplitResultsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinalSeaOrderSplitResults chains the current query on the "final_sea_order_split_results" edge.
+func (_q *SeaMasterBillQuery) QueryFinalSeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(seaordersplitresult.Table, seaordersplitresult.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.FinalSeaOrderSplitResultsTable, seamasterbill.FinalSeaOrderSplitResultsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPreviousSeaOrderReassignments chains the current query on the "previous_sea_order_reassignments" edge.
+func (_q *SeaMasterBillQuery) QueryPreviousSeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.PreviousSeaOrderReassignmentsTable, seamasterbill.PreviousSeaOrderReassignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTargetSeaOrderReassignments chains the current query on the "target_sea_order_reassignments" edge.
+func (_q *SeaMasterBillQuery) QueryTargetSeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.TargetSeaOrderReassignmentsTable, seamasterbill.TargetSeaOrderReassignmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -345,15 +439,19 @@ func (_q *SeaMasterBillQuery) Clone() *SeaMasterBillQuery {
 		return nil
 	}
 	return &SeaMasterBillQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]seamasterbill.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.SeaMasterBill{}, _q.predicates...),
-		withOrganization:       _q.withOrganization.Clone(),
-		withTransportExecution: _q.withTransportExecution.Clone(),
-		withOrderLinks:         _q.withOrderLinks.Clone(),
-		withHouseBills:         _q.withHouseBills.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]seamasterbill.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.SeaMasterBill{}, _q.predicates...),
+		withOrganization:                  _q.withOrganization.Clone(),
+		withTransportExecution:            _q.withTransportExecution.Clone(),
+		withOrderLinks:                    _q.withOrderLinks.Clone(),
+		withHouseBills:                    _q.withHouseBills.Clone(),
+		withInitialSeaOrderSplitResults:   _q.withInitialSeaOrderSplitResults.Clone(),
+		withFinalSeaOrderSplitResults:     _q.withFinalSeaOrderSplitResults.Clone(),
+		withPreviousSeaOrderReassignments: _q.withPreviousSeaOrderReassignments.Clone(),
+		withTargetSeaOrderReassignments:   _q.withTargetSeaOrderReassignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -401,6 +499,50 @@ func (_q *SeaMasterBillQuery) WithHouseBills(opts ...func(*SeaHouseBillQuery)) *
 		opt(query)
 	}
 	_q.withHouseBills = query
+	return _q
+}
+
+// WithInitialSeaOrderSplitResults tells the query-builder to eager-load the nodes that are connected to
+// the "initial_sea_order_split_results" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithInitialSeaOrderSplitResults(opts ...func(*SeaOrderSplitResultQuery)) *SeaMasterBillQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInitialSeaOrderSplitResults = query
+	return _q
+}
+
+// WithFinalSeaOrderSplitResults tells the query-builder to eager-load the nodes that are connected to
+// the "final_sea_order_split_results" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithFinalSeaOrderSplitResults(opts ...func(*SeaOrderSplitResultQuery)) *SeaMasterBillQuery {
+	query := (&SeaOrderSplitResultClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinalSeaOrderSplitResults = query
+	return _q
+}
+
+// WithPreviousSeaOrderReassignments tells the query-builder to eager-load the nodes that are connected to
+// the "previous_sea_order_reassignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithPreviousSeaOrderReassignments(opts ...func(*SeaOrderReassignmentEventQuery)) *SeaMasterBillQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPreviousSeaOrderReassignments = query
+	return _q
+}
+
+// WithTargetSeaOrderReassignments tells the query-builder to eager-load the nodes that are connected to
+// the "target_sea_order_reassignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithTargetSeaOrderReassignments(opts ...func(*SeaOrderReassignmentEventQuery)) *SeaMasterBillQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTargetSeaOrderReassignments = query
 	return _q
 }
 
@@ -482,11 +624,15 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*SeaMasterBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withTransportExecution != nil,
 			_q.withOrderLinks != nil,
 			_q.withHouseBills != nil,
+			_q.withInitialSeaOrderSplitResults != nil,
+			_q.withFinalSeaOrderSplitResults != nil,
+			_q.withPreviousSeaOrderReassignments != nil,
+			_q.withTargetSeaOrderReassignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -533,6 +679,42 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		if err := _q.loadHouseBills(ctx, query, nodes,
 			func(n *SeaMasterBill) { n.Edges.HouseBills = []*SeaHouseBill{} },
 			func(n *SeaMasterBill, e *SeaHouseBill) { n.Edges.HouseBills = append(n.Edges.HouseBills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withInitialSeaOrderSplitResults; query != nil {
+		if err := _q.loadInitialSeaOrderSplitResults(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.InitialSeaOrderSplitResults = []*SeaOrderSplitResult{} },
+			func(n *SeaMasterBill, e *SeaOrderSplitResult) {
+				n.Edges.InitialSeaOrderSplitResults = append(n.Edges.InitialSeaOrderSplitResults, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinalSeaOrderSplitResults; query != nil {
+		if err := _q.loadFinalSeaOrderSplitResults(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.FinalSeaOrderSplitResults = []*SeaOrderSplitResult{} },
+			func(n *SeaMasterBill, e *SeaOrderSplitResult) {
+				n.Edges.FinalSeaOrderSplitResults = append(n.Edges.FinalSeaOrderSplitResults, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPreviousSeaOrderReassignments; query != nil {
+		if err := _q.loadPreviousSeaOrderReassignments(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.PreviousSeaOrderReassignments = []*SeaOrderReassignmentEvent{} },
+			func(n *SeaMasterBill, e *SeaOrderReassignmentEvent) {
+				n.Edges.PreviousSeaOrderReassignments = append(n.Edges.PreviousSeaOrderReassignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTargetSeaOrderReassignments; query != nil {
+		if err := _q.loadTargetSeaOrderReassignments(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.TargetSeaOrderReassignments = []*SeaOrderReassignmentEvent{} },
+			func(n *SeaMasterBill, e *SeaOrderReassignmentEvent) {
+				n.Edges.TargetSeaOrderReassignments = append(n.Edges.TargetSeaOrderReassignments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -652,6 +834,126 @@ func (_q *SeaMasterBillQuery) loadHouseBills(ctx context.Context, query *SeaHous
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadInitialSeaOrderSplitResults(ctx context.Context, query *SeaOrderSplitResultQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaOrderSplitResult)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaordersplitresult.FieldInitialMasterBillID)
+	}
+	query.Where(predicate.SeaOrderSplitResult(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.InitialSeaOrderSplitResultsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.InitialMasterBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "initial_master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadFinalSeaOrderSplitResults(ctx context.Context, query *SeaOrderSplitResultQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaOrderSplitResult)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaordersplitresult.FieldFinalMasterBillID)
+	}
+	query.Where(predicate.SeaOrderSplitResult(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.FinalSeaOrderSplitResultsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.FinalMasterBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "final_master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadPreviousSeaOrderReassignments(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldPreviousMasterBillID)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.PreviousSeaOrderReassignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PreviousMasterBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "previous_master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadTargetSeaOrderReassignments(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldTargetMasterBillID)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.TargetSeaOrderReassignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TargetMasterBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "target_master_bill_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

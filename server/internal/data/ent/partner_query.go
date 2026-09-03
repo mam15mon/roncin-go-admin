@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
 // PartnerQuery is the builder for querying Partner entities.
@@ -61,6 +62,7 @@ type PartnerQuery struct {
 	withFinanceVerifications        *FinanceVerificationQuery
 	withOrderCommissionAttributions *OrderCommissionAttributionQuery
 	withIssuedSeaHouseBills         *SeaHouseBillQuery
+	withSeaOrderReassignments       *SeaOrderReassignmentEventQuery
 	modifiers                       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -494,6 +496,28 @@ func (_q *PartnerQuery) QueryIssuedSeaHouseBills() *SeaHouseBillQuery {
 	return query
 }
 
+// QuerySeaOrderReassignments chains the current query on the "sea_order_reassignments" edge.
+func (_q *PartnerQuery) QuerySeaOrderReassignments() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaOrderReassignmentsTable, partner.SeaOrderReassignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Partner entity from the query.
 // Returns a *NotFoundError when no Partner was found.
 func (_q *PartnerQuery) First(ctx context.Context) (*Partner, error) {
@@ -704,6 +728,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withFinanceVerifications:        _q.withFinanceVerifications.Clone(),
 		withOrderCommissionAttributions: _q.withOrderCommissionAttributions.Clone(),
 		withIssuedSeaHouseBills:         _q.withIssuedSeaHouseBills.Clone(),
+		withSeaOrderReassignments:       _q.withSeaOrderReassignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -908,6 +933,17 @@ func (_q *PartnerQuery) WithIssuedSeaHouseBills(opts ...func(*SeaHouseBillQuery)
 	return _q
 }
 
+// WithSeaOrderReassignments tells the query-builder to eager-load the nodes that are connected to
+// the "sea_order_reassignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithSeaOrderReassignments(opts ...func(*SeaOrderReassignmentEventQuery)) *PartnerQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaOrderReassignments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -986,7 +1022,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [18]bool{
+		loadedTypes = [19]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -1005,6 +1041,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withFinanceVerifications != nil,
 			_q.withOrderCommissionAttributions != nil,
 			_q.withIssuedSeaHouseBills != nil,
+			_q.withSeaOrderReassignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1158,6 +1195,15 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			func(n *Partner) { n.Edges.IssuedSeaHouseBills = []*SeaHouseBill{} },
 			func(n *Partner, e *SeaHouseBill) {
 				n.Edges.IssuedSeaHouseBills = append(n.Edges.IssuedSeaHouseBills, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaOrderReassignments; query != nil {
+		if err := _q.loadSeaOrderReassignments(ctx, query, nodes,
+			func(n *Partner) { n.Edges.SeaOrderReassignments = []*SeaOrderReassignmentEvent{} },
+			func(n *Partner, e *SeaOrderReassignmentEvent) {
+				n.Edges.SeaOrderReassignments = append(n.Edges.SeaOrderReassignments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1699,6 +1745,39 @@ func (_q *PartnerQuery) loadIssuedSeaHouseBills(ctx context.Context, query *SeaH
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "issuer_partner_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadSeaOrderReassignments(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldResponsiblePartnerID)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.SeaOrderReassignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ResponsiblePartnerID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "responsible_partner_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "responsible_partner_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -32,6 +32,10 @@ func (SeaMasterBill) Edges() []ent.Edge {
 		edge.From("transport_execution", SeaTransportExecution.Type).Ref("master_bills").Field("transport_execution_id").Unique().Required(),
 		edge.To("order_links", SeaMasterBillOrderLink.Type),
 		edge.To("house_bills", SeaHouseBill.Type),
+		edge.To("initial_sea_order_split_results", SeaOrderSplitResult.Type),
+		edge.To("final_sea_order_split_results", SeaOrderSplitResult.Type),
+		edge.To("previous_sea_order_reassignments", SeaOrderReassignmentEvent.Type),
+		edge.To("target_sea_order_reassignments", SeaOrderReassignmentEvent.Type),
 	}
 }
 

@@ -138,9 +138,17 @@ type OrganizationEdges struct {
 	OrderFeeEnterpriseTags []*OrderFeeEnterpriseTag `json:"order_fee_enterprise_tags,omitempty"`
 	// FinanceBillEnterpriseTags holds the value of the finance_bill_enterprise_tags edge.
 	FinanceBillEnterpriseTags []*FinanceBillEnterpriseTag `json:"finance_bill_enterprise_tags,omitempty"`
+	// AttachmentAssets holds the value of the attachment_assets edge.
+	AttachmentAssets []*OrderAttachmentAsset `json:"attachment_assets,omitempty"`
+	// SeaOrderSplitEvents holds the value of the sea_order_split_events edge.
+	SeaOrderSplitEvents []*SeaOrderSplitEvent `json:"sea_order_split_events,omitempty"`
+	// SeaOrderSplitResults holds the value of the sea_order_split_results edge.
+	SeaOrderSplitResults []*SeaOrderSplitResult `json:"sea_order_split_results,omitempty"`
+	// SeaOrderReassignmentEvents holds the value of the sea_order_reassignment_events edge.
+	SeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"sea_order_reassignment_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [47]bool
+	loadedTypes [51]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -568,6 +576,42 @@ func (e OrganizationEdges) FinanceBillEnterpriseTagsOrErr() ([]*FinanceBillEnter
 	return nil, &NotLoadedError{edge: "finance_bill_enterprise_tags"}
 }
 
+// AttachmentAssetsOrErr returns the AttachmentAssets value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) AttachmentAssetsOrErr() ([]*OrderAttachmentAsset, error) {
+	if e.loadedTypes[47] {
+		return e.AttachmentAssets, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment_assets"}
+}
+
+// SeaOrderSplitEventsOrErr returns the SeaOrderSplitEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
+	if e.loadedTypes[48] {
+		return e.SeaOrderSplitEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_split_events"}
+}
+
+// SeaOrderSplitResultsOrErr returns the SeaOrderSplitResults value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
+	if e.loadedTypes[49] {
+		return e.SeaOrderSplitResults, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_split_results"}
+}
+
+// SeaOrderReassignmentEventsOrErr returns the SeaOrderReassignmentEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[50] {
+		return e.SeaOrderReassignmentEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -906,6 +950,26 @@ func (_m *Organization) QueryOrderFeeEnterpriseTags() *OrderFeeEnterpriseTagQuer
 // QueryFinanceBillEnterpriseTags queries the "finance_bill_enterprise_tags" edge of the Organization entity.
 func (_m *Organization) QueryFinanceBillEnterpriseTags() *FinanceBillEnterpriseTagQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceBillEnterpriseTags(_m)
+}
+
+// QueryAttachmentAssets queries the "attachment_assets" edge of the Organization entity.
+func (_m *Organization) QueryAttachmentAssets() *OrderAttachmentAssetQuery {
+	return NewOrganizationClient(_m.config).QueryAttachmentAssets(_m)
+}
+
+// QuerySeaOrderSplitEvents queries the "sea_order_split_events" edge of the Organization entity.
+func (_m *Organization) QuerySeaOrderSplitEvents() *SeaOrderSplitEventQuery {
+	return NewOrganizationClient(_m.config).QuerySeaOrderSplitEvents(_m)
+}
+
+// QuerySeaOrderSplitResults queries the "sea_order_split_results" edge of the Organization entity.
+func (_m *Organization) QuerySeaOrderSplitResults() *SeaOrderSplitResultQuery {
+	return NewOrganizationClient(_m.config).QuerySeaOrderSplitResults(_m)
+}
+
+// QuerySeaOrderReassignmentEvents queries the "sea_order_reassignment_events" edge of the Organization entity.
+func (_m *Organization) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	return NewOrganizationClient(_m.config).QuerySeaOrderReassignmentEvents(_m)
 }
 
 // Update returns a builder for updating this Organization.

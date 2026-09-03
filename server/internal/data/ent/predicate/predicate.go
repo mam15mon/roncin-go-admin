@@ -153,6 +153,9 @@ type OrderAbnormalCase func(*sql.Selector)
 // OrderAttachment is the predicate function for orderattachment builders.
 type OrderAttachment func(*sql.Selector)
 
+// OrderAttachmentAsset is the predicate function for orderattachmentasset builders.
+type OrderAttachmentAsset func(*sql.Selector)
+
 // OrderCargoCategory is the predicate function for ordercargocategory builders.
 type OrderCargoCategory func(*sql.Selector)
 
@@ -257,6 +260,15 @@ type SeaMasterBill func(*sql.Selector)
 
 // SeaMasterBillOrderLink is the predicate function for seamasterbillorderlink builders.
 type SeaMasterBillOrderLink func(*sql.Selector)
+
+// SeaOrderReassignmentEvent is the predicate function for seaorderreassignmentevent builders.
+type SeaOrderReassignmentEvent func(*sql.Selector)
+
+// SeaOrderSplitEvent is the predicate function for seaordersplitevent builders.
+type SeaOrderSplitEvent func(*sql.Selector)
+
+// SeaOrderSplitResult is the predicate function for seaordersplitresult builders.
+type SeaOrderSplitResult func(*sql.Selector)
 
 // SeaTransportExecution is the predicate function for seatransportexecution builders.
 type SeaTransportExecution func(*sql.Selector)

@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderAttachmentService_ListAttachments_FullMethodName    = "/order.v1.OrderAttachmentService/ListAttachments"
-	OrderAttachmentService_RegisterAttachment_FullMethodName = "/order.v1.OrderAttachmentService/RegisterAttachment"
+	OrderAttachmentService_ListAttachments_FullMethodName           = "/order.v1.OrderAttachmentService/ListAttachments"
+	OrderAttachmentService_RegisterAttachment_FullMethodName        = "/order.v1.OrderAttachmentService/RegisterAttachment"
+	OrderAttachmentService_RemoveAttachmentReference_FullMethodName = "/order.v1.OrderAttachmentService/RemoveAttachmentReference"
 )
 
 // OrderAttachmentServiceClient is the client API for OrderAttachmentService service.
@@ -33,6 +34,8 @@ type OrderAttachmentServiceClient interface {
 	ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*ListAttachmentsResponse, error)
 	// RegisterAttachment 注册订单附件。
 	RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*RegisterAttachmentResponse, error)
+	// RemoveAttachmentReference 解除订单附件引用。
+	RemoveAttachmentReference(ctx context.Context, in *RemoveAttachmentReferenceRequest, opts ...grpc.CallOption) (*RemoveAttachmentReferenceResponse, error)
 }
 
 type orderAttachmentServiceClient struct {
@@ -63,6 +66,16 @@ func (c *orderAttachmentServiceClient) RegisterAttachment(ctx context.Context, i
 	return out, nil
 }
 
+func (c *orderAttachmentServiceClient) RemoveAttachmentReference(ctx context.Context, in *RemoveAttachmentReferenceRequest, opts ...grpc.CallOption) (*RemoveAttachmentReferenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveAttachmentReferenceResponse)
+	err := c.cc.Invoke(ctx, OrderAttachmentService_RemoveAttachmentReference_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderAttachmentServiceServer is the server API for OrderAttachmentService service.
 // All implementations must embed UnimplementedOrderAttachmentServiceServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type OrderAttachmentServiceServer interface {
 	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
 	// RegisterAttachment 注册订单附件。
 	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
+	// RemoveAttachmentReference 解除订单附件引用。
+	RemoveAttachmentReference(context.Context, *RemoveAttachmentReferenceRequest) (*RemoveAttachmentReferenceResponse, error)
 	mustEmbedUnimplementedOrderAttachmentServiceServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedOrderAttachmentServiceServer) ListAttachments(context.Context
 }
 func (UnimplementedOrderAttachmentServiceServer) RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterAttachment not implemented")
+}
+func (UnimplementedOrderAttachmentServiceServer) RemoveAttachmentReference(context.Context, *RemoveAttachmentReferenceRequest) (*RemoveAttachmentReferenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveAttachmentReference not implemented")
 }
 func (UnimplementedOrderAttachmentServiceServer) mustEmbedUnimplementedOrderAttachmentServiceServer() {
 }
@@ -147,6 +165,24 @@ func _OrderAttachmentService_RegisterAttachment_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderAttachmentService_RemoveAttachmentReference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveAttachmentReferenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderAttachmentServiceServer).RemoveAttachmentReference(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderAttachmentService_RemoveAttachmentReference_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderAttachmentServiceServer).RemoveAttachmentReference(ctx, req.(*RemoveAttachmentReferenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderAttachmentService_ServiceDesc is the grpc.ServiceDesc for OrderAttachmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -161,6 +197,10 @@ var OrderAttachmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterAttachment",
 			Handler:    _OrderAttachmentService_RegisterAttachment_Handler,
+		},
+		{
+			MethodName: "RemoveAttachmentReference",
+			Handler:    _OrderAttachmentService_RemoveAttachmentReference_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

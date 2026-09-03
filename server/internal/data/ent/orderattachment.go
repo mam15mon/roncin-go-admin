@@ -12,6 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderAttachment is the model entity for the OrderAttachment schema.
@@ -25,22 +27,14 @@ type OrderAttachment struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
+	// AssetID holds the value of the "asset_id" field.
+	AssetID uuid.UUID `json:"asset_id,omitempty"`
 	// DocType holds the value of the "doc_type" field.
 	DocType string `json:"doc_type,omitempty"`
 	// IdempotencyKey holds the value of the "idempotency_key" field.
 	IdempotencyKey string `json:"idempotency_key,omitempty"`
-	// FileName holds the value of the "file_name" field.
-	FileName string `json:"file_name,omitempty"`
-	// MimeType holds the value of the "mime_type" field.
-	MimeType string `json:"mime_type,omitempty"`
-	// FileSize holds the value of the "file_size" field.
-	FileSize int64 `json:"file_size,omitempty"`
-	// ObjectKey holds the value of the "object_key" field.
-	ObjectKey string `json:"object_key,omitempty"`
-	// Checksum holds the value of the "checksum" field.
-	Checksum *string `json:"checksum,omitempty"`
-	// UploadedBy holds the value of the "uploaded_by" field.
-	UploadedBy *uuid.UUID `json:"uploaded_by,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy *uuid.UUID `json:"created_by,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderAttachmentQuery when eager-loading is set.
 	Edges        OrderAttachmentEdges `json:"edges"`
@@ -51,9 +45,13 @@ type OrderAttachment struct {
 type OrderAttachmentEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
+	// Asset holds the value of the asset edge.
+	Asset *OrderAttachmentAsset `json:"asset,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator *User `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -67,20 +65,40 @@ func (e OrderAttachmentEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
+// AssetOrErr returns the Asset value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderAttachmentEdges) AssetOrErr() (*OrderAttachmentAsset, error) {
+	if e.Asset != nil {
+		return e.Asset, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: orderattachmentasset.Label}
+	}
+	return nil, &NotLoadedError{edge: "asset"}
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderAttachmentEdges) CreatorOrErr() (*User, error) {
+	if e.Creator != nil {
+		return e.Creator, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OrderAttachment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderattachment.FieldUploadedBy:
+		case orderattachment.FieldCreatedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderattachment.FieldFileSize:
-			values[i] = new(sql.NullInt64)
-		case orderattachment.FieldDocType, orderattachment.FieldIdempotencyKey, orderattachment.FieldFileName, orderattachment.FieldMimeType, orderattachment.FieldObjectKey, orderattachment.FieldChecksum:
+		case orderattachment.FieldDocType, orderattachment.FieldIdempotencyKey:
 			values[i] = new(sql.NullString)
 		case orderattachment.FieldCreatedAt, orderattachment.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case orderattachment.FieldID, orderattachment.FieldOrderID:
+		case orderattachment.FieldID, orderattachment.FieldOrderID, orderattachment.FieldAssetID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -121,6 +139,12 @@ func (_m *OrderAttachment) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.OrderID = *value
 			}
+		case orderattachment.FieldAssetID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field asset_id", values[i])
+			} else if value != nil {
+				_m.AssetID = *value
+			}
 		case orderattachment.FieldDocType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field doc_type", values[i])
@@ -133,43 +157,12 @@ func (_m *OrderAttachment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IdempotencyKey = value.String
 			}
-		case orderattachment.FieldFileName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field file_name", values[i])
-			} else if value.Valid {
-				_m.FileName = value.String
-			}
-		case orderattachment.FieldMimeType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field mime_type", values[i])
-			} else if value.Valid {
-				_m.MimeType = value.String
-			}
-		case orderattachment.FieldFileSize:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field file_size", values[i])
-			} else if value.Valid {
-				_m.FileSize = value.Int64
-			}
-		case orderattachment.FieldObjectKey:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field object_key", values[i])
-			} else if value.Valid {
-				_m.ObjectKey = value.String
-			}
-		case orderattachment.FieldChecksum:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field checksum", values[i])
-			} else if value.Valid {
-				_m.Checksum = new(string)
-				*_m.Checksum = value.String
-			}
-		case orderattachment.FieldUploadedBy:
+		case orderattachment.FieldCreatedBy:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field uploaded_by", values[i])
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value.Valid {
-				_m.UploadedBy = new(uuid.UUID)
-				*_m.UploadedBy = *value.S.(*uuid.UUID)
+				_m.CreatedBy = new(uuid.UUID)
+				*_m.CreatedBy = *value.S.(*uuid.UUID)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -187,6 +180,16 @@ func (_m *OrderAttachment) Value(name string) (ent.Value, error) {
 // QueryOrder queries the "order" edge of the OrderAttachment entity.
 func (_m *OrderAttachment) QueryOrder() *OrderQuery {
 	return NewOrderAttachmentClient(_m.config).QueryOrder(_m)
+}
+
+// QueryAsset queries the "asset" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QueryAsset() *OrderAttachmentAssetQuery {
+	return NewOrderAttachmentClient(_m.config).QueryAsset(_m)
+}
+
+// QueryCreator queries the "creator" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QueryCreator() *UserQuery {
+	return NewOrderAttachmentClient(_m.config).QueryCreator(_m)
 }
 
 // Update returns a builder for updating this OrderAttachment.
@@ -221,31 +224,17 @@ func (_m *OrderAttachment) String() string {
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteString(", ")
+	builder.WriteString("asset_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AssetID))
+	builder.WriteString(", ")
 	builder.WriteString("doc_type=")
 	builder.WriteString(_m.DocType)
 	builder.WriteString(", ")
 	builder.WriteString("idempotency_key=")
 	builder.WriteString(_m.IdempotencyKey)
 	builder.WriteString(", ")
-	builder.WriteString("file_name=")
-	builder.WriteString(_m.FileName)
-	builder.WriteString(", ")
-	builder.WriteString("mime_type=")
-	builder.WriteString(_m.MimeType)
-	builder.WriteString(", ")
-	builder.WriteString("file_size=")
-	builder.WriteString(fmt.Sprintf("%v", _m.FileSize))
-	builder.WriteString(", ")
-	builder.WriteString("object_key=")
-	builder.WriteString(_m.ObjectKey)
-	builder.WriteString(", ")
-	if v := _m.Checksum; v != nil {
-		builder.WriteString("checksum=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.UploadedBy; v != nil {
-		builder.WriteString("uploaded_by=")
+	if v := _m.CreatedBy; v != nil {
+		builder.WriteString("created_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteByte(')')

@@ -129,6 +129,14 @@ const (
 	EdgeOrderFeeEnterpriseTags = "order_fee_enterprise_tags"
 	// EdgeFinanceBillEnterpriseTags holds the string denoting the finance_bill_enterprise_tags edge name in mutations.
 	EdgeFinanceBillEnterpriseTags = "finance_bill_enterprise_tags"
+	// EdgeAttachmentAssets holds the string denoting the attachment_assets edge name in mutations.
+	EdgeAttachmentAssets = "attachment_assets"
+	// EdgeSeaOrderSplitEvents holds the string denoting the sea_order_split_events edge name in mutations.
+	EdgeSeaOrderSplitEvents = "sea_order_split_events"
+	// EdgeSeaOrderSplitResults holds the string denoting the sea_order_split_results edge name in mutations.
+	EdgeSeaOrderSplitResults = "sea_order_split_results"
+	// EdgeSeaOrderReassignmentEvents holds the string denoting the sea_order_reassignment_events edge name in mutations.
+	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -454,6 +462,34 @@ const (
 	FinanceBillEnterpriseTagsInverseTable = "finance_bill_enterprise_tags"
 	// FinanceBillEnterpriseTagsColumn is the table column denoting the finance_bill_enterprise_tags relation/edge.
 	FinanceBillEnterpriseTagsColumn = "organization_id"
+	// AttachmentAssetsTable is the table that holds the attachment_assets relation/edge.
+	AttachmentAssetsTable = "order_attachment_assets"
+	// AttachmentAssetsInverseTable is the table name for the OrderAttachmentAsset entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachmentasset" package.
+	AttachmentAssetsInverseTable = "order_attachment_assets"
+	// AttachmentAssetsColumn is the table column denoting the attachment_assets relation/edge.
+	AttachmentAssetsColumn = "organization_id"
+	// SeaOrderSplitEventsTable is the table that holds the sea_order_split_events relation/edge.
+	SeaOrderSplitEventsTable = "sea_order_split_events"
+	// SeaOrderSplitEventsInverseTable is the table name for the SeaOrderSplitEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitevent" package.
+	SeaOrderSplitEventsInverseTable = "sea_order_split_events"
+	// SeaOrderSplitEventsColumn is the table column denoting the sea_order_split_events relation/edge.
+	SeaOrderSplitEventsColumn = "organization_id"
+	// SeaOrderSplitResultsTable is the table that holds the sea_order_split_results relation/edge.
+	SeaOrderSplitResultsTable = "sea_order_split_results"
+	// SeaOrderSplitResultsInverseTable is the table name for the SeaOrderSplitResult entity.
+	// It exists in this package in order to avoid circular dependency with the "seaordersplitresult" package.
+	SeaOrderSplitResultsInverseTable = "sea_order_split_results"
+	// SeaOrderSplitResultsColumn is the table column denoting the sea_order_split_results relation/edge.
+	SeaOrderSplitResultsColumn = "organization_id"
+	// SeaOrderReassignmentEventsTable is the table that holds the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	SeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsColumn is the table column denoting the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -1235,6 +1271,62 @@ func ByFinanceBillEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) Ord
 		sqlgraph.OrderByNeighborTerms(s, newFinanceBillEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttachmentAssetsCount orders the results by attachment_assets count.
+func ByAttachmentAssetsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachmentAssetsStep(), opts...)
+	}
+}
+
+// ByAttachmentAssets orders the results by attachment_assets terms.
+func ByAttachmentAssets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachmentAssetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderSplitEventsCount orders the results by sea_order_split_events count.
+func BySeaOrderSplitEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderSplitEventsStep(), opts...)
+	}
+}
+
+// BySeaOrderSplitEvents orders the results by sea_order_split_events terms.
+func BySeaOrderSplitEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderSplitEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderSplitResultsCount orders the results by sea_order_split_results count.
+func BySeaOrderSplitResultsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderSplitResultsStep(), opts...)
+	}
+}
+
+// BySeaOrderSplitResults orders the results by sea_order_split_results terms.
+func BySeaOrderSplitResults(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderSplitResultsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderReassignmentEventsCount orders the results by sea_order_reassignment_events count.
+func BySeaOrderReassignmentEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderReassignmentEventsStep(), opts...)
+	}
+}
+
+// BySeaOrderReassignmentEvents orders the results by sea_order_reassignment_events terms.
+func BySeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1562,5 +1654,33 @@ func newFinanceBillEnterpriseTagsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceBillEnterpriseTagsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillEnterpriseTagsTable, FinanceBillEnterpriseTagsColumn),
+	)
+}
+func newAttachmentAssetsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachmentAssetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentAssetsTable, AttachmentAssetsColumn),
+	)
+}
+func newSeaOrderSplitEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderSplitEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitEventsTable, SeaOrderSplitEventsColumn),
+	)
+}
+func newSeaOrderSplitResultsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderSplitResultsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderSplitResultsTable, SeaOrderSplitResultsColumn),
+	)
+}
+func newSeaOrderReassignmentEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderReassignmentEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
 	)
 }

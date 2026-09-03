@@ -158,6 +158,8 @@ const (
 	OrderFeeCreate            OrderOperation = "fee.create"
 	OrderFeeUpdate            OrderOperation = "fee.update"
 	OrderFeeDelete            OrderOperation = "fee.delete"
+	OrderSplit                OrderOperation = "split"
+	OrderReassign             OrderOperation = "reassign"
 )
 
 var manifest = append([]Permission{
@@ -256,30 +258,47 @@ var manifest = append([]Permission{
 }, orderManifest()...)
 
 type orderPermissionDefinition struct {
-	operation   OrderOperation
-	name        string
-	resource    string
-	description string
+	operation     OrderOperation
+	name          string
+	resource      string
+	description   string
+	businessTypes []OrderBusinessType
 }
 
 var orderPermissionDefinitions = []orderPermissionDefinition{
-	{OrderRead, "查看订单", "订单", "查看当前数据范围内的订单"},
-	{OrderCreate, "新建订单", "订单", "新建订单并检查业务编号"},
-	{OrderUpdate, "编辑订单", "订单", "修改订单基础与业务资料"},
-	{OrderTransition, "流转订单状态", "订单", "执行订单状态流转"},
-	{OrderMilestoneRead, "查看里程碑", "里程碑", "查看订单里程碑"}, {OrderMilestoneSet, "设置里程碑", "里程碑", "完成、跳过或重置订单里程碑"},
-	{OrderAttachmentRead, "查看附件", "附件", "查看订单附件"}, {OrderAttachmentRegister, "登记附件", "附件", "登记订单附件元数据"},
-	{OrderPersonnelRead, "查看协作人员", "协作人员", "查看订单协作人员"}, {OrderPersonnelAssign, "指派协作人员", "协作人员", "指派订单协作人员"}, {OrderPersonnelRemove, "移除协作人员", "协作人员", "移除订单协作人员"},
-	{OrderContainerRead, "查看集装箱", "集装箱", "查看订单集装箱"}, {OrderContainerCreate, "新增集装箱", "集装箱", "新增订单集装箱"}, {OrderContainerUpdate, "编辑集装箱", "集装箱", "修改订单集装箱"}, {OrderContainerDelete, "删除集装箱", "集装箱", "删除订单集装箱"},
-	{OrderCargoItemRead, "查看货物明细", "货物", "查看订单货物明细"}, {OrderCargoItemCreate, "新增货物明细", "货物", "新增订单货物明细"}, {OrderCargoItemUpdate, "编辑货物明细", "货物", "修改订单货物明细"}, {OrderCargoItemDelete, "删除货物明细", "货物", "删除订单货物明细"},
-	{OrderAbnormalCaseRead, "查看异常事件", "异常", "查看订单异常事件"}, {OrderAbnormalCaseCreate, "登记异常事件", "异常", "登记订单异常事件"}, {OrderAbnormalCaseResolve, "处理异常事件", "异常", "解决或重新打开订单异常事件"}, {OrderAbnormalCaseDelete, "删除异常事件", "异常", "删除订单异常事件"},
-	{OrderReleasePodRead, "查看放货凭证", "放货", "查看订单放货凭证"}, {OrderReleasePodCreate, "新增放货凭证", "放货", "新增订单放货凭证"}, {OrderReleasePodUpdate, "编辑放货凭证", "放货", "修改订单放货凭证"}, {OrderReleasePodTransition, "流转放货状态", "放货", "执行放货状态流转"}, {OrderReleasePodDelete, "删除放货凭证", "放货", "删除订单放货凭证"},
-	{OrderFeeRead, "查看费用", "费用", "查看订单应收应付费用"}, {OrderFeeCreate, "录入费用", "费用", "录入订单应收应付费用"}, {OrderFeeUpdate, "编辑费用", "费用", "修改订单应收应付费用"}, {OrderFeeDelete, "删除费用", "费用", "删除订单应收应付费用"},
+	{operation: OrderRead, name: "查看订单", resource: "订单", description: "查看当前数据范围内的订单"},
+	{operation: OrderCreate, name: "新建订单", resource: "订单", description: "新建订单并检查业务编号"},
+	{operation: OrderUpdate, name: "编辑订单", resource: "订单", description: "修改订单基础与业务资料"},
+	{operation: OrderTransition, name: "流转订单状态", resource: "订单", description: "执行订单状态流转"},
+	{operation: OrderMilestoneRead, name: "查看里程碑", resource: "里程碑", description: "查看订单里程碑"}, {operation: OrderMilestoneSet, name: "设置里程碑", resource: "里程碑", description: "完成、跳过或重置订单里程碑"},
+	{operation: OrderAttachmentRead, name: "查看附件", resource: "附件", description: "查看订单附件"}, {operation: OrderAttachmentRegister, name: "管理附件", resource: "附件", description: "登记订单附件元数据与解除引用"},
+	{operation: OrderPersonnelRead, name: "查看协作人员", resource: "协作人员", description: "查看订单协作人员"}, {operation: OrderPersonnelAssign, name: "指派协作人员", resource: "协作人员", description: "指派订单协作人员"}, {operation: OrderPersonnelRemove, name: "移除协作人员", resource: "协作人员", description: "移除订单协作人员"},
+	{operation: OrderContainerRead, name: "查看集装箱", resource: "集装箱", description: "查看订单集装箱"}, {operation: OrderContainerCreate, name: "新增集装箱", resource: "集装箱", description: "新增订单集装箱"}, {operation: OrderContainerUpdate, name: "编辑集装箱", resource: "集装箱", description: "修改订单集装箱"}, {operation: OrderContainerDelete, name: "删除集装箱", resource: "集装箱", description: "删除订单集装箱"},
+	{operation: OrderCargoItemRead, name: "查看货物明细", resource: "货物", description: "查看订单货物明细"}, {operation: OrderCargoItemCreate, name: "新增货物明细", resource: "货物", description: "新增订单货物明细"}, {operation: OrderCargoItemUpdate, name: "编辑货物明细", resource: "货物", description: "修改订单货物明细"}, {operation: OrderCargoItemDelete, name: "删除货物明细", resource: "货物", description: "删除订单货物明细"},
+	{operation: OrderAbnormalCaseRead, name: "查看异常事件", resource: "异常", description: "查看订单异常事件"}, {operation: OrderAbnormalCaseCreate, name: "登记异常事件", resource: "异常", description: "登记订单异常事件"}, {operation: OrderAbnormalCaseResolve, name: "处理异常事件", resource: "异常", description: "解决或重新打开订单异常事件"}, {operation: OrderAbnormalCaseDelete, name: "删除异常事件", resource: "异常", description: "删除订单异常事件"},
+	{operation: OrderReleasePodRead, name: "查看放货凭证", resource: "放货", description: "查看订单放货凭证"}, {operation: OrderReleasePodCreate, name: "新增放货凭证", resource: "放货", description: "新增订单放货凭证"}, {operation: OrderReleasePodUpdate, name: "编辑放货凭证", resource: "放货", description: "修改订单放货凭证"}, {operation: OrderReleasePodTransition, name: "流转放货状态", resource: "放货", description: "执行放货状态流转"}, {operation: OrderReleasePodDelete, name: "删除放货凭证", resource: "放货", description: "删除订单放货凭证"},
+	{operation: OrderFeeRead, name: "查看费用", resource: "费用", description: "查看订单应收应付费用"}, {operation: OrderFeeCreate, name: "录入费用", resource: "费用", description: "录入订单应收应付费用"}, {operation: OrderFeeUpdate, name: "编辑费用", resource: "费用", description: "修改订单应收应付费用"}, {operation: OrderFeeDelete, name: "删除费用", resource: "费用", description: "删除订单应收应付费用"},
+	{operation: OrderSplit, name: "拆票", resource: "订单", description: "执行海运出口拆票", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderReassign, name: "整体改配", resource: "订单", description: "执行海运出口整体改配", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 }
 
 func OrderPermission(businessType OrderBusinessType, operation OrderOperation) string {
 	if !businessType.Valid() || !operation.Valid() {
 		return ""
+	}
+	for _, def := range orderPermissionDefinitions {
+		if def.operation == operation && len(def.businessTypes) > 0 {
+			supported := false
+			for _, bt := range def.businessTypes {
+				if bt == businessType {
+					supported = true
+					break
+				}
+			}
+			if !supported {
+				return ""
+			}
+		}
 	}
 	return fmt.Sprintf("business.order.%s.%s", businessType.code(), operation)
 }
@@ -310,6 +329,18 @@ func orderManifest() []Permission {
 	items := make([]Permission, 0, len(types)*len(orderPermissionDefinitions))
 	for _, businessType := range types {
 		for _, definition := range orderPermissionDefinitions {
+			if len(definition.businessTypes) > 0 {
+				supported := false
+				for _, bt := range definition.businessTypes {
+					if bt == businessType {
+						supported = true
+						break
+					}
+				}
+				if !supported {
+					continue
+				}
+			}
 			items = append(items, Permission{Key: OrderPermission(businessType, definition.operation), Name: fmt.Sprintf("%s %s", businessType.name(), definition.name), Group: fmt.Sprintf("订单管理 · %s · %s", businessType.name(), definition.resource), Description: definition.description, Requires: orderPermissionRequires(businessType, definition.operation)})
 		}
 	}
@@ -319,12 +350,15 @@ func orderManifest() []Permission {
 // orderPermissionRequires 推导订单权限依赖：操作权限依赖同资源读权限，子资源
 // 权限（里程碑、集装箱、费用等）还依赖该业务线的订单读权限。
 func orderPermissionRequires(businessType OrderBusinessType, operation OrderOperation) []string {
+	orderRead := OrderPermission(businessType, OrderRead)
+	if operation == OrderSplit || operation == OrderReassign {
+		return []string{orderRead, OrderPermission(businessType, OrderUpdate)}
+	}
 	resource := ""
 	action := string(operation)
 	if prefix, suffix, found := strings.Cut(string(operation), "."); found {
 		resource, action = prefix, suffix
 	}
-	orderRead := OrderPermission(businessType, OrderRead)
 	switch {
 	case resource == "" && action == "read":
 		return nil

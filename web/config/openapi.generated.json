@@ -6595,6 +6595,45 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/attachments/{id}": {
+      "delete": {
+        "tags": [
+          "OrderAttachmentService"
+        ],
+        "description": "RemoveAttachmentReference 解除订单附件引用。",
+        "operationId": "OrderAttachmentService_RemoveAttachmentReference",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RemoveAttachmentReferenceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/cargo-items": {
       "get": {
         "tags": [
@@ -8339,6 +8378,325 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.UpdateSeaMasterBillContentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/actions": {
+      "get": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。",
+        "operationId": "SeaOrderChangeService_GetSeaOrderChangeActions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaOrderChangeActionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/events": {
+      "get": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "ListSeaOrderChangeEvents 查询订单拆票与改配事件历史。",
+        "operationId": "SeaOrderChangeService_ListSeaOrderChangeEvents",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListSeaOrderChangeEventsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/events/{eventId}": {
+      "get": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。",
+        "operationId": "SeaOrderChangeService_GetSeaOrderChangeEvent",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaOrderChangeEventResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/reassignment/execute": {
+      "post": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "ExecuteSeaOrderReassignment 执行整体改配。",
+        "operationId": "SeaOrderChangeService_ExecuteSeaOrderReassignment",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderReassignmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderReassignmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/reassignment/preview": {
+      "post": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "PreviewSeaOrderReassignment 预览整体改配航程差异。",
+        "operationId": "SeaOrderChangeService_PreviewSeaOrderReassignment",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewSeaOrderReassignmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewSeaOrderReassignmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/split-context": {
+      "get": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "GetSeaOrderSplitContext 获取拆票上下文事实与可分配数据。",
+        "operationId": "SeaOrderChangeService_GetSeaOrderSplitContext",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaOrderSplitContextResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/split/execute": {
+      "post": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "ExecuteSeaOrderSplit 执行部分拆票。",
+        "operationId": "SeaOrderChangeService_ExecuteSeaOrderSplit",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderSplitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderSplitResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-order-change/split/preview": {
+      "post": {
+        "tags": [
+          "SeaOrderChangeService"
+        ],
+        "description": "PreviewSeaOrderSplit 预览拆票结果、守恒计算与计划重算。",
+        "operationId": "SeaOrderChangeService_PreviewSeaOrderSplit",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewSeaOrderSplitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewSeaOrderSplitResponse"
                 }
               }
             }
@@ -19769,6 +20127,185 @@
           }
         }
       },
+      "order.v1.ExecuteSeaOrderReassignmentData": {
+        "type": "object",
+        "properties": {
+          "reassignmentEventId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "targetMasterBillId": {
+            "type": "string"
+          },
+          "targetMasterNo": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaOrderReassignmentRequest": {
+        "required": [
+          "orderId",
+          "idempotencyKey",
+          "requestFingerprint",
+          "target",
+          "reason",
+          "responsibilityType",
+          "expectedOrderVersion",
+          "expectedLinkVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "requestFingerprint": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderReassignmentTargetInput"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "responsibilityType": {
+            "type": "string"
+          },
+          "responsiblePartnerId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          },
+          "expectedCandidateMblVersion": {
+            "type": "string"
+          },
+          "expectedCandidateTeVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaOrderReassignmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderReassignmentData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaOrderSplitData": {
+        "type": "object",
+        "properties": {
+          "splitEventId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "originalOrder": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitOrderReference"
+          },
+          "createdOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitCreatedOrder"
+            }
+          },
+          "reassignmentEventIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.ExecuteSeaOrderSplitRequest": {
+        "required": [
+          "orderId",
+          "idempotencyKey",
+          "requestFingerprint",
+          "targets",
+          "results",
+          "expectedVersions"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "requestFingerprint": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitTargetInput"
+            }
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitResultInput"
+            }
+          },
+          "expectedVersions": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitExpectedVersions"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaOrderSplitResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.ExecuteSeaOrderSplitData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.GetOrderResponse": {
         "type": "object",
         "properties": {
@@ -19813,6 +20350,48 @@
         },
         "description": "GetSeaCargoAllocationResponse 获取响应。"
       },
+      "order.v1.GetSeaOrderChangeActionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderChangeActionsData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.GetSeaOrderChangeEventResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderChangeEventDetailData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.GetSeaOrderDocumentsResponse": {
         "type": "object",
         "properties": {
@@ -19834,6 +20413,27 @@
           }
         },
         "description": "GetSeaOrderDocumentsResponse 获取海运单证聚合信息响应。"
+      },
+      "order.v1.GetSeaOrderSplitContextResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitContextData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListAbnormalCasesResponse": {
         "type": "object",
@@ -20227,6 +20827,34 @@
           }
         },
         "description": "ListReleasePodsResponse 放货凭证列表响应。"
+      },
+      "order.v1.ListSeaOrderChangeEventsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderChangeEventSummary"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListShippingDocumentsResponse": {
         "type": "object",
@@ -20727,6 +21355,9 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "assetId": {
             "type": "string"
           }
         },
@@ -21353,6 +21984,94 @@
         },
         "description": "OrderShippingDocumentInput 订单表单中的分单输入。"
       },
+      "order.v1.PreviewSeaOrderReassignmentRequest": {
+        "required": [
+          "orderId",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderReassignmentTargetInput"
+          }
+        }
+      },
+      "order.v1.PreviewSeaOrderReassignmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderReassignmentPreviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewSeaOrderSplitRequest": {
+        "required": [
+          "orderId",
+          "targets",
+          "results"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitTargetInput"
+            }
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitResultInput"
+            }
+          },
+          "expectedVersions": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitExpectedVersions"
+          }
+        }
+      },
+      "order.v1.PreviewSeaOrderSplitResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitPreviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.RegisterAttachmentRequest": {
         "required": [
           "orderId",
@@ -21432,6 +22151,25 @@
           }
         },
         "description": "RemoveAbnormalCaseResponse 异常标记操作响应。"
+      },
+      "order.v1.RemoveAttachmentReferenceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveAttachmentReferenceResponse 解除订单附件引用响应。"
       },
       "order.v1.RemoveCargoItemResponse": {
         "type": "object",
@@ -22342,6 +23080,96 @@
         },
         "description": "SeaMasterBillSummary 海运主单及当前航程摘要。"
       },
+      "order.v1.SeaOrderChangeActionsData": {
+        "type": "object",
+        "properties": {
+          "canSplit": {
+            "type": "boolean"
+          },
+          "canReassign": {
+            "type": "boolean"
+          },
+          "splitBlockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reassignBlockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.SeaOrderChangeEventDetailData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "operatorId": {
+            "type": "string"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "noteOrReason": {
+            "type": "string"
+          },
+          "beforeSnapshotJson": {
+            "type": "string"
+          },
+          "afterSnapshotJson": {
+            "type": "string"
+          },
+          "conservationSnapshotJson": {
+            "type": "string"
+          },
+          "splitSummary": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitEventSummary"
+          },
+          "reassignmentSummary": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderReassignmentEventSummary"
+          }
+        }
+      },
+      "order.v1.SeaOrderChangeEventSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "operatorId": {
+            "type": "string"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "noteOrReason": {
+            "type": "string"
+          },
+          "splitSummary": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitEventSummary"
+          },
+          "reassignmentSummary": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderReassignmentEventSummary"
+          }
+        }
+      },
       "order.v1.SeaOrderDocumentInput": {
         "type": "object",
         "properties": {
@@ -22421,6 +23249,845 @@
           }
         },
         "description": "SeaOrderDocuments 聚合单证响应。"
+      },
+      "order.v1.SeaOrderReassignmentEventSummary": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "previousMasterNo": {
+            "type": "string"
+          },
+          "targetMasterNo": {
+            "type": "string"
+          },
+          "responsibilityType": {
+            "type": "string"
+          },
+          "responsiblePartnerName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderReassignmentPreviewData": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentMasterBill": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitMasterBillSummary"
+          },
+          "targetMasterBill": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitMasterBillSummary"
+          },
+          "targetMemberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "differences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.VoyageDifferenceItem"
+            }
+          },
+          "orderVersion": {
+            "type": "string"
+          },
+          "currentLinkVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderReassignmentTargetInput": {
+        "required": [
+          "targetType"
+        ],
+        "type": "object",
+        "properties": {
+          "targetType": {
+            "type": "string"
+          },
+          "candidateId": {
+            "type": "string"
+          },
+          "candidateVersion": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "carrierId": {
+            "type": "string"
+          },
+          "vesselName": {
+            "type": "string"
+          },
+          "voyageNo": {
+            "type": "string"
+          },
+          "etd": {
+            "type": "string"
+          },
+          "eta": {
+            "type": "string"
+          },
+          "originLocationId": {
+            "type": "string"
+          },
+          "dischargeLocationId": {
+            "type": "string"
+          },
+          "transitLocationId": {
+            "type": "string"
+          },
+          "candidateTeId": {
+            "type": "string"
+          },
+          "candidateTeVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitAllocationItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cargoItemId": {
+            "type": "string"
+          },
+          "houseBillId": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitAttachmentItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "assetId": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "string"
+          },
+          "docType": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitCargoItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cargoName": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitContainerItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "containerNo": {
+            "type": "string"
+          },
+          "containerSpecId": {
+            "type": "string"
+          },
+          "containerSpecName": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitContainerPlanItem": {
+        "type": "object",
+        "properties": {
+          "containerSpecId": {
+            "type": "string"
+          },
+          "containerSpecName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitContextData": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "businessType": {
+            "type": "string"
+          },
+          "shipmentType": {
+            "type": "string"
+          },
+          "flowStatus": {
+            "type": "string"
+          },
+          "orderVersion": {
+            "type": "string"
+          },
+          "customerReferenceNo": {
+            "type": "string"
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "bookingNotes": {
+            "type": "string"
+          },
+          "allocationNotes": {
+            "type": "string"
+          },
+          "operationNotes": {
+            "type": "string"
+          },
+          "currentMasterBill": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitMasterBillSummary"
+          },
+          "currentLinkId": {
+            "type": "string"
+          },
+          "currentLinkVersion": {
+            "type": "string"
+          },
+          "documentStructure": {
+            "type": "string"
+          },
+          "cargoAllocationStatus": {
+            "type": "string"
+          },
+          "cargoAllocationVersion": {
+            "type": "string"
+          },
+          "houseBills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitHouseBillItem"
+            }
+          },
+          "cargoItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitCargoItem"
+            }
+          },
+          "containers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitContainerItem"
+            }
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitAllocationItem"
+            }
+          },
+          "draftFees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitDraftFeeItem"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitAttachmentItem"
+            }
+          },
+          "containerPlans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitContainerPlanItem"
+            }
+          },
+          "attachmentReferenceFingerprint": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitCreatedOrder": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "clientResultKey": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitDraftFeeItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseCurrencyAmount": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitEventSummary": {
+        "type": "object",
+        "properties": {
+          "sourceOrderId": {
+            "type": "string"
+          },
+          "sourceOrderNo": {
+            "type": "string"
+          },
+          "resultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitResultSummaryItem"
+            }
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitExpectedVersions": {
+        "type": "object",
+        "properties": {
+          "orderVersion": {
+            "type": "string"
+          },
+          "linkVersion": {
+            "type": "string"
+          },
+          "allocationVersion": {
+            "type": "string"
+          },
+          "houseBillVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "cargoItemVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "containerVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "feeVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "candidateMblVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "attachmentReferenceFingerprint": {
+            "type": "string"
+          },
+          "candidateTeVersions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitHouseBillItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitMasterBillSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "issuerPartnerName": {
+            "type": "string"
+          },
+          "carrierId": {
+            "type": "string"
+          },
+          "carrierName": {
+            "type": "string"
+          },
+          "vesselName": {
+            "type": "string"
+          },
+          "voyageNo": {
+            "type": "string"
+          },
+          "etd": {
+            "type": "string"
+          },
+          "eta": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "originLocationId": {
+            "type": "string"
+          },
+          "originLocationName": {
+            "type": "string"
+          },
+          "dischargeLocationId": {
+            "type": "string"
+          },
+          "dischargeLocationName": {
+            "type": "string"
+          },
+          "transitLocationId": {
+            "type": "string"
+          },
+          "transitLocationName": {
+            "type": "string"
+          },
+          "transportExecutionId": {
+            "type": "string"
+          },
+          "transportExecutionVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitOrderReference": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitPreviewData": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean"
+          },
+          "conservationPassed": {
+            "type": "boolean"
+          },
+          "validationErrors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitValidationError"
+            }
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitQuantitySummary"
+          },
+          "allocated": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitQuantitySummary"
+          },
+          "remaining": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderSplitQuantitySummary"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitPreviewResultItem"
+            }
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitPreviewResultItem": {
+        "type": "object",
+        "properties": {
+          "clientResultKey": {
+            "type": "string"
+          },
+          "resultRole": {
+            "type": "string"
+          },
+          "clientTargetKey": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          },
+          "containerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "houseBillCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "containerPlans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaOrderSplitContainerPlanItem"
+            }
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "bookingNotes": {
+            "type": "string"
+          },
+          "allocationNotes": {
+            "type": "string"
+          },
+          "operationNotes": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitQuantitySummary": {
+        "type": "object",
+        "properties": {
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          },
+          "containerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "houseBillCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitResultInput": {
+        "required": [
+          "clientResultKey",
+          "resultRole",
+          "clientTargetKey"
+        ],
+        "type": "object",
+        "properties": {
+          "clientResultKey": {
+            "type": "string"
+          },
+          "resultRole": {
+            "type": "string"
+          },
+          "clientTargetKey": {
+            "type": "string"
+          },
+          "houseBillIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "draftFeeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attachmentReferenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "bookingNotes": {
+            "type": "string"
+          },
+          "allocationNotes": {
+            "type": "string"
+          },
+          "operationNotes": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitResultSummaryItem": {
+        "type": "object",
+        "properties": {
+          "resultRole": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "finalMasterNo": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitTargetInput": {
+        "required": [
+          "clientTargetKey",
+          "targetType"
+        ],
+        "type": "object",
+        "properties": {
+          "clientTargetKey": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          },
+          "candidateId": {
+            "type": "string"
+          },
+          "candidateVersion": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "carrierId": {
+            "type": "string"
+          },
+          "vesselName": {
+            "type": "string"
+          },
+          "voyageNo": {
+            "type": "string"
+          },
+          "etd": {
+            "type": "string"
+          },
+          "eta": {
+            "type": "string"
+          },
+          "originLocationId": {
+            "type": "string"
+          },
+          "dischargeLocationId": {
+            "type": "string"
+          },
+          "transitLocationId": {
+            "type": "string"
+          },
+          "candidateTeId": {
+            "type": "string"
+          },
+          "candidateTeVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaOrderSplitValidationError": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "clientResultKey": {
+            "type": "string"
+          },
+          "houseBillId": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "cargoItemId": {
+            "type": "string"
+          },
+          "feeId": {
+            "type": "string"
+          },
+          "baselineValue": {
+            "type": "string"
+          },
+          "allocatedValue": {
+            "type": "string"
+          },
+          "diffValue": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.SeaTransportExecution": {
         "type": "object",
@@ -23411,6 +25078,26 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "order.v1.VoyageDifferenceItem": {
+        "type": "object",
+        "properties": {
+          "fieldName": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "currentValue": {
+            "type": "string"
+          },
+          "targetValue": {
+            "type": "string"
+          },
+          "isDifferent": {
+            "type": "boolean"
           }
         }
       },
@@ -25622,6 +27309,10 @@
     {
       "name": "SeaDocumentService",
       "description": "SeaDocumentService 海运单证核心服务。"
+    },
+    {
+      "name": "SeaOrderChangeService",
+      "description": "SeaOrderChangeService 海运出口拆票与改配服务。"
     },
     {
       "name": "SettlementService",

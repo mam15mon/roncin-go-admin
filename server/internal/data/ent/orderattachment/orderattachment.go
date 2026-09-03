@@ -21,24 +21,20 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
+	// FieldAssetID holds the string denoting the asset_id field in the database.
+	FieldAssetID = "asset_id"
 	// FieldDocType holds the string denoting the doc_type field in the database.
 	FieldDocType = "doc_type"
 	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
 	FieldIdempotencyKey = "idempotency_key"
-	// FieldFileName holds the string denoting the file_name field in the database.
-	FieldFileName = "file_name"
-	// FieldMimeType holds the string denoting the mime_type field in the database.
-	FieldMimeType = "mime_type"
-	// FieldFileSize holds the string denoting the file_size field in the database.
-	FieldFileSize = "file_size"
-	// FieldObjectKey holds the string denoting the object_key field in the database.
-	FieldObjectKey = "object_key"
-	// FieldChecksum holds the string denoting the checksum field in the database.
-	FieldChecksum = "checksum"
-	// FieldUploadedBy holds the string denoting the uploaded_by field in the database.
-	FieldUploadedBy = "uploaded_by"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeAsset holds the string denoting the asset edge name in mutations.
+	EdgeAsset = "asset"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
 	// Table holds the table name of the orderattachment in the database.
 	Table = "order_attachments"
 	// OrderTable is the table that holds the order relation/edge.
@@ -48,6 +44,20 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// AssetTable is the table that holds the asset relation/edge.
+	AssetTable = "order_attachments"
+	// AssetInverseTable is the table name for the OrderAttachmentAsset entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachmentasset" package.
+	AssetInverseTable = "order_attachment_assets"
+	// AssetColumn is the table column denoting the asset relation/edge.
+	AssetColumn = "asset_id"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "order_attachments"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "users"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "created_by"
 )
 
 // Columns holds all SQL columns for orderattachment fields.
@@ -56,14 +66,10 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrderID,
+	FieldAssetID,
 	FieldDocType,
 	FieldIdempotencyKey,
-	FieldFileName,
-	FieldMimeType,
-	FieldFileSize,
-	FieldObjectKey,
-	FieldChecksum,
-	FieldUploadedBy,
+	FieldCreatedBy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,16 +93,6 @@ var (
 	DocTypeValidator func(string) error
 	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	IdempotencyKeyValidator func(string) error
-	// FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
-	FileNameValidator func(string) error
-	// MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
-	MimeTypeValidator func(string) error
-	// FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
-	FileSizeValidator func(int64) error
-	// ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
-	ObjectKeyValidator func(string) error
-	// ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
-	ChecksumValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -124,6 +120,11 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
 }
 
+// ByAssetID orders the results by the asset_id field.
+func ByAssetID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAssetID, opts...).ToFunc()
+}
+
 // ByDocType orders the results by the doc_type field.
 func ByDocType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDocType, opts...).ToFunc()
@@ -134,34 +135,9 @@ func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
 }
 
-// ByFileName orders the results by the file_name field.
-func ByFileName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileName, opts...).ToFunc()
-}
-
-// ByMimeType orders the results by the mime_type field.
-func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
-}
-
-// ByFileSize orders the results by the file_size field.
-func ByFileSize(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileSize, opts...).ToFunc()
-}
-
-// ByObjectKey orders the results by the object_key field.
-func ByObjectKey(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldObjectKey, opts...).ToFunc()
-}
-
-// ByChecksum orders the results by the checksum field.
-func ByChecksum(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldChecksum, opts...).ToFunc()
-}
-
-// ByUploadedBy orders the results by the uploaded_by field.
-func ByUploadedBy(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUploadedBy, opts...).ToFunc()
+// ByCreatedBy orders the results by the created_by field.
+func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
 }
 
 // ByOrderField orders the results by order field.
@@ -170,10 +146,38 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAssetField orders the results by asset field.
+func ByAssetField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAssetStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCreatorField orders the results by creator field.
+func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
+	)
+}
+func newAssetStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AssetInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, AssetTable, AssetColumn),
+	)
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
 	)
 }

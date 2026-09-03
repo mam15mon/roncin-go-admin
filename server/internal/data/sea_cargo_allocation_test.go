@@ -552,4 +552,3 @@ func TestSeaCargoAllocationConcurrentSaveDraft(t *testing.T) {
 			successCount, conflictCount, err1, err2)
 	}
 }
-

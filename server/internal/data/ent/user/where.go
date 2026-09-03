@@ -1757,6 +1757,98 @@ func HasConfirmedSeaCargoAllocationLinksWith(preds ...predicate.SeaMasterBillOrd
 	})
 }
 
+// HasCreatedSeaOrderSplitEvents applies the HasEdge predicate on the "created_sea_order_split_events" edge.
+func HasCreatedSeaOrderSplitEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaOrderSplitEventsTable, CreatedSeaOrderSplitEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaOrderSplitEventsWith applies the HasEdge predicate on the "created_sea_order_split_events" edge with a given conditions (other predicates).
+func HasCreatedSeaOrderSplitEventsWith(preds ...predicate.SeaOrderSplitEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaOrderSplitEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedSeaOrderReassignmentEvents applies the HasEdge predicate on the "created_sea_order_reassignment_events" edge.
+func HasCreatedSeaOrderReassignmentEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaOrderReassignmentEventsTable, CreatedSeaOrderReassignmentEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaOrderReassignmentEventsWith applies the HasEdge predicate on the "created_sea_order_reassignment_events" edge with a given conditions (other predicates).
+func HasCreatedSeaOrderReassignmentEventsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaOrderReassignmentEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUploadedAttachmentAssets applies the HasEdge predicate on the "uploaded_attachment_assets" edge.
+func HasUploadedAttachmentAssets() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UploadedAttachmentAssetsTable, UploadedAttachmentAssetsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUploadedAttachmentAssetsWith applies the HasEdge predicate on the "uploaded_attachment_assets" edge with a given conditions (other predicates).
+func HasUploadedAttachmentAssetsWith(preds ...predicate.OrderAttachmentAsset) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUploadedAttachmentAssetsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedOrderAttachments applies the HasEdge predicate on the "created_order_attachments" edge.
+func HasCreatedOrderAttachments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedOrderAttachmentsTable, CreatedOrderAttachmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedOrderAttachmentsWith applies the HasEdge predicate on the "created_order_attachments" edge with a given conditions (other predicates).
+func HasCreatedOrderAttachmentsWith(preds ...predicate.OrderAttachment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedOrderAttachmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))
