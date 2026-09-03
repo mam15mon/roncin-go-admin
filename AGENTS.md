@@ -30,9 +30,9 @@
 - 如果当前任务已由 ZCode、GLM、其他客户端或其他代理实施，禁止并发启动 agy；
   启动前必须检查 `git status`、当前 Trellis 任务和已有实现进度，发现来源不明
   或重叠的未提交改动时立即停止并报告。
-- agy 默认固定使用 `gemini-3.7-flash-medium`。遇到事务、锁、并发、生产数据迁移、
+- agy 默认固定使用 `gemini-3.8-flash-medium`。遇到事务、锁、并发、生产数据迁移、
   财务新口径、权限安全、复杂跨领域变更，或 Medium 实施后独立检查出现 P1、连续
-  两轮未通过时，升级为 `gemini-3.7-flash-high`；High 不作为全局默认。
+  两轮未通过时，升级为 `gemini-3.8-flash-high`；High 不作为全局默认。
 - agy 的委派提示必须从当前 Trellis 任务路径开始，并要求依次完整读取
   `implement.jsonl` 及其引用、`prd.md`、`design.md`、`implement.md` 和本文件；
   只实现当前阶段，不扩展到后续阶段或未批准功能。

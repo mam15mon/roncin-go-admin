@@ -5,7 +5,7 @@
 - Agy 从本任务目录开始，依次完整读取 `implement.jsonl` 及引用、`prd.md`、
   `design.md`、本文件、父任务文档、阶段 1/2 归档文档和根 `AGENTS.md`。
 - 本阶段涉及 Schema、共享事务、固定锁序和跨入口并发门禁，按仓库约定使用
-  `gemini-3.7-flash-high`。
+  `gemini-3.8-flash-high`。
 - 只实现阶段 3；禁止提前实现拆票、改配、Switch B/L、签发版本、外部状态和费用
   重分摊。
 - 禁止浮点容差、自动舍入、虚假箱号、虚拟 HBL、HBL 内容静默改写、旧
