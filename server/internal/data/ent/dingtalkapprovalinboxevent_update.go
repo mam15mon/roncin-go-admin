@@ -6,10 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -24,6 +26,26 @@ type DingTalkApprovalInboxEventUpdate struct {
 // Where appends a list predicates to the DingTalkApprovalInboxEventUpdate builder.
 func (_u *DingTalkApprovalInboxEventUpdate) Where(ps ...predicate.DingTalkApprovalInboxEvent) *DingTalkApprovalInboxEventUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (_u *DingTalkApprovalInboxEventUpdate) SetOrganizationID(v uuid.UUID) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.SetOrganizationID(v)
+	return _u
+}
+
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNillableOrganizationID(v *uuid.UUID) *DingTalkApprovalInboxEventUpdate {
+	if v != nil {
+		_u.SetOrganizationID(*v)
+	}
+	return _u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *DingTalkApprovalInboxEventUpdate) ClearOrganizationID() *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -58,6 +80,81 @@ func (_u *DingTalkApprovalInboxEventUpdate) SetNillableStatus(v *dingtalkapprova
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetAttempts sets the "attempts" field.
+func (_u *DingTalkApprovalInboxEventUpdate) SetAttempts(v int) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.ResetAttempts()
+	_u.mutation.SetAttempts(v)
+	return _u
+}
+
+// SetNillableAttempts sets the "attempts" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNillableAttempts(v *int) *DingTalkApprovalInboxEventUpdate {
+	if v != nil {
+		_u.SetAttempts(*v)
+	}
+	return _u
+}
+
+// AddAttempts adds value to the "attempts" field.
+func (_u *DingTalkApprovalInboxEventUpdate) AddAttempts(v int) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.AddAttempts(v)
+	return _u
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNextRunAt(v time.Time) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.SetNextRunAt(v)
+	return _u
+}
+
+// SetNillableNextRunAt sets the "next_run_at" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNillableNextRunAt(v *time.Time) *DingTalkApprovalInboxEventUpdate {
+	if v != nil {
+		_u.SetNextRunAt(*v)
+	}
+	return _u
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (_u *DingTalkApprovalInboxEventUpdate) SetProcessingToken(v string) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.SetProcessingToken(v)
+	return _u
+}
+
+// SetNillableProcessingToken sets the "processing_token" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNillableProcessingToken(v *string) *DingTalkApprovalInboxEventUpdate {
+	if v != nil {
+		_u.SetProcessingToken(*v)
+	}
+	return _u
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (_u *DingTalkApprovalInboxEventUpdate) ClearProcessingToken() *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.ClearProcessingToken()
+	return _u
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (_u *DingTalkApprovalInboxEventUpdate) SetProcessingExpiresAt(v time.Time) *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.SetProcessingExpiresAt(v)
+	return _u
+}
+
+// SetNillableProcessingExpiresAt sets the "processing_expires_at" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdate) SetNillableProcessingExpiresAt(v *time.Time) *DingTalkApprovalInboxEventUpdate {
+	if v != nil {
+		_u.SetProcessingExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (_u *DingTalkApprovalInboxEventUpdate) ClearProcessingExpiresAt() *DingTalkApprovalInboxEventUpdate {
+	_u.mutation.ClearProcessingExpiresAt()
 	return _u
 }
 
@@ -145,6 +242,16 @@ func (_u *DingTalkApprovalInboxEventUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Attempts(); ok {
+		if err := dingtalkapprovalinboxevent.AttemptsValidator(v); err != nil {
+			return &ValidationError{Name: "attempts", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.attempts": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ProcessingToken(); ok {
+		if err := dingtalkapprovalinboxevent.ProcessingTokenValidator(v); err != nil {
+			return &ValidationError{Name: "processing_token", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.processing_token": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ResultCode(); ok {
 		if err := dingtalkapprovalinboxevent.ResultCodeValidator(v); err != nil {
 			return &ValidationError{Name: "result_code", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.result_code": %w`, err)}
@@ -170,6 +277,9 @@ func (_u *DingTalkApprovalInboxEventUpdate) sqlSave(ctx context.Context) (_node 
 			}
 		}
 	}
+	if value, ok := _u.mutation.OrganizationID(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldOrganizationID, field.TypeUUID, value)
+	}
 	if _u.mutation.OrganizationIDCleared() {
 		_spec.ClearField(dingtalkapprovalinboxevent.FieldOrganizationID, field.TypeUUID)
 	}
@@ -181,6 +291,27 @@ func (_u *DingTalkApprovalInboxEventUpdate) sqlSave(ctx context.Context) (_node 
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(dingtalkapprovalinboxevent.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Attempts(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAttempts(); ok {
+		_spec.AddField(dingtalkapprovalinboxevent.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NextRunAt(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldNextRunAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ProcessingToken(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldProcessingToken, field.TypeString, value)
+	}
+	if _u.mutation.ProcessingTokenCleared() {
+		_spec.ClearField(dingtalkapprovalinboxevent.FieldProcessingToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.ProcessingExpiresAt(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldProcessingExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ProcessingExpiresAtCleared() {
+		_spec.ClearField(dingtalkapprovalinboxevent.FieldProcessingExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ResultCode(); ok {
 		_spec.SetField(dingtalkapprovalinboxevent.FieldResultCode, field.TypeString, value)
@@ -214,6 +345,26 @@ type DingTalkApprovalInboxEventUpdateOne struct {
 	mutation *DingTalkApprovalInboxEventMutation
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetOrganizationID(v uuid.UUID) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.SetOrganizationID(v)
+	return _u
+}
+
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *DingTalkApprovalInboxEventUpdateOne {
+	if v != nil {
+		_u.SetOrganizationID(*v)
+	}
+	return _u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) ClearOrganizationID() *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetParsedSummary sets the "parsed_summary" field.
 func (_u *DingTalkApprovalInboxEventUpdateOne) SetParsedSummary(v string) *DingTalkApprovalInboxEventUpdateOne {
 	_u.mutation.SetParsedSummary(v)
@@ -245,6 +396,81 @@ func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableStatus(v *dingtalkappr
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetAttempts sets the "attempts" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetAttempts(v int) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.ResetAttempts()
+	_u.mutation.SetAttempts(v)
+	return _u
+}
+
+// SetNillableAttempts sets the "attempts" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableAttempts(v *int) *DingTalkApprovalInboxEventUpdateOne {
+	if v != nil {
+		_u.SetAttempts(*v)
+	}
+	return _u
+}
+
+// AddAttempts adds value to the "attempts" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) AddAttempts(v int) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.AddAttempts(v)
+	return _u
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNextRunAt(v time.Time) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.SetNextRunAt(v)
+	return _u
+}
+
+// SetNillableNextRunAt sets the "next_run_at" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableNextRunAt(v *time.Time) *DingTalkApprovalInboxEventUpdateOne {
+	if v != nil {
+		_u.SetNextRunAt(*v)
+	}
+	return _u
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetProcessingToken(v string) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.SetProcessingToken(v)
+	return _u
+}
+
+// SetNillableProcessingToken sets the "processing_token" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableProcessingToken(v *string) *DingTalkApprovalInboxEventUpdateOne {
+	if v != nil {
+		_u.SetProcessingToken(*v)
+	}
+	return _u
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) ClearProcessingToken() *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.ClearProcessingToken()
+	return _u
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetProcessingExpiresAt(v time.Time) *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.SetProcessingExpiresAt(v)
+	return _u
+}
+
+// SetNillableProcessingExpiresAt sets the "processing_expires_at" field if the given value is not nil.
+func (_u *DingTalkApprovalInboxEventUpdateOne) SetNillableProcessingExpiresAt(v *time.Time) *DingTalkApprovalInboxEventUpdateOne {
+	if v != nil {
+		_u.SetProcessingExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (_u *DingTalkApprovalInboxEventUpdateOne) ClearProcessingExpiresAt() *DingTalkApprovalInboxEventUpdateOne {
+	_u.mutation.ClearProcessingExpiresAt()
 	return _u
 }
 
@@ -345,6 +571,16 @@ func (_u *DingTalkApprovalInboxEventUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Attempts(); ok {
+		if err := dingtalkapprovalinboxevent.AttemptsValidator(v); err != nil {
+			return &ValidationError{Name: "attempts", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.attempts": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ProcessingToken(); ok {
+		if err := dingtalkapprovalinboxevent.ProcessingTokenValidator(v); err != nil {
+			return &ValidationError{Name: "processing_token", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.processing_token": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ResultCode(); ok {
 		if err := dingtalkapprovalinboxevent.ResultCodeValidator(v); err != nil {
 			return &ValidationError{Name: "result_code", err: fmt.Errorf(`ent: validator failed for field "DingTalkApprovalInboxEvent.result_code": %w`, err)}
@@ -387,6 +623,9 @@ func (_u *DingTalkApprovalInboxEventUpdateOne) sqlSave(ctx context.Context) (_no
 			}
 		}
 	}
+	if value, ok := _u.mutation.OrganizationID(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldOrganizationID, field.TypeUUID, value)
+	}
 	if _u.mutation.OrganizationIDCleared() {
 		_spec.ClearField(dingtalkapprovalinboxevent.FieldOrganizationID, field.TypeUUID)
 	}
@@ -398,6 +637,27 @@ func (_u *DingTalkApprovalInboxEventUpdateOne) sqlSave(ctx context.Context) (_no
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(dingtalkapprovalinboxevent.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Attempts(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAttempts(); ok {
+		_spec.AddField(dingtalkapprovalinboxevent.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NextRunAt(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldNextRunAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ProcessingToken(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldProcessingToken, field.TypeString, value)
+	}
+	if _u.mutation.ProcessingTokenCleared() {
+		_spec.ClearField(dingtalkapprovalinboxevent.FieldProcessingToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.ProcessingExpiresAt(); ok {
+		_spec.SetField(dingtalkapprovalinboxevent.FieldProcessingExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ProcessingExpiresAtCleared() {
+		_spec.ClearField(dingtalkapprovalinboxevent.FieldProcessingExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ResultCode(); ok {
 		_spec.SetField(dingtalkapprovalinboxevent.FieldResultCode, field.TypeString, value)

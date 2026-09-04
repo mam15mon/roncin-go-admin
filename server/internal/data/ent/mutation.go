@@ -9091,6 +9091,11 @@ type DingTalkApprovalInboxEventMutation struct {
 	encrypted_payload_hash *string
 	parsed_summary         *string
 	status                 *dingtalkapprovalinboxevent.Status
+	attempts               *int
+	addattempts            *int
+	next_run_at            *time.Time
+	processing_token       *string
+	processing_expires_at  *time.Time
 	result_code            *string
 	error_message          *string
 	clearedFields          map[string]struct{}
@@ -9589,6 +9594,196 @@ func (m *DingTalkApprovalInboxEventMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetAttempts sets the "attempts" field.
+func (m *DingTalkApprovalInboxEventMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *DingTalkApprovalInboxEventMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the DingTalkApprovalInboxEvent entity.
+// If the DingTalkApprovalInboxEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkApprovalInboxEventMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *DingTalkApprovalInboxEventMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *DingTalkApprovalInboxEventMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *DingTalkApprovalInboxEventMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (m *DingTalkApprovalInboxEventMutation) SetNextRunAt(t time.Time) {
+	m.next_run_at = &t
+}
+
+// NextRunAt returns the value of the "next_run_at" field in the mutation.
+func (m *DingTalkApprovalInboxEventMutation) NextRunAt() (r time.Time, exists bool) {
+	v := m.next_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextRunAt returns the old "next_run_at" field's value of the DingTalkApprovalInboxEvent entity.
+// If the DingTalkApprovalInboxEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkApprovalInboxEventMutation) OldNextRunAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextRunAt: %w", err)
+	}
+	return oldValue.NextRunAt, nil
+}
+
+// ResetNextRunAt resets all changes to the "next_run_at" field.
+func (m *DingTalkApprovalInboxEventMutation) ResetNextRunAt() {
+	m.next_run_at = nil
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (m *DingTalkApprovalInboxEventMutation) SetProcessingToken(s string) {
+	m.processing_token = &s
+}
+
+// ProcessingToken returns the value of the "processing_token" field in the mutation.
+func (m *DingTalkApprovalInboxEventMutation) ProcessingToken() (r string, exists bool) {
+	v := m.processing_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProcessingToken returns the old "processing_token" field's value of the DingTalkApprovalInboxEvent entity.
+// If the DingTalkApprovalInboxEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkApprovalInboxEventMutation) OldProcessingToken(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProcessingToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProcessingToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProcessingToken: %w", err)
+	}
+	return oldValue.ProcessingToken, nil
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (m *DingTalkApprovalInboxEventMutation) ClearProcessingToken() {
+	m.processing_token = nil
+	m.clearedFields[dingtalkapprovalinboxevent.FieldProcessingToken] = struct{}{}
+}
+
+// ProcessingTokenCleared returns if the "processing_token" field was cleared in this mutation.
+func (m *DingTalkApprovalInboxEventMutation) ProcessingTokenCleared() bool {
+	_, ok := m.clearedFields[dingtalkapprovalinboxevent.FieldProcessingToken]
+	return ok
+}
+
+// ResetProcessingToken resets all changes to the "processing_token" field.
+func (m *DingTalkApprovalInboxEventMutation) ResetProcessingToken() {
+	m.processing_token = nil
+	delete(m.clearedFields, dingtalkapprovalinboxevent.FieldProcessingToken)
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (m *DingTalkApprovalInboxEventMutation) SetProcessingExpiresAt(t time.Time) {
+	m.processing_expires_at = &t
+}
+
+// ProcessingExpiresAt returns the value of the "processing_expires_at" field in the mutation.
+func (m *DingTalkApprovalInboxEventMutation) ProcessingExpiresAt() (r time.Time, exists bool) {
+	v := m.processing_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProcessingExpiresAt returns the old "processing_expires_at" field's value of the DingTalkApprovalInboxEvent entity.
+// If the DingTalkApprovalInboxEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkApprovalInboxEventMutation) OldProcessingExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProcessingExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProcessingExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProcessingExpiresAt: %w", err)
+	}
+	return oldValue.ProcessingExpiresAt, nil
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (m *DingTalkApprovalInboxEventMutation) ClearProcessingExpiresAt() {
+	m.processing_expires_at = nil
+	m.clearedFields[dingtalkapprovalinboxevent.FieldProcessingExpiresAt] = struct{}{}
+}
+
+// ProcessingExpiresAtCleared returns if the "processing_expires_at" field was cleared in this mutation.
+func (m *DingTalkApprovalInboxEventMutation) ProcessingExpiresAtCleared() bool {
+	_, ok := m.clearedFields[dingtalkapprovalinboxevent.FieldProcessingExpiresAt]
+	return ok
+}
+
+// ResetProcessingExpiresAt resets all changes to the "processing_expires_at" field.
+func (m *DingTalkApprovalInboxEventMutation) ResetProcessingExpiresAt() {
+	m.processing_expires_at = nil
+	delete(m.clearedFields, dingtalkapprovalinboxevent.FieldProcessingExpiresAt)
+}
+
 // SetResultCode sets the "result_code" field.
 func (m *DingTalkApprovalInboxEventMutation) SetResultCode(s string) {
 	m.result_code = &s
@@ -9721,7 +9916,7 @@ func (m *DingTalkApprovalInboxEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DingTalkApprovalInboxEventMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, dingtalkapprovalinboxevent.FieldCreatedAt)
 	}
@@ -9751,6 +9946,18 @@ func (m *DingTalkApprovalInboxEventMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, dingtalkapprovalinboxevent.FieldStatus)
+	}
+	if m.attempts != nil {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldAttempts)
+	}
+	if m.next_run_at != nil {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldNextRunAt)
+	}
+	if m.processing_token != nil {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldProcessingToken)
+	}
+	if m.processing_expires_at != nil {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldProcessingExpiresAt)
 	}
 	if m.result_code != nil {
 		fields = append(fields, dingtalkapprovalinboxevent.FieldResultCode)
@@ -9786,6 +9993,14 @@ func (m *DingTalkApprovalInboxEventMutation) Field(name string) (ent.Value, bool
 		return m.ParsedSummary()
 	case dingtalkapprovalinboxevent.FieldStatus:
 		return m.Status()
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		return m.Attempts()
+	case dingtalkapprovalinboxevent.FieldNextRunAt:
+		return m.NextRunAt()
+	case dingtalkapprovalinboxevent.FieldProcessingToken:
+		return m.ProcessingToken()
+	case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+		return m.ProcessingExpiresAt()
 	case dingtalkapprovalinboxevent.FieldResultCode:
 		return m.ResultCode()
 	case dingtalkapprovalinboxevent.FieldErrorMessage:
@@ -9819,6 +10034,14 @@ func (m *DingTalkApprovalInboxEventMutation) OldField(ctx context.Context, name 
 		return m.OldParsedSummary(ctx)
 	case dingtalkapprovalinboxevent.FieldStatus:
 		return m.OldStatus(ctx)
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		return m.OldAttempts(ctx)
+	case dingtalkapprovalinboxevent.FieldNextRunAt:
+		return m.OldNextRunAt(ctx)
+	case dingtalkapprovalinboxevent.FieldProcessingToken:
+		return m.OldProcessingToken(ctx)
+	case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+		return m.OldProcessingExpiresAt(ctx)
 	case dingtalkapprovalinboxevent.FieldResultCode:
 		return m.OldResultCode(ctx)
 	case dingtalkapprovalinboxevent.FieldErrorMessage:
@@ -9902,6 +10125,34 @@ func (m *DingTalkApprovalInboxEventMutation) SetField(name string, value ent.Val
 		}
 		m.SetStatus(v)
 		return nil
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
+	case dingtalkapprovalinboxevent.FieldNextRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextRunAt(v)
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProcessingToken(v)
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProcessingExpiresAt(v)
+		return nil
 	case dingtalkapprovalinboxevent.FieldResultCode:
 		v, ok := value.(string)
 		if !ok {
@@ -9923,13 +10174,21 @@ func (m *DingTalkApprovalInboxEventMutation) SetField(name string, value ent.Val
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *DingTalkApprovalInboxEventMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldAttempts)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *DingTalkApprovalInboxEventMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		return m.AddedAttempts()
+	}
 	return nil, false
 }
 
@@ -9938,6 +10197,13 @@ func (m *DingTalkApprovalInboxEventMutation) AddedField(name string) (ent.Value,
 // type.
 func (m *DingTalkApprovalInboxEventMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
 	}
 	return fmt.Errorf("unknown DingTalkApprovalInboxEvent numeric field %s", name)
 }
@@ -9951,6 +10217,12 @@ func (m *DingTalkApprovalInboxEventMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(dingtalkapprovalinboxevent.FieldParsedSummary) {
 		fields = append(fields, dingtalkapprovalinboxevent.FieldParsedSummary)
+	}
+	if m.FieldCleared(dingtalkapprovalinboxevent.FieldProcessingToken) {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldProcessingToken)
+	}
+	if m.FieldCleared(dingtalkapprovalinboxevent.FieldProcessingExpiresAt) {
+		fields = append(fields, dingtalkapprovalinboxevent.FieldProcessingExpiresAt)
 	}
 	if m.FieldCleared(dingtalkapprovalinboxevent.FieldResultCode) {
 		fields = append(fields, dingtalkapprovalinboxevent.FieldResultCode)
@@ -9977,6 +10249,12 @@ func (m *DingTalkApprovalInboxEventMutation) ClearField(name string) error {
 		return nil
 	case dingtalkapprovalinboxevent.FieldParsedSummary:
 		m.ClearParsedSummary()
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingToken:
+		m.ClearProcessingToken()
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+		m.ClearProcessingExpiresAt()
 		return nil
 	case dingtalkapprovalinboxevent.FieldResultCode:
 		m.ClearResultCode()
@@ -10021,6 +10299,18 @@ func (m *DingTalkApprovalInboxEventMutation) ResetField(name string) error {
 		return nil
 	case dingtalkapprovalinboxevent.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case dingtalkapprovalinboxevent.FieldAttempts:
+		m.ResetAttempts()
+		return nil
+	case dingtalkapprovalinboxevent.FieldNextRunAt:
+		m.ResetNextRunAt()
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingToken:
+		m.ResetProcessingToken()
+		return nil
+	case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+		m.ResetProcessingExpiresAt()
 		return nil
 	case dingtalkapprovalinboxevent.FieldResultCode:
 		m.ResetResultCode()

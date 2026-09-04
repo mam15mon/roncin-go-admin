@@ -20,6 +20,21 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "ding_talk_approval_dispatches",
+			table:     DingTalkApprovalDispatchesTable,
+			expectedChecks: map[string]string{
+				"ding_talk_approval_dispatches_dispatch_status_check": "dispatch_status IN ('PENDING', 'SENDING', 'DISPATCHED', 'FAILED', 'UNKNOWN')",
+			},
+		},
+		{
+			tableName: "ding_talk_approval_inbox_events",
+			table:     DingTalkApprovalInboxEventsTable,
+			expectedChecks: map[string]string{
+				"ding_talk_approval_inbox_events_status_check":   "status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'IGNORED', 'FAILED')",
+				"ding_talk_approval_inbox_events_attempts_check": "attempts >= 0",
+			},
+		},
+		{
 			tableName: "order_lifecycle_events",
 			table:     OrderLifecycleEventsTable,
 			expectedChecks: map[string]string{

@@ -1065,15 +1065,6 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 		}
 		if qualifiedRoleMember {
 			var newReqID = uuid.Must(uuid.NewV7())
-			if activeReq != nil {
-				if _, err := tx.OrderUnlockRequest.UpdateOne(activeReq).
-					SetStatus(orderunlockrequestent.StatusSTALE).
-					SetSupersededByRequestID(newReqID).
-					Save(ctx); err != nil {
-					return err
-				}
-			}
-
 			newOrderVersion := order.Version + 1
 			if _, err := tx.Order.UpdateOne(order).
 				ClearLockedAt().
@@ -1109,6 +1100,16 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 				return err
 			}
 			resultRequest = savedReq
+			// superseded_by_request_id 是即时外键，必须先保存取代它的新请求，再更新旧申请；
+			// 否则角色直解与审批本地生效竞争时会稳定触发外键约束并回滚直解。
+			if activeReq != nil {
+				if _, err := tx.OrderUnlockRequest.UpdateOne(activeReq).
+					SetStatus(orderunlockrequestent.StatusSTALE).
+					SetSupersededByRequestID(savedReq.ID).
+					Save(ctx); err != nil {
+					return err
+				}
+			}
 
 			recordUpdate := tx.OrderLockRecord.UpdateOne(lockRec).
 				SetUnlockedBy(caller.UserID).
@@ -1172,8 +1173,16 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 			callerDtID = strings.TrimSpace(*callerUser.DingtalkUserid)
 		}
 		approvalProcessCode := ""
+		approvalCorpID := ""
+		approvalEventToken := ""
+		approvalEventAESKey := ""
+		approvalEnabled := false
 		if r.security != nil && r.security.Dingtalk != nil {
+			approvalEnabled = r.security.Dingtalk.Enabled
 			approvalProcessCode = strings.TrimSpace(r.security.Dingtalk.ApprovalProcessCode)
+			approvalCorpID = strings.TrimSpace(r.security.Dingtalk.CorpId)
+			approvalEventToken = strings.TrimSpace(r.security.Dingtalk.EventToken)
+			approvalEventAESKey = strings.TrimSpace(r.security.Dingtalk.EventAesKey)
 		}
 
 		reqStatus := orderunlockrequestent.StatusPENDING_DISPATCH
@@ -1192,10 +1201,10 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 			fMsg := "申请人未绑定钉钉账号"
 			failureCode = &fCode
 			failureMessage = &fMsg
-		} else if approvalProcessCode == "" {
+		} else if !approvalEnabled || approvalProcessCode == "" || approvalCorpID == "" || approvalEventToken == "" || approvalEventAESKey == "" {
 			reqStatus = orderunlockrequestent.StatusCONFIGURATION_FAILED
 			fCode := "ORDER_UNLOCK_DINGTALK_NOT_CONFIGURED"
-			fMsg := "未配置钉钉审批模板 process code"
+			fMsg := "未启用钉钉审批，或审批模板与事件回调配置不完整"
 			failureCode = &fCode
 			failureMessage = &fMsg
 		} else {

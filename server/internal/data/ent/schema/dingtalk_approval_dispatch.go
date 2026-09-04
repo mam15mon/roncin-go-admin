@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -14,6 +16,12 @@ import (
 type DingTalkApprovalDispatch struct{ ent.Schema }
 
 func (DingTalkApprovalDispatch) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}} }
+
+func (DingTalkApprovalDispatch) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"ding_talk_approval_dispatches_dispatch_status_check": "dispatch_status IN ('PENDING', 'SENDING', 'DISPATCHED', 'FAILED', 'UNKNOWN')",
+	})}
+}
 
 func (DingTalkApprovalDispatch) Fields() []ent.Field {
 	return []ent.Field{
@@ -26,7 +34,7 @@ func (DingTalkApprovalDispatch) Fields() []ent.Field {
 		field.String("applicant_dingtalk_userid").NotEmpty().MaxLen(64).Immutable(),
 		field.JSON("candidate_dingtalk_userids", []string{}).Immutable(),
 		field.String("request_payload_hash").NotEmpty().MaxLen(64).Immutable(),
-		field.Enum("dispatch_status").Values("PENDING", "DISPATCHED", "FAILED", "UNKNOWN").Default("PENDING"),
+		field.Enum("dispatch_status").Values("PENDING", "SENDING", "DISPATCHED", "FAILED", "UNKNOWN").Default("PENDING"),
 		field.String("process_instance_id").Optional().Nillable().MaxLen(128),
 		field.String("response_digest").Optional().Nillable().MaxLen(500),
 		field.String("error_category").Optional().Nillable().MaxLen(64),

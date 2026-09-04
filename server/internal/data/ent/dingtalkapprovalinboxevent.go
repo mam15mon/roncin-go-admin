@@ -38,6 +38,14 @@ type DingTalkApprovalInboxEvent struct {
 	ParsedSummary *string `json:"parsed_summary,omitempty"`
 	// Status holds the value of the "status" field.
 	Status dingtalkapprovalinboxevent.Status `json:"status,omitempty"`
+	// Attempts holds the value of the "attempts" field.
+	Attempts int `json:"attempts,omitempty"`
+	// NextRunAt holds the value of the "next_run_at" field.
+	NextRunAt time.Time `json:"next_run_at,omitempty"`
+	// ProcessingToken holds the value of the "processing_token" field.
+	ProcessingToken *string `json:"processing_token,omitempty"`
+	// ProcessingExpiresAt holds the value of the "processing_expires_at" field.
+	ProcessingExpiresAt *time.Time `json:"processing_expires_at,omitempty"`
 	// ResultCode holds the value of the "result_code" field.
 	ResultCode *string `json:"result_code,omitempty"`
 	// ErrorMessage holds the value of the "error_message" field.
@@ -52,9 +60,11 @@ func (*DingTalkApprovalInboxEvent) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case dingtalkapprovalinboxevent.FieldOrganizationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case dingtalkapprovalinboxevent.FieldEventID, dingtalkapprovalinboxevent.FieldCorpID, dingtalkapprovalinboxevent.FieldEventType, dingtalkapprovalinboxevent.FieldProcessInstanceID, dingtalkapprovalinboxevent.FieldEncryptedPayloadHash, dingtalkapprovalinboxevent.FieldParsedSummary, dingtalkapprovalinboxevent.FieldStatus, dingtalkapprovalinboxevent.FieldResultCode, dingtalkapprovalinboxevent.FieldErrorMessage:
+		case dingtalkapprovalinboxevent.FieldAttempts:
+			values[i] = new(sql.NullInt64)
+		case dingtalkapprovalinboxevent.FieldEventID, dingtalkapprovalinboxevent.FieldCorpID, dingtalkapprovalinboxevent.FieldEventType, dingtalkapprovalinboxevent.FieldProcessInstanceID, dingtalkapprovalinboxevent.FieldEncryptedPayloadHash, dingtalkapprovalinboxevent.FieldParsedSummary, dingtalkapprovalinboxevent.FieldStatus, dingtalkapprovalinboxevent.FieldProcessingToken, dingtalkapprovalinboxevent.FieldResultCode, dingtalkapprovalinboxevent.FieldErrorMessage:
 			values[i] = new(sql.NullString)
-		case dingtalkapprovalinboxevent.FieldCreatedAt, dingtalkapprovalinboxevent.FieldReceivedAt:
+		case dingtalkapprovalinboxevent.FieldCreatedAt, dingtalkapprovalinboxevent.FieldReceivedAt, dingtalkapprovalinboxevent.FieldNextRunAt, dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
 			values[i] = new(sql.NullTime)
 		case dingtalkapprovalinboxevent.FieldID:
 			values[i] = new(uuid.UUID)
@@ -141,6 +151,32 @@ func (_m *DingTalkApprovalInboxEvent) assignValues(columns []string, values []an
 			} else if value.Valid {
 				_m.Status = dingtalkapprovalinboxevent.Status(value.String)
 			}
+		case dingtalkapprovalinboxevent.FieldAttempts:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field attempts", values[i])
+			} else if value.Valid {
+				_m.Attempts = int(value.Int64)
+			}
+		case dingtalkapprovalinboxevent.FieldNextRunAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field next_run_at", values[i])
+			} else if value.Valid {
+				_m.NextRunAt = value.Time
+			}
+		case dingtalkapprovalinboxevent.FieldProcessingToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field processing_token", values[i])
+			} else if value.Valid {
+				_m.ProcessingToken = new(string)
+				*_m.ProcessingToken = value.String
+			}
+		case dingtalkapprovalinboxevent.FieldProcessingExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field processing_expires_at", values[i])
+			} else if value.Valid {
+				_m.ProcessingExpiresAt = new(time.Time)
+				*_m.ProcessingExpiresAt = value.Time
+			}
 		case dingtalkapprovalinboxevent.FieldResultCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field result_code", values[i])
@@ -224,6 +260,22 @@ func (_m *DingTalkApprovalInboxEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("attempts=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Attempts))
+	builder.WriteString(", ")
+	builder.WriteString("next_run_at=")
+	builder.WriteString(_m.NextRunAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := _m.ProcessingToken; v != nil {
+		builder.WriteString("processing_token=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ProcessingExpiresAt; v != nil {
+		builder.WriteString("processing_expires_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := _m.ResultCode; v != nil {
 		builder.WriteString("result_code=")

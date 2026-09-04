@@ -34,5 +34,8 @@ security:
     enabled: false
   dingtalk:
     enabled: false
+    approval_process_code: ""
+    event_token: ""
+    event_aes_key: ""
 telemetry:
   enabled: false

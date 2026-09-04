@@ -14,7 +14,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	dingtalkapprovalinboxeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -167,6 +169,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	t.Cleanup(func() {
 		_, _ = data.sqlDB.ExecContext(ctx, `
+			DELETE FROM ding_talk_approval_inbox_events WHERE organization_id = $1;
 			DELETE FROM order_unlock_approver_candidates WHERE request_id IN (SELECT id FROM order_unlock_requests WHERE organization_id = $1);
 			DELETE FROM ding_talk_approval_dispatches WHERE organization_id = $1;
 			DELETE FROM background_tasks WHERE organization_id = $1;
@@ -373,7 +376,11 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 
 	orderLockRepo := NewOrderLockRepo(data, &conf.Security{Dingtalk: &conf.Security_DingTalk{
+		Enabled:             true,
+		CorpId:              "CORP-ORDER-UNLOCK-TEST",
 		ApprovalProcessCode: "PROC-ORDER-UNLOCK-TEST",
+		EventToken:          "EVENT-TOKEN-TEST",
+		EventAesKey:         "EVENT-AES-KEY-TEST",
 	}})
 	orderWriteRepo := NewOrderRepo(data)
 	seaDocRepo := NewSeaDocumentRepo(data)
@@ -1479,6 +1486,353 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		if recH.UnlockedAt != nil {
 			t.Fatalf("锁事实记录 unlocked_at 未回滚: %v", recH.UnlockedAt)
+		}
+	})
+
+	t.Run("钉钉权威批准先落待生效再按固定锁序原子解锁", func(t *testing.T) {
+		orderK := createSEOrder("SE-" + suffix + "-K")
+		linkMBL(orderK.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		createHBL(orderK.ID, mbl.ID, "HBL-DINGTALK-"+suffix)
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 1, "ding-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+			t.Fatalf("准备钉钉审批锁定订单失败: %v", err)
+		}
+		reason := "钉钉审批解锁"
+		unlockResult, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderK.ID, 2, "ding-unlock", &reason, &biz.AuditEvent{Action: "order.unlock.request", OrganizationID: &org.ID, UserID: &normalUser.ID, Result: "success"})
+		if err != nil {
+			t.Fatalf("创建钉钉解锁申请失败: %v", err)
+		}
+
+		approvalRepo := NewDingTalkApprovalRepo(data)
+		requestEntity, err := data.db.OrderUnlockRequest.Get(ctx, unlockResult.Request.ID)
+		if err != nil {
+			t.Fatalf("读取审批请求失败: %v", err)
+		}
+		dispatchEntity, err := requestEntity.QueryDispatch().Only(ctx)
+		if err != nil {
+			t.Fatalf("读取审批派发记录失败: %v", err)
+		}
+		leaseToken := uuid.NewString()
+		if _, err := data.db.BackgroundTask.UpdateOneID(dispatchEntity.BackgroundTaskID).
+			SetStatus(backgroundtaskent.StatusRUNNING).
+			SetLeaseToken(leaseToken).
+			SetLeaseExpiresAt(time.Now().Add(time.Minute)).
+			Save(ctx); err != nil {
+			t.Fatalf("建立审批派发测试租约失败: %v", err)
+		}
+		claimed := &biz.BackgroundTask{ID: dispatchEntity.BackgroundTaskID, OrganizationID: org.ID, LeaseToken: &leaseToken}
+		dispatch, err := approvalRepo.PrepareDispatch(ctx, claimed)
+		if err != nil || !dispatch.ShouldSend {
+			t.Fatalf("准备审批派发失败: dispatch=%#v err=%v", dispatch, err)
+		}
+		if err := approvalRepo.FinishDispatch(ctx, claimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: "PROC-" + suffix}, time.Now().UTC()); err != nil {
+			t.Fatalf("保存审批实例失败: %v", err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: "PROC-" + suffix, EncryptedPayloadHash: strings.Repeat("a", 64)}); err != nil {
+			t.Fatalf("写入审批 Inbox 失败: %v", err)
+		}
+		job, err := approvalRepo.ClaimInbox(ctx, time.Minute, time.Now().UTC())
+		if err != nil {
+			t.Fatalf("领取审批 Inbox 失败: %v", err)
+		}
+		decision := &biz.DingTalkApprovalQueryResult{Decision: biz.DingTalkApprovalDecisionApproved, ApproverUserID: dtRoleUserID}
+		requestID, shouldApply, err := approvalRepo.PrepareApproved(ctx, job, decision, time.Now().UTC())
+		if err != nil || !shouldApply || requestID != unlockResult.Request.ID {
+			t.Fatalf("保存已同意待生效失败: request=%s shouldApply=%t err=%v", requestID, shouldApply, err)
+		}
+		pendingApply, err := data.db.OrderUnlockRequest.Get(ctx, requestID)
+		if err != nil || pendingApply.Status != orderunlockrequestent.StatusAPPROVED_PENDING_APPLY {
+			t.Fatalf("批准必须先持久化 APPROVED_PENDING_APPLY: request=%#v err=%v", pendingApply, err)
+		}
+		lockedBeforeApply, err := data.db.Order.Get(ctx, orderK.ID)
+		if err != nil || lockedBeforeApply.LockedAt == nil {
+			t.Fatalf("待本地生效阶段订单必须仍锁定: order=%#v err=%v", lockedBeforeApply, err)
+		}
+		if err := approvalRepo.ApplyApproved(ctx, job, requestID, decision, time.Now().UTC()); err != nil {
+			t.Fatalf("应用钉钉批准失败: %v", err)
+		}
+		appliedOrder, err := data.db.Order.Get(ctx, orderK.ID)
+		if err != nil || appliedOrder.LockedAt != nil || appliedOrder.Version != 3 {
+			t.Fatalf("钉钉批准未原子解锁并升级版本: order=%#v err=%v", appliedOrder, err)
+		}
+		appliedRequest, err := data.db.OrderUnlockRequest.Get(ctx, requestID)
+		if err != nil || appliedRequest.Status != orderunlockrequestent.StatusAPPROVED || appliedRequest.DecidedBy == nil || *appliedRequest.DecidedBy != roleUser.ID {
+			t.Fatalf("批准请求终态不正确: request=%#v err=%v", appliedRequest, err)
+		}
+		lockRecord, err := data.db.OrderLockRecord.Query().Where(orderlockrecordent.OrderIDEQ(orderK.ID), orderlockrecordent.GenerationEQ(1)).Only(ctx)
+		if err != nil || lockRecord.UnlockMode == nil || *lockRecord.UnlockMode != orderlockrecordent.UnlockModeDINGTALK_APPROVED {
+			t.Fatalf("锁事实未记录钉钉批准路径: record=%#v err=%v", lockRecord, err)
+		}
+
+		// 相同事件重投只命中唯一 Inbox，不会产生第二次解锁或版本递增。
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: "PROC-" + suffix, EncryptedPayloadHash: strings.Repeat("a", 64)}); err != nil {
+			t.Fatalf("重复事件应幂等成功: %v", err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: "PROC-" + suffix, EncryptedPayloadHash: strings.Repeat("b", 64)}); err == nil {
+			t.Fatal("相同 event_id 携带不同密文摘要必须冲突")
+		}
+		unchanged, err := data.db.Order.Get(ctx, orderK.ID)
+		if err != nil || unchanged.Version != 3 {
+			t.Fatalf("重复事件不应再次递增版本: order=%#v err=%v", unchanged, err)
+		}
+	})
+
+	t.Run("钉钉拒绝只终结申请且保留锁和审计", func(t *testing.T) {
+		orderL := createSEOrder("SE-" + suffix + "-L")
+		linkMBL(orderL.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		createHBL(orderL.ID, mbl.ID, "HBL-DINGTALK-REJECT-"+suffix)
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderL.ID, 1, "ding-reject-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+			t.Fatal(err)
+		}
+		result, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderL.ID, 2, "ding-reject-unlock", nil, &biz.AuditEvent{Action: "order.unlock.request", OrganizationID: &org.ID, UserID: &normalUser.ID, Result: "success"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		approvalRepo := NewDingTalkApprovalRepo(data)
+		requestEntity, err := data.db.OrderUnlockRequest.Get(ctx, result.Request.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dispatchEntity, err := requestEntity.QueryDispatch().Only(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		leaseToken := uuid.NewString()
+		_, err = data.db.BackgroundTask.UpdateOneID(dispatchEntity.BackgroundTaskID).SetStatus(backgroundtaskent.StatusRUNNING).SetLeaseToken(leaseToken).SetLeaseExpiresAt(time.Now().Add(time.Minute)).Save(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		claimed := &biz.BackgroundTask{ID: dispatchEntity.BackgroundTaskID, OrganizationID: org.ID, LeaseToken: &leaseToken}
+		if _, err := approvalRepo.PrepareDispatch(ctx, claimed); err != nil {
+			t.Fatal(err)
+		}
+		instanceID := "PROC-REJECT-" + suffix
+		if err := approvalRepo.FinishDispatch(ctx, claimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: instanceID}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-REJECT-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: instanceID, EncryptedPayloadHash: strings.Repeat("c", 64)}); err != nil {
+			t.Fatal(err)
+		}
+		job, err := approvalRepo.ClaimInbox(ctx, time.Minute, time.Now().UTC())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.RecordRejected(ctx, job, &biz.DingTalkApprovalQueryResult{Decision: biz.DingTalkApprovalDecisionRejected, ApproverUserID: dtRoleUserID}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		orderAfter, _ := data.db.Order.Get(ctx, orderL.ID)
+		requestAfter, _ := data.db.OrderUnlockRequest.Get(ctx, result.Request.ID)
+		if orderAfter.LockedAt == nil || orderAfter.Version != 2 || requestAfter.Status != orderunlockrequestent.StatusREJECTED {
+			t.Fatalf("拒绝不得解锁: order=%#v request=%#v", orderAfter, requestAfter)
+		}
+		auditCount, err := data.db.AuditLog.Query().Where(auditlogent.ActionEQ("order.unlock.dingtalk_rejected"), auditlogent.ResourceIDEQ(orderL.ID.String())).Count(ctx)
+		if err != nil || auditCount != 1 {
+			t.Fatalf("拒绝审计数量=%d err=%v", auditCount, err)
+		}
+	})
+
+	t.Run("批准人实时资格撤销后不得误解锁", func(t *testing.T) {
+		orderM := createSEOrder("SE-" + suffix + "-M")
+		linkMBL(orderM.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		createHBL(orderM.ID, mbl.ID, "HBL-DINGTALK-STALE-"+suffix)
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderM.ID, 1, "ding-stale-lock", nil); err != nil {
+			t.Fatal(err)
+		}
+		result, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderM.ID, 2, "ding-stale-unlock", nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		approvalRepo := NewDingTalkApprovalRepo(data)
+		requestEntity, err := data.db.OrderUnlockRequest.Get(ctx, result.Request.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dispatchEntity, err := requestEntity.QueryDispatch().Only(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		leaseToken := uuid.NewString()
+		_, err = data.db.BackgroundTask.UpdateOneID(dispatchEntity.BackgroundTaskID).SetStatus(backgroundtaskent.StatusRUNNING).SetLeaseToken(leaseToken).SetLeaseExpiresAt(time.Now().Add(time.Minute)).Save(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		claimed := &biz.BackgroundTask{ID: dispatchEntity.BackgroundTaskID, OrganizationID: org.ID, LeaseToken: &leaseToken}
+		if _, err := approvalRepo.PrepareDispatch(ctx, claimed); err != nil {
+			t.Fatal(err)
+		}
+		instanceID := "PROC-STALE-" + suffix
+		if err := approvalRepo.FinishDispatch(ctx, claimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: instanceID}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-STALE-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: instanceID, EncryptedPayloadHash: strings.Repeat("e", 64)}); err != nil {
+			t.Fatal(err)
+		}
+		job, err := approvalRepo.ClaimInbox(ctx, time.Minute, time.Now().UTC().Add(time.Second))
+		if err != nil {
+			t.Fatal(err)
+		}
+		decision := &biz.DingTalkApprovalQueryResult{Decision: biz.DingTalkApprovalDecisionApproved, ApproverUserID: dtRoleUserID}
+		requestID, shouldApply, err := approvalRepo.PrepareApproved(ctx, job, decision, time.Now().UTC())
+		if err != nil || !shouldApply {
+			t.Fatalf("prepare approved: id=%s apply=%t err=%v", requestID, shouldApply, err)
+		}
+		if _, err := data.db.Membership.UpdateOneID(roleMembership.ID).SetEnabled(false).Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.ApplyApproved(ctx, job, requestID, decision, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := data.db.Membership.UpdateOneID(roleMembership.ID).SetEnabled(true).Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+		orderAfter, _ := data.db.Order.Get(ctx, orderM.ID)
+		requestAfter, _ := data.db.OrderUnlockRequest.Get(ctx, requestID)
+		if orderAfter.LockedAt == nil || orderAfter.Version != 2 || requestAfter.Status != orderunlockrequestent.StatusSTALE || requestAfter.FailureCode == nil || *requestAfter.FailureCode != "APPROVER_NOT_QUALIFIED" {
+			t.Fatalf("资格撤销不得解锁: order=%#v request=%#v", orderAfter, requestAfter)
+		}
+	})
+
+	t.Run("钉钉批准本地生效与角色直解竞争只产生一次解锁事实", func(t *testing.T) {
+		orderN := createSEOrder("SE-" + suffix + "-N")
+		linkMBL(orderN.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		createHBL(orderN.ID, mbl.ID, "HBL-DINGTALK-RACE-"+suffix)
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderN.ID, 1, "ding-race-lock", nil); err != nil {
+			t.Fatal(err)
+		}
+		pending, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderN.ID, 2, "ding-race-pending", nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		approvalRepo := NewDingTalkApprovalRepo(data)
+		requestEntity, err := data.db.OrderUnlockRequest.Get(ctx, pending.Request.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dispatchEntity, err := requestEntity.QueryDispatch().Only(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		leaseToken := uuid.NewString()
+		_, err = data.db.BackgroundTask.UpdateOneID(dispatchEntity.BackgroundTaskID).
+			SetStatus(backgroundtaskent.StatusRUNNING).
+			SetLeaseToken(leaseToken).
+			SetLeaseExpiresAt(time.Now().Add(time.Minute)).
+			Save(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		claimed := &biz.BackgroundTask{ID: dispatchEntity.BackgroundTaskID, OrganizationID: org.ID, LeaseToken: &leaseToken}
+		if _, err := approvalRepo.PrepareDispatch(ctx, claimed); err != nil {
+			t.Fatal(err)
+		}
+		instanceID := "PROC-RACE-" + suffix
+		if err := approvalRepo.FinishDispatch(ctx, claimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: instanceID}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-RACE-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: instanceID, EncryptedPayloadHash: strings.Repeat("f", 64)}); err != nil {
+			t.Fatal(err)
+		}
+		job, err := approvalRepo.ClaimInbox(ctx, time.Minute, time.Now().UTC().Add(time.Second))
+		if err != nil {
+			t.Fatal(err)
+		}
+		decision := &biz.DingTalkApprovalQueryResult{Decision: biz.DingTalkApprovalDecisionApproved, ApproverUserID: dtRoleUserID}
+		requestID, shouldApply, err := approvalRepo.PrepareApproved(ctx, job, decision, time.Now().UTC())
+		if err != nil || !shouldApply || requestID != pending.Request.ID {
+			t.Fatalf("prepare approved: id=%s apply=%t err=%v", requestID, shouldApply, err)
+		}
+
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		wg.Add(2)
+		var applyErr, directErr error
+		var directResult *biz.OrderUnlockResult
+		go func() {
+			defer wg.Done()
+			<-start
+			applyErr = approvalRepo.ApplyApproved(ctx, job, requestID, decision, time.Now().UTC())
+		}()
+		go func() {
+			defer wg.Done()
+			<-start
+			directResult, directErr = orderLockRepo.RequestOrderUnlock(ctx, rolePrincipal, orderN.ID, 2, "ding-race-direct", nil, &biz.AuditEvent{
+				Action:         "order.unlock.role_direct_race",
+				OrganizationID: &org.ID,
+				UserID:         &roleUser.ID,
+				ResourceType:   "order",
+				ResourceID:     orderN.ID.String(),
+				Result:         "success",
+			})
+		}()
+		close(start)
+		wg.Wait()
+		if applyErr != nil {
+			t.Fatalf("ApplyApproved 不应泄漏死锁或驱动错误: %v", applyErr)
+		}
+		if directErr != nil {
+			converted := errors.FromError(directErr)
+			if converted == nil || converted.Reason != "ORDER_NOT_LOCKED" {
+				t.Fatalf("直解失败只能是审批先解锁后的 ORDER_NOT_LOCKED，得到: %v", directErr)
+			}
+		}
+
+		orderAfter, err := data.db.Order.Get(ctx, orderN.ID)
+		if err != nil || orderAfter.LockedAt != nil || orderAfter.Version != 3 {
+			t.Fatalf("竞争后订单必须仅解锁并递增一次版本: order=%#v err=%v", orderAfter, err)
+		}
+		lockRecord, err := data.db.OrderLockRecord.Query().Where(orderlockrecordent.OrderIDEQ(orderN.ID), orderlockrecordent.GenerationEQ(1)).Only(ctx)
+		if err != nil || lockRecord.UnlockedAt == nil || lockRecord.UnlockRequestID == nil || lockRecord.OrderVersionAtUnlock == nil || *lockRecord.OrderVersionAtUnlock != 3 {
+			t.Fatalf("锁事实必须只关闭一次并指向实际解锁请求: record=%#v err=%v", lockRecord, err)
+		}
+		approvedRequests, err := data.db.OrderUnlockRequest.Query().Where(orderunlockrequestent.OrderIDEQ(orderN.ID), orderunlockrequestent.StatusEQ(orderunlockrequestent.StatusAPPROVED)).All(ctx)
+		if err != nil || len(approvedRequests) != 1 || approvedRequests[0].ID != *lockRecord.UnlockRequestID {
+			t.Fatalf("必须恰好一个 APPROVED 请求且与锁事实一致: requests=%#v record=%#v err=%v", approvedRequests, lockRecord, err)
+		}
+		oldRequest, err := data.db.OrderUnlockRequest.Get(ctx, requestID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		inbox, err := data.db.DingTalkApprovalInboxEvent.Get(ctx, job.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if directErr == nil {
+			if directResult == nil || oldRequest.Status != orderunlockrequestent.StatusSTALE || oldRequest.SupersededByRequestID == nil || *oldRequest.SupersededByRequestID != directResult.Request.ID ||
+				inbox.Status != dingtalkapprovalinboxeventent.StatusIGNORED || inbox.ResultCode == nil || *inbox.ResultCode != "REQUEST_SUPERSEDED" {
+				t.Fatalf("直解胜出时旧审批与 Inbox 取代关系错误: direct=%#v old=%#v inbox=%#v", directResult, oldRequest, inbox)
+			}
+		} else if oldRequest.Status != orderunlockrequestent.StatusAPPROVED || oldRequest.SupersededByRequestID != nil ||
+			inbox.Status != dingtalkapprovalinboxeventent.StatusPROCESSED || inbox.ResultCode == nil || *inbox.ResultCode != "APPROVED_APPLIED" {
+			t.Fatalf("审批胜出时旧申请和 Inbox 终态错误: old=%#v inbox=%#v", oldRequest, inbox)
+		}
+		dingAuditCount, err := data.db.AuditLog.Query().Where(auditlogent.ActionEQ("order.unlock.dingtalk_approved"), auditlogent.ResourceIDEQ(orderN.ID.String())).Count(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		directAuditCount, err := data.db.AuditLog.Query().Where(auditlogent.ActionEQ("order.unlock.role_direct_race"), auditlogent.ResourceIDEQ(orderN.ID.String())).Count(ctx)
+		if err != nil || dingAuditCount+directAuditCount != 1 {
+			t.Fatalf("竞争只能写一条实际解锁审计: dingtalk=%d direct=%d err=%v", dingAuditCount, directAuditCount, err)
+		}
+	})
+
+	t.Run("Inbox 处理租约未过期不重复领取且过期可接管", func(t *testing.T) {
+		approvalRepo := NewDingTalkApprovalRepo(data)
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-LEASE-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: "PROC-MISSING-" + suffix, EncryptedPayloadHash: strings.Repeat("d", 64)}); err != nil {
+			t.Fatal(err)
+		}
+		now := time.Now().UTC().Add(time.Second)
+		first, err := approvalRepo.ClaimInbox(ctx, time.Minute, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := approvalRepo.ClaimInbox(ctx, time.Minute, now.Add(30*time.Second)); err == nil {
+			t.Fatal("未过期 PROCESSING Inbox 不得被第二个 Worker 领取")
+		}
+		second, err := approvalRepo.ClaimInbox(ctx, time.Minute, now.Add(61*time.Second))
+		if err != nil || second.ID != first.ID || second.LeaseToken == first.LeaseToken {
+			t.Fatalf("过期接管失败: first=%#v second=%#v err=%v", first, second, err)
+		}
+		if err := approvalRepo.IgnoreInbox(ctx, second, "TEST_DONE"); err != nil {
+			t.Fatal(err)
 		}
 	})
 }

@@ -100,6 +100,26 @@ func ParsedSummary(v string) predicate.DingTalkApprovalInboxEvent {
 	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldParsedSummary, v))
 }
 
+// Attempts applies equality check predicate on the "attempts" field. It's identical to AttemptsEQ.
+func Attempts(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldAttempts, v))
+}
+
+// NextRunAt applies equality check predicate on the "next_run_at" field. It's identical to NextRunAtEQ.
+func NextRunAt(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldNextRunAt, v))
+}
+
+// ProcessingToken applies equality check predicate on the "processing_token" field. It's identical to ProcessingTokenEQ.
+func ProcessingToken(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldProcessingToken, v))
+}
+
+// ProcessingExpiresAt applies equality check predicate on the "processing_expires_at" field. It's identical to ProcessingExpiresAtEQ.
+func ProcessingExpiresAt(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldProcessingExpiresAt, v))
+}
+
 // ResultCode applies equality check predicate on the "result_code" field. It's identical to ResultCodeEQ.
 func ResultCode(v string) predicate.DingTalkApprovalInboxEvent {
 	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldResultCode, v))
@@ -658,6 +678,211 @@ func StatusIn(vs ...Status) predicate.DingTalkApprovalInboxEvent {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.DingTalkApprovalInboxEvent {
 	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// AttemptsEQ applies the EQ predicate on the "attempts" field.
+func AttemptsEQ(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldAttempts, v))
+}
+
+// AttemptsNEQ applies the NEQ predicate on the "attempts" field.
+func AttemptsNEQ(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNEQ(FieldAttempts, v))
+}
+
+// AttemptsIn applies the In predicate on the "attempts" field.
+func AttemptsIn(vs ...int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIn(FieldAttempts, vs...))
+}
+
+// AttemptsNotIn applies the NotIn predicate on the "attempts" field.
+func AttemptsNotIn(vs ...int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotIn(FieldAttempts, vs...))
+}
+
+// AttemptsGT applies the GT predicate on the "attempts" field.
+func AttemptsGT(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGT(FieldAttempts, v))
+}
+
+// AttemptsGTE applies the GTE predicate on the "attempts" field.
+func AttemptsGTE(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGTE(FieldAttempts, v))
+}
+
+// AttemptsLT applies the LT predicate on the "attempts" field.
+func AttemptsLT(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLT(FieldAttempts, v))
+}
+
+// AttemptsLTE applies the LTE predicate on the "attempts" field.
+func AttemptsLTE(v int) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLTE(FieldAttempts, v))
+}
+
+// NextRunAtEQ applies the EQ predicate on the "next_run_at" field.
+func NextRunAtEQ(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldNextRunAt, v))
+}
+
+// NextRunAtNEQ applies the NEQ predicate on the "next_run_at" field.
+func NextRunAtNEQ(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNEQ(FieldNextRunAt, v))
+}
+
+// NextRunAtIn applies the In predicate on the "next_run_at" field.
+func NextRunAtIn(vs ...time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIn(FieldNextRunAt, vs...))
+}
+
+// NextRunAtNotIn applies the NotIn predicate on the "next_run_at" field.
+func NextRunAtNotIn(vs ...time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotIn(FieldNextRunAt, vs...))
+}
+
+// NextRunAtGT applies the GT predicate on the "next_run_at" field.
+func NextRunAtGT(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGT(FieldNextRunAt, v))
+}
+
+// NextRunAtGTE applies the GTE predicate on the "next_run_at" field.
+func NextRunAtGTE(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGTE(FieldNextRunAt, v))
+}
+
+// NextRunAtLT applies the LT predicate on the "next_run_at" field.
+func NextRunAtLT(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLT(FieldNextRunAt, v))
+}
+
+// NextRunAtLTE applies the LTE predicate on the "next_run_at" field.
+func NextRunAtLTE(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLTE(FieldNextRunAt, v))
+}
+
+// ProcessingTokenEQ applies the EQ predicate on the "processing_token" field.
+func ProcessingTokenEQ(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldProcessingToken, v))
+}
+
+// ProcessingTokenNEQ applies the NEQ predicate on the "processing_token" field.
+func ProcessingTokenNEQ(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNEQ(FieldProcessingToken, v))
+}
+
+// ProcessingTokenIn applies the In predicate on the "processing_token" field.
+func ProcessingTokenIn(vs ...string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIn(FieldProcessingToken, vs...))
+}
+
+// ProcessingTokenNotIn applies the NotIn predicate on the "processing_token" field.
+func ProcessingTokenNotIn(vs ...string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotIn(FieldProcessingToken, vs...))
+}
+
+// ProcessingTokenGT applies the GT predicate on the "processing_token" field.
+func ProcessingTokenGT(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGT(FieldProcessingToken, v))
+}
+
+// ProcessingTokenGTE applies the GTE predicate on the "processing_token" field.
+func ProcessingTokenGTE(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGTE(FieldProcessingToken, v))
+}
+
+// ProcessingTokenLT applies the LT predicate on the "processing_token" field.
+func ProcessingTokenLT(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLT(FieldProcessingToken, v))
+}
+
+// ProcessingTokenLTE applies the LTE predicate on the "processing_token" field.
+func ProcessingTokenLTE(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLTE(FieldProcessingToken, v))
+}
+
+// ProcessingTokenContains applies the Contains predicate on the "processing_token" field.
+func ProcessingTokenContains(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldContains(FieldProcessingToken, v))
+}
+
+// ProcessingTokenHasPrefix applies the HasPrefix predicate on the "processing_token" field.
+func ProcessingTokenHasPrefix(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldHasPrefix(FieldProcessingToken, v))
+}
+
+// ProcessingTokenHasSuffix applies the HasSuffix predicate on the "processing_token" field.
+func ProcessingTokenHasSuffix(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldHasSuffix(FieldProcessingToken, v))
+}
+
+// ProcessingTokenIsNil applies the IsNil predicate on the "processing_token" field.
+func ProcessingTokenIsNil() predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIsNull(FieldProcessingToken))
+}
+
+// ProcessingTokenNotNil applies the NotNil predicate on the "processing_token" field.
+func ProcessingTokenNotNil() predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotNull(FieldProcessingToken))
+}
+
+// ProcessingTokenEqualFold applies the EqualFold predicate on the "processing_token" field.
+func ProcessingTokenEqualFold(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEqualFold(FieldProcessingToken, v))
+}
+
+// ProcessingTokenContainsFold applies the ContainsFold predicate on the "processing_token" field.
+func ProcessingTokenContainsFold(v string) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldContainsFold(FieldProcessingToken, v))
+}
+
+// ProcessingExpiresAtEQ applies the EQ predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtEQ(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldEQ(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtNEQ applies the NEQ predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtNEQ(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNEQ(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtIn applies the In predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtIn(vs ...time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIn(FieldProcessingExpiresAt, vs...))
+}
+
+// ProcessingExpiresAtNotIn applies the NotIn predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtNotIn(vs ...time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotIn(FieldProcessingExpiresAt, vs...))
+}
+
+// ProcessingExpiresAtGT applies the GT predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtGT(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGT(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtGTE applies the GTE predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtGTE(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldGTE(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtLT applies the LT predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtLT(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLT(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtLTE applies the LTE predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtLTE(v time.Time) predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldLTE(FieldProcessingExpiresAt, v))
+}
+
+// ProcessingExpiresAtIsNil applies the IsNil predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtIsNil() predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldIsNull(FieldProcessingExpiresAt))
+}
+
+// ProcessingExpiresAtNotNil applies the NotNil predicate on the "processing_expires_at" field.
+func ProcessingExpiresAtNotNil() predicate.DingTalkApprovalInboxEvent {
+	return predicate.DingTalkApprovalInboxEvent(sql.FieldNotNull(FieldProcessingExpiresAt))
 }
 
 // ResultCodeEQ applies the EQ predicate on the "result_code" field.

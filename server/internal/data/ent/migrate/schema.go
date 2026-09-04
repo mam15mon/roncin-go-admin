@@ -366,7 +366,7 @@ var (
 		{Name: "applicant_dingtalk_userid", Type: field.TypeString, Size: 64},
 		{Name: "candidate_dingtalk_userids", Type: field.TypeJSON},
 		{Name: "request_payload_hash", Type: field.TypeString, Size: 64},
-		{Name: "dispatch_status", Type: field.TypeEnum, Enums: []string{"PENDING", "DISPATCHED", "FAILED", "UNKNOWN"}, Default: "PENDING"},
+		{Name: "dispatch_status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENDING", "DISPATCHED", "FAILED", "UNKNOWN"}, Default: "PENDING"},
 		{Name: "process_instance_id", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "response_digest", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "error_category", Type: field.TypeString, Nullable: true, Size: 64},
@@ -429,7 +429,11 @@ var (
 		{Name: "received_at", Type: field.TypeTime},
 		{Name: "encrypted_payload_hash", Type: field.TypeString, Size: 64},
 		{Name: "parsed_summary", Type: field.TypeString, Nullable: true, Size: 1000},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"RECEIVED", "PROCESSED", "IGNORED", "FAILED"}, Default: "RECEIVED"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"RECEIVED", "PROCESSING", "PROCESSED", "IGNORED", "FAILED"}, Default: "RECEIVED"},
+		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "next_run_at", Type: field.TypeTime},
+		{Name: "processing_token", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "processing_expires_at", Type: field.TypeTime, Nullable: true},
 		{Name: "result_code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 500},
 	}
@@ -450,9 +454,9 @@ var (
 				Columns: []*schema.Column{DingTalkApprovalInboxEventsColumns[6]},
 			},
 			{
-				Name:    "dingtalkapprovalinboxevent_status_received_at",
+				Name:    "dingtalkapprovalinboxevent_status_next_run_at_received_at",
 				Unique:  false,
-				Columns: []*schema.Column{DingTalkApprovalInboxEventsColumns[10], DingTalkApprovalInboxEventsColumns[7]},
+				Columns: []*schema.Column{DingTalkApprovalInboxEventsColumns[10], DingTalkApprovalInboxEventsColumns[12], DingTalkApprovalInboxEventsColumns[7]},
 			},
 		},
 	}
@@ -6379,6 +6383,15 @@ func init() {
 	DingTalkApprovalDispatchesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[1].RefTable = OrderUnlockRequestsTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[2].RefTable = OrganizationsTable
+	DingTalkApprovalDispatchesTable.Annotation = &entsql.Annotation{}
+	DingTalkApprovalDispatchesTable.Annotation.Checks = map[string]string{
+		"ding_talk_approval_dispatches_dispatch_status_check": "dispatch_status IN ('PENDING', 'SENDING', 'DISPATCHED', 'FAILED', 'UNKNOWN')",
+	}
+	DingTalkApprovalInboxEventsTable.Annotation = &entsql.Annotation{}
+	DingTalkApprovalInboxEventsTable.Annotation.Checks = map[string]string{
+		"ding_talk_approval_inbox_events_attempts_check": "attempts >= 0",
+		"ding_talk_approval_inbox_events_status_check":   "status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'IGNORED', 'FAILED')",
+	}
 	EnterpriseResourcesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	EnterpriseResourcesTable.ForeignKeys[1].RefTable = UsersTable
 	EnterpriseResourcesTable.ForeignKeys[2].RefTable = UsersTable

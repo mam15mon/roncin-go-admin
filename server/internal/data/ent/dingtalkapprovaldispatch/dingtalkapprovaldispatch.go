@@ -133,6 +133,7 @@ const DefaultDispatchStatus = DispatchStatusPENDING
 // DispatchStatus values.
 const (
 	DispatchStatusPENDING    DispatchStatus = "PENDING"
+	DispatchStatusSENDING    DispatchStatus = "SENDING"
 	DispatchStatusDISPATCHED DispatchStatus = "DISPATCHED"
 	DispatchStatusFAILED     DispatchStatus = "FAILED"
 	DispatchStatusUNKNOWN    DispatchStatus = "UNKNOWN"
@@ -145,7 +146,7 @@ func (ds DispatchStatus) String() string {
 // DispatchStatusValidator is a validator for the "dispatch_status" field enum values. It is called by the builders before save.
 func DispatchStatusValidator(ds DispatchStatus) error {
 	switch ds {
-	case DispatchStatusPENDING, DispatchStatusDISPATCHED, DispatchStatusFAILED, DispatchStatusUNKNOWN:
+	case DispatchStatusPENDING, DispatchStatusSENDING, DispatchStatusDISPATCHED, DispatchStatusFAILED, DispatchStatusUNKNOWN:
 		return nil
 	default:
 		return fmt.Errorf("dingtalkapprovaldispatch: invalid enum value for dispatch_status field: %q", ds)

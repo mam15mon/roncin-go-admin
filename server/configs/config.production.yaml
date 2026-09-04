@@ -43,6 +43,9 @@ security:
     redirect_uri: ${DINGTALK_REDIRECT_URI:}
     corp_id: ${DINGTALK_CORP_ID:}
     registration_token_secret: ${DINGTALK_REGISTRATION_TOKEN_SECRET:}
+    approval_process_code: ${DINGTALK_APPROVAL_PROCESS_CODE:}
+    event_token: ${DINGTALK_EVENT_TOKEN:}
+    event_aes_key: ${DINGTALK_EVENT_AES_KEY:}
 telemetry:
   enabled: ${OTEL_ENABLED:false}
   endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:127.0.0.1:4317}

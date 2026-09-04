@@ -35,6 +35,14 @@ const (
 	FieldParsedSummary = "parsed_summary"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldAttempts holds the string denoting the attempts field in the database.
+	FieldAttempts = "attempts"
+	// FieldNextRunAt holds the string denoting the next_run_at field in the database.
+	FieldNextRunAt = "next_run_at"
+	// FieldProcessingToken holds the string denoting the processing_token field in the database.
+	FieldProcessingToken = "processing_token"
+	// FieldProcessingExpiresAt holds the string denoting the processing_expires_at field in the database.
+	FieldProcessingExpiresAt = "processing_expires_at"
 	// FieldResultCode holds the string denoting the result_code field in the database.
 	FieldResultCode = "result_code"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
@@ -56,6 +64,10 @@ var Columns = []string{
 	FieldEncryptedPayloadHash,
 	FieldParsedSummary,
 	FieldStatus,
+	FieldAttempts,
+	FieldNextRunAt,
+	FieldProcessingToken,
+	FieldProcessingExpiresAt,
 	FieldResultCode,
 	FieldErrorMessage,
 }
@@ -87,6 +99,14 @@ var (
 	EncryptedPayloadHashValidator func(string) error
 	// ParsedSummaryValidator is a validator for the "parsed_summary" field. It is called by the builders before save.
 	ParsedSummaryValidator func(string) error
+	// DefaultAttempts holds the default value on creation for the "attempts" field.
+	DefaultAttempts int
+	// AttemptsValidator is a validator for the "attempts" field. It is called by the builders before save.
+	AttemptsValidator func(int) error
+	// DefaultNextRunAt holds the default value on creation for the "next_run_at" field.
+	DefaultNextRunAt func() time.Time
+	// ProcessingTokenValidator is a validator for the "processing_token" field. It is called by the builders before save.
+	ProcessingTokenValidator func(string) error
 	// ResultCodeValidator is a validator for the "result_code" field. It is called by the builders before save.
 	ResultCodeValidator func(string) error
 	// ErrorMessageValidator is a validator for the "error_message" field. It is called by the builders before save.
@@ -103,10 +123,11 @@ const DefaultStatus = StatusRECEIVED
 
 // Status values.
 const (
-	StatusRECEIVED  Status = "RECEIVED"
-	StatusPROCESSED Status = "PROCESSED"
-	StatusIGNORED   Status = "IGNORED"
-	StatusFAILED    Status = "FAILED"
+	StatusRECEIVED   Status = "RECEIVED"
+	StatusPROCESSING Status = "PROCESSING"
+	StatusPROCESSED  Status = "PROCESSED"
+	StatusIGNORED    Status = "IGNORED"
+	StatusFAILED     Status = "FAILED"
 )
 
 func (s Status) String() string {
@@ -116,7 +137,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusRECEIVED, StatusPROCESSED, StatusIGNORED, StatusFAILED:
+	case StatusRECEIVED, StatusPROCESSING, StatusPROCESSED, StatusIGNORED, StatusFAILED:
 		return nil
 	default:
 		return fmt.Errorf("dingtalkapprovalinboxevent: invalid enum value for status field: %q", s)
@@ -179,6 +200,26 @@ func ByParsedSummary(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByAttempts orders the results by the attempts field.
+func ByAttempts(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAttempts, opts...).ToFunc()
+}
+
+// ByNextRunAt orders the results by the next_run_at field.
+func ByNextRunAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextRunAt, opts...).ToFunc()
+}
+
+// ByProcessingToken orders the results by the processing_token field.
+func ByProcessingToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProcessingToken, opts...).ToFunc()
+}
+
+// ByProcessingExpiresAt orders the results by the processing_expires_at field.
+func ByProcessingExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProcessingExpiresAt, opts...).ToFunc()
 }
 
 // ByResultCode orders the results by the result_code field.

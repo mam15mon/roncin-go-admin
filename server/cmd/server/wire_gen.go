@@ -159,14 +159,23 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase, businessTagUsecase)
 	orderTagService := service.NewOrderTagService(businessTagUsecase)
 	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaCargoAllocationService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, logger, orderTagService)
-	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderTagService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaCargoAllocationService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)
+	dingTalkApprovalRepo := data.NewDingTalkApprovalRepo(dataData)
+	dingTalkApprovalGateway := data.NewDingTalkApprovalGateway(dingTalkIdentityProvider)
+	dingTalkApprovalCallbackCodec, err := data.NewDingTalkApprovalCallbackCodec(security)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	dingTalkApprovalUsecase := biz.NewDingTalkApprovalUsecase(backgroundTaskUsecase, dingTalkApprovalRepo, dingTalkApprovalGateway, dingTalkApprovalCallbackCodec)
+	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderTagService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaCargoAllocationService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, dingTalkApprovalUsecase, sessionPolicy, dataData, logger)
 	notificationRepo := data.NewNotificationRepo(dataData)
 	notificationUsecase := biz.NewNotificationUsecase(backgroundTaskUsecase, notificationRepo, dingTalkIdentityProvider)
 	notificationWorker := server.NewNotificationWorker(notificationUsecase, logger)
+	dingTalkApprovalWorker := server.NewDingTalkApprovalWorker(dingTalkApprovalUsecase, logger)
 	objectDeletionRepo := data.NewObjectDeletionRepo(dataData)
 	objectDeletionUsecase := biz.NewObjectDeletionUsecase(backgroundTaskUsecase, objectDeletionRepo, enterpriseImageStorage)
 	objectDeletionWorker := server.NewObjectDeletionWorker(objectDeletionUsecase, logger)
-	app := newApp(logger, grpcServer, httpServer, notificationWorker, objectDeletionWorker)
+	app := newApp(logger, grpcServer, httpServer, notificationWorker, dingTalkApprovalWorker, objectDeletionWorker)
 	return app, func() {
 		cleanup()
 	}, nil

@@ -1002,12 +1002,26 @@ func init() {
 	dingtalkapprovalinboxeventDescParsedSummary := dingtalkapprovalinboxeventFields[8].Descriptor()
 	// dingtalkapprovalinboxevent.ParsedSummaryValidator is a validator for the "parsed_summary" field. It is called by the builders before save.
 	dingtalkapprovalinboxevent.ParsedSummaryValidator = dingtalkapprovalinboxeventDescParsedSummary.Validators[0].(func(string) error)
+	// dingtalkapprovalinboxeventDescAttempts is the schema descriptor for attempts field.
+	dingtalkapprovalinboxeventDescAttempts := dingtalkapprovalinboxeventFields[10].Descriptor()
+	// dingtalkapprovalinboxevent.DefaultAttempts holds the default value on creation for the attempts field.
+	dingtalkapprovalinboxevent.DefaultAttempts = dingtalkapprovalinboxeventDescAttempts.Default.(int)
+	// dingtalkapprovalinboxevent.AttemptsValidator is a validator for the "attempts" field. It is called by the builders before save.
+	dingtalkapprovalinboxevent.AttemptsValidator = dingtalkapprovalinboxeventDescAttempts.Validators[0].(func(int) error)
+	// dingtalkapprovalinboxeventDescNextRunAt is the schema descriptor for next_run_at field.
+	dingtalkapprovalinboxeventDescNextRunAt := dingtalkapprovalinboxeventFields[11].Descriptor()
+	// dingtalkapprovalinboxevent.DefaultNextRunAt holds the default value on creation for the next_run_at field.
+	dingtalkapprovalinboxevent.DefaultNextRunAt = dingtalkapprovalinboxeventDescNextRunAt.Default.(func() time.Time)
+	// dingtalkapprovalinboxeventDescProcessingToken is the schema descriptor for processing_token field.
+	dingtalkapprovalinboxeventDescProcessingToken := dingtalkapprovalinboxeventFields[12].Descriptor()
+	// dingtalkapprovalinboxevent.ProcessingTokenValidator is a validator for the "processing_token" field. It is called by the builders before save.
+	dingtalkapprovalinboxevent.ProcessingTokenValidator = dingtalkapprovalinboxeventDescProcessingToken.Validators[0].(func(string) error)
 	// dingtalkapprovalinboxeventDescResultCode is the schema descriptor for result_code field.
-	dingtalkapprovalinboxeventDescResultCode := dingtalkapprovalinboxeventFields[10].Descriptor()
+	dingtalkapprovalinboxeventDescResultCode := dingtalkapprovalinboxeventFields[14].Descriptor()
 	// dingtalkapprovalinboxevent.ResultCodeValidator is a validator for the "result_code" field. It is called by the builders before save.
 	dingtalkapprovalinboxevent.ResultCodeValidator = dingtalkapprovalinboxeventDescResultCode.Validators[0].(func(string) error)
 	// dingtalkapprovalinboxeventDescErrorMessage is the schema descriptor for error_message field.
-	dingtalkapprovalinboxeventDescErrorMessage := dingtalkapprovalinboxeventFields[11].Descriptor()
+	dingtalkapprovalinboxeventDescErrorMessage := dingtalkapprovalinboxeventFields[15].Descriptor()
 	// dingtalkapprovalinboxevent.ErrorMessageValidator is a validator for the "error_message" field. It is called by the builders before save.
 	dingtalkapprovalinboxevent.ErrorMessageValidator = dingtalkapprovalinboxeventDescErrorMessage.Validators[0].(func(string) error)
 	// dingtalkapprovalinboxeventDescID is the schema descriptor for id field.

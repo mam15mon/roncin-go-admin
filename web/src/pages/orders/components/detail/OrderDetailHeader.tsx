@@ -3,6 +3,7 @@ import {
   DollarOutlined,
   DownOutlined,
   FileDoneOutlined,
+  HistoryOutlined,
   LockOutlined,
   SaveOutlined,
   ScissorOutlined,
@@ -15,11 +16,11 @@ import {
   Dropdown,
   Form,
   Input,
+  type MenuProps,
   Modal,
+  message,
   Tag,
   Tooltip,
-  message,
-  type MenuProps,
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
@@ -33,6 +34,7 @@ import {
   orderLockServiceLockOrder,
   orderLockServiceRequestOrderUnlock,
 } from '@/services/roncin/orderLockService';
+import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
 
 function generateIdempotencyKey(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -105,19 +107,20 @@ export default function OrderDetailHeader({
   const [locking, setLocking] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
+  const [unlockHistoryVisible, setUnlockHistoryVisible] = useState(false);
   const [unlockRoute, setUnlockRoute] = useState<
     'ROLE_DIRECT' | 'ADMIN_EMERGENCY' | 'DINGTALK_APPROVAL'
   >('ROLE_DIRECT');
   const [unlockForm] = Form.useForm<{ reason?: string }>();
 
-	const isSeaExport = businessType === 'SE' || kind === 'sea-export';
-	const isLocked = Boolean(lockState?.isLocked);
-	const businessWritesDisabled = isSeaExport && (!lockState || isLocked);
-	const businessWriteBlockedTip = !lockState
-		? '订单锁定状态加载失败，请刷新后重试'
-		: isLocked
-			? '订单已锁定，如需修改请先申请解锁'
-			: undefined;
+  const isSeaExport = businessType === 'SE' || kind === 'sea-export';
+  const isLocked = Boolean(lockState?.isLocked);
+  const businessWritesDisabled = isSeaExport && (!lockState || isLocked);
+  const businessWriteBlockedTip = !lockState
+    ? '订单锁定状态加载失败，请刷新后重试'
+    : isLocked
+      ? '订单已锁定，如需修改请先申请解锁'
+      : undefined;
 
   const handleLock = () => {
     Modal.confirm({
@@ -179,22 +182,24 @@ export default function OrderDetailHeader({
           reason: values.reason?.trim() || undefined,
         },
       );
-		if (resp?.success) {
-		  const actualRoute = resp.data?.request?.route;
-		  const actualStatus = resp.data?.request?.status;
-		  if (
-			actualStatus === 'CONFIGURATION_FAILED' ||
-			actualStatus === 'DISPATCH_FAILED' ||
-			actualStatus === 'DISPATCH_UNKNOWN'
-		  ) {
-			message.error(
-			  resp.data?.request?.failureMessage || '解锁审批暂时无法发起，请联系管理员',
-			);
-		  } else if (
-			actualRoute === 'DINGTALK_APPROVAL' &&
-			(actualStatus === 'PENDING_DISPATCH' || actualStatus === 'PENDING_APPROVAL')
-		  ) {
-			message.success('解锁申请已提交，等待业务角色成员审批');
+      if (resp?.success) {
+        const actualRoute = resp.data?.request?.route;
+        const actualStatus = resp.data?.request?.status;
+        if (
+          actualStatus === 'CONFIGURATION_FAILED' ||
+          actualStatus === 'DISPATCH_FAILED' ||
+          actualStatus === 'DISPATCH_UNKNOWN'
+        ) {
+          message.error(
+            resp.data?.request?.failureMessage ||
+              '解锁审批暂时无法发起，请联系管理员',
+          );
+        } else if (
+          actualRoute === 'DINGTALK_APPROVAL' &&
+          (actualStatus === 'PENDING_DISPATCH' ||
+            actualStatus === 'PENDING_APPROVAL')
+        ) {
+          message.success('解锁申请已提交，等待业务角色成员审批');
         } else if (actualStatus === 'APPROVED') {
           message.success('订单已成功解锁');
         } else {
@@ -203,6 +208,9 @@ export default function OrderDetailHeader({
         setUnlockModalVisible(false);
         unlockForm.resetFields();
         onRefreshLockState?.();
+        if (actualRoute === 'DINGTALK_APPROVAL') {
+          setUnlockHistoryVisible(true);
+        }
       }
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '处理解锁失败');
@@ -220,7 +228,9 @@ export default function OrderDetailHeader({
       const tooltipContent = (
         <div style={{ fontSize: 12 }}>
           <div>锁定轮次：第 {lockState.lockGeneration} 代</div>
-          <div>锁定人：{lockState.lockedByName || lockState.lockedBy || '系统'}</div>
+          <div>
+            锁定人：{lockState.lockedByName || lockState.lockedBy || '系统'}
+          </div>
           {lockState.lockedAt && <div>锁定时间：{timeStr}</div>}
           {lockState.activeUnlockRequest && (
             <div style={{ marginTop: 4, color: '#faad14' }}>
@@ -257,6 +267,14 @@ export default function OrderDetailHeader({
         extraBreadcrumb={renderLockTag()}
         actions={
           <>
+            {isSeaExport && (
+              <Button
+                icon={<HistoryOutlined />}
+                onClick={() => setUnlockHistoryVisible(true)}
+              >
+                解锁记录
+              </Button>
+            )}
             {/* 海运出口订单锁定操作 */}
             {isSeaExport && !isLocked && (
               <Tooltip
@@ -288,7 +306,10 @@ export default function OrderDetailHeader({
                 {lockState?.canRoleDirectUnlock && (
                   <Button
                     type="primary"
-                    style={{ backgroundColor: '#fa8c16', borderColor: '#fa8c16' }}
+                    style={{
+                      backgroundColor: '#fa8c16',
+                      borderColor: '#fa8c16',
+                    }}
                     icon={<UnlockOutlined />}
                     onClick={() => openUnlockModal('ROLE_DIRECT')}
                   >
@@ -318,12 +339,10 @@ export default function OrderDetailHeader({
                       <Button
                         style={{ color: '#1677ff', borderColor: '#1677ff' }}
                         icon={<UnlockOutlined />}
-                        disabled={
-                          Boolean(
-                            lockState?.unlockBlockedReasons &&
-                              lockState.unlockBlockedReasons.length > 0,
-                          )
-                        }
+                        disabled={Boolean(
+                          lockState?.unlockBlockedReasons &&
+                            lockState.unlockBlockedReasons.length > 0,
+                        )}
                         onClick={() => openUnlockModal('DINGTALK_APPROVAL')}
                       >
                         申请解锁
@@ -336,13 +355,13 @@ export default function OrderDetailHeader({
 
             {/* 实心蓝底主保存按钮 */}
             {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
-			  <Tooltip title={businessWriteBlockedTip}>
+              <Tooltip title={businessWriteBlockedTip}>
                 <span>
                   <Button
                     type="primary"
                     icon={<SaveOutlined />}
                     loading={saving}
-					disabled={businessWritesDisabled}
+                    disabled={businessWritesDisabled}
                     onClick={onSave}
                     style={{ fontWeight: 500 }}
                   >
@@ -352,10 +371,12 @@ export default function OrderDetailHeader({
               </Tooltip>
             )}
 
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION) && (
+            {hasAction(
+              OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION,
+            ) && (
               <Button
                 danger
-				disabled={businessWritesDisabled}
+                disabled={businessWritesDisabled}
                 onClick={() =>
                   onConfirmTermination(
                     OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
@@ -365,11 +386,13 @@ export default function OrderDetailHeader({
                 发起退关
               </Button>
             )}
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION) && (
+            {hasAction(
+              OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION,
+            ) && (
               <Button
                 danger
                 type="primary"
-				disabled={businessWritesDisabled}
+                disabled={businessWritesDisabled}
                 onClick={() =>
                   onConfirmTermination(
                     OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
@@ -379,9 +402,11 @@ export default function OrderDetailHeader({
                 完成退关
               </Button>
             )}
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION) && (
+            {hasAction(
+              OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION,
+            ) && (
               <Button
-				disabled={businessWritesDisabled}
+                disabled={businessWritesDisabled}
                 onClick={() =>
                   onConfirmTermination(
                     OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
@@ -394,7 +419,7 @@ export default function OrderDetailHeader({
             {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE) && (
               <Button
                 type="primary"
-				disabled={businessWritesDisabled}
+                disabled={businessWritesDisabled}
                 onClick={() =>
                   onConfirmClosure(
                     OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
@@ -406,11 +431,9 @@ export default function OrderDetailHeader({
             )}
             {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN) && (
               <Button
-				disabled={businessWritesDisabled}
+                disabled={businessWritesDisabled}
                 onClick={() =>
-                  onConfirmClosure(
-                    OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
-                  )
+                  onConfirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN)
                 }
               >
                 反结案
@@ -455,18 +478,20 @@ export default function OrderDetailHeader({
             {canSplit && (
               <Tooltip
                 title={
-				  businessWritesDisabled
-					? businessWriteBlockedTip
-                    : splitDisabled && splitBlockedReasons && splitBlockedReasons.length > 0
-                    ? splitBlockedReasons.join('；')
-                    : undefined
+                  businessWritesDisabled
+                    ? businessWriteBlockedTip
+                    : splitDisabled &&
+                        splitBlockedReasons &&
+                        splitBlockedReasons.length > 0
+                      ? splitBlockedReasons.join('；')
+                      : undefined
                 }
               >
                 <span>
                   <Button
                     style={{ color: '#722ed1', borderColor: '#722ed1' }}
                     icon={<ScissorOutlined />}
-					disabled={splitDisabled || businessWritesDisabled}
+                    disabled={splitDisabled || businessWritesDisabled}
                     onClick={onOpenSplit}
                   >
                     拆票
@@ -479,20 +504,20 @@ export default function OrderDetailHeader({
             {canReassign && (
               <Tooltip
                 title={
-				  businessWritesDisabled
-					? businessWriteBlockedTip
+                  businessWritesDisabled
+                    ? businessWriteBlockedTip
                     : reassignDisabled &&
-                      reassignBlockedReasons &&
-                      reassignBlockedReasons.length > 0
-                    ? reassignBlockedReasons.join('；')
-                    : undefined
+                        reassignBlockedReasons &&
+                        reassignBlockedReasons.length > 0
+                      ? reassignBlockedReasons.join('；')
+                      : undefined
                 }
               >
                 <span>
                   <Button
                     style={{ color: '#fa8c16', borderColor: '#fa8c16' }}
                     icon={<SwapOutlined />}
-					disabled={reassignDisabled || businessWritesDisabled}
+                    disabled={reassignDisabled || businessWritesDisabled}
                     onClick={onOpenReassign}
                   >
                     改配
@@ -519,8 +544,8 @@ export default function OrderDetailHeader({
           unlockRoute === 'ROLE_DIRECT'
             ? '直接解锁海运出口订单'
             : unlockRoute === 'ADMIN_EMERGENCY'
-            ? '系统管理员紧急解锁'
-            : '申请解锁海运出口订单'
+              ? '系统管理员紧急解锁'
+              : '申请解锁海运出口订单'
         }
         open={unlockModalVisible}
         onCancel={() => {
@@ -540,25 +565,22 @@ export default function OrderDetailHeader({
           {unlockRoute === 'DINGTALK_APPROVAL' &&
             '提交解锁申请后，将生成审批任务并指派给具备锁定权限的业务角色成员审批。'}
         </div>
-        <Form
-          form={unlockForm}
-          layout="vertical"
-          onFinish={handleUnlockSubmit}
-        >
+        <Form form={unlockForm} layout="vertical" onFinish={handleUnlockSubmit}>
           <Form.Item
             name="reason"
             label="解锁原因"
-			  rules={[{ max: 500, message: '解锁原因不能超过 500 个字符' }]}
+            rules={[{ max: 500, message: '解锁原因不能超过 500 个字符' }]}
           >
-            <Input.TextArea
-              rows={3}
-              placeholder={
-				'请输入解锁原因（选填）...'
-              }
-            />
+            <Input.TextArea rows={3} placeholder="请输入解锁原因（选填）..." />
           </Form.Item>
         </Form>
       </Modal>
+
+      <UnlockRequestHistoryDrawer
+        open={unlockHistoryVisible}
+        orderId={orderId}
+        onClose={() => setUnlockHistoryVisible(false)}
+      />
     </>
   );
 }

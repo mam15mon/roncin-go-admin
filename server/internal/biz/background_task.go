@@ -29,6 +29,7 @@ const (
 	BackgroundTaskKindIntegration         BackgroundTaskKind = "INTEGRATION"
 	BackgroundTaskKindDingTalkNotice      BackgroundTaskKind = "DINGTALK_NOTIFICATION"
 	BackgroundTaskKindObjectStorageDelete BackgroundTaskKind = "OBJECT_STORAGE_DELETION"
+	BackgroundTaskKindDingTalkApproval    BackgroundTaskKind = "DINGTALK_APPROVAL_CREATE"
 )
 
 func (k BackgroundTaskKind) Valid() bool {
@@ -38,7 +39,8 @@ func (k BackgroundTaskKind) Valid() bool {
 		BackgroundTaskKindOrderReminder,
 		BackgroundTaskKindIntegration,
 		BackgroundTaskKindDingTalkNotice,
-		BackgroundTaskKindObjectStorageDelete:
+		BackgroundTaskKindObjectStorageDelete,
+		BackgroundTaskKindDingTalkApproval:
 		return true
 	default:
 		return false
