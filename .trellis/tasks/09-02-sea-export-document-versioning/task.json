@@ -2,7 +2,7 @@
   "id": "sea-export-document-versioning",
   "name": "sea-export-document-versioning",
   "title": "海运出口单证版本与换单",
-  "description": "实现主分单不可变版本、正交状态、改单与 Switch B/L",
+  "description": "实现主分单不可变版本、唯一订单锁、钉钉解锁、改单作废与 Switch B/L",
   "status": "planning",
   "dev_type": null,
   "scope": null,

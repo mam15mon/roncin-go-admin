@@ -1,0 +1,31 @@
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/prd.md","reason":"核对唯一订单锁、三路解锁、管理员最终规则和改单/Switch 验收"}
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/design.md","reason":"检查模型、锁序、版本、钉钉可信边界和页面是否按设计落地"}
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/implement.md","reason":"核验三组实施范围、生成、迁移和测试门禁全部完成"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/prd.md","reason":"检查阶段 5 未破坏父任务业务关系和阶段 6 边界"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"检查整体领域关系、阶段依赖和唯一订单锁口径"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/design.md","reason":"检查共享 MBL 唯一性、成员关系和历史关联"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-document-content/design.md","reason":"检查 DIRECT/HOUSE、真实 HBL 和内容工作区未倒退"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-cargo-allocation/design.md","reason":"检查锁定版本完整覆盖箱货分配且不破坏守恒"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-split-reassignment/design.md","reason":"检查拆票改配服从 Order-first 锁序和统一锁门禁"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查契约到页面、后台任务和回调的跨层字段完整往返"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"检查未重复实现事务、审计、任务和权限原语"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查共享事务、Data.client、固定锁序、版本、幂等和约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查稳定 reason、中文提示和可定位 metadata"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"检查钉钉与单证敏感数据不进入日志"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查正式迁移、生成幂等、静态检查和真实 PostgreSQL 测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"检查阶段 1～4 契约不倒退且无旧模型双写"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查详情头、默认展开、抽屉和错误反馈一致"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查锁/审批/版本刷新和 Preview 失效处理"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查前端只使用生成类型和权限键"}
+{"file":"server/cmd/bootstrap-admin/main.go","reason":"检查仅初始化账号写系统标记且普通管理员不受误伤"}
+{"file":"server/internal/access/manifest.go","reason":"检查 SE 权限依赖及业务角色资格未依赖管理员聚合权限"}
+{"file":"server/internal/data/order_write.go","reason":"抽查订单核心写入口 Order-first 锁门禁与版本递增"}
+{"file":"server/internal/data/sea_document.go","reason":"检查共享 MBL 全成员锁定门禁、版本和 Switch 原子性"}
+{"file":"server/internal/data/sea_order_change.go","reason":"检查阶段 4 命令无法绕过订单锁"}
+{"file":"server/internal/data/order_fee.go","reason":"检查费用写被订单锁阻断且财务门禁未被解锁绕过"}
+{"file":"server/internal/data/dingtalk.go","reason":"检查原生审批与机器人通知隔离、错误分类和敏感数据"}
+{"file":"server/internal/data/background_task.go","reason":"检查审批派发租约、重试和 UNKNOWN 不重复创建"}
+{"file":"server/internal/server/http.go","reason":"检查回调验签路由顺序和非会话安全边界"}
+{"file":"web/src/pages/orders/detail.tsx","reason":"检查角色/管理员/普通编辑人三种入口和服务端权威状态"}
+{"file":"web/src/pages/orders/components/detail/OrderDetailHeader.tsx","reason":"检查锁定摘要、可选原因和具体阻断显示"}
+{"file":"web/src/pages/orders/templates/components/sea/SeaDocumentSection.tsx","reason":"检查默认展开、版本历史和改单/Switch 交互"}

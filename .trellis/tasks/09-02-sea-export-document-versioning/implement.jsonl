@@ -1,0 +1,41 @@
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/prd.md","reason":"遵循父任务最终领域术语、六阶段范围和唯一订单锁口径"}
+{"file":".trellis/tasks/09-02-sea-export-transport-document-model/design.md","reason":"保持 Order、共享 MBL、HBL、版本和财务整体关系一致"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-mbl-foundation/design.md","reason":"复用共享 MBL 身份、活动成员关系、候选重验和固定锁序"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-document-content/design.md","reason":"复用 DIRECT/HOUSE、真实多 HBL、内容边界和号码规范化"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-cargo-allocation/design.md","reason":"复用箱货分配、精确守恒和聚合版本"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-split-reassignment/design.md","reason":"复用拆票/改配事件、财务门禁和跨聚合固定锁序"}
+{"file":".trellis/tasks/archive/2026-09/09-02-sea-export-split-reassignment/implement.md","reason":"了解阶段 4 已实现入口、迁移与 PostgreSQL 验证要求"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 Proto、service、biz、data、权限、后台任务和页面完整数据流"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"复用既有事务、后台任务、审计和订单页面原语，避免平行实现"}
+{"file":".trellis/spec/server/backend/index.md","reason":"遵循 Kratos、Ent 分层和开发前检查"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"实施共享事务、Order-first 固定锁序、乐观版本和唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"实现稳定 reason、中文消息和结构化 metadata"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"保护钉钉签名、令牌、回调原文和单证敏感内容"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循正式迁移、生成幂等和真实 PostgreSQL 并发测试"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"保持阶段 1～4 海运主分单契约且不恢复旧模型"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"遵循订单详情、权限和生成客户端边界"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"使用统一详情头、默认展开卡片、抽屉和即时阻断反馈"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"正确管理锁状态、审批状态、版本刷新和 Preview 失效"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"只消费生成类型与权限键"}
+{"file":"server/internal/data/ent/schema/order.go","reason":"扩展当前订单锁字段、边和代次"}
+{"file":"server/internal/data/ent/schema/user.go","reason":"增加不可变 bootstrap admin 标记并保持普通接口只读"}
+{"file":"server/internal/data/ent/schema/sea_master_bill.go","reason":"接入共享 MBL 不可变版本和当前版本指针"}
+{"file":"server/internal/data/ent/schema/sea_house_bill.go","reason":"接入 HBL 不可变版本、作废和替代终态"}
+{"file":"server/internal/data/ent/schema/background_task.go","reason":"复用任务租约并新增独立钉钉审批创建类型"}
+{"file":"server/cmd/bootstrap-admin/main.go","reason":"仅在初始化账号创建时设置稳定系统账号标记"}
+{"file":"server/internal/access/manifest.go","reason":"新增仅 SE 适用的锁定、改单、作废和 Switch 权限"}
+{"file":"server/internal/conf/v1/conf.proto","reason":"增加钉钉原生审批模板和事件回调配置"}
+{"file":"server/internal/data/order_write.go","reason":"复用订单悲观锁与版本检查并接入统一业务锁门禁"}
+{"file":"server/internal/data/sea_document.go","reason":"接入 MBL/HBL 版本、共享成员锁定门禁和变更命令"}
+{"file":"server/internal/data/sea_order_change.go","reason":"让阶段 4 拆票改配服从同一订单锁与固定锁序"}
+{"file":"server/internal/data/order_fee.go","reason":"阻断锁定订单费用写入且保留独立财务不可变门禁"}
+{"file":"server/internal/data/dingtalk.go","reason":"新增独立 OA 审批适配器，不复用机器人 SendText"}
+{"file":"server/internal/data/background_task.go","reason":"复用任务领取租约并支持审批派发终态"}
+{"file":"server/internal/server/http.go","reason":"注册验签回调路由并确保位于 SPA fallback 前"}
+{"file":"server/internal/server/notification_worker.go","reason":"参考生命周期实现独立审批 outbox/inbox Worker"}
+{"file":"web/src/pages/orders/detail.tsx","reason":"接入锁定摘要、解锁分流、状态抽屉和版本历史"}
+{"file":"web/src/pages/orders/components/detail/OrderDetailHeader.tsx","reason":"展示服务端权威锁定状态和对应动作"}
+{"file":"web/src/pages/orders/templates/components/sea/SeaDocumentSection.tsx","reason":"保持提单区块默认展开并接入版本/改单/Switch 入口"}
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/prd.md","reason":"逐项核验已确认业务规则和验收标准"}
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/design.md","reason":"按已批准模型实施 Schema、权限、事务、钉钉和 UI"}
+{"file":".trellis/tasks/09-02-sea-export-document-versioning/implement.md","reason":"按分组步骤、测试门禁和提交边界执行"}
