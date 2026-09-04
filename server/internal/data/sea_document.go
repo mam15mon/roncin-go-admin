@@ -13,8 +13,10 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	seahousebillversion "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	seamasterbillversion "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 )
 
 type seaDocumentRepo struct {
@@ -72,7 +74,13 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 		if err != nil {
 			return nil, err
 		}
-		mblDetail = seaMasterBillToDetail(mbl, issuerName, activeMemberCount)
+		versionCount, err := client.SeaMasterBillVersion.Query().
+			Where(seamasterbillversion.OrganizationIDEQ(organizationID), seamasterbillversion.MasterBillIDEQ(mbl.ID)).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		mblDetail = seaMasterBillToDetail(mbl, issuerName, activeMemberCount, versionCount)
 	}
 
 	hbs, err := client.SeaHouseBill.Query().
@@ -102,7 +110,13 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 				return nil, err
 			}
 		}
-		houseBills = append(houseBills, seaHouseBillToBiz(hb, orgName, partnerName))
+		versionCount, err := client.SeaHouseBillVersion.Query().
+			Where(seahousebillversion.OrganizationIDEQ(organizationID), seahousebillversion.HouseBillIDEQ(hb.ID)).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		houseBills = append(houseBills, seaHouseBillToBiz(hb, orgName, partnerName, versionCount))
 	}
 
 	structure := biz.SeaDocumentStructure(link.DocumentStructure)
@@ -243,7 +257,7 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 		}
 
 		// 2. 固定锁顺序：MasterBill
-		_, queryErr = tx.SeaMasterBill.Query().
+		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbill.OrganizationIDEQ(organizationID),
@@ -252,6 +266,9 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		// 3. 固定锁顺序：Active Link
@@ -364,7 +381,7 @@ func (r *seaDocumentRepo) CancelSeaOrderDirect(ctx context.Context, organization
 		}
 
 		// 2. 固定锁顺序：MasterBill
-		_, queryErr = tx.SeaMasterBill.Query().
+		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbill.OrganizationIDEQ(organizationID),
@@ -373,6 +390,9 @@ func (r *seaDocumentRepo) CancelSeaOrderDirect(ctx context.Context, organization
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		// 3. 固定锁顺序：Active Link
@@ -622,6 +642,9 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
 		}
+		if mbl.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
 
 		// 3. 固定锁顺序：Active Link
 		link, queryErr := tx.SeaMasterBillOrderLink.Query().
@@ -660,6 +683,12 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		}
 		if hb.Status == seahousebill.StatusRELEASED {
 			return biz.ErrSeaHouseBillStatusConflict
+		}
+		if hb.Status == seahousebill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
+		if hb.Status == seahousebill.StatusREPLACED {
+			return biz.ErrSeaHouseBillSwitchConflict
 		}
 
 		// 5. 校验签发主体
@@ -763,6 +792,9 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
 		}
+		if mbl.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
 
 		// 3. 固定锁顺序：Active Link
 		link, queryErr := tx.SeaMasterBillOrderLink.Query().
@@ -797,6 +829,12 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		}
 		if hb.Status == seahousebill.StatusRELEASED {
 			return biz.ErrSeaHouseBillStatusConflict
+		}
+		if hb.Status == seahousebill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
+		if hb.Status == seahousebill.StatusREPLACED {
+			return biz.ErrSeaHouseBillSwitchConflict
 		}
 		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
 			return biz.ErrSeaCargoAllocationStatusConflict
@@ -912,6 +950,9 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
 		}
+		if mbl.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
 		if mbl.Version != expectedMblVersion {
 			return biz.ErrSeaMasterBillConflict
 		}
@@ -981,7 +1022,14 @@ func (r *seaDocumentRepo) getSeaMasterBillDetailByID(ctx context.Context, organi
 		return nil, err
 	}
 
-	return seaMasterBillToDetail(mbl, issuerName, memberCount), nil
+	versionCount, err := client.SeaMasterBillVersion.Query().
+		Where(seamasterbillversion.OrganizationIDEQ(organizationID), seamasterbillversion.MasterBillIDEQ(mbl.ID)).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return seaMasterBillToDetail(mbl, issuerName, memberCount, versionCount), nil
 }
 
 func seaDocumentLinkMatches(link *ent.SeaMasterBillOrderLink, organizationID, orderID, masterBillID uuid.UUID) bool {
@@ -1244,7 +1292,7 @@ func setOptionalFloat[T any](set func(float64) T, clear func() T, val *float64) 
 	}
 }
 
-func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string) *biz.SeaHouseBill {
+func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string, versionCount ...int) *biz.SeaHouseBill {
 	if item == nil {
 		return nil
 	}
@@ -1269,6 +1317,10 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string) *biz
 		BillForm:              item.BillForm,
 		ReleaseType:           item.ReleaseType,
 		Clauses:               item.Clauses,
+	}
+	immutableVersionCount := 0
+	if len(versionCount) > 0 {
+		immutableVersionCount = versionCount[0]
 	}
 	return &biz.SeaHouseBill{
 		ID:                     item.ID,
@@ -1284,6 +1336,8 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string) *biz
 		IssuerPartnerName:      partnerName,
 		Status:                 biz.SeaHouseBillStatus(item.Status),
 		Version:                item.Version,
+		CurrentVersionID:       item.CurrentVersionID,
+		ImmutableVersionCount:  immutableVersionCount,
 		Note:                   item.Note,
 		Content:                content,
 		CreatedAt:              item.CreatedAt,
@@ -1291,7 +1345,7 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string) *biz
 	}
 }
 
-func seaMasterBillToDetail(item *ent.SeaMasterBill, issuerName string, memberCount int) *biz.SeaMasterBillDetail {
+func seaMasterBillToDetail(item *ent.SeaMasterBill, issuerName string, memberCount int, versionCount ...int) *biz.SeaMasterBillDetail {
 	if item == nil {
 		return nil
 	}
@@ -1317,14 +1371,20 @@ func seaMasterBillToDetail(item *ent.SeaMasterBill, issuerName string, memberCou
 		ReleaseType:           item.ReleaseType,
 		Clauses:               item.Clauses,
 	}
+	immutableVersionCount := 0
+	if len(versionCount) > 0 {
+		immutableVersionCount = versionCount[0]
+	}
 	return &biz.SeaMasterBillDetail{
-		ID:                item.ID,
-		MasterNo:          item.MasterNo,
-		IssuerPartnerID:   item.IssuerPartnerID,
-		IssuerPartnerName: issuerName,
-		Status:            string(item.Status),
-		Version:           item.Version,
-		Content:           content,
-		MemberCount:       memberCount,
+		ID:                    item.ID,
+		MasterNo:              item.MasterNo,
+		IssuerPartnerID:       item.IssuerPartnerID,
+		IssuerPartnerName:     issuerName,
+		Status:                string(item.Status),
+		Version:               item.Version,
+		CurrentVersionID:      item.CurrentVersionID,
+		ImmutableVersionCount: immutableVersionCount,
+		Content:               content,
+		MemberCount:           memberCount,
 	}
 }

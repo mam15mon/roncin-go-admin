@@ -54,14 +54,6 @@ func (_c *SeaDocumentVoidEventCreate) SetOrderID(v uuid.UUID) *SeaDocumentVoidEv
 	return _c
 }
 
-// SetNillableOrderID sets the "order_id" field if the given value is not nil.
-func (_c *SeaDocumentVoidEventCreate) SetNillableOrderID(v *uuid.UUID) *SeaDocumentVoidEventCreate {
-	if v != nil {
-		_c.SetOrderID(*v)
-	}
-	return _c
-}
-
 // SetDocumentType sets the "document_type" field.
 func (_c *SeaDocumentVoidEventCreate) SetDocumentType(v seadocumentvoidevent.DocumentType) *SeaDocumentVoidEventCreate {
 	_c.mutation.SetDocumentType(v)
@@ -96,6 +88,20 @@ func (_c *SeaDocumentVoidEventCreate) SetNillableMasterBillVersionID(v *uuid.UUI
 	return _c
 }
 
+// SetPreviousMasterBillVersionID sets the "previous_master_bill_version_id" field.
+func (_c *SeaDocumentVoidEventCreate) SetPreviousMasterBillVersionID(v uuid.UUID) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetPreviousMasterBillVersionID(v)
+	return _c
+}
+
+// SetNillablePreviousMasterBillVersionID sets the "previous_master_bill_version_id" field if the given value is not nil.
+func (_c *SeaDocumentVoidEventCreate) SetNillablePreviousMasterBillVersionID(v *uuid.UUID) *SeaDocumentVoidEventCreate {
+	if v != nil {
+		_c.SetPreviousMasterBillVersionID(*v)
+	}
+	return _c
+}
+
 // SetHouseBillID sets the "house_bill_id" field.
 func (_c *SeaDocumentVoidEventCreate) SetHouseBillID(v uuid.UUID) *SeaDocumentVoidEventCreate {
 	_c.mutation.SetHouseBillID(v)
@@ -120,6 +126,20 @@ func (_c *SeaDocumentVoidEventCreate) SetHouseBillVersionID(v uuid.UUID) *SeaDoc
 func (_c *SeaDocumentVoidEventCreate) SetNillableHouseBillVersionID(v *uuid.UUID) *SeaDocumentVoidEventCreate {
 	if v != nil {
 		_c.SetHouseBillVersionID(*v)
+	}
+	return _c
+}
+
+// SetPreviousHouseBillVersionID sets the "previous_house_bill_version_id" field.
+func (_c *SeaDocumentVoidEventCreate) SetPreviousHouseBillVersionID(v uuid.UUID) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetPreviousHouseBillVersionID(v)
+	return _c
+}
+
+// SetNillablePreviousHouseBillVersionID sets the "previous_house_bill_version_id" field if the given value is not nil.
+func (_c *SeaDocumentVoidEventCreate) SetNillablePreviousHouseBillVersionID(v *uuid.UUID) *SeaDocumentVoidEventCreate {
+	if v != nil {
+		_c.SetPreviousHouseBillVersionID(*v)
 	}
 	return _c
 }
@@ -162,6 +182,18 @@ func (_c *SeaDocumentVoidEventCreate) SetCreatedBy(v uuid.UUID) *SeaDocumentVoid
 	return _c
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_c *SeaDocumentVoidEventCreate) SetIdempotencyKey(v string) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (_c *SeaDocumentVoidEventCreate) SetRequestFingerprint(v string) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetRequestFingerprint(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaDocumentVoidEventCreate) SetID(v uuid.UUID) *SeaDocumentVoidEventCreate {
 	_c.mutation.SetID(v)
@@ -196,6 +228,11 @@ func (_c *SeaDocumentVoidEventCreate) SetMasterBillVersion(v *SeaMasterBillVersi
 	return _c.SetMasterBillVersionID(v.ID)
 }
 
+// SetPreviousMasterBillVersion sets the "previous_master_bill_version" edge to the SeaMasterBillVersion entity.
+func (_c *SeaDocumentVoidEventCreate) SetPreviousMasterBillVersion(v *SeaMasterBillVersion) *SeaDocumentVoidEventCreate {
+	return _c.SetPreviousMasterBillVersionID(v.ID)
+}
+
 // SetHouseBill sets the "house_bill" edge to the SeaHouseBill entity.
 func (_c *SeaDocumentVoidEventCreate) SetHouseBill(v *SeaHouseBill) *SeaDocumentVoidEventCreate {
 	return _c.SetHouseBillID(v.ID)
@@ -204,6 +241,11 @@ func (_c *SeaDocumentVoidEventCreate) SetHouseBill(v *SeaHouseBill) *SeaDocument
 // SetHouseBillVersion sets the "house_bill_version" edge to the SeaHouseBillVersion entity.
 func (_c *SeaDocumentVoidEventCreate) SetHouseBillVersion(v *SeaHouseBillVersion) *SeaDocumentVoidEventCreate {
 	return _c.SetHouseBillVersionID(v.ID)
+}
+
+// SetPreviousHouseBillVersion sets the "previous_house_bill_version" edge to the SeaHouseBillVersion entity.
+func (_c *SeaDocumentVoidEventCreate) SetPreviousHouseBillVersion(v *SeaHouseBillVersion) *SeaDocumentVoidEventCreate {
+	return _c.SetPreviousHouseBillVersionID(v.ID)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -270,6 +312,9 @@ func (_c *SeaDocumentVoidEventCreate) check() error {
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.organization_id"`)}
 	}
+	if _, ok := _c.mutation.OrderID(); !ok {
+		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.order_id"`)}
+	}
 	if _, ok := _c.mutation.DocumentType(); !ok {
 		return &ValidationError{Name: "document_type", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.document_type"`)}
 	}
@@ -310,8 +355,27 @@ func (_c *SeaDocumentVoidEventCreate) check() error {
 	if _, ok := _c.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.created_by"`)}
 	}
+	if _, ok := _c.mutation.IdempotencyKey(); !ok {
+		return &ValidationError{Name: "idempotency_key", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.idempotency_key"`)}
+	}
+	if v, ok := _c.mutation.IdempotencyKey(); ok {
+		if err := seadocumentvoidevent.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "SeaDocumentVoidEvent.idempotency_key": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.RequestFingerprint(); !ok {
+		return &ValidationError{Name: "request_fingerprint", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.request_fingerprint"`)}
+	}
+	if v, ok := _c.mutation.RequestFingerprint(); ok {
+		if err := seadocumentvoidevent.RequestFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaDocumentVoidEvent.request_fingerprint": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "SeaDocumentVoidEvent.organization"`)}
+	}
+	if len(_c.mutation.OrderIDs()) == 0 {
+		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "SeaDocumentVoidEvent.order"`)}
 	}
 	if len(_c.mutation.CreatorIDs()) == 0 {
 		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "SeaDocumentVoidEvent.creator"`)}
@@ -375,6 +439,14 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 		_spec.SetField(seadocumentvoidevent.FieldImpactSummary, field.TypeString, value)
 		_node.ImpactSummary = &value
 	}
+	if value, ok := _c.mutation.IdempotencyKey(); ok {
+		_spec.SetField(seadocumentvoidevent.FieldIdempotencyKey, field.TypeString, value)
+		_node.IdempotencyKey = value
+	}
+	if value, ok := _c.mutation.RequestFingerprint(); ok {
+		_spec.SetField(seadocumentvoidevent.FieldRequestFingerprint, field.TypeString, value)
+		_node.RequestFingerprint = value
+	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -406,7 +478,7 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.OrderID = &nodes[0]
+		_node.OrderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.MasterBillIDs(); len(nodes) > 0 {
@@ -443,6 +515,23 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 		_node.MasterBillVersionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.PreviousMasterBillVersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seadocumentvoidevent.PreviousMasterBillVersionTable,
+			Columns: []string{seadocumentvoidevent.PreviousMasterBillVersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PreviousMasterBillVersionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.HouseBillIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -475,6 +564,23 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.HouseBillVersionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PreviousHouseBillVersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seadocumentvoidevent.PreviousHouseBillVersionTable,
+			Columns: []string{seadocumentvoidevent.PreviousHouseBillVersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PreviousHouseBillVersionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {

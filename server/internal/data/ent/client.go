@@ -18517,6 +18517,22 @@ func (c *SeaDocumentVoidEventClient) QueryMasterBillVersion(_m *SeaDocumentVoidE
 	return query
 }
 
+// QueryPreviousMasterBillVersion queries the previous_master_bill_version edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryPreviousMasterBillVersion(_m *SeaDocumentVoidEvent) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.PreviousMasterBillVersionTable, seadocumentvoidevent.PreviousMasterBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryHouseBill queries the house_bill edge of a SeaDocumentVoidEvent.
 func (c *SeaDocumentVoidEventClient) QueryHouseBill(_m *SeaDocumentVoidEvent) *SeaHouseBillQuery {
 	query := (&SeaHouseBillClient{config: c.config}).Query()
@@ -18542,6 +18558,22 @@ func (c *SeaDocumentVoidEventClient) QueryHouseBillVersion(_m *SeaDocumentVoidEv
 			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
 			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.HouseBillVersionTable, seadocumentvoidevent.HouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPreviousHouseBillVersion queries the previous_house_bill_version edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryPreviousHouseBillVersion(_m *SeaDocumentVoidEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.PreviousHouseBillVersionTable, seadocumentvoidevent.PreviousHouseBillVersionColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -19428,6 +19460,22 @@ func (c *SeaHouseBillVersionClient) QueryVoidEvents(_m *SeaHouseBillVersion) *Se
 	return query
 }
 
+// QueryPreviousVoidEvents queries the previous_void_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryPreviousVoidEvents(_m *SeaHouseBillVersion) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.PreviousVoidEventsTable, seahousebillversion.PreviousVoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOldSwitchEvents queries the old_switch_events edge of a SeaHouseBillVersion.
 func (c *SeaHouseBillVersionClient) QueryOldSwitchEvents(_m *SeaHouseBillVersion) *SeaHouseBillSwitchEventQuery {
 	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
@@ -20268,6 +20316,22 @@ func (c *SeaMasterBillVersionClient) QueryVoidEvents(_m *SeaMasterBillVersion) *
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
 			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.VoidEventsTable, seamasterbillversion.VoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPreviousVoidEvents queries the previous_void_events edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryPreviousVoidEvents(_m *SeaMasterBillVersion) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.PreviousVoidEventsTable, seamasterbillversion.PreviousVoidEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

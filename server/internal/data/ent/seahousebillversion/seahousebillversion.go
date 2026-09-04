@@ -52,6 +52,10 @@ const (
 	FieldReason = "reason"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
+	FieldIdempotencyKey = "idempotency_key"
+	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
+	FieldRequestFingerprint = "request_fingerprint"
 	// FieldShipperText holds the string denoting the shipper_text field in the database.
 	FieldShipperText = "shipper_text"
 	// FieldConsigneeText holds the string denoting the consignee_text field in the database.
@@ -100,6 +104,8 @@ const (
 	EdgeLockSnapshots = "lock_snapshots"
 	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
 	EdgeVoidEvents = "void_events"
+	// EdgePreviousVoidEvents holds the string denoting the previous_void_events edge name in mutations.
+	EdgePreviousVoidEvents = "previous_void_events"
 	// EdgeOldSwitchEvents holds the string denoting the old_switch_events edge name in mutations.
 	EdgeOldSwitchEvents = "old_switch_events"
 	// EdgeNewSwitchEvents holds the string denoting the new_switch_events edge name in mutations.
@@ -169,6 +175,13 @@ const (
 	VoidEventsInverseTable = "sea_document_void_events"
 	// VoidEventsColumn is the table column denoting the void_events relation/edge.
 	VoidEventsColumn = "house_bill_version_id"
+	// PreviousVoidEventsTable is the table that holds the previous_void_events relation/edge.
+	PreviousVoidEventsTable = "sea_document_void_events"
+	// PreviousVoidEventsInverseTable is the table name for the SeaDocumentVoidEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentvoidevent" package.
+	PreviousVoidEventsInverseTable = "sea_document_void_events"
+	// PreviousVoidEventsColumn is the table column denoting the previous_void_events relation/edge.
+	PreviousVoidEventsColumn = "previous_house_bill_version_id"
 	// OldSwitchEventsTable is the table that holds the old_switch_events relation/edge.
 	OldSwitchEventsTable = "sea_house_bill_switch_events"
 	// OldSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
@@ -206,6 +219,8 @@ var Columns = []string{
 	FieldSource,
 	FieldReason,
 	FieldCreatedBy,
+	FieldIdempotencyKey,
+	FieldRequestFingerprint,
 	FieldShipperText,
 	FieldConsigneeText,
 	FieldNotifyPartyText,
@@ -246,6 +261,10 @@ var (
 	ContentHashValidator func(string) error
 	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	ReasonValidator func(string) error
+	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	IdempotencyKeyValidator func(string) error
+	// RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	RequestFingerprintValidator func(string) error
 	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	PackageCountValidator func(int) error
 	// PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
@@ -439,6 +458,16 @@ func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
 }
 
+// ByIdempotencyKey orders the results by the idempotency_key field.
+func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
+}
+
+// ByRequestFingerprint orders the results by the request_fingerprint field.
+func ByRequestFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestFingerprint, opts...).ToFunc()
+}
+
 // ByShipperText orders the results by the shipper_text field.
 func ByShipperText(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShipperText, opts...).ToFunc()
@@ -591,6 +620,20 @@ func ByVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByPreviousVoidEventsCount orders the results by previous_void_events count.
+func ByPreviousVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPreviousVoidEventsStep(), opts...)
+	}
+}
+
+// ByPreviousVoidEvents orders the results by previous_void_events terms.
+func ByPreviousVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPreviousVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOldSwitchEventsCount orders the results by old_switch_events count.
 func ByOldSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -679,6 +722,13 @@ func newVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VoidEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VoidEventsTable, VoidEventsColumn),
+	)
+}
+func newPreviousVoidEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PreviousVoidEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PreviousVoidEventsTable, PreviousVoidEventsColumn),
 	)
 }
 func newOldSwitchEventsStep() *sqlgraph.Step {

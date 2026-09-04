@@ -64,6 +64,9 @@ func (_u *SeaDocumentVoidEventUpdate) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.organization"`)
 	}
+	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.order"`)
+	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.creator"`)
 	}
@@ -154,6 +157,9 @@ func (_u *SeaDocumentVoidEventUpdateOne) ExecX(ctx context.Context) {
 func (_u *SeaDocumentVoidEventUpdateOne) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.organization"`)
+	}
+	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.order"`)
 	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaDocumentVoidEvent.creator"`)

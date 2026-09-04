@@ -1898,6 +1898,66 @@ declare namespace API {
     timeStandards?: string[];
   };
 
+  type ExecuteSeaDocumentAmendmentRequest = {
+    orderId: string;
+    documentType: number;
+    documentId: string;
+    expectedOrderVersion: string;
+    expectedDocumentVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+    idempotencyKey: string;
+    input: SeaDocumentAmendmentInput;
+  };
+
+  type ExecuteSeaDocumentAmendmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentVersion;
+    traceId?: string;
+  };
+
+  type ExecuteSeaDocumentVoidRequest = {
+    orderId: string;
+    documentType: number;
+    documentId: string;
+    expectedOrderVersion: string;
+    expectedDocumentVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+    idempotencyKey: string;
+  };
+
+  type ExecuteSeaDocumentVoidResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentEvent;
+    traceId?: string;
+  };
+
+  type ExecuteSeaHouseBillSwitchRequest = {
+    orderId: string;
+    oldHouseBillId: string;
+    expectedOrderVersion: string;
+    expectedHouseBillVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+    surrenderInfo?: string;
+    idempotencyKey: string;
+    newHouseBill: SeaHouseBillInput;
+  };
+
+  type ExecuteSeaHouseBillSwitchResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentEvent;
+    newHouseBill?: SeaHouseBill;
+    traceId?: string;
+  };
+
   type ExecuteSeaOrderReassignmentData = {
     reassignmentEventId?: string;
     createdAt?: string;
@@ -2585,6 +2645,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetSeaDocumentVersionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentVersion;
+    traceId?: string;
+  };
+
   type GetSeaOrderChangeActionsResponse = {
     success?: boolean;
     code?: number;
@@ -3185,6 +3253,33 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: AdminRole[];
+    traceId?: string;
+  };
+
+  type ListSeaDocumentEventsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentEvent[];
+    total?: number;
+    traceId?: string;
+  };
+
+  type ListSeaHouseBillVersionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentVersion[];
+    total?: number;
+    traceId?: string;
+  };
+
+  type ListSeaMasterBillVersionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentVersion[];
+    total?: number;
     traceId?: string;
   };
 
@@ -4730,6 +4825,62 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewSeaDocumentAmendmentRequest = {
+    orderId: string;
+    documentType: number;
+    documentId: string;
+    expectedOrderVersion: string;
+    expectedDocumentVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+    input: SeaDocumentAmendmentInput;
+  };
+
+  type PreviewSeaDocumentAmendmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentAmendmentPreview;
+    traceId?: string;
+  };
+
+  type PreviewSeaDocumentVoidRequest = {
+    orderId: string;
+    documentType: number;
+    documentId: string;
+    expectedOrderVersion: string;
+    expectedDocumentVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+  };
+
+  type PreviewSeaDocumentVoidResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentVoidPreview;
+    traceId?: string;
+  };
+
+  type PreviewSeaHouseBillSwitchRequest = {
+    orderId: string;
+    oldHouseBillId: string;
+    expectedOrderVersion: string;
+    expectedHouseBillVersion: string;
+    expectedCurrentVersionId: string;
+    reason: string;
+    surrenderInfo?: string;
+    newHouseBill: SeaHouseBillInput;
+  };
+
+  type PreviewSeaHouseBillSwitchResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaHouseBillSwitchPreview;
+    traceId?: string;
+  };
+
   type PreviewSeaOrderReassignmentRequest = {
     orderId: string;
     target: SeaOrderReassignmentTargetInput;
@@ -5142,6 +5293,54 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaDocumentAmendmentInput = {
+    masterBillContent?: SeaBillContent;
+    houseBill?: SeaHouseBillInput;
+  };
+
+  type SeaDocumentAmendmentPreview = {
+    baseVersion?: SeaDocumentVersion;
+    differences?: SeaDocumentFieldDifference[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
+  };
+
+  type SeaDocumentDownstreamImpact = {
+    factType?: string;
+    referenceId?: string;
+    referenceNo?: string;
+    message?: string;
+    blocksExecution?: boolean;
+  };
+
+  type SeaDocumentEvent = {
+    id?: string;
+    eventType?: number;
+    documentType?: number;
+    documentId?: string;
+    documentNo?: string;
+    previousVersionId?: string;
+    resultVersionId?: string;
+    oldHouseBillId?: string;
+    oldHouseNo?: string;
+    newHouseBillId?: string;
+    newHouseNo?: string;
+    chainId?: string;
+    sequence?: number;
+    reason?: string;
+    impactSummary?: string;
+    surrenderInfo?: string;
+    createdBy?: string;
+    createdAt?: string;
+  };
+
+  type SeaDocumentFieldDifference = {
+    field?: string;
+    label?: string;
+    beforeValue?: string;
+    afterValue?: string;
+  };
+
   type SeaDocumentServiceAddSeaHouseBillParams = {
     orderId: string;
   };
@@ -5150,11 +5349,60 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaDocumentServiceExecuteSeaDocumentAmendmentParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceExecuteSeaDocumentVoidParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceExecuteSeaHouseBillSwitchParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceGetSeaDocumentVersionParams = {
+    orderId: string;
+    versionId: string;
+    documentType?: number;
+  };
+
   type SeaDocumentServiceGetSeaOrderDocumentsParams = {
     orderId: string;
   };
 
+  type SeaDocumentServiceListSeaDocumentEventsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SeaDocumentServiceListSeaHouseBillVersionsParams = {
+    orderId: string;
+    houseBillId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SeaDocumentServiceListSeaMasterBillVersionsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type SeaDocumentServiceMarkSeaOrderDirectParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServicePreviewSeaDocumentAmendmentParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServicePreviewSeaDocumentVoidParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServicePreviewSeaHouseBillSwitchParams = {
     orderId: string;
   };
 
@@ -5175,6 +5423,40 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaDocumentVersion = {
+    id?: string;
+    documentType?: number;
+    documentId?: string;
+    orderId?: string;
+    masterBillId?: string;
+    versionNo?: string;
+    sourceEntityVersion?: string;
+    documentNo?: string;
+    normalizedDocumentNo?: string;
+    status?: string;
+    source?: number;
+    reason?: string;
+    issuerPartnerId?: string;
+    issuerOrganizationId?: string;
+    issuerSource?: number;
+    transportExecutionId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+    note?: string;
+    content?: SeaBillContent;
+    createdBy?: string;
+    createdAt?: string;
+  };
+
+  type SeaDocumentVoidPreview = {
+    baseVersion?: SeaDocumentVersion;
+    differences?: SeaDocumentFieldDifference[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
+  };
+
   type SeaHouseBill = {
     id?: string;
     organizationId?: string;
@@ -5192,6 +5474,8 @@ declare namespace API {
     content?: SeaBillContent;
     createdAt?: string;
     updatedAt?: string;
+    currentVersionId?: string;
+    immutableVersionCount?: string;
   };
 
   type SeaHouseBillInput = {
@@ -5202,6 +5486,13 @@ declare namespace API {
     note?: string;
     content?: SeaBillContent;
     expectedVersion?: string;
+  };
+
+  type SeaHouseBillSwitchPreview = {
+    baseVersion?: SeaDocumentVersion;
+    differences?: SeaDocumentFieldDifference[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
   };
 
   type SeaMasterBillCandidate = {
@@ -5224,6 +5515,8 @@ declare namespace API {
     version?: string;
     content?: SeaBillContent;
     memberCount?: number;
+    currentVersionId?: string;
+    immutableVersionCount?: string;
   };
 
   type SeaMasterBillInput = {

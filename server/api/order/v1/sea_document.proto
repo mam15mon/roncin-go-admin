@@ -16,6 +16,84 @@ service SeaDocumentService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents"};
   }
 
+  // ListSeaMasterBillVersions 分页读取当前订单共享 MBL 的不可变版本。
+  rpc ListSeaMasterBillVersions(ListSeaMasterBillVersionsRequest) returns (ListSeaMasterBillVersionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/master-bill/versions"};
+  }
+
+  // ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。
+  rpc ListSeaHouseBillVersions(ListSeaHouseBillVersionsRequest) returns (ListSeaHouseBillVersionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/house-bills/{house_bill_id}/versions"};
+  }
+
+  // GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。
+  rpc GetSeaDocumentVersion(GetSeaDocumentVersionRequest) returns (GetSeaDocumentVersionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/versions/{version_id}"};
+  }
+
+  // ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+  rpc ListSeaDocumentEvents(ListSeaDocumentEventsRequest) returns (ListSeaDocumentEventsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/events"};
+  }
+
+  // PreviewSeaDocumentAmendment 基于当前不可变版本重算改单差异与影响。
+  rpc PreviewSeaDocumentAmendment(PreviewSeaDocumentAmendmentRequest) returns (PreviewSeaDocumentAmendmentResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "amend" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/amendments/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaDocumentAmendment 发布改单版本。
+  rpc ExecuteSeaDocumentAmendment(ExecuteSeaDocumentAmendmentRequest) returns (ExecuteSeaDocumentAmendmentResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "amend" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/amendments"
+      body: "*"
+    };
+  }
+
+  // PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。
+  rpc PreviewSeaDocumentVoid(PreviewSeaDocumentVoidRequest) returns (PreviewSeaDocumentVoidResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "void" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/voids/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。
+  rpc ExecuteSeaDocumentVoid(ExecuteSeaDocumentVoidRequest) returns (ExecuteSeaDocumentVoidResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "void" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/voids"
+      body: "*"
+    };
+  }
+
+  // PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
+  rpc PreviewSeaHouseBillSwitch(PreviewSeaHouseBillSwitchRequest) returns (PreviewSeaHouseBillSwitchResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
+  rpc ExecuteSeaHouseBillSwitch(ExecuteSeaHouseBillSwitchRequest) returns (ExecuteSeaHouseBillSwitchResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches"
+      body: "*"
+    };
+  }
+
   // MarkSeaOrderDirect 明确标记海运订单为直单。
   rpc MarkSeaOrderDirect(MarkSeaOrderDirectRequest) returns (MarkSeaOrderDirectResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
@@ -105,6 +183,30 @@ enum SeaDocumentAction {
   SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT = 6;
 }
 
+// SeaDocumentType 区分共享 MBL 与订单内真实 HBL。
+enum SeaDocumentType {
+  SEA_DOCUMENT_TYPE_UNSPECIFIED = 0;
+  SEA_DOCUMENT_TYPE_MASTER_BILL = 1;
+  SEA_DOCUMENT_TYPE_HOUSE_BILL = 2;
+}
+
+// SeaDocumentVersionSource 不可变版本的形成原因。
+enum SeaDocumentVersionSource {
+  SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED = 0;
+  SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK = 1;
+  SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT = 2;
+  SEA_DOCUMENT_VERSION_SOURCE_SWITCH = 3;
+  SEA_DOCUMENT_VERSION_SOURCE_VOID = 4;
+}
+
+// SeaDocumentEventType 低频单证历史事件类型。
+enum SeaDocumentEventType {
+  SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED = 0;
+  SEA_DOCUMENT_EVENT_TYPE_AMENDMENT = 1;
+  SEA_DOCUMENT_EVENT_TYPE_VOID = 2;
+  SEA_DOCUMENT_EVENT_TYPE_SWITCH = 3;
+}
+
 // SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。
 message SeaBillContent {
   optional string shipper_text = 1;
@@ -142,6 +244,8 @@ message SeaHouseBill {
   SeaBillContent content = 14;
   string created_at = 15;
   string updated_at = 16;
+  optional string current_version_id = 17;
+  uint64 immutable_version_count = 18;
 }
 
 // SeaHouseBillInput 表单中的海运分单输入。
@@ -165,6 +269,8 @@ message SeaMasterBillDetail {
   uint64 version = 6;
   SeaBillContent content = 7;
   int32 member_count = 8;
+  optional string current_version_id = 9;
+  uint64 immutable_version_count = 10;
 }
 
 // SeaOrderDocumentSummary 订单中的海运单证摘要。
@@ -303,4 +409,270 @@ message UpdateSeaMasterBillContentResponse {
   string message = 3;
   SeaMasterBillDetail data = 4;
   string trace_id = 5;
+}
+
+// SeaDocumentVersion 完整、不可变的主单或分单内容版本。
+message SeaDocumentVersion {
+  string id = 1;
+  SeaDocumentType document_type = 2;
+  string document_id = 3;
+  string order_id = 4;
+  string master_bill_id = 5;
+  uint64 version_no = 6;
+  uint64 source_entity_version = 7;
+  string document_no = 8;
+  string normalized_document_no = 9;
+  string status = 10;
+  SeaDocumentVersionSource source = 11;
+  optional string reason = 12;
+  optional string issuer_partner_id = 13;
+  optional string issuer_organization_id = 14;
+  SeaHouseBillIssuerSource issuer_source = 15;
+  optional string transport_execution_id = 16;
+  optional string vessel_name = 17;
+  optional string voyage_no = 18;
+  optional string etd = 19;
+  optional string eta = 20;
+  optional string note = 21;
+  SeaBillContent content = 22;
+  optional string created_by = 23;
+  string created_at = 24;
+}
+
+message SeaDocumentFieldDifference {
+  string field = 1;
+  string label = 2;
+  string before_value = 3;
+  string after_value = 4;
+}
+
+message SeaDocumentDownstreamImpact {
+  string fact_type = 1;
+  string reference_id = 2;
+  string reference_no = 3;
+  string message = 4;
+  bool blocks_execution = 5;
+}
+
+message SeaDocumentEvent {
+  string id = 1;
+  SeaDocumentEventType event_type = 2;
+  SeaDocumentType document_type = 3;
+  optional string document_id = 4;
+  optional string document_no = 5;
+  optional string previous_version_id = 6;
+  optional string result_version_id = 7;
+  optional string old_house_bill_id = 8;
+  optional string old_house_no = 9;
+  optional string new_house_bill_id = 10;
+  optional string new_house_no = 11;
+  optional string chain_id = 12;
+  optional int32 sequence = 13;
+  string reason = 14;
+  optional string impact_summary = 15;
+  optional string surrender_info = 16;
+  optional string created_by = 17;
+  string created_at = 18;
+}
+
+message SeaDocumentAmendmentInput {
+  optional SeaBillContent master_bill_content = 1;
+  optional SeaHouseBillInput house_bill = 2;
+}
+
+message SeaDocumentAmendmentPreview {
+  SeaDocumentVersion base_version = 1;
+  repeated SeaDocumentFieldDifference differences = 2;
+  repeated SeaDocumentDownstreamImpact impacts = 3;
+  bool executable = 4;
+}
+
+message SeaDocumentVoidPreview {
+  SeaDocumentVersion base_version = 1;
+  repeated SeaDocumentFieldDifference differences = 2;
+  repeated SeaDocumentDownstreamImpact impacts = 3;
+  bool executable = 4;
+}
+
+message SeaHouseBillSwitchPreview {
+  SeaDocumentVersion base_version = 1;
+  repeated SeaDocumentFieldDifference differences = 2;
+  repeated SeaDocumentDownstreamImpact impacts = 3;
+  bool executable = 4;
+}
+
+message ListSeaMasterBillVersionsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListSeaHouseBillVersionsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListSeaMasterBillVersionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated SeaDocumentVersion data = 4;
+  int32 total = 5;
+  string trace_id = 6;
+}
+
+message ListSeaHouseBillVersionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated SeaDocumentVersion data = 4;
+  int32 total = 5;
+  string trace_id = 6;
+}
+
+message GetSeaDocumentVersionRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string version_id = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentType document_type = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetSeaDocumentVersionResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentVersion data = 4;
+  string trace_id = 5;
+}
+
+message ListSeaDocumentEventsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListSeaDocumentEventsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated SeaDocumentEvent data = 4;
+  int32 total = 5;
+  string trace_id = 6;
+}
+
+message PreviewSeaDocumentAmendmentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentType document_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string document_id = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 4 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_document_version = 5 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
+  string reason = 7 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentAmendmentInput input = 8 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PreviewSeaDocumentAmendmentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentAmendmentPreview data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaDocumentAmendmentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentType document_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string document_id = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 4 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_document_version = 5 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
+  string reason = 7 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentAmendmentInput input = 9 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExecuteSeaDocumentAmendmentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentVersion data = 4;
+  string trace_id = 5;
+}
+
+message PreviewSeaDocumentVoidRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentType document_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string document_id = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 4 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_document_version = 5 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
+  string reason = 7 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PreviewSeaDocumentVoidResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentVoidPreview data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaDocumentVoidRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentType document_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string document_id = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 4 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_document_version = 5 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
+  string reason = 7 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExecuteSeaDocumentVoidResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentEvent data = 4;
+  string trace_id = 5;
+}
+
+message PreviewSeaHouseBillSwitchRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
+  string reason = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string surrender_info = 7;
+  SeaHouseBillInput new_house_bill = 8 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PreviewSeaHouseBillSwitchResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaHouseBillSwitchPreview data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaHouseBillSwitchRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
+  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
+  string reason = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string surrender_info = 7;
+  string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
+  SeaHouseBillInput new_house_bill = 9 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExecuteSeaHouseBillSwitchResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentEvent data = 4;
+  SeaHouseBill new_house_bill = 5;
+  string trace_id = 6;
 }

@@ -8186,6 +8186,88 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/sea-documents/amendments": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ExecuteSeaDocumentAmendment 发布改单版本。",
+        "operationId": "SeaDocumentService_ExecuteSeaDocumentAmendment",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ExecuteSeaDocumentAmendmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ExecuteSeaDocumentAmendmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/amendments/preview": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "PreviewSeaDocumentAmendment 基于当前不可变版本重算改单差异与影响。",
+        "operationId": "SeaDocumentService_PreviewSeaDocumentAmendment",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewSeaDocumentAmendmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewSeaDocumentAmendmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/sea-documents/cancel-direct": {
       "post": {
         "tags": [
@@ -8227,6 +8309,135 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/sea-documents/events": {
+      "get": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。",
+        "operationId": "SeaDocumentService_ListSeaDocumentEvents",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListSeaDocumentEventsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/house-bill-switches": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。",
+        "operationId": "SeaDocumentService_ExecuteSeaHouseBillSwitch",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ExecuteSeaHouseBillSwitchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ExecuteSeaHouseBillSwitchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/house-bill-switches/preview": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。",
+        "operationId": "SeaDocumentService_PreviewSeaHouseBillSwitch",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewSeaHouseBillSwitchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewSeaHouseBillSwitchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/sea-documents/house-bills": {
       "post": {
         "tags": [
@@ -8261,6 +8472,61 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.AddSeaHouseBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/house-bills/{houseBillId}/versions": {
+      "get": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。",
+        "operationId": "SeaDocumentService_ListSeaHouseBillVersions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "houseBillId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListSeaHouseBillVersionsResponse"
                 }
               }
             }
@@ -8450,6 +8716,182 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.UpdateSeaMasterBillContentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/master-bill/versions": {
+      "get": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ListSeaMasterBillVersions 分页读取当前订单共享 MBL 的不可变版本。",
+        "operationId": "SeaDocumentService_ListSeaMasterBillVersions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListSeaMasterBillVersionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/versions/{versionId}": {
+      "get": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。",
+        "operationId": "SeaDocumentService_GetSeaDocumentVersion",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentType",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaDocumentVersionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/voids": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。",
+        "operationId": "SeaDocumentService_ExecuteSeaDocumentVoid",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ExecuteSeaDocumentVoidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ExecuteSeaDocumentVoidResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/voids/preview": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。",
+        "operationId": "SeaDocumentService_PreviewSeaDocumentVoid",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewSeaDocumentVoidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewSeaDocumentVoidResponse"
                 }
               }
             }
@@ -20326,6 +20768,198 @@
           }
         }
       },
+      "order.v1.ExecuteSeaDocumentAmendmentRequest": {
+        "required": [
+          "orderId",
+          "documentType",
+          "documentId",
+          "expectedOrderVersion",
+          "expectedDocumentVersion",
+          "expectedCurrentVersionId",
+          "reason",
+          "idempotencyKey",
+          "input"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedDocumentVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentAmendmentInput"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaDocumentAmendmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaDocumentVoidRequest": {
+        "required": [
+          "orderId",
+          "documentType",
+          "documentId",
+          "expectedOrderVersion",
+          "expectedDocumentVersion",
+          "expectedCurrentVersionId",
+          "reason",
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedDocumentVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaDocumentVoidResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentEvent"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaHouseBillSwitchRequest": {
+        "required": [
+          "orderId",
+          "oldHouseBillId",
+          "expectedOrderVersion",
+          "expectedHouseBillVersion",
+          "expectedCurrentVersionId",
+          "reason",
+          "idempotencyKey",
+          "newHouseBill"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "oldHouseBillId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedHouseBillVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "surrenderInfo": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "newHouseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+          }
+        }
+      },
+      "order.v1.ExecuteSeaHouseBillSwitchResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentEvent"
+          },
+          "newHouseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.ExecuteSeaOrderReassignmentData": {
         "type": "object",
         "properties": {
@@ -20590,6 +21224,27 @@
           }
         },
         "description": "GetSeaCargoAllocationResponse 获取响应。"
+      },
+      "order.v1.GetSeaDocumentVersionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.GetSeaOrderChangeActionsResponse": {
         "type": "object",
@@ -21112,6 +21767,90 @@
           }
         },
         "description": "ListReleasePodsResponse 放货凭证列表响应。"
+      },
+      "order.v1.ListSeaDocumentEventsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentEvent"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListSeaHouseBillVersionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListSeaMasterBillVersionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListSeaOrderChangeEventsResponse": {
         "type": "object",
@@ -22584,6 +23323,183 @@
           }
         }
       },
+      "order.v1.PreviewSeaDocumentAmendmentRequest": {
+        "required": [
+          "orderId",
+          "documentType",
+          "documentId",
+          "expectedOrderVersion",
+          "expectedDocumentVersion",
+          "expectedCurrentVersionId",
+          "reason",
+          "input"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedDocumentVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentAmendmentInput"
+          }
+        }
+      },
+      "order.v1.PreviewSeaDocumentAmendmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentAmendmentPreview"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewSeaDocumentVoidRequest": {
+        "required": [
+          "orderId",
+          "documentType",
+          "documentId",
+          "expectedOrderVersion",
+          "expectedDocumentVersion",
+          "expectedCurrentVersionId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedDocumentVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewSeaDocumentVoidResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVoidPreview"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewSeaHouseBillSwitchRequest": {
+        "required": [
+          "orderId",
+          "oldHouseBillId",
+          "expectedOrderVersion",
+          "expectedHouseBillVersion",
+          "expectedCurrentVersionId",
+          "reason",
+          "newHouseBill"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "oldHouseBillId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedHouseBillVersion": {
+            "type": "string"
+          },
+          "expectedCurrentVersionId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "surrenderInfo": {
+            "type": "string"
+          },
+          "newHouseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+          }
+        }
+      },
+      "order.v1.PreviewSeaHouseBillSwitchResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillSwitchPreview"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.PreviewSeaOrderReassignmentRequest": {
         "required": [
           "orderId",
@@ -23463,6 +24379,243 @@
         },
         "description": "SeaCargoAllocationProgress 三视角进度汇总。"
       },
+      "order.v1.SeaDocumentAmendmentInput": {
+        "type": "object",
+        "properties": {
+          "masterBillContent": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "houseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+          }
+        }
+      },
+      "order.v1.SeaDocumentAmendmentPreview": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+          },
+          "differences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentFieldDifference"
+            }
+          },
+          "impacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentDownstreamImpact"
+            }
+          },
+          "executable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.SeaDocumentDownstreamImpact": {
+        "type": "object",
+        "properties": {
+          "factType": {
+            "type": "string"
+          },
+          "referenceId": {
+            "type": "string"
+          },
+          "referenceNo": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "blocksExecution": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.SeaDocumentEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "documentNo": {
+            "type": "string"
+          },
+          "previousVersionId": {
+            "type": "string"
+          },
+          "resultVersionId": {
+            "type": "string"
+          },
+          "oldHouseBillId": {
+            "type": "string"
+          },
+          "oldHouseNo": {
+            "type": "string"
+          },
+          "newHouseBillId": {
+            "type": "string"
+          },
+          "newHouseNo": {
+            "type": "string"
+          },
+          "chainId": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "impactSummary": {
+            "type": "string"
+          },
+          "surrenderInfo": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaDocumentFieldDifference": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "beforeValue": {
+            "type": "string"
+          },
+          "afterValue": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.SeaDocumentVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "masterBillId": {
+            "type": "string"
+          },
+          "versionNo": {
+            "type": "string"
+          },
+          "sourceEntityVersion": {
+            "type": "string"
+          },
+          "documentNo": {
+            "type": "string"
+          },
+          "normalizedDocumentNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "source": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "issuerOrganizationId": {
+            "type": "string"
+          },
+          "issuerSource": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "transportExecutionId": {
+            "type": "string"
+          },
+          "vesselName": {
+            "type": "string"
+          },
+          "voyageNo": {
+            "type": "string"
+          },
+          "etd": {
+            "type": "string"
+          },
+          "eta": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "description": "SeaDocumentVersion 完整、不可变的主单或分单内容版本。"
+      },
+      "order.v1.SeaDocumentVoidPreview": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+          },
+          "differences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentFieldDifference"
+            }
+          },
+          "impacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentDownstreamImpact"
+            }
+          },
+          "executable": {
+            "type": "boolean"
+          }
+        }
+      },
       "order.v1.SeaHouseBill": {
         "type": "object",
         "properties": {
@@ -23515,6 +24668,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "currentVersionId": {
+            "type": "string"
+          },
+          "immutableVersionCount": {
+            "type": "string"
           }
         },
         "description": "SeaHouseBill 海运分单（HBL）信息。"
@@ -23550,6 +24709,29 @@
           }
         },
         "description": "SeaHouseBillInput 表单中的海运分单输入。"
+      },
+      "order.v1.SeaHouseBillSwitchPreview": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "$ref": "#/components/schemas/order.v1.SeaDocumentVersion"
+          },
+          "differences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentFieldDifference"
+            }
+          },
+          "impacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaDocumentDownstreamImpact"
+            }
+          },
+          "executable": {
+            "type": "boolean"
+          }
+        }
       },
       "order.v1.SeaMasterBillCandidate": {
         "type": "object",
@@ -23612,6 +24794,12 @@
           "memberCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "currentVersionId": {
+            "type": "string"
+          },
+          "immutableVersionCount": {
+            "type": "string"
           }
         },
         "description": "SeaMasterBillDetail 海运主单内容详情。"

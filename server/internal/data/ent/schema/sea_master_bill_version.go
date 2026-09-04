@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -42,6 +43,8 @@ func (SeaMasterBillVersion) Fields() []ent.Field {
 		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID").Immutable(),
 		field.String("reason").Optional().Nillable().MaxLen(500).Immutable(),
 		field.UUID("created_by", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("idempotency_key").Optional().Nillable().MaxLen(128).Immutable(),
+		field.String("request_fingerprint").Optional().Nillable().MaxLen(128).Immutable(),
 	}
 	return append(fields, immutableSeaBillContentFields()...)
 }
@@ -54,7 +57,8 @@ func (SeaMasterBillVersion) Edges() []ent.Edge {
 		edge.From("transport_execution", SeaTransportExecution.Type).Ref("master_bill_versions").Field("transport_execution_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_master_bill_versions").Field("created_by").Unique().Immutable(),
 		edge.To("lock_records", OrderLockRecord.Type),
-		edge.To("void_events", SeaDocumentVoidEvent.Type),
+		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("previous_void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 
@@ -63,5 +67,6 @@ func (SeaMasterBillVersion) Indexes() []ent.Index {
 		index.Fields("master_bill_id", "version_no").Unique().StorageKey("sea_mbl_version_master_version_no"),
 		index.Fields("master_bill_id", "source_entity_version", "content_hash").Unique().StorageKey("sea_mbl_version_source_hash"),
 		index.Fields("organization_id", "master_bill_id"),
+		index.Fields("organization_id", "idempotency_key").Unique().StorageKey("sea_mbl_version_idempotency_key"),
 	}
 }

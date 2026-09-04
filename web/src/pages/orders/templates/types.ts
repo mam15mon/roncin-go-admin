@@ -34,4 +34,8 @@ export interface TemplateProps {
   };
   /** 是否为详情查看/编辑模式：详情页中不展示订单编号时间选择框，且创建人永久锁定不可变 */
   isDetail?: boolean;
+  /** 详情页业务写入口是否因锁单等状态关闭。 */
+  readonly?: boolean;
+  /** 单证命令成功后刷新订单聚合，确保 expectedOrderVersion 使用最新值。 */
+  onOrderDataChanged?: () => Promise<void> | void;
 }

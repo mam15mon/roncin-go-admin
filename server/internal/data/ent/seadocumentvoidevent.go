@@ -30,17 +30,21 @@ type SeaDocumentVoidEvent struct {
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
-	OrderID *uuid.UUID `json:"order_id,omitempty"`
+	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// DocumentType holds the value of the "document_type" field.
 	DocumentType seadocumentvoidevent.DocumentType `json:"document_type,omitempty"`
 	// MasterBillID holds the value of the "master_bill_id" field.
 	MasterBillID *uuid.UUID `json:"master_bill_id,omitempty"`
 	// MasterBillVersionID holds the value of the "master_bill_version_id" field.
 	MasterBillVersionID *uuid.UUID `json:"master_bill_version_id,omitempty"`
+	// PreviousMasterBillVersionID holds the value of the "previous_master_bill_version_id" field.
+	PreviousMasterBillVersionID *uuid.UUID `json:"previous_master_bill_version_id,omitempty"`
 	// HouseBillID holds the value of the "house_bill_id" field.
 	HouseBillID *uuid.UUID `json:"house_bill_id,omitempty"`
 	// HouseBillVersionID holds the value of the "house_bill_version_id" field.
 	HouseBillVersionID *uuid.UUID `json:"house_bill_version_id,omitempty"`
+	// PreviousHouseBillVersionID holds the value of the "previous_house_bill_version_id" field.
+	PreviousHouseBillVersionID *uuid.UUID `json:"previous_house_bill_version_id,omitempty"`
 	// PreviousStatus holds the value of the "previous_status" field.
 	PreviousStatus string `json:"previous_status,omitempty"`
 	// VoidedStatus holds the value of the "voided_status" field.
@@ -51,6 +55,10 @@ type SeaDocumentVoidEvent struct {
 	ImpactSummary *string `json:"impact_summary,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+	// IdempotencyKey holds the value of the "idempotency_key" field.
+	IdempotencyKey string `json:"idempotency_key,omitempty"`
+	// RequestFingerprint holds the value of the "request_fingerprint" field.
+	RequestFingerprint string `json:"request_fingerprint,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaDocumentVoidEventQuery when eager-loading is set.
 	Edges        SeaDocumentVoidEventEdges `json:"edges"`
@@ -67,15 +75,19 @@ type SeaDocumentVoidEventEdges struct {
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
 	// MasterBillVersion holds the value of the master_bill_version edge.
 	MasterBillVersion *SeaMasterBillVersion `json:"master_bill_version,omitempty"`
+	// PreviousMasterBillVersion holds the value of the previous_master_bill_version edge.
+	PreviousMasterBillVersion *SeaMasterBillVersion `json:"previous_master_bill_version,omitempty"`
 	// HouseBill holds the value of the house_bill edge.
 	HouseBill *SeaHouseBill `json:"house_bill,omitempty"`
 	// HouseBillVersion holds the value of the house_bill_version edge.
 	HouseBillVersion *SeaHouseBillVersion `json:"house_bill_version,omitempty"`
+	// PreviousHouseBillVersion holds the value of the previous_house_bill_version edge.
+	PreviousHouseBillVersion *SeaHouseBillVersion `json:"previous_house_bill_version,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -122,12 +134,23 @@ func (e SeaDocumentVoidEventEdges) MasterBillVersionOrErr() (*SeaMasterBillVersi
 	return nil, &NotLoadedError{edge: "master_bill_version"}
 }
 
+// PreviousMasterBillVersionOrErr returns the PreviousMasterBillVersion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaDocumentVoidEventEdges) PreviousMasterBillVersionOrErr() (*SeaMasterBillVersion, error) {
+	if e.PreviousMasterBillVersion != nil {
+		return e.PreviousMasterBillVersion, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: seamasterbillversion.Label}
+	}
+	return nil, &NotLoadedError{edge: "previous_master_bill_version"}
+}
+
 // HouseBillOrErr returns the HouseBill value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SeaDocumentVoidEventEdges) HouseBillOrErr() (*SeaHouseBill, error) {
 	if e.HouseBill != nil {
 		return e.HouseBill, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: seahousebill.Label}
 	}
 	return nil, &NotLoadedError{edge: "house_bill"}
@@ -138,10 +161,21 @@ func (e SeaDocumentVoidEventEdges) HouseBillOrErr() (*SeaHouseBill, error) {
 func (e SeaDocumentVoidEventEdges) HouseBillVersionOrErr() (*SeaHouseBillVersion, error) {
 	if e.HouseBillVersion != nil {
 		return e.HouseBillVersion, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: seahousebillversion.Label}
 	}
 	return nil, &NotLoadedError{edge: "house_bill_version"}
+}
+
+// PreviousHouseBillVersionOrErr returns the PreviousHouseBillVersion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaDocumentVoidEventEdges) PreviousHouseBillVersionOrErr() (*SeaHouseBillVersion, error) {
+	if e.PreviousHouseBillVersion != nil {
+		return e.PreviousHouseBillVersion, nil
+	} else if e.loadedTypes[7] {
+		return nil, &NotFoundError{label: seahousebillversion.Label}
+	}
+	return nil, &NotLoadedError{edge: "previous_house_bill_version"}
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -149,7 +183,7 @@ func (e SeaDocumentVoidEventEdges) HouseBillVersionOrErr() (*SeaHouseBillVersion
 func (e SeaDocumentVoidEventEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
-	} else if e.loadedTypes[6] {
+	} else if e.loadedTypes[8] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "creator"}
@@ -160,13 +194,13 @@ func (*SeaDocumentVoidEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seadocumentvoidevent.FieldOrderID, seadocumentvoidevent.FieldMasterBillID, seadocumentvoidevent.FieldMasterBillVersionID, seadocumentvoidevent.FieldHouseBillID, seadocumentvoidevent.FieldHouseBillVersionID:
+		case seadocumentvoidevent.FieldMasterBillID, seadocumentvoidevent.FieldMasterBillVersionID, seadocumentvoidevent.FieldPreviousMasterBillVersionID, seadocumentvoidevent.FieldHouseBillID, seadocumentvoidevent.FieldHouseBillVersionID, seadocumentvoidevent.FieldPreviousHouseBillVersionID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case seadocumentvoidevent.FieldDocumentType, seadocumentvoidevent.FieldPreviousStatus, seadocumentvoidevent.FieldVoidedStatus, seadocumentvoidevent.FieldReason, seadocumentvoidevent.FieldImpactSummary:
+		case seadocumentvoidevent.FieldDocumentType, seadocumentvoidevent.FieldPreviousStatus, seadocumentvoidevent.FieldVoidedStatus, seadocumentvoidevent.FieldReason, seadocumentvoidevent.FieldImpactSummary, seadocumentvoidevent.FieldIdempotencyKey, seadocumentvoidevent.FieldRequestFingerprint:
 			values[i] = new(sql.NullString)
 		case seadocumentvoidevent.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case seadocumentvoidevent.FieldID, seadocumentvoidevent.FieldOrganizationID, seadocumentvoidevent.FieldCreatedBy:
+		case seadocumentvoidevent.FieldID, seadocumentvoidevent.FieldOrganizationID, seadocumentvoidevent.FieldOrderID, seadocumentvoidevent.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -202,11 +236,10 @@ func (_m *SeaDocumentVoidEvent) assignValues(columns []string, values []any) err
 				_m.OrganizationID = *value
 			}
 		case seadocumentvoidevent.FieldOrderID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
-			} else if value.Valid {
-				_m.OrderID = new(uuid.UUID)
-				*_m.OrderID = *value.S.(*uuid.UUID)
+			} else if value != nil {
+				_m.OrderID = *value
 			}
 		case seadocumentvoidevent.FieldDocumentType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -228,6 +261,13 @@ func (_m *SeaDocumentVoidEvent) assignValues(columns []string, values []any) err
 				_m.MasterBillVersionID = new(uuid.UUID)
 				*_m.MasterBillVersionID = *value.S.(*uuid.UUID)
 			}
+		case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field previous_master_bill_version_id", values[i])
+			} else if value.Valid {
+				_m.PreviousMasterBillVersionID = new(uuid.UUID)
+				*_m.PreviousMasterBillVersionID = *value.S.(*uuid.UUID)
+			}
 		case seadocumentvoidevent.FieldHouseBillID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field house_bill_id", values[i])
@@ -241,6 +281,13 @@ func (_m *SeaDocumentVoidEvent) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.HouseBillVersionID = new(uuid.UUID)
 				*_m.HouseBillVersionID = *value.S.(*uuid.UUID)
+			}
+		case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field previous_house_bill_version_id", values[i])
+			} else if value.Valid {
+				_m.PreviousHouseBillVersionID = new(uuid.UUID)
+				*_m.PreviousHouseBillVersionID = *value.S.(*uuid.UUID)
 			}
 		case seadocumentvoidevent.FieldPreviousStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -272,6 +319,18 @@ func (_m *SeaDocumentVoidEvent) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value != nil {
 				_m.CreatedBy = *value
+			}
+		case seadocumentvoidevent.FieldIdempotencyKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
+			} else if value.Valid {
+				_m.IdempotencyKey = value.String
+			}
+		case seadocumentvoidevent.FieldRequestFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_fingerprint", values[i])
+			} else if value.Valid {
+				_m.RequestFingerprint = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -306,6 +365,11 @@ func (_m *SeaDocumentVoidEvent) QueryMasterBillVersion() *SeaMasterBillVersionQu
 	return NewSeaDocumentVoidEventClient(_m.config).QueryMasterBillVersion(_m)
 }
 
+// QueryPreviousMasterBillVersion queries the "previous_master_bill_version" edge of the SeaDocumentVoidEvent entity.
+func (_m *SeaDocumentVoidEvent) QueryPreviousMasterBillVersion() *SeaMasterBillVersionQuery {
+	return NewSeaDocumentVoidEventClient(_m.config).QueryPreviousMasterBillVersion(_m)
+}
+
 // QueryHouseBill queries the "house_bill" edge of the SeaDocumentVoidEvent entity.
 func (_m *SeaDocumentVoidEvent) QueryHouseBill() *SeaHouseBillQuery {
 	return NewSeaDocumentVoidEventClient(_m.config).QueryHouseBill(_m)
@@ -314,6 +378,11 @@ func (_m *SeaDocumentVoidEvent) QueryHouseBill() *SeaHouseBillQuery {
 // QueryHouseBillVersion queries the "house_bill_version" edge of the SeaDocumentVoidEvent entity.
 func (_m *SeaDocumentVoidEvent) QueryHouseBillVersion() *SeaHouseBillVersionQuery {
 	return NewSeaDocumentVoidEventClient(_m.config).QueryHouseBillVersion(_m)
+}
+
+// QueryPreviousHouseBillVersion queries the "previous_house_bill_version" edge of the SeaDocumentVoidEvent entity.
+func (_m *SeaDocumentVoidEvent) QueryPreviousHouseBillVersion() *SeaHouseBillVersionQuery {
+	return NewSeaDocumentVoidEventClient(_m.config).QueryPreviousHouseBillVersion(_m)
 }
 
 // QueryCreator queries the "creator" edge of the SeaDocumentVoidEvent entity.
@@ -350,10 +419,8 @@ func (_m *SeaDocumentVoidEvent) String() string {
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
-	if v := _m.OrderID; v != nil {
-		builder.WriteString("order_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteString(", ")
 	builder.WriteString("document_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DocumentType))
@@ -368,6 +435,11 @@ func (_m *SeaDocumentVoidEvent) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
+	if v := _m.PreviousMasterBillVersionID; v != nil {
+		builder.WriteString("previous_master_bill_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	if v := _m.HouseBillID; v != nil {
 		builder.WriteString("house_bill_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -375,6 +447,11 @@ func (_m *SeaDocumentVoidEvent) String() string {
 	builder.WriteString(", ")
 	if v := _m.HouseBillVersionID; v != nil {
 		builder.WriteString("house_bill_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.PreviousHouseBillVersionID; v != nil {
+		builder.WriteString("previous_house_bill_version_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
@@ -394,6 +471,12 @@ func (_m *SeaDocumentVoidEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
+	builder.WriteString(", ")
+	builder.WriteString("idempotency_key=")
+	builder.WriteString(_m.IdempotencyKey)
+	builder.WriteString(", ")
+	builder.WriteString("request_fingerprint=")
+	builder.WriteString(_m.RequestFingerprint)
 	builder.WriteByte(')')
 	return builder.String()
 }

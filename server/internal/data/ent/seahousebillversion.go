@@ -60,6 +60,10 @@ type SeaHouseBillVersion struct {
 	Reason *string `json:"reason,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy *uuid.UUID `json:"created_by,omitempty"`
+	// IdempotencyKey holds the value of the "idempotency_key" field.
+	IdempotencyKey *string `json:"idempotency_key,omitempty"`
+	// RequestFingerprint holds the value of the "request_fingerprint" field.
+	RequestFingerprint *string `json:"request_fingerprint,omitempty"`
 	// ShipperText holds the value of the "shipper_text" field.
 	ShipperText *string `json:"shipper_text,omitempty"`
 	// ConsigneeText holds the value of the "consignee_text" field.
@@ -116,13 +120,15 @@ type SeaHouseBillVersionEdges struct {
 	LockSnapshots []*OrderLockHouseBillSnapshot `json:"lock_snapshots,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
 	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
+	// PreviousVoidEvents holds the value of the previous_void_events edge.
+	PreviousVoidEvents []*SeaDocumentVoidEvent `json:"previous_void_events,omitempty"`
 	// OldSwitchEvents holds the value of the old_switch_events edge.
 	OldSwitchEvents []*SeaHouseBillSwitchEvent `json:"old_switch_events,omitempty"`
 	// NewSwitchEvents holds the value of the new_switch_events edge.
 	NewSwitchEvents []*SeaHouseBillSwitchEvent `json:"new_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [12]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -220,10 +226,19 @@ func (e SeaHouseBillVersionEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, er
 	return nil, &NotLoadedError{edge: "void_events"}
 }
 
+// PreviousVoidEventsOrErr returns the PreviousVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillVersionEdges) PreviousVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[9] {
+		return e.PreviousVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "previous_void_events"}
+}
+
 // OldSwitchEventsOrErr returns the OldSwitchEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaHouseBillVersionEdges) OldSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.OldSwitchEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "old_switch_events"}
@@ -232,7 +247,7 @@ func (e SeaHouseBillVersionEdges) OldSwitchEventsOrErr() ([]*SeaHouseBillSwitchE
 // NewSwitchEventsOrErr returns the NewSwitchEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaHouseBillVersionEdges) NewSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.NewSwitchEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "new_switch_events"}
@@ -249,7 +264,7 @@ func (*SeaHouseBillVersion) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seahousebillversion.FieldVersionNo, seahousebillversion.FieldSourceEntityVersion, seahousebillversion.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seahousebillversion.FieldHouseNo, seahousebillversion.FieldNormalizedHouseNo, seahousebillversion.FieldIssuerSource, seahousebillversion.FieldStatus, seahousebillversion.FieldNote, seahousebillversion.FieldContentHash, seahousebillversion.FieldSource, seahousebillversion.FieldReason, seahousebillversion.FieldShipperText, seahousebillversion.FieldConsigneeText, seahousebillversion.FieldNotifyPartyText, seahousebillversion.FieldSecondNotifyPartyText, seahousebillversion.FieldMarksText, seahousebillversion.FieldGoodsDescriptionText, seahousebillversion.FieldPackageUnit, seahousebillversion.FieldFreightTerms, seahousebillversion.FieldTransportTerms, seahousebillversion.FieldBillForm, seahousebillversion.FieldReleaseType, seahousebillversion.FieldClauses:
+		case seahousebillversion.FieldHouseNo, seahousebillversion.FieldNormalizedHouseNo, seahousebillversion.FieldIssuerSource, seahousebillversion.FieldStatus, seahousebillversion.FieldNote, seahousebillversion.FieldContentHash, seahousebillversion.FieldSource, seahousebillversion.FieldReason, seahousebillversion.FieldIdempotencyKey, seahousebillversion.FieldRequestFingerprint, seahousebillversion.FieldShipperText, seahousebillversion.FieldConsigneeText, seahousebillversion.FieldNotifyPartyText, seahousebillversion.FieldSecondNotifyPartyText, seahousebillversion.FieldMarksText, seahousebillversion.FieldGoodsDescriptionText, seahousebillversion.FieldPackageUnit, seahousebillversion.FieldFreightTerms, seahousebillversion.FieldTransportTerms, seahousebillversion.FieldBillForm, seahousebillversion.FieldReleaseType, seahousebillversion.FieldClauses:
 			values[i] = new(sql.NullString)
 		case seahousebillversion.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -388,6 +403,20 @@ func (_m *SeaHouseBillVersion) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				_m.CreatedBy = new(uuid.UUID)
 				*_m.CreatedBy = *value.S.(*uuid.UUID)
+			}
+		case seahousebillversion.FieldIdempotencyKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
+			} else if value.Valid {
+				_m.IdempotencyKey = new(string)
+				*_m.IdempotencyKey = value.String
+			}
+		case seahousebillversion.FieldRequestFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_fingerprint", values[i])
+			} else if value.Valid {
+				_m.RequestFingerprint = new(string)
+				*_m.RequestFingerprint = value.String
 			}
 		case seahousebillversion.FieldShipperText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -552,6 +581,11 @@ func (_m *SeaHouseBillVersion) QueryVoidEvents() *SeaDocumentVoidEventQuery {
 	return NewSeaHouseBillVersionClient(_m.config).QueryVoidEvents(_m)
 }
 
+// QueryPreviousVoidEvents queries the "previous_void_events" edge of the SeaHouseBillVersion entity.
+func (_m *SeaHouseBillVersion) QueryPreviousVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewSeaHouseBillVersionClient(_m.config).QueryPreviousVoidEvents(_m)
+}
+
 // QueryOldSwitchEvents queries the "old_switch_events" edge of the SeaHouseBillVersion entity.
 func (_m *SeaHouseBillVersion) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
 	return NewSeaHouseBillVersionClient(_m.config).QueryOldSwitchEvents(_m)
@@ -647,6 +681,16 @@ func (_m *SeaHouseBillVersion) String() string {
 	if v := _m.CreatedBy; v != nil {
 		builder.WriteString("created_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.IdempotencyKey; v != nil {
+		builder.WriteString("idempotency_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RequestFingerprint; v != nil {
+		builder.WriteString("request_fingerprint=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.ShipperText; v != nil {

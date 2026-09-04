@@ -186,6 +186,34 @@ func (_c *SeaHouseBillVersionCreate) SetNillableCreatedBy(v *uuid.UUID) *SeaHous
 	return _c
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_c *SeaHouseBillVersionCreate) SetIdempotencyKey(v string) *SeaHouseBillVersionCreate {
+	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
+// SetNillableIdempotencyKey sets the "idempotency_key" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableIdempotencyKey(v *string) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetIdempotencyKey(*v)
+	}
+	return _c
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (_c *SeaHouseBillVersionCreate) SetRequestFingerprint(v string) *SeaHouseBillVersionCreate {
+	_c.mutation.SetRequestFingerprint(v)
+	return _c
+}
+
+// SetNillableRequestFingerprint sets the "request_fingerprint" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableRequestFingerprint(v *string) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetRequestFingerprint(*v)
+	}
+	return _c
+}
+
 // SetShipperText sets the "shipper_text" field.
 func (_c *SeaHouseBillVersionCreate) SetShipperText(v string) *SeaHouseBillVersionCreate {
 	_c.mutation.SetShipperText(v)
@@ -489,6 +517,21 @@ func (_c *SeaHouseBillVersionCreate) AddVoidEvents(v ...*SeaDocumentVoidEvent) *
 	return _c.AddVoidEventIDs(ids...)
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_c *SeaHouseBillVersionCreate) AddPreviousVoidEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
+	_c.mutation.AddPreviousVoidEventIDs(ids...)
+	return _c
+}
+
+// AddPreviousVoidEvents adds the "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_c *SeaHouseBillVersionCreate) AddPreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaHouseBillVersionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPreviousVoidEventIDs(ids...)
+}
+
 // AddOldSwitchEventIDs adds the "old_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
 func (_c *SeaHouseBillVersionCreate) AddOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
 	_c.mutation.AddOldSwitchEventIDs(ids...)
@@ -645,6 +688,16 @@ func (_c *SeaHouseBillVersionCreate) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.reason": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.IdempotencyKey(); ok {
+		if err := seahousebillversion.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.idempotency_key": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RequestFingerprint(); ok {
+		if err := seahousebillversion.RequestFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.request_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.PackageCount(); ok {
 		if err := seahousebillversion.PackageCountValidator(v); err != nil {
 			return &ValidationError{Name: "package_count", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.package_count": %w`, err)}
@@ -775,6 +828,14 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 	if value, ok := _c.mutation.Reason(); ok {
 		_spec.SetField(seahousebillversion.FieldReason, field.TypeString, value)
 		_node.Reason = &value
+	}
+	if value, ok := _c.mutation.IdempotencyKey(); ok {
+		_spec.SetField(seahousebillversion.FieldIdempotencyKey, field.TypeString, value)
+		_node.IdempotencyKey = &value
+	}
+	if value, ok := _c.mutation.RequestFingerprint(); ok {
+		_spec.SetField(seahousebillversion.FieldRequestFingerprint, field.TypeString, value)
+		_node.RequestFingerprint = &value
 	}
 	if value, ok := _c.mutation.ShipperText(); ok {
 		_spec.SetField(seahousebillversion.FieldShipperText, field.TypeString, value)
@@ -977,6 +1038,22 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 			Inverse: false,
 			Table:   seahousebillversion.VoidEventsTable,
 			Columns: []string{seahousebillversion.VoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PreviousVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebillversion.PreviousVoidEventsTable,
+			Columns: []string{seahousebillversion.PreviousVoidEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),

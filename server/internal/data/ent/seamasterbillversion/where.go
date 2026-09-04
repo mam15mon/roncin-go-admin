@@ -171,6 +171,16 @@ func CreatedBy(v uuid.UUID) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldCreatedBy, v))
 }
 
+// IdempotencyKey applies equality check predicate on the "idempotency_key" field. It's identical to IdempotencyKeyEQ.
+func IdempotencyKey(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldIdempotencyKey, v))
+}
+
+// RequestFingerprint applies equality check predicate on the "request_fingerprint" field. It's identical to RequestFingerprintEQ.
+func RequestFingerprint(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldRequestFingerprint, v))
+}
+
 // ShipperText applies equality check predicate on the "shipper_text" field. It's identical to ShipperTextEQ.
 func ShipperText(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldShipperText, v))
@@ -1441,6 +1451,156 @@ func CreatedByNotNil() predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldCreatedBy))
 }
 
+// IdempotencyKeyEQ applies the EQ predicate on the "idempotency_key" field.
+func IdempotencyKeyEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyNEQ applies the NEQ predicate on the "idempotency_key" field.
+func IdempotencyKeyNEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyIn applies the In predicate on the "idempotency_key" field.
+func IdempotencyKeyIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldIdempotencyKey, vs...))
+}
+
+// IdempotencyKeyNotIn applies the NotIn predicate on the "idempotency_key" field.
+func IdempotencyKeyNotIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldIdempotencyKey, vs...))
+}
+
+// IdempotencyKeyGT applies the GT predicate on the "idempotency_key" field.
+func IdempotencyKeyGT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyGTE applies the GTE predicate on the "idempotency_key" field.
+func IdempotencyKeyGTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyLT applies the LT predicate on the "idempotency_key" field.
+func IdempotencyKeyLT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyLTE applies the LTE predicate on the "idempotency_key" field.
+func IdempotencyKeyLTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyContains applies the Contains predicate on the "idempotency_key" field.
+func IdempotencyKeyContains(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyHasPrefix applies the HasPrefix predicate on the "idempotency_key" field.
+func IdempotencyKeyHasPrefix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyHasSuffix applies the HasSuffix predicate on the "idempotency_key" field.
+func IdempotencyKeyHasSuffix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyIsNil applies the IsNil predicate on the "idempotency_key" field.
+func IdempotencyKeyIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldIdempotencyKey))
+}
+
+// IdempotencyKeyNotNil applies the NotNil predicate on the "idempotency_key" field.
+func IdempotencyKeyNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldIdempotencyKey))
+}
+
+// IdempotencyKeyEqualFold applies the EqualFold predicate on the "idempotency_key" field.
+func IdempotencyKeyEqualFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyContainsFold applies the ContainsFold predicate on the "idempotency_key" field.
+func IdempotencyKeyContainsFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldIdempotencyKey, v))
+}
+
+// RequestFingerprintEQ applies the EQ predicate on the "request_fingerprint" field.
+func RequestFingerprintEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintNEQ applies the NEQ predicate on the "request_fingerprint" field.
+func RequestFingerprintNEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintIn applies the In predicate on the "request_fingerprint" field.
+func RequestFingerprintIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldRequestFingerprint, vs...))
+}
+
+// RequestFingerprintNotIn applies the NotIn predicate on the "request_fingerprint" field.
+func RequestFingerprintNotIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldRequestFingerprint, vs...))
+}
+
+// RequestFingerprintGT applies the GT predicate on the "request_fingerprint" field.
+func RequestFingerprintGT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintGTE applies the GTE predicate on the "request_fingerprint" field.
+func RequestFingerprintGTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintLT applies the LT predicate on the "request_fingerprint" field.
+func RequestFingerprintLT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintLTE applies the LTE predicate on the "request_fingerprint" field.
+func RequestFingerprintLTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintContains applies the Contains predicate on the "request_fingerprint" field.
+func RequestFingerprintContains(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintHasPrefix applies the HasPrefix predicate on the "request_fingerprint" field.
+func RequestFingerprintHasPrefix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintHasSuffix applies the HasSuffix predicate on the "request_fingerprint" field.
+func RequestFingerprintHasSuffix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintIsNil applies the IsNil predicate on the "request_fingerprint" field.
+func RequestFingerprintIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldRequestFingerprint))
+}
+
+// RequestFingerprintNotNil applies the NotNil predicate on the "request_fingerprint" field.
+func RequestFingerprintNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldRequestFingerprint))
+}
+
+// RequestFingerprintEqualFold applies the EqualFold predicate on the "request_fingerprint" field.
+func RequestFingerprintEqualFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintContainsFold applies the ContainsFold predicate on the "request_fingerprint" field.
+func RequestFingerprintContainsFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldRequestFingerprint, v))
+}
+
 // ShipperTextEQ applies the EQ predicate on the "shipper_text" field.
 func ShipperTextEQ(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldShipperText, v))
@@ -2644,6 +2804,29 @@ func HasVoidEvents() predicate.SeaMasterBillVersion {
 func HasVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
 		step := newVoidEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPreviousVoidEvents applies the HasEdge predicate on the "previous_void_events" edge.
+func HasPreviousVoidEvents() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PreviousVoidEventsTable, PreviousVoidEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPreviousVoidEventsWith applies the HasEdge predicate on the "previous_void_events" edge with a given conditions (other predicates).
+func HasPreviousVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		step := newPreviousVoidEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

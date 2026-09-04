@@ -12,11 +12,12 @@ import (
 
 type SeaDocumentService struct {
 	v1.UnimplementedSeaDocumentServiceServer
-	usecase *biz.SeaDocumentUsecase
+	usecase       *biz.SeaDocumentUsecase
+	changeUsecase *biz.SeaDocumentChangeUsecase
 }
 
-func NewSeaDocumentService(usecase *biz.SeaDocumentUsecase) *SeaDocumentService {
-	return &SeaDocumentService{usecase: usecase}
+func NewSeaDocumentService(usecase *biz.SeaDocumentUsecase, changeUsecase *biz.SeaDocumentChangeUsecase) *SeaDocumentService {
+	return &SeaDocumentService{usecase: usecase, changeUsecase: changeUsecase}
 }
 
 var _ v1.SeaDocumentServiceServer = (*SeaDocumentService)(nil)
@@ -290,6 +291,10 @@ func seaHouseBillStatusToAPI(s biz.SeaHouseBillStatus) v1.SeaHouseBillStatus {
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_CONFIRMED
 	case biz.SeaHouseBillStatusReleased:
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_RELEASED
+	case biz.SeaHouseBillStatusVoided:
+		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_VOIDED
+	case biz.SeaHouseBillStatusReplaced:
+		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_REPLACED
 	default:
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_UNSPECIFIED
 	}
@@ -346,6 +351,11 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		return nil
 	}
 	var orgID, partnerID *string
+	var currentVersionID *string
+	if hb.CurrentVersionID != nil {
+		s := hb.CurrentVersionID.String()
+		currentVersionID = &s
+	}
 	if hb.IssuerOrganizationID != nil {
 		s := hb.IssuerOrganizationID.String()
 		orgID = &s
@@ -375,6 +385,8 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		IssuerPartnerName:      partnerName,
 		Status:                 seaHouseBillStatusToAPI(hb.Status),
 		Version:                hb.Version,
+		CurrentVersionId:       currentVersionID,
+		ImmutableVersionCount:  uint64(hb.ImmutableVersionCount),
 		Note:                   hb.Note,
 		Content:                seaBillContentToAPI(hb.Content),
 		CreatedAt:              hb.CreatedAt.Format(time.RFC3339),
@@ -421,15 +433,22 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 	if m.IssuerPartnerName != "" {
 		partnerName = &m.IssuerPartnerName
 	}
+	var currentVersionID *string
+	if m.CurrentVersionID != nil {
+		s := m.CurrentVersionID.String()
+		currentVersionID = &s
+	}
 	return &v1.SeaMasterBillDetail{
-		Id:                m.ID.String(),
-		MasterNo:          m.MasterNo,
-		IssuerPartnerId:   m.IssuerPartnerID.String(),
-		IssuerPartnerName: partnerName,
-		Status:            m.Status,
-		Version:           m.Version,
-		Content:           seaBillContentToAPI(m.Content),
-		MemberCount:       int32(m.MemberCount),
+		Id:                    m.ID.String(),
+		MasterNo:              m.MasterNo,
+		IssuerPartnerId:       m.IssuerPartnerID.String(),
+		IssuerPartnerName:     partnerName,
+		Status:                m.Status,
+		Version:               m.Version,
+		Content:               seaBillContentToAPI(m.Content),
+		MemberCount:           int32(m.MemberCount),
+		CurrentVersionId:      currentVersionID,
+		ImmutableVersionCount: uint64(m.ImmutableVersionCount),
 	}
 }
 

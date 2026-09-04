@@ -11,6 +11,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useAccess } from '@umijs/max';
 import {
   Alert,
   App,
@@ -26,14 +27,19 @@ import {
   Typography,
 } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAccess } from '@umijs/max';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
   OrderBusinessType,
   SeaDocumentStructure,
+  SeaDocumentType,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
+import {
+  seaCargoAllocationServiceApplySeaHouseBillAllocationSummary,
+  seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill,
+  seaCargoAllocationServiceGetSeaCargoAllocation,
+} from '@/services/roncin/seaCargoAllocationService';
 import {
   seaDocumentServiceAddSeaHouseBill,
   seaDocumentServiceCancelSeaOrderDirect,
@@ -43,16 +49,12 @@ import {
   seaDocumentServiceUpdateSeaHouseBill,
   seaDocumentServiceUpdateSeaMasterBillContent,
 } from '@/services/roncin/seaDocumentService';
-import {
-  seaCargoAllocationServiceApplySeaHouseBillAllocationSummary,
-  seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill,
-  seaCargoAllocationServiceGetSeaCargoAllocation,
-} from '@/services/roncin/seaCargoAllocationService';
+import { searchPartnerOptions } from '@/utils/options';
 import SeaCargoAllocationDrawer, {
   type SeaCargoAllocationDrawerRef,
 } from '../../../components/drawers/SeaCargoAllocationDrawer';
-import { searchPartnerOptions } from '@/utils/options';
 import type { TemplateProps, TemplateSection } from '../../types';
+import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 
 const { Text } = Typography;
 
@@ -241,12 +243,36 @@ function HouseBillTabTitle({ index }: { index: number }) {
   );
 }
 
+function isTerminalHouseBill(status?: number) {
+  return (
+    status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED ||
+    status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_REPLACED
+  );
+}
+
+function houseBillStatusPresentation(status?: number) {
+  switch (status) {
+    case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_RELEASED:
+      return { color: 'success', text: '已签发' };
+    case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_CONFIRMED:
+      return { color: 'blue', text: '已确认' };
+    case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED:
+      return { color: 'error', text: '已作废' };
+    case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_REPLACED:
+      return { color: 'warning', text: '已替代' };
+    default:
+      return { color: 'default', text: '草稿' };
+  }
+}
+
 export function SeaDocumentSectionComponent({
   disabled = false,
   isDetail = false,
+  onOrderDataChanged,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
+  onOrderDataChanged?: () => Promise<void> | void;
 }) {
   const form = Form.useFormInstance();
   const { message, modal } = App.useApp();
@@ -267,6 +293,8 @@ export function SeaDocumentSectionComponent({
   const allocationDrawerRef = useRef<SeaCargoAllocationDrawerRef>(null);
 
   const orderId = Form.useWatch('id', form) || form.getFieldValue('id');
+  const orderVersion =
+    Form.useWatch('version', form) || form.getFieldValue('version');
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
 
   // 详情页加载单证聚合数据
@@ -621,10 +649,9 @@ export function SeaDocumentSectionComponent({
     if (!orderId || !isDetail) return;
     setApplyingHblId(houseBillId);
     try {
-      const allocRes =
-        await seaCargoAllocationServiceGetSeaCargoAllocation({
-          orderId: String(orderId),
-        });
+      const allocRes = await seaCargoAllocationServiceGetSeaCargoAllocation({
+        orderId: String(orderId),
+      });
       const allocVersion = allocRes.data?.allocationVersion;
       if (!allocVersion) {
         throw new Error('箱货分配版本缺失，请刷新后重试');
@@ -722,23 +749,46 @@ export function SeaDocumentSectionComponent({
                 <Text type="secondary">主单版本：</Text>
                 <Tag>v{mblDetail.version}</Tag>
               </Col>
+              <Col span={24} style={{ textAlign: 'right' }}>
+                <SeaDocumentHistoryActions
+                  orderId={String(orderId)}
+                  orderVersion={String(orderVersion ?? '')}
+                  documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
+                  documentId={mblDetail.id ?? ''}
+                  documentNo={mblDetail.masterNo ?? ''}
+                  documentVersion={String(mblDetail.version ?? '')}
+                  currentVersionId={mblDetail.currentVersionId}
+                  documentStatus={mblDetail.status}
+                  getAmendmentInput={() => ({
+                    masterBillContent:
+                      (form.getFieldValue(
+                        'seaMasterBillContent',
+                      ) as API.SeaBillContent) ?? {},
+                  })}
+                  disabled={disabled}
+                  onSuccess={async () => {
+                    await onOrderDataChanged?.();
+                    await loadOrderDocuments();
+                  }}
+                />
+              </Col>
             </Row>
           ) : null}
 
           <SeaBillContentFormFields
             namePathPrefix={['seaMasterBillContent']}
-            disabled={disabled}
+            disabled={disabled || mblDetail?.status === 'VOIDED'}
           />
 
-          {isDetail && mblDetail && !disabled ? (
+          {isDetail &&
+          mblDetail &&
+          mblDetail.status !== 'VOIDED' &&
+          !disabled ? (
             <div style={{ textAlign: 'right', marginTop: 12 }}>
               <Space>
                 {docStructure ===
                 SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (
-                  <Button
-                    loading={applyingMbl}
-                    onClick={handleApplyMblSummary}
-                  >
+                  <Button loading={applyingMbl} onClick={handleApplyMblSummary}>
                     用操作票货物汇总填入 MBL
                   </Button>
                 ) : null}
@@ -776,24 +826,8 @@ export function SeaDocumentSectionComponent({
                   分单 #{idx + 1}
                 </Text>
                 {hb.status ? (
-                  <Tag
-                    color={
-                      hb.status ===
-                      SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_RELEASED
-                        ? 'success'
-                        : hb.status ===
-                            SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_CONFIRMED
-                          ? 'blue'
-                          : 'default'
-                    }
-                  >
-                    {hb.status ===
-                    SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_RELEASED
-                      ? '已签发'
-                      : hb.status ===
-                          SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_CONFIRMED
-                        ? '已确认'
-                        : '草稿'}
+                  <Tag color={houseBillStatusPresentation(hb.status).color}>
+                    {houseBillStatusPresentation(hb.status).text}
                   </Tag>
                 ) : null}
                 {hb.version ? <Tag>v{hb.version}</Tag> : null}
@@ -801,7 +835,41 @@ export function SeaDocumentSectionComponent({
             </Col>
             <Col>
               <Space>
-                {idx > 0 && !disabled ? (
+                {isDetail && hb.id ? (
+                  <SeaDocumentHistoryActions
+                    orderId={String(orderId)}
+                    orderVersion={String(orderVersion ?? '')}
+                    documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL}
+                    documentId={hb.id}
+                    documentNo={hb.houseNo ?? ''}
+                    documentVersion={String(hb.version ?? '')}
+                    currentVersionId={hb.currentVersionId}
+                    currentHouseBill={hb}
+                    getAmendmentInput={() => {
+                      const input = form.getFieldValue([
+                        'seaHouseBills',
+                        idx,
+                      ]) as API.SeaHouseBillInput;
+                      return {
+                        houseBill: {
+                          ...input,
+                          id: hb.id,
+                          houseNo: input?.houseNo ?? hb.houseNo ?? '',
+                          issuerSource:
+                            input?.issuerSource ?? hb.issuerSource ?? 0,
+                          content: input?.content ?? hb.content ?? {},
+                          expectedVersion: hb.version,
+                        },
+                      };
+                    }}
+                    disabled={disabled}
+                    onSuccess={async () => {
+                      await onOrderDataChanged?.();
+                      await loadOrderDocuments();
+                    }}
+                  />
+                ) : null}
+                {idx > 0 && !disabled && !isTerminalHouseBill(hb.status) ? (
                   <Button
                     size="small"
                     icon={<CopyOutlined />}
@@ -810,7 +878,7 @@ export function SeaDocumentSectionComponent({
                     复制上一张内容
                   </Button>
                 ) : null}
-                {!disabled ? (
+                {!disabled && !isTerminalHouseBill(hb.status) ? (
                   <Button
                     size="small"
                     danger
@@ -831,7 +899,7 @@ export function SeaDocumentSectionComponent({
                 name={['seaHouseBills', idx, 'houseNo']}
                 label="分单号 (HBL No.)"
                 placeholder="请输入分单号"
-                disabled={disabled}
+                disabled={disabled || isTerminalHouseBill(hb.status)}
                 rules={[{ required: true, message: '分单号不能为空' }]}
                 fieldProps={{ maxLength: 128 }}
               />
@@ -844,7 +912,7 @@ export function SeaDocumentSectionComponent({
                   rules={[{ required: true, message: '请选择签发主体' }]}
                 >
                   <Radio.Group
-                    disabled={disabled}
+                    disabled={disabled || isTerminalHouseBill(hb.status)}
                     onChange={() =>
                       form.setFieldValue(
                         ['seaHouseBills', idx, 'issuerPartnerId'],
@@ -922,7 +990,9 @@ export function SeaDocumentSectionComponent({
                           <ProFormSearchableSelect
                             name={['seaHouseBills', idx, 'issuerPartnerId']}
                             placeholder="请选择签发主体合作伙伴"
-                            disabled={disabled}
+                            disabled={
+                              disabled || isTerminalHouseBill(hb.status)
+                            }
                             rules={[
                               { required: true, message: '请选择合作伙伴' },
                             ]}
@@ -944,7 +1014,7 @@ export function SeaDocumentSectionComponent({
                 name={['seaHouseBills', idx, 'note']}
                 label="分单备注"
                 placeholder="请输入分单备注"
-                disabled={disabled}
+                disabled={disabled || isTerminalHouseBill(hb.status)}
                 fieldProps={{ maxLength: 500 }}
               />
             </Col>
@@ -957,11 +1027,11 @@ export function SeaDocumentSectionComponent({
             </Text>
             <SeaBillContentFormFields
               namePathPrefix={['seaHouseBills', idx, 'content']}
-              disabled={disabled}
+              disabled={disabled || isTerminalHouseBill(hb.status)}
             />
           </div>
 
-          {isDetail && !disabled ? (
+          {isDetail && !disabled && !isTerminalHouseBill(hb.status) ? (
             <div style={{ textAlign: 'right', marginTop: 12 }}>
               <Space>
                 {hb.id ? (
@@ -970,10 +1040,7 @@ export function SeaDocumentSectionComponent({
                     onClick={() => {
                       const targetHbId = hb.id;
                       if (targetHbId) {
-                        handleApplyHblSummary(
-                          targetHbId,
-                          Number(hb.version),
-                        );
+                        handleApplyHblSummary(targetHbId, Number(hb.version));
                       }
                     }}
                   >
@@ -1119,7 +1186,11 @@ export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
     key: 'sea-document',
     title: '提单信息',
     content: (
-      <SeaDocumentSectionComponent disabled={false} isDetail={props.isDetail} />
+      <SeaDocumentSectionComponent
+        disabled={props.readonly}
+        isDetail={props.isDetail}
+        onOrderDataChanged={props.onOrderDataChanged}
+      />
     ),
   };
 }

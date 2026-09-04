@@ -39,6 +39,7 @@ type SeaMasterBillVersionQuery struct {
 	withCreator            *UserQuery
 	withLockRecords        *OrderLockRecordQuery
 	withVoidEvents         *SeaDocumentVoidEventQuery
+	withPreviousVoidEvents *SeaDocumentVoidEventQuery
 	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -223,6 +224,28 @@ func (_q *SeaMasterBillVersionQuery) QueryVoidEvents() *SeaDocumentVoidEventQuer
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
 			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.VoidEventsTable, seamasterbillversion.VoidEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPreviousVoidEvents chains the current query on the "previous_void_events" edge.
+func (_q *SeaMasterBillVersionQuery) QueryPreviousVoidEvents() *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.PreviousVoidEventsTable, seamasterbillversion.PreviousVoidEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -429,6 +452,7 @@ func (_q *SeaMasterBillVersionQuery) Clone() *SeaMasterBillVersionQuery {
 		withCreator:            _q.withCreator.Clone(),
 		withLockRecords:        _q.withLockRecords.Clone(),
 		withVoidEvents:         _q.withVoidEvents.Clone(),
+		withPreviousVoidEvents: _q.withPreviousVoidEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -512,6 +536,17 @@ func (_q *SeaMasterBillVersionQuery) WithVoidEvents(opts ...func(*SeaDocumentVoi
 	return _q
 }
 
+// WithPreviousVoidEvents tells the query-builder to eager-load the nodes that are connected to
+// the "previous_void_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillVersionQuery) WithPreviousVoidEvents(opts ...func(*SeaDocumentVoidEventQuery)) *SeaMasterBillVersionQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPreviousVoidEvents = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -590,7 +625,7 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*SeaMasterBillVersion{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withMasterBill != nil,
 			_q.withIssuerPartner != nil,
@@ -598,6 +633,7 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 			_q.withCreator != nil,
 			_q.withLockRecords != nil,
 			_q.withVoidEvents != nil,
+			_q.withPreviousVoidEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -665,6 +701,15 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 			func(n *SeaMasterBillVersion) { n.Edges.VoidEvents = []*SeaDocumentVoidEvent{} },
 			func(n *SeaMasterBillVersion, e *SeaDocumentVoidEvent) {
 				n.Edges.VoidEvents = append(n.Edges.VoidEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPreviousVoidEvents; query != nil {
+		if err := _q.loadPreviousVoidEvents(ctx, query, nodes,
+			func(n *SeaMasterBillVersion) { n.Edges.PreviousVoidEvents = []*SeaDocumentVoidEvent{} },
+			func(n *SeaMasterBillVersion, e *SeaDocumentVoidEvent) {
+				n.Edges.PreviousVoidEvents = append(n.Edges.PreviousVoidEvents, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -878,6 +923,39 @@ func (_q *SeaMasterBillVersionQuery) loadVoidEvents(ctx context.Context, query *
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_version_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillVersionQuery) loadPreviousVoidEvents(ctx context.Context, query *SeaDocumentVoidEventQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *SeaDocumentVoidEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBillVersion)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+	}
+	query.Where(predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbillversion.PreviousVoidEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PreviousMasterBillVersionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "previous_master_bill_version_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "previous_master_bill_version_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

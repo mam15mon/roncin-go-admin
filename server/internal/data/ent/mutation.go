@@ -115394,33 +115394,39 @@ func (m *SeaCargoAllocationMutation) ResetEdge(name string) error {
 // SeaDocumentVoidEventMutation represents an operation that mutates the SeaDocumentVoidEvent nodes in the graph.
 type SeaDocumentVoidEventMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	document_type              *seadocumentvoidevent.DocumentType
-	previous_status            *string
-	voided_status              *string
-	reason                     *string
-	impact_summary             *string
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	_order                     *uuid.UUID
-	cleared_order              bool
-	master_bill                *uuid.UUID
-	clearedmaster_bill         bool
-	master_bill_version        *uuid.UUID
-	clearedmaster_bill_version bool
-	house_bill                 *uuid.UUID
-	clearedhouse_bill          bool
-	house_bill_version         *uuid.UUID
-	clearedhouse_bill_version  bool
-	creator                    *uuid.UUID
-	clearedcreator             bool
-	done                       bool
-	oldValue                   func(context.Context) (*SeaDocumentVoidEvent, error)
-	predicates                 []predicate.SeaDocumentVoidEvent
+	op                                  Op
+	typ                                 string
+	id                                  *uuid.UUID
+	created_at                          *time.Time
+	document_type                       *seadocumentvoidevent.DocumentType
+	previous_status                     *string
+	voided_status                       *string
+	reason                              *string
+	impact_summary                      *string
+	idempotency_key                     *string
+	request_fingerprint                 *string
+	clearedFields                       map[string]struct{}
+	organization                        *uuid.UUID
+	clearedorganization                 bool
+	_order                              *uuid.UUID
+	cleared_order                       bool
+	master_bill                         *uuid.UUID
+	clearedmaster_bill                  bool
+	master_bill_version                 *uuid.UUID
+	clearedmaster_bill_version          bool
+	previous_master_bill_version        *uuid.UUID
+	clearedprevious_master_bill_version bool
+	house_bill                          *uuid.UUID
+	clearedhouse_bill                   bool
+	house_bill_version                  *uuid.UUID
+	clearedhouse_bill_version           bool
+	previous_house_bill_version         *uuid.UUID
+	clearedprevious_house_bill_version  bool
+	creator                             *uuid.UUID
+	clearedcreator                      bool
+	done                                bool
+	oldValue                            func(context.Context) (*SeaDocumentVoidEvent, error)
+	predicates                          []predicate.SeaDocumentVoidEvent
 }
 
 var _ ent.Mutation = (*SeaDocumentVoidEventMutation)(nil)
@@ -115616,7 +115622,7 @@ func (m *SeaDocumentVoidEventMutation) OrderID() (r uuid.UUID, exists bool) {
 // OldOrderID returns the old "order_id" field's value of the SeaDocumentVoidEvent entity.
 // If the SeaDocumentVoidEvent object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaDocumentVoidEventMutation) OldOrderID(ctx context.Context) (v *uuid.UUID, err error) {
+func (m *SeaDocumentVoidEventMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
 	}
@@ -115630,22 +115636,9 @@ func (m *SeaDocumentVoidEventMutation) OldOrderID(ctx context.Context) (v *uuid.
 	return oldValue.OrderID, nil
 }
 
-// ClearOrderID clears the value of the "order_id" field.
-func (m *SeaDocumentVoidEventMutation) ClearOrderID() {
-	m._order = nil
-	m.clearedFields[seadocumentvoidevent.FieldOrderID] = struct{}{}
-}
-
-// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
-func (m *SeaDocumentVoidEventMutation) OrderIDCleared() bool {
-	_, ok := m.clearedFields[seadocumentvoidevent.FieldOrderID]
-	return ok
-}
-
 // ResetOrderID resets all changes to the "order_id" field.
 func (m *SeaDocumentVoidEventMutation) ResetOrderID() {
 	m._order = nil
-	delete(m.clearedFields, seadocumentvoidevent.FieldOrderID)
 }
 
 // SetDocumentType sets the "document_type" field.
@@ -115782,6 +115775,55 @@ func (m *SeaDocumentVoidEventMutation) ResetMasterBillVersionID() {
 	delete(m.clearedFields, seadocumentvoidevent.FieldMasterBillVersionID)
 }
 
+// SetPreviousMasterBillVersionID sets the "previous_master_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) SetPreviousMasterBillVersionID(u uuid.UUID) {
+	m.previous_master_bill_version = &u
+}
+
+// PreviousMasterBillVersionID returns the value of the "previous_master_bill_version_id" field in the mutation.
+func (m *SeaDocumentVoidEventMutation) PreviousMasterBillVersionID() (r uuid.UUID, exists bool) {
+	v := m.previous_master_bill_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousMasterBillVersionID returns the old "previous_master_bill_version_id" field's value of the SeaDocumentVoidEvent entity.
+// If the SeaDocumentVoidEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaDocumentVoidEventMutation) OldPreviousMasterBillVersionID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousMasterBillVersionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousMasterBillVersionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousMasterBillVersionID: %w", err)
+	}
+	return oldValue.PreviousMasterBillVersionID, nil
+}
+
+// ClearPreviousMasterBillVersionID clears the value of the "previous_master_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) ClearPreviousMasterBillVersionID() {
+	m.previous_master_bill_version = nil
+	m.clearedFields[seadocumentvoidevent.FieldPreviousMasterBillVersionID] = struct{}{}
+}
+
+// PreviousMasterBillVersionIDCleared returns if the "previous_master_bill_version_id" field was cleared in this mutation.
+func (m *SeaDocumentVoidEventMutation) PreviousMasterBillVersionIDCleared() bool {
+	_, ok := m.clearedFields[seadocumentvoidevent.FieldPreviousMasterBillVersionID]
+	return ok
+}
+
+// ResetPreviousMasterBillVersionID resets all changes to the "previous_master_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) ResetPreviousMasterBillVersionID() {
+	m.previous_master_bill_version = nil
+	delete(m.clearedFields, seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+}
+
 // SetHouseBillID sets the "house_bill_id" field.
 func (m *SeaDocumentVoidEventMutation) SetHouseBillID(u uuid.UUID) {
 	m.house_bill = &u
@@ -115878,6 +115920,55 @@ func (m *SeaDocumentVoidEventMutation) HouseBillVersionIDCleared() bool {
 func (m *SeaDocumentVoidEventMutation) ResetHouseBillVersionID() {
 	m.house_bill_version = nil
 	delete(m.clearedFields, seadocumentvoidevent.FieldHouseBillVersionID)
+}
+
+// SetPreviousHouseBillVersionID sets the "previous_house_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) SetPreviousHouseBillVersionID(u uuid.UUID) {
+	m.previous_house_bill_version = &u
+}
+
+// PreviousHouseBillVersionID returns the value of the "previous_house_bill_version_id" field in the mutation.
+func (m *SeaDocumentVoidEventMutation) PreviousHouseBillVersionID() (r uuid.UUID, exists bool) {
+	v := m.previous_house_bill_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousHouseBillVersionID returns the old "previous_house_bill_version_id" field's value of the SeaDocumentVoidEvent entity.
+// If the SeaDocumentVoidEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaDocumentVoidEventMutation) OldPreviousHouseBillVersionID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousHouseBillVersionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousHouseBillVersionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousHouseBillVersionID: %w", err)
+	}
+	return oldValue.PreviousHouseBillVersionID, nil
+}
+
+// ClearPreviousHouseBillVersionID clears the value of the "previous_house_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) ClearPreviousHouseBillVersionID() {
+	m.previous_house_bill_version = nil
+	m.clearedFields[seadocumentvoidevent.FieldPreviousHouseBillVersionID] = struct{}{}
+}
+
+// PreviousHouseBillVersionIDCleared returns if the "previous_house_bill_version_id" field was cleared in this mutation.
+func (m *SeaDocumentVoidEventMutation) PreviousHouseBillVersionIDCleared() bool {
+	_, ok := m.clearedFields[seadocumentvoidevent.FieldPreviousHouseBillVersionID]
+	return ok
+}
+
+// ResetPreviousHouseBillVersionID resets all changes to the "previous_house_bill_version_id" field.
+func (m *SeaDocumentVoidEventMutation) ResetPreviousHouseBillVersionID() {
+	m.previous_house_bill_version = nil
+	delete(m.clearedFields, seadocumentvoidevent.FieldPreviousHouseBillVersionID)
 }
 
 // SetPreviousStatus sets the "previous_status" field.
@@ -116073,6 +116164,78 @@ func (m *SeaDocumentVoidEventMutation) ResetCreatedBy() {
 	m.creator = nil
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *SeaDocumentVoidEventMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *SeaDocumentVoidEventMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the SeaDocumentVoidEvent entity.
+// If the SeaDocumentVoidEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaDocumentVoidEventMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *SeaDocumentVoidEventMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *SeaDocumentVoidEventMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *SeaDocumentVoidEventMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the SeaDocumentVoidEvent entity.
+// If the SeaDocumentVoidEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaDocumentVoidEventMutation) OldRequestFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *SeaDocumentVoidEventMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaDocumentVoidEventMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -116108,7 +116271,7 @@ func (m *SeaDocumentVoidEventMutation) ClearOrder() {
 
 // OrderCleared reports if the "order" edge to the Order entity was cleared.
 func (m *SeaDocumentVoidEventMutation) OrderCleared() bool {
-	return m.OrderIDCleared() || m.cleared_order
+	return m.cleared_order
 }
 
 // OrderIDs returns the "order" edge IDs in the mutation.
@@ -116181,6 +116344,33 @@ func (m *SeaDocumentVoidEventMutation) ResetMasterBillVersion() {
 	m.clearedmaster_bill_version = false
 }
 
+// ClearPreviousMasterBillVersion clears the "previous_master_bill_version" edge to the SeaMasterBillVersion entity.
+func (m *SeaDocumentVoidEventMutation) ClearPreviousMasterBillVersion() {
+	m.clearedprevious_master_bill_version = true
+	m.clearedFields[seadocumentvoidevent.FieldPreviousMasterBillVersionID] = struct{}{}
+}
+
+// PreviousMasterBillVersionCleared reports if the "previous_master_bill_version" edge to the SeaMasterBillVersion entity was cleared.
+func (m *SeaDocumentVoidEventMutation) PreviousMasterBillVersionCleared() bool {
+	return m.PreviousMasterBillVersionIDCleared() || m.clearedprevious_master_bill_version
+}
+
+// PreviousMasterBillVersionIDs returns the "previous_master_bill_version" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PreviousMasterBillVersionID instead. It exists only for internal usage by the builders.
+func (m *SeaDocumentVoidEventMutation) PreviousMasterBillVersionIDs() (ids []uuid.UUID) {
+	if id := m.previous_master_bill_version; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPreviousMasterBillVersion resets all changes to the "previous_master_bill_version" edge.
+func (m *SeaDocumentVoidEventMutation) ResetPreviousMasterBillVersion() {
+	m.previous_master_bill_version = nil
+	m.clearedprevious_master_bill_version = false
+}
+
 // ClearHouseBill clears the "house_bill" edge to the SeaHouseBill entity.
 func (m *SeaDocumentVoidEventMutation) ClearHouseBill() {
 	m.clearedhouse_bill = true
@@ -116233,6 +116423,33 @@ func (m *SeaDocumentVoidEventMutation) HouseBillVersionIDs() (ids []uuid.UUID) {
 func (m *SeaDocumentVoidEventMutation) ResetHouseBillVersion() {
 	m.house_bill_version = nil
 	m.clearedhouse_bill_version = false
+}
+
+// ClearPreviousHouseBillVersion clears the "previous_house_bill_version" edge to the SeaHouseBillVersion entity.
+func (m *SeaDocumentVoidEventMutation) ClearPreviousHouseBillVersion() {
+	m.clearedprevious_house_bill_version = true
+	m.clearedFields[seadocumentvoidevent.FieldPreviousHouseBillVersionID] = struct{}{}
+}
+
+// PreviousHouseBillVersionCleared reports if the "previous_house_bill_version" edge to the SeaHouseBillVersion entity was cleared.
+func (m *SeaDocumentVoidEventMutation) PreviousHouseBillVersionCleared() bool {
+	return m.PreviousHouseBillVersionIDCleared() || m.clearedprevious_house_bill_version
+}
+
+// PreviousHouseBillVersionIDs returns the "previous_house_bill_version" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PreviousHouseBillVersionID instead. It exists only for internal usage by the builders.
+func (m *SeaDocumentVoidEventMutation) PreviousHouseBillVersionIDs() (ids []uuid.UUID) {
+	if id := m.previous_house_bill_version; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPreviousHouseBillVersion resets all changes to the "previous_house_bill_version" edge.
+func (m *SeaDocumentVoidEventMutation) ResetPreviousHouseBillVersion() {
+	m.previous_house_bill_version = nil
+	m.clearedprevious_house_bill_version = false
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -116309,7 +116526,7 @@ func (m *SeaDocumentVoidEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaDocumentVoidEventMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, seadocumentvoidevent.FieldCreatedAt)
 	}
@@ -116328,11 +116545,17 @@ func (m *SeaDocumentVoidEventMutation) Fields() []string {
 	if m.master_bill_version != nil {
 		fields = append(fields, seadocumentvoidevent.FieldMasterBillVersionID)
 	}
+	if m.previous_master_bill_version != nil {
+		fields = append(fields, seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+	}
 	if m.house_bill != nil {
 		fields = append(fields, seadocumentvoidevent.FieldHouseBillID)
 	}
 	if m.house_bill_version != nil {
 		fields = append(fields, seadocumentvoidevent.FieldHouseBillVersionID)
+	}
+	if m.previous_house_bill_version != nil {
+		fields = append(fields, seadocumentvoidevent.FieldPreviousHouseBillVersionID)
 	}
 	if m.previous_status != nil {
 		fields = append(fields, seadocumentvoidevent.FieldPreviousStatus)
@@ -116348,6 +116571,12 @@ func (m *SeaDocumentVoidEventMutation) Fields() []string {
 	}
 	if m.creator != nil {
 		fields = append(fields, seadocumentvoidevent.FieldCreatedBy)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, seadocumentvoidevent.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, seadocumentvoidevent.FieldRequestFingerprint)
 	}
 	return fields
 }
@@ -116369,10 +116598,14 @@ func (m *SeaDocumentVoidEventMutation) Field(name string) (ent.Value, bool) {
 		return m.MasterBillID()
 	case seadocumentvoidevent.FieldMasterBillVersionID:
 		return m.MasterBillVersionID()
+	case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+		return m.PreviousMasterBillVersionID()
 	case seadocumentvoidevent.FieldHouseBillID:
 		return m.HouseBillID()
 	case seadocumentvoidevent.FieldHouseBillVersionID:
 		return m.HouseBillVersionID()
+	case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		return m.PreviousHouseBillVersionID()
 	case seadocumentvoidevent.FieldPreviousStatus:
 		return m.PreviousStatus()
 	case seadocumentvoidevent.FieldVoidedStatus:
@@ -116383,6 +116616,10 @@ func (m *SeaDocumentVoidEventMutation) Field(name string) (ent.Value, bool) {
 		return m.ImpactSummary()
 	case seadocumentvoidevent.FieldCreatedBy:
 		return m.CreatedBy()
+	case seadocumentvoidevent.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case seadocumentvoidevent.FieldRequestFingerprint:
+		return m.RequestFingerprint()
 	}
 	return nil, false
 }
@@ -116404,10 +116641,14 @@ func (m *SeaDocumentVoidEventMutation) OldField(ctx context.Context, name string
 		return m.OldMasterBillID(ctx)
 	case seadocumentvoidevent.FieldMasterBillVersionID:
 		return m.OldMasterBillVersionID(ctx)
+	case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+		return m.OldPreviousMasterBillVersionID(ctx)
 	case seadocumentvoidevent.FieldHouseBillID:
 		return m.OldHouseBillID(ctx)
 	case seadocumentvoidevent.FieldHouseBillVersionID:
 		return m.OldHouseBillVersionID(ctx)
+	case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		return m.OldPreviousHouseBillVersionID(ctx)
 	case seadocumentvoidevent.FieldPreviousStatus:
 		return m.OldPreviousStatus(ctx)
 	case seadocumentvoidevent.FieldVoidedStatus:
@@ -116418,6 +116659,10 @@ func (m *SeaDocumentVoidEventMutation) OldField(ctx context.Context, name string
 		return m.OldImpactSummary(ctx)
 	case seadocumentvoidevent.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case seadocumentvoidevent.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case seadocumentvoidevent.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaDocumentVoidEvent field %s", name)
 }
@@ -116469,6 +116714,13 @@ func (m *SeaDocumentVoidEventMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetMasterBillVersionID(v)
 		return nil
+	case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousMasterBillVersionID(v)
+		return nil
 	case seadocumentvoidevent.FieldHouseBillID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -116482,6 +116734,13 @@ func (m *SeaDocumentVoidEventMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHouseBillVersionID(v)
+		return nil
+	case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousHouseBillVersionID(v)
 		return nil
 	case seadocumentvoidevent.FieldPreviousStatus:
 		v, ok := value.(string)
@@ -116518,6 +116777,20 @@ func (m *SeaDocumentVoidEventMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetCreatedBy(v)
 		return nil
+	case seadocumentvoidevent.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case seadocumentvoidevent.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaDocumentVoidEvent field %s", name)
 }
@@ -116548,20 +116821,23 @@ func (m *SeaDocumentVoidEventMutation) AddField(name string, value ent.Value) er
 // mutation.
 func (m *SeaDocumentVoidEventMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(seadocumentvoidevent.FieldOrderID) {
-		fields = append(fields, seadocumentvoidevent.FieldOrderID)
-	}
 	if m.FieldCleared(seadocumentvoidevent.FieldMasterBillID) {
 		fields = append(fields, seadocumentvoidevent.FieldMasterBillID)
 	}
 	if m.FieldCleared(seadocumentvoidevent.FieldMasterBillVersionID) {
 		fields = append(fields, seadocumentvoidevent.FieldMasterBillVersionID)
 	}
+	if m.FieldCleared(seadocumentvoidevent.FieldPreviousMasterBillVersionID) {
+		fields = append(fields, seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+	}
 	if m.FieldCleared(seadocumentvoidevent.FieldHouseBillID) {
 		fields = append(fields, seadocumentvoidevent.FieldHouseBillID)
 	}
 	if m.FieldCleared(seadocumentvoidevent.FieldHouseBillVersionID) {
 		fields = append(fields, seadocumentvoidevent.FieldHouseBillVersionID)
+	}
+	if m.FieldCleared(seadocumentvoidevent.FieldPreviousHouseBillVersionID) {
+		fields = append(fields, seadocumentvoidevent.FieldPreviousHouseBillVersionID)
 	}
 	if m.FieldCleared(seadocumentvoidevent.FieldImpactSummary) {
 		fields = append(fields, seadocumentvoidevent.FieldImpactSummary)
@@ -116580,20 +116856,23 @@ func (m *SeaDocumentVoidEventMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *SeaDocumentVoidEventMutation) ClearField(name string) error {
 	switch name {
-	case seadocumentvoidevent.FieldOrderID:
-		m.ClearOrderID()
-		return nil
 	case seadocumentvoidevent.FieldMasterBillID:
 		m.ClearMasterBillID()
 		return nil
 	case seadocumentvoidevent.FieldMasterBillVersionID:
 		m.ClearMasterBillVersionID()
 		return nil
+	case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+		m.ClearPreviousMasterBillVersionID()
+		return nil
 	case seadocumentvoidevent.FieldHouseBillID:
 		m.ClearHouseBillID()
 		return nil
 	case seadocumentvoidevent.FieldHouseBillVersionID:
 		m.ClearHouseBillVersionID()
+		return nil
+	case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		m.ClearPreviousHouseBillVersionID()
 		return nil
 	case seadocumentvoidevent.FieldImpactSummary:
 		m.ClearImpactSummary()
@@ -116624,11 +116903,17 @@ func (m *SeaDocumentVoidEventMutation) ResetField(name string) error {
 	case seadocumentvoidevent.FieldMasterBillVersionID:
 		m.ResetMasterBillVersionID()
 		return nil
+	case seadocumentvoidevent.FieldPreviousMasterBillVersionID:
+		m.ResetPreviousMasterBillVersionID()
+		return nil
 	case seadocumentvoidevent.FieldHouseBillID:
 		m.ResetHouseBillID()
 		return nil
 	case seadocumentvoidevent.FieldHouseBillVersionID:
 		m.ResetHouseBillVersionID()
+		return nil
+	case seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		m.ResetPreviousHouseBillVersionID()
 		return nil
 	case seadocumentvoidevent.FieldPreviousStatus:
 		m.ResetPreviousStatus()
@@ -116645,13 +116930,19 @@ func (m *SeaDocumentVoidEventMutation) ResetField(name string) error {
 	case seadocumentvoidevent.FieldCreatedBy:
 		m.ResetCreatedBy()
 		return nil
+	case seadocumentvoidevent.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case seadocumentvoidevent.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaDocumentVoidEvent field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaDocumentVoidEventMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 9)
 	if m.organization != nil {
 		edges = append(edges, seadocumentvoidevent.EdgeOrganization)
 	}
@@ -116664,11 +116955,17 @@ func (m *SeaDocumentVoidEventMutation) AddedEdges() []string {
 	if m.master_bill_version != nil {
 		edges = append(edges, seadocumentvoidevent.EdgeMasterBillVersion)
 	}
+	if m.previous_master_bill_version != nil {
+		edges = append(edges, seadocumentvoidevent.EdgePreviousMasterBillVersion)
+	}
 	if m.house_bill != nil {
 		edges = append(edges, seadocumentvoidevent.EdgeHouseBill)
 	}
 	if m.house_bill_version != nil {
 		edges = append(edges, seadocumentvoidevent.EdgeHouseBillVersion)
+	}
+	if m.previous_house_bill_version != nil {
+		edges = append(edges, seadocumentvoidevent.EdgePreviousHouseBillVersion)
 	}
 	if m.creator != nil {
 		edges = append(edges, seadocumentvoidevent.EdgeCreator)
@@ -116696,12 +116993,20 @@ func (m *SeaDocumentVoidEventMutation) AddedIDs(name string) []ent.Value {
 		if id := m.master_bill_version; id != nil {
 			return []ent.Value{*id}
 		}
+	case seadocumentvoidevent.EdgePreviousMasterBillVersion:
+		if id := m.previous_master_bill_version; id != nil {
+			return []ent.Value{*id}
+		}
 	case seadocumentvoidevent.EdgeHouseBill:
 		if id := m.house_bill; id != nil {
 			return []ent.Value{*id}
 		}
 	case seadocumentvoidevent.EdgeHouseBillVersion:
 		if id := m.house_bill_version; id != nil {
+			return []ent.Value{*id}
+		}
+	case seadocumentvoidevent.EdgePreviousHouseBillVersion:
+		if id := m.previous_house_bill_version; id != nil {
 			return []ent.Value{*id}
 		}
 	case seadocumentvoidevent.EdgeCreator:
@@ -116714,7 +117019,7 @@ func (m *SeaDocumentVoidEventMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaDocumentVoidEventMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 9)
 	return edges
 }
 
@@ -116726,7 +117031,7 @@ func (m *SeaDocumentVoidEventMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaDocumentVoidEventMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 9)
 	if m.clearedorganization {
 		edges = append(edges, seadocumentvoidevent.EdgeOrganization)
 	}
@@ -116739,11 +117044,17 @@ func (m *SeaDocumentVoidEventMutation) ClearedEdges() []string {
 	if m.clearedmaster_bill_version {
 		edges = append(edges, seadocumentvoidevent.EdgeMasterBillVersion)
 	}
+	if m.clearedprevious_master_bill_version {
+		edges = append(edges, seadocumentvoidevent.EdgePreviousMasterBillVersion)
+	}
 	if m.clearedhouse_bill {
 		edges = append(edges, seadocumentvoidevent.EdgeHouseBill)
 	}
 	if m.clearedhouse_bill_version {
 		edges = append(edges, seadocumentvoidevent.EdgeHouseBillVersion)
+	}
+	if m.clearedprevious_house_bill_version {
+		edges = append(edges, seadocumentvoidevent.EdgePreviousHouseBillVersion)
 	}
 	if m.clearedcreator {
 		edges = append(edges, seadocumentvoidevent.EdgeCreator)
@@ -116763,10 +117074,14 @@ func (m *SeaDocumentVoidEventMutation) EdgeCleared(name string) bool {
 		return m.clearedmaster_bill
 	case seadocumentvoidevent.EdgeMasterBillVersion:
 		return m.clearedmaster_bill_version
+	case seadocumentvoidevent.EdgePreviousMasterBillVersion:
+		return m.clearedprevious_master_bill_version
 	case seadocumentvoidevent.EdgeHouseBill:
 		return m.clearedhouse_bill
 	case seadocumentvoidevent.EdgeHouseBillVersion:
 		return m.clearedhouse_bill_version
+	case seadocumentvoidevent.EdgePreviousHouseBillVersion:
+		return m.clearedprevious_house_bill_version
 	case seadocumentvoidevent.EdgeCreator:
 		return m.clearedcreator
 	}
@@ -116789,11 +117104,17 @@ func (m *SeaDocumentVoidEventMutation) ClearEdge(name string) error {
 	case seadocumentvoidevent.EdgeMasterBillVersion:
 		m.ClearMasterBillVersion()
 		return nil
+	case seadocumentvoidevent.EdgePreviousMasterBillVersion:
+		m.ClearPreviousMasterBillVersion()
+		return nil
 	case seadocumentvoidevent.EdgeHouseBill:
 		m.ClearHouseBill()
 		return nil
 	case seadocumentvoidevent.EdgeHouseBillVersion:
 		m.ClearHouseBillVersion()
+		return nil
+	case seadocumentvoidevent.EdgePreviousHouseBillVersion:
+		m.ClearPreviousHouseBillVersion()
 		return nil
 	case seadocumentvoidevent.EdgeCreator:
 		m.ClearCreator()
@@ -116818,11 +117139,17 @@ func (m *SeaDocumentVoidEventMutation) ResetEdge(name string) error {
 	case seadocumentvoidevent.EdgeMasterBillVersion:
 		m.ResetMasterBillVersion()
 		return nil
+	case seadocumentvoidevent.EdgePreviousMasterBillVersion:
+		m.ResetPreviousMasterBillVersion()
+		return nil
 	case seadocumentvoidevent.EdgeHouseBill:
 		m.ResetHouseBill()
 		return nil
 	case seadocumentvoidevent.EdgeHouseBillVersion:
 		m.ResetHouseBillVersion()
+		return nil
+	case seadocumentvoidevent.EdgePreviousHouseBillVersion:
+		m.ResetPreviousHouseBillVersion()
 		return nil
 	case seadocumentvoidevent.EdgeCreator:
 		m.ResetCreator()
@@ -121572,70 +121899,75 @@ func (m *SeaHouseBillSwitchEventMutation) ResetEdge(name string) error {
 // SeaHouseBillVersionMutation represents an operation that mutates the SeaHouseBillVersion nodes in the graph.
 type SeaHouseBillVersionMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	version_no                 *uint64
-	addversion_no              *int64
-	source_entity_version      *uint64
-	addsource_entity_version   *int64
-	house_no                   *string
-	normalized_house_no        *string
-	issuer_source              *seahousebillversion.IssuerSource
-	status                     *seahousebillversion.Status
-	note                       *string
-	content_hash               *string
-	source                     *seahousebillversion.Source
-	reason                     *string
-	shipper_text               *string
-	consignee_text             *string
-	notify_party_text          *string
-	second_notify_party_text   *string
-	marks_text                 *string
-	goods_description_text     *string
-	package_count              *int
-	addpackage_count           *int
-	package_unit               *string
-	gross_weight_kg            *float64
-	addgross_weight_kg         *float64
-	volume_cbm                 *float64
-	addvolume_cbm              *float64
-	freight_terms              *string
-	transport_terms            *string
-	bill_form                  *string
-	release_type               *string
-	clauses                    *string
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	house_bill                 *uuid.UUID
-	clearedhouse_bill          bool
-	issuer_organization        *uuid.UUID
-	clearedissuer_organization bool
-	issuer_partner             *uuid.UUID
-	clearedissuer_partner      bool
-	_order                     *uuid.UUID
-	cleared_order              bool
-	master_bill                *uuid.UUID
-	clearedmaster_bill         bool
-	creator                    *uuid.UUID
-	clearedcreator             bool
-	lock_snapshots             map[uuid.UUID]struct{}
-	removedlock_snapshots      map[uuid.UUID]struct{}
-	clearedlock_snapshots      bool
-	void_events                map[uuid.UUID]struct{}
-	removedvoid_events         map[uuid.UUID]struct{}
-	clearedvoid_events         bool
-	old_switch_events          map[uuid.UUID]struct{}
-	removedold_switch_events   map[uuid.UUID]struct{}
-	clearedold_switch_events   bool
-	new_switch_events          map[uuid.UUID]struct{}
-	removednew_switch_events   map[uuid.UUID]struct{}
-	clearednew_switch_events   bool
-	done                       bool
-	oldValue                   func(context.Context) (*SeaHouseBillVersion, error)
-	predicates                 []predicate.SeaHouseBillVersion
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	created_at                  *time.Time
+	version_no                  *uint64
+	addversion_no               *int64
+	source_entity_version       *uint64
+	addsource_entity_version    *int64
+	house_no                    *string
+	normalized_house_no         *string
+	issuer_source               *seahousebillversion.IssuerSource
+	status                      *seahousebillversion.Status
+	note                        *string
+	content_hash                *string
+	source                      *seahousebillversion.Source
+	reason                      *string
+	idempotency_key             *string
+	request_fingerprint         *string
+	shipper_text                *string
+	consignee_text              *string
+	notify_party_text           *string
+	second_notify_party_text    *string
+	marks_text                  *string
+	goods_description_text      *string
+	package_count               *int
+	addpackage_count            *int
+	package_unit                *string
+	gross_weight_kg             *float64
+	addgross_weight_kg          *float64
+	volume_cbm                  *float64
+	addvolume_cbm               *float64
+	freight_terms               *string
+	transport_terms             *string
+	bill_form                   *string
+	release_type                *string
+	clauses                     *string
+	clearedFields               map[string]struct{}
+	organization                *uuid.UUID
+	clearedorganization         bool
+	house_bill                  *uuid.UUID
+	clearedhouse_bill           bool
+	issuer_organization         *uuid.UUID
+	clearedissuer_organization  bool
+	issuer_partner              *uuid.UUID
+	clearedissuer_partner       bool
+	_order                      *uuid.UUID
+	cleared_order               bool
+	master_bill                 *uuid.UUID
+	clearedmaster_bill          bool
+	creator                     *uuid.UUID
+	clearedcreator              bool
+	lock_snapshots              map[uuid.UUID]struct{}
+	removedlock_snapshots       map[uuid.UUID]struct{}
+	clearedlock_snapshots       bool
+	void_events                 map[uuid.UUID]struct{}
+	removedvoid_events          map[uuid.UUID]struct{}
+	clearedvoid_events          bool
+	previous_void_events        map[uuid.UUID]struct{}
+	removedprevious_void_events map[uuid.UUID]struct{}
+	clearedprevious_void_events bool
+	old_switch_events           map[uuid.UUID]struct{}
+	removedold_switch_events    map[uuid.UUID]struct{}
+	clearedold_switch_events    bool
+	new_switch_events           map[uuid.UUID]struct{}
+	removednew_switch_events    map[uuid.UUID]struct{}
+	clearednew_switch_events    bool
+	done                        bool
+	oldValue                    func(context.Context) (*SeaHouseBillVersion, error)
+	predicates                  []predicate.SeaHouseBillVersion
 }
 
 var _ ent.Mutation = (*SeaHouseBillVersionMutation)(nil)
@@ -122493,6 +122825,104 @@ func (m *SeaHouseBillVersionMutation) CreatedByCleared() bool {
 func (m *SeaHouseBillVersionMutation) ResetCreatedBy() {
 	m.creator = nil
 	delete(m.clearedFields, seahousebillversion.FieldCreatedBy)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *SeaHouseBillVersionMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *SeaHouseBillVersionMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the SeaHouseBillVersion entity.
+// If the SeaHouseBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillVersionMutation) OldIdempotencyKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (m *SeaHouseBillVersionMutation) ClearIdempotencyKey() {
+	m.idempotency_key = nil
+	m.clearedFields[seahousebillversion.FieldIdempotencyKey] = struct{}{}
+}
+
+// IdempotencyKeyCleared returns if the "idempotency_key" field was cleared in this mutation.
+func (m *SeaHouseBillVersionMutation) IdempotencyKeyCleared() bool {
+	_, ok := m.clearedFields[seahousebillversion.FieldIdempotencyKey]
+	return ok
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *SeaHouseBillVersionMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+	delete(m.clearedFields, seahousebillversion.FieldIdempotencyKey)
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *SeaHouseBillVersionMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *SeaHouseBillVersionMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the SeaHouseBillVersion entity.
+// If the SeaHouseBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillVersionMutation) OldRequestFingerprint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ClearRequestFingerprint clears the value of the "request_fingerprint" field.
+func (m *SeaHouseBillVersionMutation) ClearRequestFingerprint() {
+	m.request_fingerprint = nil
+	m.clearedFields[seahousebillversion.FieldRequestFingerprint] = struct{}{}
+}
+
+// RequestFingerprintCleared returns if the "request_fingerprint" field was cleared in this mutation.
+func (m *SeaHouseBillVersionMutation) RequestFingerprintCleared() bool {
+	_, ok := m.clearedFields[seahousebillversion.FieldRequestFingerprint]
+	return ok
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *SeaHouseBillVersionMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+	delete(m.clearedFields, seahousebillversion.FieldRequestFingerprint)
 }
 
 // SetShipperText sets the "shipper_text" field.
@@ -123603,6 +124033,60 @@ func (m *SeaHouseBillVersionMutation) ResetVoidEvents() {
 	m.removedvoid_events = nil
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by ids.
+func (m *SeaHouseBillVersionMutation) AddPreviousVoidEventIDs(ids ...uuid.UUID) {
+	if m.previous_void_events == nil {
+		m.previous_void_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.previous_void_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPreviousVoidEvents clears the "previous_void_events" edge to the SeaDocumentVoidEvent entity.
+func (m *SeaHouseBillVersionMutation) ClearPreviousVoidEvents() {
+	m.clearedprevious_void_events = true
+}
+
+// PreviousVoidEventsCleared reports if the "previous_void_events" edge to the SeaDocumentVoidEvent entity was cleared.
+func (m *SeaHouseBillVersionMutation) PreviousVoidEventsCleared() bool {
+	return m.clearedprevious_void_events
+}
+
+// RemovePreviousVoidEventIDs removes the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (m *SeaHouseBillVersionMutation) RemovePreviousVoidEventIDs(ids ...uuid.UUID) {
+	if m.removedprevious_void_events == nil {
+		m.removedprevious_void_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.previous_void_events, ids[i])
+		m.removedprevious_void_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPreviousVoidEvents returns the removed IDs of the "previous_void_events" edge to the SeaDocumentVoidEvent entity.
+func (m *SeaHouseBillVersionMutation) RemovedPreviousVoidEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedprevious_void_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PreviousVoidEventsIDs returns the "previous_void_events" edge IDs in the mutation.
+func (m *SeaHouseBillVersionMutation) PreviousVoidEventsIDs() (ids []uuid.UUID) {
+	for id := range m.previous_void_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPreviousVoidEvents resets all changes to the "previous_void_events" edge.
+func (m *SeaHouseBillVersionMutation) ResetPreviousVoidEvents() {
+	m.previous_void_events = nil
+	m.clearedprevious_void_events = false
+	m.removedprevious_void_events = nil
+}
+
 // AddOldSwitchEventIDs adds the "old_switch_events" edge to the SeaHouseBillSwitchEvent entity by ids.
 func (m *SeaHouseBillVersionMutation) AddOldSwitchEventIDs(ids ...uuid.UUID) {
 	if m.old_switch_events == nil {
@@ -123745,7 +124229,7 @@ func (m *SeaHouseBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaHouseBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 35)
 	if m.created_at != nil {
 		fields = append(fields, seahousebillversion.FieldCreatedAt)
 	}
@@ -123799,6 +124283,12 @@ func (m *SeaHouseBillVersionMutation) Fields() []string {
 	}
 	if m.creator != nil {
 		fields = append(fields, seahousebillversion.FieldCreatedBy)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, seahousebillversion.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, seahousebillversion.FieldRequestFingerprint)
 	}
 	if m.shipper_text != nil {
 		fields = append(fields, seahousebillversion.FieldShipperText)
@@ -123889,6 +124379,10 @@ func (m *SeaHouseBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Reason()
 	case seahousebillversion.FieldCreatedBy:
 		return m.CreatedBy()
+	case seahousebillversion.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case seahousebillversion.FieldRequestFingerprint:
+		return m.RequestFingerprint()
 	case seahousebillversion.FieldShipperText:
 		return m.ShipperText()
 	case seahousebillversion.FieldConsigneeText:
@@ -123964,6 +124458,10 @@ func (m *SeaHouseBillVersionMutation) OldField(ctx context.Context, name string)
 		return m.OldReason(ctx)
 	case seahousebillversion.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case seahousebillversion.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case seahousebillversion.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
 	case seahousebillversion.FieldShipperText:
 		return m.OldShipperText(ctx)
 	case seahousebillversion.FieldConsigneeText:
@@ -124128,6 +124626,20 @@ func (m *SeaHouseBillVersionMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case seahousebillversion.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case seahousebillversion.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
 		return nil
 	case seahousebillversion.FieldShipperText:
 		v, ok := value.(string)
@@ -124342,6 +124854,12 @@ func (m *SeaHouseBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seahousebillversion.FieldCreatedBy) {
 		fields = append(fields, seahousebillversion.FieldCreatedBy)
 	}
+	if m.FieldCleared(seahousebillversion.FieldIdempotencyKey) {
+		fields = append(fields, seahousebillversion.FieldIdempotencyKey)
+	}
+	if m.FieldCleared(seahousebillversion.FieldRequestFingerprint) {
+		fields = append(fields, seahousebillversion.FieldRequestFingerprint)
+	}
 	if m.FieldCleared(seahousebillversion.FieldShipperText) {
 		fields = append(fields, seahousebillversion.FieldShipperText)
 	}
@@ -124415,6 +124933,12 @@ func (m *SeaHouseBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seahousebillversion.FieldCreatedBy:
 		m.ClearCreatedBy()
+		return nil
+	case seahousebillversion.FieldIdempotencyKey:
+		m.ClearIdempotencyKey()
+		return nil
+	case seahousebillversion.FieldRequestFingerprint:
+		m.ClearRequestFingerprint()
 		return nil
 	case seahousebillversion.FieldShipperText:
 		m.ClearShipperText()
@@ -124523,6 +125047,12 @@ func (m *SeaHouseBillVersionMutation) ResetField(name string) error {
 	case seahousebillversion.FieldCreatedBy:
 		m.ResetCreatedBy()
 		return nil
+	case seahousebillversion.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case seahousebillversion.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
 	case seahousebillversion.FieldShipperText:
 		m.ResetShipperText()
 		return nil
@@ -124574,7 +125104,7 @@ func (m *SeaHouseBillVersionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaHouseBillVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.organization != nil {
 		edges = append(edges, seahousebillversion.EdgeOrganization)
 	}
@@ -124601,6 +125131,9 @@ func (m *SeaHouseBillVersionMutation) AddedEdges() []string {
 	}
 	if m.void_events != nil {
 		edges = append(edges, seahousebillversion.EdgeVoidEvents)
+	}
+	if m.previous_void_events != nil {
+		edges = append(edges, seahousebillversion.EdgePreviousVoidEvents)
 	}
 	if m.old_switch_events != nil {
 		edges = append(edges, seahousebillversion.EdgeOldSwitchEvents)
@@ -124655,6 +125188,12 @@ func (m *SeaHouseBillVersionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seahousebillversion.EdgePreviousVoidEvents:
+		ids := make([]ent.Value, 0, len(m.previous_void_events))
+		for id := range m.previous_void_events {
+			ids = append(ids, id)
+		}
+		return ids
 	case seahousebillversion.EdgeOldSwitchEvents:
 		ids := make([]ent.Value, 0, len(m.old_switch_events))
 		for id := range m.old_switch_events {
@@ -124673,12 +125212,15 @@ func (m *SeaHouseBillVersionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaHouseBillVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.removedlock_snapshots != nil {
 		edges = append(edges, seahousebillversion.EdgeLockSnapshots)
 	}
 	if m.removedvoid_events != nil {
 		edges = append(edges, seahousebillversion.EdgeVoidEvents)
+	}
+	if m.removedprevious_void_events != nil {
+		edges = append(edges, seahousebillversion.EdgePreviousVoidEvents)
 	}
 	if m.removedold_switch_events != nil {
 		edges = append(edges, seahousebillversion.EdgeOldSwitchEvents)
@@ -124705,6 +125247,12 @@ func (m *SeaHouseBillVersionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seahousebillversion.EdgePreviousVoidEvents:
+		ids := make([]ent.Value, 0, len(m.removedprevious_void_events))
+		for id := range m.removedprevious_void_events {
+			ids = append(ids, id)
+		}
+		return ids
 	case seahousebillversion.EdgeOldSwitchEvents:
 		ids := make([]ent.Value, 0, len(m.removedold_switch_events))
 		for id := range m.removedold_switch_events {
@@ -124723,7 +125271,7 @@ func (m *SeaHouseBillVersionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaHouseBillVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.clearedorganization {
 		edges = append(edges, seahousebillversion.EdgeOrganization)
 	}
@@ -124750,6 +125298,9 @@ func (m *SeaHouseBillVersionMutation) ClearedEdges() []string {
 	}
 	if m.clearedvoid_events {
 		edges = append(edges, seahousebillversion.EdgeVoidEvents)
+	}
+	if m.clearedprevious_void_events {
+		edges = append(edges, seahousebillversion.EdgePreviousVoidEvents)
 	}
 	if m.clearedold_switch_events {
 		edges = append(edges, seahousebillversion.EdgeOldSwitchEvents)
@@ -124782,6 +125333,8 @@ func (m *SeaHouseBillVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedlock_snapshots
 	case seahousebillversion.EdgeVoidEvents:
 		return m.clearedvoid_events
+	case seahousebillversion.EdgePreviousVoidEvents:
+		return m.clearedprevious_void_events
 	case seahousebillversion.EdgeOldSwitchEvents:
 		return m.clearedold_switch_events
 	case seahousebillversion.EdgeNewSwitchEvents:
@@ -124849,6 +125402,9 @@ func (m *SeaHouseBillVersionMutation) ResetEdge(name string) error {
 		return nil
 	case seahousebillversion.EdgeVoidEvents:
 		m.ResetVoidEvents()
+		return nil
+	case seahousebillversion.EdgePreviousVoidEvents:
+		m.ResetPreviousVoidEvents()
 		return nil
 	case seahousebillversion.EdgeOldSwitchEvents:
 		m.ResetOldSwitchEvents()
@@ -129523,69 +130079,74 @@ func (m *SeaMasterBillOrderLinkMutation) ResetEdge(name string) error {
 // SeaMasterBillVersionMutation represents an operation that mutates the SeaMasterBillVersion nodes in the graph.
 type SeaMasterBillVersionMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	version_no                 *uint64
-	addversion_no              *int64
-	source_entity_version      *uint64
-	addsource_entity_version   *int64
-	master_no                  *string
-	normalized_master_no       *string
-	status                     *seamasterbillversion.Status
-	vessel_voyage_snapshot     *string
-	etd_snapshot               *string
-	eta_snapshot               *string
-	carrier_id                 *uuid.UUID
-	origin_location_id         *uuid.UUID
-	discharge_location_id      *uuid.UUID
-	transit_location_id        *uuid.UUID
-	vessel_name                *string
-	voyage_no                  *string
-	etd                        *time.Time
-	eta                        *time.Time
-	content_hash               *string
-	source                     *seamasterbillversion.Source
-	reason                     *string
-	shipper_text               *string
-	consignee_text             *string
-	notify_party_text          *string
-	second_notify_party_text   *string
-	marks_text                 *string
-	goods_description_text     *string
-	package_count              *int
-	addpackage_count           *int
-	package_unit               *string
-	gross_weight_kg            *float64
-	addgross_weight_kg         *float64
-	volume_cbm                 *float64
-	addvolume_cbm              *float64
-	freight_terms              *string
-	transport_terms            *string
-	bill_form                  *string
-	release_type               *string
-	clauses                    *string
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	master_bill                *uuid.UUID
-	clearedmaster_bill         bool
-	issuer_partner             *uuid.UUID
-	clearedissuer_partner      bool
-	transport_execution        *uuid.UUID
-	clearedtransport_execution bool
-	creator                    *uuid.UUID
-	clearedcreator             bool
-	lock_records               map[uuid.UUID]struct{}
-	removedlock_records        map[uuid.UUID]struct{}
-	clearedlock_records        bool
-	void_events                map[uuid.UUID]struct{}
-	removedvoid_events         map[uuid.UUID]struct{}
-	clearedvoid_events         bool
-	done                       bool
-	oldValue                   func(context.Context) (*SeaMasterBillVersion, error)
-	predicates                 []predicate.SeaMasterBillVersion
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	created_at                  *time.Time
+	version_no                  *uint64
+	addversion_no               *int64
+	source_entity_version       *uint64
+	addsource_entity_version    *int64
+	master_no                   *string
+	normalized_master_no        *string
+	status                      *seamasterbillversion.Status
+	vessel_voyage_snapshot      *string
+	etd_snapshot                *string
+	eta_snapshot                *string
+	carrier_id                  *uuid.UUID
+	origin_location_id          *uuid.UUID
+	discharge_location_id       *uuid.UUID
+	transit_location_id         *uuid.UUID
+	vessel_name                 *string
+	voyage_no                   *string
+	etd                         *time.Time
+	eta                         *time.Time
+	content_hash                *string
+	source                      *seamasterbillversion.Source
+	reason                      *string
+	idempotency_key             *string
+	request_fingerprint         *string
+	shipper_text                *string
+	consignee_text              *string
+	notify_party_text           *string
+	second_notify_party_text    *string
+	marks_text                  *string
+	goods_description_text      *string
+	package_count               *int
+	addpackage_count            *int
+	package_unit                *string
+	gross_weight_kg             *float64
+	addgross_weight_kg          *float64
+	volume_cbm                  *float64
+	addvolume_cbm               *float64
+	freight_terms               *string
+	transport_terms             *string
+	bill_form                   *string
+	release_type                *string
+	clauses                     *string
+	clearedFields               map[string]struct{}
+	organization                *uuid.UUID
+	clearedorganization         bool
+	master_bill                 *uuid.UUID
+	clearedmaster_bill          bool
+	issuer_partner              *uuid.UUID
+	clearedissuer_partner       bool
+	transport_execution         *uuid.UUID
+	clearedtransport_execution  bool
+	creator                     *uuid.UUID
+	clearedcreator              bool
+	lock_records                map[uuid.UUID]struct{}
+	removedlock_records         map[uuid.UUID]struct{}
+	clearedlock_records         bool
+	void_events                 map[uuid.UUID]struct{}
+	removedvoid_events          map[uuid.UUID]struct{}
+	clearedvoid_events          bool
+	previous_void_events        map[uuid.UUID]struct{}
+	removedprevious_void_events map[uuid.UUID]struct{}
+	clearedprevious_void_events bool
+	done                        bool
+	oldValue                    func(context.Context) (*SeaMasterBillVersion, error)
+	predicates                  []predicate.SeaMasterBillVersion
 }
 
 var _ ent.Mutation = (*SeaMasterBillVersionMutation)(nil)
@@ -130775,6 +131336,104 @@ func (m *SeaMasterBillVersionMutation) ResetCreatedBy() {
 	delete(m.clearedFields, seamasterbillversion.FieldCreatedBy)
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *SeaMasterBillVersionMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *SeaMasterBillVersionMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the SeaMasterBillVersion entity.
+// If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillVersionMutation) OldIdempotencyKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (m *SeaMasterBillVersionMutation) ClearIdempotencyKey() {
+	m.idempotency_key = nil
+	m.clearedFields[seamasterbillversion.FieldIdempotencyKey] = struct{}{}
+}
+
+// IdempotencyKeyCleared returns if the "idempotency_key" field was cleared in this mutation.
+func (m *SeaMasterBillVersionMutation) IdempotencyKeyCleared() bool {
+	_, ok := m.clearedFields[seamasterbillversion.FieldIdempotencyKey]
+	return ok
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *SeaMasterBillVersionMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+	delete(m.clearedFields, seamasterbillversion.FieldIdempotencyKey)
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *SeaMasterBillVersionMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *SeaMasterBillVersionMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the SeaMasterBillVersion entity.
+// If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillVersionMutation) OldRequestFingerprint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ClearRequestFingerprint clears the value of the "request_fingerprint" field.
+func (m *SeaMasterBillVersionMutation) ClearRequestFingerprint() {
+	m.request_fingerprint = nil
+	m.clearedFields[seamasterbillversion.FieldRequestFingerprint] = struct{}{}
+}
+
+// RequestFingerprintCleared returns if the "request_fingerprint" field was cleared in this mutation.
+func (m *SeaMasterBillVersionMutation) RequestFingerprintCleared() bool {
+	_, ok := m.clearedFields[seamasterbillversion.FieldRequestFingerprint]
+	return ok
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *SeaMasterBillVersionMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+	delete(m.clearedFields, seamasterbillversion.FieldRequestFingerprint)
+}
+
 // SetShipperText sets the "shipper_text" field.
 func (m *SeaMasterBillVersionMutation) SetShipperText(s string) {
 	m.shipper_text = &s
@@ -131829,6 +132488,60 @@ func (m *SeaMasterBillVersionMutation) ResetVoidEvents() {
 	m.removedvoid_events = nil
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by ids.
+func (m *SeaMasterBillVersionMutation) AddPreviousVoidEventIDs(ids ...uuid.UUID) {
+	if m.previous_void_events == nil {
+		m.previous_void_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.previous_void_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPreviousVoidEvents clears the "previous_void_events" edge to the SeaDocumentVoidEvent entity.
+func (m *SeaMasterBillVersionMutation) ClearPreviousVoidEvents() {
+	m.clearedprevious_void_events = true
+}
+
+// PreviousVoidEventsCleared reports if the "previous_void_events" edge to the SeaDocumentVoidEvent entity was cleared.
+func (m *SeaMasterBillVersionMutation) PreviousVoidEventsCleared() bool {
+	return m.clearedprevious_void_events
+}
+
+// RemovePreviousVoidEventIDs removes the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (m *SeaMasterBillVersionMutation) RemovePreviousVoidEventIDs(ids ...uuid.UUID) {
+	if m.removedprevious_void_events == nil {
+		m.removedprevious_void_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.previous_void_events, ids[i])
+		m.removedprevious_void_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPreviousVoidEvents returns the removed IDs of the "previous_void_events" edge to the SeaDocumentVoidEvent entity.
+func (m *SeaMasterBillVersionMutation) RemovedPreviousVoidEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedprevious_void_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PreviousVoidEventsIDs returns the "previous_void_events" edge IDs in the mutation.
+func (m *SeaMasterBillVersionMutation) PreviousVoidEventsIDs() (ids []uuid.UUID) {
+	for id := range m.previous_void_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPreviousVoidEvents resets all changes to the "previous_void_events" edge.
+func (m *SeaMasterBillVersionMutation) ResetPreviousVoidEvents() {
+	m.previous_void_events = nil
+	m.clearedprevious_void_events = false
+	m.removedprevious_void_events = nil
+}
+
 // Where appends a list predicates to the SeaMasterBillVersionMutation builder.
 func (m *SeaMasterBillVersionMutation) Where(ps ...predicate.SeaMasterBillVersion) {
 	m.predicates = append(m.predicates, ps...)
@@ -131863,7 +132576,7 @@ func (m *SeaMasterBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 40)
+	fields := make([]string, 0, 42)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillversion.FieldCreatedAt)
 	}
@@ -131938,6 +132651,12 @@ func (m *SeaMasterBillVersionMutation) Fields() []string {
 	}
 	if m.creator != nil {
 		fields = append(fields, seamasterbillversion.FieldCreatedBy)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, seamasterbillversion.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, seamasterbillversion.FieldRequestFingerprint)
 	}
 	if m.shipper_text != nil {
 		fields = append(fields, seamasterbillversion.FieldShipperText)
@@ -132042,6 +132761,10 @@ func (m *SeaMasterBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Reason()
 	case seamasterbillversion.FieldCreatedBy:
 		return m.CreatedBy()
+	case seamasterbillversion.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case seamasterbillversion.FieldRequestFingerprint:
+		return m.RequestFingerprint()
 	case seamasterbillversion.FieldShipperText:
 		return m.ShipperText()
 	case seamasterbillversion.FieldConsigneeText:
@@ -132131,6 +132854,10 @@ func (m *SeaMasterBillVersionMutation) OldField(ctx context.Context, name string
 		return m.OldReason(ctx)
 	case seamasterbillversion.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case seamasterbillversion.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case seamasterbillversion.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
 	case seamasterbillversion.FieldShipperText:
 		return m.OldShipperText(ctx)
 	case seamasterbillversion.FieldConsigneeText:
@@ -132344,6 +133071,20 @@ func (m *SeaMasterBillVersionMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case seamasterbillversion.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case seamasterbillversion.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
 		return nil
 	case seamasterbillversion.FieldShipperText:
 		v, ok := value.(string)
@@ -132576,6 +133317,12 @@ func (m *SeaMasterBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seamasterbillversion.FieldCreatedBy) {
 		fields = append(fields, seamasterbillversion.FieldCreatedBy)
 	}
+	if m.FieldCleared(seamasterbillversion.FieldIdempotencyKey) {
+		fields = append(fields, seamasterbillversion.FieldIdempotencyKey)
+	}
+	if m.FieldCleared(seamasterbillversion.FieldRequestFingerprint) {
+		fields = append(fields, seamasterbillversion.FieldRequestFingerprint)
+	}
 	if m.FieldCleared(seamasterbillversion.FieldShipperText) {
 		fields = append(fields, seamasterbillversion.FieldShipperText)
 	}
@@ -132667,6 +133414,12 @@ func (m *SeaMasterBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seamasterbillversion.FieldCreatedBy:
 		m.ClearCreatedBy()
+		return nil
+	case seamasterbillversion.FieldIdempotencyKey:
+		m.ClearIdempotencyKey()
+		return nil
+	case seamasterbillversion.FieldRequestFingerprint:
+		m.ClearRequestFingerprint()
 		return nil
 	case seamasterbillversion.FieldShipperText:
 		m.ClearShipperText()
@@ -132796,6 +133549,12 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 	case seamasterbillversion.FieldCreatedBy:
 		m.ResetCreatedBy()
 		return nil
+	case seamasterbillversion.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case seamasterbillversion.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
 	case seamasterbillversion.FieldShipperText:
 		m.ResetShipperText()
 		return nil
@@ -132847,7 +133606,7 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.organization != nil {
 		edges = append(edges, seamasterbillversion.EdgeOrganization)
 	}
@@ -132868,6 +133627,9 @@ func (m *SeaMasterBillVersionMutation) AddedEdges() []string {
 	}
 	if m.void_events != nil {
 		edges = append(edges, seamasterbillversion.EdgeVoidEvents)
+	}
+	if m.previous_void_events != nil {
+		edges = append(edges, seamasterbillversion.EdgePreviousVoidEvents)
 	}
 	return edges
 }
@@ -132908,18 +133670,27 @@ func (m *SeaMasterBillVersionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbillversion.EdgePreviousVoidEvents:
+		ids := make([]ent.Value, 0, len(m.previous_void_events))
+		for id := range m.previous_void_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedlock_records != nil {
 		edges = append(edges, seamasterbillversion.EdgeLockRecords)
 	}
 	if m.removedvoid_events != nil {
 		edges = append(edges, seamasterbillversion.EdgeVoidEvents)
+	}
+	if m.removedprevious_void_events != nil {
+		edges = append(edges, seamasterbillversion.EdgePreviousVoidEvents)
 	}
 	return edges
 }
@@ -132940,13 +133711,19 @@ func (m *SeaMasterBillVersionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbillversion.EdgePreviousVoidEvents:
+		ids := make([]ent.Value, 0, len(m.removedprevious_void_events))
+		for id := range m.removedprevious_void_events {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbillversion.EdgeOrganization)
 	}
@@ -132967,6 +133744,9 @@ func (m *SeaMasterBillVersionMutation) ClearedEdges() []string {
 	}
 	if m.clearedvoid_events {
 		edges = append(edges, seamasterbillversion.EdgeVoidEvents)
+	}
+	if m.clearedprevious_void_events {
+		edges = append(edges, seamasterbillversion.EdgePreviousVoidEvents)
 	}
 	return edges
 }
@@ -132989,6 +133769,8 @@ func (m *SeaMasterBillVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedlock_records
 	case seamasterbillversion.EdgeVoidEvents:
 		return m.clearedvoid_events
+	case seamasterbillversion.EdgePreviousVoidEvents:
+		return m.clearedprevious_void_events
 	}
 	return false
 }
@@ -133040,6 +133822,9 @@ func (m *SeaMasterBillVersionMutation) ResetEdge(name string) error {
 		return nil
 	case seamasterbillversion.EdgeVoidEvents:
 		m.ResetVoidEvents()
+		return nil
+	case seamasterbillversion.EdgePreviousVoidEvents:
+		m.ResetPreviousVoidEvents()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillVersion edge %s", name)

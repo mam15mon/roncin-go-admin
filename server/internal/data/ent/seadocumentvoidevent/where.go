@@ -81,6 +81,11 @@ func MasterBillVersionID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldMasterBillVersionID, v))
 }
 
+// PreviousMasterBillVersionID applies equality check predicate on the "previous_master_bill_version_id" field. It's identical to PreviousMasterBillVersionIDEQ.
+func PreviousMasterBillVersionID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldPreviousMasterBillVersionID, v))
+}
+
 // HouseBillID applies equality check predicate on the "house_bill_id" field. It's identical to HouseBillIDEQ.
 func HouseBillID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldHouseBillID, v))
@@ -89,6 +94,11 @@ func HouseBillID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 // HouseBillVersionID applies equality check predicate on the "house_bill_version_id" field. It's identical to HouseBillVersionIDEQ.
 func HouseBillVersionID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldHouseBillVersionID, v))
+}
+
+// PreviousHouseBillVersionID applies equality check predicate on the "previous_house_bill_version_id" field. It's identical to PreviousHouseBillVersionIDEQ.
+func PreviousHouseBillVersionID(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldPreviousHouseBillVersionID, v))
 }
 
 // PreviousStatus applies equality check predicate on the "previous_status" field. It's identical to PreviousStatusEQ.
@@ -114,6 +124,16 @@ func ImpactSummary(v string) predicate.SeaDocumentVoidEvent {
 // CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
 func CreatedBy(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldCreatedBy, v))
+}
+
+// IdempotencyKey applies equality check predicate on the "idempotency_key" field. It's identical to IdempotencyKeyEQ.
+func IdempotencyKey(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldIdempotencyKey, v))
+}
+
+// RequestFingerprint applies equality check predicate on the "request_fingerprint" field. It's identical to RequestFingerprintEQ.
+func RequestFingerprint(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldRequestFingerprint, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -196,16 +216,6 @@ func OrderIDNotIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldOrderID, vs...))
 }
 
-// OrderIDIsNil applies the IsNil predicate on the "order_id" field.
-func OrderIDIsNil() predicate.SeaDocumentVoidEvent {
-	return predicate.SeaDocumentVoidEvent(sql.FieldIsNull(FieldOrderID))
-}
-
-// OrderIDNotNil applies the NotNil predicate on the "order_id" field.
-func OrderIDNotNil() predicate.SeaDocumentVoidEvent {
-	return predicate.SeaDocumentVoidEvent(sql.FieldNotNull(FieldOrderID))
-}
-
 // DocumentTypeEQ applies the EQ predicate on the "document_type" field.
 func DocumentTypeEQ(v DocumentType) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldDocumentType, v))
@@ -286,6 +296,36 @@ func MasterBillVersionIDNotNil() predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldNotNull(FieldMasterBillVersionID))
 }
 
+// PreviousMasterBillVersionIDEQ applies the EQ predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDEQ(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldPreviousMasterBillVersionID, v))
+}
+
+// PreviousMasterBillVersionIDNEQ applies the NEQ predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDNEQ(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNEQ(FieldPreviousMasterBillVersionID, v))
+}
+
+// PreviousMasterBillVersionIDIn applies the In predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIn(FieldPreviousMasterBillVersionID, vs...))
+}
+
+// PreviousMasterBillVersionIDNotIn applies the NotIn predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDNotIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldPreviousMasterBillVersionID, vs...))
+}
+
+// PreviousMasterBillVersionIDIsNil applies the IsNil predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDIsNil() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIsNull(FieldPreviousMasterBillVersionID))
+}
+
+// PreviousMasterBillVersionIDNotNil applies the NotNil predicate on the "previous_master_bill_version_id" field.
+func PreviousMasterBillVersionIDNotNil() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotNull(FieldPreviousMasterBillVersionID))
+}
+
 // HouseBillIDEQ applies the EQ predicate on the "house_bill_id" field.
 func HouseBillIDEQ(v uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldHouseBillID, v))
@@ -344,6 +384,36 @@ func HouseBillVersionIDIsNil() predicate.SeaDocumentVoidEvent {
 // HouseBillVersionIDNotNil applies the NotNil predicate on the "house_bill_version_id" field.
 func HouseBillVersionIDNotNil() predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldNotNull(FieldHouseBillVersionID))
+}
+
+// PreviousHouseBillVersionIDEQ applies the EQ predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDEQ(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldPreviousHouseBillVersionID, v))
+}
+
+// PreviousHouseBillVersionIDNEQ applies the NEQ predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDNEQ(v uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNEQ(FieldPreviousHouseBillVersionID, v))
+}
+
+// PreviousHouseBillVersionIDIn applies the In predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIn(FieldPreviousHouseBillVersionID, vs...))
+}
+
+// PreviousHouseBillVersionIDNotIn applies the NotIn predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDNotIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldPreviousHouseBillVersionID, vs...))
+}
+
+// PreviousHouseBillVersionIDIsNil applies the IsNil predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDIsNil() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIsNull(FieldPreviousHouseBillVersionID))
+}
+
+// PreviousHouseBillVersionIDNotNil applies the NotNil predicate on the "previous_house_bill_version_id" field.
+func PreviousHouseBillVersionIDNotNil() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotNull(FieldPreviousHouseBillVersionID))
 }
 
 // PreviousStatusEQ applies the EQ predicate on the "previous_status" field.
@@ -636,6 +706,136 @@ func CreatedByNotIn(vs ...uuid.UUID) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldCreatedBy, vs...))
 }
 
+// IdempotencyKeyEQ applies the EQ predicate on the "idempotency_key" field.
+func IdempotencyKeyEQ(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyNEQ applies the NEQ predicate on the "idempotency_key" field.
+func IdempotencyKeyNEQ(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNEQ(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyIn applies the In predicate on the "idempotency_key" field.
+func IdempotencyKeyIn(vs ...string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIn(FieldIdempotencyKey, vs...))
+}
+
+// IdempotencyKeyNotIn applies the NotIn predicate on the "idempotency_key" field.
+func IdempotencyKeyNotIn(vs ...string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldIdempotencyKey, vs...))
+}
+
+// IdempotencyKeyGT applies the GT predicate on the "idempotency_key" field.
+func IdempotencyKeyGT(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldGT(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyGTE applies the GTE predicate on the "idempotency_key" field.
+func IdempotencyKeyGTE(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldGTE(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyLT applies the LT predicate on the "idempotency_key" field.
+func IdempotencyKeyLT(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldLT(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyLTE applies the LTE predicate on the "idempotency_key" field.
+func IdempotencyKeyLTE(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldLTE(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyContains applies the Contains predicate on the "idempotency_key" field.
+func IdempotencyKeyContains(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldContains(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyHasPrefix applies the HasPrefix predicate on the "idempotency_key" field.
+func IdempotencyKeyHasPrefix(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldHasPrefix(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyHasSuffix applies the HasSuffix predicate on the "idempotency_key" field.
+func IdempotencyKeyHasSuffix(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldHasSuffix(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyEqualFold applies the EqualFold predicate on the "idempotency_key" field.
+func IdempotencyKeyEqualFold(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEqualFold(FieldIdempotencyKey, v))
+}
+
+// IdempotencyKeyContainsFold applies the ContainsFold predicate on the "idempotency_key" field.
+func IdempotencyKeyContainsFold(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldContainsFold(FieldIdempotencyKey, v))
+}
+
+// RequestFingerprintEQ applies the EQ predicate on the "request_fingerprint" field.
+func RequestFingerprintEQ(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEQ(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintNEQ applies the NEQ predicate on the "request_fingerprint" field.
+func RequestFingerprintNEQ(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNEQ(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintIn applies the In predicate on the "request_fingerprint" field.
+func RequestFingerprintIn(vs ...string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldIn(FieldRequestFingerprint, vs...))
+}
+
+// RequestFingerprintNotIn applies the NotIn predicate on the "request_fingerprint" field.
+func RequestFingerprintNotIn(vs ...string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldNotIn(FieldRequestFingerprint, vs...))
+}
+
+// RequestFingerprintGT applies the GT predicate on the "request_fingerprint" field.
+func RequestFingerprintGT(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldGT(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintGTE applies the GTE predicate on the "request_fingerprint" field.
+func RequestFingerprintGTE(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldGTE(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintLT applies the LT predicate on the "request_fingerprint" field.
+func RequestFingerprintLT(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldLT(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintLTE applies the LTE predicate on the "request_fingerprint" field.
+func RequestFingerprintLTE(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldLTE(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintContains applies the Contains predicate on the "request_fingerprint" field.
+func RequestFingerprintContains(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldContains(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintHasPrefix applies the HasPrefix predicate on the "request_fingerprint" field.
+func RequestFingerprintHasPrefix(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldHasPrefix(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintHasSuffix applies the HasSuffix predicate on the "request_fingerprint" field.
+func RequestFingerprintHasSuffix(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldHasSuffix(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintEqualFold applies the EqualFold predicate on the "request_fingerprint" field.
+func RequestFingerprintEqualFold(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldEqualFold(FieldRequestFingerprint, v))
+}
+
+// RequestFingerprintContainsFold applies the ContainsFold predicate on the "request_fingerprint" field.
+func RequestFingerprintContainsFold(v string) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(sql.FieldContainsFold(FieldRequestFingerprint, v))
+}
+
 // HasOrganization applies the HasEdge predicate on the "organization" edge.
 func HasOrganization() predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
@@ -728,6 +928,29 @@ func HasMasterBillVersionWith(preds ...predicate.SeaMasterBillVersion) predicate
 	})
 }
 
+// HasPreviousMasterBillVersion applies the HasEdge predicate on the "previous_master_bill_version" edge.
+func HasPreviousMasterBillVersion() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PreviousMasterBillVersionTable, PreviousMasterBillVersionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPreviousMasterBillVersionWith applies the HasEdge predicate on the "previous_master_bill_version" edge with a given conditions (other predicates).
+func HasPreviousMasterBillVersionWith(preds ...predicate.SeaMasterBillVersion) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		step := newPreviousMasterBillVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasHouseBill applies the HasEdge predicate on the "house_bill" edge.
 func HasHouseBill() predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
@@ -766,6 +989,29 @@ func HasHouseBillVersion() predicate.SeaDocumentVoidEvent {
 func HasHouseBillVersionWith(preds ...predicate.SeaHouseBillVersion) predicate.SeaDocumentVoidEvent {
 	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
 		step := newHouseBillVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPreviousHouseBillVersion applies the HasEdge predicate on the "previous_house_bill_version" edge.
+func HasPreviousHouseBillVersion() predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PreviousHouseBillVersionTable, PreviousHouseBillVersionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPreviousHouseBillVersionWith applies the HasEdge predicate on the "previous_house_bill_version" edge with a given conditions (other predicates).
+func HasPreviousHouseBillVersionWith(preds ...predicate.SeaHouseBillVersion) predicate.SeaDocumentVoidEvent {
+	return predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		step := newPreviousHouseBillVersionStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

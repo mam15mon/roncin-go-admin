@@ -507,6 +507,33 @@ export const SeaDocumentAction = {
 
 export type SeaDocumentAction = (typeof SeaDocumentAction)[keyof typeof SeaDocumentAction];
 
+export const SeaDocumentType = {
+  SEA_DOCUMENT_TYPE_UNSPECIFIED: 0,
+  SEA_DOCUMENT_TYPE_MASTER_BILL: 1,
+  SEA_DOCUMENT_TYPE_HOUSE_BILL: 2,
+} as const;
+
+export type SeaDocumentType = (typeof SeaDocumentType)[keyof typeof SeaDocumentType];
+
+export const SeaDocumentVersionSource = {
+  SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED: 0,
+  SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK: 1,
+  SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT: 2,
+  SEA_DOCUMENT_VERSION_SOURCE_SWITCH: 3,
+  SEA_DOCUMENT_VERSION_SOURCE_VOID: 4,
+} as const;
+
+export type SeaDocumentVersionSource = (typeof SeaDocumentVersionSource)[keyof typeof SeaDocumentVersionSource];
+
+export const SeaDocumentEventType = {
+  SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED: 0,
+  SEA_DOCUMENT_EVENT_TYPE_AMENDMENT: 1,
+  SEA_DOCUMENT_EVENT_TYPE_VOID: 2,
+  SEA_DOCUMENT_EVENT_TYPE_SWITCH: 3,
+} as const;
+
+export type SeaDocumentEventType = (typeof SeaDocumentEventType)[keyof typeof SeaDocumentEventType];
+
 export const PartnerRoleType = {
   PARTNER_ROLE_TYPE_UNSPECIFIED: 0,
   PARTNER_ROLE_TYPE_CUSTOMER: 1,

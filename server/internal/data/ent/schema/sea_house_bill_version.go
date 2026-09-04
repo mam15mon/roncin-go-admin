@@ -45,6 +45,8 @@ func (SeaHouseBillVersion) Fields() []ent.Field {
 		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID").Immutable(),
 		field.String("reason").Optional().Nillable().MaxLen(500).Immutable(),
 		field.UUID("created_by", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("idempotency_key").Optional().Nillable().MaxLen(128).Immutable(),
+		field.String("request_fingerprint").Optional().Nillable().MaxLen(128).Immutable(),
 	}
 	return append(fields, immutableSeaBillContentFields()...)
 }
@@ -59,7 +61,8 @@ func (SeaHouseBillVersion) Edges() []ent.Edge {
 		edge.From("master_bill", SeaMasterBill.Type).Ref("house_bill_versions").Field("master_bill_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_house_bill_versions").Field("created_by").Unique().Immutable(),
 		edge.To("lock_snapshots", OrderLockHouseBillSnapshot.Type),
-		edge.To("void_events", SeaDocumentVoidEvent.Type),
+		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("previous_void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("old_switch_events", SeaHouseBillSwitchEvent.Type),
 		edge.To("new_switch_events", SeaHouseBillSwitchEvent.Type),
 	}
@@ -71,5 +74,6 @@ func (SeaHouseBillVersion) Indexes() []ent.Index {
 		index.Fields("house_bill_id", "source_entity_version", "content_hash").Unique().StorageKey("sea_hbl_version_source_hash"),
 		index.Fields("organization_id", "house_bill_id"),
 		index.Fields("organization_id", "order_id"),
+		index.Fields("organization_id", "idempotency_key").Unique().StorageKey("sea_hbl_version_idempotency_key"),
 	}
 }

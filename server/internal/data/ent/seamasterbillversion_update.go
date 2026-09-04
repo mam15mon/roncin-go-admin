@@ -60,6 +60,21 @@ func (_u *SeaMasterBillVersionUpdate) AddVoidEvents(v ...*SeaDocumentVoidEvent) 
 	return _u.AddVoidEventIDs(ids...)
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *SeaMasterBillVersionUpdate) AddPreviousVoidEventIDs(ids ...uuid.UUID) *SeaMasterBillVersionUpdate {
+	_u.mutation.AddPreviousVoidEventIDs(ids...)
+	return _u
+}
+
+// AddPreviousVoidEvents adds the "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *SeaMasterBillVersionUpdate) AddPreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMasterBillVersionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPreviousVoidEventIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillVersionMutation object of the builder.
 func (_u *SeaMasterBillVersionUpdate) Mutation() *SeaMasterBillVersionMutation {
 	return _u.mutation
@@ -105,6 +120,27 @@ func (_u *SeaMasterBillVersionUpdate) RemoveVoidEvents(v ...*SeaDocumentVoidEven
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVoidEventIDs(ids...)
+}
+
+// ClearPreviousVoidEvents clears all "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *SeaMasterBillVersionUpdate) ClearPreviousVoidEvents() *SeaMasterBillVersionUpdate {
+	_u.mutation.ClearPreviousVoidEvents()
+	return _u
+}
+
+// RemovePreviousVoidEventIDs removes the "previous_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *SeaMasterBillVersionUpdate) RemovePreviousVoidEventIDs(ids ...uuid.UUID) *SeaMasterBillVersionUpdate {
+	_u.mutation.RemovePreviousVoidEventIDs(ids...)
+	return _u
+}
+
+// RemovePreviousVoidEvents removes "previous_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *SeaMasterBillVersionUpdate) RemovePreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMasterBillVersionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePreviousVoidEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -192,6 +228,12 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seamasterbillversion.FieldReason, field.TypeString)
+	}
+	if _u.mutation.IdempotencyKeyCleared() {
+		_spec.ClearField(seamasterbillversion.FieldIdempotencyKey, field.TypeString)
+	}
+	if _u.mutation.RequestFingerprintCleared() {
+		_spec.ClearField(seamasterbillversion.FieldRequestFingerprint, field.TypeString)
 	}
 	if _u.mutation.ShipperTextCleared() {
 		_spec.ClearField(seamasterbillversion.FieldShipperText, field.TypeString)
@@ -328,6 +370,51 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PreviousVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPreviousVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.PreviousVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PreviousVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{seamasterbillversion.Label}
@@ -378,6 +465,21 @@ func (_u *SeaMasterBillVersionUpdateOne) AddVoidEvents(v ...*SeaDocumentVoidEven
 	return _u.AddVoidEventIDs(ids...)
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *SeaMasterBillVersionUpdateOne) AddPreviousVoidEventIDs(ids ...uuid.UUID) *SeaMasterBillVersionUpdateOne {
+	_u.mutation.AddPreviousVoidEventIDs(ids...)
+	return _u
+}
+
+// AddPreviousVoidEvents adds the "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *SeaMasterBillVersionUpdateOne) AddPreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMasterBillVersionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPreviousVoidEventIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillVersionMutation object of the builder.
 func (_u *SeaMasterBillVersionUpdateOne) Mutation() *SeaMasterBillVersionMutation {
 	return _u.mutation
@@ -423,6 +525,27 @@ func (_u *SeaMasterBillVersionUpdateOne) RemoveVoidEvents(v ...*SeaDocumentVoidE
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVoidEventIDs(ids...)
+}
+
+// ClearPreviousVoidEvents clears all "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *SeaMasterBillVersionUpdateOne) ClearPreviousVoidEvents() *SeaMasterBillVersionUpdateOne {
+	_u.mutation.ClearPreviousVoidEvents()
+	return _u
+}
+
+// RemovePreviousVoidEventIDs removes the "previous_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *SeaMasterBillVersionUpdateOne) RemovePreviousVoidEventIDs(ids ...uuid.UUID) *SeaMasterBillVersionUpdateOne {
+	_u.mutation.RemovePreviousVoidEventIDs(ids...)
+	return _u
+}
+
+// RemovePreviousVoidEvents removes "previous_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *SeaMasterBillVersionUpdateOne) RemovePreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMasterBillVersionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePreviousVoidEventIDs(ids...)
 }
 
 // Where appends a list predicates to the SeaMasterBillVersionUpdate builder.
@@ -541,6 +664,12 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seamasterbillversion.FieldReason, field.TypeString)
 	}
+	if _u.mutation.IdempotencyKeyCleared() {
+		_spec.ClearField(seamasterbillversion.FieldIdempotencyKey, field.TypeString)
+	}
+	if _u.mutation.RequestFingerprintCleared() {
+		_spec.ClearField(seamasterbillversion.FieldRequestFingerprint, field.TypeString)
+	}
 	if _u.mutation.ShipperTextCleared() {
 		_spec.ClearField(seamasterbillversion.FieldShipperText, field.TypeString)
 	}
@@ -666,6 +795,51 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 			Inverse: false,
 			Table:   seamasterbillversion.VoidEventsTable,
 			Columns: []string{seamasterbillversion.VoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PreviousVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPreviousVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.PreviousVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PreviousVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),

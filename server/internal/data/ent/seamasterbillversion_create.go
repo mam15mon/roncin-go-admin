@@ -290,6 +290,34 @@ func (_c *SeaMasterBillVersionCreate) SetNillableCreatedBy(v *uuid.UUID) *SeaMas
 	return _c
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_c *SeaMasterBillVersionCreate) SetIdempotencyKey(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
+// SetNillableIdempotencyKey sets the "idempotency_key" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableIdempotencyKey(v *string) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetIdempotencyKey(*v)
+	}
+	return _c
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (_c *SeaMasterBillVersionCreate) SetRequestFingerprint(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetRequestFingerprint(v)
+	return _c
+}
+
+// SetNillableRequestFingerprint sets the "request_fingerprint" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableRequestFingerprint(v *string) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetRequestFingerprint(*v)
+	}
+	return _c
+}
+
 // SetShipperText sets the "shipper_text" field.
 func (_c *SeaMasterBillVersionCreate) SetShipperText(v string) *SeaMasterBillVersionCreate {
 	_c.mutation.SetShipperText(v)
@@ -583,6 +611,21 @@ func (_c *SeaMasterBillVersionCreate) AddVoidEvents(v ...*SeaDocumentVoidEvent) 
 	return _c.AddVoidEventIDs(ids...)
 }
 
+// AddPreviousVoidEventIDs adds the "previous_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_c *SeaMasterBillVersionCreate) AddPreviousVoidEventIDs(ids ...uuid.UUID) *SeaMasterBillVersionCreate {
+	_c.mutation.AddPreviousVoidEventIDs(ids...)
+	return _c
+}
+
+// AddPreviousVoidEvents adds the "previous_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_c *SeaMasterBillVersionCreate) AddPreviousVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMasterBillVersionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPreviousVoidEventIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillVersionMutation object of the builder.
 func (_c *SeaMasterBillVersionCreate) Mutation() *SeaMasterBillVersionMutation {
 	return _c.mutation
@@ -733,6 +776,16 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if v, ok := _c.mutation.Reason(); ok {
 		if err := seamasterbillversion.ReasonValidator(v); err != nil {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.reason": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.IdempotencyKey(); ok {
+		if err := seamasterbillversion.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.idempotency_key": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RequestFingerprint(); ok {
+		if err := seamasterbillversion.RequestFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.request_fingerprint": %w`, err)}
 		}
 	}
 	if v, ok := _c.mutation.PackageCount(); ok {
@@ -902,6 +955,14 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_spec.SetField(seamasterbillversion.FieldReason, field.TypeString, value)
 		_node.Reason = &value
 	}
+	if value, ok := _c.mutation.IdempotencyKey(); ok {
+		_spec.SetField(seamasterbillversion.FieldIdempotencyKey, field.TypeString, value)
+		_node.IdempotencyKey = &value
+	}
+	if value, ok := _c.mutation.RequestFingerprint(); ok {
+		_spec.SetField(seamasterbillversion.FieldRequestFingerprint, field.TypeString, value)
+		_node.RequestFingerprint = &value
+	}
 	if value, ok := _c.mutation.ShipperText(); ok {
 		_spec.SetField(seamasterbillversion.FieldShipperText, field.TypeString, value)
 		_node.ShipperText = &value
@@ -1069,6 +1130,22 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 			Inverse: false,
 			Table:   seamasterbillversion.VoidEventsTable,
 			Columns: []string{seamasterbillversion.VoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PreviousVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbillversion.PreviousVoidEventsTable,
+			Columns: []string{seamasterbillversion.PreviousVoidEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),

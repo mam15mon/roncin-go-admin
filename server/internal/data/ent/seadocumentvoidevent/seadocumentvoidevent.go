@@ -28,10 +28,14 @@ const (
 	FieldMasterBillID = "master_bill_id"
 	// FieldMasterBillVersionID holds the string denoting the master_bill_version_id field in the database.
 	FieldMasterBillVersionID = "master_bill_version_id"
+	// FieldPreviousMasterBillVersionID holds the string denoting the previous_master_bill_version_id field in the database.
+	FieldPreviousMasterBillVersionID = "previous_master_bill_version_id"
 	// FieldHouseBillID holds the string denoting the house_bill_id field in the database.
 	FieldHouseBillID = "house_bill_id"
 	// FieldHouseBillVersionID holds the string denoting the house_bill_version_id field in the database.
 	FieldHouseBillVersionID = "house_bill_version_id"
+	// FieldPreviousHouseBillVersionID holds the string denoting the previous_house_bill_version_id field in the database.
+	FieldPreviousHouseBillVersionID = "previous_house_bill_version_id"
 	// FieldPreviousStatus holds the string denoting the previous_status field in the database.
 	FieldPreviousStatus = "previous_status"
 	// FieldVoidedStatus holds the string denoting the voided_status field in the database.
@@ -42,6 +46,10 @@ const (
 	FieldImpactSummary = "impact_summary"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
+	FieldIdempotencyKey = "idempotency_key"
+	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
+	FieldRequestFingerprint = "request_fingerprint"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
@@ -50,10 +58,14 @@ const (
 	EdgeMasterBill = "master_bill"
 	// EdgeMasterBillVersion holds the string denoting the master_bill_version edge name in mutations.
 	EdgeMasterBillVersion = "master_bill_version"
+	// EdgePreviousMasterBillVersion holds the string denoting the previous_master_bill_version edge name in mutations.
+	EdgePreviousMasterBillVersion = "previous_master_bill_version"
 	// EdgeHouseBill holds the string denoting the house_bill edge name in mutations.
 	EdgeHouseBill = "house_bill"
 	// EdgeHouseBillVersion holds the string denoting the house_bill_version edge name in mutations.
 	EdgeHouseBillVersion = "house_bill_version"
+	// EdgePreviousHouseBillVersion holds the string denoting the previous_house_bill_version edge name in mutations.
+	EdgePreviousHouseBillVersion = "previous_house_bill_version"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// Table holds the table name of the seadocumentvoidevent in the database.
@@ -86,6 +98,13 @@ const (
 	MasterBillVersionInverseTable = "sea_master_bill_versions"
 	// MasterBillVersionColumn is the table column denoting the master_bill_version relation/edge.
 	MasterBillVersionColumn = "master_bill_version_id"
+	// PreviousMasterBillVersionTable is the table that holds the previous_master_bill_version relation/edge.
+	PreviousMasterBillVersionTable = "sea_document_void_events"
+	// PreviousMasterBillVersionInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	PreviousMasterBillVersionInverseTable = "sea_master_bill_versions"
+	// PreviousMasterBillVersionColumn is the table column denoting the previous_master_bill_version relation/edge.
+	PreviousMasterBillVersionColumn = "previous_master_bill_version_id"
 	// HouseBillTable is the table that holds the house_bill relation/edge.
 	HouseBillTable = "sea_document_void_events"
 	// HouseBillInverseTable is the table name for the SeaHouseBill entity.
@@ -100,6 +119,13 @@ const (
 	HouseBillVersionInverseTable = "sea_house_bill_versions"
 	// HouseBillVersionColumn is the table column denoting the house_bill_version relation/edge.
 	HouseBillVersionColumn = "house_bill_version_id"
+	// PreviousHouseBillVersionTable is the table that holds the previous_house_bill_version relation/edge.
+	PreviousHouseBillVersionTable = "sea_document_void_events"
+	// PreviousHouseBillVersionInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	PreviousHouseBillVersionInverseTable = "sea_house_bill_versions"
+	// PreviousHouseBillVersionColumn is the table column denoting the previous_house_bill_version relation/edge.
+	PreviousHouseBillVersionColumn = "previous_house_bill_version_id"
 	// CreatorTable is the table that holds the creator relation/edge.
 	CreatorTable = "sea_document_void_events"
 	// CreatorInverseTable is the table name for the User entity.
@@ -118,13 +144,17 @@ var Columns = []string{
 	FieldDocumentType,
 	FieldMasterBillID,
 	FieldMasterBillVersionID,
+	FieldPreviousMasterBillVersionID,
 	FieldHouseBillID,
 	FieldHouseBillVersionID,
+	FieldPreviousHouseBillVersionID,
 	FieldPreviousStatus,
 	FieldVoidedStatus,
 	FieldReason,
 	FieldImpactSummary,
 	FieldCreatedBy,
+	FieldIdempotencyKey,
+	FieldRequestFingerprint,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -148,6 +178,10 @@ var (
 	ReasonValidator func(string) error
 	// ImpactSummaryValidator is a validator for the "impact_summary" field. It is called by the builders before save.
 	ImpactSummaryValidator func(string) error
+	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	IdempotencyKeyValidator func(string) error
+	// RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	RequestFingerprintValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -213,6 +247,11 @@ func ByMasterBillVersionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMasterBillVersionID, opts...).ToFunc()
 }
 
+// ByPreviousMasterBillVersionID orders the results by the previous_master_bill_version_id field.
+func ByPreviousMasterBillVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreviousMasterBillVersionID, opts...).ToFunc()
+}
+
 // ByHouseBillID orders the results by the house_bill_id field.
 func ByHouseBillID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHouseBillID, opts...).ToFunc()
@@ -221,6 +260,11 @@ func ByHouseBillID(opts ...sql.OrderTermOption) OrderOption {
 // ByHouseBillVersionID orders the results by the house_bill_version_id field.
 func ByHouseBillVersionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHouseBillVersionID, opts...).ToFunc()
+}
+
+// ByPreviousHouseBillVersionID orders the results by the previous_house_bill_version_id field.
+func ByPreviousHouseBillVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreviousHouseBillVersionID, opts...).ToFunc()
 }
 
 // ByPreviousStatus orders the results by the previous_status field.
@@ -246,6 +290,16 @@ func ByImpactSummary(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatedBy orders the results by the created_by field.
 func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
+// ByIdempotencyKey orders the results by the idempotency_key field.
+func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
+}
+
+// ByRequestFingerprint orders the results by the request_fingerprint field.
+func ByRequestFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestFingerprint, opts...).ToFunc()
 }
 
 // ByOrganizationField orders the results by organization field.
@@ -276,6 +330,13 @@ func ByMasterBillVersionField(field string, opts ...sql.OrderTermOption) OrderOp
 	}
 }
 
+// ByPreviousMasterBillVersionField orders the results by previous_master_bill_version field.
+func ByPreviousMasterBillVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPreviousMasterBillVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByHouseBillField orders the results by house_bill field.
 func ByHouseBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -287,6 +348,13 @@ func ByHouseBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByHouseBillVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newHouseBillVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByPreviousHouseBillVersionField orders the results by previous_house_bill_version field.
+func ByPreviousHouseBillVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPreviousHouseBillVersionStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -324,6 +392,13 @@ func newMasterBillVersionStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, MasterBillVersionTable, MasterBillVersionColumn),
 	)
 }
+func newPreviousMasterBillVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PreviousMasterBillVersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PreviousMasterBillVersionTable, PreviousMasterBillVersionColumn),
+	)
+}
 func newHouseBillStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -336,6 +411,13 @@ func newHouseBillVersionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(HouseBillVersionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, HouseBillVersionTable, HouseBillVersionColumn),
+	)
+}
+func newPreviousHouseBillVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PreviousHouseBillVersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PreviousHouseBillVersionTable, PreviousHouseBillVersionColumn),
 	)
 }
 func newCreatorStep() *sqlgraph.Step {

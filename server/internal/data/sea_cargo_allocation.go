@@ -112,6 +112,7 @@ func (r *seaCargoAllocationRepo) GetSeaCargoAllocation(ctx context.Context, orgI
 			seahousebillent.OrganizationIDEQ(orgID),
 			seahousebillent.OrderIDEQ(orderID),
 			seahousebillent.MasterBillIDEQ(link.MasterBillID),
+			seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED, seahousebillent.StatusREPLACED),
 		).
 		WithIssuerOrganization().
 		WithIssuerPartner().
@@ -246,7 +247,7 @@ func (r *seaCargoAllocationRepo) SaveDraft(
 			return err
 		}
 
-		_, err = tx.SeaMasterBill.Query().
+		mbl, err := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbillent.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbillent.OrganizationIDEQ(orgID),
@@ -255,6 +256,9 @@ func (r *seaCargoAllocationRepo) SaveDraft(
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		link, err := tx.SeaMasterBillOrderLink.Query().
@@ -292,6 +296,7 @@ func (r *seaCargoAllocationRepo) SaveDraft(
 				seahousebillent.OrganizationIDEQ(orgID),
 				seahousebillent.OrderIDEQ(orderID),
 				seahousebillent.MasterBillIDEQ(link.MasterBillID),
+				seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED, seahousebillent.StatusREPLACED),
 			).
 			Order(ent.Asc(seahousebillent.FieldID)).
 			ForUpdate().
@@ -459,7 +464,7 @@ func (r *seaCargoAllocationRepo) Confirm(
 			return err
 		}
 
-		_, err = tx.SeaMasterBill.Query().
+		mbl, err := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbillent.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbillent.OrganizationIDEQ(orgID),
@@ -468,6 +473,9 @@ func (r *seaCargoAllocationRepo) Confirm(
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		link, err := tx.SeaMasterBillOrderLink.Query().
@@ -505,6 +513,7 @@ func (r *seaCargoAllocationRepo) Confirm(
 				seahousebillent.OrganizationIDEQ(orgID),
 				seahousebillent.OrderIDEQ(orderID),
 				seahousebillent.MasterBillIDEQ(link.MasterBillID),
+				seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED, seahousebillent.StatusREPLACED),
 			).
 			Order(ent.Asc(seahousebillent.FieldID)).
 			ForUpdate().
@@ -636,7 +645,7 @@ func (r *seaCargoAllocationRepo) Withdraw(
 			return err
 		}
 
-		_, err = tx.SeaMasterBill.Query().
+		mbl, err := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbillent.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbillent.OrganizationIDEQ(orgID),
@@ -645,6 +654,9 @@ func (r *seaCargoAllocationRepo) Withdraw(
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		link, err := tx.SeaMasterBillOrderLink.Query().
@@ -732,7 +744,7 @@ func (r *seaCargoAllocationRepo) ApplyHouseBillSummary(
 			return err
 		}
 
-		_, err = tx.SeaMasterBill.Query().
+		mbl, err := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbillent.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbillent.OrganizationIDEQ(orgID),
@@ -741,6 +753,9 @@ func (r *seaCargoAllocationRepo) ApplyHouseBillSummary(
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 
 		link, err := tx.SeaMasterBillOrderLink.Query().
@@ -775,6 +790,12 @@ func (r *seaCargoAllocationRepo) ApplyHouseBillSummary(
 		}
 		if hb.Version != expectedHouseBillVersion {
 			return biz.ErrSeaHouseBillConflict
+		}
+		if hb.Status == seahousebillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
+		}
+		if hb.Status == seahousebillent.StatusREPLACED {
+			return biz.ErrSeaHouseBillSwitchConflict
 		}
 
 		allocs, err := tx.SeaCargoAllocation.Query().
@@ -887,6 +908,9 @@ func (r *seaCargoAllocationRepo) ApplyMasterBillSummary(
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if mbl.Status == seamasterbillent.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 		if mbl.Version != expectedMblVersion {
 			return biz.ErrSeaMasterBillConflict

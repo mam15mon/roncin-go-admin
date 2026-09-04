@@ -559,3 +559,80 @@ func TestPostgresSeaExportCargoAllocationStage3Migration(t *testing.T) {
 		}
 	})
 }
+
+func TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+	const baselineMigration = "20260904120000_sea_export_document_versioning.sql"
+	const changeRevision = "20260904160000_sea_document_change_idempotency"
+	fullDir := filepath.Join("..", "..", "..", "migrations")
+	baselineDir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > baselineMigration {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if err != nil {
+			t.Fatalf("读取版本化基线迁移 %s 失败: %v", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(baselineDir, entry.Name()), content, 0o600); err != nil {
+			t.Fatalf("复制版本化基线迁移 %s 失败: %v", entry.Name(), err)
+		}
+	}
+	db, err := sql.Open("pgx", source)
+	if err != nil {
+		t.Fatalf("打开 PostgreSQL 失败: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	schemaName := "roncin_document_change_mig_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	quotedSchema := `"` + schemaName + `"`
+	if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+		t.Fatalf("创建临时 Schema 失败: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cleanupCancel()
+		_, _ = db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE")
+	})
+	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+		t.Fatalf("切换临时 Schema 失败: %v", err)
+	}
+	if err := Apply(ctx, db, baselineDir); err != nil {
+		t.Fatalf("建立版本化基线失败: %v", err)
+	}
+	if err := Apply(ctx, db, fullDir); err != nil {
+		t.Fatalf("从版本化基线升级单证变更迁移失败: %v", err)
+	}
+	if err := Apply(ctx, db, fullDir); err != nil {
+		t.Fatalf("单证变更迁移重复执行失败: %v", err)
+	}
+	var revisionExists bool
+	if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version = $1)`, changeRevision).Scan(&revisionExists); err != nil || !revisionExists {
+		t.Fatalf("单证变更迁移记录不存在: exists=%v err=%v", revisionExists, err)
+	}
+	var notNullable bool
+	if err := db.QueryRowContext(ctx, `SELECT is_nullable = 'NO' FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'sea_document_void_events' AND column_name = 'order_id'`, schemaName).Scan(&notNullable); err != nil || !notNullable {
+		t.Fatalf("作废事件 order_id 未收紧为 NOT NULL: value=%v err=%v", notNullable, err)
+	}
+	var constraintCount int
+	if err := db.QueryRowContext(ctx, `SELECT count(*) FROM pg_constraint c JOIN pg_namespace n ON n.oid = c.connamespace WHERE n.nspname = $1 AND c.conname IN ('sea_document_void_events_document_type_check','sea_document_void_events_status_check','sea_document_void_events_sea_master_bill_versions_previous_void_events','sea_document_void_events_sea_house_bill_versions_previous_void_events')`, schemaName).Scan(&constraintCount); err != nil || constraintCount != 4 {
+		t.Fatalf("单证变更迁移 CHECK/FK 不完整: count=%d err=%v", constraintCount, err)
+	}
+	var switchIndexDefinition string
+	if err := db.QueryRowContext(ctx, `SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = 'seahousebillswitchevent_chain_id_sequence'`, schemaName).Scan(&switchIndexDefinition); err != nil || !strings.Contains(switchIndexDefinition, "UNIQUE") {
+		t.Fatalf("Switch 链序号唯一索引缺失: definition=%q err=%v", switchIndexDefinition, err)
+	}
+}

@@ -34,11 +34,7 @@ import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
-import {
-  PARTNER_ROLES,
-  parseOrderKind,
-  searchPartnersByRole,
-} from './common';
+import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
 import { searchPartnerOptions } from '@/utils/options';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
@@ -54,10 +50,7 @@ import {
 } from './order-detail-transitions';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
-import {
-  getAirTemplateSections,
-  getSeaTemplateSections,
-} from './templates';
+import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
@@ -125,8 +118,9 @@ export default function OrderDetailPage() {
     }
   };
 
-  const [lockState, setLockState] =
-    useState<API.OrderLockStateData | null>(null);
+  const [lockState, setLockState] = useState<API.OrderLockStateData | null>(
+    null,
+  );
 
   const loadLockState = async () => {
     if (
@@ -186,6 +180,11 @@ export default function OrderDetailPage() {
     }
   }, [initialValues]);
 
+  // 海运出口订单在锁状态尚未成功加载时保持失败关闭，避免请求异常时误开放写入口。
+  const businessWritesDisabled =
+    config.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
+    (!lockState || lockState.isLocked === true);
+
   // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
   const templateProps = useMemo(
     () => ({
@@ -206,13 +205,14 @@ export default function OrderDetailPage() {
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      searchIssuers: (keyword?: string) =>
-        searchPartnerOptions(keyword),
+      searchIssuers: (keyword?: string) => searchPartnerOptions(keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: async () => {},
       checkInternalReferenceNo: async () => {},
       personnelOptions,
+      readonly: businessWritesDisabled,
+      onOrderDataChanged: loadData,
     }),
     [
       serviceTypeOptions,
@@ -222,6 +222,8 @@ export default function OrderDetailPage() {
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
+      businessWritesDisabled,
+      loadData,
     ],
   );
 
@@ -328,26 +330,11 @@ export default function OrderDetailPage() {
   const hasAction = (action: number) =>
     order.allowedActions?.includes(action) === true;
 
-  // 海运出口订单在锁状态尚未成功加载时保持失败关闭，避免请求异常时误开放写入口。
-  const businessWritesDisabled =
-    config.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
-    (!lockState || lockState.isLocked === true);
-
   const confirmTermination = (targetStatus: number) =>
-    confirmOrderTermination(
-      { modal, message },
-      order,
-      targetStatus,
-      loadData,
-    );
+    confirmOrderTermination({ modal, message }, order, targetStatus, loadData);
 
   const confirmClosure = (targetStatus: number) =>
-    confirmOrderClosure(
-      { modal, message },
-      order,
-      targetStatus,
-      loadData,
-    );
+    confirmOrderClosure({ modal, message }, order, targetStatus, loadData);
 
   const moreMenuItems: MenuProps['items'] = [
     {
@@ -436,9 +423,7 @@ export default function OrderDetailPage() {
             onConfirmTermination={confirmTermination}
             onConfirmClosure={confirmClosure}
             onOpenReleasePod={() => releasePodPanelRef.current?.open(order)}
-            onOpenAbnormalCase={() =>
-              abnormalCasePanelRef.current?.open(order)
-            }
+            onOpenAbnormalCase={() => abnormalCasePanelRef.current?.open(order)}
             onOpenSplit={() =>
               history.push(`/orders/sea-export/${orderId}/split`)
             }

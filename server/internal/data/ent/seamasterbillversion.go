@@ -73,6 +73,10 @@ type SeaMasterBillVersion struct {
 	Reason *string `json:"reason,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy *uuid.UUID `json:"created_by,omitempty"`
+	// IdempotencyKey holds the value of the "idempotency_key" field.
+	IdempotencyKey *string `json:"idempotency_key,omitempty"`
+	// RequestFingerprint holds the value of the "request_fingerprint" field.
+	RequestFingerprint *string `json:"request_fingerprint,omitempty"`
 	// ShipperText holds the value of the "shipper_text" field.
 	ShipperText *string `json:"shipper_text,omitempty"`
 	// ConsigneeText holds the value of the "consignee_text" field.
@@ -125,9 +129,11 @@ type SeaMasterBillVersionEdges struct {
 	LockRecords []*OrderLockRecord `json:"lock_records,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
 	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
+	// PreviousVoidEvents holds the value of the previous_void_events edge.
+	PreviousVoidEvents []*SeaDocumentVoidEvent `json:"previous_void_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -203,6 +209,15 @@ func (e SeaMasterBillVersionEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, e
 	return nil, &NotLoadedError{edge: "void_events"}
 }
 
+// PreviousVoidEventsOrErr returns the PreviousVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillVersionEdges) PreviousVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[7] {
+		return e.PreviousVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "previous_void_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -214,7 +229,7 @@ func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seamasterbillversion.FieldVersionNo, seamasterbillversion.FieldSourceEntityVersion, seamasterbillversion.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldVesselVoyageSnapshot, seamasterbillversion.FieldEtdSnapshot, seamasterbillversion.FieldEtaSnapshot, seamasterbillversion.FieldVesselName, seamasterbillversion.FieldVoyageNo, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses:
+		case seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldVesselVoyageSnapshot, seamasterbillversion.FieldEtdSnapshot, seamasterbillversion.FieldEtaSnapshot, seamasterbillversion.FieldVesselName, seamasterbillversion.FieldVoyageNo, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldIdempotencyKey, seamasterbillversion.FieldRequestFingerprint, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses:
 			values[i] = new(sql.NullString)
 		case seamasterbillversion.FieldCreatedAt, seamasterbillversion.FieldEtd, seamasterbillversion.FieldEta:
 			values[i] = new(sql.NullTime)
@@ -402,6 +417,20 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 				_m.CreatedBy = new(uuid.UUID)
 				*_m.CreatedBy = *value.S.(*uuid.UUID)
 			}
+		case seamasterbillversion.FieldIdempotencyKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
+			} else if value.Valid {
+				_m.IdempotencyKey = new(string)
+				*_m.IdempotencyKey = value.String
+			}
+		case seamasterbillversion.FieldRequestFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_fingerprint", values[i])
+			} else if value.Valid {
+				_m.RequestFingerprint = new(string)
+				*_m.RequestFingerprint = value.String
+			}
 		case seamasterbillversion.FieldShipperText:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field shipper_text", values[i])
@@ -555,6 +584,11 @@ func (_m *SeaMasterBillVersion) QueryVoidEvents() *SeaDocumentVoidEventQuery {
 	return NewSeaMasterBillVersionClient(_m.config).QueryVoidEvents(_m)
 }
 
+// QueryPreviousVoidEvents queries the "previous_void_events" edge of the SeaMasterBillVersion entity.
+func (_m *SeaMasterBillVersion) QueryPreviousVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewSeaMasterBillVersionClient(_m.config).QueryPreviousVoidEvents(_m)
+}
+
 // Update returns a builder for updating this SeaMasterBillVersion.
 // Note that you need to call SeaMasterBillVersion.Unwrap() before calling this method if this SeaMasterBillVersion
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -673,6 +707,16 @@ func (_m *SeaMasterBillVersion) String() string {
 	if v := _m.CreatedBy; v != nil {
 		builder.WriteString("created_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.IdempotencyKey; v != nil {
+		builder.WriteString("idempotency_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RequestFingerprint; v != nil {
+		builder.WriteString("request_fingerprint=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.ShipperText; v != nil {

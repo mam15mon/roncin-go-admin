@@ -53,7 +53,7 @@ func (SeaHouseBillSwitchEvent) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "idempotency_key").Unique().StorageKey("sea_hbl_switch_idempotency_key"),
 		index.Fields("old_house_bill_id").Unique().StorageKey("sea_hbl_switch_old_hbl_unique"),
-		index.Fields("chain_id", "sequence"),
+		index.Fields("chain_id", "sequence").Unique(),
 		index.Fields("organization_id", "order_id"),
 	}
 }

@@ -27,18 +27,20 @@ import (
 // SeaDocumentVoidEventQuery is the builder for querying SeaDocumentVoidEvent entities.
 type SeaDocumentVoidEventQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []seadocumentvoidevent.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.SeaDocumentVoidEvent
-	withOrganization      *OrganizationQuery
-	withOrder             *OrderQuery
-	withMasterBill        *SeaMasterBillQuery
-	withMasterBillVersion *SeaMasterBillVersionQuery
-	withHouseBill         *SeaHouseBillQuery
-	withHouseBillVersion  *SeaHouseBillVersionQuery
-	withCreator           *UserQuery
-	modifiers             []func(*sql.Selector)
+	ctx                           *QueryContext
+	order                         []seadocumentvoidevent.OrderOption
+	inters                        []Interceptor
+	predicates                    []predicate.SeaDocumentVoidEvent
+	withOrganization              *OrganizationQuery
+	withOrder                     *OrderQuery
+	withMasterBill                *SeaMasterBillQuery
+	withMasterBillVersion         *SeaMasterBillVersionQuery
+	withPreviousMasterBillVersion *SeaMasterBillVersionQuery
+	withHouseBill                 *SeaHouseBillQuery
+	withHouseBillVersion          *SeaHouseBillVersionQuery
+	withPreviousHouseBillVersion  *SeaHouseBillVersionQuery
+	withCreator                   *UserQuery
+	modifiers                     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -163,6 +165,28 @@ func (_q *SeaDocumentVoidEventQuery) QueryMasterBillVersion() *SeaMasterBillVers
 	return query
 }
 
+// QueryPreviousMasterBillVersion chains the current query on the "previous_master_bill_version" edge.
+func (_q *SeaDocumentVoidEventQuery) QueryPreviousMasterBillVersion() *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, selector),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.PreviousMasterBillVersionTable, seadocumentvoidevent.PreviousMasterBillVersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryHouseBill chains the current query on the "house_bill" edge.
 func (_q *SeaDocumentVoidEventQuery) QueryHouseBill() *SeaHouseBillQuery {
 	query := (&SeaHouseBillClient{config: _q.config}).Query()
@@ -200,6 +224,28 @@ func (_q *SeaDocumentVoidEventQuery) QueryHouseBillVersion() *SeaHouseBillVersio
 			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, selector),
 			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.HouseBillVersionTable, seadocumentvoidevent.HouseBillVersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPreviousHouseBillVersion chains the current query on the "previous_house_bill_version" edge.
+func (_q *SeaDocumentVoidEventQuery) QueryPreviousHouseBillVersion() *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, selector),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.PreviousHouseBillVersionTable, seadocumentvoidevent.PreviousHouseBillVersionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -416,18 +462,20 @@ func (_q *SeaDocumentVoidEventQuery) Clone() *SeaDocumentVoidEventQuery {
 		return nil
 	}
 	return &SeaDocumentVoidEventQuery{
-		config:                _q.config,
-		ctx:                   _q.ctx.Clone(),
-		order:                 append([]seadocumentvoidevent.OrderOption{}, _q.order...),
-		inters:                append([]Interceptor{}, _q.inters...),
-		predicates:            append([]predicate.SeaDocumentVoidEvent{}, _q.predicates...),
-		withOrganization:      _q.withOrganization.Clone(),
-		withOrder:             _q.withOrder.Clone(),
-		withMasterBill:        _q.withMasterBill.Clone(),
-		withMasterBillVersion: _q.withMasterBillVersion.Clone(),
-		withHouseBill:         _q.withHouseBill.Clone(),
-		withHouseBillVersion:  _q.withHouseBillVersion.Clone(),
-		withCreator:           _q.withCreator.Clone(),
+		config:                        _q.config,
+		ctx:                           _q.ctx.Clone(),
+		order:                         append([]seadocumentvoidevent.OrderOption{}, _q.order...),
+		inters:                        append([]Interceptor{}, _q.inters...),
+		predicates:                    append([]predicate.SeaDocumentVoidEvent{}, _q.predicates...),
+		withOrganization:              _q.withOrganization.Clone(),
+		withOrder:                     _q.withOrder.Clone(),
+		withMasterBill:                _q.withMasterBill.Clone(),
+		withMasterBillVersion:         _q.withMasterBillVersion.Clone(),
+		withPreviousMasterBillVersion: _q.withPreviousMasterBillVersion.Clone(),
+		withHouseBill:                 _q.withHouseBill.Clone(),
+		withHouseBillVersion:          _q.withHouseBillVersion.Clone(),
+		withPreviousHouseBillVersion:  _q.withPreviousHouseBillVersion.Clone(),
+		withCreator:                   _q.withCreator.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -478,6 +526,17 @@ func (_q *SeaDocumentVoidEventQuery) WithMasterBillVersion(opts ...func(*SeaMast
 	return _q
 }
 
+// WithPreviousMasterBillVersion tells the query-builder to eager-load the nodes that are connected to
+// the "previous_master_bill_version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaDocumentVoidEventQuery) WithPreviousMasterBillVersion(opts ...func(*SeaMasterBillVersionQuery)) *SeaDocumentVoidEventQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPreviousMasterBillVersion = query
+	return _q
+}
+
 // WithHouseBill tells the query-builder to eager-load the nodes that are connected to
 // the "house_bill" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *SeaDocumentVoidEventQuery) WithHouseBill(opts ...func(*SeaHouseBillQuery)) *SeaDocumentVoidEventQuery {
@@ -497,6 +556,17 @@ func (_q *SeaDocumentVoidEventQuery) WithHouseBillVersion(opts ...func(*SeaHouse
 		opt(query)
 	}
 	_q.withHouseBillVersion = query
+	return _q
+}
+
+// WithPreviousHouseBillVersion tells the query-builder to eager-load the nodes that are connected to
+// the "previous_house_bill_version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaDocumentVoidEventQuery) WithPreviousHouseBillVersion(opts ...func(*SeaHouseBillVersionQuery)) *SeaDocumentVoidEventQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPreviousHouseBillVersion = query
 	return _q
 }
 
@@ -589,13 +659,15 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*SeaDocumentVoidEvent{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withMasterBill != nil,
 			_q.withMasterBillVersion != nil,
+			_q.withPreviousMasterBillVersion != nil,
 			_q.withHouseBill != nil,
 			_q.withHouseBillVersion != nil,
+			_q.withPreviousHouseBillVersion != nil,
 			_q.withCreator != nil,
 		}
 	)
@@ -644,6 +716,12 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 			return nil, err
 		}
 	}
+	if query := _q.withPreviousMasterBillVersion; query != nil {
+		if err := _q.loadPreviousMasterBillVersion(ctx, query, nodes, nil,
+			func(n *SeaDocumentVoidEvent, e *SeaMasterBillVersion) { n.Edges.PreviousMasterBillVersion = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withHouseBill; query != nil {
 		if err := _q.loadHouseBill(ctx, query, nodes, nil,
 			func(n *SeaDocumentVoidEvent, e *SeaHouseBill) { n.Edges.HouseBill = e }); err != nil {
@@ -653,6 +731,12 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if query := _q.withHouseBillVersion; query != nil {
 		if err := _q.loadHouseBillVersion(ctx, query, nodes, nil,
 			func(n *SeaDocumentVoidEvent, e *SeaHouseBillVersion) { n.Edges.HouseBillVersion = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPreviousHouseBillVersion; query != nil {
+		if err := _q.loadPreviousHouseBillVersion(ctx, query, nodes, nil,
+			func(n *SeaDocumentVoidEvent, e *SeaHouseBillVersion) { n.Edges.PreviousHouseBillVersion = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -698,10 +782,7 @@ func (_q *SeaDocumentVoidEventQuery) loadOrder(ctx context.Context, query *Order
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*SeaDocumentVoidEvent)
 	for i := range nodes {
-		if nodes[i].OrderID == nil {
-			continue
-		}
-		fk := *nodes[i].OrderID
+		fk := nodes[i].OrderID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -790,6 +871,38 @@ func (_q *SeaDocumentVoidEventQuery) loadMasterBillVersion(ctx context.Context, 
 	}
 	return nil
 }
+func (_q *SeaDocumentVoidEventQuery) loadPreviousMasterBillVersion(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*SeaDocumentVoidEvent, init func(*SeaDocumentVoidEvent), assign func(*SeaDocumentVoidEvent, *SeaMasterBillVersion)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaDocumentVoidEvent)
+	for i := range nodes {
+		if nodes[i].PreviousMasterBillVersionID == nil {
+			continue
+		}
+		fk := *nodes[i].PreviousMasterBillVersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seamasterbillversion.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "previous_master_bill_version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *SeaDocumentVoidEventQuery) loadHouseBill(ctx context.Context, query *SeaHouseBillQuery, nodes []*SeaDocumentVoidEvent, init func(*SeaDocumentVoidEvent), assign func(*SeaDocumentVoidEvent, *SeaHouseBill)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*SeaDocumentVoidEvent)
@@ -847,6 +960,38 @@ func (_q *SeaDocumentVoidEventQuery) loadHouseBillVersion(ctx context.Context, q
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "house_bill_version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *SeaDocumentVoidEventQuery) loadPreviousHouseBillVersion(ctx context.Context, query *SeaHouseBillVersionQuery, nodes []*SeaDocumentVoidEvent, init func(*SeaDocumentVoidEvent), assign func(*SeaDocumentVoidEvent, *SeaHouseBillVersion)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaDocumentVoidEvent)
+	for i := range nodes {
+		if nodes[i].PreviousHouseBillVersionID == nil {
+			continue
+		}
+		fk := *nodes[i].PreviousHouseBillVersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seahousebillversion.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "previous_house_bill_version_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -924,11 +1069,17 @@ func (_q *SeaDocumentVoidEventQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withMasterBillVersion != nil {
 			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldMasterBillVersionID)
 		}
+		if _q.withPreviousMasterBillVersion != nil {
+			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+		}
 		if _q.withHouseBill != nil {
 			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldHouseBillID)
 		}
 		if _q.withHouseBillVersion != nil {
 			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldHouseBillVersionID)
+		}
+		if _q.withPreviousHouseBillVersion != nil {
+			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldPreviousHouseBillVersionID)
 		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldCreatedBy)

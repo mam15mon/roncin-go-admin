@@ -59,7 +59,8 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			tableName: "sea_document_void_events",
 			table:     SeaDocumentVoidEventsTable,
 			expectedChecks: map[string]string{
-				"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND house_bill_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND master_bill_id IS NULL))",
+				"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND previous_master_bill_version_id IS NOT NULL AND house_bill_id IS NULL AND house_bill_version_id IS NULL AND previous_house_bill_version_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND house_bill_version_id IS NOT NULL AND previous_house_bill_version_id IS NOT NULL AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND previous_master_bill_version_id IS NULL))",
+				"sea_document_void_events_status_check":        "voided_status = 'VOIDED'",
 			},
 		},
 		{

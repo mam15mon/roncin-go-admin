@@ -2720,12 +2720,9 @@ func (_q *OrderQuery) loadSeaDocumentVoidEvents(ctx context.Context, query *SeaD
 	}
 	for _, n := range neighbors {
 		fk := n.OrderID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "order_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -311,6 +311,8 @@ const (
 	SeaHouseBillStatusDraft     SeaHouseBillStatus = "DRAFT"
 	SeaHouseBillStatusConfirmed SeaHouseBillStatus = "CONFIRMED"
 	SeaHouseBillStatusReleased  SeaHouseBillStatus = "RELEASED"
+	SeaHouseBillStatusVoided    SeaHouseBillStatus = "VOIDED"
+	SeaHouseBillStatusReplaced  SeaHouseBillStatus = "REPLACED"
 )
 
 func (s SeaHouseBillStatus) Valid() bool {
@@ -362,6 +364,8 @@ type SeaHouseBill struct {
 	IssuerPartnerName      string
 	Status                 SeaHouseBillStatus
 	Version                uint64
+	CurrentVersionID       *uuid.UUID
+	ImmutableVersionCount  int
 	Note                   *string
 	Content                *SeaBillContent
 	CreatedAt              time.Time
@@ -381,14 +385,16 @@ type SeaHouseBillInput struct {
 
 // SeaMasterBillDetail 海运主单内容详情。
 type SeaMasterBillDetail struct {
-	ID                uuid.UUID
-	MasterNo          string
-	IssuerPartnerID   uuid.UUID
-	IssuerPartnerName string
-	Status            string
-	Version           uint64
-	Content           *SeaBillContent
-	MemberCount       int
+	ID                    uuid.UUID
+	MasterNo              string
+	IssuerPartnerID       uuid.UUID
+	IssuerPartnerName     string
+	Status                string
+	Version               uint64
+	CurrentVersionID      *uuid.UUID
+	ImmutableVersionCount int
+	Content               *SeaBillContent
+	MemberCount           int
 }
 
 // SeaOrderDocumentSummary 订单中的海运单证摘要。

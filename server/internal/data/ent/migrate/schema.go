@@ -5080,12 +5080,16 @@ var (
 		{Name: "voided_status", Type: field.TypeString, Size: 32},
 		{Name: "reason", Type: field.TypeString, Size: 500},
 		{Name: "impact_summary", Type: field.TypeString, Nullable: true, Size: 1000},
-		{Name: "order_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
+		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "house_bill_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "house_bill_version_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "previous_house_bill_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "master_bill_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "master_bill_version_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "previous_master_bill_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID},
 	}
 	// SeaDocumentVoidEventsTable holds the schema information for the "sea_document_void_events" table.
@@ -5096,43 +5100,55 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_document_void_events_orders_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[7]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[9]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_organizations_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[8]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_house_bills_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[9]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[11]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_house_bill_versions_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[10]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[12]},
 				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_document_void_events_sea_house_bill_versions_previous_void_events",
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[13]},
+				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_master_bills_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[11]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[14]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_master_bill_versions_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[12]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[15]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_document_void_events_sea_master_bill_versions_previous_void_events",
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[16]},
+				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_users_created_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[13]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[17]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5141,17 +5157,22 @@ var (
 			{
 				Name:    "seadocumentvoidevent_organization_id_document_type",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[8], SeaDocumentVoidEventsColumns[2]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[2]},
 			},
 			{
 				Name:    "seadocumentvoidevent_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[8], SeaDocumentVoidEventsColumns[11]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[14]},
 			},
 			{
 				Name:    "seadocumentvoidevent_organization_id_house_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[8], SeaDocumentVoidEventsColumns[9]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[11]},
+			},
+			{
+				Name:    "sea_document_void_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[7]},
 			},
 		},
 	}
@@ -5353,7 +5374,7 @@ var (
 			},
 			{
 				Name:    "seahousebillswitchevent_chain_id_sequence",
-				Unique:  false,
+				Unique:  true,
 				Columns: []*schema.Column{SeaHouseBillSwitchEventsColumns[2], SeaHouseBillSwitchEventsColumns[3]},
 			},
 			{
@@ -5377,6 +5398,8 @@ var (
 		{Name: "content_hash", Type: field.TypeString, Size: 64},
 		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID"}},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -5408,43 +5431,43 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_house_bill_versions_orders_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[27]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[29]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_organizations_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[28]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[30]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_organizations_issued_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[29]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[31]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_partners_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[30]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[32]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_house_bills_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[31]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_master_bills_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[32]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_users_created_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5453,22 +5476,27 @@ var (
 			{
 				Name:    "sea_hbl_version_house_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[31], SeaHouseBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[33], SeaHouseBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_hbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[31], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[33], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_house_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[28], SeaHouseBillVersionsColumns[31]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[33]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[28], SeaHouseBillVersionsColumns[27]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[29]},
+			},
+			{
+				Name:    "sea_hbl_version_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[12]},
 			},
 		},
 	}
@@ -5643,6 +5671,8 @@ var (
 		{Name: "content_hash", Type: field.TypeString, Size: 64},
 		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID"}},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -5672,31 +5702,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_versions_organizations_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[36]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[38]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_partners_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[37]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[39]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_sea_master_bills_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[38]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[40]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_sea_transport_executions_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[39]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[41]},
 				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_users_created_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[40]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[42]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5705,17 +5735,22 @@ var (
 			{
 				Name:    "sea_mbl_version_master_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[40], SeaMasterBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_mbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[18]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[40], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[18]},
 			},
 			{
 				Name:    "seamasterbillversion_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[36], SeaMasterBillVersionsColumns[38]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[40]},
+			},
+			{
+				Name:    "sea_mbl_version_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[21]},
 			},
 		},
 	}
@@ -6578,12 +6613,15 @@ func init() {
 	SeaDocumentVoidEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaDocumentVoidEventsTable.ForeignKeys[2].RefTable = SeaHouseBillsTable
 	SeaDocumentVoidEventsTable.ForeignKeys[3].RefTable = SeaHouseBillVersionsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[4].RefTable = SeaMasterBillsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[5].RefTable = SeaMasterBillVersionsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[6].RefTable = UsersTable
+	SeaDocumentVoidEventsTable.ForeignKeys[4].RefTable = SeaHouseBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[5].RefTable = SeaMasterBillsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[6].RefTable = SeaMasterBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[7].RefTable = SeaMasterBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[8].RefTable = UsersTable
 	SeaDocumentVoidEventsTable.Annotation = &entsql.Annotation{}
 	SeaDocumentVoidEventsTable.Annotation.Checks = map[string]string{
-		"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND house_bill_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND master_bill_id IS NULL))",
+		"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND previous_master_bill_version_id IS NOT NULL AND house_bill_id IS NULL AND house_bill_version_id IS NULL AND previous_house_bill_version_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND house_bill_version_id IS NOT NULL AND previous_house_bill_version_id IS NOT NULL AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND previous_master_bill_version_id IS NULL))",
+		"sea_document_void_events_status_check":        "voided_status = 'VOIDED'",
 	}
 	SeaHouseBillsTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaHouseBillsTable.ForeignKeys[1].RefTable = OrganizationsTable
