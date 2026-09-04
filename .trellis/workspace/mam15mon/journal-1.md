@@ -388,3 +388,28 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 15: 完成海运出口单证版本与换单
+<!-- trellis-session: v=2 fp=1bb65d277d1df95d -->
+
+**Date**: 2026-09-04
+**Task**: 完成海运出口单证版本与换单
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成钉钉订单解锁审批、海运 MBL/HBL 单改作废与 Switch 不可变历史，修复并发锁序、财务门禁和终态绕过问题，通过服务端、前端、真实 PostgreSQL、迁移、生成幂等及漏洞检查，并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4761ee45` | feat: 接入钉钉订单解锁审批 |
+| `d53bef83` | feat: 增加海运提单改单作废与换单 |
+| `af0f84fe` | docs: 沉淀海运提单变更历史契约 |
+
+### Status
+
+[OK] **Completed**
