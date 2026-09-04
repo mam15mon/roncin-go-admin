@@ -10,6 +10,7 @@
 | [Directory Structure](./directory-structure.md) | 分层职责与依赖方向 | ✅ |
 | [Database Guidelines](./database-guidelines.md) | Ent、事务封装、并发锁、分页 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
+| [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |
@@ -23,6 +24,7 @@
 3. 是否需要事务 / 并发防护；新实体是否需要 `version` 字段（判定不清先问用户）。
 4. 列表接口分页是否复用 `internal/biz` 公共校验（`1 <= pageSize <= 200`）。
 5. 新增权限码是否登记 `internal/access/manifest.go` 并重新生成前端权限键。
+6. 订单锁、解锁或共享 MBL 写入是否遵循不可变版本与固定锁序规范。
 
 ## Quality Check
 
