@@ -54,6 +54,9 @@ func TestOrderAbnormalCaseRepo_Mark_UniqueConstraintMapping(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// Query existing case
 	mock.ExpectQuery(`SELECT "order_abnormal_cases"\."id".*FOR UPDATE`).
@@ -98,6 +101,9 @@ func TestOrderAbnormalCaseRepo_Mark_AuditErrorRollsBack(t *testing.T) {
 		WithArgs(caseID, orgID, "abnormal_case").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 	mock.ExpectQuery(`SELECT "order_abnormal_cases"\."id".*FOR UPDATE`).
 		WithArgs(orderID, caseID).
 		WillReturnRows(sqlmock.NewRows(orderabnormalcaseent.Columns))

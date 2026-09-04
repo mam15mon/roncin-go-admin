@@ -192,13 +192,12 @@ describe('海运订单新增模板', () => {
       personnelOptions: [],
     });
 
+    const basicInfo = sections.find((s) => s.key === 'basicInfo');
     render(
       <ProForm submitter={false}>
-        {sections.map((section) => (
-          <div key={section.key} data-testid={`section-${section.key}`}>
-            {section.content}
-          </div>
-        ))}
+        <div data-testid="section-basicInfo">
+          {basicInfo?.content}
+        </div>
       </ProForm>,
     );
 

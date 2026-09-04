@@ -34,6 +34,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
@@ -63,6 +65,8 @@ type PartnerQuery struct {
 	withOrderCommissionAttributions *OrderCommissionAttributionQuery
 	withIssuedSeaHouseBills         *SeaHouseBillQuery
 	withSeaOrderReassignments       *SeaOrderReassignmentEventQuery
+	withSeaMasterBillVersions       *SeaMasterBillVersionQuery
+	withSeaHouseBillVersions        *SeaHouseBillVersionQuery
 	modifiers                       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -518,6 +522,50 @@ func (_q *PartnerQuery) QuerySeaOrderReassignments() *SeaOrderReassignmentEventQ
 	return query
 }
 
+// QuerySeaMasterBillVersions chains the current query on the "sea_master_bill_versions" edge.
+func (_q *PartnerQuery) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaMasterBillVersionsTable, partner.SeaMasterBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions chains the current query on the "sea_house_bill_versions" edge.
+func (_q *PartnerQuery) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaHouseBillVersionsTable, partner.SeaHouseBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Partner entity from the query.
 // Returns a *NotFoundError when no Partner was found.
 func (_q *PartnerQuery) First(ctx context.Context) (*Partner, error) {
@@ -729,6 +777,8 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withOrderCommissionAttributions: _q.withOrderCommissionAttributions.Clone(),
 		withIssuedSeaHouseBills:         _q.withIssuedSeaHouseBills.Clone(),
 		withSeaOrderReassignments:       _q.withSeaOrderReassignments.Clone(),
+		withSeaMasterBillVersions:       _q.withSeaMasterBillVersions.Clone(),
+		withSeaHouseBillVersions:        _q.withSeaHouseBillVersions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -944,6 +994,28 @@ func (_q *PartnerQuery) WithSeaOrderReassignments(opts ...func(*SeaOrderReassign
 	return _q
 }
 
+// WithSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *PartnerQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaMasterBillVersions = query
+	return _q
+}
+
+// WithSeaHouseBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithSeaHouseBillVersions(opts ...func(*SeaHouseBillVersionQuery)) *PartnerQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBillVersions = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1022,7 +1094,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [19]bool{
+		loadedTypes = [21]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -1042,6 +1114,8 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withOrderCommissionAttributions != nil,
 			_q.withIssuedSeaHouseBills != nil,
 			_q.withSeaOrderReassignments != nil,
+			_q.withSeaMasterBillVersions != nil,
+			_q.withSeaHouseBillVersions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1204,6 +1278,24 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			func(n *Partner) { n.Edges.SeaOrderReassignments = []*SeaOrderReassignmentEvent{} },
 			func(n *Partner, e *SeaOrderReassignmentEvent) {
 				n.Edges.SeaOrderReassignments = append(n.Edges.SeaOrderReassignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaMasterBillVersions; query != nil {
+		if err := _q.loadSeaMasterBillVersions(ctx, query, nodes,
+			func(n *Partner) { n.Edges.SeaMasterBillVersions = []*SeaMasterBillVersion{} },
+			func(n *Partner, e *SeaMasterBillVersion) {
+				n.Edges.SeaMasterBillVersions = append(n.Edges.SeaMasterBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBillVersions; query != nil {
+		if err := _q.loadSeaHouseBillVersions(ctx, query, nodes,
+			func(n *Partner) { n.Edges.SeaHouseBillVersions = []*SeaHouseBillVersion{} },
+			func(n *Partner, e *SeaHouseBillVersion) {
+				n.Edges.SeaHouseBillVersions = append(n.Edges.SeaHouseBillVersions, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1778,6 +1870,69 @@ func (_q *PartnerQuery) loadSeaOrderReassignments(ctx context.Context, query *Se
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "responsible_partner_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadSeaMasterBillVersions(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *SeaMasterBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillversion.FieldIssuerPartnerID)
+	}
+	query.Where(predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.SeaMasterBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuerPartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issuer_partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadSeaHouseBillVersions(ctx context.Context, query *SeaHouseBillVersionQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *SeaHouseBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebillversion.FieldIssuerPartnerID)
+	}
+	query.Where(predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.SeaHouseBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuerPartnerID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "issuer_partner_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issuer_partner_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

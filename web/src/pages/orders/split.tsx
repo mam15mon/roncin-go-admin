@@ -29,7 +29,7 @@ import type { DefaultOptionType } from 'antd/es/select';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
@@ -159,6 +159,7 @@ export default function SeaOrderSplitPage() {
   const [attAssignments, setAttAssignments] = useState<
     Record<string, string[]>
   >({}); // attId -> resultKeys[]
+  const initialPreviewTriggeredRef = useRef(false);
   const [note, setNote] = useState<string>('');
 
   // 预览与校验结果
@@ -434,6 +435,11 @@ export default function SeaOrderSplitPage() {
   // 依赖变化时防抖预览
   useEffect(() => {
     if (splitContext && results.length >= 2) {
+      if (!initialPreviewTriggeredRef.current) {
+        initialPreviewTriggeredRef.current = true;
+        triggerPreview();
+        return undefined;
+      }
       const timer = setTimeout(() => {
         triggerPreview();
       }, 300);
@@ -1334,7 +1340,7 @@ export default function SeaOrderSplitPage() {
                     <div>
                       {previewData.validationErrors.map((err) => (
                         <div key={`${err.reason}-${err.message}`}>
-                          <Text strong>[{err.reason}]</Text> {err.message}
+                          <Text strong>[{err.reason}]</Text> <span>{err.message}</span>
                         </div>
                       ))}
                     </div>

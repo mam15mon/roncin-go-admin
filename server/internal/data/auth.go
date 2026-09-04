@@ -389,7 +389,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		accesses = append(accesses, biz.OrderOrganizationAccess{OrganizationID: organizationID, Writable: writable})
 	}
 	sort.Slice(accesses, func(i, j int) bool { return accesses[i].OrganizationID.String() < accesses[j].OrganizationID.String() })
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
+	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearLoginFailureKey string, audit *biz.AuditEvent) error {

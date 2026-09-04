@@ -29,6 +29,7 @@ import {
   OrderTerminationStatus,
   TradeDirection,
 } from '@/enums.generated';
+import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
@@ -124,9 +125,39 @@ export default function OrderDetailPage() {
     }
   };
 
+  const [lockState, setLockState] =
+    useState<API.OrderLockStateData | null>(null);
+
+  const loadLockState = async () => {
+    if (
+      !orderId ||
+      (config.businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
+        config.category !== 'sea')
+    )
+      return;
+    try {
+      const resp = await orderLockServiceGetOrderLockState({ orderId });
+      if (resp?.data) {
+        setLockState(resp.data);
+      }
+    } catch (error: unknown) {
+      setLockState(null);
+      message.error(
+        error instanceof Error ? error.message : '加载订单锁定状态失败',
+      );
+    }
+  };
+
   useEffect(() => {
     if (orderId && config.category === 'sea') {
       loadChangeActions();
+    }
+    if (
+      orderId &&
+      (config.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+        config.category === 'sea')
+    ) {
+      loadLockState();
     }
   }, [orderId, order?.version]);
 
@@ -297,6 +328,11 @@ export default function OrderDetailPage() {
   const hasAction = (action: number) =>
     order.allowedActions?.includes(action) === true;
 
+  // 海运出口订单在锁状态尚未成功加载时保持失败关闭，避免请求异常时误开放写入口。
+  const businessWritesDisabled =
+    config.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
+    (!lockState || lockState.isLocked === true);
+
   const confirmTermination = (targetStatus: number) =>
     confirmOrderTermination(
       { modal, message },
@@ -318,7 +354,9 @@ export default function OrderDetailPage() {
       key: 'fees-drawer',
       icon: <DollarOutlined />,
       label: '快速费用抽屉',
-      disabled: !access.canOrder(config.businessType, 'fee.read'),
+      disabled:
+        businessWritesDisabled ||
+        !access.canOrder(config.businessType, 'fee.read'),
       onClick: () => orderFeePanelRef.current?.open(order),
     },
     {
@@ -342,7 +380,10 @@ export default function OrderDetailPage() {
       key: 'reload-data',
       icon: <ReloadOutlined />,
       label: '刷新数据',
-      onClick: () => void loadData(),
+      onClick: () => {
+        void loadData();
+        void loadLockState();
+      },
     },
   ];
 
@@ -350,7 +391,10 @@ export default function OrderDetailPage() {
     <>
       <OrderFormTemplate<OrderDetailFormValues>
         loading={false}
-        readonly={!hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT)}
+        readonly={
+          !hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) ||
+          businessWritesDisabled
+        }
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
@@ -362,15 +406,18 @@ export default function OrderDetailPage() {
             businessType={String(config.businessType)}
             order={order}
             saving={saving}
-            canManageFee={access.canOrder(config.businessType, 'fee.read')}
-            canCreatePod={access.canOrder(
-              config.businessType,
-              'release_pod.create',
-            )}
-            canCreateAbnormal={access.canOrder(
-              config.businessType,
-              'abnormal_case.create',
-            )}
+            canManageFee={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'fee.read')
+            }
+            canCreatePod={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'release_pod.create')
+            }
+            canCreateAbnormal={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'abnormal_case.create')
+            }
             canSplit={
               config.category === 'sea' &&
               access.canOrder(config.businessType, 'split')
@@ -396,6 +443,11 @@ export default function OrderDetailPage() {
               history.push(`/orders/sea-export/${orderId}/split`)
             }
             onOpenReassign={() => setReassignModalOpen(true)}
+            lockState={lockState}
+            onRefreshLockState={() => {
+              void loadData();
+              void loadLockState();
+            }}
           />
         }
         prependSections={prependSections}
@@ -410,24 +462,26 @@ export default function OrderDetailPage() {
               </Space>
             }
           >
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
-              <Button
-                icon={<UndoOutlined />}
-                onClick={() => formRef.current?.setFieldsValue(initialValues)}
-              >
-                重置修改
-              </Button>
-            )}
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
-              <Button
-                type="primary"
-                icon={<CheckOutlined />}
-                loading={saving}
-                onClick={() => formRef.current?.submit()}
-              >
-                保存修改
-              </Button>
-            )}
+            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+              !businessWritesDisabled && (
+                <Button
+                  icon={<UndoOutlined />}
+                  onClick={() => formRef.current?.setFieldsValue(initialValues)}
+                >
+                  重置修改
+                </Button>
+              )}
+            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+              !businessWritesDisabled && (
+                <Button
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  loading={saving}
+                  onClick={() => formRef.current?.submit()}
+                >
+                  保存修改
+                </Button>
+              )}
           </StickyFooterBar>
         }
       />
@@ -435,12 +489,18 @@ export default function OrderDetailPage() {
       {/* 挂载功能弹窗 */}
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canOrder(config.businessType, 'release_pod.create')}
+        canManage={
+          !businessWritesDisabled &&
+          access.canOrder(config.businessType, 'release_pod.create')
+        }
       />
       <OrderFeePanel ref={orderFeePanelRef} />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
+        canManage={
+          !businessWritesDisabled &&
+          access.canOrder(config.businessType, 'abnormal_case.create')
+        }
         masterOptions={[]}
       />
 

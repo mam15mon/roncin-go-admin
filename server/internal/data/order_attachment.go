@@ -52,8 +52,12 @@ func (r *orderAttachmentRepo) List(ctx context.Context, organizationID, orderID 
 func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *biz.OrderAttachment, audit *biz.AuditEvent) (*biz.OrderAttachment, error) {
 	var created *ent.OrderAttachment
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); queryErr != nil {
+		order, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderAttachmentNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 		// 1. 查找或创建资产
 		asset, queryErr := tx.OrderAttachmentAsset.Query().
@@ -112,8 +116,12 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 func (r *orderAttachmentRepo) RemoveReference(ctx context.Context, organizationID, actorID, orderID, attachmentID uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		// 1. 验证订单存在且属于该组织并加锁
-		if _, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); err != nil {
+		order, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if err != nil {
 			return mapEntError(err, biz.ErrOrderAttachmentNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 		// 2. 查询目标引用
 		ref, err := tx.OrderAttachment.Query().Where(orderattachmentent.IDEQ(attachmentID), orderattachmentent.OrderIDEQ(orderID)).Only(ctx)

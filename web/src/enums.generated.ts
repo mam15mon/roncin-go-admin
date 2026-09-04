@@ -489,6 +489,8 @@ export const SeaHouseBillStatus = {
   SEA_HOUSE_BILL_STATUS_DRAFT: 1,
   SEA_HOUSE_BILL_STATUS_CONFIRMED: 2,
   SEA_HOUSE_BILL_STATUS_RELEASED: 3,
+  SEA_HOUSE_BILL_STATUS_VOIDED: 4,
+  SEA_HOUSE_BILL_STATUS_REPLACED: 5,
 } as const;
 
 export type SeaHouseBillStatus = (typeof SeaHouseBillStatus)[keyof typeof SeaHouseBillStatus];

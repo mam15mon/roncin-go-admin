@@ -840,6 +840,9 @@ type Security_DingTalk struct {
 	RedirectUri             string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 	CorpId                  string                 `protobuf:"bytes,5,opt,name=corp_id,json=corpId,proto3" json:"corp_id,omitempty"`
 	RegistrationTokenSecret string                 `protobuf:"bytes,6,opt,name=registration_token_secret,json=registrationTokenSecret,proto3" json:"registration_token_secret,omitempty"`
+	ApprovalProcessCode     string                 `protobuf:"bytes,7,opt,name=approval_process_code,json=approvalProcessCode,proto3" json:"approval_process_code,omitempty"`
+	EventToken              string                 `protobuf:"bytes,8,opt,name=event_token,json=eventToken,proto3" json:"event_token,omitempty"`
+	EventAesKey             string                 `protobuf:"bytes,9,opt,name=event_aes_key,json=eventAesKey,proto3" json:"event_aes_key,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -916,6 +919,27 @@ func (x *Security_DingTalk) GetRegistrationTokenSecret() string {
 	return ""
 }
 
+func (x *Security_DingTalk) GetApprovalProcessCode() string {
+	if x != nil {
+		return x.ApprovalProcessCode
+	}
+	return ""
+}
+
+func (x *Security_DingTalk) GetEventToken() string {
+	if x != nil {
+		return x.EventToken
+	}
+	return ""
+}
+
+func (x *Security_DingTalk) GetEventAesKey() string {
+	if x != nil {
+		return x.EventAesKey
+	}
+	return ""
+}
+
 var File_conf_v1_conf_proto protoreflect.FileDescriptor
 
 const file_conf_v1_conf_proto_rawDesc = "" +
@@ -966,7 +990,7 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\n" +
 	"secret_key\x18\x06 \x01(\tR\tsecretKey\x12\x1d\n" +
 	"\n" +
-	"path_style\x18\a \x01(\bR\tpathStyleJ\x04\b\x02\x10\x03R\x05redis\"\xa9\x05\n" +
+	"path_style\x18\a \x01(\bR\tpathStyleJ\x04\b\x02\x10\x03R\x05redis\"\xa2\x06\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x12-\n" +
 	"\x05wecom\x18\x02 \x01(\v2\x17.conf.v1.Security.WeComR\x05wecom\x126\n" +
@@ -982,14 +1006,18 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\acorp_id\x18\x02 \x01(\tR\x06corpId\x12\x19\n" +
 	"\bagent_id\x18\x03 \x01(\x03R\aagentId\x12\x16\n" +
 	"\x06secret\x18\x04 \x01(\tR\x06secret\x12!\n" +
-	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUri\x1a\xde\x01\n" +
+	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUri\x1a\xd7\x02\n" +
 	"\bDingTalk\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12#\n" +
 	"\rclient_secret\x18\x03 \x01(\tR\fclientSecret\x12!\n" +
 	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\x12\x17\n" +
 	"\acorp_id\x18\x05 \x01(\tR\x06corpId\x12:\n" +
-	"\x19registration_token_secret\x18\x06 \x01(\tR\x17registrationTokenSecretB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\x19registration_token_secret\x18\x06 \x01(\tR\x17registrationTokenSecret\x122\n" +
+	"\x15approval_process_code\x18\a \x01(\tR\x13approvalProcessCode\x12\x1f\n" +
+	"\vevent_token\x18\b \x01(\tR\n" +
+	"eventToken\x12\"\n" +
+	"\revent_aes_key\x18\t \x01(\tR\veventAesKeyB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_v1_conf_proto_rawDescOnce sync.Once

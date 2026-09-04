@@ -223,6 +223,9 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrOrderBusinessUnsupported
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		// 定位活动 link
 		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
@@ -341,6 +344,9 @@ func (r *seaDocumentRepo) CancelSeaOrderDirect(ctx context.Context, organization
 		}
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrOrderBusinessUnsupported
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
@@ -587,6 +593,9 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
 			Where(
@@ -718,12 +727,15 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		// 1. 固定锁顺序：Order
-		_, queryErr := tx.Order.Query().
+		order, queryErr := tx.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
@@ -857,18 +869,6 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 	var mblID uuid.UUID
 
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		// 1. 固定锁顺序：Order
-		order, queryErr := tx.Order.Query().
-			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
-			ForUpdate().
-			Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
-		}
-		if order.BusinessType != orderent.BusinessTypeSE {
-			return biz.ErrOrderBusinessUnsupported
-		}
-
 		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
 			Where(
 				seamasterbillorderlink.OrganizationIDEQ(organizationID),
@@ -883,7 +883,25 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 			return queryErr
 		}
 
-		// 2. 固定锁顺序：MasterBill
+		if err := ensureSharedMBLNotLocked(ctx, tx, activeLinkQuery.MasterBillID); err != nil {
+			return err
+		}
+		// ensureSharedMBLNotLocked 已按 UUID 顺序锁定全部活动成员 Order；此处重读并校验调用订单。
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if order.BusinessType != orderent.BusinessTypeSE {
+			return biz.ErrOrderBusinessUnsupported
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
+		// 2. 固定锁顺序：全部成员 Order → MasterBill
 		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),

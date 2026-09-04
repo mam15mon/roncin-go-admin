@@ -102,6 +102,10 @@ const (
 	FieldClosedBy = "closed_by"
 	// FieldLockedAt holds the string denoting the locked_at field in the database.
 	FieldLockedAt = "locked_at"
+	// FieldLockedBy holds the string denoting the locked_by field in the database.
+	FieldLockedBy = "locked_by"
+	// FieldLockGeneration holds the string denoting the lock_generation field in the database.
+	FieldLockGeneration = "lock_generation"
 	// FieldIsShared holds the string denoting the is_shared field in the database.
 	FieldIsShared = "is_shared"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -202,6 +206,18 @@ const (
 	EdgeSeaOrderSplitResults = "sea_order_split_results"
 	// EdgeSeaOrderReassignmentEvents holds the string denoting the sea_order_reassignment_events edge name in mutations.
 	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
+	// EdgeLockedByUser holds the string denoting the locked_by_user edge name in mutations.
+	EdgeLockedByUser = "locked_by_user"
+	// EdgeLockRecords holds the string denoting the lock_records edge name in mutations.
+	EdgeLockRecords = "lock_records"
+	// EdgeUnlockRequests holds the string denoting the unlock_requests edge name in mutations.
+	EdgeUnlockRequests = "unlock_requests"
+	// EdgeSeaHouseBillVersions holds the string denoting the sea_house_bill_versions edge name in mutations.
+	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
+	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
+	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
+	// EdgeSeaHouseBillSwitchEvents holds the string denoting the sea_house_bill_switch_events edge name in mutations.
+	EdgeSeaHouseBillSwitchEvents = "sea_house_bill_switch_events"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -386,6 +402,48 @@ const (
 	SeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
 	// SeaOrderReassignmentEventsColumn is the table column denoting the sea_order_reassignment_events relation/edge.
 	SeaOrderReassignmentEventsColumn = "order_id"
+	// LockedByUserTable is the table that holds the locked_by_user relation/edge.
+	LockedByUserTable = "orders"
+	// LockedByUserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	LockedByUserInverseTable = "users"
+	// LockedByUserColumn is the table column denoting the locked_by_user relation/edge.
+	LockedByUserColumn = "locked_by"
+	// LockRecordsTable is the table that holds the lock_records relation/edge.
+	LockRecordsTable = "order_lock_records"
+	// LockRecordsInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	LockRecordsInverseTable = "order_lock_records"
+	// LockRecordsColumn is the table column denoting the lock_records relation/edge.
+	LockRecordsColumn = "order_id"
+	// UnlockRequestsTable is the table that holds the unlock_requests relation/edge.
+	UnlockRequestsTable = "order_unlock_requests"
+	// UnlockRequestsInverseTable is the table name for the OrderUnlockRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderunlockrequest" package.
+	UnlockRequestsInverseTable = "order_unlock_requests"
+	// UnlockRequestsColumn is the table column denoting the unlock_requests relation/edge.
+	UnlockRequestsColumn = "order_id"
+	// SeaHouseBillVersionsTable is the table that holds the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	SeaHouseBillVersionsInverseTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsColumn is the table column denoting the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsColumn = "order_id"
+	// SeaDocumentVoidEventsTable is the table that holds the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsInverseTable is the table name for the SeaDocumentVoidEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentvoidevent" package.
+	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsColumn = "order_id"
+	// SeaHouseBillSwitchEventsTable is the table that holds the sea_house_bill_switch_events relation/edge.
+	SeaHouseBillSwitchEventsTable = "sea_house_bill_switch_events"
+	// SeaHouseBillSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
+	SeaHouseBillSwitchEventsInverseTable = "sea_house_bill_switch_events"
+	// SeaHouseBillSwitchEventsColumn is the table column denoting the sea_house_bill_switch_events relation/edge.
+	SeaHouseBillSwitchEventsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -434,6 +492,8 @@ var Columns = []string{
 	FieldClosedAt,
 	FieldClosedBy,
 	FieldLockedAt,
+	FieldLockedBy,
+	FieldLockGeneration,
 	FieldIsShared,
 	FieldVersion,
 	FieldOriginLocationID,
@@ -519,6 +579,8 @@ var (
 	TerminationReasonValidator func(string) error
 	// ClosureReasonValidator is a validator for the "closure_reason" field. It is called by the builders before save.
 	ClosureReasonValidator func(string) error
+	// DefaultLockGeneration holds the default value on creation for the "lock_generation" field.
+	DefaultLockGeneration uint64
 	// DefaultIsShared holds the default value on creation for the "is_shared" field.
 	DefaultIsShared bool
 	// DefaultVersion holds the default value on creation for the "version" field.
@@ -1070,6 +1132,16 @@ func ByLockedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLockedAt, opts...).ToFunc()
 }
 
+// ByLockedBy orders the results by the locked_by field.
+func ByLockedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockedBy, opts...).ToFunc()
+}
+
+// ByLockGeneration orders the results by the lock_generation field.
+func ByLockGeneration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockGeneration, opts...).ToFunc()
+}
+
 // ByIsShared orders the results by the is_shared field.
 func ByIsShared(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsShared, opts...).ToFunc()
@@ -1539,6 +1611,83 @@ func BySeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) Or
 		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLockedByUserField orders the results by locked_by_user field.
+func ByLockedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLockedByUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByLockRecordsCount orders the results by lock_records count.
+func ByLockRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLockRecordsStep(), opts...)
+	}
+}
+
+// ByLockRecords orders the results by lock_records terms.
+func ByLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLockRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUnlockRequestsCount orders the results by unlock_requests count.
+func ByUnlockRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUnlockRequestsStep(), opts...)
+	}
+}
+
+// ByUnlockRequests orders the results by unlock_requests terms.
+func ByUnlockRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUnlockRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaHouseBillVersionsCount orders the results by sea_house_bill_versions count.
+func BySeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaHouseBillVersions orders the results by sea_house_bill_versions terms.
+func BySeaHouseBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentVoidEventsCount orders the results by sea_document_void_events count.
+func BySeaDocumentVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentVoidEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentVoidEvents orders the results by sea_document_void_events terms.
+func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaHouseBillSwitchEventsCount orders the results by sea_house_bill_switch_events count.
+func BySeaHouseBillSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillSwitchEventsStep(), opts...)
+	}
+}
+
+// BySeaHouseBillSwitchEvents orders the results by sea_house_bill_switch_events terms.
+func BySeaHouseBillSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1719,5 +1868,47 @@ func newSeaOrderReassignmentEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaOrderReassignmentEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
+	)
+}
+func newLockedByUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LockedByUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, LockedByUserTable, LockedByUserColumn),
+	)
+}
+func newLockRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LockRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
+	)
+}
+func newUnlockRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UnlockRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UnlockRequestsTable, UnlockRequestsColumn),
+	)
+}
+func newSeaHouseBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+	)
+}
+func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentVoidEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
+	)
+}
+func newSeaHouseBillSwitchEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillSwitchEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
 	)
 }

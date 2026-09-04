@@ -46,9 +46,11 @@ type MembershipEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// RoleAssignments holds the value of the role_assignments edge.
 	RoleAssignments []*RoleAssignment `json:"role_assignments,omitempty"`
+	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
+	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -80,6 +82,15 @@ func (e MembershipEdges) RoleAssignmentsOrErr() ([]*RoleAssignment, error) {
 		return e.RoleAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "role_assignments"}
+}
+
+// OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
+// was not loaded in eager-loading.
+func (e MembershipEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
+	if e.loadedTypes[3] {
+		return e.OrderUnlockApproverCandidates, nil
+	}
+	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -176,6 +187,11 @@ func (_m *Membership) QueryOrganization() *OrganizationQuery {
 // QueryRoleAssignments queries the "role_assignments" edge of the Membership entity.
 func (_m *Membership) QueryRoleAssignments() *RoleAssignmentQuery {
 	return NewMembershipClient(_m.config).QueryRoleAssignments(_m)
+}
+
+// QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the Membership entity.
+func (_m *Membership) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCandidateQuery {
+	return NewMembershipClient(_m.config).QueryOrderUnlockApproverCandidates(_m)
 }
 
 // Update returns a builder for updating this Membership.

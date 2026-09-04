@@ -71,10 +71,10 @@ func (r *businessTagRepo) LoadOrderTags(ctx context.Context, orderIDs []uuid.UUI
 func (r *businessTagRepo) AssignOrderTags(ctx context.Context, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
 	affected := 0
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
+		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
 			return validateErr
 		}
-		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
 			return validateErr
 		}
 		existing, queryErr := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.OrderIDIn(orderIDs...), ordertaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
@@ -113,10 +113,10 @@ func (r *businessTagRepo) AssignOrderTags(ctx context.Context, organizationID uu
 func (r *businessTagRepo) RemoveOrderTags(ctx context.Context, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
 	affected := 0
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
+		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
 			return validateErr
 		}
-		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
 			return validateErr
 		}
 		var deleteErr error
@@ -174,7 +174,13 @@ func lockAndValidateTagResources(ctx context.Context, tx *ent.Tx, organizationID
 }
 
 func validateOrderTagTargets(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderIDs []uuid.UUID) error {
-	items, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(organizationID), orderent.IDIn(orderIDs...)).All(ctx)
+	sortedOrderIDs := append([]uuid.UUID(nil), orderIDs...)
+	sort.Slice(sortedOrderIDs, func(i, j int) bool { return sortedOrderIDs[i].String() < sortedOrderIDs[j].String() })
+	items, err := tx.Order.Query().
+		Where(orderent.OrganizationIDEQ(organizationID), orderent.IDIn(sortedOrderIDs...)).
+		Order(orderent.ByID()).
+		ForUpdate().
+		All(ctx)
 	if err != nil {
 		return err
 	}
@@ -184,6 +190,9 @@ func validateOrderTagTargets(ctx context.Context, tx *ent.Tx, organizationID uui
 	for _, item := range items {
 		if biz.OrderBusinessType(item.BusinessType) != businessType {
 			return biz.ErrBusinessTagInvalidArgument
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, item); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -233,10 +242,10 @@ func (r *businessTagRepo) LoadOrderFeeTags(ctx context.Context, feeIDs []uuid.UU
 func (r *businessTagRepo) AssignOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
 	affected := 0
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
+		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
 			return validateErr
 		}
-		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
 			return validateErr
 		}
 		var upsertErr error
@@ -256,10 +265,10 @@ func (r *businessTagRepo) AssignOrderFeeTags(ctx context.Context, organizationID
 func (r *businessTagRepo) RemoveOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
 	affected := 0
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
+		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
 			return validateErr
 		}
-		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
 			return validateErr
 		}
 		var upsertErr error
@@ -297,12 +306,22 @@ func validateOrderFeeTagTargets(ctx context.Context, tx *ent.Tx, organizationID 
 	for id := range orderIDSet {
 		orderIDs = append(orderIDs, id)
 	}
-	count, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(organizationID), orderent.IDIn(orderIDs...)).Count(ctx)
+	sort.Slice(orderIDs, func(i, j int) bool { return orderIDs[i].String() < orderIDs[j].String() })
+	orders, err := tx.Order.Query().
+		Where(orderent.OrganizationIDEQ(organizationID), orderent.IDIn(orderIDs...)).
+		Order(orderent.ByID()).
+		ForUpdate().
+		All(ctx)
 	if err != nil {
 		return err
 	}
-	if count != len(orderIDs) {
+	if len(orders) != len(orderIDs) {
 		return biz.ErrBusinessTagInvalidArgument
+	}
+	for _, order := range orders {
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 	}
 	return nil
 }

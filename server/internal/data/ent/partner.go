@@ -86,9 +86,13 @@ type PartnerEdges struct {
 	IssuedSeaHouseBills []*SeaHouseBill `json:"issued_sea_house_bills,omitempty"`
 	// SeaOrderReassignments holds the value of the sea_order_reassignments edge.
 	SeaOrderReassignments []*SeaOrderReassignmentEvent `json:"sea_order_reassignments,omitempty"`
+	// SeaMasterBillVersions holds the value of the sea_master_bill_versions edge.
+	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
+	// SeaHouseBillVersions holds the value of the sea_house_bill_versions edge.
+	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [19]bool
+	loadedTypes [21]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -264,6 +268,24 @@ func (e PartnerEdges) SeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent
 		return e.SeaOrderReassignments, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_reassignments"}
+}
+
+// SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[19] {
+		return e.SeaMasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
+}
+
+// SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[20] {
+		return e.SeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -467,6 +489,16 @@ func (_m *Partner) QueryIssuedSeaHouseBills() *SeaHouseBillQuery {
 // QuerySeaOrderReassignments queries the "sea_order_reassignments" edge of the Partner entity.
 func (_m *Partner) QuerySeaOrderReassignments() *SeaOrderReassignmentEventQuery {
 	return NewPartnerClient(_m.config).QuerySeaOrderReassignments(_m)
+}
+
+// QuerySeaMasterBillVersions queries the "sea_master_bill_versions" edge of the Partner entity.
+func (_m *Partner) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewPartnerClient(_m.config).QuerySeaMasterBillVersions(_m)
+}
+
+// QuerySeaHouseBillVersions queries the "sea_house_bill_versions" edge of the Partner entity.
+func (_m *Partner) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewPartnerClient(_m.config).QuerySeaHouseBillVersions(_m)
 }
 
 // Update returns a builder for updating this Partner.

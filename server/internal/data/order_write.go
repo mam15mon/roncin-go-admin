@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -184,11 +185,178 @@ func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organi
 	return err
 }
 
+// seaMasterBillUpdateLockContext 记录 UpdateDraft 在取得共享 MBL 写锁前预锁定的成员订单。
+// 后续锁定 MBL 后必须重验成员集合未变化，避免在既有锁序之后补锁新成员而形成死锁。
+type seaMasterBillUpdateLockContext struct {
+	activeLinkID   uuid.UUID
+	masterBillID   uuid.UUID
+	memberOrderIDs []uuid.UUID
+	memberOrders   []*ent.Order
+}
+
+func orderUpdateNeedsSharedMasterBillMemberLocks(input *biz.Order) bool {
+	if input == nil || input.BusinessType != biz.OrderBusinessSE {
+		return false
+	}
+	return input.SeaMasterBillInput != nil ||
+		input.SeaDocumentInput != nil && input.SeaDocumentInput.MasterBillContent != nil
+}
+
+// lockOrderDraftUpdateTarget 为共享 MBL 更新预先按主键升序锁定全部活动成员 Order。
+// 非海运出口或未修改共享 MBL 身份、航程、内容时只锁定目标订单。
+func lockOrderDraftUpdateTarget(
+	ctx context.Context,
+	tx *ent.Tx,
+	organizationID, orderID uuid.UUID,
+	input *biz.Order,
+) (*ent.Order, *seaMasterBillUpdateLockContext, error) {
+	lockTargetOnly := func() (*ent.Order, *seaMasterBillUpdateLockContext, error) {
+		lockedOrder, err := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if err != nil {
+			return nil, nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+		}
+		return lockedOrder, nil, nil
+	}
+
+	if !orderUpdateNeedsSharedMasterBillMemberLocks(input) {
+		return lockTargetOnly()
+	}
+
+	activeLink, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.OrderIDEQ(orderID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return lockTargetOnly()
+		}
+		return nil, nil, err
+	}
+
+	activeLinks, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.MasterBillIDEQ(activeLink.MasterBillID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	memberOrderIDs := make([]uuid.UUID, 0, len(activeLinks))
+	for _, link := range activeLinks {
+		memberOrderIDs = append(memberOrderIDs, link.OrderID)
+	}
+	memberOrderIDs = sortAndDeduplicateUUIDs(memberOrderIDs)
+	if len(memberOrderIDs) == 0 {
+		return nil, nil, biz.ErrSeaDocumentStructureConflict
+	}
+
+	memberOrders, err := tx.Order.Query().
+		Where(
+			orderent.OrganizationIDEQ(organizationID),
+			orderent.IDIn(memberOrderIDs...),
+		).
+		Order(orderent.ByID()).
+		ForUpdate().
+		All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(memberOrders) != len(memberOrderIDs) {
+		return nil, nil, biz.ErrSeaDocumentStructureConflict
+	}
+
+	var targetOrder *ent.Order
+	for _, memberOrder := range memberOrders {
+		if memberOrder.ID == orderID {
+			targetOrder = memberOrder
+			break
+		}
+	}
+	if targetOrder == nil {
+		return nil, nil, biz.ErrSeaDocumentStructureConflict
+	}
+
+	return targetOrder, &seaMasterBillUpdateLockContext{
+		activeLinkID:   activeLink.ID,
+		masterBillID:   activeLink.MasterBillID,
+		memberOrderIDs: memberOrderIDs,
+		memberOrders:   memberOrders,
+	}, nil
+}
+
+// revalidateSeaMasterBillUpdateMemberSet 必须在 MBL 与目标 Link 均已加锁后调用。
+// 成员集合变化时直接回滚，禁止在 MBL 锁后补取新的 Order 锁。
+func revalidateSeaMasterBillUpdateMemberSet(
+	ctx context.Context,
+	tx *ent.Tx,
+	organizationID, activeLinkID, masterBillID uuid.UUID,
+	lockContext *seaMasterBillUpdateLockContext,
+) ([]uuid.UUID, error) {
+	if lockContext == nil ||
+		lockContext.activeLinkID != activeLinkID ||
+		lockContext.masterBillID != masterBillID {
+		return nil, biz.ErrSeaDocumentStructureConflict
+	}
+
+	lockedActiveLinks, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.MasterBillIDEQ(masterBillID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	lockedMemberOrderIDs := make([]uuid.UUID, 0, len(lockedActiveLinks))
+	for _, activeMemberLink := range lockedActiveLinks {
+		lockedMemberOrderIDs = append(lockedMemberOrderIDs, activeMemberLink.OrderID)
+	}
+	lockedMemberOrderIDs = sortAndDeduplicateUUIDs(lockedMemberOrderIDs)
+	if len(lockedMemberOrderIDs) != len(lockContext.memberOrderIDs) {
+		return nil, biz.ErrSeaDocumentStructureConflict
+	}
+	for index, memberOrderID := range lockedMemberOrderIDs {
+		if memberOrderID != lockContext.memberOrderIDs[index] {
+			return nil, biz.ErrSeaDocumentStructureConflict
+		}
+	}
+	return lockedMemberOrderIDs, nil
+}
+
+func ensureLockedMembersAllowSharedMasterBillUpdate(lockContext *seaMasterBillUpdateLockContext) error {
+	if lockContext == nil {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+	lockedOrderNos := make([]string, 0, len(lockContext.memberOrders))
+	for _, memberOrder := range lockContext.memberOrders {
+		if memberOrder.LockedAt != nil {
+			lockedOrderNos = append(lockedOrderNos, memberOrder.OrderNo)
+		}
+	}
+	if len(lockedOrderNos) == 0 {
+		return nil
+	}
+	sort.Strings(lockedOrderNos)
+	return biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
+}
+
 func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		existing, mblLockContext, queryErr := lockOrderDraftUpdateTarget(ctx, tx, organizationID, id, input)
 		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+			return queryErr
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
+			return err
 		}
 		if existing.Version != expectedVersion {
 			return biz.ErrOrderStatusConflict
@@ -201,6 +369,15 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		}
 		if validateErr := validateOrderReferences(ctx, tx, organizationID, input); validateErr != nil {
 			return validateErr
+		}
+
+		// 共享 MBL 门禁必须在 Link/HBL/Order 等下游数据发生任何写入前完成，避免通过
+		// 同一请求改变下游事实后绕过校验。后续任一步失败仍由同一事务整体回滚。
+		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
+			return syncErr
+		}
+		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
+			return syncErr
 		}
 		if existing.BusinessType == orderent.BusinessTypeSE && input.ShipmentType != nil && (existing.ShipmentType == nil || string(*existing.ShipmentType) != string(*input.ShipmentType)) {
 			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, id)
@@ -230,15 +407,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 					}
 				}
 			}
-		}
-
-		// 共享 MBL 门禁必须在订单/HBL 等下游数据发生任何写入前完成，避免通过同一请求
-		// 删除既有单证后绕过“无下游事实”校验。后续任一步失败仍由同一事务整体回滚。
-		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit); syncErr != nil {
-			return syncErr
-		}
-		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit); syncErr != nil {
-			return syncErr
 		}
 		update := existing.Update().
 			SetVersion(existing.Version + 1).
@@ -346,6 +514,9 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
+			return err
+		}
 		if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
 		}
@@ -368,6 +539,9 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
+			return err
 		}
 		if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
@@ -422,6 +596,9 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
+			return err
 		}
 		if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
@@ -641,7 +818,15 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 	return nil
 }
 
-func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
+func syncOrderSeaMasterBillOnUpdate(
+	ctx context.Context,
+	tx *ent.Tx,
+	organizationID uuid.UUID,
+	order *ent.Order,
+	input *biz.Order,
+	audit *biz.AuditEvent,
+	lockContext *seaMasterBillUpdateLockContext,
+) error {
 	if input.BusinessType != biz.OrderBusinessSE || input.SeaMasterBillInput == nil {
 		return nil
 	}
@@ -659,9 +844,17 @@ func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizatio
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
+			if lockContext != nil {
+				return biz.ErrSeaDocumentStructureConflict
+			}
 			return syncOrderSeaMasterBillOnCreate(ctx, tx, organizationID, order, input)
 		}
 		return err
+	}
+	if lockContext == nil ||
+		lockContext.activeLinkID != activeLink.ID ||
+		lockContext.masterBillID != activeLink.MasterBillID {
+		return biz.ErrSeaDocumentStructureConflict
 	}
 
 	currentMBL, err := tx.SeaMasterBill.Query().
@@ -689,6 +882,15 @@ func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizatio
 		return biz.ErrSeaDocumentStructureConflict
 	}
 
+	// MBL 已锁定后重验成员集合。如果定位阶段与锁定阶段之间成员发生变化，则直接
+	// 回滚并由调用方重试，禁止在 MBL 锁后追加 Order 锁而破坏全局锁序。
+	lockedMemberOrderIDs, err := revalidateSeaMasterBillUpdateMemberSet(
+		ctx, tx, organizationID, activeLink.ID, currentMBL.ID, lockContext,
+	)
+	if err != nil {
+		return err
+	}
+
 	currentTE, err := tx.SeaTransportExecution.Query().
 		Where(
 			seatransportexecution.IDEQ(currentMBL.TransportExecutionID),
@@ -704,21 +906,17 @@ func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizatio
 		return err
 	}
 
-	activeCount, err := tx.SeaMasterBillOrderLink.Query().
-		Where(
-			seamasterbillorderlink.OrganizationIDEQ(organizationID),
-			seamasterbillorderlink.MasterBillIDEQ(currentMBL.ID),
-			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
-		).
-		Count(ctx)
-	if err != nil {
-		return err
-	}
+	activeCount := len(lockedMemberOrderIDs)
 
 	vesselName, voyageNo := biz.SplitVesselVoyage(input.VesselVoyage)
 
 	identityChanged := (currentMBL.IssuerPartnerID != mblInput.IssuerPartnerID || currentMBL.NormalizedMasterNo != mblInput.MasterNo)
 	voyageChanged := seaTransportExecutionDiffersFromOrder(currentTE, input)
+	if activeCount > 1 && (identityChanged || voyageChanged) {
+		if err := ensureLockedMembersAllowSharedMasterBillUpdate(lockContext); err != nil {
+			return err
+		}
+	}
 
 	if identityChanged {
 		if activeCount > 1 {
@@ -1112,7 +1310,15 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 	return nil
 }
 
-func syncOrderSeaDocumentOnUpdate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
+func syncOrderSeaDocumentOnUpdate(
+	ctx context.Context,
+	tx *ent.Tx,
+	organizationID uuid.UUID,
+	order *ent.Order,
+	input *biz.Order,
+	audit *biz.AuditEvent,
+	lockContext *seaMasterBillUpdateLockContext,
+) error {
 	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
 		return nil
 	}
@@ -1163,6 +1369,14 @@ func syncOrderSeaDocumentOnUpdate(ctx context.Context, tx *ent.Tx, organizationI
 
 	// 5. 更新 MBL 内容（严格校验 expected_mbl_version）
 	if docInput.MasterBillContent != nil {
+		if _, err := revalidateSeaMasterBillUpdateMemberSet(
+			ctx, tx, organizationID, link.ID, mbl.ID, lockContext,
+		); err != nil {
+			return err
+		}
+		if err := ensureLockedMembersAllowSharedMasterBillUpdate(lockContext); err != nil {
+			return err
+		}
 		if docInput.ExpectedMblVersion == nil {
 			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改主单内容必须提供 expected_mbl_version")
 		}

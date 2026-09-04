@@ -76,6 +76,17 @@ func (r *orderAbnormalCaseRepo) Mark(ctx context.Context, organizationID, orderI
 	}
 	var saved *ent.OrderAbnormalCase
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderAbnormalCaseNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		item, queryErr := tx.OrderAbnormalCase.Query().
 			Where(
 				orderabnormalcaseent.OrderIDEQ(orderID),
@@ -135,6 +146,17 @@ func (r *orderAbnormalCaseRepo) Resolve(ctx context.Context, organizationID, ord
 	}
 	var updated *ent.OrderAbnormalCase
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderAbnormalCaseNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		item, queryErr := tx.OrderAbnormalCase.Query().
 			Where(
 				orderabnormalcaseent.IDEQ(id),
@@ -171,6 +193,17 @@ func (r *orderAbnormalCaseRepo) Remove(ctx context.Context, organizationID, orde
 		return err
 	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderAbnormalCaseNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		n, deleteErr := tx.OrderAbnormalCase.Delete().
 			Where(
 				orderabnormalcaseent.IDEQ(id),

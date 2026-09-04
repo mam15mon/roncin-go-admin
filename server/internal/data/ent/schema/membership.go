@@ -27,6 +27,7 @@ func (Membership) Edges() []ent.Edge {
 		edge.From("user", User.Type).Ref("memberships").Field("user_id").Unique().Required(),
 		edge.From("organization", Organization.Type).Ref("memberships").Field("organization_id").Unique().Required(),
 		edge.To("role_assignments", RoleAssignment.Type),
+		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
 	}
 }
 

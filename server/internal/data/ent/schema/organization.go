@@ -79,6 +79,15 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
 		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),
 		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
+		edge.To("order_lock_records", OrderLockRecord.Type),
+		edge.To("order_lock_house_bill_snapshots", OrderLockHouseBillSnapshot.Type),
+		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
+		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type),
+		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type),
+		edge.To("issued_sea_house_bill_versions", SeaHouseBillVersion.Type),
+		edge.To("dingtalk_approval_dispatches", DingTalkApprovalDispatch.Type),
+		edge.To("sea_document_void_events", SeaDocumentVoidEvent.Type),
+		edge.To("sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
 	}
 }
 

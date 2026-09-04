@@ -141,6 +141,9 @@ func TestOrderReleasePodRepo_Transition_PendingToSigned_Success(t *testing.T) {
 
 	// 2. 开启事务
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// 3. ForUpdate 查询当前放货凭证
 	mock.ExpectQuery(`SELECT "order_release_pods"\."id".*FOR UPDATE`).
@@ -237,6 +240,9 @@ func TestOrderReleasePodRepo_Transition_BusinessSQLError_Rollback(t *testing.T) 
 
 	// 2. 开启事务
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// 3. ForUpdate 查询当前放货凭证
 	mock.ExpectQuery(`SELECT "order_release_pods"\."id".*FOR UPDATE`).
@@ -308,6 +314,9 @@ func TestOrderReleasePodRepo_Transition_AuditSQLError_Rollback(t *testing.T) {
 
 	// 2. 开启事务
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// 3. ForUpdate 查询当前放货凭证
 	mock.ExpectQuery(`SELECT "order_release_pods"\."id".*FOR UPDATE`).
@@ -395,6 +404,9 @@ func TestOrderReleasePodRepo_Transition_StatusConflict_Rollback(t *testing.T) {
 
 	// 2. 开启事务
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// 3. ForUpdate 查询到当前状态为 RETURNED（与期望的 from=PENDING 冲突）
 	mock.ExpectQuery(`SELECT "order_release_pods"\."id".*FOR UPDATE`).
@@ -448,6 +460,9 @@ func TestOrderReleasePodRepo_Transition_NotFound_Rollback(t *testing.T) {
 
 	// 2. 开启事务
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(orderRows(orderID, orgID))
 
 	// 3. ForUpdate 查询未找到记录
 	mock.ExpectQuery(`SELECT "order_release_pods"\."id".*FOR UPDATE`).

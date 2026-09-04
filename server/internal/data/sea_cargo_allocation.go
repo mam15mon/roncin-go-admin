@@ -441,6 +441,9 @@ func (r *seaCargoAllocationRepo) Confirm(
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrOrderBusinessUnsupported
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		activeLinkQuery, err := tx.SeaMasterBillOrderLink.Query().
 			Where(
@@ -615,6 +618,9 @@ func (r *seaCargoAllocationRepo) Withdraw(
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrOrderBusinessUnsupported
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		activeLinkQuery, err := tx.SeaMasterBillOrderLink.Query().
 			Where(
@@ -707,6 +713,9 @@ func (r *seaCargoAllocationRepo) ApplyHouseBillSummary(
 		}
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrOrderBusinessUnsupported
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		activeLinkQuery, err := tx.SeaMasterBillOrderLink.Query().
@@ -837,17 +846,6 @@ func (r *seaCargoAllocationRepo) ApplyMasterBillSummary(
 	var updatedMblID uuid.UUID
 
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		order, err := tx.Order.Query().
-			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(orgID)).
-			ForUpdate().
-			Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrOrderNotFound, nil)
-		}
-		if order.BusinessType != orderent.BusinessTypeSE {
-			return biz.ErrOrderBusinessUnsupported
-		}
-
 		activeLinkQuery, err := tx.SeaMasterBillOrderLink.Query().
 			Where(
 				seamasterbillorderlinkent.OrganizationIDEQ(orgID),
@@ -859,6 +857,24 @@ func (r *seaCargoAllocationRepo) ApplyMasterBillSummary(
 			if ent.IsNotFound(err) {
 				return biz.ErrSeaDocumentNoActiveLink
 			}
+			return err
+		}
+
+		if err := ensureSharedMBLNotLocked(ctx, tx, activeLinkQuery.MasterBillID); err != nil {
+			return err
+		}
+		// 已按 UUID 顺序锁定全部活动成员 Order；此处重读并校验调用订单。
+		order, err := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(orgID)).
+			ForUpdate().
+			Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrOrderNotFound, nil)
+		}
+		if order.BusinessType != orderent.BusinessTypeSE {
+			return biz.ErrOrderBusinessUnsupported
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 			return err
 		}
 

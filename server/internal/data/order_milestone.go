@@ -38,6 +38,9 @@ func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 		if order.Version != expectedVersion {
 			return biz.ErrOrderStatusConflict
 		}

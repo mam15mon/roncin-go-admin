@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
 
@@ -44,6 +45,8 @@ type SeaHouseBill struct {
 	IssuerPartnerID *uuid.UUID `json:"issuer_partner_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status seahousebill.Status `json:"status,omitempty"`
+	// CurrentVersionID holds the value of the "current_version_id" field.
+	CurrentVersionID *uuid.UUID `json:"current_version_id,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Note holds the value of the "note" field.
@@ -98,9 +101,21 @@ type SeaHouseBillEdges struct {
 	IssuerPartner *Partner `json:"issuer_partner,omitempty"`
 	// CargoAllocations holds the value of the cargo_allocations edge.
 	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
+	// CurrentVersion holds the value of the current_version edge.
+	CurrentVersion *SeaHouseBillVersion `json:"current_version,omitempty"`
+	// Versions holds the value of the versions edge.
+	Versions []*SeaHouseBillVersion `json:"versions,omitempty"`
+	// LockSnapshots holds the value of the lock_snapshots edge.
+	LockSnapshots []*OrderLockHouseBillSnapshot `json:"lock_snapshots,omitempty"`
+	// VoidEvents holds the value of the void_events edge.
+	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
+	// OldSwitchEvents holds the value of the old_switch_events edge.
+	OldSwitchEvents []*SeaHouseBillSwitchEvent `json:"old_switch_events,omitempty"`
+	// NewSwitchEvents holds the value of the new_switch_events edge.
+	NewSwitchEvents []*SeaHouseBillSwitchEvent `json:"new_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [12]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -167,12 +182,68 @@ func (e SeaHouseBillEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error
 	return nil, &NotLoadedError{edge: "cargo_allocations"}
 }
 
+// CurrentVersionOrErr returns the CurrentVersion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaHouseBillEdges) CurrentVersionOrErr() (*SeaHouseBillVersion, error) {
+	if e.CurrentVersion != nil {
+		return e.CurrentVersion, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: seahousebillversion.Label}
+	}
+	return nil, &NotLoadedError{edge: "current_version"}
+}
+
+// VersionsOrErr returns the Versions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) VersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[7] {
+		return e.Versions, nil
+	}
+	return nil, &NotLoadedError{edge: "versions"}
+}
+
+// LockSnapshotsOrErr returns the LockSnapshots value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) LockSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
+	if e.loadedTypes[8] {
+		return e.LockSnapshots, nil
+	}
+	return nil, &NotLoadedError{edge: "lock_snapshots"}
+}
+
+// VoidEventsOrErr returns the VoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[9] {
+		return e.VoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "void_events"}
+}
+
+// OldSwitchEventsOrErr returns the OldSwitchEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) OldSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+	if e.loadedTypes[10] {
+		return e.OldSwitchEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "old_switch_events"}
+}
+
+// NewSwitchEventsOrErr returns the NewSwitchEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) NewSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+	if e.loadedTypes[11] {
+		return e.NewSwitchEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "new_switch_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaHouseBill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seahousebill.FieldIssuerOrganizationID, seahousebill.FieldIssuerPartnerID:
+		case seahousebill.FieldIssuerOrganizationID, seahousebill.FieldIssuerPartnerID, seahousebill.FieldCurrentVersionID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seahousebill.FieldGrossWeightKg, seahousebill.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
@@ -272,6 +343,13 @@ func (_m *SeaHouseBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				_m.Status = seahousebill.Status(value.String)
+			}
+		case seahousebill.FieldCurrentVersionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field current_version_id", values[i])
+			} else if value.Valid {
+				_m.CurrentVersionID = new(uuid.UUID)
+				*_m.CurrentVersionID = *value.S.(*uuid.UUID)
 			}
 		case seahousebill.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -434,6 +512,36 @@ func (_m *SeaHouseBill) QueryCargoAllocations() *SeaCargoAllocationQuery {
 	return NewSeaHouseBillClient(_m.config).QueryCargoAllocations(_m)
 }
 
+// QueryCurrentVersion queries the "current_version" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryCurrentVersion() *SeaHouseBillVersionQuery {
+	return NewSeaHouseBillClient(_m.config).QueryCurrentVersion(_m)
+}
+
+// QueryVersions queries the "versions" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryVersions() *SeaHouseBillVersionQuery {
+	return NewSeaHouseBillClient(_m.config).QueryVersions(_m)
+}
+
+// QueryLockSnapshots queries the "lock_snapshots" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryLockSnapshots() *OrderLockHouseBillSnapshotQuery {
+	return NewSeaHouseBillClient(_m.config).QueryLockSnapshots(_m)
+}
+
+// QueryVoidEvents queries the "void_events" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewSeaHouseBillClient(_m.config).QueryVoidEvents(_m)
+}
+
+// QueryOldSwitchEvents queries the "old_switch_events" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	return NewSeaHouseBillClient(_m.config).QueryOldSwitchEvents(_m)
+}
+
+// QueryNewSwitchEvents queries the "new_switch_events" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryNewSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	return NewSeaHouseBillClient(_m.config).QueryNewSwitchEvents(_m)
+}
+
 // Update returns a builder for updating this SeaHouseBill.
 // Note that you need to call SeaHouseBill.Unwrap() before calling this method if this SeaHouseBill
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -493,6 +601,11 @@ func (_m *SeaHouseBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	if v := _m.CurrentVersionID; v != nil {
+		builder.WriteString("current_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

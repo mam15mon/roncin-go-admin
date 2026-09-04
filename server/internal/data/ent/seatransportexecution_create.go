@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
@@ -217,6 +218,21 @@ func (_c *SeaTransportExecutionCreate) AddMasterBills(v ...*SeaMasterBill) *SeaT
 	return _c.AddMasterBillIDs(ids...)
 }
 
+// AddMasterBillVersionIDs adds the "master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_c *SeaTransportExecutionCreate) AddMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.AddMasterBillVersionIDs(ids...)
+	return _c
+}
+
+// AddMasterBillVersions adds the "master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_c *SeaTransportExecutionCreate) AddMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddMasterBillVersionIDs(ids...)
+}
+
 // Mutation returns the SeaTransportExecutionMutation object of the builder.
 func (_c *SeaTransportExecutionCreate) Mutation() *SeaTransportExecutionMutation {
 	return _c.mutation
@@ -416,6 +432,22 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

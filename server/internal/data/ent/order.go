@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // Order is the model entity for the Order schema.
@@ -106,6 +107,10 @@ type Order struct {
 	ClosedBy *uuid.UUID `json:"closed_by,omitempty"`
 	// LockedAt holds the value of the "locked_at" field.
 	LockedAt *time.Time `json:"locked_at,omitempty"`
+	// LockedBy holds the value of the "locked_by" field.
+	LockedBy *uuid.UUID `json:"locked_by,omitempty"`
+	// LockGeneration holds the value of the "lock_generation" field.
+	LockGeneration uint64 `json:"lock_generation,omitempty"`
 	// IsShared holds the value of the "is_shared" field.
 	IsShared bool `json:"is_shared,omitempty"`
 	// Version holds the value of the "version" field.
@@ -214,9 +219,21 @@ type OrderEdges struct {
 	SeaOrderSplitResults []*SeaOrderSplitResult `json:"sea_order_split_results,omitempty"`
 	// SeaOrderReassignmentEvents holds the value of the sea_order_reassignment_events edge.
 	SeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"sea_order_reassignment_events,omitempty"`
+	// LockedByUser holds the value of the locked_by_user edge.
+	LockedByUser *User `json:"locked_by_user,omitempty"`
+	// LockRecords holds the value of the lock_records edge.
+	LockRecords []*OrderLockRecord `json:"lock_records,omitempty"`
+	// UnlockRequests holds the value of the unlock_requests edge.
+	UnlockRequests []*OrderUnlockRequest `json:"unlock_requests,omitempty"`
+	// SeaHouseBillVersions holds the value of the sea_house_bill_versions edge.
+	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
+	// SeaDocumentVoidEvents holds the value of the sea_document_void_events edge.
+	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
+	// SeaHouseBillSwitchEvents holds the value of the sea_house_bill_switch_events edge.
+	SeaHouseBillSwitchEvents []*SeaHouseBillSwitchEvent `json:"sea_house_bill_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [26]bool
+	loadedTypes [32]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -457,18 +474,74 @@ func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEv
 	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
 }
 
+// LockedByUserOrErr returns the LockedByUser value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderEdges) LockedByUserOrErr() (*User, error) {
+	if e.LockedByUser != nil {
+		return e.LockedByUser, nil
+	} else if e.loadedTypes[26] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "locked_by_user"}
+}
+
+// LockRecordsOrErr returns the LockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[27] {
+		return e.LockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "lock_records"}
+}
+
+// UnlockRequestsOrErr returns the UnlockRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
+	if e.loadedTypes[28] {
+		return e.UnlockRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "unlock_requests"}
+}
+
+// SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[29] {
+		return e.SeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
+}
+
+// SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[30] {
+		return e.SeaDocumentVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_document_void_events"}
+}
+
+// SeaHouseBillSwitchEventsOrErr returns the SeaHouseBillSwitchEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaHouseBillSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+	if e.loadedTypes[31] {
+		return e.SeaHouseBillSwitchEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_switch_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
+		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldLockedBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldIsShared:
 			values[i] = new(sql.NullBool)
 		case order.FieldTotalGrossWeightKg, order.FieldTotalVolumeCbm:
 			values[i] = new(sql.NullFloat64)
-		case order.FieldVersion, order.FieldTotalPackages:
+		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
 		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
@@ -770,6 +843,19 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.LockedAt = new(time.Time)
 				*_m.LockedAt = value.Time
 			}
+		case order.FieldLockedBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field locked_by", values[i])
+			} else if value.Valid {
+				_m.LockedBy = new(uuid.UUID)
+				*_m.LockedBy = *value.S.(*uuid.UUID)
+			}
+		case order.FieldLockGeneration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field lock_generation", values[i])
+			} else if value.Valid {
+				_m.LockGeneration = uint64(value.Int64)
+			}
 		case order.FieldIsShared:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_shared", values[i])
@@ -1064,6 +1150,36 @@ func (_m *Order) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQue
 	return NewOrderClient(_m.config).QuerySeaOrderReassignmentEvents(_m)
 }
 
+// QueryLockedByUser queries the "locked_by_user" edge of the Order entity.
+func (_m *Order) QueryLockedByUser() *UserQuery {
+	return NewOrderClient(_m.config).QueryLockedByUser(_m)
+}
+
+// QueryLockRecords queries the "lock_records" edge of the Order entity.
+func (_m *Order) QueryLockRecords() *OrderLockRecordQuery {
+	return NewOrderClient(_m.config).QueryLockRecords(_m)
+}
+
+// QueryUnlockRequests queries the "unlock_requests" edge of the Order entity.
+func (_m *Order) QueryUnlockRequests() *OrderUnlockRequestQuery {
+	return NewOrderClient(_m.config).QueryUnlockRequests(_m)
+}
+
+// QuerySeaHouseBillVersions queries the "sea_house_bill_versions" edge of the Order entity.
+func (_m *Order) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewOrderClient(_m.config).QuerySeaHouseBillVersions(_m)
+}
+
+// QuerySeaDocumentVoidEvents queries the "sea_document_void_events" edge of the Order entity.
+func (_m *Order) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewOrderClient(_m.config).QuerySeaDocumentVoidEvents(_m)
+}
+
+// QuerySeaHouseBillSwitchEvents queries the "sea_house_bill_switch_events" edge of the Order entity.
+func (_m *Order) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	return NewOrderClient(_m.config).QuerySeaHouseBillSwitchEvents(_m)
+}
+
 // Update returns a builder for updating this Order.
 // Note that you need to call Order.Unwrap() before calling this method if this Order
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -1245,6 +1361,14 @@ func (_m *Order) String() string {
 		builder.WriteString("locked_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	if v := _m.LockedBy; v != nil {
+		builder.WriteString("locked_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("lock_generation=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LockGeneration))
 	builder.WriteString(", ")
 	builder.WriteString("is_shared=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsShared))

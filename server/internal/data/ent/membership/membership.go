@@ -33,6 +33,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeRoleAssignments holds the string denoting the role_assignments edge name in mutations.
 	EdgeRoleAssignments = "role_assignments"
+	// EdgeOrderUnlockApproverCandidates holds the string denoting the order_unlock_approver_candidates edge name in mutations.
+	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
 	// Table holds the table name of the membership in the database.
 	Table = "memberships"
 	// UserTable is the table that holds the user relation/edge.
@@ -56,6 +58,13 @@ const (
 	RoleAssignmentsInverseTable = "role_assignments"
 	// RoleAssignmentsColumn is the table column denoting the role_assignments relation/edge.
 	RoleAssignmentsColumn = "membership_id"
+	// OrderUnlockApproverCandidatesTable is the table that holds the order_unlock_approver_candidates relation/edge.
+	OrderUnlockApproverCandidatesTable = "order_unlock_approver_candidates"
+	// OrderUnlockApproverCandidatesInverseTable is the table name for the OrderUnlockApproverCandidate entity.
+	// It exists in this package in order to avoid circular dependency with the "orderunlockapprovercandidate" package.
+	OrderUnlockApproverCandidatesInverseTable = "order_unlock_approver_candidates"
+	// OrderUnlockApproverCandidatesColumn is the table column denoting the order_unlock_approver_candidates relation/edge.
+	OrderUnlockApproverCandidatesColumn = "membership_id"
 )
 
 // Columns holds all SQL columns for membership fields.
@@ -159,6 +168,20 @@ func ByRoleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRoleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderUnlockApproverCandidatesCount orders the results by order_unlock_approver_candidates count.
+func ByOrderUnlockApproverCandidatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderUnlockApproverCandidatesStep(), opts...)
+	}
+}
+
+// ByOrderUnlockApproverCandidates orders the results by order_unlock_approver_candidates terms.
+func ByOrderUnlockApproverCandidates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderUnlockApproverCandidatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -178,5 +201,12 @@ func newRoleAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoleAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RoleAssignmentsTable, RoleAssignmentsColumn),
+	)
+}
+func newOrderUnlockApproverCandidatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderUnlockApproverCandidatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockApproverCandidatesTable, OrderUnlockApproverCandidatesColumn),
 	)
 }

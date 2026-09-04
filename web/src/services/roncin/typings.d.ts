@@ -2545,11 +2545,27 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetOrderLockStateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderLockStateData;
+    traceId?: string;
+  };
+
   type GetOrderResponse = {
     success?: boolean;
     code?: number;
     message?: string;
     data?: Order;
+    traceId?: string;
+  };
+
+  type GetOrderUnlockRequestResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderUnlockRequestData;
     traceId?: string;
   };
 
@@ -3006,6 +3022,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListOrderUnlockRequestsData = {
+    items?: OrderUnlockRequestData[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListOrderUnlockRequestsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ListOrderUnlockRequestsData;
+    traceId?: string;
+  };
+
   type ListOrganizationRolesResponse = {
     success?: boolean;
     code?: number;
@@ -3223,6 +3254,20 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceVerificationSummary;
+  };
+
+  type LockOrderRequest = {
+    orderId: string;
+    expectedOrderVersion: string;
+    idempotencyKey: string;
+  };
+
+  type LockOrderResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderLockResultData;
+    traceId?: string;
   };
 
   type LoginRequest = {
@@ -3816,6 +3861,83 @@ declare namespace API {
     name?: string;
   };
 
+  type OrderLockHouseBillSnapshotData = {
+    id?: string;
+    lockRecordId?: string;
+    houseBillId?: string;
+    houseBillVersionId?: string;
+    houseNoSnapshot?: string;
+    createdAt?: string;
+  };
+
+  type OrderLockRecordData = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    generation?: string;
+    lockedBy?: string;
+    lockedByName?: string;
+    lockedAt?: string;
+    orderVersionAtLock?: string;
+    masterBillId?: string;
+    masterBillVersionId?: string;
+    unlockedBy?: string;
+    unlockedByName?: string;
+    unlockedAt?: string;
+    orderVersionAtUnlock?: string;
+    unlockRequestId?: string;
+    unlockReason?: string;
+    unlockMode?: string;
+    houseBillSnapshots?: OrderLockHouseBillSnapshotData[];
+  };
+
+  type OrderLockResultData = {
+    state?: OrderLockStateData;
+    lockRecord?: OrderLockRecordData;
+  };
+
+  type OrderLockServiceGetOrderLockStateParams = {
+    orderId: string;
+  };
+
+  type OrderLockServiceGetOrderUnlockRequestParams = {
+    orderId: string;
+    requestId: string;
+  };
+
+  type OrderLockServiceListOrderUnlockRequestsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type OrderLockServiceLockOrderParams = {
+    orderId: string;
+  };
+
+  type OrderLockServiceRequestOrderUnlockParams = {
+    orderId: string;
+  };
+
+  type OrderLockStateData = {
+    orderId?: string;
+    orderNo?: string;
+    isLocked?: boolean;
+    lockGeneration?: string;
+    lockedAt?: string;
+    lockedBy?: string;
+    lockedByName?: string;
+    orderVersion?: string;
+    canLock?: boolean;
+    canRoleDirectUnlock?: boolean;
+    canAdminEmergencyUnlock?: boolean;
+    canRequestUnlock?: boolean;
+    lockBlockedReasons?: string[];
+    unlockBlockedReasons?: string[];
+    activeUnlockRequest?: OrderUnlockRequestData;
+    currentLockRecord?: OrderLockRecordData;
+  };
+
   type OrderMilestone = {
     id?: string;
     orderId?: string;
@@ -4062,6 +4184,49 @@ declare namespace API {
     keyword?: string;
     page?: number;
     pageSize?: number;
+  };
+
+  type OrderUnlockApproverCandidateData = {
+    id?: string;
+    requestId?: string;
+    userId?: string;
+    membershipId?: string;
+    roleId?: string;
+    displayNameSnapshot?: string;
+    dingtalkUseridSnapshot?: string;
+  };
+
+  type OrderUnlockRequestData = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    lockRecordId?: string;
+    lockGeneration?: string;
+    requestedBy?: string;
+    requestedByName?: string;
+    requestedAt?: string;
+    reason?: string;
+    expectedOrderVersion?: string;
+    idempotencyKey?: string;
+    route?: string;
+    status?: string;
+    dingtalkProcessInstanceId?: string;
+    dingtalkProcessCode?: string;
+    decidedBy?: string;
+    decidedByName?: string;
+    decidedAt?: string;
+    decisionSource?: string;
+    failureCode?: string;
+    failureMessage?: string;
+    supersededByRequestId?: string;
+    unlockedAt?: string;
+    resultOrderVersion?: string;
+    approverCandidates?: OrderUnlockApproverCandidateData[];
+  };
+
+  type OrderUnlockResultData = {
+    state?: OrderLockStateData;
+    request?: OrderUnlockRequestData;
   };
 
   type Organization = {
@@ -4732,6 +4897,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee;
+    traceId?: string;
+  };
+
+  type RequestOrderUnlockRequest = {
+    orderId: string;
+    expectedOrderVersion: string;
+    idempotencyKey: string;
+    reason?: string;
+  };
+
+  type RequestOrderUnlockResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderUnlockResultData;
     traceId?: string;
   };
 

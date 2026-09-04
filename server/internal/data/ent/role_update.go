@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -145,6 +146,21 @@ func (_u *RoleUpdate) AddOrderOrganizationAccesses(v ...*RoleOrderOrganizationAc
 	return _u.AddOrderOrganizationAccessIDs(ids...)
 }
 
+// AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
+func (_u *RoleUpdate) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdate {
+	_u.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
+	return _u
+}
+
+// AddOrderUnlockApproverCandidates adds the "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_u *RoleUpdate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *RoleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdate) Mutation() *RoleMutation {
 	return _u.mutation
@@ -217,6 +233,27 @@ func (_u *RoleUpdate) RemoveOrderOrganizationAccesses(v ...*RoleOrderOrganizatio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderOrganizationAccessIDs(ids...)
+}
+
+// ClearOrderUnlockApproverCandidates clears all "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_u *RoleUpdate) ClearOrderUnlockApproverCandidates() *RoleUpdate {
+	_u.mutation.ClearOrderUnlockApproverCandidates()
+	return _u
+}
+
+// RemoveOrderUnlockApproverCandidateIDs removes the "order_unlock_approver_candidates" edge to OrderUnlockApproverCandidate entities by IDs.
+func (_u *RoleUpdate) RemoveOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdate {
+	_u.mutation.RemoveOrderUnlockApproverCandidateIDs(ids...)
+	return _u
+}
+
+// RemoveOrderUnlockApproverCandidates removes "order_unlock_approver_candidates" edges to OrderUnlockApproverCandidate entities.
+func (_u *RoleUpdate) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *RoleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -461,6 +498,51 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderUnlockApproverCandidatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderUnlockApproverCandidatesIDs(); len(nodes) > 0 && !_u.mutation.OrderUnlockApproverCandidatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderUnlockApproverCandidatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{role.Label}
@@ -593,6 +675,21 @@ func (_u *RoleUpdateOne) AddOrderOrganizationAccesses(v ...*RoleOrderOrganizatio
 	return _u.AddOrderOrganizationAccessIDs(ids...)
 }
 
+// AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
+func (_u *RoleUpdateOne) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	_u.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
+	return _u
+}
+
+// AddOrderUnlockApproverCandidates adds the "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_u *RoleUpdateOne) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdateOne) Mutation() *RoleMutation {
 	return _u.mutation
@@ -665,6 +762,27 @@ func (_u *RoleUpdateOne) RemoveOrderOrganizationAccesses(v ...*RoleOrderOrganiza
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderOrganizationAccessIDs(ids...)
+}
+
+// ClearOrderUnlockApproverCandidates clears all "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_u *RoleUpdateOne) ClearOrderUnlockApproverCandidates() *RoleUpdateOne {
+	_u.mutation.ClearOrderUnlockApproverCandidates()
+	return _u
+}
+
+// RemoveOrderUnlockApproverCandidateIDs removes the "order_unlock_approver_candidates" edge to OrderUnlockApproverCandidate entities by IDs.
+func (_u *RoleUpdateOne) RemoveOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	_u.mutation.RemoveOrderUnlockApproverCandidateIDs(ids...)
+	return _u
+}
+
+// RemoveOrderUnlockApproverCandidates removes "order_unlock_approver_candidates" edges to OrderUnlockApproverCandidate entities.
+func (_u *RoleUpdateOne) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
 }
 
 // Where appends a list predicates to the RoleUpdate builder.
@@ -932,6 +1050,51 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderUnlockApproverCandidatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderUnlockApproverCandidatesIDs(); len(nodes) > 0 && !_u.mutation.OrderUnlockApproverCandidatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderUnlockApproverCandidatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -56,6 +56,8 @@ func (Order) Fields() []ent.Field {
 		field.Time("closed_at").Optional().Nillable(),
 		field.UUID("closed_by", uuid.Nil).Optional().Nillable(),
 		field.Time("locked_at").Optional().Nillable(),
+		field.UUID("locked_by", uuid.Nil).Optional().Nillable(),
+		field.Uint64("lock_generation").Default(0),
 		field.Bool("is_shared").Default(false),
 		field.Uint64("version").Default(1),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),
@@ -111,6 +113,12 @@ func (Order) Edges() []ent.Edge {
 		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
 		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),
 		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
+		edge.From("locked_by_user", User.Type).Ref("locked_orders").Field("locked_by").Unique(),
+		edge.To("lock_records", OrderLockRecord.Type),
+		edge.To("unlock_requests", OrderUnlockRequest.Type),
+		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type),
+		edge.To("sea_document_void_events", SeaDocumentVoidEvent.Type),
+		edge.To("sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -25,15 +26,16 @@ import (
 // RoleQuery is the builder for querying Role entities.
 type RoleQuery struct {
 	config
-	ctx                           *QueryContext
-	order                         []role.OrderOption
-	inters                        []Interceptor
-	predicates                    []predicate.Role
-	withOrganization              *OrganizationQuery
-	withPermissions               *PermissionQuery
-	withAssignments               *RoleAssignmentQuery
-	withOrderOrganizationAccesses *RoleOrderOrganizationAccessQuery
-	modifiers                     []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []role.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.Role
+	withOrganization                  *OrganizationQuery
+	withPermissions                   *PermissionQuery
+	withAssignments                   *RoleAssignmentQuery
+	withOrderOrganizationAccesses     *RoleOrderOrganizationAccessQuery
+	withOrderUnlockApproverCandidates *OrderUnlockApproverCandidateQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -151,6 +153,28 @@ func (_q *RoleQuery) QueryOrderOrganizationAccesses() *RoleOrderOrganizationAcce
 			sqlgraph.From(role.Table, role.FieldID, selector),
 			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderOrganizationAccessesTable, role.OrderOrganizationAccessesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderUnlockApproverCandidates chains the current query on the "order_unlock_approver_candidates" edge.
+func (_q *RoleQuery) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCandidateQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, selector),
+			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderUnlockApproverCandidatesTable, role.OrderUnlockApproverCandidatesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -345,15 +369,16 @@ func (_q *RoleQuery) Clone() *RoleQuery {
 		return nil
 	}
 	return &RoleQuery{
-		config:                        _q.config,
-		ctx:                           _q.ctx.Clone(),
-		order:                         append([]role.OrderOption{}, _q.order...),
-		inters:                        append([]Interceptor{}, _q.inters...),
-		predicates:                    append([]predicate.Role{}, _q.predicates...),
-		withOrganization:              _q.withOrganization.Clone(),
-		withPermissions:               _q.withPermissions.Clone(),
-		withAssignments:               _q.withAssignments.Clone(),
-		withOrderOrganizationAccesses: _q.withOrderOrganizationAccesses.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]role.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.Role{}, _q.predicates...),
+		withOrganization:                  _q.withOrganization.Clone(),
+		withPermissions:                   _q.withPermissions.Clone(),
+		withAssignments:                   _q.withAssignments.Clone(),
+		withOrderOrganizationAccesses:     _q.withOrderOrganizationAccesses.Clone(),
+		withOrderUnlockApproverCandidates: _q.withOrderUnlockApproverCandidates.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -401,6 +426,17 @@ func (_q *RoleQuery) WithOrderOrganizationAccesses(opts ...func(*RoleOrderOrgani
 		opt(query)
 	}
 	_q.withOrderOrganizationAccesses = query
+	return _q
+}
+
+// WithOrderUnlockApproverCandidates tells the query-builder to eager-load the nodes that are connected to
+// the "order_unlock_approver_candidates" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RoleQuery) WithOrderUnlockApproverCandidates(opts ...func(*OrderUnlockApproverCandidateQuery)) *RoleQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderUnlockApproverCandidates = query
 	return _q
 }
 
@@ -482,11 +518,12 @@ func (_q *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 	var (
 		nodes       = []*Role{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withOrganization != nil,
 			_q.withPermissions != nil,
 			_q.withAssignments != nil,
 			_q.withOrderOrganizationAccesses != nil,
+			_q.withOrderUnlockApproverCandidates != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -535,6 +572,15 @@ func (_q *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 			func(n *Role) { n.Edges.OrderOrganizationAccesses = []*RoleOrderOrganizationAccess{} },
 			func(n *Role, e *RoleOrderOrganizationAccess) {
 				n.Edges.OrderOrganizationAccesses = append(n.Edges.OrderOrganizationAccesses, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderUnlockApproverCandidates; query != nil {
+		if err := _q.loadOrderUnlockApproverCandidates(ctx, query, nodes,
+			func(n *Role) { n.Edges.OrderUnlockApproverCandidates = []*OrderUnlockApproverCandidate{} },
+			func(n *Role, e *OrderUnlockApproverCandidate) {
+				n.Edges.OrderUnlockApproverCandidates = append(n.Edges.OrderUnlockApproverCandidates, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -677,6 +723,36 @@ func (_q *RoleQuery) loadOrderOrganizationAccesses(ctx context.Context, query *R
 	}
 	query.Where(predicate.RoleOrderOrganizationAccess(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(role.OrderOrganizationAccessesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "role_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *RoleQuery) loadOrderUnlockApproverCandidates(ctx context.Context, query *OrderUnlockApproverCandidateQuery, nodes []*Role, init func(*Role), assign func(*Role, *OrderUnlockApproverCandidate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Role)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderunlockapprovercandidate.FieldRoleID)
+	}
+	query.Where(predicate.OrderUnlockApproverCandidate(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(role.OrderUnlockApproverCandidatesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

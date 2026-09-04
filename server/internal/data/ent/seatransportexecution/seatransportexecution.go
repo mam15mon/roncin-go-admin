@@ -43,6 +43,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeMasterBills holds the string denoting the master_bills edge name in mutations.
 	EdgeMasterBills = "master_bills"
+	// EdgeMasterBillVersions holds the string denoting the master_bill_versions edge name in mutations.
+	EdgeMasterBillVersions = "master_bill_versions"
 	// Table holds the table name of the seatransportexecution in the database.
 	Table = "sea_transport_executions"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -59,6 +61,13 @@ const (
 	MasterBillsInverseTable = "sea_master_bills"
 	// MasterBillsColumn is the table column denoting the master_bills relation/edge.
 	MasterBillsColumn = "transport_execution_id"
+	// MasterBillVersionsTable is the table that holds the master_bill_versions relation/edge.
+	MasterBillVersionsTable = "sea_master_bill_versions"
+	// MasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	MasterBillVersionsInverseTable = "sea_master_bill_versions"
+	// MasterBillVersionsColumn is the table column denoting the master_bill_versions relation/edge.
+	MasterBillVersionsColumn = "transport_execution_id"
 )
 
 // Columns holds all SQL columns for seatransportexecution fields.
@@ -197,6 +206,20 @@ func ByMasterBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMasterBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByMasterBillVersionsCount orders the results by master_bill_versions count.
+func ByMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMasterBillVersionsStep(), opts...)
+	}
+}
+
+// ByMasterBillVersions orders the results by master_bill_versions terms.
+func ByMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -209,5 +232,12 @@ func newMasterBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MasterBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MasterBillsTable, MasterBillsColumn),
+	)
+}
+func newMasterBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MasterBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MasterBillVersionsTable, MasterBillVersionsColumn),
 	)
 }

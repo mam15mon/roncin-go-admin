@@ -116,6 +116,11 @@ func DingtalkName(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
 }
 
+// IsBootstrapAdmin applies equality check predicate on the "is_bootstrap_admin" field. It's identical to IsBootstrapAdminEQ.
+func IsBootstrapAdmin(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsBootstrapAdmin, v))
+}
+
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
 func Enabled(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEnabled, v))
@@ -944,6 +949,16 @@ func DingtalkNameEqualFold(v string) predicate.User {
 // DingtalkNameContainsFold applies the ContainsFold predicate on the "dingtalk_name" field.
 func DingtalkNameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldDingtalkName, v))
+}
+
+// IsBootstrapAdminEQ applies the EQ predicate on the "is_bootstrap_admin" field.
+func IsBootstrapAdminEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsBootstrapAdmin, v))
+}
+
+// IsBootstrapAdminNEQ applies the NEQ predicate on the "is_bootstrap_admin" field.
+func IsBootstrapAdminNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsBootstrapAdmin, v))
 }
 
 // EnabledEQ applies the EQ predicate on the "enabled" field.
@@ -1841,6 +1856,236 @@ func HasCreatedOrderAttachments() predicate.User {
 func HasCreatedOrderAttachmentsWith(preds ...predicate.OrderAttachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newCreatedOrderAttachmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLockedOrders applies the HasEdge predicate on the "locked_orders" edge.
+func HasLockedOrders() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LockedOrdersTable, LockedOrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockedOrdersWith applies the HasEdge predicate on the "locked_orders" edge with a given conditions (other predicates).
+func HasLockedOrdersWith(preds ...predicate.Order) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newLockedOrdersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderLockRecords applies the HasEdge predicate on the "order_lock_records" edge.
+func HasOrderLockRecords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderLockRecordsTable, OrderLockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderLockRecordsWith applies the HasEdge predicate on the "order_lock_records" edge with a given conditions (other predicates).
+func HasOrderLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newOrderLockRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUnlockedOrderLockRecords applies the HasEdge predicate on the "unlocked_order_lock_records" edge.
+func HasUnlockedOrderLockRecords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UnlockedOrderLockRecordsTable, UnlockedOrderLockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUnlockedOrderLockRecordsWith applies the HasEdge predicate on the "unlocked_order_lock_records" edge with a given conditions (other predicates).
+func HasUnlockedOrderLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUnlockedOrderLockRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderUnlockRequests applies the HasEdge predicate on the "order_unlock_requests" edge.
+func HasOrderUnlockRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockRequestsTable, OrderUnlockRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderUnlockRequestsWith applies the HasEdge predicate on the "order_unlock_requests" edge with a given conditions (other predicates).
+func HasOrderUnlockRequestsWith(preds ...predicate.OrderUnlockRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newOrderUnlockRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDecidedOrderUnlockRequests applies the HasEdge predicate on the "decided_order_unlock_requests" edge.
+func HasDecidedOrderUnlockRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DecidedOrderUnlockRequestsTable, DecidedOrderUnlockRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDecidedOrderUnlockRequestsWith applies the HasEdge predicate on the "decided_order_unlock_requests" edge with a given conditions (other predicates).
+func HasDecidedOrderUnlockRequestsWith(preds ...predicate.OrderUnlockRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDecidedOrderUnlockRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderUnlockApproverCandidates applies the HasEdge predicate on the "order_unlock_approver_candidates" edge.
+func HasOrderUnlockApproverCandidates() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockApproverCandidatesTable, OrderUnlockApproverCandidatesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderUnlockApproverCandidatesWith applies the HasEdge predicate on the "order_unlock_approver_candidates" edge with a given conditions (other predicates).
+func HasOrderUnlockApproverCandidatesWith(preds ...predicate.OrderUnlockApproverCandidate) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newOrderUnlockApproverCandidatesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedSeaMasterBillVersions applies the HasEdge predicate on the "created_sea_master_bill_versions" edge.
+func HasCreatedSeaMasterBillVersions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaMasterBillVersionsTable, CreatedSeaMasterBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaMasterBillVersionsWith applies the HasEdge predicate on the "created_sea_master_bill_versions" edge with a given conditions (other predicates).
+func HasCreatedSeaMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaMasterBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedSeaHouseBillVersions applies the HasEdge predicate on the "created_sea_house_bill_versions" edge.
+func HasCreatedSeaHouseBillVersions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaHouseBillVersionsTable, CreatedSeaHouseBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaHouseBillVersionsWith applies the HasEdge predicate on the "created_sea_house_bill_versions" edge with a given conditions (other predicates).
+func HasCreatedSeaHouseBillVersionsWith(preds ...predicate.SeaHouseBillVersion) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaHouseBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedSeaDocumentVoidEvents applies the HasEdge predicate on the "created_sea_document_void_events" edge.
+func HasCreatedSeaDocumentVoidEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaDocumentVoidEventsTable, CreatedSeaDocumentVoidEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaDocumentVoidEventsWith applies the HasEdge predicate on the "created_sea_document_void_events" edge with a given conditions (other predicates).
+func HasCreatedSeaDocumentVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaDocumentVoidEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedSeaHouseBillSwitchEvents applies the HasEdge predicate on the "created_sea_house_bill_switch_events" edge.
+func HasCreatedSeaHouseBillSwitchEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedSeaHouseBillSwitchEventsTable, CreatedSeaHouseBillSwitchEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedSeaHouseBillSwitchEventsWith applies the HasEdge predicate on the "created_sea_house_bill_switch_events" edge with a given conditions (other predicates).
+func HasCreatedSeaHouseBillSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedSeaHouseBillSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

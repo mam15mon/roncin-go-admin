@@ -26,6 +26,10 @@ type Tx struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// DingTalkApprovalDispatch is the client for interacting with the DingTalkApprovalDispatch builders.
+	DingTalkApprovalDispatch *DingTalkApprovalDispatchClient
+	// DingTalkApprovalInboxEvent is the client for interacting with the DingTalkApprovalInboxEvent builders.
+	DingTalkApprovalInboxEvent *DingTalkApprovalInboxEventClient
 	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
 	EnterpriseResource *EnterpriseResourceClient
 	// EnterpriseResourceAddress is the client for interacting with the EnterpriseResourceAddress builders.
@@ -130,6 +134,10 @@ type Tx struct {
 	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
+	// OrderLockHouseBillSnapshot is the client for interacting with the OrderLockHouseBillSnapshot builders.
+	OrderLockHouseBillSnapshot *OrderLockHouseBillSnapshotClient
+	// OrderLockRecord is the client for interacting with the OrderLockRecord builders.
+	OrderLockRecord *OrderLockRecordClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
@@ -140,6 +148,10 @@ type Tx struct {
 	OrderServiceType *OrderServiceTypeClient
 	// OrderShippingDocument is the client for interacting with the OrderShippingDocument builders.
 	OrderShippingDocument *OrderShippingDocumentClient
+	// OrderUnlockApproverCandidate is the client for interacting with the OrderUnlockApproverCandidate builders.
+	OrderUnlockApproverCandidate *OrderUnlockApproverCandidateClient
+	// OrderUnlockRequest is the client for interacting with the OrderUnlockRequest builders.
+	OrderUnlockRequest *OrderUnlockRequestClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -176,12 +188,20 @@ type Tx struct {
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
 	// SeaCargoAllocation is the client for interacting with the SeaCargoAllocation builders.
 	SeaCargoAllocation *SeaCargoAllocationClient
+	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
+	SeaDocumentVoidEvent *SeaDocumentVoidEventClient
 	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
 	SeaHouseBill *SeaHouseBillClient
+	// SeaHouseBillSwitchEvent is the client for interacting with the SeaHouseBillSwitchEvent builders.
+	SeaHouseBillSwitchEvent *SeaHouseBillSwitchEventClient
+	// SeaHouseBillVersion is the client for interacting with the SeaHouseBillVersion builders.
+	SeaHouseBillVersion *SeaHouseBillVersionClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
 	SeaMasterBill *SeaMasterBillClient
 	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
 	SeaMasterBillOrderLink *SeaMasterBillOrderLinkClient
+	// SeaMasterBillVersion is the client for interacting with the SeaMasterBillVersion builders.
+	SeaMasterBillVersion *SeaMasterBillVersionClient
 	// SeaOrderReassignmentEvent is the client for interacting with the SeaOrderReassignmentEvent builders.
 	SeaOrderReassignmentEvent *SeaOrderReassignmentEventClient
 	// SeaOrderSplitEvent is the client for interacting with the SeaOrderSplitEvent builders.
@@ -338,6 +358,8 @@ func (tx *Tx) init() {
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
 	tx.BillingUnit = NewBillingUnitClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
+	tx.DingTalkApprovalDispatch = NewDingTalkApprovalDispatchClient(tx.config)
+	tx.DingTalkApprovalInboxEvent = NewDingTalkApprovalInboxEventClient(tx.config)
 	tx.EnterpriseResource = NewEnterpriseResourceClient(tx.config)
 	tx.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(tx.config)
 	tx.EnterpriseResourceAddressType = NewEnterpriseResourceAddressTypeClient(tx.config)
@@ -390,11 +412,15 @@ func (tx *Tx) init() {
 	tx.OrderFee = NewOrderFeeClient(tx.config)
 	tx.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(tx.config)
 	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)
+	tx.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(tx.config)
+	tx.OrderLockRecord = NewOrderLockRecordClient(tx.config)
 	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
 	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)
 	tx.OrderReleasePod = NewOrderReleasePodClient(tx.config)
 	tx.OrderServiceType = NewOrderServiceTypeClient(tx.config)
 	tx.OrderShippingDocument = NewOrderShippingDocumentClient(tx.config)
+	tx.OrderUnlockApproverCandidate = NewOrderUnlockApproverCandidateClient(tx.config)
+	tx.OrderUnlockRequest = NewOrderUnlockRequestClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
 	tx.Partner = NewPartnerClient(tx.config)
 	tx.PartnerAccount = NewPartnerAccountClient(tx.config)
@@ -413,9 +439,13 @@ func (tx *Tx) init() {
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
 	tx.SeaCargoAllocation = NewSeaCargoAllocationClient(tx.config)
+	tx.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(tx.config)
 	tx.SeaHouseBill = NewSeaHouseBillClient(tx.config)
+	tx.SeaHouseBillSwitchEvent = NewSeaHouseBillSwitchEventClient(tx.config)
+	tx.SeaHouseBillVersion = NewSeaHouseBillVersionClient(tx.config)
 	tx.SeaMasterBill = NewSeaMasterBillClient(tx.config)
 	tx.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(tx.config)
+	tx.SeaMasterBillVersion = NewSeaMasterBillVersionClient(tx.config)
 	tx.SeaOrderReassignmentEvent = NewSeaOrderReassignmentEventClient(tx.config)
 	tx.SeaOrderSplitEvent = NewSeaOrderSplitEventClient(tx.config)
 	tx.SeaOrderSplitResult = NewSeaOrderSplitResultClient(tx.config)

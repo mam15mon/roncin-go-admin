@@ -17,19 +17,21 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
 // SeaTransportExecutionQuery is the builder for querying SeaTransportExecution entities.
 type SeaTransportExecutionQuery struct {
 	config
-	ctx              *QueryContext
-	order            []seatransportexecution.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.SeaTransportExecution
-	withOrganization *OrganizationQuery
-	withMasterBills  *SeaMasterBillQuery
-	modifiers        []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []seatransportexecution.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.SeaTransportExecution
+	withOrganization       *OrganizationQuery
+	withMasterBills        *SeaMasterBillQuery
+	withMasterBillVersions *SeaMasterBillVersionQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (_q *SeaTransportExecutionQuery) QueryMasterBills() *SeaMasterBillQuery {
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
 			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMasterBillVersions chains the current query on the "master_bill_versions" edge.
+func (_q *SeaTransportExecutionQuery) QueryMasterBillVersions() *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillVersionsTable, seatransportexecution.MasterBillVersionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -297,13 +321,14 @@ func (_q *SeaTransportExecutionQuery) Clone() *SeaTransportExecutionQuery {
 		return nil
 	}
 	return &SeaTransportExecutionQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]seatransportexecution.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.SeaTransportExecution{}, _q.predicates...),
-		withOrganization: _q.withOrganization.Clone(),
-		withMasterBills:  _q.withMasterBills.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]seatransportexecution.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.SeaTransportExecution{}, _q.predicates...),
+		withOrganization:       _q.withOrganization.Clone(),
+		withMasterBills:        _q.withMasterBills.Clone(),
+		withMasterBillVersions: _q.withMasterBillVersions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *SeaTransportExecutionQuery) WithMasterBills(opts ...func(*SeaMasterBil
 		opt(query)
 	}
 	_q.withMasterBills = query
+	return _q
+}
+
+// WithMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMasterBillVersions = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*SeaTransportExecution{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withMasterBills != nil,
+			_q.withMasterBillVersions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -446,6 +483,15 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 		if err := _q.loadMasterBills(ctx, query, nodes,
 			func(n *SeaTransportExecution) { n.Edges.MasterBills = []*SeaMasterBill{} },
 			func(n *SeaTransportExecution, e *SeaMasterBill) { n.Edges.MasterBills = append(n.Edges.MasterBills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMasterBillVersions; query != nil {
+		if err := _q.loadMasterBillVersions(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.MasterBillVersions = []*SeaMasterBillVersion{} },
+			func(n *SeaTransportExecution, e *SeaMasterBillVersion) {
+				n.Edges.MasterBillVersions = append(n.Edges.MasterBillVersions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -496,6 +542,36 @@ func (_q *SeaTransportExecutionQuery) loadMasterBills(ctx context.Context, query
 	}
 	query.Where(predicate.SeaMasterBill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(seatransportexecution.MasterBillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TransportExecutionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "transport_execution_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaTransportExecutionQuery) loadMasterBillVersions(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaMasterBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillversion.FieldTransportExecutionID)
+	}
+	query.Where(predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.MasterBillVersionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

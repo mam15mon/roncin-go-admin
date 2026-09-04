@@ -26,13 +26,21 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -202,6 +210,20 @@ func (_c *UserCreate) SetDingtalkName(v string) *UserCreate {
 func (_c *UserCreate) SetNillableDingtalkName(v *string) *UserCreate {
 	if v != nil {
 		_c.SetDingtalkName(*v)
+	}
+	return _c
+}
+
+// SetIsBootstrapAdmin sets the "is_bootstrap_admin" field.
+func (_c *UserCreate) SetIsBootstrapAdmin(v bool) *UserCreate {
+	_c.mutation.SetIsBootstrapAdmin(v)
+	return _c
+}
+
+// SetNillableIsBootstrapAdmin sets the "is_bootstrap_admin" field if the given value is not nil.
+func (_c *UserCreate) SetNillableIsBootstrapAdmin(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetIsBootstrapAdmin(*v)
 	}
 	return _c
 }
@@ -788,6 +810,156 @@ func (_c *UserCreate) AddCreatedOrderAttachments(v ...*OrderAttachment) *UserCre
 	return _c.AddCreatedOrderAttachmentIDs(ids...)
 }
 
+// AddLockedOrderIDs adds the "locked_orders" edge to the Order entity by IDs.
+func (_c *UserCreate) AddLockedOrderIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddLockedOrderIDs(ids...)
+	return _c
+}
+
+// AddLockedOrders adds the "locked_orders" edges to the Order entity.
+func (_c *UserCreate) AddLockedOrders(v ...*Order) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLockedOrderIDs(ids...)
+}
+
+// AddOrderLockRecordIDs adds the "order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_c *UserCreate) AddOrderLockRecordIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddOrderLockRecordIDs(ids...)
+	return _c
+}
+
+// AddOrderLockRecords adds the "order_lock_records" edges to the OrderLockRecord entity.
+func (_c *UserCreate) AddOrderLockRecords(v ...*OrderLockRecord) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderLockRecordIDs(ids...)
+}
+
+// AddUnlockedOrderLockRecordIDs adds the "unlocked_order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_c *UserCreate) AddUnlockedOrderLockRecordIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddUnlockedOrderLockRecordIDs(ids...)
+	return _c
+}
+
+// AddUnlockedOrderLockRecords adds the "unlocked_order_lock_records" edges to the OrderLockRecord entity.
+func (_c *UserCreate) AddUnlockedOrderLockRecords(v ...*OrderLockRecord) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUnlockedOrderLockRecordIDs(ids...)
+}
+
+// AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
+func (_c *UserCreate) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddOrderUnlockRequestIDs(ids...)
+	return _c
+}
+
+// AddOrderUnlockRequests adds the "order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_c *UserCreate) AddOrderUnlockRequests(v ...*OrderUnlockRequest) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderUnlockRequestIDs(ids...)
+}
+
+// AddDecidedOrderUnlockRequestIDs adds the "decided_order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
+func (_c *UserCreate) AddDecidedOrderUnlockRequestIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddDecidedOrderUnlockRequestIDs(ids...)
+	return _c
+}
+
+// AddDecidedOrderUnlockRequests adds the "decided_order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_c *UserCreate) AddDecidedOrderUnlockRequests(v ...*OrderUnlockRequest) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDecidedOrderUnlockRequestIDs(ids...)
+}
+
+// AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
+func (_c *UserCreate) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
+	return _c
+}
+
+// AddOrderUnlockApproverCandidates adds the "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_c *UserCreate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_c *UserCreate) AddCreatedSeaMasterBillVersionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaMasterBillVersionIDs(ids...)
+	return _c
+}
+
+// AddCreatedSeaMasterBillVersions adds the "created_sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_c *UserCreate) AddCreatedSeaMasterBillVersions(v ...*SeaMasterBillVersion) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedSeaMasterBillVersionIDs(ids...)
+}
+
+// AddCreatedSeaHouseBillVersionIDs adds the "created_sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_c *UserCreate) AddCreatedSeaHouseBillVersionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaHouseBillVersionIDs(ids...)
+	return _c
+}
+
+// AddCreatedSeaHouseBillVersions adds the "created_sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_c *UserCreate) AddCreatedSeaHouseBillVersions(v ...*SeaHouseBillVersion) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedSeaHouseBillVersionIDs(ids...)
+}
+
+// AddCreatedSeaDocumentVoidEventIDs adds the "created_sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_c *UserCreate) AddCreatedSeaDocumentVoidEventIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaDocumentVoidEventIDs(ids...)
+	return _c
+}
+
+// AddCreatedSeaDocumentVoidEvents adds the "created_sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_c *UserCreate) AddCreatedSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddCreatedSeaHouseBillSwitchEventIDs adds the "created_sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
+func (_c *UserCreate) AddCreatedSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaHouseBillSwitchEventIDs(ids...)
+	return _c
+}
+
+// AddCreatedSeaHouseBillSwitchEvents adds the "created_sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
+func (_c *UserCreate) AddCreatedSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedSeaHouseBillSwitchEventIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
@@ -838,6 +1010,10 @@ func (_c *UserCreate) defaults() error {
 		}
 		v := user.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.IsBootstrapAdmin(); !ok {
+		v := user.DefaultIsBootstrapAdmin
+		_c.mutation.SetIsBootstrapAdmin(v)
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := user.DefaultEnabled
@@ -912,6 +1088,9 @@ func (_c *UserCreate) check() error {
 		if err := user.DingtalkNameValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IsBootstrapAdmin(); !ok {
+		return &ValidationError{Name: "is_bootstrap_admin", err: errors.New(`ent: missing required field "User.is_bootstrap_admin"`)}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "User.enabled"`)}
@@ -1001,6 +1180,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DingtalkName(); ok {
 		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
 		_node.DingtalkName = &value
+	}
+	if value, ok := _c.mutation.IsBootstrapAdmin(); ok {
+		_spec.SetField(user.FieldIsBootstrapAdmin, field.TypeBool, value)
+		_node.IsBootstrapAdmin = value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
@@ -1579,6 +1762,166 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LockedOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LockedOrdersTable,
+			Columns: []string{user.LockedOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderLockRecordsTable,
+			Columns: []string{user.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UnlockedOrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UnlockedOrderLockRecordsTable,
+			Columns: []string{user.UnlockedOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderUnlockRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderUnlockRequestsTable,
+			Columns: []string{user.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DecidedOrderUnlockRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderUnlockRequestsTable,
+			Columns: []string{user.DecidedOrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderUnlockApproverCandidatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderUnlockApproverCandidatesTable,
+			Columns: []string{user.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedSeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedSeaMasterBillVersionsTable,
+			Columns: []string{user.CreatedSeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedSeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedSeaHouseBillVersionsTable,
+			Columns: []string{user.CreatedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedSeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedSeaDocumentVoidEventsTable,
+			Columns: []string{user.CreatedSeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedSeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedSeaHouseBillSwitchEventsTable,
+			Columns: []string{user.CreatedSeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

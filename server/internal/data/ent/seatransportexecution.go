@@ -55,9 +55,11 @@ type SeaTransportExecutionEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// MasterBills holds the value of the master_bills edge.
 	MasterBills []*SeaMasterBill `json:"master_bills,omitempty"`
+	// MasterBillVersions holds the value of the master_bill_versions edge.
+	MasterBillVersions []*SeaMasterBillVersion `json:"master_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -78,6 +80,15 @@ func (e SeaTransportExecutionEdges) MasterBillsOrErr() ([]*SeaMasterBill, error)
 		return e.MasterBills, nil
 	}
 	return nil, &NotLoadedError{edge: "master_bills"}
+}
+
+// MasterBillVersionsOrErr returns the MasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaTransportExecutionEdges) MasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[2] {
+		return e.MasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "master_bill_versions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -215,6 +226,11 @@ func (_m *SeaTransportExecution) QueryOrganization() *OrganizationQuery {
 // QueryMasterBills queries the "master_bills" edge of the SeaTransportExecution entity.
 func (_m *SeaTransportExecution) QueryMasterBills() *SeaMasterBillQuery {
 	return NewSeaTransportExecutionClient(_m.config).QueryMasterBills(_m)
+}
+
+// QueryMasterBillVersions queries the "master_bill_versions" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryMasterBillVersions(_m)
 }
 
 // Update returns a builder for updating this SeaTransportExecution.

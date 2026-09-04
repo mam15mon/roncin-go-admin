@@ -29,6 +29,7 @@ func (Role) Edges() []ent.Edge {
 		edge.To("permissions", Permission.Type),
 		edge.To("assignments", RoleAssignment.Type),
 		edge.To("order_organization_accesses", RoleOrderOrganizationAccess.Type),
+		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
 	}
 }
 

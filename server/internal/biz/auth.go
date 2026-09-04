@@ -129,6 +129,7 @@ type Principal struct {
 	DisplayName               string
 	Email                     *string
 	AvatarURL                 *string
+	IsBootstrapAdmin          bool
 	Organization              Organization
 	Organizations             []Organization
 	Permissions               []string

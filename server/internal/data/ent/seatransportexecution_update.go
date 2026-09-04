@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
@@ -240,6 +241,21 @@ func (_u *SeaTransportExecutionUpdate) AddMasterBills(v ...*SeaMasterBill) *SeaT
 	return _u.AddMasterBillIDs(ids...)
 }
 
+// AddMasterBillVersionIDs adds the "master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *SeaTransportExecutionUpdate) AddMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdate {
+	_u.mutation.AddMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddMasterBillVersions adds the "master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *SeaTransportExecutionUpdate) AddMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMasterBillVersionIDs(ids...)
+}
+
 // Mutation returns the SeaTransportExecutionMutation object of the builder.
 func (_u *SeaTransportExecutionUpdate) Mutation() *SeaTransportExecutionMutation {
 	return _u.mutation
@@ -270,6 +286,27 @@ func (_u *SeaTransportExecutionUpdate) RemoveMasterBills(v ...*SeaMasterBill) *S
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterBillIDs(ids...)
+}
+
+// ClearMasterBillVersions clears all "master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *SeaTransportExecutionUpdate) ClearMasterBillVersions() *SeaTransportExecutionUpdate {
+	_u.mutation.ClearMasterBillVersions()
+	return _u
+}
+
+// RemoveMasterBillVersionIDs removes the "master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *SeaTransportExecutionUpdate) RemoveMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdate {
+	_u.mutation.RemoveMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveMasterBillVersions removes "master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *SeaTransportExecutionUpdate) RemoveMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMasterBillVersionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -456,6 +493,51 @@ func (_u *SeaTransportExecutionUpdate) sqlSave(ctx context.Context) (_node int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.MasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -692,6 +774,21 @@ func (_u *SeaTransportExecutionUpdateOne) AddMasterBills(v ...*SeaMasterBill) *S
 	return _u.AddMasterBillIDs(ids...)
 }
 
+// AddMasterBillVersionIDs adds the "master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *SeaTransportExecutionUpdateOne) AddMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdateOne {
+	_u.mutation.AddMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddMasterBillVersions adds the "master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *SeaTransportExecutionUpdateOne) AddMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMasterBillVersionIDs(ids...)
+}
+
 // Mutation returns the SeaTransportExecutionMutation object of the builder.
 func (_u *SeaTransportExecutionUpdateOne) Mutation() *SeaTransportExecutionMutation {
 	return _u.mutation
@@ -722,6 +819,27 @@ func (_u *SeaTransportExecutionUpdateOne) RemoveMasterBills(v ...*SeaMasterBill)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterBillIDs(ids...)
+}
+
+// ClearMasterBillVersions clears all "master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *SeaTransportExecutionUpdateOne) ClearMasterBillVersions() *SeaTransportExecutionUpdateOne {
+	_u.mutation.ClearMasterBillVersions()
+	return _u
+}
+
+// RemoveMasterBillVersionIDs removes the "master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *SeaTransportExecutionUpdateOne) RemoveMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdateOne {
+	_u.mutation.RemoveMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveMasterBillVersions removes "master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *SeaTransportExecutionUpdateOne) RemoveMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMasterBillVersionIDs(ids...)
 }
 
 // Where appends a list predicates to the SeaTransportExecutionUpdate builder.
@@ -938,6 +1056,51 @@ func (_u *SeaTransportExecutionUpdateOne) sqlSave(ctx context.Context) (_node *S
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.MasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.MasterBillVersionsTable,
+			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -46,6 +46,8 @@ const (
 	EdgeNotificationDelivery = "notification_delivery"
 	// EdgeObjectStorageDeletion holds the string denoting the object_storage_deletion edge name in mutations.
 	EdgeObjectStorageDeletion = "object_storage_deletion"
+	// EdgeDingtalkApprovalDispatch holds the string denoting the dingtalk_approval_dispatch edge name in mutations.
+	EdgeDingtalkApprovalDispatch = "dingtalk_approval_dispatch"
 	// Table holds the table name of the backgroundtask in the database.
 	Table = "background_tasks"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -69,6 +71,13 @@ const (
 	ObjectStorageDeletionInverseTable = "object_storage_deletions"
 	// ObjectStorageDeletionColumn is the table column denoting the object_storage_deletion relation/edge.
 	ObjectStorageDeletionColumn = "background_task_id"
+	// DingtalkApprovalDispatchTable is the table that holds the dingtalk_approval_dispatch relation/edge.
+	DingtalkApprovalDispatchTable = "ding_talk_approval_dispatches"
+	// DingtalkApprovalDispatchInverseTable is the table name for the DingTalkApprovalDispatch entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkapprovaldispatch" package.
+	DingtalkApprovalDispatchInverseTable = "ding_talk_approval_dispatches"
+	// DingtalkApprovalDispatchColumn is the table column denoting the dingtalk_approval_dispatch relation/edge.
+	DingtalkApprovalDispatchColumn = "background_task_id"
 )
 
 // Columns holds all SQL columns for backgroundtask fields.
@@ -130,12 +139,13 @@ type Kind string
 
 // Kind values.
 const (
-	KindMASTER_DATA_IMPORT      Kind = "MASTER_DATA_IMPORT"
-	KindUNLOCODE_IMPORT         Kind = "UNLOCODE_IMPORT"
-	KindORDER_REMINDER          Kind = "ORDER_REMINDER"
-	KindINTEGRATION             Kind = "INTEGRATION"
-	KindDINGTALK_NOTIFICATION   Kind = "DINGTALK_NOTIFICATION"
-	KindOBJECT_STORAGE_DELETION Kind = "OBJECT_STORAGE_DELETION"
+	KindMASTER_DATA_IMPORT       Kind = "MASTER_DATA_IMPORT"
+	KindUNLOCODE_IMPORT          Kind = "UNLOCODE_IMPORT"
+	KindORDER_REMINDER           Kind = "ORDER_REMINDER"
+	KindINTEGRATION              Kind = "INTEGRATION"
+	KindDINGTALK_NOTIFICATION    Kind = "DINGTALK_NOTIFICATION"
+	KindOBJECT_STORAGE_DELETION  Kind = "OBJECT_STORAGE_DELETION"
+	KindDINGTALK_APPROVAL_CREATE Kind = "DINGTALK_APPROVAL_CREATE"
 )
 
 func (k Kind) String() string {
@@ -145,7 +155,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION, KindOBJECT_STORAGE_DELETION:
+	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION, KindOBJECT_STORAGE_DELETION, KindDINGTALK_APPROVAL_CREATE:
 		return nil
 	default:
 		return fmt.Errorf("backgroundtask: invalid enum value for kind field: %q", k)
@@ -269,6 +279,13 @@ func ByObjectStorageDeletionField(field string, opts ...sql.OrderTermOption) Ord
 		sqlgraph.OrderByNeighborTerms(s, newObjectStorageDeletionStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByDingtalkApprovalDispatchField orders the results by dingtalk_approval_dispatch field.
+func ByDingtalkApprovalDispatchField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkApprovalDispatchStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -288,5 +305,12 @@ func newObjectStorageDeletionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ObjectStorageDeletionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, ObjectStorageDeletionTable, ObjectStorageDeletionColumn),
+	)
+}
+func newDingtalkApprovalDispatchStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkApprovalDispatchInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, DingtalkApprovalDispatchTable, DingtalkApprovalDispatchColumn),
 	)
 }

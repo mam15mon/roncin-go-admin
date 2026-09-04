@@ -146,9 +146,27 @@ type OrganizationEdges struct {
 	SeaOrderSplitResults []*SeaOrderSplitResult `json:"sea_order_split_results,omitempty"`
 	// SeaOrderReassignmentEvents holds the value of the sea_order_reassignment_events edge.
 	SeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"sea_order_reassignment_events,omitempty"`
+	// OrderLockRecords holds the value of the order_lock_records edge.
+	OrderLockRecords []*OrderLockRecord `json:"order_lock_records,omitempty"`
+	// OrderLockHouseBillSnapshots holds the value of the order_lock_house_bill_snapshots edge.
+	OrderLockHouseBillSnapshots []*OrderLockHouseBillSnapshot `json:"order_lock_house_bill_snapshots,omitempty"`
+	// OrderUnlockRequests holds the value of the order_unlock_requests edge.
+	OrderUnlockRequests []*OrderUnlockRequest `json:"order_unlock_requests,omitempty"`
+	// SeaMasterBillVersions holds the value of the sea_master_bill_versions edge.
+	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
+	// SeaHouseBillVersions holds the value of the sea_house_bill_versions edge.
+	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
+	// IssuedSeaHouseBillVersions holds the value of the issued_sea_house_bill_versions edge.
+	IssuedSeaHouseBillVersions []*SeaHouseBillVersion `json:"issued_sea_house_bill_versions,omitempty"`
+	// DingtalkApprovalDispatches holds the value of the dingtalk_approval_dispatches edge.
+	DingtalkApprovalDispatches []*DingTalkApprovalDispatch `json:"dingtalk_approval_dispatches,omitempty"`
+	// SeaDocumentVoidEvents holds the value of the sea_document_void_events edge.
+	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
+	// SeaHouseBillSwitchEvents holds the value of the sea_house_bill_switch_events edge.
+	SeaHouseBillSwitchEvents []*SeaHouseBillSwitchEvent `json:"sea_house_bill_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [51]bool
+	loadedTypes [60]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -612,6 +630,87 @@ func (e OrganizationEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassig
 	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
 }
 
+// OrderLockRecordsOrErr returns the OrderLockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[51] {
+		return e.OrderLockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "order_lock_records"}
+}
+
+// OrderLockHouseBillSnapshotsOrErr returns the OrderLockHouseBillSnapshots value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderLockHouseBillSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
+	if e.loadedTypes[52] {
+		return e.OrderLockHouseBillSnapshots, nil
+	}
+	return nil, &NotLoadedError{edge: "order_lock_house_bill_snapshots"}
+}
+
+// OrderUnlockRequestsOrErr returns the OrderUnlockRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
+	if e.loadedTypes[53] {
+		return e.OrderUnlockRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "order_unlock_requests"}
+}
+
+// SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[54] {
+		return e.SeaMasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
+}
+
+// SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[55] {
+		return e.SeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
+}
+
+// IssuedSeaHouseBillVersionsOrErr returns the IssuedSeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) IssuedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[56] {
+		return e.IssuedSeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "issued_sea_house_bill_versions"}
+}
+
+// DingtalkApprovalDispatchesOrErr returns the DingtalkApprovalDispatches value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) DingtalkApprovalDispatchesOrErr() ([]*DingTalkApprovalDispatch, error) {
+	if e.loadedTypes[57] {
+		return e.DingtalkApprovalDispatches, nil
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_approval_dispatches"}
+}
+
+// SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[58] {
+		return e.SeaDocumentVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_document_void_events"}
+}
+
+// SeaHouseBillSwitchEventsOrErr returns the SeaHouseBillSwitchEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaHouseBillSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+	if e.loadedTypes[59] {
+		return e.SeaHouseBillSwitchEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_switch_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -970,6 +1069,51 @@ func (_m *Organization) QuerySeaOrderSplitResults() *SeaOrderSplitResultQuery {
 // QuerySeaOrderReassignmentEvents queries the "sea_order_reassignment_events" edge of the Organization entity.
 func (_m *Organization) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
 	return NewOrganizationClient(_m.config).QuerySeaOrderReassignmentEvents(_m)
+}
+
+// QueryOrderLockRecords queries the "order_lock_records" edge of the Organization entity.
+func (_m *Organization) QueryOrderLockRecords() *OrderLockRecordQuery {
+	return NewOrganizationClient(_m.config).QueryOrderLockRecords(_m)
+}
+
+// QueryOrderLockHouseBillSnapshots queries the "order_lock_house_bill_snapshots" edge of the Organization entity.
+func (_m *Organization) QueryOrderLockHouseBillSnapshots() *OrderLockHouseBillSnapshotQuery {
+	return NewOrganizationClient(_m.config).QueryOrderLockHouseBillSnapshots(_m)
+}
+
+// QueryOrderUnlockRequests queries the "order_unlock_requests" edge of the Organization entity.
+func (_m *Organization) QueryOrderUnlockRequests() *OrderUnlockRequestQuery {
+	return NewOrganizationClient(_m.config).QueryOrderUnlockRequests(_m)
+}
+
+// QuerySeaMasterBillVersions queries the "sea_master_bill_versions" edge of the Organization entity.
+func (_m *Organization) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewOrganizationClient(_m.config).QuerySeaMasterBillVersions(_m)
+}
+
+// QuerySeaHouseBillVersions queries the "sea_house_bill_versions" edge of the Organization entity.
+func (_m *Organization) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewOrganizationClient(_m.config).QuerySeaHouseBillVersions(_m)
+}
+
+// QueryIssuedSeaHouseBillVersions queries the "issued_sea_house_bill_versions" edge of the Organization entity.
+func (_m *Organization) QueryIssuedSeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewOrganizationClient(_m.config).QueryIssuedSeaHouseBillVersions(_m)
+}
+
+// QueryDingtalkApprovalDispatches queries the "dingtalk_approval_dispatches" edge of the Organization entity.
+func (_m *Organization) QueryDingtalkApprovalDispatches() *DingTalkApprovalDispatchQuery {
+	return NewOrganizationClient(_m.config).QueryDingtalkApprovalDispatches(_m)
+}
+
+// QuerySeaDocumentVoidEvents queries the "sea_document_void_events" edge of the Organization entity.
+func (_m *Organization) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewOrganizationClient(_m.config).QuerySeaDocumentVoidEvents(_m)
+}
+
+// QuerySeaHouseBillSwitchEvents queries the "sea_house_bill_switch_events" edge of the Organization entity.
+func (_m *Organization) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	return NewOrganizationClient(_m.config).QuerySeaHouseBillSwitchEvents(_m)
 }
 
 // Update returns a builder for updating this Organization.

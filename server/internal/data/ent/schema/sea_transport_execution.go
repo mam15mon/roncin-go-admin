@@ -32,6 +32,7 @@ func (SeaTransportExecution) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("sea_transport_executions").Field("organization_id").Unique().Required(),
 		edge.To("master_bills", SeaMasterBill.Type),
+		edge.To("master_bill_versions", SeaMasterBillVersion.Type),
 	}
 }
 

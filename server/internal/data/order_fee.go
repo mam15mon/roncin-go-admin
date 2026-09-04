@@ -260,9 +260,12 @@ func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizatio
 }
 
 func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) error {
-	_, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+	order, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return mapEntError(err, biz.ErrOrderFeeNotFound, nil)
+	}
+	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+		return err
 	}
 	locked, err := tx.FinanceCommissionLine.Query().Where(
 		commissionlineent.OrganizationIDEQ(organizationID),

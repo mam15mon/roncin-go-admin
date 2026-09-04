@@ -144,7 +144,7 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return fmt.Errorf("create administrator role: %w", err)
 	}
-	account, err := tx.User.Create().SetUsername(config.username).SetDisplayName(config.displayName).SetPasswordHash(passwordHash).Save(ctx)
+	account, err := tx.User.Create().SetUsername(config.username).SetDisplayName(config.displayName).SetPasswordHash(passwordHash).SetIsBootstrapAdmin(true).Save(ctx)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("create administrator: %w", err)

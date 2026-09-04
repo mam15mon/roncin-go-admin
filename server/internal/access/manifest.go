@@ -160,6 +160,10 @@ const (
 	OrderFeeDelete            OrderOperation = "fee.delete"
 	OrderSplit                OrderOperation = "split"
 	OrderReassign             OrderOperation = "reassign"
+	OrderLock                 OrderOperation = "lock"
+	OrderAmend                OrderOperation = "amend"
+	OrderVoid                 OrderOperation = "void"
+	OrderSwitch               OrderOperation = "switch"
 )
 
 var manifest = append([]Permission{
@@ -280,6 +284,10 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{operation: OrderFeeRead, name: "查看费用", resource: "费用", description: "查看订单应收应付费用"}, {operation: OrderFeeCreate, name: "录入费用", resource: "费用", description: "录入订单应收应付费用"}, {operation: OrderFeeUpdate, name: "编辑费用", resource: "费用", description: "修改订单应收应付费用"}, {operation: OrderFeeDelete, name: "删除费用", resource: "费用", description: "删除订单应收应付费用"},
 	{operation: OrderSplit, name: "拆票", resource: "订单", description: "执行海运出口拆票", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderReassign, name: "整体改配", resource: "订单", description: "执行海运出口整体改配", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderLock, name: "锁定/直接解锁订单", resource: "订单", description: "执行海运出口订单锁定与直接解锁", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderAmend, name: "改单", resource: "订单", description: "执行海运出口单证改单", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderVoid, name: "作废提单", resource: "订单", description: "执行海运出口单证作废", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderSwitch, name: "Switch B/L", resource: "订单", description: "执行海运出口换单（Switch B/L）", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 }
 
 func OrderPermission(businessType OrderBusinessType, operation OrderOperation) string {
@@ -351,7 +359,7 @@ func orderManifest() []Permission {
 // 权限（里程碑、集装箱、费用等）还依赖该业务线的订单读权限。
 func orderPermissionRequires(businessType OrderBusinessType, operation OrderOperation) []string {
 	orderRead := OrderPermission(businessType, OrderRead)
-	if operation == OrderSplit || operation == OrderReassign {
+	if operation == OrderSplit || operation == OrderReassign || operation == OrderLock || operation == OrderAmend || operation == OrderVoid || operation == OrderSwitch {
 		return []string{orderRead, OrderPermission(businessType, OrderUpdate)}
 	}
 	resource := ""

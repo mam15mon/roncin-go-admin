@@ -1,0 +1,228 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderLockService 订单业务锁与不可变单证版本服务。
+service OrderLockService {
+  // GetOrderLockState 获取订单当前锁定状态与可执行动作。
+  rpc GetOrderLockState(GetOrderLockStateRequest) returns (GetOrderLockStateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/lock-state"};
+  }
+
+  // LockOrder 锁定海运出口订单并固定单证不可变版本。
+  rpc LockOrder(LockOrderRequest) returns (LockOrderResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "lock" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/lock"
+      body: "*"
+    };
+  }
+
+  // RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
+  rpc RequestOrderUnlock(RequestOrderUnlockRequest) returns (RequestOrderUnlockResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/unlock"
+      body: "*"
+    };
+  }
+
+  // ListOrderUnlockRequests 查询订单解锁请求历史。
+  rpc ListOrderUnlockRequests(ListOrderUnlockRequestsRequest) returns (ListOrderUnlockRequestsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/unlock-requests"};
+  }
+
+  // GetOrderUnlockRequest 获取单个解锁请求详情。
+  rpc GetOrderUnlockRequest(GetOrderUnlockRequestRequest) returns (GetOrderUnlockRequestResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/unlock-requests/{request_id}"};
+  }
+}
+
+// -------------------------------------------------------------
+// 请求与响应消息
+// -------------------------------------------------------------
+
+message GetOrderLockStateRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetOrderLockStateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderLockStateData data = 4;
+  string trace_id = 5;
+}
+
+message LockOrderRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message LockOrderResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderLockResultData data = 4;
+  string trace_id = 5;
+}
+
+message RequestOrderUnlockRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string reason = 4;
+}
+
+message RequestOrderUnlockResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderUnlockResultData data = 4;
+  string trace_id = 5;
+}
+
+message ListOrderUnlockRequestsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListOrderUnlockRequestsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ListOrderUnlockRequestsData data = 4;
+  string trace_id = 5;
+}
+
+message GetOrderUnlockRequestRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetOrderUnlockRequestResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderUnlockRequestData data = 4;
+  string trace_id = 5;
+}
+
+// -------------------------------------------------------------
+// 数据结构
+// -------------------------------------------------------------
+
+message OrderLockStateData {
+  string order_id = 1;
+  string order_no = 2;
+  bool is_locked = 3;
+  uint64 lock_generation = 4;
+  optional string locked_at = 5;
+  optional string locked_by = 6;
+  optional string locked_by_name = 7;
+  uint64 order_version = 8;
+  bool can_lock = 9;
+  bool can_role_direct_unlock = 10;
+  bool can_admin_emergency_unlock = 11;
+  bool can_request_unlock = 12;
+  repeated string lock_blocked_reasons = 13;
+  repeated string unlock_blocked_reasons = 14;
+  optional OrderUnlockRequestData active_unlock_request = 15;
+  optional OrderLockRecordData current_lock_record = 16;
+}
+
+message OrderLockResultData {
+  OrderLockStateData state = 1;
+  OrderLockRecordData lock_record = 2;
+}
+
+message OrderUnlockResultData {
+  OrderLockStateData state = 1;
+  OrderUnlockRequestData request = 2;
+}
+
+message ListOrderUnlockRequestsData {
+  repeated OrderUnlockRequestData items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message OrderLockRecordData {
+  string id = 1;
+  string order_id = 2;
+  string order_no = 3;
+  uint64 generation = 4;
+  string locked_by = 5;
+  string locked_by_name = 6;
+  string locked_at = 7;
+  uint64 order_version_at_lock = 8;
+  string master_bill_id = 9;
+  string master_bill_version_id = 10;
+  optional string unlocked_by = 11;
+  optional string unlocked_by_name = 12;
+  optional string unlocked_at = 13;
+  optional uint64 order_version_at_unlock = 14;
+  optional string unlock_request_id = 15;
+  optional string unlock_reason = 16;
+  optional string unlock_mode = 17;
+  repeated OrderLockHouseBillSnapshotData house_bill_snapshots = 18;
+}
+
+message OrderLockHouseBillSnapshotData {
+  string id = 1;
+  string lock_record_id = 2;
+  string house_bill_id = 3;
+  string house_bill_version_id = 4;
+  string house_no_snapshot = 5;
+  string created_at = 6;
+}
+
+message OrderUnlockRequestData {
+  string id = 1;
+  string order_id = 2;
+  string order_no = 3;
+  string lock_record_id = 4;
+  uint64 lock_generation = 5;
+  string requested_by = 6;
+  string requested_by_name = 7;
+  string requested_at = 8;
+  optional string reason = 9;
+  uint64 expected_order_version = 10;
+  string idempotency_key = 11;
+  string route = 12;
+  string status = 13;
+  optional string dingtalk_process_instance_id = 14;
+  optional string dingtalk_process_code = 15;
+  optional string decided_by = 16;
+  optional string decided_by_name = 17;
+  optional string decided_at = 18;
+  optional string decision_source = 19;
+  optional string failure_code = 20;
+  optional string failure_message = 21;
+  optional string superseded_by_request_id = 22;
+  optional string unlocked_at = 23;
+  optional uint64 result_order_version = 24;
+  repeated OrderUnlockApproverCandidateData approver_candidates = 25;
+}
+
+message OrderUnlockApproverCandidateData {
+  string id = 1;
+  string request_id = 2;
+  string user_id = 3;
+  string membership_id = 4;
+  string role_id = 5;
+  string display_name_snapshot = 6;
+  string dingtalk_userid_snapshot = 7;
+}

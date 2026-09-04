@@ -216,6 +216,16 @@ func LockedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldLockedAt, v))
 }
 
+// LockedBy applies equality check predicate on the "locked_by" field. It's identical to LockedByEQ.
+func LockedBy(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockedBy, v))
+}
+
+// LockGeneration applies equality check predicate on the "lock_generation" field. It's identical to LockGenerationEQ.
+func LockGeneration(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockGeneration, v))
+}
+
 // IsShared applies equality check predicate on the "is_shared" field. It's identical to IsSharedEQ.
 func IsShared(v bool) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldIsShared, v))
@@ -2561,6 +2571,76 @@ func LockedAtNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldLockedAt))
 }
 
+// LockedByEQ applies the EQ predicate on the "locked_by" field.
+func LockedByEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockedBy, v))
+}
+
+// LockedByNEQ applies the NEQ predicate on the "locked_by" field.
+func LockedByNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldLockedBy, v))
+}
+
+// LockedByIn applies the In predicate on the "locked_by" field.
+func LockedByIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldLockedBy, vs...))
+}
+
+// LockedByNotIn applies the NotIn predicate on the "locked_by" field.
+func LockedByNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldLockedBy, vs...))
+}
+
+// LockedByIsNil applies the IsNil predicate on the "locked_by" field.
+func LockedByIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldLockedBy))
+}
+
+// LockedByNotNil applies the NotNil predicate on the "locked_by" field.
+func LockedByNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldLockedBy))
+}
+
+// LockGenerationEQ applies the EQ predicate on the "lock_generation" field.
+func LockGenerationEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockGeneration, v))
+}
+
+// LockGenerationNEQ applies the NEQ predicate on the "lock_generation" field.
+func LockGenerationNEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldLockGeneration, v))
+}
+
+// LockGenerationIn applies the In predicate on the "lock_generation" field.
+func LockGenerationIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldLockGeneration, vs...))
+}
+
+// LockGenerationNotIn applies the NotIn predicate on the "lock_generation" field.
+func LockGenerationNotIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldLockGeneration, vs...))
+}
+
+// LockGenerationGT applies the GT predicate on the "lock_generation" field.
+func LockGenerationGT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldLockGeneration, v))
+}
+
+// LockGenerationGTE applies the GTE predicate on the "lock_generation" field.
+func LockGenerationGTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldLockGeneration, v))
+}
+
+// LockGenerationLT applies the LT predicate on the "lock_generation" field.
+func LockGenerationLT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldLockGeneration, v))
+}
+
+// LockGenerationLTE applies the LTE predicate on the "lock_generation" field.
+func LockGenerationLTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldLockGeneration, v))
+}
+
 // IsSharedEQ applies the EQ predicate on the "is_shared" field.
 func IsSharedEQ(v bool) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldIsShared, v))
@@ -4676,6 +4756,144 @@ func HasSeaOrderReassignmentEvents() predicate.Order {
 func HasSeaOrderReassignmentEventsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newSeaOrderReassignmentEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLockedByUser applies the HasEdge predicate on the "locked_by_user" edge.
+func HasLockedByUser() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LockedByUserTable, LockedByUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockedByUserWith applies the HasEdge predicate on the "locked_by_user" edge with a given conditions (other predicates).
+func HasLockedByUserWith(preds ...predicate.User) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newLockedByUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLockRecords applies the HasEdge predicate on the "lock_records" edge.
+func HasLockRecords() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockRecordsWith applies the HasEdge predicate on the "lock_records" edge with a given conditions (other predicates).
+func HasLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newLockRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUnlockRequests applies the HasEdge predicate on the "unlock_requests" edge.
+func HasUnlockRequests() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UnlockRequestsTable, UnlockRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUnlockRequestsWith applies the HasEdge predicate on the "unlock_requests" edge with a given conditions (other predicates).
+func HasUnlockRequestsWith(preds ...predicate.OrderUnlockRequest) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newUnlockRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaHouseBillVersions applies the HasEdge predicate on the "sea_house_bill_versions" edge.
+func HasSeaHouseBillVersions() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillVersionsWith applies the HasEdge predicate on the "sea_house_bill_versions" edge with a given conditions (other predicates).
+func HasSeaHouseBillVersionsWith(preds ...predicate.SeaHouseBillVersion) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaHouseBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaDocumentVoidEvents applies the HasEdge predicate on the "sea_document_void_events" edge.
+func HasSeaDocumentVoidEvents() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaDocumentVoidEventsWith applies the HasEdge predicate on the "sea_document_void_events" edge with a given conditions (other predicates).
+func HasSeaDocumentVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaDocumentVoidEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaHouseBillSwitchEvents applies the HasEdge predicate on the "sea_house_bill_switch_events" edge.
+func HasSeaHouseBillSwitchEvents() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillSwitchEventsWith applies the HasEdge predicate on the "sea_house_bill_switch_events" edge with a given conditions (other predicates).
+func HasSeaHouseBillSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaHouseBillSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

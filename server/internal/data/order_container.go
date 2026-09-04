@@ -109,6 +109,9 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		if order.BusinessType == orderent.BusinessTypeSE {
 			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
@@ -182,6 +185,9 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		if order.BusinessType == orderent.BusinessTypeSE {
@@ -300,6 +306,9 @@ func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		if order.BusinessType == orderent.BusinessTypeSE {

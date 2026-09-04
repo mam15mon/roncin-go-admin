@@ -91,6 +91,11 @@ func NormalizedMasterNo(v string) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldNormalizedMasterNo, v))
 }
 
+// CurrentVersionID applies equality check predicate on the "current_version_id" field. It's identical to CurrentVersionIDEQ.
+func CurrentVersionID(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldCurrentVersionID, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldVersion, v))
@@ -479,6 +484,36 @@ func StatusIn(vs ...Status) predicate.SeaMasterBill {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// CurrentVersionIDEQ applies the EQ predicate on the "current_version_id" field.
+func CurrentVersionIDEQ(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldCurrentVersionID, v))
+}
+
+// CurrentVersionIDNEQ applies the NEQ predicate on the "current_version_id" field.
+func CurrentVersionIDNEQ(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldCurrentVersionID, v))
+}
+
+// CurrentVersionIDIn applies the In predicate on the "current_version_id" field.
+func CurrentVersionIDIn(vs ...uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldCurrentVersionID, vs...))
+}
+
+// CurrentVersionIDNotIn applies the NotIn predicate on the "current_version_id" field.
+func CurrentVersionIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldCurrentVersionID, vs...))
+}
+
+// CurrentVersionIDIsNil applies the IsNil predicate on the "current_version_id" field.
+func CurrentVersionIDIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldCurrentVersionID))
+}
+
+// CurrentVersionIDNotNil applies the NotNil predicate on the "current_version_id" field.
+func CurrentVersionIDNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldCurrentVersionID))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.
@@ -1747,6 +1782,144 @@ func HasTargetSeaOrderReassignments() predicate.SeaMasterBill {
 func HasTargetSeaOrderReassignmentsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
 		step := newTargetSeaOrderReassignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCurrentVersion applies the HasEdge predicate on the "current_version" edge.
+func HasCurrentVersion() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CurrentVersionTable, CurrentVersionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCurrentVersionWith applies the HasEdge predicate on the "current_version" edge with a given conditions (other predicates).
+func HasCurrentVersionWith(preds ...predicate.SeaMasterBillVersion) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newCurrentVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVersions applies the HasEdge predicate on the "versions" edge.
+func HasVersions() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVersionsWith applies the HasEdge predicate on the "versions" edge with a given conditions (other predicates).
+func HasVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasHouseBillVersions applies the HasEdge predicate on the "house_bill_versions" edge.
+func HasHouseBillVersions() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HouseBillVersionsTable, HouseBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHouseBillVersionsWith applies the HasEdge predicate on the "house_bill_versions" edge with a given conditions (other predicates).
+func HasHouseBillVersionsWith(preds ...predicate.SeaHouseBillVersion) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newHouseBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLockRecords applies the HasEdge predicate on the "lock_records" edge.
+func HasLockRecords() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockRecordsWith applies the HasEdge predicate on the "lock_records" edge with a given conditions (other predicates).
+func HasLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newLockRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVoidEvents applies the HasEdge predicate on the "void_events" edge.
+func HasVoidEvents() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VoidEventsTable, VoidEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVoidEventsWith applies the HasEdge predicate on the "void_events" edge with a given conditions (other predicates).
+func HasVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newVoidEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSwitchEvents applies the HasEdge predicate on the "switch_events" edge.
+func HasSwitchEvents() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SwitchEventsTable, SwitchEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSwitchEventsWith applies the HasEdge predicate on the "switch_events" edge with a given conditions (other predicates).
+func HasSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

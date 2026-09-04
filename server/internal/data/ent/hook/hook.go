@@ -93,6 +93,30 @@ func (f CurrencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CurrencyMutation", m)
 }
 
+// The DingTalkApprovalDispatchFunc type is an adapter to allow the use of ordinary
+// function as DingTalkApprovalDispatch mutator.
+type DingTalkApprovalDispatchFunc func(context.Context, *ent.DingTalkApprovalDispatchMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DingTalkApprovalDispatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DingTalkApprovalDispatchMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkApprovalDispatchMutation", m)
+}
+
+// The DingTalkApprovalInboxEventFunc type is an adapter to allow the use of ordinary
+// function as DingTalkApprovalInboxEvent mutator.
+type DingTalkApprovalInboxEventFunc func(context.Context, *ent.DingTalkApprovalInboxEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DingTalkApprovalInboxEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DingTalkApprovalInboxEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkApprovalInboxEventMutation", m)
+}
+
 // The EnterpriseResourceFunc type is an adapter to allow the use of ordinary
 // function as EnterpriseResource mutator.
 type EnterpriseResourceFunc func(context.Context, *ent.EnterpriseResourceMutation) (ent.Value, error)
@@ -717,6 +741,30 @@ func (f OrderLifecycleEventFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderLifecycleEventMutation", m)
 }
 
+// The OrderLockHouseBillSnapshotFunc type is an adapter to allow the use of ordinary
+// function as OrderLockHouseBillSnapshot mutator.
+type OrderLockHouseBillSnapshotFunc func(context.Context, *ent.OrderLockHouseBillSnapshotMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderLockHouseBillSnapshotFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderLockHouseBillSnapshotMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderLockHouseBillSnapshotMutation", m)
+}
+
+// The OrderLockRecordFunc type is an adapter to allow the use of ordinary
+// function as OrderLockRecord mutator.
+type OrderLockRecordFunc func(context.Context, *ent.OrderLockRecordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderLockRecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderLockRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderLockRecordMutation", m)
+}
+
 // The OrderMilestoneFunc type is an adapter to allow the use of ordinary
 // function as OrderMilestone mutator.
 type OrderMilestoneFunc func(context.Context, *ent.OrderMilestoneMutation) (ent.Value, error)
@@ -775,6 +823,30 @@ func (f OrderShippingDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderShippingDocumentMutation", m)
+}
+
+// The OrderUnlockApproverCandidateFunc type is an adapter to allow the use of ordinary
+// function as OrderUnlockApproverCandidate mutator.
+type OrderUnlockApproverCandidateFunc func(context.Context, *ent.OrderUnlockApproverCandidateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderUnlockApproverCandidateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderUnlockApproverCandidateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderUnlockApproverCandidateMutation", m)
+}
+
+// The OrderUnlockRequestFunc type is an adapter to allow the use of ordinary
+// function as OrderUnlockRequest mutator.
+type OrderUnlockRequestFunc func(context.Context, *ent.OrderUnlockRequestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderUnlockRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderUnlockRequestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderUnlockRequestMutation", m)
 }
 
 // The OrganizationFunc type is an adapter to allow the use of ordinary
@@ -993,6 +1065,18 @@ func (f SeaCargoAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaCargoAllocationMutation", m)
 }
 
+// The SeaDocumentVoidEventFunc type is an adapter to allow the use of ordinary
+// function as SeaDocumentVoidEvent mutator.
+type SeaDocumentVoidEventFunc func(context.Context, *ent.SeaDocumentVoidEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaDocumentVoidEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaDocumentVoidEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaDocumentVoidEventMutation", m)
+}
+
 // The SeaHouseBillFunc type is an adapter to allow the use of ordinary
 // function as SeaHouseBill mutator.
 type SeaHouseBillFunc func(context.Context, *ent.SeaHouseBillMutation) (ent.Value, error)
@@ -1003,6 +1087,30 @@ func (f SeaHouseBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaHouseBillMutation", m)
+}
+
+// The SeaHouseBillSwitchEventFunc type is an adapter to allow the use of ordinary
+// function as SeaHouseBillSwitchEvent mutator.
+type SeaHouseBillSwitchEventFunc func(context.Context, *ent.SeaHouseBillSwitchEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaHouseBillSwitchEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaHouseBillSwitchEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaHouseBillSwitchEventMutation", m)
+}
+
+// The SeaHouseBillVersionFunc type is an adapter to allow the use of ordinary
+// function as SeaHouseBillVersion mutator.
+type SeaHouseBillVersionFunc func(context.Context, *ent.SeaHouseBillVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaHouseBillVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaHouseBillVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaHouseBillVersionMutation", m)
 }
 
 // The SeaMasterBillFunc type is an adapter to allow the use of ordinary
@@ -1027,6 +1135,18 @@ func (f SeaMasterBillOrderLinkFunc) Mutate(ctx context.Context, m ent.Mutation) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaMasterBillOrderLinkMutation", m)
+}
+
+// The SeaMasterBillVersionFunc type is an adapter to allow the use of ordinary
+// function as SeaMasterBillVersion mutator.
+type SeaMasterBillVersionFunc func(context.Context, *ent.SeaMasterBillVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaMasterBillVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaMasterBillVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaMasterBillVersionMutation", m)
 }
 
 // The SeaOrderReassignmentEventFunc type is an adapter to allow the use of ordinary

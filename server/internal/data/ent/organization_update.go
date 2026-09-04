@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
@@ -42,7 +43,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -52,9 +56,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
@@ -918,6 +926,141 @@ func (_u *OrganizationUpdate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassi
 		ids[i] = v[i].ID
 	}
 	return _u.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
+// AddOrderLockRecordIDs adds the "order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_u *OrganizationUpdate) AddOrderLockRecordIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// AddOrderLockRecords adds the "order_lock_records" edges to the OrderLockRecord entity.
+func (_u *OrganizationUpdate) AddOrderLockRecords(v ...*OrderLockRecord) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderLockRecordIDs(ids...)
+}
+
+// AddOrderLockHouseBillSnapshotIDs adds the "order_lock_house_bill_snapshots" edge to the OrderLockHouseBillSnapshot entity by IDs.
+func (_u *OrganizationUpdate) AddOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderLockHouseBillSnapshotIDs(ids...)
+	return _u
+}
+
+// AddOrderLockHouseBillSnapshots adds the "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
+func (_u *OrganizationUpdate) AddOrderLockHouseBillSnapshots(v ...*OrderLockHouseBillSnapshot) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderLockHouseBillSnapshotIDs(ids...)
+}
+
+// AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
+func (_u *OrganizationUpdate) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderUnlockRequestIDs(ids...)
+	return _u
+}
+
+// AddOrderUnlockRequests adds the "order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_u *OrganizationUpdate) AddOrderUnlockRequests(v ...*OrderUnlockRequest) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderUnlockRequestIDs(ids...)
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *OrganizationUpdate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrganizationUpdate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrganizationUpdate) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdate) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillVersionIDs(ids...)
+}
+
+// AddIssuedSeaHouseBillVersionIDs adds the "issued_sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrganizationUpdate) AddIssuedSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddIssuedSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddIssuedSeaHouseBillVersions adds the "issued_sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdate) AddIssuedSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIssuedSeaHouseBillVersionIDs(ids...)
+}
+
+// AddDingtalkApprovalDispatchIDs adds the "dingtalk_approval_dispatches" edge to the DingTalkApprovalDispatch entity by IDs.
+func (_u *OrganizationUpdate) AddDingtalkApprovalDispatchIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddDingtalkApprovalDispatchIDs(ids...)
+	return _u
+}
+
+// AddDingtalkApprovalDispatches adds the "dingtalk_approval_dispatches" edges to the DingTalkApprovalDispatch entity.
+func (_u *OrganizationUpdate) AddDingtalkApprovalDispatches(v ...*DingTalkApprovalDispatch) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDingtalkApprovalDispatchIDs(ids...)
+}
+
+// AddSeaDocumentVoidEventIDs adds the "sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *OrganizationUpdate) AddSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentVoidEvents adds the "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrganizationUpdate) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddSeaHouseBillSwitchEventIDs adds the "sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
+func (_u *OrganizationUpdate) AddSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddSeaHouseBillSwitchEventIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillSwitchEvents adds the "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
+func (_u *OrganizationUpdate) AddSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillSwitchEventIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1979,6 +2122,195 @@ func (_u *OrganizationUpdate) RemoveSeaOrderReassignmentEvents(v ...*SeaOrderRea
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
+}
+
+// ClearOrderLockRecords clears all "order_lock_records" edges to the OrderLockRecord entity.
+func (_u *OrganizationUpdate) ClearOrderLockRecords() *OrganizationUpdate {
+	_u.mutation.ClearOrderLockRecords()
+	return _u
+}
+
+// RemoveOrderLockRecordIDs removes the "order_lock_records" edge to OrderLockRecord entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderLockRecordIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// RemoveOrderLockRecords removes "order_lock_records" edges to OrderLockRecord entities.
+func (_u *OrganizationUpdate) RemoveOrderLockRecords(v ...*OrderLockRecord) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderLockRecordIDs(ids...)
+}
+
+// ClearOrderLockHouseBillSnapshots clears all "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
+func (_u *OrganizationUpdate) ClearOrderLockHouseBillSnapshots() *OrganizationUpdate {
+	_u.mutation.ClearOrderLockHouseBillSnapshots()
+	return _u
+}
+
+// RemoveOrderLockHouseBillSnapshotIDs removes the "order_lock_house_bill_snapshots" edge to OrderLockHouseBillSnapshot entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderLockHouseBillSnapshotIDs(ids...)
+	return _u
+}
+
+// RemoveOrderLockHouseBillSnapshots removes "order_lock_house_bill_snapshots" edges to OrderLockHouseBillSnapshot entities.
+func (_u *OrganizationUpdate) RemoveOrderLockHouseBillSnapshots(v ...*OrderLockHouseBillSnapshot) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderLockHouseBillSnapshotIDs(ids...)
+}
+
+// ClearOrderUnlockRequests clears all "order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_u *OrganizationUpdate) ClearOrderUnlockRequests() *OrganizationUpdate {
+	_u.mutation.ClearOrderUnlockRequests()
+	return _u
+}
+
+// RemoveOrderUnlockRequestIDs removes the "order_unlock_requests" edge to OrderUnlockRequest entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderUnlockRequestIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderUnlockRequestIDs(ids...)
+	return _u
+}
+
+// RemoveOrderUnlockRequests removes "order_unlock_requests" edges to OrderUnlockRequest entities.
+func (_u *OrganizationUpdate) RemoveOrderUnlockRequests(v ...*OrderUnlockRequest) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderUnlockRequestIDs(ids...)
+}
+
+// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrganizationUpdate) ClearSeaMasterBillVersions() *OrganizationUpdate {
+	_u.mutation.ClearSeaMasterBillVersions()
+	return _u
+}
+
+// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *OrganizationUpdate) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillVersionIDs(ids...)
+}
+
+// ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdate) ClearSeaHouseBillVersions() *OrganizationUpdate {
+	_u.mutation.ClearSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveSeaHouseBillVersionIDs removes the "sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillVersions removes "sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrganizationUpdate) RemoveSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearIssuedSeaHouseBillVersions clears all "issued_sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdate) ClearIssuedSeaHouseBillVersions() *OrganizationUpdate {
+	_u.mutation.ClearIssuedSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveIssuedSeaHouseBillVersionIDs removes the "issued_sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrganizationUpdate) RemoveIssuedSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveIssuedSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveIssuedSeaHouseBillVersions removes "issued_sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrganizationUpdate) RemoveIssuedSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIssuedSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearDingtalkApprovalDispatches clears all "dingtalk_approval_dispatches" edges to the DingTalkApprovalDispatch entity.
+func (_u *OrganizationUpdate) ClearDingtalkApprovalDispatches() *OrganizationUpdate {
+	_u.mutation.ClearDingtalkApprovalDispatches()
+	return _u
+}
+
+// RemoveDingtalkApprovalDispatchIDs removes the "dingtalk_approval_dispatches" edge to DingTalkApprovalDispatch entities by IDs.
+func (_u *OrganizationUpdate) RemoveDingtalkApprovalDispatchIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveDingtalkApprovalDispatchIDs(ids...)
+	return _u
+}
+
+// RemoveDingtalkApprovalDispatches removes "dingtalk_approval_dispatches" edges to DingTalkApprovalDispatch entities.
+func (_u *OrganizationUpdate) RemoveDingtalkApprovalDispatches(v ...*DingTalkApprovalDispatch) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDingtalkApprovalDispatchIDs(ids...)
+}
+
+// ClearSeaDocumentVoidEvents clears all "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrganizationUpdate) ClearSeaDocumentVoidEvents() *OrganizationUpdate {
+	_u.mutation.ClearSeaDocumentVoidEvents()
+	return _u
+}
+
+// RemoveSeaDocumentVoidEventIDs removes the "sea_document_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentVoidEvents removes "sea_document_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *OrganizationUpdate) RemoveSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentVoidEventIDs(ids...)
+}
+
+// ClearSeaHouseBillSwitchEvents clears all "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
+func (_u *OrganizationUpdate) ClearSeaHouseBillSwitchEvents() *OrganizationUpdate {
+	_u.mutation.ClearSeaHouseBillSwitchEvents()
+	return _u
+}
+
+// RemoveSeaHouseBillSwitchEventIDs removes the "sea_house_bill_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
+func (_u *OrganizationUpdate) RemoveSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveSeaHouseBillSwitchEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillSwitchEvents removes "sea_house_bill_switch_events" edges to SeaHouseBillSwitchEvent entities.
+func (_u *OrganizationUpdate) RemoveSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillSwitchEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -4347,6 +4679,411 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderLockRecordsIDs(); len(nodes) > 0 && !_u.mutation.OrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderLockHouseBillSnapshotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderLockHouseBillSnapshotsIDs(); len(nodes) > 0 && !_u.mutation.OrderLockHouseBillSnapshotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderLockHouseBillSnapshotsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderUnlockRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderUnlockRequestsIDs(); len(nodes) > 0 && !_u.mutation.OrderUnlockRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderUnlockRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IssuedSeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIssuedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.IssuedSeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IssuedSeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkApprovalDispatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDingtalkApprovalDispatchesIDs(); len(nodes) > 0 && !_u.mutation.DingtalkApprovalDispatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkApprovalDispatchesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillSwitchEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillSwitchEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -5208,6 +5945,141 @@ func (_u *OrganizationUpdateOne) AddSeaOrderReassignmentEvents(v ...*SeaOrderRea
 		ids[i] = v[i].ID
 	}
 	return _u.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
+// AddOrderLockRecordIDs adds the "order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderLockRecordIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// AddOrderLockRecords adds the "order_lock_records" edges to the OrderLockRecord entity.
+func (_u *OrganizationUpdateOne) AddOrderLockRecords(v ...*OrderLockRecord) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderLockRecordIDs(ids...)
+}
+
+// AddOrderLockHouseBillSnapshotIDs adds the "order_lock_house_bill_snapshots" edge to the OrderLockHouseBillSnapshot entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderLockHouseBillSnapshotIDs(ids...)
+	return _u
+}
+
+// AddOrderLockHouseBillSnapshots adds the "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
+func (_u *OrganizationUpdateOne) AddOrderLockHouseBillSnapshots(v ...*OrderLockHouseBillSnapshot) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderLockHouseBillSnapshotIDs(ids...)
+}
+
+// AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderUnlockRequestIDs(ids...)
+	return _u
+}
+
+// AddOrderUnlockRequests adds the "order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_u *OrganizationUpdateOne) AddOrderUnlockRequests(v ...*OrderUnlockRequest) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderUnlockRequestIDs(ids...)
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrganizationUpdateOne) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdateOne) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillVersionIDs(ids...)
+}
+
+// AddIssuedSeaHouseBillVersionIDs adds the "issued_sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrganizationUpdateOne) AddIssuedSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddIssuedSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddIssuedSeaHouseBillVersions adds the "issued_sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdateOne) AddIssuedSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIssuedSeaHouseBillVersionIDs(ids...)
+}
+
+// AddDingtalkApprovalDispatchIDs adds the "dingtalk_approval_dispatches" edge to the DingTalkApprovalDispatch entity by IDs.
+func (_u *OrganizationUpdateOne) AddDingtalkApprovalDispatchIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddDingtalkApprovalDispatchIDs(ids...)
+	return _u
+}
+
+// AddDingtalkApprovalDispatches adds the "dingtalk_approval_dispatches" edges to the DingTalkApprovalDispatch entity.
+func (_u *OrganizationUpdateOne) AddDingtalkApprovalDispatches(v ...*DingTalkApprovalDispatch) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDingtalkApprovalDispatchIDs(ids...)
+}
+
+// AddSeaDocumentVoidEventIDs adds the "sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentVoidEvents adds the "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrganizationUpdateOne) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddSeaHouseBillSwitchEventIDs adds the "sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
+func (_u *OrganizationUpdateOne) AddSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddSeaHouseBillSwitchEventIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillSwitchEvents adds the "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
+func (_u *OrganizationUpdateOne) AddSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillSwitchEventIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -6269,6 +7141,195 @@ func (_u *OrganizationUpdateOne) RemoveSeaOrderReassignmentEvents(v ...*SeaOrder
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
+}
+
+// ClearOrderLockRecords clears all "order_lock_records" edges to the OrderLockRecord entity.
+func (_u *OrganizationUpdateOne) ClearOrderLockRecords() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderLockRecords()
+	return _u
+}
+
+// RemoveOrderLockRecordIDs removes the "order_lock_records" edge to OrderLockRecord entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderLockRecordIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// RemoveOrderLockRecords removes "order_lock_records" edges to OrderLockRecord entities.
+func (_u *OrganizationUpdateOne) RemoveOrderLockRecords(v ...*OrderLockRecord) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderLockRecordIDs(ids...)
+}
+
+// ClearOrderLockHouseBillSnapshots clears all "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
+func (_u *OrganizationUpdateOne) ClearOrderLockHouseBillSnapshots() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderLockHouseBillSnapshots()
+	return _u
+}
+
+// RemoveOrderLockHouseBillSnapshotIDs removes the "order_lock_house_bill_snapshots" edge to OrderLockHouseBillSnapshot entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderLockHouseBillSnapshotIDs(ids...)
+	return _u
+}
+
+// RemoveOrderLockHouseBillSnapshots removes "order_lock_house_bill_snapshots" edges to OrderLockHouseBillSnapshot entities.
+func (_u *OrganizationUpdateOne) RemoveOrderLockHouseBillSnapshots(v ...*OrderLockHouseBillSnapshot) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderLockHouseBillSnapshotIDs(ids...)
+}
+
+// ClearOrderUnlockRequests clears all "order_unlock_requests" edges to the OrderUnlockRequest entity.
+func (_u *OrganizationUpdateOne) ClearOrderUnlockRequests() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderUnlockRequests()
+	return _u
+}
+
+// RemoveOrderUnlockRequestIDs removes the "order_unlock_requests" edge to OrderUnlockRequest entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderUnlockRequestIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderUnlockRequestIDs(ids...)
+	return _u
+}
+
+// RemoveOrderUnlockRequests removes "order_unlock_requests" edges to OrderUnlockRequest entities.
+func (_u *OrganizationUpdateOne) RemoveOrderUnlockRequests(v ...*OrderUnlockRequest) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderUnlockRequestIDs(ids...)
+}
+
+// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrganizationUpdateOne) ClearSeaMasterBillVersions() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaMasterBillVersions()
+	return _u
+}
+
+// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *OrganizationUpdateOne) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillVersionIDs(ids...)
+}
+
+// ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdateOne) ClearSeaHouseBillVersions() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveSeaHouseBillVersionIDs removes the "sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillVersions removes "sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrganizationUpdateOne) RemoveSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearIssuedSeaHouseBillVersions clears all "issued_sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrganizationUpdateOne) ClearIssuedSeaHouseBillVersions() *OrganizationUpdateOne {
+	_u.mutation.ClearIssuedSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveIssuedSeaHouseBillVersionIDs removes the "issued_sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveIssuedSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveIssuedSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveIssuedSeaHouseBillVersions removes "issued_sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrganizationUpdateOne) RemoveIssuedSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIssuedSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearDingtalkApprovalDispatches clears all "dingtalk_approval_dispatches" edges to the DingTalkApprovalDispatch entity.
+func (_u *OrganizationUpdateOne) ClearDingtalkApprovalDispatches() *OrganizationUpdateOne {
+	_u.mutation.ClearDingtalkApprovalDispatches()
+	return _u
+}
+
+// RemoveDingtalkApprovalDispatchIDs removes the "dingtalk_approval_dispatches" edge to DingTalkApprovalDispatch entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveDingtalkApprovalDispatchIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveDingtalkApprovalDispatchIDs(ids...)
+	return _u
+}
+
+// RemoveDingtalkApprovalDispatches removes "dingtalk_approval_dispatches" edges to DingTalkApprovalDispatch entities.
+func (_u *OrganizationUpdateOne) RemoveDingtalkApprovalDispatches(v ...*DingTalkApprovalDispatch) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDingtalkApprovalDispatchIDs(ids...)
+}
+
+// ClearSeaDocumentVoidEvents clears all "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrganizationUpdateOne) ClearSeaDocumentVoidEvents() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaDocumentVoidEvents()
+	return _u
+}
+
+// RemoveSeaDocumentVoidEventIDs removes the "sea_document_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentVoidEvents removes "sea_document_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *OrganizationUpdateOne) RemoveSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentVoidEventIDs(ids...)
+}
+
+// ClearSeaHouseBillSwitchEvents clears all "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
+func (_u *OrganizationUpdateOne) ClearSeaHouseBillSwitchEvents() *OrganizationUpdateOne {
+	_u.mutation.ClearSeaHouseBillSwitchEvents()
+	return _u
+}
+
+// RemoveSeaHouseBillSwitchEventIDs removes the "sea_house_bill_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveSeaHouseBillSwitchEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillSwitchEvents removes "sea_house_bill_switch_events" edges to SeaHouseBillSwitchEvent entities.
+func (_u *OrganizationUpdateOne) RemoveSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillSwitchEventIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -8660,6 +9721,411 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderLockRecordsIDs(); len(nodes) > 0 && !_u.mutation.OrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockRecordsTable,
+			Columns: []string{organization.OrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderLockHouseBillSnapshotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderLockHouseBillSnapshotsIDs(); len(nodes) > 0 && !_u.mutation.OrderLockHouseBillSnapshotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderLockHouseBillSnapshotsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderLockHouseBillSnapshotsTable,
+			Columns: []string{organization.OrderLockHouseBillSnapshotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockhousebillsnapshot.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderUnlockRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderUnlockRequestsIDs(); len(nodes) > 0 && !_u.mutation.OrderUnlockRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderUnlockRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderUnlockRequestsTable,
+			Columns: []string{organization.OrderUnlockRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaMasterBillVersionsTable,
+			Columns: []string{organization.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillVersionsTable,
+			Columns: []string{organization.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IssuedSeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIssuedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.IssuedSeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IssuedSeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillVersionsTable,
+			Columns: []string{organization.IssuedSeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkApprovalDispatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDingtalkApprovalDispatchesIDs(); len(nodes) > 0 && !_u.mutation.DingtalkApprovalDispatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkApprovalDispatchesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.DingtalkApprovalDispatchesTable,
+			Columns: []string{organization.DingtalkApprovalDispatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentVoidEventsTable,
+			Columns: []string{organization.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillSwitchEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillSwitchEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillSwitchEventsTable,
+			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

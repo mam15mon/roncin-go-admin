@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -161,6 +162,21 @@ func (_c *RoleCreate) AddOrderOrganizationAccesses(v ...*RoleOrderOrganizationAc
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderOrganizationAccessIDs(ids...)
+}
+
+// AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
+func (_c *RoleCreate) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleCreate {
+	_c.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
+	return _c
+}
+
+// AddOrderUnlockApproverCandidates adds the "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
+func (_c *RoleCreate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApproverCandidate) *RoleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderUnlockApproverCandidateIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -378,6 +394,22 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderUnlockApproverCandidatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.OrderUnlockApproverCandidatesTable,
+			Columns: []string{role.OrderUnlockApproverCandidatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -137,6 +137,24 @@ const (
 	EdgeSeaOrderSplitResults = "sea_order_split_results"
 	// EdgeSeaOrderReassignmentEvents holds the string denoting the sea_order_reassignment_events edge name in mutations.
 	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
+	// EdgeOrderLockRecords holds the string denoting the order_lock_records edge name in mutations.
+	EdgeOrderLockRecords = "order_lock_records"
+	// EdgeOrderLockHouseBillSnapshots holds the string denoting the order_lock_house_bill_snapshots edge name in mutations.
+	EdgeOrderLockHouseBillSnapshots = "order_lock_house_bill_snapshots"
+	// EdgeOrderUnlockRequests holds the string denoting the order_unlock_requests edge name in mutations.
+	EdgeOrderUnlockRequests = "order_unlock_requests"
+	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
+	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
+	// EdgeSeaHouseBillVersions holds the string denoting the sea_house_bill_versions edge name in mutations.
+	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
+	// EdgeIssuedSeaHouseBillVersions holds the string denoting the issued_sea_house_bill_versions edge name in mutations.
+	EdgeIssuedSeaHouseBillVersions = "issued_sea_house_bill_versions"
+	// EdgeDingtalkApprovalDispatches holds the string denoting the dingtalk_approval_dispatches edge name in mutations.
+	EdgeDingtalkApprovalDispatches = "dingtalk_approval_dispatches"
+	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
+	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
+	// EdgeSeaHouseBillSwitchEvents holds the string denoting the sea_house_bill_switch_events edge name in mutations.
+	EdgeSeaHouseBillSwitchEvents = "sea_house_bill_switch_events"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -490,6 +508,69 @@ const (
 	SeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
 	// SeaOrderReassignmentEventsColumn is the table column denoting the sea_order_reassignment_events relation/edge.
 	SeaOrderReassignmentEventsColumn = "organization_id"
+	// OrderLockRecordsTable is the table that holds the order_lock_records relation/edge.
+	OrderLockRecordsTable = "order_lock_records"
+	// OrderLockRecordsInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	OrderLockRecordsInverseTable = "order_lock_records"
+	// OrderLockRecordsColumn is the table column denoting the order_lock_records relation/edge.
+	OrderLockRecordsColumn = "organization_id"
+	// OrderLockHouseBillSnapshotsTable is the table that holds the order_lock_house_bill_snapshots relation/edge.
+	OrderLockHouseBillSnapshotsTable = "order_lock_house_bill_snapshots"
+	// OrderLockHouseBillSnapshotsInverseTable is the table name for the OrderLockHouseBillSnapshot entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockhousebillsnapshot" package.
+	OrderLockHouseBillSnapshotsInverseTable = "order_lock_house_bill_snapshots"
+	// OrderLockHouseBillSnapshotsColumn is the table column denoting the order_lock_house_bill_snapshots relation/edge.
+	OrderLockHouseBillSnapshotsColumn = "organization_id"
+	// OrderUnlockRequestsTable is the table that holds the order_unlock_requests relation/edge.
+	OrderUnlockRequestsTable = "order_unlock_requests"
+	// OrderUnlockRequestsInverseTable is the table name for the OrderUnlockRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderunlockrequest" package.
+	OrderUnlockRequestsInverseTable = "order_unlock_requests"
+	// OrderUnlockRequestsColumn is the table column denoting the order_unlock_requests relation/edge.
+	OrderUnlockRequestsColumn = "organization_id"
+	// SeaMasterBillVersionsTable is the table that holds the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	SeaMasterBillVersionsInverseTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsColumn is the table column denoting the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsColumn = "organization_id"
+	// SeaHouseBillVersionsTable is the table that holds the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	SeaHouseBillVersionsInverseTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsColumn is the table column denoting the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsColumn = "organization_id"
+	// IssuedSeaHouseBillVersionsTable is the table that holds the issued_sea_house_bill_versions relation/edge.
+	IssuedSeaHouseBillVersionsTable = "sea_house_bill_versions"
+	// IssuedSeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	IssuedSeaHouseBillVersionsInverseTable = "sea_house_bill_versions"
+	// IssuedSeaHouseBillVersionsColumn is the table column denoting the issued_sea_house_bill_versions relation/edge.
+	IssuedSeaHouseBillVersionsColumn = "issuer_organization_id"
+	// DingtalkApprovalDispatchesTable is the table that holds the dingtalk_approval_dispatches relation/edge.
+	DingtalkApprovalDispatchesTable = "ding_talk_approval_dispatches"
+	// DingtalkApprovalDispatchesInverseTable is the table name for the DingTalkApprovalDispatch entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkapprovaldispatch" package.
+	DingtalkApprovalDispatchesInverseTable = "ding_talk_approval_dispatches"
+	// DingtalkApprovalDispatchesColumn is the table column denoting the dingtalk_approval_dispatches relation/edge.
+	DingtalkApprovalDispatchesColumn = "organization_id"
+	// SeaDocumentVoidEventsTable is the table that holds the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsInverseTable is the table name for the SeaDocumentVoidEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentvoidevent" package.
+	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsColumn = "organization_id"
+	// SeaHouseBillSwitchEventsTable is the table that holds the sea_house_bill_switch_events relation/edge.
+	SeaHouseBillSwitchEventsTable = "sea_house_bill_switch_events"
+	// SeaHouseBillSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
+	SeaHouseBillSwitchEventsInverseTable = "sea_house_bill_switch_events"
+	// SeaHouseBillSwitchEventsColumn is the table column denoting the sea_house_bill_switch_events relation/edge.
+	SeaHouseBillSwitchEventsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -1327,6 +1408,132 @@ func BySeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) Or
 		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderLockRecordsCount orders the results by order_lock_records count.
+func ByOrderLockRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderLockRecordsStep(), opts...)
+	}
+}
+
+// ByOrderLockRecords orders the results by order_lock_records terms.
+func ByOrderLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderLockRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderLockHouseBillSnapshotsCount orders the results by order_lock_house_bill_snapshots count.
+func ByOrderLockHouseBillSnapshotsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderLockHouseBillSnapshotsStep(), opts...)
+	}
+}
+
+// ByOrderLockHouseBillSnapshots orders the results by order_lock_house_bill_snapshots terms.
+func ByOrderLockHouseBillSnapshots(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderLockHouseBillSnapshotsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderUnlockRequestsCount orders the results by order_unlock_requests count.
+func ByOrderUnlockRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderUnlockRequestsStep(), opts...)
+	}
+}
+
+// ByOrderUnlockRequests orders the results by order_unlock_requests terms.
+func ByOrderUnlockRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderUnlockRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaMasterBillVersionsCount orders the results by sea_master_bill_versions count.
+func BySeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaMasterBillVersions orders the results by sea_master_bill_versions terms.
+func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaHouseBillVersionsCount orders the results by sea_house_bill_versions count.
+func BySeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaHouseBillVersions orders the results by sea_house_bill_versions terms.
+func BySeaHouseBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIssuedSeaHouseBillVersionsCount orders the results by issued_sea_house_bill_versions count.
+func ByIssuedSeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIssuedSeaHouseBillVersionsStep(), opts...)
+	}
+}
+
+// ByIssuedSeaHouseBillVersions orders the results by issued_sea_house_bill_versions terms.
+func ByIssuedSeaHouseBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIssuedSeaHouseBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDingtalkApprovalDispatchesCount orders the results by dingtalk_approval_dispatches count.
+func ByDingtalkApprovalDispatchesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDingtalkApprovalDispatchesStep(), opts...)
+	}
+}
+
+// ByDingtalkApprovalDispatches orders the results by dingtalk_approval_dispatches terms.
+func ByDingtalkApprovalDispatches(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkApprovalDispatchesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentVoidEventsCount orders the results by sea_document_void_events count.
+func BySeaDocumentVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentVoidEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentVoidEvents orders the results by sea_document_void_events terms.
+func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaHouseBillSwitchEventsCount orders the results by sea_house_bill_switch_events count.
+func BySeaHouseBillSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillSwitchEventsStep(), opts...)
+	}
+}
+
+// BySeaHouseBillSwitchEvents orders the results by sea_house_bill_switch_events terms.
+func BySeaHouseBillSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1682,5 +1889,68 @@ func newSeaOrderReassignmentEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaOrderReassignmentEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
+	)
+}
+func newOrderLockRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderLockRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderLockRecordsTable, OrderLockRecordsColumn),
+	)
+}
+func newOrderLockHouseBillSnapshotsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderLockHouseBillSnapshotsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderLockHouseBillSnapshotsTable, OrderLockHouseBillSnapshotsColumn),
+	)
+}
+func newOrderUnlockRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderUnlockRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockRequestsTable, OrderUnlockRequestsColumn),
+	)
+}
+func newSeaMasterBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
+	)
+}
+func newSeaHouseBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+	)
+}
+func newIssuedSeaHouseBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IssuedSeaHouseBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillVersionsTable, IssuedSeaHouseBillVersionsColumn),
+	)
+}
+func newDingtalkApprovalDispatchesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkApprovalDispatchesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DingtalkApprovalDispatchesTable, DingtalkApprovalDispatchesColumn),
+	)
+}
+func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentVoidEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
+	)
+}
+func newSeaHouseBillSwitchEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillSwitchEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
 	)
 }

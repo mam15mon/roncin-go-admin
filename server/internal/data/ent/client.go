@@ -23,6 +23,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -75,11 +77,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -98,9 +104,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
@@ -131,6 +141,10 @@ type Client struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// DingTalkApprovalDispatch is the client for interacting with the DingTalkApprovalDispatch builders.
+	DingTalkApprovalDispatch *DingTalkApprovalDispatchClient
+	// DingTalkApprovalInboxEvent is the client for interacting with the DingTalkApprovalInboxEvent builders.
+	DingTalkApprovalInboxEvent *DingTalkApprovalInboxEventClient
 	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
 	EnterpriseResource *EnterpriseResourceClient
 	// EnterpriseResourceAddress is the client for interacting with the EnterpriseResourceAddress builders.
@@ -235,6 +249,10 @@ type Client struct {
 	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
+	// OrderLockHouseBillSnapshot is the client for interacting with the OrderLockHouseBillSnapshot builders.
+	OrderLockHouseBillSnapshot *OrderLockHouseBillSnapshotClient
+	// OrderLockRecord is the client for interacting with the OrderLockRecord builders.
+	OrderLockRecord *OrderLockRecordClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
@@ -245,6 +263,10 @@ type Client struct {
 	OrderServiceType *OrderServiceTypeClient
 	// OrderShippingDocument is the client for interacting with the OrderShippingDocument builders.
 	OrderShippingDocument *OrderShippingDocumentClient
+	// OrderUnlockApproverCandidate is the client for interacting with the OrderUnlockApproverCandidate builders.
+	OrderUnlockApproverCandidate *OrderUnlockApproverCandidateClient
+	// OrderUnlockRequest is the client for interacting with the OrderUnlockRequest builders.
+	OrderUnlockRequest *OrderUnlockRequestClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -281,12 +303,20 @@ type Client struct {
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
 	// SeaCargoAllocation is the client for interacting with the SeaCargoAllocation builders.
 	SeaCargoAllocation *SeaCargoAllocationClient
+	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
+	SeaDocumentVoidEvent *SeaDocumentVoidEventClient
 	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
 	SeaHouseBill *SeaHouseBillClient
+	// SeaHouseBillSwitchEvent is the client for interacting with the SeaHouseBillSwitchEvent builders.
+	SeaHouseBillSwitchEvent *SeaHouseBillSwitchEventClient
+	// SeaHouseBillVersion is the client for interacting with the SeaHouseBillVersion builders.
+	SeaHouseBillVersion *SeaHouseBillVersionClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
 	SeaMasterBill *SeaMasterBillClient
 	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
 	SeaMasterBillOrderLink *SeaMasterBillOrderLinkClient
+	// SeaMasterBillVersion is the client for interacting with the SeaMasterBillVersion builders.
+	SeaMasterBillVersion *SeaMasterBillVersionClient
 	// SeaOrderReassignmentEvent is the client for interacting with the SeaOrderReassignmentEvent builders.
 	SeaOrderReassignmentEvent *SeaOrderReassignmentEventClient
 	// SeaOrderSplitEvent is the client for interacting with the SeaOrderSplitEvent builders.
@@ -323,6 +353,8 @@ func (c *Client) init() {
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
+	c.DingTalkApprovalDispatch = NewDingTalkApprovalDispatchClient(c.config)
+	c.DingTalkApprovalInboxEvent = NewDingTalkApprovalInboxEventClient(c.config)
 	c.EnterpriseResource = NewEnterpriseResourceClient(c.config)
 	c.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(c.config)
 	c.EnterpriseResourceAddressType = NewEnterpriseResourceAddressTypeClient(c.config)
@@ -375,11 +407,15 @@ func (c *Client) init() {
 	c.OrderFee = NewOrderFeeClient(c.config)
 	c.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(c.config)
 	c.OrderLifecycleEvent = NewOrderLifecycleEventClient(c.config)
+	c.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(c.config)
+	c.OrderLockRecord = NewOrderLockRecordClient(c.config)
 	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderPersonnel = NewOrderPersonnelClient(c.config)
 	c.OrderReleasePod = NewOrderReleasePodClient(c.config)
 	c.OrderServiceType = NewOrderServiceTypeClient(c.config)
 	c.OrderShippingDocument = NewOrderShippingDocumentClient(c.config)
+	c.OrderUnlockApproverCandidate = NewOrderUnlockApproverCandidateClient(c.config)
+	c.OrderUnlockRequest = NewOrderUnlockRequestClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
 	c.PartnerAccount = NewPartnerAccountClient(c.config)
@@ -398,9 +434,13 @@ func (c *Client) init() {
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
 	c.SeaCargoAllocation = NewSeaCargoAllocationClient(c.config)
+	c.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(c.config)
 	c.SeaHouseBill = NewSeaHouseBillClient(c.config)
+	c.SeaHouseBillSwitchEvent = NewSeaHouseBillSwitchEventClient(c.config)
+	c.SeaHouseBillVersion = NewSeaHouseBillVersionClient(c.config)
 	c.SeaMasterBill = NewSeaMasterBillClient(c.config)
 	c.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(c.config)
+	c.SeaMasterBillVersion = NewSeaMasterBillVersionClient(c.config)
 	c.SeaOrderReassignmentEvent = NewSeaOrderReassignmentEventClient(c.config)
 	c.SeaOrderSplitEvent = NewSeaOrderSplitEventClient(c.config)
 	c.SeaOrderSplitResult = NewSeaOrderSplitResultClient(c.config)
@@ -509,6 +549,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BackgroundTask:                 NewBackgroundTaskClient(cfg),
 		BillingUnit:                    NewBillingUnitClient(cfg),
 		Currency:                       NewCurrencyClient(cfg),
+		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
+		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
 		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
 		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
@@ -561,11 +603,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderFee:                       NewOrderFeeClient(cfg),
 		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
 		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
+		OrderLockHouseBillSnapshot:     NewOrderLockHouseBillSnapshotClient(cfg),
+		OrderLockRecord:                NewOrderLockRecordClient(cfg),
 		OrderMilestone:                 NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
 		OrderReleasePod:                NewOrderReleasePodClient(cfg),
 		OrderServiceType:               NewOrderServiceTypeClient(cfg),
 		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
+		OrderUnlockApproverCandidate:   NewOrderUnlockApproverCandidateClient(cfg),
+		OrderUnlockRequest:             NewOrderUnlockRequestClient(cfg),
 		Organization:                   NewOrganizationClient(cfg),
 		Partner:                        NewPartnerClient(cfg),
 		PartnerAccount:                 NewPartnerAccountClient(cfg),
@@ -584,9 +630,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
 		SeaCargoAllocation:             NewSeaCargoAllocationClient(cfg),
+		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
+		SeaHouseBillSwitchEvent:        NewSeaHouseBillSwitchEventClient(cfg),
+		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
+		SeaMasterBillVersion:           NewSeaMasterBillVersionClient(cfg),
 		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
 		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
 		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
@@ -622,6 +672,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BackgroundTask:                 NewBackgroundTaskClient(cfg),
 		BillingUnit:                    NewBillingUnitClient(cfg),
 		Currency:                       NewCurrencyClient(cfg),
+		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
+		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
 		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
 		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
@@ -674,11 +726,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderFee:                       NewOrderFeeClient(cfg),
 		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
 		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
+		OrderLockHouseBillSnapshot:     NewOrderLockHouseBillSnapshotClient(cfg),
+		OrderLockRecord:                NewOrderLockRecordClient(cfg),
 		OrderMilestone:                 NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
 		OrderReleasePod:                NewOrderReleasePodClient(cfg),
 		OrderServiceType:               NewOrderServiceTypeClient(cfg),
 		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
+		OrderUnlockApproverCandidate:   NewOrderUnlockApproverCandidateClient(cfg),
+		OrderUnlockRequest:             NewOrderUnlockRequestClient(cfg),
 		Organization:                   NewOrganizationClient(cfg),
 		Partner:                        NewPartnerClient(cfg),
 		PartnerAccount:                 NewPartnerAccountClient(cfg),
@@ -697,9 +753,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
 		SeaCargoAllocation:             NewSeaCargoAllocationClient(cfg),
+		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
+		SeaHouseBillSwitchEvent:        NewSeaHouseBillSwitchEventClient(cfg),
+		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
+		SeaMasterBillVersion:           NewSeaMasterBillVersionClient(cfg),
 		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
 		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
 		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
@@ -739,34 +799,37 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.EnterpriseResource, c.EnterpriseResourceAddress,
-		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
-		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
-		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
-		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
-		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
-		c.FinanceCommission, c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
+		c.DingTalkApprovalInboxEvent, c.EnterpriseResource,
+		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
+		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
+		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
+		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
+		c.EnterpriseTagGroup, c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch,
+		c.ExchangeRateSetting, c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill,
+		c.FinanceBillBatch, c.FinanceBillEnterpriseTag, c.FinanceBillLine,
+		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
+		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
+		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
+		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
+		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
+		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
+		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaHouseBill,
-		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaOrderReassignmentEvent,
-		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaTransportExecution,
-		c.Session, c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService,
-		c.User,
+		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillSwitchEvent, c.SeaHouseBillVersion,
+		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaMasterBillVersion,
+		c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent, c.SeaOrderSplitResult,
+		c.SeaTransportExecution, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -777,34 +840,37 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.EnterpriseResource, c.EnterpriseResourceAddress,
-		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
-		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
-		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
-		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
-		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
-		c.FinanceCommission, c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
+		c.DingTalkApprovalInboxEvent, c.EnterpriseResource,
+		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
+		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
+		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
+		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
+		c.EnterpriseTagGroup, c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch,
+		c.ExchangeRateSetting, c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill,
+		c.FinanceBillBatch, c.FinanceBillEnterpriseTag, c.FinanceBillLine,
+		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
+		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
+		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
+		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
+		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
+		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
+		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaHouseBill,
-		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaOrderReassignmentEvent,
-		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaTransportExecution,
-		c.Session, c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService,
-		c.User,
+		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillSwitchEvent, c.SeaHouseBillVersion,
+		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaMasterBillVersion,
+		c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent, c.SeaOrderSplitResult,
+		c.SeaTransportExecution, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -827,6 +893,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingUnit.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
+	case *DingTalkApprovalDispatchMutation:
+		return c.DingTalkApprovalDispatch.mutate(ctx, m)
+	case *DingTalkApprovalInboxEventMutation:
+		return c.DingTalkApprovalInboxEvent.mutate(ctx, m)
 	case *EnterpriseResourceMutation:
 		return c.EnterpriseResource.mutate(ctx, m)
 	case *EnterpriseResourceAddressMutation:
@@ -931,6 +1001,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderFeeEnterpriseTag.mutate(ctx, m)
 	case *OrderLifecycleEventMutation:
 		return c.OrderLifecycleEvent.mutate(ctx, m)
+	case *OrderLockHouseBillSnapshotMutation:
+		return c.OrderLockHouseBillSnapshot.mutate(ctx, m)
+	case *OrderLockRecordMutation:
+		return c.OrderLockRecord.mutate(ctx, m)
 	case *OrderMilestoneMutation:
 		return c.OrderMilestone.mutate(ctx, m)
 	case *OrderPersonnelMutation:
@@ -941,6 +1015,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderServiceType.mutate(ctx, m)
 	case *OrderShippingDocumentMutation:
 		return c.OrderShippingDocument.mutate(ctx, m)
+	case *OrderUnlockApproverCandidateMutation:
+		return c.OrderUnlockApproverCandidate.mutate(ctx, m)
+	case *OrderUnlockRequestMutation:
+		return c.OrderUnlockRequest.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
 	case *PartnerMutation:
@@ -977,12 +1055,20 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
 	case *SeaCargoAllocationMutation:
 		return c.SeaCargoAllocation.mutate(ctx, m)
+	case *SeaDocumentVoidEventMutation:
+		return c.SeaDocumentVoidEvent.mutate(ctx, m)
 	case *SeaHouseBillMutation:
 		return c.SeaHouseBill.mutate(ctx, m)
+	case *SeaHouseBillSwitchEventMutation:
+		return c.SeaHouseBillSwitchEvent.mutate(ctx, m)
+	case *SeaHouseBillVersionMutation:
+		return c.SeaHouseBillVersion.mutate(ctx, m)
 	case *SeaMasterBillMutation:
 		return c.SeaMasterBill.mutate(ctx, m)
 	case *SeaMasterBillOrderLinkMutation:
 		return c.SeaMasterBillOrderLink.mutate(ctx, m)
+	case *SeaMasterBillVersionMutation:
+		return c.SeaMasterBillVersion.mutate(ctx, m)
 	case *SeaOrderReassignmentEventMutation:
 		return c.SeaOrderReassignmentEvent.mutate(ctx, m)
 	case *SeaOrderSplitEventMutation:
@@ -1729,6 +1815,22 @@ func (c *BackgroundTaskClient) QueryObjectStorageDeletion(_m *BackgroundTask) *O
 	return query
 }
 
+// QueryDingtalkApprovalDispatch queries the dingtalk_approval_dispatch edge of a BackgroundTask.
+func (c *BackgroundTaskClient) QueryDingtalkApprovalDispatch(_m *BackgroundTask) *DingTalkApprovalDispatchQuery {
+	query := (&DingTalkApprovalDispatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
+			sqlgraph.To(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.DingtalkApprovalDispatchTable, backgroundtask.DingtalkApprovalDispatchColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *BackgroundTaskClient) Hooks() []Hook {
 	return c.hooks.BackgroundTask
@@ -2067,6 +2169,320 @@ func (c *CurrencyClient) mutate(ctx context.Context, m *CurrencyMutation) (Value
 		return (&CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Currency mutation op: %q", m.Op())
+	}
+}
+
+// DingTalkApprovalDispatchClient is a client for the DingTalkApprovalDispatch schema.
+type DingTalkApprovalDispatchClient struct {
+	config
+}
+
+// NewDingTalkApprovalDispatchClient returns a client for the DingTalkApprovalDispatch from the given config.
+func NewDingTalkApprovalDispatchClient(c config) *DingTalkApprovalDispatchClient {
+	return &DingTalkApprovalDispatchClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dingtalkapprovaldispatch.Hooks(f(g(h())))`.
+func (c *DingTalkApprovalDispatchClient) Use(hooks ...Hook) {
+	c.hooks.DingTalkApprovalDispatch = append(c.hooks.DingTalkApprovalDispatch, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dingtalkapprovaldispatch.Intercept(f(g(h())))`.
+func (c *DingTalkApprovalDispatchClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DingTalkApprovalDispatch = append(c.inters.DingTalkApprovalDispatch, interceptors...)
+}
+
+// Create returns a builder for creating a DingTalkApprovalDispatch entity.
+func (c *DingTalkApprovalDispatchClient) Create() *DingTalkApprovalDispatchCreate {
+	mutation := newDingTalkApprovalDispatchMutation(c.config, OpCreate)
+	return &DingTalkApprovalDispatchCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DingTalkApprovalDispatch entities.
+func (c *DingTalkApprovalDispatchClient) CreateBulk(builders ...*DingTalkApprovalDispatchCreate) *DingTalkApprovalDispatchCreateBulk {
+	return &DingTalkApprovalDispatchCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DingTalkApprovalDispatchClient) MapCreateBulk(slice any, setFunc func(*DingTalkApprovalDispatchCreate, int)) *DingTalkApprovalDispatchCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DingTalkApprovalDispatchCreateBulk{err: fmt.Errorf("calling to DingTalkApprovalDispatchClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DingTalkApprovalDispatchCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DingTalkApprovalDispatchCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) Update() *DingTalkApprovalDispatchUpdate {
+	mutation := newDingTalkApprovalDispatchMutation(c.config, OpUpdate)
+	return &DingTalkApprovalDispatchUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DingTalkApprovalDispatchClient) UpdateOne(_m *DingTalkApprovalDispatch) *DingTalkApprovalDispatchUpdateOne {
+	mutation := newDingTalkApprovalDispatchMutation(c.config, OpUpdateOne, withDingTalkApprovalDispatch(_m))
+	return &DingTalkApprovalDispatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DingTalkApprovalDispatchClient) UpdateOneID(id uuid.UUID) *DingTalkApprovalDispatchUpdateOne {
+	mutation := newDingTalkApprovalDispatchMutation(c.config, OpUpdateOne, withDingTalkApprovalDispatchID(id))
+	return &DingTalkApprovalDispatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) Delete() *DingTalkApprovalDispatchDelete {
+	mutation := newDingTalkApprovalDispatchMutation(c.config, OpDelete)
+	return &DingTalkApprovalDispatchDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DingTalkApprovalDispatchClient) DeleteOne(_m *DingTalkApprovalDispatch) *DingTalkApprovalDispatchDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DingTalkApprovalDispatchClient) DeleteOneID(id uuid.UUID) *DingTalkApprovalDispatchDeleteOne {
+	builder := c.Delete().Where(dingtalkapprovaldispatch.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DingTalkApprovalDispatchDeleteOne{builder}
+}
+
+// Query returns a query builder for DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) Query() *DingTalkApprovalDispatchQuery {
+	return &DingTalkApprovalDispatchQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDingTalkApprovalDispatch},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DingTalkApprovalDispatch entity by its id.
+func (c *DingTalkApprovalDispatchClient) Get(ctx context.Context, id uuid.UUID) (*DingTalkApprovalDispatch, error) {
+	return c.Query().Where(dingtalkapprovaldispatch.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DingTalkApprovalDispatchClient) GetX(ctx context.Context, id uuid.UUID) *DingTalkApprovalDispatch {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) QueryOrganization(_m *DingTalkApprovalDispatch) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dingtalkapprovaldispatch.OrganizationTable, dingtalkapprovaldispatch.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBackgroundTask queries the background_task edge of a DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) QueryBackgroundTask(_m *DingTalkApprovalDispatch) *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID, id),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, dingtalkapprovaldispatch.BackgroundTaskTable, dingtalkapprovaldispatch.BackgroundTaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUnlockRequest queries the unlock_request edge of a DingTalkApprovalDispatch.
+func (c *DingTalkApprovalDispatchClient) QueryUnlockRequest(_m *DingTalkApprovalDispatch) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, dingtalkapprovaldispatch.UnlockRequestTable, dingtalkapprovaldispatch.UnlockRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DingTalkApprovalDispatchClient) Hooks() []Hook {
+	return c.hooks.DingTalkApprovalDispatch
+}
+
+// Interceptors returns the client interceptors.
+func (c *DingTalkApprovalDispatchClient) Interceptors() []Interceptor {
+	return c.inters.DingTalkApprovalDispatch
+}
+
+func (c *DingTalkApprovalDispatchClient) mutate(ctx context.Context, m *DingTalkApprovalDispatchMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DingTalkApprovalDispatchCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DingTalkApprovalDispatchUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DingTalkApprovalDispatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DingTalkApprovalDispatchDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DingTalkApprovalDispatch mutation op: %q", m.Op())
+	}
+}
+
+// DingTalkApprovalInboxEventClient is a client for the DingTalkApprovalInboxEvent schema.
+type DingTalkApprovalInboxEventClient struct {
+	config
+}
+
+// NewDingTalkApprovalInboxEventClient returns a client for the DingTalkApprovalInboxEvent from the given config.
+func NewDingTalkApprovalInboxEventClient(c config) *DingTalkApprovalInboxEventClient {
+	return &DingTalkApprovalInboxEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dingtalkapprovalinboxevent.Hooks(f(g(h())))`.
+func (c *DingTalkApprovalInboxEventClient) Use(hooks ...Hook) {
+	c.hooks.DingTalkApprovalInboxEvent = append(c.hooks.DingTalkApprovalInboxEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dingtalkapprovalinboxevent.Intercept(f(g(h())))`.
+func (c *DingTalkApprovalInboxEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DingTalkApprovalInboxEvent = append(c.inters.DingTalkApprovalInboxEvent, interceptors...)
+}
+
+// Create returns a builder for creating a DingTalkApprovalInboxEvent entity.
+func (c *DingTalkApprovalInboxEventClient) Create() *DingTalkApprovalInboxEventCreate {
+	mutation := newDingTalkApprovalInboxEventMutation(c.config, OpCreate)
+	return &DingTalkApprovalInboxEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DingTalkApprovalInboxEvent entities.
+func (c *DingTalkApprovalInboxEventClient) CreateBulk(builders ...*DingTalkApprovalInboxEventCreate) *DingTalkApprovalInboxEventCreateBulk {
+	return &DingTalkApprovalInboxEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DingTalkApprovalInboxEventClient) MapCreateBulk(slice any, setFunc func(*DingTalkApprovalInboxEventCreate, int)) *DingTalkApprovalInboxEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DingTalkApprovalInboxEventCreateBulk{err: fmt.Errorf("calling to DingTalkApprovalInboxEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DingTalkApprovalInboxEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DingTalkApprovalInboxEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DingTalkApprovalInboxEvent.
+func (c *DingTalkApprovalInboxEventClient) Update() *DingTalkApprovalInboxEventUpdate {
+	mutation := newDingTalkApprovalInboxEventMutation(c.config, OpUpdate)
+	return &DingTalkApprovalInboxEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DingTalkApprovalInboxEventClient) UpdateOne(_m *DingTalkApprovalInboxEvent) *DingTalkApprovalInboxEventUpdateOne {
+	mutation := newDingTalkApprovalInboxEventMutation(c.config, OpUpdateOne, withDingTalkApprovalInboxEvent(_m))
+	return &DingTalkApprovalInboxEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DingTalkApprovalInboxEventClient) UpdateOneID(id uuid.UUID) *DingTalkApprovalInboxEventUpdateOne {
+	mutation := newDingTalkApprovalInboxEventMutation(c.config, OpUpdateOne, withDingTalkApprovalInboxEventID(id))
+	return &DingTalkApprovalInboxEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DingTalkApprovalInboxEvent.
+func (c *DingTalkApprovalInboxEventClient) Delete() *DingTalkApprovalInboxEventDelete {
+	mutation := newDingTalkApprovalInboxEventMutation(c.config, OpDelete)
+	return &DingTalkApprovalInboxEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DingTalkApprovalInboxEventClient) DeleteOne(_m *DingTalkApprovalInboxEvent) *DingTalkApprovalInboxEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DingTalkApprovalInboxEventClient) DeleteOneID(id uuid.UUID) *DingTalkApprovalInboxEventDeleteOne {
+	builder := c.Delete().Where(dingtalkapprovalinboxevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DingTalkApprovalInboxEventDeleteOne{builder}
+}
+
+// Query returns a query builder for DingTalkApprovalInboxEvent.
+func (c *DingTalkApprovalInboxEventClient) Query() *DingTalkApprovalInboxEventQuery {
+	return &DingTalkApprovalInboxEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDingTalkApprovalInboxEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DingTalkApprovalInboxEvent entity by its id.
+func (c *DingTalkApprovalInboxEventClient) Get(ctx context.Context, id uuid.UUID) (*DingTalkApprovalInboxEvent, error) {
+	return c.Query().Where(dingtalkapprovalinboxevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DingTalkApprovalInboxEventClient) GetX(ctx context.Context, id uuid.UUID) *DingTalkApprovalInboxEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DingTalkApprovalInboxEventClient) Hooks() []Hook {
+	return c.hooks.DingTalkApprovalInboxEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *DingTalkApprovalInboxEventClient) Interceptors() []Interceptor {
+	return c.inters.DingTalkApprovalInboxEvent
+}
+
+func (c *DingTalkApprovalInboxEventClient) mutate(ctx context.Context, m *DingTalkApprovalInboxEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DingTalkApprovalInboxEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DingTalkApprovalInboxEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DingTalkApprovalInboxEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DingTalkApprovalInboxEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DingTalkApprovalInboxEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -8512,6 +8928,22 @@ func (c *MembershipClient) QueryRoleAssignments(_m *Membership) *RoleAssignmentQ
 	return query
 }
 
+// QueryOrderUnlockApproverCandidates queries the order_unlock_approver_candidates edge of a Membership.
+func (c *MembershipClient) QueryOrderUnlockApproverCandidates(_m *Membership) *OrderUnlockApproverCandidateQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(membership.Table, membership.FieldID, id),
+			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, membership.OrderUnlockApproverCandidatesTable, membership.OrderUnlockApproverCandidatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MembershipClient) Hooks() []Hook {
 	return c.hooks.Membership
@@ -9682,6 +10114,102 @@ func (c *OrderClient) QuerySeaOrderReassignmentEvents(_m *Order) *SeaOrderReassi
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaOrderReassignmentEventsTable, order.SeaOrderReassignmentEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockedByUser queries the locked_by_user edge of a Order.
+func (c *OrderClient) QueryLockedByUser(_m *Order) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.LockedByUserTable, order.LockedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecords queries the lock_records edge of a Order.
+func (c *OrderClient) QueryLockRecords(_m *Order) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.LockRecordsTable, order.LockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUnlockRequests queries the unlock_requests edge of a Order.
+func (c *OrderClient) QueryUnlockRequests(_m *Order) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.UnlockRequestsTable, order.UnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions queries the sea_house_bill_versions edge of a Order.
+func (c *OrderClient) QuerySeaHouseBillVersions(_m *Order) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaHouseBillVersionsTable, order.SeaHouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentVoidEvents queries the sea_document_void_events edge of a Order.
+func (c *OrderClient) QuerySeaDocumentVoidEvents(_m *Order) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaDocumentVoidEventsTable, order.SeaDocumentVoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillSwitchEvents queries the sea_house_bill_switch_events edge of a Order.
+func (c *OrderClient) QuerySeaHouseBillSwitchEvents(_m *Order) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaHouseBillSwitchEventsTable, order.SeaHouseBillSwitchEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -11838,6 +12366,480 @@ func (c *OrderLifecycleEventClient) mutate(ctx context.Context, m *OrderLifecycl
 	}
 }
 
+// OrderLockHouseBillSnapshotClient is a client for the OrderLockHouseBillSnapshot schema.
+type OrderLockHouseBillSnapshotClient struct {
+	config
+}
+
+// NewOrderLockHouseBillSnapshotClient returns a client for the OrderLockHouseBillSnapshot from the given config.
+func NewOrderLockHouseBillSnapshotClient(c config) *OrderLockHouseBillSnapshotClient {
+	return &OrderLockHouseBillSnapshotClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderlockhousebillsnapshot.Hooks(f(g(h())))`.
+func (c *OrderLockHouseBillSnapshotClient) Use(hooks ...Hook) {
+	c.hooks.OrderLockHouseBillSnapshot = append(c.hooks.OrderLockHouseBillSnapshot, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderlockhousebillsnapshot.Intercept(f(g(h())))`.
+func (c *OrderLockHouseBillSnapshotClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderLockHouseBillSnapshot = append(c.inters.OrderLockHouseBillSnapshot, interceptors...)
+}
+
+// Create returns a builder for creating a OrderLockHouseBillSnapshot entity.
+func (c *OrderLockHouseBillSnapshotClient) Create() *OrderLockHouseBillSnapshotCreate {
+	mutation := newOrderLockHouseBillSnapshotMutation(c.config, OpCreate)
+	return &OrderLockHouseBillSnapshotCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderLockHouseBillSnapshot entities.
+func (c *OrderLockHouseBillSnapshotClient) CreateBulk(builders ...*OrderLockHouseBillSnapshotCreate) *OrderLockHouseBillSnapshotCreateBulk {
+	return &OrderLockHouseBillSnapshotCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderLockHouseBillSnapshotClient) MapCreateBulk(slice any, setFunc func(*OrderLockHouseBillSnapshotCreate, int)) *OrderLockHouseBillSnapshotCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderLockHouseBillSnapshotCreateBulk{err: fmt.Errorf("calling to OrderLockHouseBillSnapshotClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderLockHouseBillSnapshotCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderLockHouseBillSnapshotCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) Update() *OrderLockHouseBillSnapshotUpdate {
+	mutation := newOrderLockHouseBillSnapshotMutation(c.config, OpUpdate)
+	return &OrderLockHouseBillSnapshotUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderLockHouseBillSnapshotClient) UpdateOne(_m *OrderLockHouseBillSnapshot) *OrderLockHouseBillSnapshotUpdateOne {
+	mutation := newOrderLockHouseBillSnapshotMutation(c.config, OpUpdateOne, withOrderLockHouseBillSnapshot(_m))
+	return &OrderLockHouseBillSnapshotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderLockHouseBillSnapshotClient) UpdateOneID(id uuid.UUID) *OrderLockHouseBillSnapshotUpdateOne {
+	mutation := newOrderLockHouseBillSnapshotMutation(c.config, OpUpdateOne, withOrderLockHouseBillSnapshotID(id))
+	return &OrderLockHouseBillSnapshotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) Delete() *OrderLockHouseBillSnapshotDelete {
+	mutation := newOrderLockHouseBillSnapshotMutation(c.config, OpDelete)
+	return &OrderLockHouseBillSnapshotDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderLockHouseBillSnapshotClient) DeleteOne(_m *OrderLockHouseBillSnapshot) *OrderLockHouseBillSnapshotDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderLockHouseBillSnapshotClient) DeleteOneID(id uuid.UUID) *OrderLockHouseBillSnapshotDeleteOne {
+	builder := c.Delete().Where(orderlockhousebillsnapshot.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderLockHouseBillSnapshotDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) Query() *OrderLockHouseBillSnapshotQuery {
+	return &OrderLockHouseBillSnapshotQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderLockHouseBillSnapshot},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderLockHouseBillSnapshot entity by its id.
+func (c *OrderLockHouseBillSnapshotClient) Get(ctx context.Context, id uuid.UUID) (*OrderLockHouseBillSnapshot, error) {
+	return c.Query().Where(orderlockhousebillsnapshot.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderLockHouseBillSnapshotClient) GetX(ctx context.Context, id uuid.UUID) *OrderLockHouseBillSnapshot {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) QueryOrganization(_m *OrderLockHouseBillSnapshot) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockhousebillsnapshot.OrganizationTable, orderlockhousebillsnapshot.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecord queries the lock_record edge of a OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) QueryLockRecord(_m *OrderLockHouseBillSnapshot) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockhousebillsnapshot.LockRecordTable, orderlockhousebillsnapshot.LockRecordColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBill queries the house_bill edge of a OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) QueryHouseBill(_m *OrderLockHouseBillSnapshot) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockhousebillsnapshot.HouseBillTable, orderlockhousebillsnapshot.HouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBillVersion queries the house_bill_version edge of a OrderLockHouseBillSnapshot.
+func (c *OrderLockHouseBillSnapshotClient) QueryHouseBillVersion(_m *OrderLockHouseBillSnapshot) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockhousebillsnapshot.HouseBillVersionTable, orderlockhousebillsnapshot.HouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderLockHouseBillSnapshotClient) Hooks() []Hook {
+	return c.hooks.OrderLockHouseBillSnapshot
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderLockHouseBillSnapshotClient) Interceptors() []Interceptor {
+	return c.inters.OrderLockHouseBillSnapshot
+}
+
+func (c *OrderLockHouseBillSnapshotClient) mutate(ctx context.Context, m *OrderLockHouseBillSnapshotMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderLockHouseBillSnapshotCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderLockHouseBillSnapshotUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderLockHouseBillSnapshotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderLockHouseBillSnapshotDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderLockHouseBillSnapshot mutation op: %q", m.Op())
+	}
+}
+
+// OrderLockRecordClient is a client for the OrderLockRecord schema.
+type OrderLockRecordClient struct {
+	config
+}
+
+// NewOrderLockRecordClient returns a client for the OrderLockRecord from the given config.
+func NewOrderLockRecordClient(c config) *OrderLockRecordClient {
+	return &OrderLockRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderlockrecord.Hooks(f(g(h())))`.
+func (c *OrderLockRecordClient) Use(hooks ...Hook) {
+	c.hooks.OrderLockRecord = append(c.hooks.OrderLockRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderlockrecord.Intercept(f(g(h())))`.
+func (c *OrderLockRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderLockRecord = append(c.inters.OrderLockRecord, interceptors...)
+}
+
+// Create returns a builder for creating a OrderLockRecord entity.
+func (c *OrderLockRecordClient) Create() *OrderLockRecordCreate {
+	mutation := newOrderLockRecordMutation(c.config, OpCreate)
+	return &OrderLockRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderLockRecord entities.
+func (c *OrderLockRecordClient) CreateBulk(builders ...*OrderLockRecordCreate) *OrderLockRecordCreateBulk {
+	return &OrderLockRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderLockRecordClient) MapCreateBulk(slice any, setFunc func(*OrderLockRecordCreate, int)) *OrderLockRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderLockRecordCreateBulk{err: fmt.Errorf("calling to OrderLockRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderLockRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderLockRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderLockRecord.
+func (c *OrderLockRecordClient) Update() *OrderLockRecordUpdate {
+	mutation := newOrderLockRecordMutation(c.config, OpUpdate)
+	return &OrderLockRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderLockRecordClient) UpdateOne(_m *OrderLockRecord) *OrderLockRecordUpdateOne {
+	mutation := newOrderLockRecordMutation(c.config, OpUpdateOne, withOrderLockRecord(_m))
+	return &OrderLockRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderLockRecordClient) UpdateOneID(id uuid.UUID) *OrderLockRecordUpdateOne {
+	mutation := newOrderLockRecordMutation(c.config, OpUpdateOne, withOrderLockRecordID(id))
+	return &OrderLockRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderLockRecord.
+func (c *OrderLockRecordClient) Delete() *OrderLockRecordDelete {
+	mutation := newOrderLockRecordMutation(c.config, OpDelete)
+	return &OrderLockRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderLockRecordClient) DeleteOne(_m *OrderLockRecord) *OrderLockRecordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderLockRecordClient) DeleteOneID(id uuid.UUID) *OrderLockRecordDeleteOne {
+	builder := c.Delete().Where(orderlockrecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderLockRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderLockRecord.
+func (c *OrderLockRecordClient) Query() *OrderLockRecordQuery {
+	return &OrderLockRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderLockRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderLockRecord entity by its id.
+func (c *OrderLockRecordClient) Get(ctx context.Context, id uuid.UUID) (*OrderLockRecord, error) {
+	return c.Query().Where(orderlockrecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderLockRecordClient) GetX(ctx context.Context, id uuid.UUID) *OrderLockRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryOrganization(_m *OrderLockRecord) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.OrganizationTable, orderlockrecord.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryOrder(_m *OrderLockRecord) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.OrderTable, orderlockrecord.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockedByUser queries the locked_by_user edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryLockedByUser(_m *OrderLockRecord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.LockedByUserTable, orderlockrecord.LockedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUnlockedByUser queries the unlocked_by_user edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryUnlockedByUser(_m *OrderLockRecord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.UnlockedByUserTable, orderlockrecord.UnlockedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryMasterBill(_m *OrderLockRecord) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.MasterBillTable, orderlockrecord.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBillVersion queries the master_bill_version edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryMasterBillVersion(_m *OrderLockRecord) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.MasterBillVersionTable, orderlockrecord.MasterBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUnlockRequests queries the unlock_requests edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryUnlockRequests(_m *OrderLockRecord) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderlockrecord.UnlockRequestsTable, orderlockrecord.UnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAppliedUnlockRequest queries the applied_unlock_request edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryAppliedUnlockRequest(_m *OrderLockRecord) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, orderlockrecord.AppliedUnlockRequestTable, orderlockrecord.AppliedUnlockRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBillSnapshots queries the house_bill_snapshots edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryHouseBillSnapshots(_m *OrderLockRecord) *OrderLockHouseBillSnapshotQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderlockrecord.HouseBillSnapshotsTable, orderlockrecord.HouseBillSnapshotsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderLockRecordClient) Hooks() []Hook {
+	return c.hooks.OrderLockRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderLockRecordClient) Interceptors() []Interceptor {
+	return c.inters.OrderLockRecord
+}
+
+func (c *OrderLockRecordClient) mutate(ctx context.Context, m *OrderLockRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderLockRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderLockRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderLockRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderLockRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderLockRecord mutation op: %q", m.Op())
+	}
+}
+
 // OrderMilestoneClient is a client for the OrderMilestone schema.
 type OrderMilestoneClient struct {
 	config
@@ -12644,6 +13646,480 @@ func (c *OrderShippingDocumentClient) mutate(ctx context.Context, m *OrderShippi
 		return (&OrderShippingDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderShippingDocument mutation op: %q", m.Op())
+	}
+}
+
+// OrderUnlockApproverCandidateClient is a client for the OrderUnlockApproverCandidate schema.
+type OrderUnlockApproverCandidateClient struct {
+	config
+}
+
+// NewOrderUnlockApproverCandidateClient returns a client for the OrderUnlockApproverCandidate from the given config.
+func NewOrderUnlockApproverCandidateClient(c config) *OrderUnlockApproverCandidateClient {
+	return &OrderUnlockApproverCandidateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderunlockapprovercandidate.Hooks(f(g(h())))`.
+func (c *OrderUnlockApproverCandidateClient) Use(hooks ...Hook) {
+	c.hooks.OrderUnlockApproverCandidate = append(c.hooks.OrderUnlockApproverCandidate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderunlockapprovercandidate.Intercept(f(g(h())))`.
+func (c *OrderUnlockApproverCandidateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderUnlockApproverCandidate = append(c.inters.OrderUnlockApproverCandidate, interceptors...)
+}
+
+// Create returns a builder for creating a OrderUnlockApproverCandidate entity.
+func (c *OrderUnlockApproverCandidateClient) Create() *OrderUnlockApproverCandidateCreate {
+	mutation := newOrderUnlockApproverCandidateMutation(c.config, OpCreate)
+	return &OrderUnlockApproverCandidateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderUnlockApproverCandidate entities.
+func (c *OrderUnlockApproverCandidateClient) CreateBulk(builders ...*OrderUnlockApproverCandidateCreate) *OrderUnlockApproverCandidateCreateBulk {
+	return &OrderUnlockApproverCandidateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderUnlockApproverCandidateClient) MapCreateBulk(slice any, setFunc func(*OrderUnlockApproverCandidateCreate, int)) *OrderUnlockApproverCandidateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderUnlockApproverCandidateCreateBulk{err: fmt.Errorf("calling to OrderUnlockApproverCandidateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderUnlockApproverCandidateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderUnlockApproverCandidateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) Update() *OrderUnlockApproverCandidateUpdate {
+	mutation := newOrderUnlockApproverCandidateMutation(c.config, OpUpdate)
+	return &OrderUnlockApproverCandidateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderUnlockApproverCandidateClient) UpdateOne(_m *OrderUnlockApproverCandidate) *OrderUnlockApproverCandidateUpdateOne {
+	mutation := newOrderUnlockApproverCandidateMutation(c.config, OpUpdateOne, withOrderUnlockApproverCandidate(_m))
+	return &OrderUnlockApproverCandidateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderUnlockApproverCandidateClient) UpdateOneID(id uuid.UUID) *OrderUnlockApproverCandidateUpdateOne {
+	mutation := newOrderUnlockApproverCandidateMutation(c.config, OpUpdateOne, withOrderUnlockApproverCandidateID(id))
+	return &OrderUnlockApproverCandidateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) Delete() *OrderUnlockApproverCandidateDelete {
+	mutation := newOrderUnlockApproverCandidateMutation(c.config, OpDelete)
+	return &OrderUnlockApproverCandidateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderUnlockApproverCandidateClient) DeleteOne(_m *OrderUnlockApproverCandidate) *OrderUnlockApproverCandidateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderUnlockApproverCandidateClient) DeleteOneID(id uuid.UUID) *OrderUnlockApproverCandidateDeleteOne {
+	builder := c.Delete().Where(orderunlockapprovercandidate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderUnlockApproverCandidateDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) Query() *OrderUnlockApproverCandidateQuery {
+	return &OrderUnlockApproverCandidateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderUnlockApproverCandidate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderUnlockApproverCandidate entity by its id.
+func (c *OrderUnlockApproverCandidateClient) Get(ctx context.Context, id uuid.UUID) (*OrderUnlockApproverCandidate, error) {
+	return c.Query().Where(orderunlockapprovercandidate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderUnlockApproverCandidateClient) GetX(ctx context.Context, id uuid.UUID) *OrderUnlockApproverCandidate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRequest queries the request edge of a OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) QueryRequest(_m *OrderUnlockApproverCandidate) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockapprovercandidate.RequestTable, orderunlockapprovercandidate.RequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) QueryUser(_m *OrderUnlockApproverCandidate) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockapprovercandidate.UserTable, orderunlockapprovercandidate.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMembership queries the membership edge of a OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) QueryMembership(_m *OrderUnlockApproverCandidate) *MembershipQuery {
+	query := (&MembershipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID, id),
+			sqlgraph.To(membership.Table, membership.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockapprovercandidate.MembershipTable, orderunlockapprovercandidate.MembershipColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRole queries the role edge of a OrderUnlockApproverCandidate.
+func (c *OrderUnlockApproverCandidateClient) QueryRole(_m *OrderUnlockApproverCandidate) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockapprovercandidate.RoleTable, orderunlockapprovercandidate.RoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderUnlockApproverCandidateClient) Hooks() []Hook {
+	return c.hooks.OrderUnlockApproverCandidate
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderUnlockApproverCandidateClient) Interceptors() []Interceptor {
+	return c.inters.OrderUnlockApproverCandidate
+}
+
+func (c *OrderUnlockApproverCandidateClient) mutate(ctx context.Context, m *OrderUnlockApproverCandidateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderUnlockApproverCandidateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderUnlockApproverCandidateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderUnlockApproverCandidateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderUnlockApproverCandidateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderUnlockApproverCandidate mutation op: %q", m.Op())
+	}
+}
+
+// OrderUnlockRequestClient is a client for the OrderUnlockRequest schema.
+type OrderUnlockRequestClient struct {
+	config
+}
+
+// NewOrderUnlockRequestClient returns a client for the OrderUnlockRequest from the given config.
+func NewOrderUnlockRequestClient(c config) *OrderUnlockRequestClient {
+	return &OrderUnlockRequestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderunlockrequest.Hooks(f(g(h())))`.
+func (c *OrderUnlockRequestClient) Use(hooks ...Hook) {
+	c.hooks.OrderUnlockRequest = append(c.hooks.OrderUnlockRequest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderunlockrequest.Intercept(f(g(h())))`.
+func (c *OrderUnlockRequestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderUnlockRequest = append(c.inters.OrderUnlockRequest, interceptors...)
+}
+
+// Create returns a builder for creating a OrderUnlockRequest entity.
+func (c *OrderUnlockRequestClient) Create() *OrderUnlockRequestCreate {
+	mutation := newOrderUnlockRequestMutation(c.config, OpCreate)
+	return &OrderUnlockRequestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderUnlockRequest entities.
+func (c *OrderUnlockRequestClient) CreateBulk(builders ...*OrderUnlockRequestCreate) *OrderUnlockRequestCreateBulk {
+	return &OrderUnlockRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderUnlockRequestClient) MapCreateBulk(slice any, setFunc func(*OrderUnlockRequestCreate, int)) *OrderUnlockRequestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderUnlockRequestCreateBulk{err: fmt.Errorf("calling to OrderUnlockRequestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderUnlockRequestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderUnlockRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) Update() *OrderUnlockRequestUpdate {
+	mutation := newOrderUnlockRequestMutation(c.config, OpUpdate)
+	return &OrderUnlockRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderUnlockRequestClient) UpdateOne(_m *OrderUnlockRequest) *OrderUnlockRequestUpdateOne {
+	mutation := newOrderUnlockRequestMutation(c.config, OpUpdateOne, withOrderUnlockRequest(_m))
+	return &OrderUnlockRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderUnlockRequestClient) UpdateOneID(id uuid.UUID) *OrderUnlockRequestUpdateOne {
+	mutation := newOrderUnlockRequestMutation(c.config, OpUpdateOne, withOrderUnlockRequestID(id))
+	return &OrderUnlockRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) Delete() *OrderUnlockRequestDelete {
+	mutation := newOrderUnlockRequestMutation(c.config, OpDelete)
+	return &OrderUnlockRequestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderUnlockRequestClient) DeleteOne(_m *OrderUnlockRequest) *OrderUnlockRequestDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderUnlockRequestClient) DeleteOneID(id uuid.UUID) *OrderUnlockRequestDeleteOne {
+	builder := c.Delete().Where(orderunlockrequest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderUnlockRequestDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) Query() *OrderUnlockRequestQuery {
+	return &OrderUnlockRequestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderUnlockRequest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderUnlockRequest entity by its id.
+func (c *OrderUnlockRequestClient) Get(ctx context.Context, id uuid.UUID) (*OrderUnlockRequest, error) {
+	return c.Query().Where(orderunlockrequest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderUnlockRequestClient) GetX(ctx context.Context, id uuid.UUID) *OrderUnlockRequest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryOrganization(_m *OrderUnlockRequest) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockrequest.OrganizationTable, orderunlockrequest.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryOrder(_m *OrderUnlockRequest) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockrequest.OrderTable, orderunlockrequest.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecord queries the lock_record edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryLockRecord(_m *OrderUnlockRequest) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockrequest.LockRecordTable, orderunlockrequest.LockRecordColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRequestedByUser queries the requested_by_user edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryRequestedByUser(_m *OrderUnlockRequest) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockrequest.RequestedByUserTable, orderunlockrequest.RequestedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDecidedByUser queries the decided_by_user edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryDecidedByUser(_m *OrderUnlockRequest) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderunlockrequest.DecidedByUserTable, orderunlockrequest.DecidedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededByRequest queries the superseded_by_request edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QuerySupersededByRequest(_m *OrderUnlockRequest) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, orderunlockrequest.SupersededByRequestTable, orderunlockrequest.SupersededByRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededRequests queries the superseded_requests edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QuerySupersededRequests(_m *OrderUnlockRequest) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, orderunlockrequest.SupersededRequestsTable, orderunlockrequest.SupersededRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApproverCandidates queries the approver_candidates edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryApproverCandidates(_m *OrderUnlockRequest) *OrderUnlockApproverCandidateQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderunlockrequest.ApproverCandidatesTable, orderunlockrequest.ApproverCandidatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDispatch queries the dispatch edge of a OrderUnlockRequest.
+func (c *OrderUnlockRequestClient) QueryDispatch(_m *OrderUnlockRequest) *DingTalkApprovalDispatchQuery {
+	query := (&DingTalkApprovalDispatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderunlockrequest.Table, orderunlockrequest.FieldID, id),
+			sqlgraph.To(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, orderunlockrequest.DispatchTable, orderunlockrequest.DispatchColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderUnlockRequestClient) Hooks() []Hook {
+	return c.hooks.OrderUnlockRequest
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderUnlockRequestClient) Interceptors() []Interceptor {
+	return c.inters.OrderUnlockRequest
+}
+
+func (c *OrderUnlockRequestClient) mutate(ctx context.Context, m *OrderUnlockRequestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderUnlockRequestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderUnlockRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderUnlockRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderUnlockRequestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderUnlockRequest mutation op: %q", m.Op())
 	}
 }
 
@@ -13571,6 +15047,150 @@ func (c *OrganizationClient) QuerySeaOrderReassignmentEvents(_m *Organization) *
 	return query
 }
 
+// QueryOrderLockRecords queries the order_lock_records edge of a Organization.
+func (c *OrganizationClient) QueryOrderLockRecords(_m *Organization) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderLockRecordsTable, organization.OrderLockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderLockHouseBillSnapshots queries the order_lock_house_bill_snapshots edge of a Organization.
+func (c *OrganizationClient) QueryOrderLockHouseBillSnapshots(_m *Organization) *OrderLockHouseBillSnapshotQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderLockHouseBillSnapshotsTable, organization.OrderLockHouseBillSnapshotsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderUnlockRequests queries the order_unlock_requests edge of a Organization.
+func (c *OrganizationClient) QueryOrderUnlockRequests(_m *Organization) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderUnlockRequestsTable, organization.OrderUnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a Organization.
+func (c *OrganizationClient) QuerySeaMasterBillVersions(_m *Organization) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaMasterBillVersionsTable, organization.SeaMasterBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions queries the sea_house_bill_versions edge of a Organization.
+func (c *OrganizationClient) QuerySeaHouseBillVersions(_m *Organization) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillVersionsTable, organization.SeaHouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuedSeaHouseBillVersions queries the issued_sea_house_bill_versions edge of a Organization.
+func (c *OrganizationClient) QueryIssuedSeaHouseBillVersions(_m *Organization) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.IssuedSeaHouseBillVersionsTable, organization.IssuedSeaHouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDingtalkApprovalDispatches queries the dingtalk_approval_dispatches edge of a Organization.
+func (c *OrganizationClient) QueryDingtalkApprovalDispatches(_m *Organization) *DingTalkApprovalDispatchQuery {
+	query := (&DingTalkApprovalDispatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkApprovalDispatchesTable, organization.DingtalkApprovalDispatchesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentVoidEvents queries the sea_document_void_events edge of a Organization.
+func (c *OrganizationClient) QuerySeaDocumentVoidEvents(_m *Organization) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaDocumentVoidEventsTable, organization.SeaDocumentVoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillSwitchEvents queries the sea_house_bill_switch_events edge of a Organization.
+func (c *OrganizationClient) QuerySeaHouseBillSwitchEvents(_m *Organization) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillSwitchEventsTable, organization.SeaHouseBillSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	hooks := c.hooks.Organization
@@ -14002,6 +15622,38 @@ func (c *PartnerClient) QuerySeaOrderReassignments(_m *Partner) *SeaOrderReassig
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaOrderReassignmentsTable, partner.SeaOrderReassignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a Partner.
+func (c *PartnerClient) QuerySeaMasterBillVersions(_m *Partner) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaMasterBillVersionsTable, partner.SeaMasterBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions queries the sea_house_bill_versions edge of a Partner.
+func (c *PartnerClient) QuerySeaHouseBillVersions(_m *Partner) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaHouseBillVersionsTable, partner.SeaHouseBillVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -16093,6 +17745,22 @@ func (c *RoleClient) QueryOrderOrganizationAccesses(_m *Role) *RoleOrderOrganiza
 	return query
 }
 
+// QueryOrderUnlockApproverCandidates queries the order_unlock_approver_candidates edge of a Role.
+func (c *RoleClient) QueryOrderUnlockApproverCandidates(_m *Role) *OrderUnlockApproverCandidateQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderUnlockApproverCandidatesTable, role.OrderUnlockApproverCandidatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
@@ -16677,6 +18345,251 @@ func (c *SeaCargoAllocationClient) mutate(ctx context.Context, m *SeaCargoAlloca
 	}
 }
 
+// SeaDocumentVoidEventClient is a client for the SeaDocumentVoidEvent schema.
+type SeaDocumentVoidEventClient struct {
+	config
+}
+
+// NewSeaDocumentVoidEventClient returns a client for the SeaDocumentVoidEvent from the given config.
+func NewSeaDocumentVoidEventClient(c config) *SeaDocumentVoidEventClient {
+	return &SeaDocumentVoidEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seadocumentvoidevent.Hooks(f(g(h())))`.
+func (c *SeaDocumentVoidEventClient) Use(hooks ...Hook) {
+	c.hooks.SeaDocumentVoidEvent = append(c.hooks.SeaDocumentVoidEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seadocumentvoidevent.Intercept(f(g(h())))`.
+func (c *SeaDocumentVoidEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaDocumentVoidEvent = append(c.inters.SeaDocumentVoidEvent, interceptors...)
+}
+
+// Create returns a builder for creating a SeaDocumentVoidEvent entity.
+func (c *SeaDocumentVoidEventClient) Create() *SeaDocumentVoidEventCreate {
+	mutation := newSeaDocumentVoidEventMutation(c.config, OpCreate)
+	return &SeaDocumentVoidEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaDocumentVoidEvent entities.
+func (c *SeaDocumentVoidEventClient) CreateBulk(builders ...*SeaDocumentVoidEventCreate) *SeaDocumentVoidEventCreateBulk {
+	return &SeaDocumentVoidEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaDocumentVoidEventClient) MapCreateBulk(slice any, setFunc func(*SeaDocumentVoidEventCreate, int)) *SeaDocumentVoidEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaDocumentVoidEventCreateBulk{err: fmt.Errorf("calling to SeaDocumentVoidEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaDocumentVoidEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaDocumentVoidEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) Update() *SeaDocumentVoidEventUpdate {
+	mutation := newSeaDocumentVoidEventMutation(c.config, OpUpdate)
+	return &SeaDocumentVoidEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaDocumentVoidEventClient) UpdateOne(_m *SeaDocumentVoidEvent) *SeaDocumentVoidEventUpdateOne {
+	mutation := newSeaDocumentVoidEventMutation(c.config, OpUpdateOne, withSeaDocumentVoidEvent(_m))
+	return &SeaDocumentVoidEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaDocumentVoidEventClient) UpdateOneID(id uuid.UUID) *SeaDocumentVoidEventUpdateOne {
+	mutation := newSeaDocumentVoidEventMutation(c.config, OpUpdateOne, withSeaDocumentVoidEventID(id))
+	return &SeaDocumentVoidEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) Delete() *SeaDocumentVoidEventDelete {
+	mutation := newSeaDocumentVoidEventMutation(c.config, OpDelete)
+	return &SeaDocumentVoidEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaDocumentVoidEventClient) DeleteOne(_m *SeaDocumentVoidEvent) *SeaDocumentVoidEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaDocumentVoidEventClient) DeleteOneID(id uuid.UUID) *SeaDocumentVoidEventDeleteOne {
+	builder := c.Delete().Where(seadocumentvoidevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaDocumentVoidEventDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) Query() *SeaDocumentVoidEventQuery {
+	return &SeaDocumentVoidEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaDocumentVoidEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaDocumentVoidEvent entity by its id.
+func (c *SeaDocumentVoidEventClient) Get(ctx context.Context, id uuid.UUID) (*SeaDocumentVoidEvent, error) {
+	return c.Query().Where(seadocumentvoidevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaDocumentVoidEventClient) GetX(ctx context.Context, id uuid.UUID) *SeaDocumentVoidEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryOrganization(_m *SeaDocumentVoidEvent) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.OrganizationTable, seadocumentvoidevent.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryOrder(_m *SeaDocumentVoidEvent) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.OrderTable, seadocumentvoidevent.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryMasterBill(_m *SeaDocumentVoidEvent) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.MasterBillTable, seadocumentvoidevent.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBillVersion queries the master_bill_version edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryMasterBillVersion(_m *SeaDocumentVoidEvent) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.MasterBillVersionTable, seadocumentvoidevent.MasterBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBill queries the house_bill edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryHouseBill(_m *SeaDocumentVoidEvent) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.HouseBillTable, seadocumentvoidevent.HouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBillVersion queries the house_bill_version edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryHouseBillVersion(_m *SeaDocumentVoidEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.HouseBillVersionTable, seadocumentvoidevent.HouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryCreator(_m *SeaDocumentVoidEvent) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.CreatorTable, seadocumentvoidevent.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaDocumentVoidEventClient) Hooks() []Hook {
+	return c.hooks.SeaDocumentVoidEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaDocumentVoidEventClient) Interceptors() []Interceptor {
+	return c.inters.SeaDocumentVoidEvent
+}
+
+func (c *SeaDocumentVoidEventClient) mutate(ctx context.Context, m *SeaDocumentVoidEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaDocumentVoidEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaDocumentVoidEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaDocumentVoidEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaDocumentVoidEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaDocumentVoidEvent mutation op: %q", m.Op())
+	}
+}
+
 // SeaHouseBillClient is a client for the SeaHouseBill schema.
 type SeaHouseBillClient struct {
 	config
@@ -16881,6 +18794,102 @@ func (c *SeaHouseBillClient) QueryCargoAllocations(_m *SeaHouseBill) *SeaCargoAl
 	return query
 }
 
+// QueryCurrentVersion queries the current_version edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryCurrentVersion(_m *SeaHouseBill) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, seahousebill.CurrentVersionTable, seahousebill.CurrentVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVersions queries the versions edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryVersions(_m *SeaHouseBill) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.VersionsTable, seahousebill.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockSnapshots queries the lock_snapshots edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryLockSnapshots(_m *SeaHouseBill) *OrderLockHouseBillSnapshotQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.LockSnapshotsTable, seahousebill.LockSnapshotsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoidEvents queries the void_events edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryVoidEvents(_m *SeaHouseBill) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.VoidEventsTable, seahousebill.VoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOldSwitchEvents queries the old_switch_events edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryOldSwitchEvents(_m *SeaHouseBill) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.OldSwitchEventsTable, seahousebill.OldSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNewSwitchEvents queries the new_switch_events edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryNewSwitchEvents(_m *SeaHouseBill) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.NewSwitchEventsTable, seahousebill.NewSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SeaHouseBillClient) Hooks() []Hook {
 	return c.hooks.SeaHouseBill
@@ -16903,6 +18912,576 @@ func (c *SeaHouseBillClient) mutate(ctx context.Context, m *SeaHouseBillMutation
 		return (&SeaHouseBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown SeaHouseBill mutation op: %q", m.Op())
+	}
+}
+
+// SeaHouseBillSwitchEventClient is a client for the SeaHouseBillSwitchEvent schema.
+type SeaHouseBillSwitchEventClient struct {
+	config
+}
+
+// NewSeaHouseBillSwitchEventClient returns a client for the SeaHouseBillSwitchEvent from the given config.
+func NewSeaHouseBillSwitchEventClient(c config) *SeaHouseBillSwitchEventClient {
+	return &SeaHouseBillSwitchEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seahousebillswitchevent.Hooks(f(g(h())))`.
+func (c *SeaHouseBillSwitchEventClient) Use(hooks ...Hook) {
+	c.hooks.SeaHouseBillSwitchEvent = append(c.hooks.SeaHouseBillSwitchEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seahousebillswitchevent.Intercept(f(g(h())))`.
+func (c *SeaHouseBillSwitchEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaHouseBillSwitchEvent = append(c.inters.SeaHouseBillSwitchEvent, interceptors...)
+}
+
+// Create returns a builder for creating a SeaHouseBillSwitchEvent entity.
+func (c *SeaHouseBillSwitchEventClient) Create() *SeaHouseBillSwitchEventCreate {
+	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpCreate)
+	return &SeaHouseBillSwitchEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaHouseBillSwitchEvent entities.
+func (c *SeaHouseBillSwitchEventClient) CreateBulk(builders ...*SeaHouseBillSwitchEventCreate) *SeaHouseBillSwitchEventCreateBulk {
+	return &SeaHouseBillSwitchEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaHouseBillSwitchEventClient) MapCreateBulk(slice any, setFunc func(*SeaHouseBillSwitchEventCreate, int)) *SeaHouseBillSwitchEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaHouseBillSwitchEventCreateBulk{err: fmt.Errorf("calling to SeaHouseBillSwitchEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaHouseBillSwitchEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaHouseBillSwitchEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) Update() *SeaHouseBillSwitchEventUpdate {
+	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdate)
+	return &SeaHouseBillSwitchEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaHouseBillSwitchEventClient) UpdateOne(_m *SeaHouseBillSwitchEvent) *SeaHouseBillSwitchEventUpdateOne {
+	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdateOne, withSeaHouseBillSwitchEvent(_m))
+	return &SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaHouseBillSwitchEventClient) UpdateOneID(id uuid.UUID) *SeaHouseBillSwitchEventUpdateOne {
+	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdateOne, withSeaHouseBillSwitchEventID(id))
+	return &SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) Delete() *SeaHouseBillSwitchEventDelete {
+	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpDelete)
+	return &SeaHouseBillSwitchEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaHouseBillSwitchEventClient) DeleteOne(_m *SeaHouseBillSwitchEvent) *SeaHouseBillSwitchEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaHouseBillSwitchEventClient) DeleteOneID(id uuid.UUID) *SeaHouseBillSwitchEventDeleteOne {
+	builder := c.Delete().Where(seahousebillswitchevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaHouseBillSwitchEventDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) Query() *SeaHouseBillSwitchEventQuery {
+	return &SeaHouseBillSwitchEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaHouseBillSwitchEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaHouseBillSwitchEvent entity by its id.
+func (c *SeaHouseBillSwitchEventClient) Get(ctx context.Context, id uuid.UUID) (*SeaHouseBillSwitchEvent, error) {
+	return c.Query().Where(seahousebillswitchevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaHouseBillSwitchEventClient) GetX(ctx context.Context, id uuid.UUID) *SeaHouseBillSwitchEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryOrganization(_m *SeaHouseBillSwitchEvent) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OrganizationTable, seahousebillswitchevent.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryOrder(_m *SeaHouseBillSwitchEvent) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OrderTable, seahousebillswitchevent.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryMasterBill(_m *SeaHouseBillSwitchEvent) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.MasterBillTable, seahousebillswitchevent.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOldHouseBill queries the old_house_bill edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryOldHouseBill(_m *SeaHouseBillSwitchEvent) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OldHouseBillTable, seahousebillswitchevent.OldHouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOldHouseBillVersion queries the old_house_bill_version edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryOldHouseBillVersion(_m *SeaHouseBillSwitchEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OldHouseBillVersionTable, seahousebillswitchevent.OldHouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNewHouseBill queries the new_house_bill edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryNewHouseBill(_m *SeaHouseBillSwitchEvent) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.NewHouseBillTable, seahousebillswitchevent.NewHouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNewHouseBillVersion queries the new_house_bill_version edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryNewHouseBillVersion(_m *SeaHouseBillSwitchEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.NewHouseBillVersionTable, seahousebillswitchevent.NewHouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a SeaHouseBillSwitchEvent.
+func (c *SeaHouseBillSwitchEventClient) QueryCreator(_m *SeaHouseBillSwitchEvent) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.CreatorTable, seahousebillswitchevent.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaHouseBillSwitchEventClient) Hooks() []Hook {
+	return c.hooks.SeaHouseBillSwitchEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaHouseBillSwitchEventClient) Interceptors() []Interceptor {
+	return c.inters.SeaHouseBillSwitchEvent
+}
+
+func (c *SeaHouseBillSwitchEventClient) mutate(ctx context.Context, m *SeaHouseBillSwitchEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaHouseBillSwitchEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaHouseBillSwitchEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaHouseBillSwitchEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaHouseBillSwitchEvent mutation op: %q", m.Op())
+	}
+}
+
+// SeaHouseBillVersionClient is a client for the SeaHouseBillVersion schema.
+type SeaHouseBillVersionClient struct {
+	config
+}
+
+// NewSeaHouseBillVersionClient returns a client for the SeaHouseBillVersion from the given config.
+func NewSeaHouseBillVersionClient(c config) *SeaHouseBillVersionClient {
+	return &SeaHouseBillVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seahousebillversion.Hooks(f(g(h())))`.
+func (c *SeaHouseBillVersionClient) Use(hooks ...Hook) {
+	c.hooks.SeaHouseBillVersion = append(c.hooks.SeaHouseBillVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seahousebillversion.Intercept(f(g(h())))`.
+func (c *SeaHouseBillVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaHouseBillVersion = append(c.inters.SeaHouseBillVersion, interceptors...)
+}
+
+// Create returns a builder for creating a SeaHouseBillVersion entity.
+func (c *SeaHouseBillVersionClient) Create() *SeaHouseBillVersionCreate {
+	mutation := newSeaHouseBillVersionMutation(c.config, OpCreate)
+	return &SeaHouseBillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaHouseBillVersion entities.
+func (c *SeaHouseBillVersionClient) CreateBulk(builders ...*SeaHouseBillVersionCreate) *SeaHouseBillVersionCreateBulk {
+	return &SeaHouseBillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaHouseBillVersionClient) MapCreateBulk(slice any, setFunc func(*SeaHouseBillVersionCreate, int)) *SeaHouseBillVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaHouseBillVersionCreateBulk{err: fmt.Errorf("calling to SeaHouseBillVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaHouseBillVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaHouseBillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) Update() *SeaHouseBillVersionUpdate {
+	mutation := newSeaHouseBillVersionMutation(c.config, OpUpdate)
+	return &SeaHouseBillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaHouseBillVersionClient) UpdateOne(_m *SeaHouseBillVersion) *SeaHouseBillVersionUpdateOne {
+	mutation := newSeaHouseBillVersionMutation(c.config, OpUpdateOne, withSeaHouseBillVersion(_m))
+	return &SeaHouseBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaHouseBillVersionClient) UpdateOneID(id uuid.UUID) *SeaHouseBillVersionUpdateOne {
+	mutation := newSeaHouseBillVersionMutation(c.config, OpUpdateOne, withSeaHouseBillVersionID(id))
+	return &SeaHouseBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) Delete() *SeaHouseBillVersionDelete {
+	mutation := newSeaHouseBillVersionMutation(c.config, OpDelete)
+	return &SeaHouseBillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaHouseBillVersionClient) DeleteOne(_m *SeaHouseBillVersion) *SeaHouseBillVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaHouseBillVersionClient) DeleteOneID(id uuid.UUID) *SeaHouseBillVersionDeleteOne {
+	builder := c.Delete().Where(seahousebillversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaHouseBillVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) Query() *SeaHouseBillVersionQuery {
+	return &SeaHouseBillVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaHouseBillVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaHouseBillVersion entity by its id.
+func (c *SeaHouseBillVersionClient) Get(ctx context.Context, id uuid.UUID) (*SeaHouseBillVersion, error) {
+	return c.Query().Where(seahousebillversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaHouseBillVersionClient) GetX(ctx context.Context, id uuid.UUID) *SeaHouseBillVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryOrganization(_m *SeaHouseBillVersion) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.OrganizationTable, seahousebillversion.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBill queries the house_bill edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryHouseBill(_m *SeaHouseBillVersion) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.HouseBillTable, seahousebillversion.HouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuerOrganization queries the issuer_organization edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryIssuerOrganization(_m *SeaHouseBillVersion) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.IssuerOrganizationTable, seahousebillversion.IssuerOrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuerPartner queries the issuer_partner edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryIssuerPartner(_m *SeaHouseBillVersion) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.IssuerPartnerTable, seahousebillversion.IssuerPartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryOrder(_m *SeaHouseBillVersion) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.OrderTable, seahousebillversion.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryMasterBill(_m *SeaHouseBillVersion) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.MasterBillTable, seahousebillversion.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryCreator(_m *SeaHouseBillVersion) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.CreatorTable, seahousebillversion.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockSnapshots queries the lock_snapshots edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryLockSnapshots(_m *SeaHouseBillVersion) *OrderLockHouseBillSnapshotQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.LockSnapshotsTable, seahousebillversion.LockSnapshotsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoidEvents queries the void_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryVoidEvents(_m *SeaHouseBillVersion) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.VoidEventsTable, seahousebillversion.VoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOldSwitchEvents queries the old_switch_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryOldSwitchEvents(_m *SeaHouseBillVersion) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.OldSwitchEventsTable, seahousebillversion.OldSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNewSwitchEvents queries the new_switch_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryNewSwitchEvents(_m *SeaHouseBillVersion) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.NewSwitchEventsTable, seahousebillversion.NewSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaHouseBillVersionClient) Hooks() []Hook {
+	return c.hooks.SeaHouseBillVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaHouseBillVersionClient) Interceptors() []Interceptor {
+	return c.inters.SeaHouseBillVersion
+}
+
+func (c *SeaHouseBillVersionClient) mutate(ctx context.Context, m *SeaHouseBillVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaHouseBillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaHouseBillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaHouseBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaHouseBillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaHouseBillVersion mutation op: %q", m.Op())
 	}
 }
 
@@ -17135,6 +19714,102 @@ func (c *SeaMasterBillClient) QueryTargetSeaOrderReassignments(_m *SeaMasterBill
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
 			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.TargetSeaOrderReassignmentsTable, seamasterbill.TargetSeaOrderReassignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCurrentVersion queries the current_version edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryCurrentVersion(_m *SeaMasterBill) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, seamasterbill.CurrentVersionTable, seamasterbill.CurrentVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVersions queries the versions edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryVersions(_m *SeaMasterBill) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.VersionsTable, seamasterbill.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBillVersions queries the house_bill_versions edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryHouseBillVersions(_m *SeaMasterBill) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.HouseBillVersionsTable, seamasterbill.HouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecords queries the lock_records edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryLockRecords(_m *SeaMasterBill) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.LockRecordsTable, seamasterbill.LockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoidEvents queries the void_events edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryVoidEvents(_m *SeaMasterBill) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.VoidEventsTable, seamasterbill.VoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySwitchEvents queries the switch_events edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QuerySwitchEvents(_m *SeaMasterBill) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.SwitchEventsTable, seamasterbill.SwitchEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17377,6 +20052,251 @@ func (c *SeaMasterBillOrderLinkClient) mutate(ctx context.Context, m *SeaMasterB
 		return (&SeaMasterBillOrderLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown SeaMasterBillOrderLink mutation op: %q", m.Op())
+	}
+}
+
+// SeaMasterBillVersionClient is a client for the SeaMasterBillVersion schema.
+type SeaMasterBillVersionClient struct {
+	config
+}
+
+// NewSeaMasterBillVersionClient returns a client for the SeaMasterBillVersion from the given config.
+func NewSeaMasterBillVersionClient(c config) *SeaMasterBillVersionClient {
+	return &SeaMasterBillVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seamasterbillversion.Hooks(f(g(h())))`.
+func (c *SeaMasterBillVersionClient) Use(hooks ...Hook) {
+	c.hooks.SeaMasterBillVersion = append(c.hooks.SeaMasterBillVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seamasterbillversion.Intercept(f(g(h())))`.
+func (c *SeaMasterBillVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaMasterBillVersion = append(c.inters.SeaMasterBillVersion, interceptors...)
+}
+
+// Create returns a builder for creating a SeaMasterBillVersion entity.
+func (c *SeaMasterBillVersionClient) Create() *SeaMasterBillVersionCreate {
+	mutation := newSeaMasterBillVersionMutation(c.config, OpCreate)
+	return &SeaMasterBillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaMasterBillVersion entities.
+func (c *SeaMasterBillVersionClient) CreateBulk(builders ...*SeaMasterBillVersionCreate) *SeaMasterBillVersionCreateBulk {
+	return &SeaMasterBillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaMasterBillVersionClient) MapCreateBulk(slice any, setFunc func(*SeaMasterBillVersionCreate, int)) *SeaMasterBillVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaMasterBillVersionCreateBulk{err: fmt.Errorf("calling to SeaMasterBillVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaMasterBillVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaMasterBillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) Update() *SeaMasterBillVersionUpdate {
+	mutation := newSeaMasterBillVersionMutation(c.config, OpUpdate)
+	return &SeaMasterBillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaMasterBillVersionClient) UpdateOne(_m *SeaMasterBillVersion) *SeaMasterBillVersionUpdateOne {
+	mutation := newSeaMasterBillVersionMutation(c.config, OpUpdateOne, withSeaMasterBillVersion(_m))
+	return &SeaMasterBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaMasterBillVersionClient) UpdateOneID(id uuid.UUID) *SeaMasterBillVersionUpdateOne {
+	mutation := newSeaMasterBillVersionMutation(c.config, OpUpdateOne, withSeaMasterBillVersionID(id))
+	return &SeaMasterBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) Delete() *SeaMasterBillVersionDelete {
+	mutation := newSeaMasterBillVersionMutation(c.config, OpDelete)
+	return &SeaMasterBillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaMasterBillVersionClient) DeleteOne(_m *SeaMasterBillVersion) *SeaMasterBillVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaMasterBillVersionClient) DeleteOneID(id uuid.UUID) *SeaMasterBillVersionDeleteOne {
+	builder := c.Delete().Where(seamasterbillversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaMasterBillVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) Query() *SeaMasterBillVersionQuery {
+	return &SeaMasterBillVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaMasterBillVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaMasterBillVersion entity by its id.
+func (c *SeaMasterBillVersionClient) Get(ctx context.Context, id uuid.UUID) (*SeaMasterBillVersion, error) {
+	return c.Query().Where(seamasterbillversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaMasterBillVersionClient) GetX(ctx context.Context, id uuid.UUID) *SeaMasterBillVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryOrganization(_m *SeaMasterBillVersion) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.OrganizationTable, seamasterbillversion.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryMasterBill(_m *SeaMasterBillVersion) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.MasterBillTable, seamasterbillversion.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuerPartner queries the issuer_partner edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryIssuerPartner(_m *SeaMasterBillVersion) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.IssuerPartnerTable, seamasterbillversion.IssuerPartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecution queries the transport_execution edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryTransportExecution(_m *SeaMasterBillVersion) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.TransportExecutionTable, seamasterbillversion.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryCreator(_m *SeaMasterBillVersion) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.CreatorTable, seamasterbillversion.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecords queries the lock_records edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryLockRecords(_m *SeaMasterBillVersion) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.LockRecordsTable, seamasterbillversion.LockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoidEvents queries the void_events edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryVoidEvents(_m *SeaMasterBillVersion) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillversion.VoidEventsTable, seamasterbillversion.VoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaMasterBillVersionClient) Hooks() []Hook {
+	return c.hooks.SeaMasterBillVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaMasterBillVersionClient) Interceptors() []Interceptor {
+	return c.inters.SeaMasterBillVersion
+}
+
+func (c *SeaMasterBillVersionClient) mutate(ctx context.Context, m *SeaMasterBillVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaMasterBillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaMasterBillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaMasterBillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaMasterBillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaMasterBillVersion mutation op: %q", m.Op())
 	}
 }
 
@@ -18216,6 +21136,22 @@ func (c *SeaTransportExecutionClient) QueryMasterBills(_m *SeaTransportExecution
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
 			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBillVersions queries the master_bill_versions edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryMasterBillVersions(_m *SeaTransportExecution) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillVersionsTable, seatransportexecution.MasterBillVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -19578,6 +22514,166 @@ func (c *UserClient) QueryCreatedOrderAttachments(_m *User) *OrderAttachmentQuer
 	return query
 }
 
+// QueryLockedOrders queries the locked_orders edge of a User.
+func (c *UserClient) QueryLockedOrders(_m *User) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LockedOrdersTable, user.LockedOrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderLockRecords queries the order_lock_records edge of a User.
+func (c *UserClient) QueryOrderLockRecords(_m *User) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderLockRecordsTable, user.OrderLockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUnlockedOrderLockRecords queries the unlocked_order_lock_records edge of a User.
+func (c *UserClient) QueryUnlockedOrderLockRecords(_m *User) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UnlockedOrderLockRecordsTable, user.UnlockedOrderLockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderUnlockRequests queries the order_unlock_requests edge of a User.
+func (c *UserClient) QueryOrderUnlockRequests(_m *User) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderUnlockRequestsTable, user.OrderUnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDecidedOrderUnlockRequests queries the decided_order_unlock_requests edge of a User.
+func (c *UserClient) QueryDecidedOrderUnlockRequests(_m *User) *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DecidedOrderUnlockRequestsTable, user.DecidedOrderUnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderUnlockApproverCandidates queries the order_unlock_approver_candidates edge of a User.
+func (c *UserClient) QueryOrderUnlockApproverCandidates(_m *User) *OrderUnlockApproverCandidateQuery {
+	query := (&OrderUnlockApproverCandidateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderUnlockApproverCandidatesTable, user.OrderUnlockApproverCandidatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaMasterBillVersions queries the created_sea_master_bill_versions edge of a User.
+func (c *UserClient) QueryCreatedSeaMasterBillVersions(_m *User) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaMasterBillVersionsTable, user.CreatedSeaMasterBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaHouseBillVersions queries the created_sea_house_bill_versions edge of a User.
+func (c *UserClient) QueryCreatedSeaHouseBillVersions(_m *User) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaHouseBillVersionsTable, user.CreatedSeaHouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaDocumentVoidEvents queries the created_sea_document_void_events edge of a User.
+func (c *UserClient) QueryCreatedSeaDocumentVoidEvents(_m *User) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaDocumentVoidEventsTable, user.CreatedSeaDocumentVoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaHouseBillSwitchEvents queries the created_sea_house_bill_switch_events edge of a User.
+func (c *UserClient) QueryCreatedSeaHouseBillSwitchEvents(_m *User) *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaHouseBillSwitchEventsTable, user.CreatedSeaHouseBillSwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -19608,58 +22704,65 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, EnterpriseResource, EnterpriseResourceAddress,
-		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
-		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
-		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
-		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
-		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
-		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
+		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
+		EnterpriseResource, EnterpriseResourceAddress, EnterpriseResourceAddressType,
+		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
+		EnterpriseResourceParty, EnterpriseResourceRemark,
+		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
+		ExchangeRateCustomSetting, ExchangeRateImportBatch, ExchangeRateSetting,
+		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
+		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess,
-		SeaCargoAllocation, SeaHouseBill, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaOrderReassignmentEvent, SeaOrderSplitEvent, SeaOrderSplitResult,
-		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
-		TaxableService, User []ent.Hook
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, SeaCargoAllocation, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillSwitchEvent, SeaHouseBillVersion, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
+		SeaOrderSplitEvent, SeaOrderSplitResult, SeaTransportExecution, Session,
+		ShippingLine, ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, EnterpriseResource, EnterpriseResourceAddress,
-		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
-		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
-		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
-		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
-		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
-		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
+		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
+		EnterpriseResource, EnterpriseResourceAddress, EnterpriseResourceAddressType,
+		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
+		EnterpriseResourceParty, EnterpriseResourceRemark,
+		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
+		ExchangeRateCustomSetting, ExchangeRateImportBatch, ExchangeRateSetting,
+		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
+		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess,
-		SeaCargoAllocation, SeaHouseBill, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaOrderReassignmentEvent, SeaOrderSplitEvent, SeaOrderSplitResult,
-		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
-		TaxableService, User []ent.Interceptor
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, SeaCargoAllocation, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillSwitchEvent, SeaHouseBillVersion, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
+		SeaOrderSplitEvent, SeaOrderSplitResult, SeaTransportExecution, Session,
+		ShippingLine, ShippingLineContainerPrefix, TaxableService,
+		User []ent.Interceptor
 	}
 )

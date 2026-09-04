@@ -732,6 +732,29 @@ func HasMasterBillsWith(preds ...predicate.SeaMasterBill) predicate.SeaTransport
 	})
 }
 
+// HasMasterBillVersions applies the HasEdge predicate on the "master_bill_versions" edge.
+func HasMasterBillVersions() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MasterBillVersionsTable, MasterBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMasterBillVersionsWith applies the HasEdge predicate on the "master_bill_versions" edge with a given conditions (other predicates).
+func HasMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := newMasterBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.SeaTransportExecution) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.AndPredicates(predicates...))

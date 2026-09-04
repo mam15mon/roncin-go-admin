@@ -39,6 +39,7 @@ func (User) Fields() []ent.Field {
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
 		field.String("dingtalk_userid").MaxLen(64).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
+		field.Bool("is_bootstrap_admin").Default(false).Immutable(),
 		field.Bool("enabled").Default(true),
 		searchKeywordsField(),
 	}
@@ -86,6 +87,16 @@ func (User) Edges() []ent.Edge {
 		edge.To("created_sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
 		edge.To("uploaded_attachment_assets", OrderAttachmentAsset.Type),
 		edge.To("created_order_attachments", OrderAttachment.Type),
+		edge.To("locked_orders", Order.Type),
+		edge.To("order_lock_records", OrderLockRecord.Type),
+		edge.To("unlocked_order_lock_records", OrderLockRecord.Type),
+		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
+		edge.To("decided_order_unlock_requests", OrderUnlockRequest.Type),
+		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
+		edge.To("created_sea_master_bill_versions", SeaMasterBillVersion.Type),
+		edge.To("created_sea_house_bill_versions", SeaHouseBillVersion.Type),
+		edge.To("created_sea_document_void_events", SeaDocumentVoidEvent.Type),
+		edge.To("created_sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
 	}
 }
 

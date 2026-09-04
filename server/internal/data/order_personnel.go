@@ -52,6 +52,9 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
+			return err
+		}
 		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
 		if queryErr != nil {
 			return queryErr
@@ -102,8 +105,12 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 
 func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); queryErr != nil {
+		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
+			return err
 		}
 		n, deleteErr := tx.OrderPersonnel.Delete().
 			Where(

@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
@@ -44,7 +45,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -54,9 +58,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
@@ -124,6 +132,15 @@ type OrganizationQuery struct {
 	withSeaOrderSplitEvents           *SeaOrderSplitEventQuery
 	withSeaOrderSplitResults          *SeaOrderSplitResultQuery
 	withSeaOrderReassignmentEvents    *SeaOrderReassignmentEventQuery
+	withOrderLockRecords              *OrderLockRecordQuery
+	withOrderLockHouseBillSnapshots   *OrderLockHouseBillSnapshotQuery
+	withOrderUnlockRequests           *OrderUnlockRequestQuery
+	withSeaMasterBillVersions         *SeaMasterBillVersionQuery
+	withSeaHouseBillVersions          *SeaHouseBillVersionQuery
+	withIssuedSeaHouseBillVersions    *SeaHouseBillVersionQuery
+	withDingtalkApprovalDispatches    *DingTalkApprovalDispatchQuery
+	withSeaDocumentVoidEvents         *SeaDocumentVoidEventQuery
+	withSeaHouseBillSwitchEvents      *SeaHouseBillSwitchEventQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -1283,6 +1300,204 @@ func (_q *OrganizationQuery) QuerySeaOrderReassignmentEvents() *SeaOrderReassign
 	return query
 }
 
+// QueryOrderLockRecords chains the current query on the "order_lock_records" edge.
+func (_q *OrganizationQuery) QueryOrderLockRecords() *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderLockRecordsTable, organization.OrderLockRecordsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderLockHouseBillSnapshots chains the current query on the "order_lock_house_bill_snapshots" edge.
+func (_q *OrganizationQuery) QueryOrderLockHouseBillSnapshots() *OrderLockHouseBillSnapshotQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderlockhousebillsnapshot.Table, orderlockhousebillsnapshot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderLockHouseBillSnapshotsTable, organization.OrderLockHouseBillSnapshotsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderUnlockRequests chains the current query on the "order_unlock_requests" edge.
+func (_q *OrganizationQuery) QueryOrderUnlockRequests() *OrderUnlockRequestQuery {
+	query := (&OrderUnlockRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderUnlockRequestsTable, organization.OrderUnlockRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions chains the current query on the "sea_master_bill_versions" edge.
+func (_q *OrganizationQuery) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaMasterBillVersionsTable, organization.SeaMasterBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions chains the current query on the "sea_house_bill_versions" edge.
+func (_q *OrganizationQuery) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillVersionsTable, organization.SeaHouseBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIssuedSeaHouseBillVersions chains the current query on the "issued_sea_house_bill_versions" edge.
+func (_q *OrganizationQuery) QueryIssuedSeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.IssuedSeaHouseBillVersionsTable, organization.IssuedSeaHouseBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDingtalkApprovalDispatches chains the current query on the "dingtalk_approval_dispatches" edge.
+func (_q *OrganizationQuery) QueryDingtalkApprovalDispatches() *DingTalkApprovalDispatchQuery {
+	query := (&DingTalkApprovalDispatchClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(dingtalkapprovaldispatch.Table, dingtalkapprovaldispatch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkApprovalDispatchesTable, organization.DingtalkApprovalDispatchesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentVoidEvents chains the current query on the "sea_document_void_events" edge.
+func (_q *OrganizationQuery) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaDocumentVoidEventsTable, organization.SeaDocumentVoidEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillSwitchEvents chains the current query on the "sea_house_bill_switch_events" edge.
+func (_q *OrganizationQuery) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillSwitchEventsTable, organization.SeaHouseBillSwitchEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -1526,6 +1741,15 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withSeaOrderSplitEvents:           _q.withSeaOrderSplitEvents.Clone(),
 		withSeaOrderSplitResults:          _q.withSeaOrderSplitResults.Clone(),
 		withSeaOrderReassignmentEvents:    _q.withSeaOrderReassignmentEvents.Clone(),
+		withOrderLockRecords:              _q.withOrderLockRecords.Clone(),
+		withOrderLockHouseBillSnapshots:   _q.withOrderLockHouseBillSnapshots.Clone(),
+		withOrderUnlockRequests:           _q.withOrderUnlockRequests.Clone(),
+		withSeaMasterBillVersions:         _q.withSeaMasterBillVersions.Clone(),
+		withSeaHouseBillVersions:          _q.withSeaHouseBillVersions.Clone(),
+		withIssuedSeaHouseBillVersions:    _q.withIssuedSeaHouseBillVersions.Clone(),
+		withDingtalkApprovalDispatches:    _q.withDingtalkApprovalDispatches.Clone(),
+		withSeaDocumentVoidEvents:         _q.withSeaDocumentVoidEvents.Clone(),
+		withSeaHouseBillSwitchEvents:      _q.withSeaHouseBillSwitchEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -2093,6 +2317,105 @@ func (_q *OrganizationQuery) WithSeaOrderReassignmentEvents(opts ...func(*SeaOrd
 	return _q
 }
 
+// WithOrderLockRecords tells the query-builder to eager-load the nodes that are connected to
+// the "order_lock_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderLockRecords(opts ...func(*OrderLockRecordQuery)) *OrganizationQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderLockRecords = query
+	return _q
+}
+
+// WithOrderLockHouseBillSnapshots tells the query-builder to eager-load the nodes that are connected to
+// the "order_lock_house_bill_snapshots" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderLockHouseBillSnapshots(opts ...func(*OrderLockHouseBillSnapshotQuery)) *OrganizationQuery {
+	query := (&OrderLockHouseBillSnapshotClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderLockHouseBillSnapshots = query
+	return _q
+}
+
+// WithOrderUnlockRequests tells the query-builder to eager-load the nodes that are connected to
+// the "order_unlock_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderUnlockRequests(opts ...func(*OrderUnlockRequestQuery)) *OrganizationQuery {
+	query := (&OrderUnlockRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderUnlockRequests = query
+	return _q
+}
+
+// WithSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *OrganizationQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaMasterBillVersions = query
+	return _q
+}
+
+// WithSeaHouseBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaHouseBillVersions(opts ...func(*SeaHouseBillVersionQuery)) *OrganizationQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBillVersions = query
+	return _q
+}
+
+// WithIssuedSeaHouseBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "issued_sea_house_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithIssuedSeaHouseBillVersions(opts ...func(*SeaHouseBillVersionQuery)) *OrganizationQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIssuedSeaHouseBillVersions = query
+	return _q
+}
+
+// WithDingtalkApprovalDispatches tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_approval_dispatches" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithDingtalkApprovalDispatches(opts ...func(*DingTalkApprovalDispatchQuery)) *OrganizationQuery {
+	query := (&DingTalkApprovalDispatchClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkApprovalDispatches = query
+	return _q
+}
+
+// WithSeaDocumentVoidEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_document_void_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaDocumentVoidEvents(opts ...func(*SeaDocumentVoidEventQuery)) *OrganizationQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaDocumentVoidEvents = query
+	return _q
+}
+
+// WithSeaHouseBillSwitchEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bill_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaHouseBillSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *OrganizationQuery {
+	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBillSwitchEvents = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -2171,7 +2494,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [51]bool{
+		loadedTypes = [60]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2223,6 +2546,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSeaOrderSplitEvents != nil,
 			_q.withSeaOrderSplitResults != nil,
 			_q.withSeaOrderReassignmentEvents != nil,
+			_q.withOrderLockRecords != nil,
+			_q.withOrderLockHouseBillSnapshots != nil,
+			_q.withOrderUnlockRequests != nil,
+			_q.withSeaMasterBillVersions != nil,
+			_q.withSeaHouseBillVersions != nil,
+			_q.withIssuedSeaHouseBillVersions != nil,
+			_q.withDingtalkApprovalDispatches != nil,
+			_q.withSeaDocumentVoidEvents != nil,
+			_q.withSeaHouseBillSwitchEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2652,6 +2984,87 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.SeaOrderReassignmentEvents = []*SeaOrderReassignmentEvent{} },
 			func(n *Organization, e *SeaOrderReassignmentEvent) {
 				n.Edges.SeaOrderReassignmentEvents = append(n.Edges.SeaOrderReassignmentEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderLockRecords; query != nil {
+		if err := _q.loadOrderLockRecords(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderLockRecords = []*OrderLockRecord{} },
+			func(n *Organization, e *OrderLockRecord) {
+				n.Edges.OrderLockRecords = append(n.Edges.OrderLockRecords, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderLockHouseBillSnapshots; query != nil {
+		if err := _q.loadOrderLockHouseBillSnapshots(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderLockHouseBillSnapshots = []*OrderLockHouseBillSnapshot{} },
+			func(n *Organization, e *OrderLockHouseBillSnapshot) {
+				n.Edges.OrderLockHouseBillSnapshots = append(n.Edges.OrderLockHouseBillSnapshots, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderUnlockRequests; query != nil {
+		if err := _q.loadOrderUnlockRequests(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderUnlockRequests = []*OrderUnlockRequest{} },
+			func(n *Organization, e *OrderUnlockRequest) {
+				n.Edges.OrderUnlockRequests = append(n.Edges.OrderUnlockRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaMasterBillVersions; query != nil {
+		if err := _q.loadSeaMasterBillVersions(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaMasterBillVersions = []*SeaMasterBillVersion{} },
+			func(n *Organization, e *SeaMasterBillVersion) {
+				n.Edges.SeaMasterBillVersions = append(n.Edges.SeaMasterBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBillVersions; query != nil {
+		if err := _q.loadSeaHouseBillVersions(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaHouseBillVersions = []*SeaHouseBillVersion{} },
+			func(n *Organization, e *SeaHouseBillVersion) {
+				n.Edges.SeaHouseBillVersions = append(n.Edges.SeaHouseBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIssuedSeaHouseBillVersions; query != nil {
+		if err := _q.loadIssuedSeaHouseBillVersions(ctx, query, nodes,
+			func(n *Organization) { n.Edges.IssuedSeaHouseBillVersions = []*SeaHouseBillVersion{} },
+			func(n *Organization, e *SeaHouseBillVersion) {
+				n.Edges.IssuedSeaHouseBillVersions = append(n.Edges.IssuedSeaHouseBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkApprovalDispatches; query != nil {
+		if err := _q.loadDingtalkApprovalDispatches(ctx, query, nodes,
+			func(n *Organization) { n.Edges.DingtalkApprovalDispatches = []*DingTalkApprovalDispatch{} },
+			func(n *Organization, e *DingTalkApprovalDispatch) {
+				n.Edges.DingtalkApprovalDispatches = append(n.Edges.DingtalkApprovalDispatches, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaDocumentVoidEvents; query != nil {
+		if err := _q.loadSeaDocumentVoidEvents(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaDocumentVoidEvents = []*SeaDocumentVoidEvent{} },
+			func(n *Organization, e *SeaDocumentVoidEvent) {
+				n.Edges.SeaDocumentVoidEvents = append(n.Edges.SeaDocumentVoidEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBillSwitchEvents; query != nil {
+		if err := _q.loadSeaHouseBillSwitchEvents(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaHouseBillSwitchEvents = []*SeaHouseBillSwitchEvent{} },
+			func(n *Organization, e *SeaHouseBillSwitchEvent) {
+				n.Edges.SeaHouseBillSwitchEvents = append(n.Edges.SeaHouseBillSwitchEvents, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4182,6 +4595,279 @@ func (_q *OrganizationQuery) loadSeaOrderReassignmentEvents(ctx context.Context,
 	}
 	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.SeaOrderReassignmentEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderLockRecords(ctx context.Context, query *OrderLockRecordQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderLockRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderlockrecord.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderLockRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderLockRecordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderLockHouseBillSnapshots(ctx context.Context, query *OrderLockHouseBillSnapshotQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderLockHouseBillSnapshot)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderlockhousebillsnapshot.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderLockHouseBillSnapshot(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderLockHouseBillSnapshotsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderUnlockRequests(ctx context.Context, query *OrderUnlockRequestQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderUnlockRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderunlockrequest.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderUnlockRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderUnlockRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaMasterBillVersions(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaMasterBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillversion.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaMasterBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaHouseBillVersions(ctx context.Context, query *SeaHouseBillVersionQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebillversion.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaHouseBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadIssuedSeaHouseBillVersions(ctx context.Context, query *SeaHouseBillVersionQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebillversion.FieldIssuerOrganizationID)
+	}
+	query.Where(predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.IssuedSeaHouseBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuerOrganizationID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "issuer_organization_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issuer_organization_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadDingtalkApprovalDispatches(ctx context.Context, query *DingTalkApprovalDispatchQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *DingTalkApprovalDispatch)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkapprovaldispatch.FieldOrganizationID)
+	}
+	query.Where(predicate.DingTalkApprovalDispatch(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.DingtalkApprovalDispatchesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaDocumentVoidEvents(ctx context.Context, query *SeaDocumentVoidEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaDocumentVoidEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentvoidevent.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaDocumentVoidEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaHouseBillSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBillSwitchEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaHouseBillSwitchEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

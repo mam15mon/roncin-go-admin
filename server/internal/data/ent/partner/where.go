@@ -1063,6 +1063,52 @@ func HasSeaOrderReassignmentsWith(preds ...predicate.SeaOrderReassignmentEvent) 
 	})
 }
 
+// HasSeaMasterBillVersions applies the HasEdge predicate on the "sea_master_bill_versions" edge.
+func HasSeaMasterBillVersions() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaMasterBillVersionsWith applies the HasEdge predicate on the "sea_master_bill_versions" edge with a given conditions (other predicates).
+func HasSeaMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newSeaMasterBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaHouseBillVersions applies the HasEdge predicate on the "sea_house_bill_versions" edge.
+func HasSeaHouseBillVersions() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillVersionsWith applies the HasEdge predicate on the "sea_house_bill_versions" edge with a given conditions (other predicates).
+func HasSeaHouseBillVersionsWith(preds ...predicate.SeaHouseBillVersion) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newSeaHouseBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Partner) predicate.Partner {
 	return predicate.Partner(sql.AndPredicates(predicates...))

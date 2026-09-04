@@ -32,6 +32,8 @@ const (
 	FieldNormalizedMasterNo = "normalized_master_no"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldCurrentVersionID holds the string denoting the current_version_id field in the database.
+	FieldCurrentVersionID = "current_version_id"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldShipperText holds the string denoting the shipper_text field in the database.
@@ -80,6 +82,18 @@ const (
 	EdgePreviousSeaOrderReassignments = "previous_sea_order_reassignments"
 	// EdgeTargetSeaOrderReassignments holds the string denoting the target_sea_order_reassignments edge name in mutations.
 	EdgeTargetSeaOrderReassignments = "target_sea_order_reassignments"
+	// EdgeCurrentVersion holds the string denoting the current_version edge name in mutations.
+	EdgeCurrentVersion = "current_version"
+	// EdgeVersions holds the string denoting the versions edge name in mutations.
+	EdgeVersions = "versions"
+	// EdgeHouseBillVersions holds the string denoting the house_bill_versions edge name in mutations.
+	EdgeHouseBillVersions = "house_bill_versions"
+	// EdgeLockRecords holds the string denoting the lock_records edge name in mutations.
+	EdgeLockRecords = "lock_records"
+	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
+	EdgeVoidEvents = "void_events"
+	// EdgeSwitchEvents holds the string denoting the switch_events edge name in mutations.
+	EdgeSwitchEvents = "switch_events"
 	// Table holds the table name of the seamasterbill in the database.
 	Table = "sea_master_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -138,6 +152,48 @@ const (
 	TargetSeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
 	// TargetSeaOrderReassignmentsColumn is the table column denoting the target_sea_order_reassignments relation/edge.
 	TargetSeaOrderReassignmentsColumn = "target_master_bill_id"
+	// CurrentVersionTable is the table that holds the current_version relation/edge.
+	CurrentVersionTable = "sea_master_bills"
+	// CurrentVersionInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	CurrentVersionInverseTable = "sea_master_bill_versions"
+	// CurrentVersionColumn is the table column denoting the current_version relation/edge.
+	CurrentVersionColumn = "current_version_id"
+	// VersionsTable is the table that holds the versions relation/edge.
+	VersionsTable = "sea_master_bill_versions"
+	// VersionsInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	VersionsInverseTable = "sea_master_bill_versions"
+	// VersionsColumn is the table column denoting the versions relation/edge.
+	VersionsColumn = "master_bill_id"
+	// HouseBillVersionsTable is the table that holds the house_bill_versions relation/edge.
+	HouseBillVersionsTable = "sea_house_bill_versions"
+	// HouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	HouseBillVersionsInverseTable = "sea_house_bill_versions"
+	// HouseBillVersionsColumn is the table column denoting the house_bill_versions relation/edge.
+	HouseBillVersionsColumn = "master_bill_id"
+	// LockRecordsTable is the table that holds the lock_records relation/edge.
+	LockRecordsTable = "order_lock_records"
+	// LockRecordsInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	LockRecordsInverseTable = "order_lock_records"
+	// LockRecordsColumn is the table column denoting the lock_records relation/edge.
+	LockRecordsColumn = "master_bill_id"
+	// VoidEventsTable is the table that holds the void_events relation/edge.
+	VoidEventsTable = "sea_document_void_events"
+	// VoidEventsInverseTable is the table name for the SeaDocumentVoidEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentvoidevent" package.
+	VoidEventsInverseTable = "sea_document_void_events"
+	// VoidEventsColumn is the table column denoting the void_events relation/edge.
+	VoidEventsColumn = "master_bill_id"
+	// SwitchEventsTable is the table that holds the switch_events relation/edge.
+	SwitchEventsTable = "sea_house_bill_switch_events"
+	// SwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
+	SwitchEventsInverseTable = "sea_house_bill_switch_events"
+	// SwitchEventsColumn is the table column denoting the switch_events relation/edge.
+	SwitchEventsColumn = "master_bill_id"
 )
 
 // Columns holds all SQL columns for seamasterbill fields.
@@ -151,6 +207,7 @@ var Columns = []string{
 	FieldMasterNo,
 	FieldNormalizedMasterNo,
 	FieldStatus,
+	FieldCurrentVersionID,
 	FieldVersion,
 	FieldShipperText,
 	FieldConsigneeText,
@@ -223,6 +280,7 @@ const (
 	StatusDRAFT     Status = "DRAFT"
 	StatusCONFIRMED Status = "CONFIRMED"
 	StatusRELEASED  Status = "RELEASED"
+	StatusVOIDED    Status = "VOIDED"
 )
 
 func (s Status) String() string {
@@ -232,7 +290,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED:
+	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED, StatusVOIDED:
 		return nil
 	default:
 		return fmt.Errorf("seamasterbill: invalid enum value for status field: %q", s)
@@ -285,6 +343,11 @@ func ByNormalizedMasterNo(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByCurrentVersionID orders the results by the current_version_id field.
+func ByCurrentVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentVersionID, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.
@@ -464,6 +527,83 @@ func ByTargetSeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) O
 		sqlgraph.OrderByNeighborTerms(s, newTargetSeaOrderReassignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCurrentVersionField orders the results by current_version field.
+func ByCurrentVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCurrentVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByVersionsCount orders the results by versions count.
+func ByVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVersionsStep(), opts...)
+	}
+}
+
+// ByVersions orders the results by versions terms.
+func ByVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByHouseBillVersionsCount orders the results by house_bill_versions count.
+func ByHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHouseBillVersionsStep(), opts...)
+	}
+}
+
+// ByHouseBillVersions orders the results by house_bill_versions terms.
+func ByHouseBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHouseBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLockRecordsCount orders the results by lock_records count.
+func ByLockRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLockRecordsStep(), opts...)
+	}
+}
+
+// ByLockRecords orders the results by lock_records terms.
+func ByLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLockRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByVoidEventsCount orders the results by void_events count.
+func ByVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoidEventsStep(), opts...)
+	}
+}
+
+// ByVoidEvents orders the results by void_events terms.
+func ByVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySwitchEventsCount orders the results by switch_events count.
+func BySwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSwitchEventsStep(), opts...)
+	}
+}
+
+// BySwitchEvents orders the results by switch_events terms.
+func BySwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -518,5 +658,47 @@ func newTargetSeaOrderReassignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TargetSeaOrderReassignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TargetSeaOrderReassignmentsTable, TargetSeaOrderReassignmentsColumn),
+	)
+}
+func newCurrentVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CurrentVersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CurrentVersionTable, CurrentVersionColumn),
+	)
+}
+func newVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+	)
+}
+func newHouseBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HouseBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HouseBillVersionsTable, HouseBillVersionsColumn),
+	)
+}
+func newLockRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LockRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
+	)
+}
+func newVoidEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoidEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoidEventsTable, VoidEventsColumn),
+	)
+}
+func newSwitchEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SwitchEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SwitchEventsTable, SwitchEventsColumn),
 	)
 }

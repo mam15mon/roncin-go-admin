@@ -30,6 +30,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
@@ -439,6 +441,36 @@ func (_c *PartnerCreate) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEven
 		ids[i] = v[i].ID
 	}
 	return _c.AddSeaOrderReassignmentIDs(ids...)
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_c *PartnerCreate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_c *PartnerCreate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_c *PartnerCreate) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_c *PartnerCreate) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaHouseBillVersionIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -933,6 +965,38 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaMasterBillVersionsTable,
+			Columns: []string{partner.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.SeaHouseBillVersionsTable,
+			Columns: []string{partner.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

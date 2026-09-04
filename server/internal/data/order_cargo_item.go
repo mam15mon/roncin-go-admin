@@ -67,6 +67,9 @@ func (r *orderCargoItemRepo) Add(ctx context.Context, organizationID, orderID uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderCargoItemNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 
 		// 如果是海运单票，检查分配状态门禁
 		if order.BusinessType == orderent.BusinessTypeSE {
@@ -129,6 +132,9 @@ func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderCargoItemNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		if order.BusinessType == orderent.BusinessTypeSE {
@@ -246,6 +252,9 @@ func (r *orderCargoItemRepo) Remove(ctx context.Context, organizationID, orderID
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderCargoItemNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		if order.BusinessType == orderent.BusinessTypeSE {

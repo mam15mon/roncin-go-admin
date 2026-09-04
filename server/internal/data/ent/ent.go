@@ -19,6 +19,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -71,11 +73,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -94,9 +100,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
@@ -173,6 +183,8 @@ func checkColumn(t, c string) error {
 			backgroundtask.Table:                 backgroundtask.ValidColumn,
 			billingunit.Table:                    billingunit.ValidColumn,
 			currency.Table:                       currency.ValidColumn,
+			dingtalkapprovaldispatch.Table:       dingtalkapprovaldispatch.ValidColumn,
+			dingtalkapprovalinboxevent.Table:     dingtalkapprovalinboxevent.ValidColumn,
 			enterpriseresource.Table:             enterpriseresource.ValidColumn,
 			enterpriseresourceaddress.Table:      enterpriseresourceaddress.ValidColumn,
 			enterpriseresourceaddresstype.Table:  enterpriseresourceaddresstype.ValidColumn,
@@ -225,11 +237,15 @@ func checkColumn(t, c string) error {
 			orderfee.Table:                       orderfee.ValidColumn,
 			orderfeeenterprisetag.Table:          orderfeeenterprisetag.ValidColumn,
 			orderlifecycleevent.Table:            orderlifecycleevent.ValidColumn,
+			orderlockhousebillsnapshot.Table:     orderlockhousebillsnapshot.ValidColumn,
+			orderlockrecord.Table:                orderlockrecord.ValidColumn,
 			ordermilestone.Table:                 ordermilestone.ValidColumn,
 			orderpersonnel.Table:                 orderpersonnel.ValidColumn,
 			orderreleasepod.Table:                orderreleasepod.ValidColumn,
 			orderservicetype.Table:               orderservicetype.ValidColumn,
 			ordershippingdocument.Table:          ordershippingdocument.ValidColumn,
+			orderunlockapprovercandidate.Table:   orderunlockapprovercandidate.ValidColumn,
+			orderunlockrequest.Table:             orderunlockrequest.ValidColumn,
 			organization.Table:                   organization.ValidColumn,
 			partner.Table:                        partner.ValidColumn,
 			partneraccount.Table:                 partneraccount.ValidColumn,
@@ -248,9 +264,13 @@ func checkColumn(t, c string) error {
 			roleassignment.Table:                 roleassignment.ValidColumn,
 			roleorderorganizationaccess.Table:    roleorderorganizationaccess.ValidColumn,
 			seacargoallocation.Table:             seacargoallocation.ValidColumn,
+			seadocumentvoidevent.Table:           seadocumentvoidevent.ValidColumn,
 			seahousebill.Table:                   seahousebill.ValidColumn,
+			seahousebillswitchevent.Table:        seahousebillswitchevent.ValidColumn,
+			seahousebillversion.Table:            seahousebillversion.ValidColumn,
 			seamasterbill.Table:                  seamasterbill.ValidColumn,
 			seamasterbillorderlink.Table:         seamasterbillorderlink.ValidColumn,
+			seamasterbillversion.Table:           seamasterbillversion.ValidColumn,
 			seaorderreassignmentevent.Table:      seaorderreassignmentevent.ValidColumn,
 			seaordersplitevent.Table:             seaordersplitevent.ValidColumn,
 			seaordersplitresult.Table:            seaordersplitresult.ValidColumn,

@@ -40,6 +40,20 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 				"sea_order_reassignment_events_responsibility_type_check": "responsibility_type IN ('CARRIER', 'CUSTOMER', 'CUSTOMS', 'OWN_COMPANY', 'FORCE_MAJEURE', 'OTHER')",
 			},
 		},
+		{
+			tableName: "sea_document_void_events",
+			table:     SeaDocumentVoidEventsTable,
+			expectedChecks: map[string]string{
+				"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND house_bill_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND master_bill_id IS NULL))",
+			},
+		},
+		{
+			tableName: "sea_house_bill_versions",
+			table:     SeaHouseBillVersionsTable,
+			expectedChecks: map[string]string{
+				"sea_house_bill_versions_issuer_check": "((issuer_source = 'SELF_ORGANIZATION' AND issuer_organization_id IS NOT NULL AND issuer_partner_id IS NULL) OR (issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER') AND issuer_organization_id IS NULL AND issuer_partner_id IS NOT NULL))",
+			},
+		},
 	}
 
 	for _, tc := range cases {

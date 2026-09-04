@@ -49,9 +49,11 @@ type RoleEdges struct {
 	Assignments []*RoleAssignment `json:"assignments,omitempty"`
 	// OrderOrganizationAccesses holds the value of the order_organization_accesses edge.
 	OrderOrganizationAccesses []*RoleOrderOrganizationAccess `json:"order_organization_accesses,omitempty"`
+	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
+	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -90,6 +92,15 @@ func (e RoleEdges) OrderOrganizationAccessesOrErr() ([]*RoleOrderOrganizationAcc
 		return e.OrderOrganizationAccesses, nil
 	}
 	return nil, &NotLoadedError{edge: "order_organization_accesses"}
+}
+
+// OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
+	if e.loadedTypes[4] {
+		return e.OrderUnlockApproverCandidates, nil
+	}
+	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -199,6 +210,11 @@ func (_m *Role) QueryAssignments() *RoleAssignmentQuery {
 // QueryOrderOrganizationAccesses queries the "order_organization_accesses" edge of the Role entity.
 func (_m *Role) QueryOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
 	return NewRoleClient(_m.config).QueryOrderOrganizationAccesses(_m)
+}
+
+// QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the Role entity.
+func (_m *Role) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCandidateQuery {
+	return NewRoleClient(_m.config).QueryOrderUnlockApproverCandidates(_m)
 }
 
 // Update returns a builder for updating this Role.

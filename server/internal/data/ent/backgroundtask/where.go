@@ -700,6 +700,29 @@ func HasObjectStorageDeletionWith(preds ...predicate.ObjectStorageDeletion) pred
 	})
 }
 
+// HasDingtalkApprovalDispatch applies the HasEdge predicate on the "dingtalk_approval_dispatch" edge.
+func HasDingtalkApprovalDispatch() predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, DingtalkApprovalDispatchTable, DingtalkApprovalDispatchColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkApprovalDispatchWith applies the HasEdge predicate on the "dingtalk_approval_dispatch" edge with a given conditions (other predicates).
+func HasDingtalkApprovalDispatchWith(preds ...predicate.DingTalkApprovalDispatch) predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := newDingtalkApprovalDispatchStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.BackgroundTask) predicate.BackgroundTask {
 	return predicate.BackgroundTask(sql.AndPredicates(predicates...))

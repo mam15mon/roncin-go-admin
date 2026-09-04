@@ -17,6 +17,7 @@ import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderCargoItemService from "./orderCargoItemService";
 import * as orderContainerService from "./orderContainerService";
 import * as orderFeeService from "./orderFeeService";
+import * as orderLockService from "./orderLockService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
 import * as orderReleasePodService from "./orderReleasePodService";
@@ -41,6 +42,7 @@ export default {
   orderCargoItemService,
   orderContainerService,
   orderFeeService,
+  orderLockService,
   orderMilestoneService,
   orderPersonnelService,
   orderReleasePodService,

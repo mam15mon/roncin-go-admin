@@ -27,6 +27,12 @@ type BillingUnit func(*sql.Selector)
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 
+// DingTalkApprovalDispatch is the predicate function for dingtalkapprovaldispatch builders.
+type DingTalkApprovalDispatch func(*sql.Selector)
+
+// DingTalkApprovalInboxEvent is the predicate function for dingtalkapprovalinboxevent builders.
+type DingTalkApprovalInboxEvent func(*sql.Selector)
+
 // EnterpriseResource is the predicate function for enterpriseresource builders.
 type EnterpriseResource func(*sql.Selector)
 
@@ -183,6 +189,12 @@ type OrderFeeEnterpriseTag func(*sql.Selector)
 // OrderLifecycleEvent is the predicate function for orderlifecycleevent builders.
 type OrderLifecycleEvent func(*sql.Selector)
 
+// OrderLockHouseBillSnapshot is the predicate function for orderlockhousebillsnapshot builders.
+type OrderLockHouseBillSnapshot func(*sql.Selector)
+
+// OrderLockRecord is the predicate function for orderlockrecord builders.
+type OrderLockRecord func(*sql.Selector)
+
 // OrderMilestone is the predicate function for ordermilestone builders.
 type OrderMilestone func(*sql.Selector)
 
@@ -197,6 +209,12 @@ type OrderServiceType func(*sql.Selector)
 
 // OrderShippingDocument is the predicate function for ordershippingdocument builders.
 type OrderShippingDocument func(*sql.Selector)
+
+// OrderUnlockApproverCandidate is the predicate function for orderunlockapprovercandidate builders.
+type OrderUnlockApproverCandidate func(*sql.Selector)
+
+// OrderUnlockRequest is the predicate function for orderunlockrequest builders.
+type OrderUnlockRequest func(*sql.Selector)
 
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
@@ -252,14 +270,26 @@ type RoleOrderOrganizationAccess func(*sql.Selector)
 // SeaCargoAllocation is the predicate function for seacargoallocation builders.
 type SeaCargoAllocation func(*sql.Selector)
 
+// SeaDocumentVoidEvent is the predicate function for seadocumentvoidevent builders.
+type SeaDocumentVoidEvent func(*sql.Selector)
+
 // SeaHouseBill is the predicate function for seahousebill builders.
 type SeaHouseBill func(*sql.Selector)
+
+// SeaHouseBillSwitchEvent is the predicate function for seahousebillswitchevent builders.
+type SeaHouseBillSwitchEvent func(*sql.Selector)
+
+// SeaHouseBillVersion is the predicate function for seahousebillversion builders.
+type SeaHouseBillVersion func(*sql.Selector)
 
 // SeaMasterBill is the predicate function for seamasterbill builders.
 type SeaMasterBill func(*sql.Selector)
 
 // SeaMasterBillOrderLink is the predicate function for seamasterbillorderlink builders.
 type SeaMasterBillOrderLink func(*sql.Selector)
+
+// SeaMasterBillVersion is the predicate function for seamasterbillversion builders.
+type SeaMasterBillVersion func(*sql.Selector)
 
 // SeaOrderReassignmentEvent is the predicate function for seaorderreassignmentevent builders.
 type SeaOrderReassignmentEvent func(*sql.Selector)

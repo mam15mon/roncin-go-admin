@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -223,6 +224,25 @@ func (_c *BackgroundTaskCreate) SetNillableObjectStorageDeletionID(id *uuid.UUID
 // SetObjectStorageDeletion sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity.
 func (_c *BackgroundTaskCreate) SetObjectStorageDeletion(v *ObjectStorageDeletion) *BackgroundTaskCreate {
 	return _c.SetObjectStorageDeletionID(v.ID)
+}
+
+// SetDingtalkApprovalDispatchID sets the "dingtalk_approval_dispatch" edge to the DingTalkApprovalDispatch entity by ID.
+func (_c *BackgroundTaskCreate) SetDingtalkApprovalDispatchID(id uuid.UUID) *BackgroundTaskCreate {
+	_c.mutation.SetDingtalkApprovalDispatchID(id)
+	return _c
+}
+
+// SetNillableDingtalkApprovalDispatchID sets the "dingtalk_approval_dispatch" edge to the DingTalkApprovalDispatch entity by ID if the given value is not nil.
+func (_c *BackgroundTaskCreate) SetNillableDingtalkApprovalDispatchID(id *uuid.UUID) *BackgroundTaskCreate {
+	if id != nil {
+		_c = _c.SetDingtalkApprovalDispatchID(*id)
+	}
+	return _c
+}
+
+// SetDingtalkApprovalDispatch sets the "dingtalk_approval_dispatch" edge to the DingTalkApprovalDispatch entity.
+func (_c *BackgroundTaskCreate) SetDingtalkApprovalDispatch(v *DingTalkApprovalDispatch) *BackgroundTaskCreate {
+	return _c.SetDingtalkApprovalDispatchID(v.ID)
 }
 
 // Mutation returns the BackgroundTaskMutation object of the builder.
@@ -478,6 +498,22 @@ func (_c *BackgroundTaskCreate) createSpec() (*BackgroundTask, *sqlgraph.CreateS
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(objectstoragedeletion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DingtalkApprovalDispatchIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkApprovalDispatchTable,
+			Columns: []string{backgroundtask.DingtalkApprovalDispatchColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

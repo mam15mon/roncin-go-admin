@@ -49,6 +49,8 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
 		edge.To("issued_sea_house_bills", SeaHouseBill.Type),
 		edge.To("sea_order_reassignments", SeaOrderReassignmentEvent.Type),
+		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type),
+		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type),
 	}
 }
 

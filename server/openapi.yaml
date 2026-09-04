@@ -4482,6 +4482,50 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.ReopenFeeResponse'
+    /api/v1/orders/{orderId}/lock:
+        post:
+            tags:
+                - OrderLockService
+            description: LockOrder 锁定海运出口订单并固定单证不可变版本。
+            operationId: OrderLockService_LockOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.LockOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.LockOrderResponse'
+    /api/v1/orders/{orderId}/lock-state:
+        get:
+            tags:
+                - OrderLockService
+            description: GetOrderLockState 获取订单当前锁定状态与可执行动作。
+            operationId: OrderLockService_GetOrderLockState
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.GetOrderLockStateResponse'
     /api/v1/orders/{orderId}/milestones:
         get:
             tags:
@@ -5380,6 +5424,84 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.TransitionShippingDocumentStatusResponse'
+    /api/v1/orders/{orderId}/unlock:
+        post:
+            tags:
+                - OrderLockService
+            description: RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
+            operationId: OrderLockService_RequestOrderUnlock
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.RequestOrderUnlockRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.RequestOrderUnlockResponse'
+    /api/v1/orders/{orderId}/unlock-requests:
+        get:
+            tags:
+                - OrderLockService
+            description: ListOrderUnlockRequests 查询订单解锁请求历史。
+            operationId: OrderLockService_ListOrderUnlockRequests
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ListOrderUnlockRequestsResponse'
+    /api/v1/orders/{orderId}/unlock-requests/{requestId}:
+        get:
+            tags:
+                - OrderLockService
+            description: GetOrderUnlockRequest 获取单个解锁请求详情。
+            operationId: OrderLockService_GetOrderUnlockRequest
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: requestId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.GetOrderUnlockRequestResponse'
     /api/v1/partner-assignment-options:
         get:
             tags:
@@ -13006,6 +13128,20 @@ components:
                     $ref: '#/components/schemas/order.v1.ExecuteSeaOrderSplitData'
                 traceId:
                     type: string
+        order.v1.GetOrderLockStateResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderLockStateData'
+                traceId:
+                    type: string
         order.v1.GetOrderResponse:
             type: object
             properties:
@@ -13021,6 +13157,20 @@ components:
                 traceId:
                     type: string
             description: GetOrderResponse 单条订单响应。
+        order.v1.GetOrderUnlockRequestResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
+                traceId:
+                    type: string
         order.v1.GetSeaCargoAllocationResponse:
             type: object
             properties:
@@ -13274,6 +13424,36 @@ components:
                     type: string
                 traceId:
                     type: string
+        order.v1.ListOrderUnlockRequestsData:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        order.v1.ListOrderUnlockRequestsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.ListOrderUnlockRequestsData'
+                traceId:
+                    type: string
         order.v1.ListOrdersResponse:
             type: object
             properties:
@@ -13395,6 +13575,33 @@ components:
                 traceId:
                     type: string
             description: ListShippingDocumentsResponse 提单列表响应。
+        order.v1.LockOrderRequest:
+            required:
+                - orderId
+                - expectedOrderVersion
+                - idempotencyKey
+            type: object
+            properties:
+                orderId:
+                    type: string
+                expectedOrderVersion:
+                    type: string
+                idempotencyKey:
+                    type: string
+        order.v1.LockOrderResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderLockResultData'
+                traceId:
+                    type: string
         order.v1.MarkAbnormalCaseRequest:
             required:
                 - orderId
@@ -13996,6 +14203,108 @@ components:
                     type: string
                 name:
                     type: string
+        order.v1.OrderLockHouseBillSnapshotData:
+            type: object
+            properties:
+                id:
+                    type: string
+                lockRecordId:
+                    type: string
+                houseBillId:
+                    type: string
+                houseBillVersionId:
+                    type: string
+                houseNoSnapshot:
+                    type: string
+                createdAt:
+                    type: string
+        order.v1.OrderLockRecordData:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                generation:
+                    type: string
+                lockedBy:
+                    type: string
+                lockedByName:
+                    type: string
+                lockedAt:
+                    type: string
+                orderVersionAtLock:
+                    type: string
+                masterBillId:
+                    type: string
+                masterBillVersionId:
+                    type: string
+                unlockedBy:
+                    type: string
+                unlockedByName:
+                    type: string
+                unlockedAt:
+                    type: string
+                orderVersionAtUnlock:
+                    type: string
+                unlockRequestId:
+                    type: string
+                unlockReason:
+                    type: string
+                unlockMode:
+                    type: string
+                houseBillSnapshots:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderLockHouseBillSnapshotData'
+        order.v1.OrderLockResultData:
+            type: object
+            properties:
+                state:
+                    $ref: '#/components/schemas/order.v1.OrderLockStateData'
+                lockRecord:
+                    $ref: '#/components/schemas/order.v1.OrderLockRecordData'
+        order.v1.OrderLockStateData:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                isLocked:
+                    type: boolean
+                lockGeneration:
+                    type: string
+                lockedAt:
+                    type: string
+                lockedBy:
+                    type: string
+                lockedByName:
+                    type: string
+                orderVersion:
+                    type: string
+                canLock:
+                    type: boolean
+                canRoleDirectUnlock:
+                    type: boolean
+                canAdminEmergencyUnlock:
+                    type: boolean
+                canRequestUnlock:
+                    type: boolean
+                lockBlockedReasons:
+                    type: array
+                    items:
+                        type: string
+                unlockBlockedReasons:
+                    type: array
+                    items:
+                        type: string
+                activeUnlockRequest:
+                    $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
+                currentLockRecord:
+                    $ref: '#/components/schemas/order.v1.OrderLockRecordData'
         order.v1.OrderMilestone:
             type: object
             properties:
@@ -14146,6 +14455,85 @@ components:
                 note:
                     type: string
             description: OrderShippingDocumentInput 订单表单中的分单输入。
+        order.v1.OrderUnlockApproverCandidateData:
+            type: object
+            properties:
+                id:
+                    type: string
+                requestId:
+                    type: string
+                userId:
+                    type: string
+                membershipId:
+                    type: string
+                roleId:
+                    type: string
+                displayNameSnapshot:
+                    type: string
+                dingtalkUseridSnapshot:
+                    type: string
+        order.v1.OrderUnlockRequestData:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                lockRecordId:
+                    type: string
+                lockGeneration:
+                    type: string
+                requestedBy:
+                    type: string
+                requestedByName:
+                    type: string
+                requestedAt:
+                    type: string
+                reason:
+                    type: string
+                expectedOrderVersion:
+                    type: string
+                idempotencyKey:
+                    type: string
+                route:
+                    type: string
+                status:
+                    type: string
+                dingtalkProcessInstanceId:
+                    type: string
+                dingtalkProcessCode:
+                    type: string
+                decidedBy:
+                    type: string
+                decidedByName:
+                    type: string
+                decidedAt:
+                    type: string
+                decisionSource:
+                    type: string
+                failureCode:
+                    type: string
+                failureMessage:
+                    type: string
+                supersededByRequestId:
+                    type: string
+                unlockedAt:
+                    type: string
+                resultOrderVersion:
+                    type: string
+                approverCandidates:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderUnlockApproverCandidateData'
+        order.v1.OrderUnlockResultData:
+            type: object
+            properties:
+                state:
+                    $ref: '#/components/schemas/order.v1.OrderLockStateData'
+                request:
+                    $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
         order.v1.PreviewSeaOrderReassignmentRequest:
             required:
                 - orderId
@@ -14392,6 +14780,35 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/order.v1.OrderFee'
+                traceId:
+                    type: string
+        order.v1.RequestOrderUnlockRequest:
+            required:
+                - orderId
+                - expectedOrderVersion
+                - idempotencyKey
+            type: object
+            properties:
+                orderId:
+                    type: string
+                expectedOrderVersion:
+                    type: string
+                idempotencyKey:
+                    type: string
+                reason:
+                    type: string
+        order.v1.RequestOrderUnlockResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderUnlockResultData'
                 traceId:
                     type: string
         order.v1.ResolveAbnormalCaseRequest:
@@ -17736,6 +18153,8 @@ tags:
       description: |-
         OrderFeeService 订单费用录入服务。
          管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
+    - name: OrderLockService
+      description: OrderLockService 订单业务锁与不可变单证版本服务。
     - name: OrderMilestoneService
       description: OrderMilestoneService 订单里程碑服务。
     - name: OrderPersonnelService

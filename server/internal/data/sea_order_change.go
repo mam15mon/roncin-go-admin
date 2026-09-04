@@ -952,6 +952,9 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, sourceOrder); err != nil {
+			return err
+		}
 
 		if input.ExpectedVersions == nil || input.ExpectedVersions.OrderVersion == 0 || sourceOrder.Version != input.ExpectedVersions.OrderVersion {
 			return biz.ErrSeaOrderSplitVersionConflict
@@ -2976,6 +2979,9 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 		if input.ExpectedOrderVersion == 0 || order.Version != input.ExpectedOrderVersion {
 			return biz.ErrSeaOrderReassignmentVersionConflict

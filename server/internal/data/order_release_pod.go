@@ -73,6 +73,17 @@ func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID u
 	}
 	var created *ent.OrderReleasePod
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		builder := tx.OrderReleasePod.Create().
 			SetID(input.ID).
 			SetOrderID(orderID).
@@ -111,6 +122,17 @@ func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderI
 	}
 	var updated *ent.OrderReleasePod
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		item, queryErr := tx.OrderReleasePod.Query().
 			Where(
 				orderreleasepodent.IDEQ(id),
@@ -164,6 +186,17 @@ func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, or
 	}
 	var updated *ent.OrderReleasePod
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		item, queryErr := tx.OrderReleasePod.Query().
 			Where(
 				orderreleasepodent.IDEQ(id),
@@ -205,6 +238,17 @@ func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderI
 		return err
 	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().
+			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
+		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+
 		item, queryErr := tx.OrderReleasePod.Query().
 			Where(
 				orderreleasepodent.IDEQ(id),

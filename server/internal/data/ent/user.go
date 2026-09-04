@@ -42,6 +42,8 @@ type User struct {
 	DingtalkUserid *string `json:"dingtalk_userid,omitempty"`
 	// DingtalkName holds the value of the "dingtalk_name" field.
 	DingtalkName *string `json:"dingtalk_name,omitempty"`
+	// IsBootstrapAdmin holds the value of the "is_bootstrap_admin" field.
+	IsBootstrapAdmin bool `json:"is_bootstrap_admin,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// SearchKeywords holds the value of the "search_keywords" field.
@@ -126,9 +128,29 @@ type UserEdges struct {
 	UploadedAttachmentAssets []*OrderAttachmentAsset `json:"uploaded_attachment_assets,omitempty"`
 	// CreatedOrderAttachments holds the value of the created_order_attachments edge.
 	CreatedOrderAttachments []*OrderAttachment `json:"created_order_attachments,omitempty"`
+	// LockedOrders holds the value of the locked_orders edge.
+	LockedOrders []*Order `json:"locked_orders,omitempty"`
+	// OrderLockRecords holds the value of the order_lock_records edge.
+	OrderLockRecords []*OrderLockRecord `json:"order_lock_records,omitempty"`
+	// UnlockedOrderLockRecords holds the value of the unlocked_order_lock_records edge.
+	UnlockedOrderLockRecords []*OrderLockRecord `json:"unlocked_order_lock_records,omitempty"`
+	// OrderUnlockRequests holds the value of the order_unlock_requests edge.
+	OrderUnlockRequests []*OrderUnlockRequest `json:"order_unlock_requests,omitempty"`
+	// DecidedOrderUnlockRequests holds the value of the decided_order_unlock_requests edge.
+	DecidedOrderUnlockRequests []*OrderUnlockRequest `json:"decided_order_unlock_requests,omitempty"`
+	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
+	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
+	// CreatedSeaMasterBillVersions holds the value of the created_sea_master_bill_versions edge.
+	CreatedSeaMasterBillVersions []*SeaMasterBillVersion `json:"created_sea_master_bill_versions,omitempty"`
+	// CreatedSeaHouseBillVersions holds the value of the created_sea_house_bill_versions edge.
+	CreatedSeaHouseBillVersions []*SeaHouseBillVersion `json:"created_sea_house_bill_versions,omitempty"`
+	// CreatedSeaDocumentVoidEvents holds the value of the created_sea_document_void_events edge.
+	CreatedSeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"created_sea_document_void_events,omitempty"`
+	// CreatedSeaHouseBillSwitchEvents holds the value of the created_sea_house_bill_switch_events edge.
+	CreatedSeaHouseBillSwitchEvents []*SeaHouseBillSwitchEvent `json:"created_sea_house_bill_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [36]bool
+	loadedTypes [46]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -455,12 +477,102 @@ func (e UserEdges) CreatedOrderAttachmentsOrErr() ([]*OrderAttachment, error) {
 	return nil, &NotLoadedError{edge: "created_order_attachments"}
 }
 
+// LockedOrdersOrErr returns the LockedOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LockedOrdersOrErr() ([]*Order, error) {
+	if e.loadedTypes[36] {
+		return e.LockedOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "locked_orders"}
+}
+
+// OrderLockRecordsOrErr returns the OrderLockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[37] {
+		return e.OrderLockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "order_lock_records"}
+}
+
+// UnlockedOrderLockRecordsOrErr returns the UnlockedOrderLockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UnlockedOrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[38] {
+		return e.UnlockedOrderLockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "unlocked_order_lock_records"}
+}
+
+// OrderUnlockRequestsOrErr returns the OrderUnlockRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
+	if e.loadedTypes[39] {
+		return e.OrderUnlockRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "order_unlock_requests"}
+}
+
+// DecidedOrderUnlockRequestsOrErr returns the DecidedOrderUnlockRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) DecidedOrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
+	if e.loadedTypes[40] {
+		return e.DecidedOrderUnlockRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "decided_order_unlock_requests"}
+}
+
+// OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
+	if e.loadedTypes[41] {
+		return e.OrderUnlockApproverCandidates, nil
+	}
+	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
+}
+
+// CreatedSeaMasterBillVersionsOrErr returns the CreatedSeaMasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[42] {
+		return e.CreatedSeaMasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_master_bill_versions"}
+}
+
+// CreatedSeaHouseBillVersionsOrErr returns the CreatedSeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[43] {
+		return e.CreatedSeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_house_bill_versions"}
+}
+
+// CreatedSeaDocumentVoidEventsOrErr returns the CreatedSeaDocumentVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[44] {
+		return e.CreatedSeaDocumentVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_document_void_events"}
+}
+
+// CreatedSeaHouseBillSwitchEventsOrErr returns the CreatedSeaHouseBillSwitchEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedSeaHouseBillSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+	if e.loadedTypes[45] {
+		return e.CreatedSeaHouseBillSwitchEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "created_sea_house_bill_switch_events"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEnabled:
+		case user.FieldIsBootstrapAdmin, user.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
@@ -568,6 +680,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DingtalkName = new(string)
 				*_m.DingtalkName = value.String
+			}
+		case user.FieldIsBootstrapAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_bootstrap_admin", values[i])
+			} else if value.Valid {
+				_m.IsBootstrapAdmin = value.Bool
 			}
 		case user.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -774,6 +892,56 @@ func (_m *User) QueryCreatedOrderAttachments() *OrderAttachmentQuery {
 	return NewUserClient(_m.config).QueryCreatedOrderAttachments(_m)
 }
 
+// QueryLockedOrders queries the "locked_orders" edge of the User entity.
+func (_m *User) QueryLockedOrders() *OrderQuery {
+	return NewUserClient(_m.config).QueryLockedOrders(_m)
+}
+
+// QueryOrderLockRecords queries the "order_lock_records" edge of the User entity.
+func (_m *User) QueryOrderLockRecords() *OrderLockRecordQuery {
+	return NewUserClient(_m.config).QueryOrderLockRecords(_m)
+}
+
+// QueryUnlockedOrderLockRecords queries the "unlocked_order_lock_records" edge of the User entity.
+func (_m *User) QueryUnlockedOrderLockRecords() *OrderLockRecordQuery {
+	return NewUserClient(_m.config).QueryUnlockedOrderLockRecords(_m)
+}
+
+// QueryOrderUnlockRequests queries the "order_unlock_requests" edge of the User entity.
+func (_m *User) QueryOrderUnlockRequests() *OrderUnlockRequestQuery {
+	return NewUserClient(_m.config).QueryOrderUnlockRequests(_m)
+}
+
+// QueryDecidedOrderUnlockRequests queries the "decided_order_unlock_requests" edge of the User entity.
+func (_m *User) QueryDecidedOrderUnlockRequests() *OrderUnlockRequestQuery {
+	return NewUserClient(_m.config).QueryDecidedOrderUnlockRequests(_m)
+}
+
+// QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the User entity.
+func (_m *User) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCandidateQuery {
+	return NewUserClient(_m.config).QueryOrderUnlockApproverCandidates(_m)
+}
+
+// QueryCreatedSeaMasterBillVersions queries the "created_sea_master_bill_versions" edge of the User entity.
+func (_m *User) QueryCreatedSeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaMasterBillVersions(_m)
+}
+
+// QueryCreatedSeaHouseBillVersions queries the "created_sea_house_bill_versions" edge of the User entity.
+func (_m *User) QueryCreatedSeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaHouseBillVersions(_m)
+}
+
+// QueryCreatedSeaDocumentVoidEvents queries the "created_sea_document_void_events" edge of the User entity.
+func (_m *User) QueryCreatedSeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaDocumentVoidEvents(_m)
+}
+
+// QueryCreatedSeaHouseBillSwitchEvents queries the "created_sea_house_bill_switch_events" edge of the User entity.
+func (_m *User) QueryCreatedSeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
+	return NewUserClient(_m.config).QueryCreatedSeaHouseBillSwitchEvents(_m)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -845,6 +1013,9 @@ func (_m *User) String() string {
 		builder.WriteString("dingtalk_name=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("is_bootstrap_admin=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsBootstrapAdmin))
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
