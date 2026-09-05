@@ -590,3 +590,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 23: 统一订单页面面包屑导航与页签复用收紧
+<!-- trellis-session: v=2 fp=b6603cd8ea57cd6a -->
+
+**Date**: 2026-09-05
+**Task**: 统一订单页面面包屑导航与页签复用收紧
+**Branch**: `main`
+
+### Summary
+
+统一海运、空运订单新建、详情、费用录入与拆票页面的面包屑层级规范与 OrderPageHeader；修复纯重定向路由重复建签、动态订单标题防串号及逆序响应拦截、收紧页签归组正则白名单并补齐右键菜单与键盘无障碍测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9f2d6bd7` | fix(web): 统一订单页面面包屑导航并收紧页签复用 |
+
+### Status
+
+[OK] **Completed**
