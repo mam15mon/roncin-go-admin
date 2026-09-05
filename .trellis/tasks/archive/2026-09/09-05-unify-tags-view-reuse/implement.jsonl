@@ -1,0 +1,4 @@
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"全站公共布局组件和页面模板边界"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端测试、类型检查与 pnpm 质量规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"TypeScript 类型安全与生成物禁改边界"}
+{"file":".trellis/tasks/09-05-unify-tags-view-reuse/research/current-routing-audit.md","reason":"当前 TagsView 根因、路由归组矩阵与动态标题风险"}

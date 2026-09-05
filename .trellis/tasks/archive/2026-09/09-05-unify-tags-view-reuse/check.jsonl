@@ -1,0 +1,5 @@
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"核对全局布局组件改动符合公共组件约束"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"核对测试、类型检查和静态检查完整性"}
+{"file":".trellis/tasks/09-05-unify-tags-view-reuse/prd.md","reason":"逐项核对全站页签复用验收标准"}
+{"file":".trellis/tasks/09-05-unify-tags-view-reuse/design.md","reason":"核对稳定 key、最新地址、动态标题与关闭操作的数据流"}
+{"file":".trellis/tasks/09-05-unify-tags-view-reuse/research/current-routing-audit.md","reason":"核对当前路由覆盖与未知路径边界"}
