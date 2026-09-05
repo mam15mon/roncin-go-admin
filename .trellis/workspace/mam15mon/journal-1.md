@@ -488,3 +488,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 19: 修复海运出口四项P1问题
+<!-- trellis-session: v=2 fp=65b2e30230711c03 -->
+
+**Date**: 2026-09-05
+**Task**: 修复海运出口四项P1问题
+**Branch**: `feat/universal-order-lock`
+
+### Summary
+
+支持放货记录关联真实海运MBL/HBL及HBL关联记录原子删除，修正SE单证入口与箱货删除版本，并稳定并发拆票409语义；真实PostgreSQL、Go/Web全量检查、构建和生成幂等均通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9706cf2b` | feat: 支持放货记录关联真实海运单证 |
+| `8b1e49df` | fix: 修正海运单证入口和箱货删除版本 |
+| `0c64540d` | fix: 统一并发拆票版本冲突语义 |
+
+### Status
+
+[OK] **Completed**
