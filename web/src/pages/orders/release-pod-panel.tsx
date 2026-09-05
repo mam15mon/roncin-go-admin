@@ -19,14 +19,20 @@ import {
   Space,
   Typography,
 } from 'antd';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   makeValueEnum,
   orderReleasePodStatusMeta,
   statusTag,
   statusText,
 } from '@/constants/statusMeta';
-import { ProFormSearchableSelect } from '@/components/ui';
 import {
   orderReleasePodServiceAddReleasePod,
   orderReleasePodServiceListReleasePods,
@@ -34,9 +40,9 @@ import {
   orderReleasePodServiceTransitionReleasePodStatus,
   orderReleasePodServiceUpdateReleasePod,
 } from '@/services/roncin/orderReleasePodService';
+import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { toTableRequest, unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
-import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 
 const { Text } = Typography;
 
@@ -78,6 +84,16 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     const [documentsError, setDocumentsError] = useState('');
     const [editingRecord, setEditingRecord] = useState<API.OrderReleasePod>();
     const activeOrderIdRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+      if (!canManage) setModalOpen(false);
+    }, [canManage]);
+
+    const ensureCanManage = () => {
+      if (canManage) return true;
+      message.warning('订单当前不可编辑，请刷新锁定状态后重试');
+      return false;
+    };
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
@@ -231,7 +247,13 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                 <Popconfirm
                   title={`确定将放货凭证状态从「${transition.currentText}」流转为「${transition.nextText}」？`}
                   onConfirm={async () => {
-                    if (!order?.id || !record.id || !record.status) return;
+                    if (
+                      !ensureCanManage() ||
+                      !order?.id ||
+                      !record.id ||
+                      !record.status
+                    )
+                      return;
                     await orderReleasePodServiceTransitionReleasePodStatus(
                       { orderId: order.id, id: record.id },
                       {
@@ -253,7 +275,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
               <Popconfirm
                 title="确定移除该放货凭证？"
                 onConfirm={async () => {
-                  if (!order?.id || !record.id) return;
+                  if (!ensureCanManage() || !order?.id || !record.id) return;
                   await orderReleasePodServiceRemoveReleasePod({
                     orderId: order.id,
                     id: record.id,
@@ -348,7 +370,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           }}
           onOpenChange={setModalOpen}
           onFinish={async (values) => {
-            if (!order?.id) return false;
+            if (!ensureCanManage() || !order?.id) return false;
             const input = {
               orderId: order.id,
               releaseNo: values.releaseNo?.trim() || undefined,

@@ -1,7 +1,7 @@
-import { SectionCard } from '@/components/ui';
 import { history } from '@umijs/max';
 import {
   Alert,
+  Button,
   Card,
   Col,
   Descriptions,
@@ -11,7 +11,9 @@ import {
   Tag,
 } from 'antd';
 import React from 'react';
+import { SectionCard } from '@/components/ui';
 import { formatDate } from '@/utils/format';
+import type { OrderBusinessWritePolicy } from '../../use-order-lock-state';
 
 type OrderFeeHeaderProps = {
   order: API.Order;
@@ -22,6 +24,8 @@ type OrderFeeHeaderProps = {
   financeLocked: boolean;
   financeLockReason?: string;
   financeLockCommissionNos: string[];
+  lockWritePolicy: OrderBusinessWritePolicy;
+  onRetryLockState: () => Promise<API.OrderLockStateData | null>;
   receivableSummary: { totalAmount: number; count: number };
   payableSummary: { totalAmount: number; count: number };
   profitCny: number;
@@ -37,6 +41,8 @@ export default function OrderFeeHeader({
   financeLocked,
   financeLockReason,
   financeLockCommissionNos,
+  lockWritePolicy,
+  onRetryLockState,
   receivableSummary,
   payableSummary,
   profitCny,
@@ -44,6 +50,22 @@ export default function OrderFeeHeader({
 }: OrderFeeHeaderProps) {
   return (
     <>
+      {lockWritePolicy.disabled && (
+        <Alert
+          type={
+            lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
+          }
+          showIcon
+          title="订单业务费用当前为只读"
+          description={lockWritePolicy.reason}
+          action={
+            <Button size="small" onClick={() => void onRetryLockState()}>
+              重试锁状态
+            </Button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      )}
       {financeLocked && (
         <Alert
           type="warning"

@@ -31,6 +31,7 @@ import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaOrderSplit,
@@ -39,6 +40,10 @@ import {
 } from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
+import {
+  getOrderBusinessWritePolicy,
+  useOrderLockState,
+} from './use-order-lock-state';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -140,7 +145,30 @@ export default function SeaOrderSplitPage() {
   const orderId = params.id || '';
   const { message } = App.useApp();
   const access = useAccess();
-  const canReassign = access.canOrder(1, 'reassign');
+  const canReassign = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'reassign',
+  );
+  const {
+    state: lockState,
+    loading: lockStateLoading,
+    error: lockStateError,
+    refresh: refreshLockState,
+  } = useOrderLockState(orderId);
+  const lockWritePolicy = getOrderBusinessWritePolicy({
+    state: lockState,
+    loading: lockStateLoading,
+    error: lockStateError,
+  });
+  const lockWritePolicyRef = useRef(lockWritePolicy);
+  lockWritePolicyRef.current = lockWritePolicy;
+
+  const ensureSplitEditable = () => {
+    const currentPolicy = lockWritePolicyRef.current;
+    if (!currentPolicy.disabled) return true;
+    message.warning(currentPolicy.reason || '订单当前不可拆票');
+    return false;
+  };
 
   const [loadingContext, setLoadingContext] = useState(false);
   const [splitContext, setSplitContext] =
@@ -390,7 +418,13 @@ export default function SeaOrderSplitPage() {
     currentFees = feeAssignments,
     currentAtts = attAssignments,
   ) => {
-    if (!orderId || !splitContext || currentResults.length < 2) return;
+    if (
+      lockWritePolicyRef.current.disabled ||
+      !orderId ||
+      !splitContext ||
+      currentResults.length < 2
+    )
+      return;
     setPreviewing(true);
     setPreviewError(null);
     try {
@@ -446,10 +480,24 @@ export default function SeaOrderSplitPage() {
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [results, hblAssignments, feeAssignments, attAssignments, note]);
+  }, [
+    results,
+    hblAssignments,
+    feeAssignments,
+    attAssignments,
+    note,
+    lockWritePolicy.disabled,
+  ]);
+
+  useEffect(() => {
+    if (lockWritePolicy.disabled) {
+      setPreviewData(null);
+    }
+  }, [lockWritePolicy.disabled]);
 
   // 添加新票
   const handleAddResult = () => {
+    if (!ensureSplitEditable()) return;
     const nextIdx = results.filter((r) => r.role === 'CREATED').length + 1;
     const newKey = `res-new-${Date.now()}`;
     const newRes: ResultConfig = {
@@ -468,6 +516,7 @@ export default function SeaOrderSplitPage() {
 
   // 移除新票
   const handleRemoveResult = (key: string) => {
+    if (!ensureSplitEditable()) return;
     if (results.filter((r) => r.role === 'CREATED').length <= 1) {
       message.warning('拆票必须至少保留一个拆出新票');
       return;
@@ -488,6 +537,7 @@ export default function SeaOrderSplitPage() {
 
   // 执行拆票提交
   const handleExecuteSplit = async () => {
+    if (!ensureSplitEditable()) return;
     if (!previewData?.isValid || !previewData?.conservationPassed) {
       message.error(
         previewError || '拆票数据未满足守恒校验或存在门禁错误，请检查！',
@@ -747,13 +797,43 @@ export default function SeaOrderSplitPage() {
           { label: '拆票工作台' },
         ]}
         extra={
-          <Button icon={<ReloadOutlined />} onClick={loadContext}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => {
+              void loadContext();
+              void refreshLockState();
+            }}
+          >
             刷新数据
           </Button>
         }
       />
 
       <div style={{ padding: '0 24px 80px' }}>
+        {lockWritePolicy.disabled && (
+          <Alert
+            type={
+              lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
+            }
+            showIcon
+            message="拆票操作当前不可用"
+            description={lockWritePolicy.reason}
+            action={
+              <Button size="small" onClick={() => void refreshLockState()}>
+                重试锁状态
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <div
+          aria-disabled={lockWritePolicy.disabled}
+          style={
+            lockWritePolicy.disabled
+              ? { pointerEvents: 'none', opacity: 0.72 }
+              : undefined
+          }
+        >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {previewError && (
             <Alert
@@ -1552,6 +1632,7 @@ export default function SeaOrderSplitPage() {
             )}
           </SectionCard>
         </Space>
+        </div>
       </div>
 
       {/* 底部吸底操作栏 StickyFooterBar */}
@@ -1580,12 +1661,20 @@ export default function SeaOrderSplitPage() {
           okText="确认执行"
           cancelText="取消"
           onConfirm={handleExecuteSplit}
-          disabled={!previewData?.isValid || !previewData?.conservationPassed}
+          disabled={
+            lockWritePolicy.disabled ||
+            !previewData?.isValid ||
+            !previewData?.conservationPassed
+          }
         >
           <Button
             type="primary"
             loading={submitting}
-            disabled={!previewData?.isValid || !previewData?.conservationPassed}
+            disabled={
+              lockWritePolicy.disabled ||
+              !previewData?.isValid ||
+              !previewData?.conservationPassed
+            }
           >
             确认执行拆票
           </Button>

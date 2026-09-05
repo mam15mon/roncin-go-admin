@@ -1,17 +1,17 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm } from 'antd';
+import { feeBaseColumns } from './feeBaseColumns';
 import {
   FEE_BILLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
   feeStatusCode,
 } from './feeConstants';
-import { feeBaseColumns } from './feeBaseColumns';
 
 type OrderFeeColumnProps = {
   direction: number;
-  financeLocked: boolean;
+  feeWritesDisabled: boolean;
   onOpenModal: (direction: number, record?: API.OrderFee) => void;
   onConfirmFee: (record: API.OrderFee) => void;
   onReopenFee: (record: API.OrderFee) => void;
@@ -20,7 +20,7 @@ type OrderFeeColumnProps = {
 
 export function getOrderFeeTableColumns({
   direction,
-  financeLocked,
+  feeWritesDisabled,
   onOpenModal,
   onConfirmFee,
   onReopenFee,
@@ -34,7 +34,7 @@ export function getOrderFeeTableColumns({
       width: 110,
       fixed: 'right',
       render: (_, record) =>
-        financeLocked
+        feeWritesDisabled
           ? []
           : [
               (feeStatusCode(record.status) === FEE_DRAFT ||

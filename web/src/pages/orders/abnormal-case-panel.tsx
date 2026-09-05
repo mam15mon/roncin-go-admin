@@ -5,9 +5,15 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ModalForm, ProTable } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { App, Button, Drawer, Popconfirm, Space, Typography } from 'antd';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   makeValueEnum,
   orderAbnormalCaseStatusMeta,
@@ -55,6 +61,16 @@ const AbnormalCasePanel = forwardRef<
   const [modalOpen, setModalOpen] = useState(false);
   const [order, setOrder] = useState<API.Order>();
 
+  useEffect(() => {
+    if (!canManage) setModalOpen(false);
+  }, [canManage]);
+
+  const ensureCanManage = () => {
+    if (canManage) return true;
+    message.warning('订单当前不可编辑，请刷新锁定状态后重试');
+    return false;
+  };
+
   useImperativeHandle(ref, () => ({
     open: (record) => {
       setOrder(record);
@@ -63,9 +79,7 @@ const AbnormalCasePanel = forwardRef<
   }));
 
   const options = masterOptions
-    .filter(
-      (item) => isAbnormalCase(item.kind) && item.enabled !== false,
-    )
+    .filter((item) => isAbnormalCase(item.kind) && item.enabled !== false)
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
       value: item.id ?? '',
@@ -85,7 +99,9 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'abnormalCaseId',
       ellipsis: true,
       render: (_, record) => {
-        const label = (record.abnormalCaseId && nameMap[record.abnormalCaseId]) || record.abnormalCaseId;
+        const label =
+          (record.abnormalCaseId && nameMap[record.abnormalCaseId]) ||
+          record.abnormalCaseId;
         return (
           <Space size={6}>
             <WarningOutlined style={{ color: '#ff4d4f' }} />
@@ -127,24 +143,25 @@ const AbnormalCasePanel = forwardRef<
       valueType: 'dateTime',
       width: 170,
       render: (_, record) =>
-        record.resolvedAt
-          ? formatDate(record.resolvedAt)
-          : <Text type="secondary">待解决</Text>,
+        record.resolvedAt ? (
+          formatDate(record.resolvedAt)
+        ) : (
+          <Text type="secondary">待解决</Text>
+        ),
     },
     {
       title: '解决人',
       dataIndex: 'resolvedBy',
       copyable: true,
       ellipsis: true,
-      render: (_, record) => (
+      render: (_, record) =>
         record.resolvedBy ? (
           <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
             {record.resolvedBy}
           </Text>
         ) : (
           <Text type="secondary">-</Text>
-        )
-      ),
+        ),
     },
     {
       title: '操作',
@@ -161,7 +178,7 @@ const AbnormalCasePanel = forwardRef<
               <Popconfirm
                 title="确定解决该异常？"
                 onConfirm={async () => {
-                  if (!order?.id || !record.id) return;
+                  if (!ensureCanManage() || !order?.id || !record.id) return;
                   await orderAbnormalCaseServiceResolveAbnormalCase(
                     { orderId: order.id, id: record.id },
                     { orderId: order.id, id: record.id },
@@ -178,7 +195,7 @@ const AbnormalCasePanel = forwardRef<
             <Popconfirm
               title="确定移除该异常？"
               onConfirm={async () => {
-                if (!order?.id || !record.id) return;
+                if (!ensureCanManage() || !order?.id || !record.id) return;
                 await orderAbnormalCaseServiceRemoveAbnormalCase({
                   orderId: order.id,
                   id: record.id,
@@ -200,7 +217,9 @@ const AbnormalCasePanel = forwardRef<
   return (
     <>
       <Drawer
-        title={order ? `订单异常协同 - ${order.orderNo || order.id}` : '订单异常协同'}
+        title={
+          order ? `订单异常协同 - ${order.orderNo || order.id}` : '订单异常协同'
+        }
         open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
@@ -259,7 +278,7 @@ const AbnormalCasePanel = forwardRef<
         }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          if (!order?.id) return false;
+          if (!ensureCanManage() || !order?.id) return false;
           await orderAbnormalCaseServiceMarkAbnormalCase(
             { orderId: order.id },
             { orderId: order.id, abnormalCaseId: values.abnormalCaseId },

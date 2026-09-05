@@ -29,13 +29,13 @@ import {
   OrderTerminationStatus,
   TradeDirection,
 } from '@/enums.generated';
-import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
+import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
+import { searchPartnerOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
 import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
-import { searchPartnerOptions } from '@/utils/options';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
@@ -44,6 +44,10 @@ import {
   buildUpdatePayload,
   type OrderDetailFormValues,
 } from './components/detail/orderDetailHelpers';
+import SeaOrderChangeHistoryDrawer, {
+  SeaOrderChangeHistorySection,
+} from './components/drawers/SeaOrderChangeHistoryDrawer';
+import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
 import {
   confirmOrderClosure,
   confirmOrderTermination,
@@ -52,11 +56,10 @@ import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
-import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
-import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
-import SeaOrderChangeHistoryDrawer, {
-  SeaOrderChangeHistorySection,
-} from './components/drawers/SeaOrderChangeHistoryDrawer';
+import {
+  getOrderBusinessWritePolicy,
+  useOrderLockState,
+} from './use-order-lock-state';
 
 const { Text } = Typography;
 
@@ -118,40 +121,17 @@ export default function OrderDetailPage() {
     }
   };
 
-  const [lockState, setLockState] = useState<API.OrderLockStateData | null>(
-    null,
-  );
-
-  const loadLockState = async () => {
-    if (
-      !orderId ||
-      (config.businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
-        config.category !== 'sea')
-    )
-      return;
-    try {
-      const resp = await orderLockServiceGetOrderLockState({ orderId });
-      if (resp?.data) {
-        setLockState(resp.data);
-      }
-    } catch (error: unknown) {
-      setLockState(null);
-      message.error(
-        error instanceof Error ? error.message : '加载订单锁定状态失败',
-      );
-    }
-  };
+  const {
+    state: lockState,
+    loading: lockStateLoading,
+    error: lockStateError,
+    refresh: refreshLockState,
+  } = useOrderLockState(orderId);
+  const [synchronizingLockChange, setSynchronizingLockChange] = useState(false);
 
   useEffect(() => {
     if (orderId && config.category === 'sea') {
       loadChangeActions();
-    }
-    if (
-      orderId &&
-      (config.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
-        config.category === 'sea')
-    ) {
-      loadLockState();
     }
   }, [orderId, order?.version]);
 
@@ -180,10 +160,39 @@ export default function OrderDetailPage() {
     }
   }, [initialValues]);
 
-  // 海运出口订单在锁状态尚未成功加载时保持失败关闭，避免请求异常时误开放写入口。
-  const businessWritesDisabled =
-    config.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
-    (!lockState || lockState.isLocked === true);
+  const lockWritePolicy = getOrderBusinessWritePolicy({
+    state: lockState,
+    loading: lockStateLoading || synchronizingLockChange,
+    error: lockStateError,
+  });
+  const businessWritesDisabled = lockWritePolicy.disabled;
+  const businessWritePolicyRef = useRef(lockWritePolicy);
+  businessWritePolicyRef.current = lockWritePolicy;
+
+  const ensureBusinessWriteAllowed = () => {
+    const currentPolicy = businessWritePolicyRef.current;
+    if (!currentPolicy.disabled) return true;
+    message.warning(currentPolicy.reason || '订单当前不可编辑');
+    return false;
+  };
+
+  const synchronizeLockChange = async () => {
+    setSynchronizingLockChange(true);
+    try {
+      await Promise.all([loadData(), refreshLockState()]);
+      if (config.category === 'sea') {
+        await loadChangeActions();
+      }
+    } finally {
+      setSynchronizingLockChange(false);
+    }
+  };
+
+  useEffect(() => {
+    if (businessWritesDisabled) {
+      setReassignModalOpen(false);
+    }
+  }, [businessWritesDisabled]);
 
   // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
   const templateProps = useMemo(
@@ -264,7 +273,7 @@ export default function OrderDetailPage() {
 
   // 6. 保存修改提交处理
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
-    if (!orderId) return false;
+    if (!orderId || !ensureBusinessWriteAllowed()) return false;
     setSaving(true);
     try {
       const payload = buildUpdatePayload(
@@ -274,7 +283,7 @@ export default function OrderDetailPage() {
       );
       await orderServiceUpdateOrder({ id: orderId }, payload);
       message.success('保存订单成功');
-      await loadData();
+      await Promise.all([loadData(), refreshLockState()]);
       return true;
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : '保存订单失败');
@@ -330,20 +339,38 @@ export default function OrderDetailPage() {
   const hasAction = (action: number) =>
     order.allowedActions?.includes(action) === true;
 
-  const confirmTermination = (targetStatus: number) =>
-    confirmOrderTermination({ modal, message }, order, targetStatus, loadData);
+  const confirmTermination = (targetStatus: number) => {
+    if (!ensureBusinessWriteAllowed()) return;
+    confirmOrderTermination(
+      { modal, message },
+      order,
+      targetStatus,
+      async () => {
+        await Promise.all([loadData(), refreshLockState()]);
+      },
+      ensureBusinessWriteAllowed,
+    );
+  };
 
-  const confirmClosure = (targetStatus: number) =>
-    confirmOrderClosure({ modal, message }, order, targetStatus, loadData);
+  const confirmClosure = (targetStatus: number) => {
+    if (!ensureBusinessWriteAllowed()) return;
+    confirmOrderClosure(
+      { modal, message },
+      order,
+      targetStatus,
+      async () => {
+        await Promise.all([loadData(), refreshLockState()]);
+      },
+      ensureBusinessWriteAllowed,
+    );
+  };
 
   const moreMenuItems: MenuProps['items'] = [
     {
       key: 'fees-drawer',
       icon: <DollarOutlined />,
       label: '快速费用抽屉',
-      disabled:
-        businessWritesDisabled ||
-        !access.canOrder(config.businessType, 'fee.read'),
+      disabled: !access.canOrder(config.businessType, 'fee.read'),
       onClick: () => orderFeePanelRef.current?.open(order),
     },
     {
@@ -369,7 +396,7 @@ export default function OrderDetailPage() {
       label: '刷新数据',
       onClick: () => {
         void loadData();
-        void loadLockState();
+        void refreshLockState();
       },
     },
   ];
@@ -390,21 +417,17 @@ export default function OrderDetailPage() {
             kind={kind}
             orderId={orderId || ''}
             configTitle={config.title}
-            businessType={String(config.businessType)}
             order={order}
             saving={saving}
-            canManageFee={
-              !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'fee.read')
-            }
-            canCreatePod={
-              !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'release_pod.create')
-            }
-            canCreateAbnormal={
-              !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'abnormal_case.create')
-            }
+            canManageFee={access.canOrder(config.businessType, 'fee.read')}
+            canCreatePod={access.canOrder(
+              config.businessType,
+              'release_pod.create',
+            )}
+            canCreateAbnormal={access.canOrder(
+              config.businessType,
+              'abnormal_case.create',
+            )}
             canSplit={
               config.category === 'sea' &&
               access.canOrder(config.businessType, 'split')
@@ -422,17 +445,33 @@ export default function OrderDetailPage() {
             onSave={() => formRef.current?.submit()}
             onConfirmTermination={confirmTermination}
             onConfirmClosure={confirmClosure}
-            onOpenReleasePod={() => releasePodPanelRef.current?.open(order)}
-            onOpenAbnormalCase={() => abnormalCasePanelRef.current?.open(order)}
-            onOpenSplit={() =>
-              history.push(`/orders/sea-export/${orderId}/split`)
-            }
-            onOpenReassign={() => setReassignModalOpen(true)}
-            lockState={lockState}
-            onRefreshLockState={() => {
-              void loadData();
-              void loadLockState();
+            onOpenReleasePod={() => {
+              if (ensureBusinessWriteAllowed()) {
+                releasePodPanelRef.current?.open(order);
+              }
             }}
+            onOpenAbnormalCase={() => {
+              if (ensureBusinessWriteAllowed()) {
+                abnormalCasePanelRef.current?.open(order);
+              }
+            }}
+            onOpenSplit={() => {
+              if (ensureBusinessWriteAllowed()) {
+                history.push(`/orders/sea-export/${orderId}/split`);
+              }
+            }}
+            onOpenReassign={() => {
+              if (ensureBusinessWriteAllowed()) {
+                setReassignModalOpen(true);
+              }
+            }}
+            lockState={lockState}
+            lockStateLoading={lockStateLoading || synchronizingLockChange}
+            lockStateError={lockStateError}
+            businessWritesDisabled={businessWritesDisabled}
+            businessWriteBlockedReason={lockWritePolicy.reason}
+            onRetryLockState={refreshLockState}
+            onSynchronizeLockChange={synchronizeLockChange}
           />
         }
         prependSections={prependSections}
@@ -495,9 +534,11 @@ export default function OrderDetailPage() {
             orderId={orderId}
             orderNo={order?.orderNo}
             open={reassignModalOpen}
+            disabled={businessWritesDisabled}
+            disabledReason={lockWritePolicy.reason}
             onClose={() => setReassignModalOpen(false)}
             onSuccess={async () => {
-              await loadData();
+              await Promise.all([loadData(), refreshLockState()]);
               await loadChangeActions();
             }}
             searchCarriers={templateProps.searchCarriers}

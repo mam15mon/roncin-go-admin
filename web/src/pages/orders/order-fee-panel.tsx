@@ -6,6 +6,7 @@ import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -38,6 +39,10 @@ import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import { useOrderFeePanelExchangeRate } from './use-order-fee-panel-rate';
+import {
+  getOrderBusinessWritePolicy,
+  useOrderLockState,
+} from './use-order-lock-state';
 
 type FeeRequestError = Error & {
   data?: { message?: string; reason?: string };
@@ -88,6 +93,44 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
       useState(false);
     const [taxableServices] = useState<API.TaxableService[]>([]);
+    const {
+      state: lockState,
+      loading: lockStateLoading,
+      error: lockStateError,
+      refresh: refreshLockState,
+    } = useOrderLockState(order?.id);
+    const lockWritePolicy = getOrderBusinessWritePolicy({
+      state: lockState,
+      loading: lockStateLoading,
+      error: lockStateError,
+    });
+    const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
+    const feeWritePolicyRef = useRef({ financeLocked, lockWritePolicy });
+    feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
+
+    const ensureFeeWriteAllowed = () => {
+      const currentPolicy = feeWritePolicyRef.current;
+      if (currentPolicy.lockWritePolicy.disabled) {
+        message.warning(
+          currentPolicy.lockWritePolicy.reason || '订单业务费用当前不可编辑',
+        );
+        return false;
+      }
+      if (currentPolicy.financeLocked) {
+        message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
+        return false;
+      }
+      return true;
+    };
+
+    useEffect(() => {
+      if (feeWritesDisabled) {
+        setModalOpen(false);
+        setTagModalOpen(false);
+        setQuickAddFeeModalOpen(false);
+        setQuickAddPartnerModalOpen(false);
+      }
+    }, [feeWritesDisabled]);
 
     const {
       totalPreview,
@@ -105,6 +148,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     };
 
     const openCreate = () => {
+      if (!ensureFeeWriteAllowed()) return;
       createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
       setEditingFee(undefined);
       setSelectedFeeSetting(undefined);
@@ -113,6 +157,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     };
 
     const openEdit = (fee: API.OrderFee) => {
+      if (!ensureFeeWriteAllowed()) return;
       setEditingFee(fee);
       const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
       setSelectedFeeSetting(setting);
@@ -173,25 +218,29 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const businessType = order?.businessType;
     const canCreate =
       feeOptionsReady &&
-      !financeLocked &&
+      !feeWritesDisabled &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.create');
     const canUpdate =
       feeOptionsReady &&
-      !financeLocked &&
+      !feeWritesDisabled &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.update');
     const canManageTags =
-      businessType !== undefined && access.canOrder(businessType, 'fee.update');
+      feeOptionsReady &&
+      !feeWritesDisabled &&
+      businessType !== undefined &&
+      access.canOrder(businessType, 'fee.update');
     const canDelete =
       feeOptionsReady &&
-      !financeLocked &&
+      !feeWritesDisabled &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.delete');
 
     const handleConfirmFee = async (record: API.OrderFee) => {
       const orderId = order?.id;
-      if (!orderId || !record.id || !record.version) return;
+      if (!ensureFeeWriteAllowed() || !orderId || !record.id || !record.version)
+        return;
       await orderFeeServiceConfirmFee(
         { orderId, id: record.id },
         {
@@ -213,6 +262,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         { modal, message },
         '撤回费用确认？',
         async (reason) => {
+          if (!ensureFeeWriteAllowed()) return;
           await orderFeeServiceReopenFee(
             { orderId, id: feeId },
             {
@@ -237,6 +287,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         { modal, message },
         '确认作废该费用？',
         async (reason) => {
+          if (!ensureFeeWriteAllowed()) return;
           await orderFeeServiceRemoveFee({
             orderId,
             id: feeId,
@@ -259,7 +310,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     });
 
     const handleModalSubmit = async (values: FeeFormValues) => {
-      if (!order?.id) return false;
+      if (!order?.id || !ensureFeeWriteAllowed()) return false;
       const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
       const exchangeRateOverride = manualExchangeRate
         ? values.exchangeRateOverride?.trim() || undefined
@@ -336,6 +387,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setSelectedFeeIds([]);
             setSelectedFees([]);
             setTagModalOpen(false);
+            setModalOpen(false);
+            setQuickAddFeeModalOpen(false);
+            setQuickAddPartnerModalOpen(false);
             setCurrencies([]);
             setSettlementParties([]);
             setFeeSettings([]);
@@ -357,6 +411,22 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               showIcon
               title="费用基础选项加载失败"
               description={feeOptionsError}
+              style={{ marginBottom: 16 }}
+            />
+          )}
+          {order?.id && lockWritePolicy.disabled && (
+            <Alert
+              type={
+                lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
+              }
+              showIcon
+              title="订单业务费用当前为只读"
+              description={lockWritePolicy.reason}
+              action={
+                <Button size="small" onClick={() => void refreshLockState()}>
+                  重试锁状态
+                </Button>
+              }
               style={{ marginBottom: 16 }}
             />
           )}
@@ -414,7 +484,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                   <Button
                     key="tags"
                     icon={<TagOutlined />}
-                    onClick={() => setTagModalOpen(true)}
+                    onClick={() => {
+                      if (ensureFeeWriteAllowed()) setTagModalOpen(true);
+                    }}
                   >
                     标签管理
                   </Button>
@@ -436,7 +508,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           existingTags={selectedFees.flatMap((fee) => fee.tags ?? [])}
           canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
           onSubmit={async (mode, tagIds) => {
-            if (!order?.id || selectedFeeIds.length === 0) return;
+            if (
+              !ensureFeeWriteAllowed() ||
+              !order?.id ||
+              selectedFeeIds.length === 0
+            )
+              return;
             const feeIds = selectedFeeIds.map(String);
             if (mode === 'assign') {
               await orderFeeServiceBatchAssignOrderFeeTags(
@@ -473,8 +550,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           exchangeRatePreview={exchangeRatePreview}
           manualExchangeRate={manualExchangeRate}
           setManualExchangeRate={setManualExchangeRate}
-          onOpenQuickAddFee={() => setQuickAddFeeModalOpen(true)}
-          onOpenQuickAddPartner={() => setQuickAddPartnerModalOpen(true)}
+          onOpenQuickAddFee={() => {
+            if (ensureFeeWriteAllowed()) setQuickAddFeeModalOpen(true);
+          }}
+          onOpenQuickAddPartner={() => {
+            if (ensureFeeWriteAllowed()) setQuickAddPartnerModalOpen(true);
+          }}
           onValuesChange={handleValuesChange}
           onFeeSettingSelect={(setting) => {
             setSelectedFeeSetting(setting);

@@ -14,6 +14,7 @@ export function confirmOrderTermination(
   order: API.Order,
   targetStatus: number,
   onCompleted: () => Promise<void> | void,
+  canSubmit: () => boolean = () => true,
 ) {
   const orderID = order.id;
   const expectedVersion = order.version;
@@ -59,6 +60,7 @@ export function confirmOrderTermination(
       </Space>
     ),
     async onOk() {
+      if (!canSubmit()) return Promise.reject();
       if (!reason.trim()) {
         app.message.error('请输入原因');
         return Promise.reject();
@@ -87,6 +89,7 @@ export function confirmOrderClosure(
   order: API.Order,
   targetStatus: number,
   onCompleted: () => Promise<void> | void,
+  canSubmit: () => boolean = () => true,
 ) {
   const orderID = order.id;
   const expectedVersion = order.version;
@@ -114,6 +117,7 @@ export function confirmOrderClosure(
       </Space>
     ),
     async onOk() {
+      if (!canSubmit()) return Promise.reject();
       if (targetStatus === 1 && !reason.trim()) {
         app.message.error('请输入反结案原因');
         return Promise.reject();
@@ -128,9 +132,7 @@ export function confirmOrderClosure(
         },
       );
       if (response.data) {
-        app.message.success(
-          targetStatus === 1 ? '反结案成功' : '完结订单成功',
-        );
+        app.message.success(targetStatus === 1 ? '反结案成功' : '完结订单成功');
         await onCompleted();
       }
     },

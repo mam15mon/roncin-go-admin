@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   Form,
@@ -43,6 +43,8 @@ interface SeaOrderReassignmentModalProps {
   orderId: string;
   orderNo?: string;
   open: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
   onClose: () => void;
   onSuccess: () => void;
   searchCarriers?: (keyword?: string) => Promise<DefaultOptionType[]>;
@@ -54,6 +56,8 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
   orderId,
   orderNo,
   open,
+  disabled = false,
+  disabledReason,
   onClose,
   onSuccess,
   searchCarriers,
@@ -71,6 +75,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
   const [linkVersion, setLinkVersion] = useState<string>('0');
   const [targetType, setTargetType] = useState<'candidate' | 'new'>('new');
   const [candidateMatched, setCandidateMatched] = useState<API.SeaMasterBillCandidate | null>(null);
+  const disabledRef = useRef({ disabled, reason: disabledReason });
+  disabledRef.current = { disabled, reason: disabledReason };
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   // 选项缓存
   const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
@@ -80,6 +88,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
   const [transitPortOptions, setTransitPortOptions] = useState<DefaultOptionType[]>([]);
 
   useEffect(() => {
+    if (open && disabled) {
+      onCloseRef.current();
+      return;
+    }
     if (open && orderId) {
       form.resetFields();
       setCandidateMatched(null);
@@ -89,11 +101,11 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
       triggerPreview();
     }
-  }, [open, orderId]);
+  }, [disabled, open, orderId]);
 
   // 实时触发比对预览
   const triggerPreview = async (customTarget?: API.SeaOrderReassignmentTargetInput) => {
-    if (!orderId) return;
+    if (!orderId || disabledRef.current.disabled) return;
     setPreviewing(true);
     setPreviewError(null);
     try {
@@ -142,6 +154,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
   // 匹配候选母单
   const handleMatchCandidate = async () => {
+    if (disabledRef.current.disabled) {
+      message.warning(disabledRef.current.reason || '订单当前不可编辑');
+      return;
+    }
     const masterNo = form.getFieldValue('masterNo');
     const issuerPartnerId = form.getFieldValue('issuerPartnerId');
     if (!masterNo) {
@@ -229,6 +245,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
   // 提交执行改配
   const handleExecute = async () => {
+    if (disabledRef.current.disabled) {
+      message.warning(disabledRef.current.reason || '订单当前不可编辑');
+      return;
+    }
     if (!orderVersion || orderVersion === '0' || !linkVersion || linkVersion === '0') {
       message.error('未获取到有效的订单或母单关联版本，请刷新重试！');
       return;
@@ -262,6 +282,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         okText: '确认改配',
         cancelText: '取消',
         onOk: async () => {
+          if (disabledRef.current.disabled) {
+            message.warning(disabledRef.current.reason || '订单当前不可编辑');
+            return;
+          }
           setSubmitting(true);
           try {
             const targetInput: API.SeaOrderReassignmentTargetInput = {
@@ -379,6 +403,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
       destroyOnClose={false}
       confirmLoading={submitting}
       onOk={handleExecute}
+      okButtonProps={{ disabled }}
       okText="确认改配"
       cancelText="取消"
     >

@@ -9,29 +9,12 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
-import {
-  App,
-  Button,
-  Card,
-  Empty,
-  Space,
-  Spin,
-  Tag,
-} from 'antd';
+import { App, Button, Card, Empty, Space, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { OrderBusinessType, OrderFlowStatus } from '@/enums.generated';
 import { FinanceSummaryBoard } from '@/components/ui';
+import { OrderBusinessType, OrderFlowStatus } from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
-import { unwrapList } from '@/utils/api';
-import FeeFormModal, {
-  type FeeFormValues,
-} from './components/fees/FeeFormModal';
-import OrderFeeHeader from './components/fees/OrderFeeHeader';
-import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
-import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
-import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
-import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
   orderFeeServiceAddFee,
@@ -40,16 +23,29 @@ import {
   orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-import { parseOrderKind } from './common';
+import { unwrapList } from '@/utils/api';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import { trimDecimal } from '@/utils/format';
+import { parseOrderKind } from './common';
+import FeeFormModal, {
+  type FeeFormValues,
+} from './components/fees/FeeFormModal';
 import {
   FEE_BILLED,
-  RECEIVABLE,
   feeStatusCode,
+  RECEIVABLE,
 } from './components/fees/feeConstants';
-import { confirmWithReason } from '@/utils/confirmWithReason';
+import OrderFeeHeader from './components/fees/OrderFeeHeader';
+import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
+import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
+import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
+import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
+import {
+  getOrderBusinessWritePolicy,
+  useOrderLockState,
+} from './use-order-lock-state';
 
 export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
@@ -85,6 +81,12 @@ export default function OrderFeesPage() {
     customerName,
     loadData,
   } = useOrderFeeOptions(orderId);
+  const {
+    state: lockState,
+    loading: lockStateLoading,
+    error: lockStateError,
+    refresh: refreshLockState,
+  } = useOrderLockState(orderId);
 
   const {
     totalPreview,
@@ -127,10 +129,48 @@ export default function OrderFeesPage() {
 
   // 快捷新增费目状态
   const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
-  const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>([]);
+  const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>(
+    [],
+  );
 
   // 快捷新建结算单位状态
-  const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] = useState(false);
+  const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
+    useState(false);
+
+  const lockWritePolicy = getOrderBusinessWritePolicy({
+    state: lockState,
+    loading: lockStateLoading,
+    error: lockStateError,
+  });
+  const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
+  const feeWritePolicyRef = useRef({
+    financeLocked,
+    lockWritePolicy,
+  });
+  feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
+
+  const ensureFeeWriteAllowed = () => {
+    const currentPolicy = feeWritePolicyRef.current;
+    if (currentPolicy.lockWritePolicy.disabled) {
+      message.warning(
+        currentPolicy.lockWritePolicy.reason || '订单业务费用当前不可编辑',
+      );
+      return false;
+    }
+    if (currentPolicy.financeLocked) {
+      message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
+      return false;
+    }
+    return true;
+  };
+
+  useEffect(() => {
+    if (feeWritesDisabled) {
+      setModalOpen(false);
+      setQuickAddFeeModalOpen(false);
+      setQuickAddPartnerModalOpen(false);
+    }
+  }, [feeWritesDisabled]);
 
   useEffect(() => {
     if (order?.orderNo && typeof window !== 'undefined') {
@@ -146,6 +186,7 @@ export default function OrderFeesPage() {
   }, [order?.orderNo]);
 
   const handleOpenQuickAddFee = async () => {
+    if (!ensureFeeWriteAllowed()) return;
     setQuickAddFeeModalOpen(true);
     try {
       const res = await feeCatalogServiceListTaxableServices({
@@ -158,14 +199,12 @@ export default function OrderFeesPage() {
   };
 
   const handleOpenQuickAddPartner = () => {
+    if (!ensureFeeWriteAllowed()) return;
     setQuickAddPartnerModalOpen(true);
   };
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
-    if (financeLocked) {
-      message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
-      return;
-    }
+    if (!ensureFeeWriteAllowed()) return;
     if (!fee) createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
     setEditingFee(fee);
     setModalDirection(direction);
@@ -209,7 +248,7 @@ export default function OrderFeesPage() {
   };
 
   const handleModalSubmit = async (values: FeeFormValues) => {
-    if (!orderId) return false;
+    if (!orderId || !ensureFeeWriteAllowed()) return false;
     const body = {
       direction: values.direction ?? modalDirection,
       feeSettingId: values.feeSettingId,
@@ -267,20 +306,25 @@ export default function OrderFeesPage() {
     const feeId = fee.id;
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
-    confirmWithReason({ modal, message }, '确认作废该笔费用？', async (reason) => {
-      await orderFeeServiceRemoveFee({
-        orderId,
-        id: feeId,
-        expectedVersion: version,
-        reason,
-      });
-      message.success('费用已作废并保留历史记录');
-      reloadFeeTables();
-    });
+    confirmWithReason(
+      { modal, message },
+      '确认作废该笔费用？',
+      async (reason) => {
+        if (!ensureFeeWriteAllowed()) return;
+        await orderFeeServiceRemoveFee({
+          orderId,
+          id: feeId,
+          expectedVersion: version,
+          reason,
+        });
+        message.success('费用已作废并保留历史记录');
+        reloadFeeTables();
+      },
+    );
   };
 
   const handleConfirmFee = async (fee: API.OrderFee) => {
-    if (!orderId || !fee.id || !fee.version) return;
+    if (!ensureFeeWriteAllowed() || !orderId || !fee.id || !fee.version) return;
     try {
       await orderFeeServiceConfirmFee(
         { orderId, id: fee.id },
@@ -298,6 +342,7 @@ export default function OrderFeesPage() {
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
     confirmWithReason({ modal, message }, '撤回费用确认？', async (reason) => {
+      if (!ensureFeeWriteAllowed()) return;
       await orderFeeServiceReopenFee(
         { orderId, id: feeId },
         { orderId, id: feeId, expectedVersion: version, reason },
@@ -310,7 +355,7 @@ export default function OrderFeesPage() {
   const getTableColumns = (direction: number): ProColumns<API.OrderFee>[] =>
     getOrderFeeTableColumns({
       direction,
-      financeLocked,
+      feeWritesDisabled,
       onOpenModal: openFeeModal,
       onConfirmFee: handleConfirmFee,
       onReopenFee: handleReopenFee,
@@ -399,10 +444,10 @@ export default function OrderFeesPage() {
           <span style={{ fontWeight: 600, color: '#0f172a' }}>费用录入</span>
           {order.canModify === false &&
             order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
-            <Tag color="warning" icon={<LockOutlined />}>
-              已锁单
-            </Tag>
-          )}
+              <Tag color="warning" icon={<LockOutlined />}>
+                已锁单
+              </Tag>
+            )}
           {financeLocked && (
             <Tag color="red" icon={<LockOutlined />}>
               财务已关账
@@ -415,6 +460,7 @@ export default function OrderFeesPage() {
             icon={<ReloadOutlined />}
             onClick={() => {
               void loadData();
+              void refreshLockState();
               receivableActionRef.current?.reload();
               payableActionRef.current?.reload();
             }}
@@ -440,6 +486,8 @@ export default function OrderFeesPage() {
           financeLocked={financeLocked}
           financeLockReason={financeLockReason}
           financeLockCommissionNos={financeLockCommissionNos}
+          lockWritePolicy={lockWritePolicy}
+          onRetryLockState={refreshLockState}
           receivableSummary={receivableSummary}
           payableSummary={payableSummary}
           profitCny={profitCny}
@@ -462,7 +510,7 @@ export default function OrderFeesPage() {
           setReceivableSummary={setReceivableSummary}
           setPayableSummary={setPayableSummary}
           canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
-          financeLocked={financeLocked}
+          feeWritesDisabled={feeWritesDisabled}
           onOpenBillWorkbench={(feeIds) => {
             setBillWorkbenchFeeIds(feeIds);
             setBillWorkbenchOpen(true);
@@ -543,7 +591,10 @@ export default function OrderFeesPage() {
           formRef.current?.setFieldValue('feeSettingId', created.id);
           setSelectedFeeSetting(newOption);
           if (created.billingUnitId) {
-            formRef.current?.setFieldValue('billingUnitId', created.billingUnitId);
+            formRef.current?.setFieldValue(
+              'billingUnitId',
+              created.billingUnitId,
+            );
           }
           if (created.defaultCurrency) {
             formRef.current?.setFieldValue('currency', created.defaultCurrency);

@@ -3,16 +3,16 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Space, Tabs, Tag } from 'antd';
 import React from 'react';
+import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
+import { unwrapList } from '@/utils/api';
 import {
   FEE_CANCELLED,
   FEE_CONFIRMED,
-  PAYABLE,
-  RECEIVABLE,
   feeDirectionCode,
   feeStatusCode,
+  PAYABLE,
+  RECEIVABLE,
 } from './feeConstants';
-import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
-import { unwrapList } from '@/utils/api';
 
 interface OrderFeeTableTabsProps {
   orderId: string;
@@ -26,10 +26,13 @@ interface OrderFeeTableTabsProps {
   setSelectedPayableFeeIds: (keys: React.Key[]) => void;
   setAllReceivableItems: (items: API.OrderFee[]) => void;
   setAllPayableItems: (items: API.OrderFee[]) => void;
-  setReceivableSummary: (summary: { totalAmount: number; count: number }) => void;
+  setReceivableSummary: (summary: {
+    totalAmount: number;
+    count: number;
+  }) => void;
   setPayableSummary: (summary: { totalAmount: number; count: number }) => void;
   canCreateFinanceBills: boolean;
-  financeLocked: boolean;
+  feeWritesDisabled: boolean;
   onOpenBillWorkbench: (feeIds: string[]) => void;
   onOpenFeeModal: (direction: number) => void;
   getTableColumns: (direction: number) => ProColumns<API.OrderFee>[];
@@ -50,7 +53,7 @@ export default function OrderFeeTableTabs({
   setReceivableSummary,
   setPayableSummary,
   canCreateFinanceBills,
-  financeLocked,
+  feeWritesDisabled,
   onOpenBillWorkbench,
   onOpenFeeModal,
   getTableColumns,
@@ -105,7 +108,7 @@ export default function OrderFeeTableTabs({
                     key="add"
                     type="primary"
                     icon={<PlusOutlined />}
-                    disabled={financeLocked}
+                    disabled={feeWritesDisabled}
                     onClick={() => onOpenFeeModal(RECEIVABLE)}
                   >
                     + 新增应收费用
@@ -179,7 +182,7 @@ export default function OrderFeeTableTabs({
                     key="add"
                     type="primary"
                     icon={<PlusOutlined />}
-                    disabled={financeLocked}
+                    disabled={feeWritesDisabled}
                     style={{
                       backgroundColor: '#fa8c16',
                       borderColor: '#fa8c16',

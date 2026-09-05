@@ -1,10 +1,12 @@
-import React from 'react';
-import { App } from 'antd';
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import SeaOrderSplitPage, { calculateFeeCurrencySummaries } from './split';
+import { App } from 'antd';
+import React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
+import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import * as changeService from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
+import SeaOrderSplitPage, { calculateFeeCurrencySummaries } from './split';
 
 // Mock umi hooks
 vi.mock('@umijs/max', () => ({
@@ -15,9 +17,23 @@ vi.mock('@umijs/max', () => ({
   },
 }));
 
+vi.mock('@/services/roncin/orderLockService', () => ({
+  orderLockServiceGetOrderLockState: vi.fn(),
+}));
+
+const getLockState = vi.mocked(orderLockServiceGetOrderLockState);
+
 describe('SeaOrderSplitPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getLockState.mockResolvedValue({
+      data: {
+        orderId: 'test-order-123',
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        isLocked: false,
+        orderVersion: '1',
+      },
+    } as Awaited<ReturnType<typeof getLockState>>);
   });
 
   it('渲染拆票工作台并展示守恒差额与分单分配表格', async () => {
@@ -144,13 +160,25 @@ describe('SeaOrderSplitPage', () => {
       ],
     };
 
-    vi.spyOn(changeService, 'seaOrderChangeServiceGetSeaOrderSplitContext').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServiceGetSeaOrderSplitContext',
+    ).mockResolvedValue({
       data: mockContext,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext>>);
+    } as Awaited<
+      ReturnType<
+        typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext
+      >
+    >);
 
-    vi.spyOn(changeService, 'seaOrderChangeServicePreviewSeaOrderSplit').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServicePreviewSeaOrderSplit',
+    ).mockResolvedValue({
       data: mockPreview,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>>);
+    } as Awaited<
+      ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>
+    >);
 
     render(
       <App>
@@ -211,13 +239,25 @@ describe('SeaOrderSplitPage', () => {
       },
     };
 
-    vi.spyOn(changeService, 'seaOrderChangeServiceGetSeaOrderSplitContext').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServiceGetSeaOrderSplitContext',
+    ).mockResolvedValue({
       data: mockContext,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext>>);
+    } as Awaited<
+      ReturnType<
+        typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext
+      >
+    >);
 
-    vi.spyOn(changeService, 'seaOrderChangeServicePreviewSeaOrderSplit').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServicePreviewSeaOrderSplit',
+    ).mockResolvedValue({
       data: mockFailedPreview,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>>);
+    } as Awaited<
+      ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>
+    >);
 
     render(
       <App>
@@ -226,11 +266,63 @@ describe('SeaOrderSplitPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('件数守恒校验未通过：仍有 40 件未分配')).toBeInTheDocument();
+      expect(
+        screen.getByText('件数守恒校验未通过：仍有 40 件未分配'),
+      ).toBeInTheDocument();
       expect(screen.getByText('等待满足守恒条件')).toBeInTheDocument();
       const submitBtn = screen.getByRole('button', { name: '确认执行拆票' });
       expect(submitBtn).toBeDisabled();
     });
+  });
+
+  it('锁状态已锁定时不执行预览并禁用拆票提交', async () => {
+    getLockState.mockResolvedValue({
+      data: {
+        orderId: 'test-order-123',
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        isLocked: true,
+        orderVersion: '2',
+      },
+    } as Awaited<ReturnType<typeof getLockState>>);
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServiceGetSeaOrderSplitContext',
+    ).mockResolvedValue({
+      data: {
+        orderId: 'test-order-123',
+        orderNo: 'SE20260903001',
+        orderVersion: '2',
+        currentLinkVersion: '1',
+        cargoAllocationVersion: '1',
+        documentStructure: 'HOUSE',
+        flowStatus: 'BOOKED',
+        houseBills: [],
+        containers: [],
+        allocations: [],
+        draftFees: [],
+        attachments: [],
+      },
+    } as Awaited<
+      ReturnType<
+        typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext
+      >
+    >);
+    const preview = vi.spyOn(
+      changeService,
+      'seaOrderChangeServicePreviewSeaOrderSplit',
+    );
+
+    render(
+      <App>
+        <SeaOrderSplitPage />
+      </App>,
+    );
+
+    expect(
+      await screen.findByText('海运出口订单已锁定，如需修改请先解锁'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '确认执行拆票' })).toBeDisabled();
+    expect(preview).not.toHaveBeenCalled();
   });
 
   it('SHA-256 哈希稳定性与等长不同参数碰撞防御', () => {
@@ -245,7 +337,9 @@ describe('SeaOrderSplitPage', () => {
       note: 'bar',
     };
     // 两个 payload 字符串长度完全相同
-    expect(JSON.stringify(payload1).length).toBe(JSON.stringify(payload2).length);
+    expect(JSON.stringify(payload1).length).toBe(
+      JSON.stringify(payload2).length,
+    );
 
     const hash1 = computeCanonicalSha256(payload1);
     const hash2 = computeCanonicalSha256(payload2);
@@ -299,9 +393,16 @@ describe('SeaOrderSplitPage', () => {
       attachments: [],
     };
 
-    vi.spyOn(changeService, 'seaOrderChangeServiceGetSeaOrderSplitContext').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServiceGetSeaOrderSplitContext',
+    ).mockResolvedValue({
       data: mockContextWithoutVersion,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext>>);
+    } as Awaited<
+      ReturnType<
+        typeof changeService.seaOrderChangeServiceGetSeaOrderSplitContext
+      >
+    >);
 
     render(
       <App>
