@@ -512,3 +512,37 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 20: 修复非安全上下文下 crypto.randomUUID 缺失导致的前端请求与登录报错
+<!-- trellis-session: v=2 fp=040da8f73f0001c1 -->
+
+**Date**: 2026-09-05
+**Task**: 修复非安全上下文下 crypto.randomUUID 缺失导致的前端请求与登录报错
+**Branch**: `main`
+
+### Summary
+
+针对内网/公网 IP 纯 HTTP 访问时浏览器禁用 crypto.randomUUID 的问题，统一封装 generateUUID 并替换所有业务与拦截器调用。
+
+### Main Changes
+
+- 新增 web/src/utils/uuid.ts 跨环境安全 UUID v4 实现，带单元测试
+- 在 web/src/requestErrorConfig.ts 中将 X-Request-ID 替换为 generateUUID()
+- 统一 orders、finance、settings 11 处业务组件中的 randomUUID 调用
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d92fcf8f` | fix(web): 统一 UUID 生成以兼容非安全上下文环境访问 |
+
+### Testing
+
+- [OK] 单元测试 web/src/utils/uuid.test.ts 4/4 通过
+- [OK] pnpm --dir web tsc 与 lint 校验全部通过
+- [OK] 通过内网 IP http://10.180.10.50:8001 进行登录接口测试正常返回 200
+
+### Status
+
+[OK] **Completed**

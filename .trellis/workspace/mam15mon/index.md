@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 19
+- **Total Sessions**: 20
 - **Last Active**: 2026-09-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~514 | Active |
+| `journal-1.md` | ~548 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-09-05 | 修复非安全上下文下 crypto.randomUUID 缺失导致的前端请求与登录报错 | `d92fcf8f` | `main` |
 | 19 | 2026-09-05 | 修复海运出口四项P1问题 | `9706cf2b`, `8b1e49df`, `0c64540d` | `feat/universal-order-lock` |
 | 18 | 2026-09-05 | 修订海运出口审计业务口径 | `247c9b79`, `fcaa7aa9` | `feat/universal-order-lock` |
 | 17 | 2026-09-05 | 海运出口业务完整度审计 | `ea4e30bc`, `5c02ff6a` | `feat/universal-order-lock` |
