@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "核对前端测试、类型检查和静态检查要求"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "核对 TagsView 与订单页头的公共组件契约"}
