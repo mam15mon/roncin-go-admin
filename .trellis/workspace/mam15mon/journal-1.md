@@ -612,3 +612,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 24: 修复订单切换跨单状态污染
+<!-- trellis-session: v=2 fp=2eed514aa0a232f3 -->
+
+**Date**: 2026-09-05
+**Task**: 修复订单切换跨单状态污染
+**Branch**: `main`
+
+### Summary
+
+联合审查并修复 TagsView 复用页面下的订单费用、账单工作台和拆票改配动作竞态；补充同实例切单与迟到响应测试，66 项关联测试及前端类型检查通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `52ccb139` | fix(web): 隔离订单切换时的费用与动作状态 |
+
+### Status
+
+[OK] **Completed**

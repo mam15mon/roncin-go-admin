@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 23
+- **Total Sessions**: 24
 - **Last Active**: 2026-09-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~614 | Active |
+| `journal-1.md` | ~636 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 24 | 2026-09-05 | 修复订单切换跨单状态污染 | `52ccb139` | `main` |
 | 23 | 2026-09-05 | 统一订单页面面包屑导航与页签复用收紧 | `9f2d6bd7` | `main` |
 | 22 | 2026-09-05 | 统一全站 TagsView 页面复用规则 | `fc22bc91` | `main` |
 | 21 | 2026-09-05 | 在海运出口配舱信息中增加只读关联分单号展示 | `f8547480` | `main` |
