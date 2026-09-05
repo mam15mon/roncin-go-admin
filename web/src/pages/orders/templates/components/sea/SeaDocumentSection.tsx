@@ -351,6 +351,7 @@ export function SeaDocumentSectionComponent({
       const hbs = res.data.houseBills ?? [];
       setHouseBills(hbs);
 
+      form.setFieldValue('seaDocumentStructure', structure);
       form.setFieldValue(
         'seaMasterBillContent',
         res.data.masterBill?.content || {},

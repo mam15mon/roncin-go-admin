@@ -2,7 +2,11 @@ import { ProForm } from '@ant-design/pro-components';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { getSeaTemplateSections } from './sea-template';
-import { splitSeaVesselVoyage } from './components/sea/SeaTransportSection';
+import {
+  splitSeaVesselVoyage,
+  SeaAssociatedHouseBillsField,
+} from './components/sea/SeaTransportSection';
+import { SeaDocumentStructure } from '@/enums.generated';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
@@ -206,5 +210,89 @@ describe('海运订单新增模板', () => {
 
     const currencySelects = screen.getAllByRole('combobox');
     expect(currencySelects.length).toBeGreaterThanOrEqual(2);
+  });
+
+  describe('配舱信息关联分单号只读展示', () => {
+    it('尚未建立分单时显示“暂未录入分单号”', () => {
+      render(
+        <ProForm
+          submitter={false}
+          initialValues={{
+            seaDocumentStructure:
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
+            seaHouseBills: [],
+          }}
+        >
+          <SeaAssociatedHouseBillsField />
+        </ProForm>,
+      );
+
+      const display = screen.getByTestId('associated-hbl-display');
+      expect(display.textContent).toContain('暂未录入分单号');
+      expect(screen.queryByRole('textbox')).toBeNull();
+    });
+
+    it('直单模式下显示“直单，无HBL”', () => {
+      render(
+        <ProForm
+          submitter={false}
+          initialValues={{
+            seaDocumentStructure:
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          }}
+        >
+          <SeaAssociatedHouseBillsField />
+        </ProForm>,
+      );
+
+      const display = screen.getByTestId('associated-hbl-display');
+      expect(display.textContent).toContain('直单，无HBL');
+      expect(screen.queryByRole('textbox')).toBeNull();
+    });
+
+    it('录入多张分单时全部以标签形式展示且不可就地编辑', () => {
+      render(
+        <ProForm
+          submitter={false}
+          initialValues={{
+            seaDocumentStructure:
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+            seaHouseBills: [
+              { houseNo: 'HBL-001' },
+              { houseNo: 'HBL-002' },
+              { houseNo: 'HBL-003' },
+            ],
+          }}
+        >
+          <SeaAssociatedHouseBillsField />
+        </ProForm>,
+      );
+
+      expect(screen.getByText('HBL-001')).toBeTruthy();
+      expect(screen.getByText('HBL-002')).toBeTruthy();
+      expect(screen.getByText('HBL-003')).toBeTruthy();
+      expect(screen.queryByRole('textbox')).toBeNull();
+    });
+
+    it('回显已有订单的 seaDocumentSummary 分单号', () => {
+      render(
+        <ProForm
+          submitter={false}
+          initialValues={{
+            seaDocumentSummary: {
+              documentStructure:
+                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+              houseNos: ['HBL-HIST-1', 'HBL-HIST-2'],
+            },
+          }}
+        >
+          <SeaAssociatedHouseBillsField />
+        </ProForm>,
+      );
+
+      expect(screen.getByText('HBL-HIST-1')).toBeTruthy();
+      expect(screen.getByText('HBL-HIST-2')).toBeTruthy();
+      expect(screen.queryByRole('textbox')).toBeNull();
+    });
   });
 });

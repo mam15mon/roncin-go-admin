@@ -8,11 +8,14 @@ import {
   Form,
   Input,
   Space,
+  Tag,
   Tooltip,
+  Typography,
 } from 'antd';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import React, { useEffect, useState } from 'react';
+import { SeaDocumentStructure } from '@/enums.generated';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import { searchPartnerOptions } from '@/utils/options';
@@ -291,6 +294,8 @@ export function SeaMasterBillFields({
         </Col>
       )}
 
+      <SeaAssociatedHouseBillsField />
+
       {candidateMatched && candidate && (
         <Col span={24} style={{ marginBottom: 16 }}>
           <Card
@@ -413,6 +418,83 @@ export function SeaMasterBillFields({
         </Col>
       )}
     </>
+  );
+}
+
+export function SeaAssociatedHouseBillsField() {
+  const form = Form.useFormInstance();
+  const watchedHouseBills = (Form.useWatch('seaHouseBills', form) ??
+    form?.getFieldValue('seaHouseBills')) as
+    | Array<{ houseNo?: string }>
+    | undefined;
+  const watchedStructure = (Form.useWatch('seaDocumentStructure', form) ??
+    form?.getFieldValue('seaDocumentStructure')) as
+    | number
+    | undefined;
+  const watchedDocSummary = (Form.useWatch('seaDocumentSummary', form) ??
+    form?.getFieldValue('seaDocumentSummary')) as
+    | API.SeaOrderDocumentSummary
+    | undefined;
+
+  let houseNos: string[] = [];
+  if (
+    watchedHouseBills &&
+    Array.isArray(watchedHouseBills) &&
+    watchedHouseBills.length > 0
+  ) {
+    houseNos = watchedHouseBills
+      .map((hb) => hb?.houseNo?.trim())
+      .filter((no): no is string => !!no);
+  } else if (
+    watchedDocSummary?.houseNos &&
+    watchedDocSummary.houseNos.length > 0
+  ) {
+    houseNos = watchedDocSummary.houseNos
+      .map((no) => no?.trim())
+      .filter((no): no is string => !!no);
+  }
+
+  const structure = watchedStructure ?? watchedDocSummary?.documentStructure;
+  const isDirect =
+    structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT;
+
+  return (
+    <Col className="col-5">
+      <Form.Item label="关联分单号" style={{ marginInline: 0 }}>
+        <div
+          data-testid="associated-hbl-display"
+          style={{
+            minHeight: 32,
+            padding: '4px 11px',
+            backgroundColor: '#fafafa',
+            border: '1px solid #d9d9d9',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '4px',
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}
+        >
+          {isDirect ? (
+            <Tag color="success" style={{ margin: 0 }}>
+              直单，无HBL
+            </Tag>
+          ) : houseNos.length > 0 ? (
+            houseNos.map((hblNo) => (
+              <Tag key={hblNo} color="processing" style={{ margin: 0 }}>
+                {hblNo}
+              </Tag>
+            ))
+          ) : (
+            <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+              暂未录入分单号
+            </Typography.Text>
+          )}
+        </div>
+      </Form.Item>
+    </Col>
   );
 }
 

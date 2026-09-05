@@ -20,6 +20,7 @@ export type OrderDetailFormValues = Omit<
   orderNo?: string;
   seaMasterBill?: API.SeaMasterBillInput | API.SeaMasterBillSummary;
   seaDocumentLinkVersion?: string;
+  seaDocumentSummary?: API.SeaOrderDocumentSummary;
 };
 
 export function buildInitialValues(
@@ -149,6 +150,7 @@ export function buildInitialValues(
     seaMasterBill: order.seaMasterBill,
     seaDocumentStructure: order.seaDocumentStructure,
     seaDocumentLinkVersion: order.seaDocumentLinkVersion,
+    seaDocumentSummary: order.seaDocumentSummary,
   };
 }
 
