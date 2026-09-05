@@ -33,6 +33,7 @@ import {
   statusTag,
   statusText,
 } from '@/constants/statusMeta';
+import { OrderBusinessType, SeaDocumentType } from '@/enums.generated';
 import {
   orderReleasePodServiceAddReleasePod,
   orderReleasePodServiceListReleasePods,
@@ -41,17 +42,84 @@ import {
   orderReleasePodServiceUpdateReleasePod,
 } from '@/services/roncin/orderReleasePodService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import { toTableRequest, unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
+import { notifyReleasePodsChanged } from './release-pod-events';
 
 const { Text } = Typography;
 
 type ReleasePodFormValues = {
   releaseNo?: string;
   podNo?: string;
-  shippingDocumentId?: string;
+  documentReference?: string;
   note?: string;
 };
+
+export type ReleasePodDocumentOption = {
+  label: string;
+  value: string;
+  shippingDocumentId?: string;
+  seaDocumentType?: number;
+  seaDocumentId?: string;
+};
+
+export function buildSeaReleasePodDocumentOptions(
+  documents?: API.SeaOrderDocuments,
+): ReleasePodDocumentOption[] {
+  const options: ReleasePodDocumentOption[] = [];
+  if (documents?.masterBill?.id) {
+    options.push({
+      label: `MBL: ${documents.masterBill.masterNo || '-'}`,
+      value: `mbl:${documents.masterBill.id}`,
+      seaDocumentType: SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+      seaDocumentId: documents.masterBill.id,
+    });
+  }
+  for (const houseBill of documents?.houseBills ?? []) {
+    if (!houseBill.id) continue;
+    options.push({
+      label: `HBL: ${houseBill.houseNo || '-'}`,
+      value: `hbl:${houseBill.id}`,
+      seaDocumentType: SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
+      seaDocumentId: houseBill.id,
+    });
+  }
+  return options;
+}
+
+export function buildLegacyReleasePodDocumentOptions(
+  documents: API.OrderShippingDocument[],
+): ReleasePodDocumentOption[] {
+  return documents
+    .filter((document) => document.id)
+    .map((document) => ({
+      label: `分单: ${document.houseNo || '-'}`,
+      value: `legacy:${document.id}`,
+      shippingDocumentId: document.id,
+    }));
+}
+
+export function getReleasePodDocumentValue(record: API.OrderReleasePod) {
+  if (record.shippingDocumentId) {
+    return `legacy:${record.shippingDocumentId}`;
+  }
+  if (
+    record.seaDocumentType ===
+      SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL &&
+    record.seaDocumentId
+  ) {
+    return `mbl:${record.seaDocumentId}`;
+  }
+  if (
+    record.seaDocumentType ===
+      SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL &&
+    record.seaDocumentId
+  ) {
+    return `hbl:${record.seaDocumentId}`;
+  }
+  return undefined;
+}
 
 type ReleasePodPanelProps = {
   canManage: boolean;
@@ -80,7 +148,9 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
-    const [documents, setDocuments] = useState<API.OrderShippingDocument[]>([]);
+    const [documentOptions, setDocumentOptions] = useState<
+      ReleasePodDocumentOption[]
+    >([]);
     const [documentsError, setDocumentsError] = useState('');
     const [editingRecord, setEditingRecord] = useState<API.OrderReleasePod>();
     const activeOrderIdRef = useRef<string | undefined>(undefined);
@@ -98,39 +168,39 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     useImperativeHandle(ref, () => ({
       open: (record) => {
         setOrder(record);
-        setDocuments([]);
+        setDocumentOptions([]);
         setDocumentsError('');
         setDrawerOpen(true);
         const orderId = record.id as string;
         activeOrderIdRef.current = orderId;
-        orderShippingDocumentServiceListShippingDocuments({
-          orderId,
-        })
+        const loadDocuments =
+          record.businessType === OrderBusinessType.BUSINESS_TYPE_SE
+            ? seaDocumentServiceGetSeaOrderDocuments({ orderId }).then(
+                (response) =>
+                  buildSeaReleasePodDocumentOptions(response.data),
+              )
+            : orderShippingDocumentServiceListShippingDocuments({
+                orderId,
+              }).then((response) =>
+                buildLegacyReleasePodDocumentOptions(unwrapList(response)),
+              );
+        loadDocuments
           .then((response) => {
             if (activeOrderIdRef.current === orderId) {
-              setDocuments(unwrapList(response));
+              setDocumentOptions(response);
             }
           })
           .catch((error: Error) => {
             if (activeOrderIdRef.current === orderId) {
-              setDocuments([]);
+              setDocumentOptions([]);
               setDocumentsError(error.message || '关联提单加载失败');
             }
           });
       },
     }));
 
-    const documentOptions = documents.map((document) => ({
-      label: `分单: ${document.houseNo}`,
-      value: document.id ?? '',
-    }));
     const documentMap = Object.fromEntries(
-      documents
-        .filter((document) => document.id)
-        .map((document) => [
-          document.id as string,
-          `分单: ${document.houseNo}`,
-        ]),
+      documentOptions.map((option) => [option.value, option.label]),
     );
 
     const openCreate = () => {
@@ -144,7 +214,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
       formRef.current?.setFieldsValue({
         releaseNo: record.releaseNo,
         podNo: record.podNo,
-        shippingDocumentId: record.shippingDocumentId,
+        documentReference: getReleasePodDocumentValue(record),
         note: record.note,
       });
       setModalOpen(true);
@@ -175,12 +245,12 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
       },
       {
         title: '关联提单',
-        dataIndex: 'shippingDocumentId',
+        dataIndex: 'seaDocumentId',
         ellipsis: true,
-        render: (_, record) =>
-          (record.shippingDocumentId &&
-            documentMap[record.shippingDocumentId]) ||
-          '-',
+        render: (_, record) => {
+          const value = getReleasePodDocumentValue(record);
+          return (value && documentMap[value]) || '-';
+        },
       },
       {
         title: '状态',
@@ -265,6 +335,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                     );
                     message.success('流转放货凭证状态成功');
                     actionRef.current?.reload();
+                    notifyReleasePodsChanged(order.id);
                   }}
                 >
                   <Button type="link" size="small">
@@ -282,6 +353,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                   });
                   message.success('移除放货凭证成功');
                   actionRef.current?.reload();
+                  notifyReleasePodsChanged(order.id);
                 }}
               >
                 <Button type="link" danger size="small">
@@ -307,7 +379,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             activeOrderIdRef.current = undefined;
             setDrawerOpen(false);
             setOrder(undefined);
-            setDocuments([]);
+            setDocumentOptions([]);
             setDocumentsError('');
           }}
           size={920}
@@ -375,24 +447,40 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
               orderId: order.id,
               releaseNo: values.releaseNo?.trim() || undefined,
               podNo: values.podNo?.trim() || undefined,
-              shippingDocumentId: values.shippingDocumentId || undefined,
               note: values.note?.trim() || undefined,
             };
+            const selectedDocument = values.documentReference
+              ? documentOptions.find(
+                  (option) => option.value === values.documentReference,
+                )
+              : undefined;
+            if (values.documentReference && !selectedDocument) {
+              message.error('关联提单已变化，请刷新后重试');
+              return false;
+            }
+            const documentInput = selectedDocument
+              ? {
+                  shippingDocumentId: selectedDocument.shippingDocumentId,
+                  seaDocumentType: selectedDocument.seaDocumentType,
+                  seaDocumentId: selectedDocument.seaDocumentId,
+                }
+              : {};
             if (editingRecord?.id) {
               await orderReleasePodServiceUpdateReleasePod(
                 { orderId: order.id, id: editingRecord.id },
-                { ...input, id: editingRecord.id },
+                { ...input, ...documentInput, id: editingRecord.id },
               );
               message.success('更新放货凭证成功');
             } else {
               await orderReleasePodServiceAddReleasePod(
                 { orderId: order.id },
-                input,
+                { ...input, ...documentInput },
               );
               message.success('添加放货凭证成功');
             }
             setModalOpen(false);
             actionRef.current?.reload();
+            notifyReleasePodsChanged(order.id);
             return true;
           }}
         >
@@ -407,10 +495,11 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             placeholder="请输入回单编号 (可选)"
           />
           <ProFormSearchableSelect
-            name="shippingDocumentId"
+            name="documentReference"
             label="关联提单"
             options={documentOptions}
             placeholder="请选择关联提单 (可选)"
+            disabled={Boolean(documentsError)}
           />
           <ProFormTextArea
             name="note"

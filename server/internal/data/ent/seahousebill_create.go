@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
@@ -522,6 +523,21 @@ func (_c *SeaHouseBillCreate) AddNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) 
 	return _c.AddNewSwitchEventIDs(ids...)
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_c *SeaHouseBillCreate) AddReleasePodIDs(ids ...uuid.UUID) *SeaHouseBillCreate {
+	_c.mutation.AddReleasePodIDs(ids...)
+	return _c
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_c *SeaHouseBillCreate) AddReleasePods(v ...*OrderReleasePod) *SeaHouseBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReleasePodIDs(ids...)
+}
+
 // Mutation returns the SeaHouseBillMutation object of the builder.
 func (_c *SeaHouseBillCreate) Mutation() *SeaHouseBillMutation {
 	return _c.mutation
@@ -1003,6 +1019,22 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seahousebill.ReleasePodsTable,
+			Columns: []string{seahousebill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

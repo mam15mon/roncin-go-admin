@@ -113,9 +113,11 @@ type SeaHouseBillEdges struct {
 	OldSwitchEvents []*SeaHouseBillSwitchEvent `json:"old_switch_events,omitempty"`
 	// NewSwitchEvents holds the value of the new_switch_events edge.
 	NewSwitchEvents []*SeaHouseBillSwitchEvent `json:"new_switch_events,omitempty"`
+	// ReleasePods holds the value of the release_pods edge.
+	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -236,6 +238,15 @@ func (e SeaHouseBillEdges) NewSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, e
 		return e.NewSwitchEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "new_switch_events"}
+}
+
+// ReleasePodsOrErr returns the ReleasePods value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaHouseBillEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
+	if e.loadedTypes[12] {
+		return e.ReleasePods, nil
+	}
+	return nil, &NotLoadedError{edge: "release_pods"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -540,6 +551,11 @@ func (_m *SeaHouseBill) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
 // QueryNewSwitchEvents queries the "new_switch_events" edge of the SeaHouseBill entity.
 func (_m *SeaHouseBill) QueryNewSwitchEvents() *SeaHouseBillSwitchEventQuery {
 	return NewSeaHouseBillClient(_m.config).QueryNewSwitchEvents(_m)
+}
+
+// QueryReleasePods queries the "release_pods" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryReleasePods() *OrderReleasePodQuery {
+	return NewSeaHouseBillClient(_m.config).QueryReleasePods(_m)
 }
 
 // Update returns a builder for updating this SeaHouseBill.

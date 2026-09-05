@@ -3,12 +3,14 @@ package data
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	orderreleasepod "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
@@ -746,7 +748,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 	return r.getSeaHouseBillByID(ctx, organizationID, houseBillID)
 }
 
-func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined bool, audit *biz.AuditEvent) error {
+func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *biz.AuditEvent) error {
 	if actorID == uuid.Nil {
 		return biz.ErrSeaHouseBillInvalidArgument
 	}
@@ -754,26 +756,30 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		return biz.ErrSeaDocumentInvalidArgument
 	}
 
-	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	return r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
+		client, err := r.data.client(txCtx)
+		if err != nil {
+			return err
+		}
 		// 1. 固定锁顺序：Order
-		order, queryErr := tx.Order.Query().
+		order, queryErr := client.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
 			ForUpdate().
-			Only(ctx)
+			Only(txCtx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+		if err := ensureReleasePodOrderEditable(txCtx, client, order); err != nil {
 			return err
 		}
 
-		activeLinkQuery, queryErr := tx.SeaMasterBillOrderLink.Query().
+		activeLinkQuery, queryErr := client.SeaMasterBillOrderLink.Query().
 			Where(
 				seamasterbillorderlink.OrganizationIDEQ(organizationID),
 				seamasterbillorderlink.OrderIDEQ(orderID),
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 			).
-			Only(ctx)
+			Only(txCtx)
 		if queryErr != nil {
 			if ent.IsNotFound(queryErr) {
 				return biz.ErrSeaDocumentNoActiveLink
@@ -782,13 +788,13 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		}
 
 		// 2. 固定锁顺序：MasterBill
-		mbl, queryErr := tx.SeaMasterBill.Query().
+		mbl, queryErr := client.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
 				seamasterbill.OrganizationIDEQ(organizationID),
 			).
 			ForUpdate().
-			Only(ctx)
+			Only(txCtx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
 		}
@@ -797,10 +803,10 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		}
 
 		// 3. 固定锁顺序：Active Link
-		link, queryErr := tx.SeaMasterBillOrderLink.Query().
+		link, queryErr := client.SeaMasterBillOrderLink.Query().
 			Where(seamasterbillorderlink.IDEQ(activeLinkQuery.ID)).
 			ForUpdate().
-			Only(ctx)
+			Only(txCtx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
 		}
@@ -812,7 +818,7 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		}
 
 		// 4. 固定锁顺序：SeaHouseBill
-		hb, queryErr := tx.SeaHouseBill.Query().
+		hb, queryErr := client.SeaHouseBill.Query().
 			Where(
 				seahousebill.IDEQ(houseBillID),
 				seahousebill.OrderIDEQ(orderID),
@@ -820,7 +826,7 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 				seahousebill.OrganizationIDEQ(organizationID),
 			).
 			ForUpdate().
-			Only(ctx)
+			Only(txCtx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrSeaHouseBillNotFound, nil)
 		}
@@ -839,9 +845,9 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
 			return biz.ErrSeaCargoAllocationStatusConflict
 		}
-		hasAlloc, err := tx.SeaCargoAllocation.Query().
+		hasAlloc, err := client.SeaCargoAllocation.Query().
 			Where(seacargoallocation.HouseBillIDEQ(houseBillID)).
-			Exist(ctx)
+			Exist(txCtx)
 		if err != nil {
 			return err
 		}
@@ -849,13 +855,31 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 			return biz.ErrSeaCargoAllocationInvalidReference
 		}
 
-		// 5. 统计当前 MBL 下该订单剩余 HBL 数量
-		count, err := tx.SeaHouseBill.Query().
+		// 5. 按 UUID 固定顺序锁定关联放货记录，状态变化与 HBL 删除在同一事务内判定。
+		releasePods, err := client.OrderReleasePod.Query().
+			Where(orderreleasepod.SeaHouseBillIDEQ(houseBillID), orderreleasepod.OrderIDEQ(orderID)).
+			Order(orderreleasepod.ByID()).
+			ForUpdate().
+			All(txCtx)
+		if err != nil {
+			return err
+		}
+		for _, releasePod := range releasePods {
+			if releasePod.Status == orderreleasepod.StatusRETURNED {
+				return biz.ErrSeaHouseBillReturnedReleasePodBlocked
+			}
+		}
+		if len(releasePods) > 0 && !removeRelatedReleasePods {
+			return biz.ErrSeaHouseBillReleasePodConfirmationRequired
+		}
+
+		// 6. 统计当前 MBL 下该订单剩余 HBL 数量
+		count, err := client.SeaHouseBill.Query().
 			Where(
 				seahousebill.OrganizationIDEQ(organizationID),
 				seahousebill.OrderIDEQ(orderID),
 				seahousebill.MasterBillIDEQ(mbl.ID),
-			).Count(ctx)
+			).Count(txCtx)
 		if err != nil {
 			return err
 		}
@@ -868,11 +892,27 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 			}
 			linkUpdate.SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED)
 		}
-		if _, err := linkUpdate.Save(ctx); err != nil {
+		if _, err := linkUpdate.Save(txCtx); err != nil {
 			return err
 		}
 
-		if err := tx.SeaHouseBill.DeleteOneID(houseBillID).Exec(ctx); err != nil {
+		releasePodIDs := make([]uuid.UUID, 0, len(releasePods))
+		releasePodIDTexts := make([]string, 0, len(releasePods))
+		for _, releasePod := range releasePods {
+			releasePodIDs = append(releasePodIDs, releasePod.ID)
+			releasePodIDTexts = append(releasePodIDTexts, releasePod.ID.String())
+		}
+		if len(releasePodIDs) > 0 {
+			deleted, err := client.OrderReleasePod.Delete().Where(orderreleasepod.IDIn(releasePodIDs...)).Exec(txCtx)
+			if err != nil {
+				return err
+			}
+			if deleted != len(releasePodIDs) {
+				return biz.ErrSeaDocumentStructureConflict
+			}
+		}
+
+		if err := client.SeaHouseBill.DeleteOneID(houseBillID).Exec(txCtx); err != nil {
 			return err
 		}
 
@@ -884,10 +924,14 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		audit.Details["sea_house_bill.id"] = houseBillID.String()
 		audit.Details["sea_house_bill.house_no"] = hb.HouseNo
 		audit.Details["link.new_version"] = fmt.Sprintf("%d", link.Version+1)
+		audit.Details["release_pod.deleted_count"] = fmt.Sprintf("%d", len(releasePodIDs))
+		if len(releasePodIDTexts) > 0 {
+			audit.Details["release_pod.deleted_ids"] = strings.Join(releasePodIDTexts, ",")
+		}
 		if count == 1 {
 			audit.Details["document_structure.new"] = string(biz.SeaDocumentStructureUndetermined)
 		}
-		return writeAudit(ctx, tx.AuditLog, audit)
+		return writeAudit(txCtx, client.AuditLog, audit)
 	})
 }
 

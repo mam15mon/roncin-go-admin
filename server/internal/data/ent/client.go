@@ -13310,6 +13310,38 @@ func (c *OrderReleasePodClient) QueryShippingDocument(_m *OrderReleasePod) *Orde
 	return query
 }
 
+// QuerySeaMasterBill queries the sea_master_bill edge of a OrderReleasePod.
+func (c *OrderReleasePodClient) QuerySeaMasterBill(_m *OrderReleasePod) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderreleasepod.Table, orderreleasepod.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderreleasepod.SeaMasterBillTable, orderreleasepod.SeaMasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBill queries the sea_house_bill edge of a OrderReleasePod.
+func (c *OrderReleasePodClient) QuerySeaHouseBill(_m *OrderReleasePod) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderreleasepod.Table, orderreleasepod.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderreleasepod.SeaHouseBillTable, orderreleasepod.SeaHouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderReleasePodClient) Hooks() []Hook {
 	return c.hooks.OrderReleasePod
@@ -18922,6 +18954,22 @@ func (c *SeaHouseBillClient) QueryNewSwitchEvents(_m *SeaHouseBill) *SeaHouseBil
 	return query
 }
 
+// QueryReleasePods queries the release_pods edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryReleasePods(_m *SeaHouseBill) *OrderReleasePodQuery {
+	query := (&OrderReleasePodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(orderreleasepod.Table, orderreleasepod.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.ReleasePodsTable, seahousebill.ReleasePodsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SeaHouseBillClient) Hooks() []Hook {
 	return c.hooks.SeaHouseBill
@@ -19858,6 +19906,22 @@ func (c *SeaMasterBillClient) QuerySwitchEvents(_m *SeaMasterBill) *SeaHouseBill
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
 			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.SwitchEventsTable, seamasterbill.SwitchEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReleasePods queries the release_pods edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryReleasePods(_m *SeaMasterBill) *OrderReleasePodQuery {
+	query := (&OrderReleasePodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(orderreleasepod.Table, orderreleasepod.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.ReleasePodsTable, seamasterbill.ReleasePodsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

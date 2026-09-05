@@ -385,6 +385,7 @@ message RemoveSeaHouseBillRequest {
   uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_link_version = 4 [(google.api.field_behavior) = REQUIRED];
   optional bool return_to_undetermined = 5;
+  optional bool remove_related_release_pods = 6;
 }
 
 // RemoveSeaHouseBillResponse 移除分单响应。

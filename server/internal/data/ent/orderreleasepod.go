@@ -13,6 +13,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
 
 // OrderReleasePod is the model entity for the OrderReleasePod schema.
@@ -28,6 +30,10 @@ type OrderReleasePod struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// ShippingDocumentID holds the value of the "shipping_document_id" field.
 	ShippingDocumentID *uuid.UUID `json:"shipping_document_id,omitempty"`
+	// SeaMasterBillID holds the value of the "sea_master_bill_id" field.
+	SeaMasterBillID *uuid.UUID `json:"sea_master_bill_id,omitempty"`
+	// SeaHouseBillID holds the value of the "sea_house_bill_id" field.
+	SeaHouseBillID *uuid.UUID `json:"sea_house_bill_id,omitempty"`
 	// ReleaseNo holds the value of the "release_no" field.
 	ReleaseNo string `json:"release_no,omitempty"`
 	// PodNo holds the value of the "pod_no" field.
@@ -52,9 +58,13 @@ type OrderReleasePodEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// ShippingDocument holds the value of the shipping_document edge.
 	ShippingDocument *OrderShippingDocument `json:"shipping_document,omitempty"`
+	// SeaMasterBill holds the value of the sea_master_bill edge.
+	SeaMasterBill *SeaMasterBill `json:"sea_master_bill,omitempty"`
+	// SeaHouseBill holds the value of the sea_house_bill edge.
+	SeaHouseBill *SeaHouseBill `json:"sea_house_bill,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -79,12 +89,34 @@ func (e OrderReleasePodEdges) ShippingDocumentOrErr() (*OrderShippingDocument, e
 	return nil, &NotLoadedError{edge: "shipping_document"}
 }
 
+// SeaMasterBillOrErr returns the SeaMasterBill value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderReleasePodEdges) SeaMasterBillOrErr() (*SeaMasterBill, error) {
+	if e.SeaMasterBill != nil {
+		return e.SeaMasterBill, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: seamasterbill.Label}
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill"}
+}
+
+// SeaHouseBillOrErr returns the SeaHouseBill value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderReleasePodEdges) SeaHouseBillOrErr() (*SeaHouseBill, error) {
+	if e.SeaHouseBill != nil {
+		return e.SeaHouseBill, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: seahousebill.Label}
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OrderReleasePod) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderreleasepod.FieldShippingDocumentID, orderreleasepod.FieldSignedBy:
+		case orderreleasepod.FieldShippingDocumentID, orderreleasepod.FieldSeaMasterBillID, orderreleasepod.FieldSeaHouseBillID, orderreleasepod.FieldSignedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderreleasepod.FieldReleaseNo, orderreleasepod.FieldPodNo, orderreleasepod.FieldStatus, orderreleasepod.FieldNote:
 			values[i] = new(sql.NullString)
@@ -137,6 +169,20 @@ func (_m *OrderReleasePod) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ShippingDocumentID = new(uuid.UUID)
 				*_m.ShippingDocumentID = *value.S.(*uuid.UUID)
+			}
+		case orderreleasepod.FieldSeaMasterBillID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field sea_master_bill_id", values[i])
+			} else if value.Valid {
+				_m.SeaMasterBillID = new(uuid.UUID)
+				*_m.SeaMasterBillID = *value.S.(*uuid.UUID)
+			}
+		case orderreleasepod.FieldSeaHouseBillID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field sea_house_bill_id", values[i])
+			} else if value.Valid {
+				_m.SeaHouseBillID = new(uuid.UUID)
+				*_m.SeaHouseBillID = *value.S.(*uuid.UUID)
 			}
 		case orderreleasepod.FieldReleaseNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,6 +245,16 @@ func (_m *OrderReleasePod) QueryShippingDocument() *OrderShippingDocumentQuery {
 	return NewOrderReleasePodClient(_m.config).QueryShippingDocument(_m)
 }
 
+// QuerySeaMasterBill queries the "sea_master_bill" edge of the OrderReleasePod entity.
+func (_m *OrderReleasePod) QuerySeaMasterBill() *SeaMasterBillQuery {
+	return NewOrderReleasePodClient(_m.config).QuerySeaMasterBill(_m)
+}
+
+// QuerySeaHouseBill queries the "sea_house_bill" edge of the OrderReleasePod entity.
+func (_m *OrderReleasePod) QuerySeaHouseBill() *SeaHouseBillQuery {
+	return NewOrderReleasePodClient(_m.config).QuerySeaHouseBill(_m)
+}
+
 // Update returns a builder for updating this OrderReleasePod.
 // Note that you need to call OrderReleasePod.Unwrap() before calling this method if this OrderReleasePod
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -233,6 +289,16 @@ func (_m *OrderReleasePod) String() string {
 	builder.WriteString(", ")
 	if v := _m.ShippingDocumentID; v != nil {
 		builder.WriteString("shipping_document_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SeaMasterBillID; v != nil {
+		builder.WriteString("sea_master_bill_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SeaHouseBillID; v != nil {
+		builder.WriteString("sea_house_bill_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

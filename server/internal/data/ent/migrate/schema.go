@@ -3876,6 +3876,8 @@ var (
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "shipping_document_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "sea_house_bill_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "sea_master_bill_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrderReleasePodsTable holds the schema information for the "order_release_pods" table.
 	OrderReleasePodsTable = &schema.Table{
@@ -3895,6 +3897,18 @@ var (
 				RefColumns: []*schema.Column{OrderShippingDocumentsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
+			{
+				Symbol:     "order_release_pods_sea_house_bills_release_pods",
+				Columns:    []*schema.Column{OrderReleasePodsColumns[11]},
+				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_release_pods_sea_master_bills_release_pods",
+				Columns:    []*schema.Column{OrderReleasePodsColumns[12]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 		},
 		Indexes: []*schema.Index{
 			{
@@ -3911,6 +3925,16 @@ var (
 				Name:    "orderreleasepod_shipping_document_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrderReleasePodsColumns[10]},
+			},
+			{
+				Name:    "orderreleasepod_sea_master_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderReleasePodsColumns[12]},
+			},
+			{
+				Name:    "orderreleasepod_sea_house_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderReleasePodsColumns[11]},
 			},
 		},
 	}
@@ -6576,6 +6600,12 @@ func init() {
 	OrderPersonnelsTable.ForeignKeys[2].RefTable = UsersTable
 	OrderReleasePodsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderReleasePodsTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
+	OrderReleasePodsTable.ForeignKeys[2].RefTable = SeaHouseBillsTable
+	OrderReleasePodsTable.ForeignKeys[3].RefTable = SeaMasterBillsTable
+	OrderReleasePodsTable.Annotation = &entsql.Annotation{}
+	OrderReleasePodsTable.Annotation.Checks = map[string]string{
+		"order_release_pods_document_reference_check": "num_nonnulls(shipping_document_id, sea_master_bill_id, sea_house_bill_id) <= 1",
+	}
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderUnlockApproverCandidatesTable.ForeignKeys[0].RefTable = MembershipsTable

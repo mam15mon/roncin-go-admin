@@ -38,6 +38,8 @@ var (
 	ErrSeaShippingDocumentsDeprecated               = errors.BadRequest("ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT", "海运出口订单禁止使用旧提单接口，请使用海运单证接口")
 	ErrSeaBillContentInvalidArgument                = errors.BadRequest("SEA_BILL_CONTENT_INVALID_ARGUMENT", "提单内容参数不合法")
 	ErrSeaDocumentInvalidArgument                   = errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "海运单证参数不合法")
+	ErrSeaHouseBillReleasePodConfirmationRequired   = errors.BadRequest("SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED", "分单存在关联放货记录，请确认是否一并删除")
+	ErrSeaHouseBillReturnedReleasePodBlocked        = errors.Conflict("SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED", "分单存在已回单的放货记录，不能删除")
 )
 
 // NormalizeSeaHouseNo 校验并规范化海运出口分单号（HBL）。
@@ -431,7 +433,7 @@ type SeaDocumentRepo interface {
 	CancelSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
 	AddSeaHouseBill(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
 	UpdateSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
-	RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined bool, audit *AuditEvent) error
+	RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error
 	UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error)
 }
 
@@ -507,14 +509,14 @@ func (uc *SeaDocumentUsecase) UpdateSeaHouseBill(ctx context.Context, organizati
 	return uc.repo.UpdateSeaHouseBill(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, validatedInput, audit)
 }
 
-func (uc *SeaDocumentUsecase) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined bool, audit *AuditEvent) error {
+func (uc *SeaDocumentUsecase) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || houseBillID == uuid.Nil {
 		return ErrSeaHouseBillInvalidArgument
 	}
 	if err := validateAuditEvent(audit, organizationID, actorID); err != nil {
 		return err
 	}
-	return uc.repo.RemoveSeaHouseBill(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, audit)
+	return uc.repo.RemoveSeaHouseBill(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, removeRelatedReleasePods, audit)
 }
 
 func (uc *SeaDocumentUsecase) UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error) {

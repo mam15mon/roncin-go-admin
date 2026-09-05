@@ -91,6 +91,8 @@ type OrderReleasePod struct {
 	CreatedAt             string                  `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt             string                  `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	AllowedTargetStatuses []OrderReleasePodStatus `protobuf:"varint,12,rep,packed,name=allowed_target_statuses,json=allowedTargetStatuses,proto3,enum=order.v1.OrderReleasePodStatus" json:"allowed_target_statuses,omitempty"`
+	SeaDocumentType       SeaDocumentType         `protobuf:"varint,13,opt,name=sea_document_type,json=seaDocumentType,proto3,enum=order.v1.SeaDocumentType" json:"sea_document_type,omitempty"`
+	SeaDocumentId         *string                 `protobuf:"bytes,14,opt,name=sea_document_id,json=seaDocumentId,proto3,oneof" json:"sea_document_id,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -209,6 +211,20 @@ func (x *OrderReleasePod) GetAllowedTargetStatuses() []OrderReleasePodStatus {
 	return nil
 }
 
+func (x *OrderReleasePod) GetSeaDocumentType() SeaDocumentType {
+	if x != nil {
+		return x.SeaDocumentType
+	}
+	return SeaDocumentType_SEA_DOCUMENT_TYPE_UNSPECIFIED
+}
+
+func (x *OrderReleasePod) GetSeaDocumentId() string {
+	if x != nil && x.SeaDocumentId != nil {
+		return *x.SeaDocumentId
+	}
+	return ""
+}
+
 // ListReleasePodsRequest 获取放货凭证列表请求。
 type ListReleasePodsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -262,6 +278,8 @@ type AddReleasePodRequest struct {
 	ReleaseNo          *string                `protobuf:"bytes,3,opt,name=release_no,json=releaseNo,proto3,oneof" json:"release_no,omitempty"`
 	PodNo              *string                `protobuf:"bytes,4,opt,name=pod_no,json=podNo,proto3,oneof" json:"pod_no,omitempty"`
 	Note               *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	SeaDocumentType    SeaDocumentType        `protobuf:"varint,6,opt,name=sea_document_type,json=seaDocumentType,proto3,enum=order.v1.SeaDocumentType" json:"sea_document_type,omitempty"`
+	SeaDocumentId      *string                `protobuf:"bytes,7,opt,name=sea_document_id,json=seaDocumentId,proto3,oneof" json:"sea_document_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -331,6 +349,20 @@ func (x *AddReleasePodRequest) GetNote() string {
 	return ""
 }
 
+func (x *AddReleasePodRequest) GetSeaDocumentType() SeaDocumentType {
+	if x != nil {
+		return x.SeaDocumentType
+	}
+	return SeaDocumentType_SEA_DOCUMENT_TYPE_UNSPECIFIED
+}
+
+func (x *AddReleasePodRequest) GetSeaDocumentId() string {
+	if x != nil && x.SeaDocumentId != nil {
+		return *x.SeaDocumentId
+	}
+	return ""
+}
+
 // UpdateReleasePodRequest 更新放货凭证字段请求。
 type UpdateReleasePodRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -340,6 +372,8 @@ type UpdateReleasePodRequest struct {
 	ReleaseNo          *string                `protobuf:"bytes,4,opt,name=release_no,json=releaseNo,proto3,oneof" json:"release_no,omitempty"`
 	PodNo              *string                `protobuf:"bytes,5,opt,name=pod_no,json=podNo,proto3,oneof" json:"pod_no,omitempty"`
 	Note               *string                `protobuf:"bytes,6,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	SeaDocumentType    SeaDocumentType        `protobuf:"varint,7,opt,name=sea_document_type,json=seaDocumentType,proto3,enum=order.v1.SeaDocumentType" json:"sea_document_type,omitempty"`
+	SeaDocumentId      *string                `protobuf:"bytes,8,opt,name=sea_document_id,json=seaDocumentId,proto3,oneof" json:"sea_document_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -412,6 +446,20 @@ func (x *UpdateReleasePodRequest) GetPodNo() string {
 func (x *UpdateReleasePodRequest) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
+	}
+	return ""
+}
+
+func (x *UpdateReleasePodRequest) GetSeaDocumentType() SeaDocumentType {
+	if x != nil {
+		return x.SeaDocumentType
+	}
+	return SeaDocumentType_SEA_DOCUMENT_TYPE_UNSPECIFIED
+}
+
+func (x *UpdateReleasePodRequest) GetSeaDocumentId() string {
+	if x != nil && x.SeaDocumentId != nil {
+		return *x.SeaDocumentId
 	}
 	return ""
 }
@@ -917,7 +965,7 @@ var File_order_v1_order_release_pod_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"\n" +
-	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xb8\x04\n" +
+	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1border/v1/sea_document.proto\"\xc0\x05\n" +
 	"\x0fOrderReleasePod\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x125\n" +
@@ -934,7 +982,9 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	" \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\v \x01(\tR\tupdatedAt\x12W\n" +
-	"\x17allowed_target_statuses\x18\f \x03(\x0e2\x1f.order.v1.OrderReleasePodStatusR\x15allowedTargetStatusesB\x17\n" +
+	"\x17allowed_target_statuses\x18\f \x03(\x0e2\x1f.order.v1.OrderReleasePodStatusR\x15allowedTargetStatuses\x12E\n" +
+	"\x11sea_document_type\x18\r \x01(\x0e2\x19.order.v1.SeaDocumentTypeR\x0fseaDocumentType\x12+\n" +
+	"\x0fsea_document_id\x18\x0e \x01(\tH\x06R\rseaDocumentId\x88\x01\x01B\x17\n" +
 	"\x15_shipping_document_idB\r\n" +
 	"\v_release_noB\t\n" +
 	"\a_pod_noB\f\n" +
@@ -942,20 +992,24 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"_signed_atB\f\n" +
 	"\n" +
 	"_signed_byB\a\n" +
-	"\x05_note\"8\n" +
+	"\x05_noteB\x12\n" +
+	"\x10_sea_document_id\"8\n" +
 	"\x16ListReleasePodsRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\x82\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\x8a\x03\n" +
 	"\x14AddReleasePodRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x125\n" +
 	"\x14shipping_document_id\x18\x02 \x01(\tH\x00R\x12shippingDocumentId\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"release_no\x18\x03 \x01(\tH\x01R\treleaseNo\x88\x01\x01\x12\x1a\n" +
 	"\x06pod_no\x18\x04 \x01(\tH\x02R\x05podNo\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x05 \x01(\tH\x03R\x04note\x88\x01\x01B\x17\n" +
+	"\x04note\x18\x05 \x01(\tH\x03R\x04note\x88\x01\x01\x12E\n" +
+	"\x11sea_document_type\x18\x06 \x01(\x0e2\x19.order.v1.SeaDocumentTypeR\x0fseaDocumentType\x12+\n" +
+	"\x0fsea_document_id\x18\a \x01(\tH\x04R\rseaDocumentId\x88\x01\x01B\x17\n" +
 	"\x15_shipping_document_idB\r\n" +
 	"\v_release_noB\t\n" +
 	"\a_pod_noB\a\n" +
-	"\x05_note\"\x9a\x02\n" +
+	"\x05_noteB\x12\n" +
+	"\x10_sea_document_id\"\xa2\x03\n" +
 	"\x17UpdateReleasePodRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x125\n" +
@@ -963,11 +1017,14 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"\n" +
 	"release_no\x18\x04 \x01(\tH\x01R\treleaseNo\x88\x01\x01\x12\x1a\n" +
 	"\x06pod_no\x18\x05 \x01(\tH\x02R\x05podNo\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x06 \x01(\tH\x03R\x04note\x88\x01\x01B\x17\n" +
+	"\x04note\x18\x06 \x01(\tH\x03R\x04note\x88\x01\x01\x12E\n" +
+	"\x11sea_document_type\x18\a \x01(\x0e2\x19.order.v1.SeaDocumentTypeR\x0fseaDocumentType\x12+\n" +
+	"\x0fsea_document_id\x18\b \x01(\tH\x04R\rseaDocumentId\x88\x01\x01B\x17\n" +
 	"\x15_shipping_document_idB\r\n" +
 	"\v_release_noB\t\n" +
 	"\a_pod_noB\a\n" +
-	"\x05_note\"\xea\x01\n" +
+	"\x05_noteB\x12\n" +
+	"\x10_sea_document_id\"\xea\x01\n" +
 	"!TransitionReleasePodStatusRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12M\n" +
@@ -1044,31 +1101,35 @@ var file_order_v1_order_release_pod_proto_goTypes = []any{
 	(*TransitionReleasePodStatusResponse)(nil), // 9: order.v1.TransitionReleasePodStatusResponse
 	(*ListReleasePodsResponse)(nil),            // 10: order.v1.ListReleasePodsResponse
 	(*RemoveReleasePodResponse)(nil),           // 11: order.v1.RemoveReleasePodResponse
+	(SeaDocumentType)(0),                       // 12: order.v1.SeaDocumentType
 }
 var file_order_v1_order_release_pod_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderReleasePod.status:type_name -> order.v1.OrderReleasePodStatus
 	0,  // 1: order.v1.OrderReleasePod.allowed_target_statuses:type_name -> order.v1.OrderReleasePodStatus
-	0,  // 2: order.v1.TransitionReleasePodStatusRequest.expected_status:type_name -> order.v1.OrderReleasePodStatus
-	0,  // 3: order.v1.TransitionReleasePodStatusRequest.to_status:type_name -> order.v1.OrderReleasePodStatus
-	1,  // 4: order.v1.AddReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 5: order.v1.UpdateReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 6: order.v1.TransitionReleasePodStatusResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 7: order.v1.ListReleasePodsResponse.data:type_name -> order.v1.OrderReleasePod
-	2,  // 8: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
-	3,  // 9: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
-	4,  // 10: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
-	5,  // 11: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
-	6,  // 12: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
-	10, // 13: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.ListReleasePodsResponse
-	7,  // 14: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.AddReleasePodResponse
-	8,  // 15: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.UpdateReleasePodResponse
-	9,  // 16: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.TransitionReleasePodStatusResponse
-	11, // 17: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.RemoveReleasePodResponse
-	13, // [13:18] is the sub-list for method output_type
-	8,  // [8:13] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	12, // 2: order.v1.OrderReleasePod.sea_document_type:type_name -> order.v1.SeaDocumentType
+	12, // 3: order.v1.AddReleasePodRequest.sea_document_type:type_name -> order.v1.SeaDocumentType
+	12, // 4: order.v1.UpdateReleasePodRequest.sea_document_type:type_name -> order.v1.SeaDocumentType
+	0,  // 5: order.v1.TransitionReleasePodStatusRequest.expected_status:type_name -> order.v1.OrderReleasePodStatus
+	0,  // 6: order.v1.TransitionReleasePodStatusRequest.to_status:type_name -> order.v1.OrderReleasePodStatus
+	1,  // 7: order.v1.AddReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 8: order.v1.UpdateReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 9: order.v1.TransitionReleasePodStatusResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 10: order.v1.ListReleasePodsResponse.data:type_name -> order.v1.OrderReleasePod
+	2,  // 11: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
+	3,  // 12: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
+	4,  // 13: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
+	5,  // 14: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
+	6,  // 15: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
+	10, // 16: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.ListReleasePodsResponse
+	7,  // 17: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.AddReleasePodResponse
+	8,  // 18: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.UpdateReleasePodResponse
+	9,  // 19: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.TransitionReleasePodStatusResponse
+	11, // 20: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.RemoveReleasePodResponse
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_release_pod_proto_init() }
@@ -1076,6 +1137,7 @@ func file_order_v1_order_release_pod_proto_init() {
 	if File_order_v1_order_release_pod_proto != nil {
 		return
 	}
+	file_order_v1_sea_document_proto_init()
 	file_order_v1_order_release_pod_proto_msgTypes[0].OneofWrappers = []any{}
 	file_order_v1_order_release_pod_proto_msgTypes[2].OneofWrappers = []any{}
 	file_order_v1_order_release_pod_proto_msgTypes[3].OneofWrappers = []any{}

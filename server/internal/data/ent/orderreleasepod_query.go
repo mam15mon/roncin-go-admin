@@ -17,6 +17,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
 
 // OrderReleasePodQuery is the builder for querying OrderReleasePod entities.
@@ -28,6 +30,8 @@ type OrderReleasePodQuery struct {
 	predicates           []predicate.OrderReleasePod
 	withOrder            *OrderQuery
 	withShippingDocument *OrderShippingDocumentQuery
+	withSeaMasterBill    *SeaMasterBillQuery
+	withSeaHouseBill     *SeaHouseBillQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -102,6 +106,50 @@ func (_q *OrderReleasePodQuery) QueryShippingDocument() *OrderShippingDocumentQu
 			sqlgraph.From(orderreleasepod.Table, orderreleasepod.FieldID, selector),
 			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderreleasepod.ShippingDocumentTable, orderreleasepod.ShippingDocumentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBill chains the current query on the "sea_master_bill" edge.
+func (_q *OrderReleasePodQuery) QuerySeaMasterBill() *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderreleasepod.Table, orderreleasepod.FieldID, selector),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderreleasepod.SeaMasterBillTable, orderreleasepod.SeaMasterBillColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBill chains the current query on the "sea_house_bill" edge.
+func (_q *OrderReleasePodQuery) QuerySeaHouseBill() *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderreleasepod.Table, orderreleasepod.FieldID, selector),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderreleasepod.SeaHouseBillTable, orderreleasepod.SeaHouseBillColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -303,6 +351,8 @@ func (_q *OrderReleasePodQuery) Clone() *OrderReleasePodQuery {
 		predicates:           append([]predicate.OrderReleasePod{}, _q.predicates...),
 		withOrder:            _q.withOrder.Clone(),
 		withShippingDocument: _q.withShippingDocument.Clone(),
+		withSeaMasterBill:    _q.withSeaMasterBill.Clone(),
+		withSeaHouseBill:     _q.withSeaHouseBill.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -328,6 +378,28 @@ func (_q *OrderReleasePodQuery) WithShippingDocument(opts ...func(*OrderShipping
 		opt(query)
 	}
 	_q.withShippingDocument = query
+	return _q
+}
+
+// WithSeaMasterBill tells the query-builder to eager-load the nodes that are connected to
+// the "sea_master_bill" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderReleasePodQuery) WithSeaMasterBill(opts ...func(*SeaMasterBillQuery)) *OrderReleasePodQuery {
+	query := (&SeaMasterBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaMasterBill = query
+	return _q
+}
+
+// WithSeaHouseBill tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bill" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderReleasePodQuery) WithSeaHouseBill(opts ...func(*SeaHouseBillQuery)) *OrderReleasePodQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBill = query
 	return _q
 }
 
@@ -409,9 +481,11 @@ func (_q *OrderReleasePodQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderReleasePod{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			_q.withOrder != nil,
 			_q.withShippingDocument != nil,
+			_q.withSeaMasterBill != nil,
+			_q.withSeaHouseBill != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -444,6 +518,18 @@ func (_q *OrderReleasePodQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withShippingDocument; query != nil {
 		if err := _q.loadShippingDocument(ctx, query, nodes, nil,
 			func(n *OrderReleasePod, e *OrderShippingDocument) { n.Edges.ShippingDocument = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaMasterBill; query != nil {
+		if err := _q.loadSeaMasterBill(ctx, query, nodes, nil,
+			func(n *OrderReleasePod, e *SeaMasterBill) { n.Edges.SeaMasterBill = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBill; query != nil {
+		if err := _q.loadSeaHouseBill(ctx, query, nodes, nil,
+			func(n *OrderReleasePod, e *SeaHouseBill) { n.Edges.SeaHouseBill = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -511,6 +597,70 @@ func (_q *OrderReleasePodQuery) loadShippingDocument(ctx context.Context, query 
 	}
 	return nil
 }
+func (_q *OrderReleasePodQuery) loadSeaMasterBill(ctx context.Context, query *SeaMasterBillQuery, nodes []*OrderReleasePod, init func(*OrderReleasePod), assign func(*OrderReleasePod, *SeaMasterBill)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderReleasePod)
+	for i := range nodes {
+		if nodes[i].SeaMasterBillID == nil {
+			continue
+		}
+		fk := *nodes[i].SeaMasterBillID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seamasterbill.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "sea_master_bill_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderReleasePodQuery) loadSeaHouseBill(ctx context.Context, query *SeaHouseBillQuery, nodes []*OrderReleasePod, init func(*OrderReleasePod), assign func(*OrderReleasePod, *SeaHouseBill)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderReleasePod)
+	for i := range nodes {
+		if nodes[i].SeaHouseBillID == nil {
+			continue
+		}
+		fk := *nodes[i].SeaHouseBillID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seahousebill.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "sea_house_bill_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *OrderReleasePodQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -545,6 +695,12 @@ func (_q *OrderReleasePodQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withShippingDocument != nil {
 			_spec.Node.AddColumnOnce(orderreleasepod.FieldShippingDocumentID)
+		}
+		if _q.withSeaMasterBill != nil {
+			_spec.Node.AddColumnOnce(orderreleasepod.FieldSeaMasterBillID)
+		}
+		if _q.withSeaHouseBill != nil {
+			_spec.Node.AddColumnOnce(orderreleasepod.FieldSeaHouseBillID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

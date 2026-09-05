@@ -117,6 +117,8 @@ const (
 	ErrorReason_ERROR_REASON_SEA_DOCUMENT_VOIDED                                ErrorReason = 89
 	ErrorReason_ERROR_REASON_SEA_HOUSE_BILL_SWITCH_CONFLICT                     ErrorReason = 90
 	ErrorReason_ERROR_REASON_SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED           ErrorReason = 91
+	ErrorReason_ERROR_REASON_SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED   ErrorReason = 92
+	ErrorReason_ERROR_REASON_SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED        ErrorReason = 93
 )
 
 // Enum value maps for ErrorReason.
@@ -214,6 +216,8 @@ var (
 		89: "ERROR_REASON_SEA_DOCUMENT_VOIDED",
 		90: "ERROR_REASON_SEA_HOUSE_BILL_SWITCH_CONFLICT",
 		91: "ERROR_REASON_SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED",
+		92: "ERROR_REASON_SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED",
+		93: "ERROR_REASON_SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_ORDER_UNSPECIFIED":                                  0,
@@ -308,6 +312,8 @@ var (
 		"ERROR_REASON_SEA_DOCUMENT_VOIDED":                                89,
 		"ERROR_REASON_SEA_HOUSE_BILL_SWITCH_CONFLICT":                     90,
 		"ERROR_REASON_SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED":           91,
+		"ERROR_REASON_SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED":   92,
+		"ERROR_REASON_SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED":        93,
 	}
 )
 
@@ -342,7 +348,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xb1#\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xb2$\n" +
 	"\vErrorReason\x12\"\n" +
 	"\x1eERROR_REASON_ORDER_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cERROR_REASON_ORDER_NOT_FOUND\x10\x01\x12'\n" +
@@ -436,7 +442,9 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"(ERROR_REASON_SEA_DOCUMENT_CHANGE_BLOCKED\x10X\x12$\n" +
 	" ERROR_REASON_SEA_DOCUMENT_VOIDED\x10Y\x12/\n" +
 	"+ERROR_REASON_SEA_HOUSE_BILL_SWITCH_CONFLICT\x10Z\x129\n" +
-	"5ERROR_REASON_SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED\x10[B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"5ERROR_REASON_SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED\x10[\x12A\n" +
+	"=ERROR_REASON_SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED\x10\\\x12<\n" +
+	"8ERROR_REASON_SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED\x10]B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once

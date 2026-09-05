@@ -76,6 +76,16 @@ func ShippingDocumentID(v uuid.UUID) predicate.OrderReleasePod {
 	return predicate.OrderReleasePod(sql.FieldEQ(FieldShippingDocumentID, v))
 }
 
+// SeaMasterBillID applies equality check predicate on the "sea_master_bill_id" field. It's identical to SeaMasterBillIDEQ.
+func SeaMasterBillID(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldEQ(FieldSeaMasterBillID, v))
+}
+
+// SeaHouseBillID applies equality check predicate on the "sea_house_bill_id" field. It's identical to SeaHouseBillIDEQ.
+func SeaHouseBillID(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldEQ(FieldSeaHouseBillID, v))
+}
+
 // ReleaseNo applies equality check predicate on the "release_no" field. It's identical to ReleaseNoEQ.
 func ReleaseNo(v string) predicate.OrderReleasePod {
 	return predicate.OrderReleasePod(sql.FieldEQ(FieldReleaseNo, v))
@@ -229,6 +239,66 @@ func ShippingDocumentIDIsNil() predicate.OrderReleasePod {
 // ShippingDocumentIDNotNil applies the NotNil predicate on the "shipping_document_id" field.
 func ShippingDocumentIDNotNil() predicate.OrderReleasePod {
 	return predicate.OrderReleasePod(sql.FieldNotNull(FieldShippingDocumentID))
+}
+
+// SeaMasterBillIDEQ applies the EQ predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDEQ(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldEQ(FieldSeaMasterBillID, v))
+}
+
+// SeaMasterBillIDNEQ applies the NEQ predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDNEQ(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNEQ(FieldSeaMasterBillID, v))
+}
+
+// SeaMasterBillIDIn applies the In predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDIn(vs ...uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldIn(FieldSeaMasterBillID, vs...))
+}
+
+// SeaMasterBillIDNotIn applies the NotIn predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDNotIn(vs ...uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNotIn(FieldSeaMasterBillID, vs...))
+}
+
+// SeaMasterBillIDIsNil applies the IsNil predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDIsNil() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldIsNull(FieldSeaMasterBillID))
+}
+
+// SeaMasterBillIDNotNil applies the NotNil predicate on the "sea_master_bill_id" field.
+func SeaMasterBillIDNotNil() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNotNull(FieldSeaMasterBillID))
+}
+
+// SeaHouseBillIDEQ applies the EQ predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDEQ(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldEQ(FieldSeaHouseBillID, v))
+}
+
+// SeaHouseBillIDNEQ applies the NEQ predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDNEQ(v uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNEQ(FieldSeaHouseBillID, v))
+}
+
+// SeaHouseBillIDIn applies the In predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDIn(vs ...uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldIn(FieldSeaHouseBillID, vs...))
+}
+
+// SeaHouseBillIDNotIn applies the NotIn predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDNotIn(vs ...uuid.UUID) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNotIn(FieldSeaHouseBillID, vs...))
+}
+
+// SeaHouseBillIDIsNil applies the IsNil predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDIsNil() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldIsNull(FieldSeaHouseBillID))
+}
+
+// SeaHouseBillIDNotNil applies the NotNil predicate on the "sea_house_bill_id" field.
+func SeaHouseBillIDNotNil() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(sql.FieldNotNull(FieldSeaHouseBillID))
 }
 
 // ReleaseNoEQ applies the EQ predicate on the "release_no" field.
@@ -614,6 +684,52 @@ func HasShippingDocument() predicate.OrderReleasePod {
 func HasShippingDocumentWith(preds ...predicate.OrderShippingDocument) predicate.OrderReleasePod {
 	return predicate.OrderReleasePod(func(s *sql.Selector) {
 		step := newShippingDocumentStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaMasterBill applies the HasEdge predicate on the "sea_master_bill" edge.
+func HasSeaMasterBill() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SeaMasterBillTable, SeaMasterBillColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaMasterBillWith applies the HasEdge predicate on the "sea_master_bill" edge with a given conditions (other predicates).
+func HasSeaMasterBillWith(preds ...predicate.SeaMasterBill) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(func(s *sql.Selector) {
+		step := newSeaMasterBillStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaHouseBill applies the HasEdge predicate on the "sea_house_bill" edge.
+func HasSeaHouseBill() predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SeaHouseBillTable, SeaHouseBillColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillWith applies the HasEdge predicate on the "sea_house_bill" edge with a given conditions (other predicates).
+func HasSeaHouseBillWith(preds ...predicate.SeaHouseBill) predicate.OrderReleasePod {
+	return predicate.OrderReleasePod(func(s *sql.Selector) {
+		step := newSeaHouseBillStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

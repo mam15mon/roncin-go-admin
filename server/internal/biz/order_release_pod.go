@@ -61,6 +61,8 @@ type OrderReleasePod struct {
 	ID                 uuid.UUID
 	OrderID            uuid.UUID
 	ShippingDocumentID *uuid.UUID
+	SeaDocumentType    SeaDocumentType
+	SeaDocumentID      *uuid.UUID
 	ReleaseNo          *string
 	PodNo              *string
 	Status             OrderReleasePodStatus
@@ -181,6 +183,15 @@ func (uc *OrderReleasePodUsecase) Remove(ctx context.Context, organizationID, ac
 func normalizeOrderReleasePod(input *OrderReleasePod) (*OrderReleasePod, error) {
 	if input == nil {
 		return nil, ErrOrderReleasePodInvalidArgument
+	}
+	if input.ShippingDocumentID != nil && (input.SeaDocumentType != "" || input.SeaDocumentID != nil) {
+		return nil, ErrOrderReleasePodDocumentInvalid
+	}
+	if (input.SeaDocumentType == "") != (input.SeaDocumentID == nil) {
+		return nil, ErrOrderReleasePodDocumentInvalid
+	}
+	if input.SeaDocumentType != "" && !input.SeaDocumentType.Valid() {
+		return nil, ErrOrderReleasePodDocumentInvalid
 	}
 	var releaseNo *string
 	if input.ReleaseNo != nil {

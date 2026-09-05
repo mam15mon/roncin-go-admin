@@ -85771,6 +85771,10 @@ type OrderReleasePodMutation struct {
 	cleared_order            bool
 	shipping_document        *uuid.UUID
 	clearedshipping_document bool
+	sea_master_bill          *uuid.UUID
+	clearedsea_master_bill   bool
+	sea_house_bill           *uuid.UUID
+	clearedsea_house_bill    bool
 	done                     bool
 	oldValue                 func(context.Context) (*OrderReleasePod, error)
 	predicates               []predicate.OrderReleasePod
@@ -86035,6 +86039,104 @@ func (m *OrderReleasePodMutation) ShippingDocumentIDCleared() bool {
 func (m *OrderReleasePodMutation) ResetShippingDocumentID() {
 	m.shipping_document = nil
 	delete(m.clearedFields, orderreleasepod.FieldShippingDocumentID)
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (m *OrderReleasePodMutation) SetSeaMasterBillID(u uuid.UUID) {
+	m.sea_master_bill = &u
+}
+
+// SeaMasterBillID returns the value of the "sea_master_bill_id" field in the mutation.
+func (m *OrderReleasePodMutation) SeaMasterBillID() (r uuid.UUID, exists bool) {
+	v := m.sea_master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeaMasterBillID returns the old "sea_master_bill_id" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldSeaMasterBillID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeaMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeaMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeaMasterBillID: %w", err)
+	}
+	return oldValue.SeaMasterBillID, nil
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (m *OrderReleasePodMutation) ClearSeaMasterBillID() {
+	m.sea_master_bill = nil
+	m.clearedFields[orderreleasepod.FieldSeaMasterBillID] = struct{}{}
+}
+
+// SeaMasterBillIDCleared returns if the "sea_master_bill_id" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) SeaMasterBillIDCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldSeaMasterBillID]
+	return ok
+}
+
+// ResetSeaMasterBillID resets all changes to the "sea_master_bill_id" field.
+func (m *OrderReleasePodMutation) ResetSeaMasterBillID() {
+	m.sea_master_bill = nil
+	delete(m.clearedFields, orderreleasepod.FieldSeaMasterBillID)
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (m *OrderReleasePodMutation) SetSeaHouseBillID(u uuid.UUID) {
+	m.sea_house_bill = &u
+}
+
+// SeaHouseBillID returns the value of the "sea_house_bill_id" field in the mutation.
+func (m *OrderReleasePodMutation) SeaHouseBillID() (r uuid.UUID, exists bool) {
+	v := m.sea_house_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeaHouseBillID returns the old "sea_house_bill_id" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldSeaHouseBillID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeaHouseBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeaHouseBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeaHouseBillID: %w", err)
+	}
+	return oldValue.SeaHouseBillID, nil
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (m *OrderReleasePodMutation) ClearSeaHouseBillID() {
+	m.sea_house_bill = nil
+	m.clearedFields[orderreleasepod.FieldSeaHouseBillID] = struct{}{}
+}
+
+// SeaHouseBillIDCleared returns if the "sea_house_bill_id" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) SeaHouseBillIDCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldSeaHouseBillID]
+	return ok
+}
+
+// ResetSeaHouseBillID resets all changes to the "sea_house_bill_id" field.
+func (m *OrderReleasePodMutation) ResetSeaHouseBillID() {
+	m.sea_house_bill = nil
+	delete(m.clearedFields, orderreleasepod.FieldSeaHouseBillID)
 }
 
 // SetReleaseNo sets the "release_no" field.
@@ -86372,6 +86474,60 @@ func (m *OrderReleasePodMutation) ResetShippingDocument() {
 	m.clearedshipping_document = false
 }
 
+// ClearSeaMasterBill clears the "sea_master_bill" edge to the SeaMasterBill entity.
+func (m *OrderReleasePodMutation) ClearSeaMasterBill() {
+	m.clearedsea_master_bill = true
+	m.clearedFields[orderreleasepod.FieldSeaMasterBillID] = struct{}{}
+}
+
+// SeaMasterBillCleared reports if the "sea_master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *OrderReleasePodMutation) SeaMasterBillCleared() bool {
+	return m.SeaMasterBillIDCleared() || m.clearedsea_master_bill
+}
+
+// SeaMasterBillIDs returns the "sea_master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SeaMasterBillID instead. It exists only for internal usage by the builders.
+func (m *OrderReleasePodMutation) SeaMasterBillIDs() (ids []uuid.UUID) {
+	if id := m.sea_master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSeaMasterBill resets all changes to the "sea_master_bill" edge.
+func (m *OrderReleasePodMutation) ResetSeaMasterBill() {
+	m.sea_master_bill = nil
+	m.clearedsea_master_bill = false
+}
+
+// ClearSeaHouseBill clears the "sea_house_bill" edge to the SeaHouseBill entity.
+func (m *OrderReleasePodMutation) ClearSeaHouseBill() {
+	m.clearedsea_house_bill = true
+	m.clearedFields[orderreleasepod.FieldSeaHouseBillID] = struct{}{}
+}
+
+// SeaHouseBillCleared reports if the "sea_house_bill" edge to the SeaHouseBill entity was cleared.
+func (m *OrderReleasePodMutation) SeaHouseBillCleared() bool {
+	return m.SeaHouseBillIDCleared() || m.clearedsea_house_bill
+}
+
+// SeaHouseBillIDs returns the "sea_house_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SeaHouseBillID instead. It exists only for internal usage by the builders.
+func (m *OrderReleasePodMutation) SeaHouseBillIDs() (ids []uuid.UUID) {
+	if id := m.sea_house_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSeaHouseBill resets all changes to the "sea_house_bill" edge.
+func (m *OrderReleasePodMutation) ResetSeaHouseBill() {
+	m.sea_house_bill = nil
+	m.clearedsea_house_bill = false
+}
+
 // Where appends a list predicates to the OrderReleasePodMutation builder.
 func (m *OrderReleasePodMutation) Where(ps ...predicate.OrderReleasePod) {
 	m.predicates = append(m.predicates, ps...)
@@ -86406,7 +86562,7 @@ func (m *OrderReleasePodMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderReleasePodMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, orderreleasepod.FieldCreatedAt)
 	}
@@ -86418,6 +86574,12 @@ func (m *OrderReleasePodMutation) Fields() []string {
 	}
 	if m.shipping_document != nil {
 		fields = append(fields, orderreleasepod.FieldShippingDocumentID)
+	}
+	if m.sea_master_bill != nil {
+		fields = append(fields, orderreleasepod.FieldSeaMasterBillID)
+	}
+	if m.sea_house_bill != nil {
+		fields = append(fields, orderreleasepod.FieldSeaHouseBillID)
 	}
 	if m.release_no != nil {
 		fields = append(fields, orderreleasepod.FieldReleaseNo)
@@ -86453,6 +86615,10 @@ func (m *OrderReleasePodMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case orderreleasepod.FieldShippingDocumentID:
 		return m.ShippingDocumentID()
+	case orderreleasepod.FieldSeaMasterBillID:
+		return m.SeaMasterBillID()
+	case orderreleasepod.FieldSeaHouseBillID:
+		return m.SeaHouseBillID()
 	case orderreleasepod.FieldReleaseNo:
 		return m.ReleaseNo()
 	case orderreleasepod.FieldPodNo:
@@ -86482,6 +86648,10 @@ func (m *OrderReleasePodMutation) OldField(ctx context.Context, name string) (en
 		return m.OldOrderID(ctx)
 	case orderreleasepod.FieldShippingDocumentID:
 		return m.OldShippingDocumentID(ctx)
+	case orderreleasepod.FieldSeaMasterBillID:
+		return m.OldSeaMasterBillID(ctx)
+	case orderreleasepod.FieldSeaHouseBillID:
+		return m.OldSeaHouseBillID(ctx)
 	case orderreleasepod.FieldReleaseNo:
 		return m.OldReleaseNo(ctx)
 	case orderreleasepod.FieldPodNo:
@@ -86530,6 +86700,20 @@ func (m *OrderReleasePodMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetShippingDocumentID(v)
+		return nil
+	case orderreleasepod.FieldSeaMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeaMasterBillID(v)
+		return nil
+	case orderreleasepod.FieldSeaHouseBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeaHouseBillID(v)
 		return nil
 	case orderreleasepod.FieldReleaseNo:
 		v, ok := value.(string)
@@ -86606,6 +86790,12 @@ func (m *OrderReleasePodMutation) ClearedFields() []string {
 	if m.FieldCleared(orderreleasepod.FieldShippingDocumentID) {
 		fields = append(fields, orderreleasepod.FieldShippingDocumentID)
 	}
+	if m.FieldCleared(orderreleasepod.FieldSeaMasterBillID) {
+		fields = append(fields, orderreleasepod.FieldSeaMasterBillID)
+	}
+	if m.FieldCleared(orderreleasepod.FieldSeaHouseBillID) {
+		fields = append(fields, orderreleasepod.FieldSeaHouseBillID)
+	}
 	if m.FieldCleared(orderreleasepod.FieldReleaseNo) {
 		fields = append(fields, orderreleasepod.FieldReleaseNo)
 	}
@@ -86637,6 +86827,12 @@ func (m *OrderReleasePodMutation) ClearField(name string) error {
 	switch name {
 	case orderreleasepod.FieldShippingDocumentID:
 		m.ClearShippingDocumentID()
+		return nil
+	case orderreleasepod.FieldSeaMasterBillID:
+		m.ClearSeaMasterBillID()
+		return nil
+	case orderreleasepod.FieldSeaHouseBillID:
+		m.ClearSeaHouseBillID()
 		return nil
 	case orderreleasepod.FieldReleaseNo:
 		m.ClearReleaseNo()
@@ -86673,6 +86869,12 @@ func (m *OrderReleasePodMutation) ResetField(name string) error {
 	case orderreleasepod.FieldShippingDocumentID:
 		m.ResetShippingDocumentID()
 		return nil
+	case orderreleasepod.FieldSeaMasterBillID:
+		m.ResetSeaMasterBillID()
+		return nil
+	case orderreleasepod.FieldSeaHouseBillID:
+		m.ResetSeaHouseBillID()
+		return nil
 	case orderreleasepod.FieldReleaseNo:
 		m.ResetReleaseNo()
 		return nil
@@ -86697,12 +86899,18 @@ func (m *OrderReleasePodMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderReleasePodMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m._order != nil {
 		edges = append(edges, orderreleasepod.EdgeOrder)
 	}
 	if m.shipping_document != nil {
 		edges = append(edges, orderreleasepod.EdgeShippingDocument)
+	}
+	if m.sea_master_bill != nil {
+		edges = append(edges, orderreleasepod.EdgeSeaMasterBill)
+	}
+	if m.sea_house_bill != nil {
+		edges = append(edges, orderreleasepod.EdgeSeaHouseBill)
 	}
 	return edges
 }
@@ -86719,13 +86927,21 @@ func (m *OrderReleasePodMutation) AddedIDs(name string) []ent.Value {
 		if id := m.shipping_document; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderreleasepod.EdgeSeaMasterBill:
+		if id := m.sea_master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderreleasepod.EdgeSeaHouseBill:
+		if id := m.sea_house_bill; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderReleasePodMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -86737,12 +86953,18 @@ func (m *OrderReleasePodMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderReleasePodMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.cleared_order {
 		edges = append(edges, orderreleasepod.EdgeOrder)
 	}
 	if m.clearedshipping_document {
 		edges = append(edges, orderreleasepod.EdgeShippingDocument)
+	}
+	if m.clearedsea_master_bill {
+		edges = append(edges, orderreleasepod.EdgeSeaMasterBill)
+	}
+	if m.clearedsea_house_bill {
+		edges = append(edges, orderreleasepod.EdgeSeaHouseBill)
 	}
 	return edges
 }
@@ -86755,6 +86977,10 @@ func (m *OrderReleasePodMutation) EdgeCleared(name string) bool {
 		return m.cleared_order
 	case orderreleasepod.EdgeShippingDocument:
 		return m.clearedshipping_document
+	case orderreleasepod.EdgeSeaMasterBill:
+		return m.clearedsea_master_bill
+	case orderreleasepod.EdgeSeaHouseBill:
+		return m.clearedsea_house_bill
 	}
 	return false
 }
@@ -86769,6 +86995,12 @@ func (m *OrderReleasePodMutation) ClearEdge(name string) error {
 	case orderreleasepod.EdgeShippingDocument:
 		m.ClearShippingDocument()
 		return nil
+	case orderreleasepod.EdgeSeaMasterBill:
+		m.ClearSeaMasterBill()
+		return nil
+	case orderreleasepod.EdgeSeaHouseBill:
+		m.ClearSeaHouseBill()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderReleasePod unique edge %s", name)
 }
@@ -86782,6 +87014,12 @@ func (m *OrderReleasePodMutation) ResetEdge(name string) error {
 		return nil
 	case orderreleasepod.EdgeShippingDocument:
 		m.ResetShippingDocument()
+		return nil
+	case orderreleasepod.EdgeSeaMasterBill:
+		m.ResetSeaMasterBill()
+		return nil
+	case orderreleasepod.EdgeSeaHouseBill:
+		m.ResetSeaHouseBill()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderReleasePod edge %s", name)
@@ -117368,6 +117606,9 @@ type SeaHouseBillMutation struct {
 	new_switch_events          map[uuid.UUID]struct{}
 	removednew_switch_events   map[uuid.UUID]struct{}
 	clearednew_switch_events   bool
+	release_pods               map[uuid.UUID]struct{}
+	removedrelease_pods        map[uuid.UUID]struct{}
+	clearedrelease_pods        bool
 	done                       bool
 	oldValue                   func(context.Context) (*SeaHouseBill, error)
 	predicates                 []predicate.SeaHouseBill
@@ -119337,6 +119578,60 @@ func (m *SeaHouseBillMutation) ResetNewSwitchEvents() {
 	m.removednew_switch_events = nil
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by ids.
+func (m *SeaHouseBillMutation) AddReleasePodIDs(ids ...uuid.UUID) {
+	if m.release_pods == nil {
+		m.release_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.release_pods[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReleasePods clears the "release_pods" edge to the OrderReleasePod entity.
+func (m *SeaHouseBillMutation) ClearReleasePods() {
+	m.clearedrelease_pods = true
+}
+
+// ReleasePodsCleared reports if the "release_pods" edge to the OrderReleasePod entity was cleared.
+func (m *SeaHouseBillMutation) ReleasePodsCleared() bool {
+	return m.clearedrelease_pods
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (m *SeaHouseBillMutation) RemoveReleasePodIDs(ids ...uuid.UUID) {
+	if m.removedrelease_pods == nil {
+		m.removedrelease_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.release_pods, ids[i])
+		m.removedrelease_pods[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReleasePods returns the removed IDs of the "release_pods" edge to the OrderReleasePod entity.
+func (m *SeaHouseBillMutation) RemovedReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrelease_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReleasePodsIDs returns the "release_pods" edge IDs in the mutation.
+func (m *SeaHouseBillMutation) ReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.release_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReleasePods resets all changes to the "release_pods" edge.
+func (m *SeaHouseBillMutation) ResetReleasePods() {
+	m.release_pods = nil
+	m.clearedrelease_pods = false
+	m.removedrelease_pods = nil
+}
+
 // Where appends a list predicates to the SeaHouseBillMutation builder.
 func (m *SeaHouseBillMutation) Where(ps ...predicate.SeaHouseBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -120114,7 +120409,7 @@ func (m *SeaHouseBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaHouseBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.organization != nil {
 		edges = append(edges, seahousebill.EdgeOrganization)
 	}
@@ -120150,6 +120445,9 @@ func (m *SeaHouseBillMutation) AddedEdges() []string {
 	}
 	if m.new_switch_events != nil {
 		edges = append(edges, seahousebill.EdgeNewSwitchEvents)
+	}
+	if m.release_pods != nil {
+		edges = append(edges, seahousebill.EdgeReleasePods)
 	}
 	return edges
 }
@@ -120218,13 +120516,19 @@ func (m *SeaHouseBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seahousebill.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.release_pods))
+		for id := range m.release_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaHouseBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.removedcargo_allocations != nil {
 		edges = append(edges, seahousebill.EdgeCargoAllocations)
 	}
@@ -120242,6 +120546,9 @@ func (m *SeaHouseBillMutation) RemovedEdges() []string {
 	}
 	if m.removednew_switch_events != nil {
 		edges = append(edges, seahousebill.EdgeNewSwitchEvents)
+	}
+	if m.removedrelease_pods != nil {
+		edges = append(edges, seahousebill.EdgeReleasePods)
 	}
 	return edges
 }
@@ -120286,13 +120593,19 @@ func (m *SeaHouseBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seahousebill.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.removedrelease_pods))
+		for id := range m.removedrelease_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaHouseBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.clearedorganization {
 		edges = append(edges, seahousebill.EdgeOrganization)
 	}
@@ -120329,6 +120642,9 @@ func (m *SeaHouseBillMutation) ClearedEdges() []string {
 	if m.clearednew_switch_events {
 		edges = append(edges, seahousebill.EdgeNewSwitchEvents)
 	}
+	if m.clearedrelease_pods {
+		edges = append(edges, seahousebill.EdgeReleasePods)
+	}
 	return edges
 }
 
@@ -120360,6 +120676,8 @@ func (m *SeaHouseBillMutation) EdgeCleared(name string) bool {
 		return m.clearedold_switch_events
 	case seahousebill.EdgeNewSwitchEvents:
 		return m.clearednew_switch_events
+	case seahousebill.EdgeReleasePods:
+		return m.clearedrelease_pods
 	}
 	return false
 }
@@ -120429,6 +120747,9 @@ func (m *SeaHouseBillMutation) ResetEdge(name string) error {
 		return nil
 	case seahousebill.EdgeNewSwitchEvents:
 		m.ResetNewSwitchEvents()
+		return nil
+	case seahousebill.EdgeReleasePods:
+		m.ResetReleasePods()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBill edge %s", name)
@@ -125634,6 +125955,9 @@ type SeaMasterBillMutation struct {
 	switch_events                           map[uuid.UUID]struct{}
 	removedswitch_events                    map[uuid.UUID]struct{}
 	clearedswitch_events                    bool
+	release_pods                            map[uuid.UUID]struct{}
+	removedrelease_pods                     map[uuid.UUID]struct{}
+	clearedrelease_pods                     bool
 	done                                    bool
 	oldValue                                func(context.Context) (*SeaMasterBill, error)
 	predicates                              []predicate.SeaMasterBill
@@ -127609,6 +127933,60 @@ func (m *SeaMasterBillMutation) ResetSwitchEvents() {
 	m.removedswitch_events = nil
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by ids.
+func (m *SeaMasterBillMutation) AddReleasePodIDs(ids ...uuid.UUID) {
+	if m.release_pods == nil {
+		m.release_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.release_pods[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReleasePods clears the "release_pods" edge to the OrderReleasePod entity.
+func (m *SeaMasterBillMutation) ClearReleasePods() {
+	m.clearedrelease_pods = true
+}
+
+// ReleasePodsCleared reports if the "release_pods" edge to the OrderReleasePod entity was cleared.
+func (m *SeaMasterBillMutation) ReleasePodsCleared() bool {
+	return m.clearedrelease_pods
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (m *SeaMasterBillMutation) RemoveReleasePodIDs(ids ...uuid.UUID) {
+	if m.removedrelease_pods == nil {
+		m.removedrelease_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.release_pods, ids[i])
+		m.removedrelease_pods[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReleasePods returns the removed IDs of the "release_pods" edge to the OrderReleasePod entity.
+func (m *SeaMasterBillMutation) RemovedReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrelease_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReleasePodsIDs returns the "release_pods" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) ReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.release_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReleasePods resets all changes to the "release_pods" edge.
+func (m *SeaMasterBillMutation) ResetReleasePods() {
+	m.release_pods = nil
+	m.clearedrelease_pods = false
+	m.removedrelease_pods = nil
+}
+
 // Where appends a list predicates to the SeaMasterBillMutation builder.
 func (m *SeaMasterBillMutation) Where(ps ...predicate.SeaMasterBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -128300,7 +128678,7 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.organization != nil {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -128342,6 +128720,9 @@ func (m *SeaMasterBillMutation) AddedEdges() []string {
 	}
 	if m.switch_events != nil {
 		edges = append(edges, seamasterbill.EdgeSwitchEvents)
+	}
+	if m.release_pods != nil {
+		edges = append(edges, seamasterbill.EdgeReleasePods)
 	}
 	return edges
 }
@@ -128428,13 +128809,19 @@ func (m *SeaMasterBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.release_pods))
+		for id := range m.release_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.removedorder_links != nil {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
 	}
@@ -128467,6 +128854,9 @@ func (m *SeaMasterBillMutation) RemovedEdges() []string {
 	}
 	if m.removedswitch_events != nil {
 		edges = append(edges, seamasterbill.EdgeSwitchEvents)
+	}
+	if m.removedrelease_pods != nil {
+		edges = append(edges, seamasterbill.EdgeReleasePods)
 	}
 	return edges
 }
@@ -128541,13 +128931,19 @@ func (m *SeaMasterBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.removedrelease_pods))
+		for id := range m.removedrelease_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -128590,6 +128986,9 @@ func (m *SeaMasterBillMutation) ClearedEdges() []string {
 	if m.clearedswitch_events {
 		edges = append(edges, seamasterbill.EdgeSwitchEvents)
 	}
+	if m.clearedrelease_pods {
+		edges = append(edges, seamasterbill.EdgeReleasePods)
+	}
 	return edges
 }
 
@@ -128625,6 +129024,8 @@ func (m *SeaMasterBillMutation) EdgeCleared(name string) bool {
 		return m.clearedvoid_events
 	case seamasterbill.EdgeSwitchEvents:
 		return m.clearedswitch_events
+	case seamasterbill.EdgeReleasePods:
+		return m.clearedrelease_pods
 	}
 	return false
 }
@@ -128691,6 +129092,9 @@ func (m *SeaMasterBillMutation) ResetEdge(name string) error {
 		return nil
 	case seamasterbill.EdgeSwitchEvents:
 		m.ResetSwitchEvents()
+		return nil
+	case seamasterbill.EdgeReleasePods:
+		m.ResetReleasePods()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill edge %s", name)

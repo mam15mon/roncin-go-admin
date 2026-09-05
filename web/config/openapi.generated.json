@@ -8625,6 +8625,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "removeRelatedReleasePods",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -19983,6 +19990,13 @@
           },
           "note": {
             "type": "string"
+          },
+          "seaDocumentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "seaDocumentId": {
+            "type": "string"
           }
         },
         "description": "AddReleasePodRequest 添加放货凭证请求。"
@@ -23154,6 +23168,13 @@
               "type": "integer",
               "format": "enum"
             }
+          },
+          "seaDocumentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "seaDocumentId": {
+            "type": "string"
           }
         },
         "description": "OrderReleasePod 放货凭证信息。"
@@ -26759,6 +26780,13 @@
             "type": "string"
           },
           "note": {
+            "type": "string"
+          },
+          "seaDocumentType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "seaDocumentId": {
             "type": "string"
           }
         },

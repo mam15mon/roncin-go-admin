@@ -5343,15 +5343,15 @@ func init() {
 	// orderreleasepod.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderreleasepod.UpdateDefaultUpdatedAt = orderreleasepodDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderreleasepodDescReleaseNo is the schema descriptor for release_no field.
-	orderreleasepodDescReleaseNo := orderreleasepodFields[2].Descriptor()
+	orderreleasepodDescReleaseNo := orderreleasepodFields[4].Descriptor()
 	// orderreleasepod.ReleaseNoValidator is a validator for the "release_no" field. It is called by the builders before save.
 	orderreleasepod.ReleaseNoValidator = orderreleasepodDescReleaseNo.Validators[0].(func(string) error)
 	// orderreleasepodDescPodNo is the schema descriptor for pod_no field.
-	orderreleasepodDescPodNo := orderreleasepodFields[3].Descriptor()
+	orderreleasepodDescPodNo := orderreleasepodFields[5].Descriptor()
 	// orderreleasepod.PodNoValidator is a validator for the "pod_no" field. It is called by the builders before save.
 	orderreleasepod.PodNoValidator = orderreleasepodDescPodNo.Validators[0].(func(string) error)
 	// orderreleasepodDescNote is the schema descriptor for note field.
-	orderreleasepodDescNote := orderreleasepodFields[7].Descriptor()
+	orderreleasepodDescNote := orderreleasepodFields[9].Descriptor()
 	// orderreleasepod.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderreleasepod.NoteValidator = orderreleasepodDescNote.Validators[0].(func(string) error)
 	// orderreleasepodDescID is the schema descriptor for id field.

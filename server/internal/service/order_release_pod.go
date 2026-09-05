@@ -46,7 +46,7 @@ func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	orderID, input, err := orderReleasePodInputFromAPI(request.GetOrderId(), request.GetShippingDocumentId(), request.GetReleaseNo(), request.GetPodNo(), request.GetNote())
+	orderID, input, err := orderReleasePodInputFromAPI(request.GetOrderId(), request.GetShippingDocumentId(), request.GetSeaDocumentType(), request.GetSeaDocumentId(), request.GetReleaseNo(), request.GetPodNo(), request.GetNote())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *
 	if err != nil {
 		return nil, biz.ErrOrderReleasePodInvalidArgument
 	}
-	orderID, input, err := orderReleasePodInputFromAPI(request.GetOrderId(), request.GetShippingDocumentId(), request.GetReleaseNo(), request.GetPodNo(), request.GetNote())
+	orderID, input, err := orderReleasePodInputFromAPI(request.GetOrderId(), request.GetShippingDocumentId(), request.GetSeaDocumentType(), request.GetSeaDocumentId(), request.GetReleaseNo(), request.GetPodNo(), request.GetNote())
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +137,11 @@ func orderReleasePodToAPI(value *biz.OrderReleasePod) *v1.OrderReleasePod {
 		documentID := value.ShippingDocumentID.String()
 		item.ShippingDocumentId = &documentID
 	}
+	item.SeaDocumentType = seaDocumentTypeToAPI(value.SeaDocumentType)
+	if value.SeaDocumentID != nil {
+		documentID := value.SeaDocumentID.String()
+		item.SeaDocumentId = &documentID
+	}
 	if value.ReleaseNo != nil {
 		item.ReleaseNo = value.ReleaseNo
 	}
@@ -157,18 +162,34 @@ func orderReleasePodToAPI(value *biz.OrderReleasePod) *v1.OrderReleasePod {
 	return item
 }
 
-func orderReleasePodInputFromAPI(orderIDText, documentIDText, releaseNo, podNo, note string) (uuid.UUID, *biz.OrderReleasePod, error) {
+func orderReleasePodInputFromAPI(orderIDText, documentIDText string, seaDocumentType v1.SeaDocumentType, seaDocumentIDText, releaseNo, podNo, note string) (uuid.UUID, *biz.OrderReleasePod, error) {
 	orderID, err := uuid.Parse(orderIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderReleasePodInvalidArgument
 	}
 	input := &biz.OrderReleasePod{}
+	if seaDocumentType != v1.SeaDocumentType_SEA_DOCUMENT_TYPE_UNSPECIFIED &&
+		seaDocumentType != v1.SeaDocumentType_SEA_DOCUMENT_TYPE_MASTER_BILL &&
+		seaDocumentType != v1.SeaDocumentType_SEA_DOCUMENT_TYPE_HOUSE_BILL {
+		return uuid.Nil, nil, biz.ErrOrderReleasePodDocumentInvalid
+	}
 	if documentIDText != "" {
 		documentID, err := uuid.Parse(documentIDText)
 		if err != nil {
-			return uuid.Nil, nil, biz.ErrOrderReleasePodInvalidArgument
+			return uuid.Nil, nil, biz.ErrOrderReleasePodDocumentInvalid
 		}
 		input.ShippingDocumentID = &documentID
+	}
+	input.SeaDocumentType = seaDocumentTypeFromAPI(seaDocumentType)
+	if seaDocumentIDText != "" {
+		documentID, err := uuid.Parse(seaDocumentIDText)
+		if err != nil {
+			return uuid.Nil, nil, biz.ErrOrderReleasePodDocumentInvalid
+		}
+		input.SeaDocumentID = &documentID
+	}
+	if (input.SeaDocumentType == "") != (input.SeaDocumentID == nil) || input.ShippingDocumentID != nil && input.SeaDocumentID != nil {
+		return uuid.Nil, nil, biz.ErrOrderReleasePodDocumentInvalid
 	}
 	if releaseNo != "" {
 		input.ReleaseNo = &releaseNo

@@ -31,6 +31,16 @@
   - `PUT /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`。
   - `DELETE /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`。
   - `PUT /api/v1/orders/{order_id}/sea-documents/master-bill-content`。
+- 放货记录命令：
+  - `GET /api/v1/orders/{order_id}/release-pods`。
+  - `POST /api/v1/orders/{order_id}/release-pods`。
+  - `PUT /api/v1/orders/{order_id}/release-pods/{id}`。
+  - `POST /api/v1/orders/{order_id}/release-pods/{id}/transition`。
+  - `DELETE /api/v1/orders/{order_id}/release-pods/{id}`。
+- 放货记录单证字段：旧模型使用 `shipping_document_id`；SE 使用
+  `sea_document_type + sea_document_id`，其中类型只允许 `MASTER_BILL | HOUSE_BILL`。
+- HBL 硬删除请求可显式提交 `remove_related_release_pods=true`；该请求还需要
+  `SE release_pod.delete` 的组织范围权限。
 - 并发字段：
   - 结构变更和 HBL 命令携带 `expected_link_version`。
   - HBL 更新/删除同时携带 `expected_version`。
@@ -42,6 +52,9 @@
     条件为 `issuer_source = 'SELF_ORGANIZATION'`。
   - 外部主体 HBL：`(organization_id, issuer_partner_id, normalized_house_no)`，条件为
     `issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')`。
+- `order_release_pods` 持有三个可空真实外键：`shipping_document_id`、
+  `sea_master_bill_id`、`sea_house_bill_id`；CHECK
+  `num_nonnulls(...) <= 1`，Sea MBL/HBL 外键删除策略均为 `NO ACTION`。
 
 ### 3. Contracts
 
@@ -75,7 +88,18 @@
 - 单证写命令固定加锁顺序为 `Order -> SeaMasterBill -> Active Link -> HBL/后续
   验证对象`。用无锁查询定位 ID 后，取得写锁必须重新校验组织、订单、活动状态
   和 MBL 关系；禁止先锁 Link 再升级 MBL。
-- 创建、结构切换、MBL 内容修改和 HBL 命令必须在同一事务写业务审计；审计失败
+- SE ReleasePod 最多关联当前活动 Link 指向的共享 MBL，或同组织、同订单且属于该
+  MBL 的有效 HBL；非 SE 只允许旧 `OrderShippingDocument`。新增/更新必须先锁
+  Order，再在同一事务内验证并写入；禁止事务外先查后写，也禁止根据 UUID 形态
+  猜测单证类型。
+- 海运单证页只有具备 `release_pod.read` 权限时才请求和展示关联记录；按真实
+  MBL/HBL ID 分组展示放货编号、回单编号和状态，并明确区分空态与加载失败。
+- HBL 硬删除在既有锁序后按 UUID 排序锁定关联 ReleasePod。任一记录为
+  `RETURNED` 时完全阻断；全为 `PENDING/SIGNED` 时必须得到显式级联确认。确认后
+  先删除关联记录，再删除 HBL，并在同一事务写操作日志；日志失败必须全部回滚。
+- MBL/HBL 作废不是硬删除，不得清空或级联删除已关联 ReleasePod；历史关系继续
+  保留。
+- 创建、结构切换、MBL 内容修改和 HBL 命令必须在同一事务写操作日志；日志失败
   必须回滚业务写入。事务提交后才用普通上下文重读响应。
 - 所有仓储读取都通过 `Data.client(ctx)` 并带组织谓词；事务中禁止回落到
   `data.db`。
@@ -93,6 +117,10 @@
 | 单证聚合找不到活动 Link | 400 `SEA_DOCUMENT_NO_ACTIVE_LINK`，不得构造虚假默认响应 |
 | DIRECT 直接新增 HBL | 409 `SEA_DOCUMENT_DIRECT_ADD_HBL_BLOCKED` |
 | 删除最后一张 HBL 未明确回到未确定 | 400 `SEA_DOCUMENT_DELETE_LAST_HBL_CONFIRMATION_REQUIRED` |
+| HBL 有 PENDING/SIGNED ReleasePod，但未确认级联删除 | 400 `SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED`，零变更 |
+| HBL 的任一 ReleasePod 已 RETURNED | 409 `SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED`，HBL 和全部记录均保留 |
+| SE 提交旧单证引用、非 SE 提交 Sea 引用、Sea 类型/ID 不完整或归属错误 | 400 `ORDER_RELEASE_POD_DOCUMENT_INVALID` |
+| 级联删除缺少 `release_pod.delete` 组织权限 | 403 权限错误，不进入仓储事务 |
 | Link、MBL 或 HBL 预期版本不一致 | 409 `SEA_DOCUMENT_STRUCTURE_CONFLICT`、`SEA_MASTER_BILL_CONFLICT` 或 `SEA_HOUSE_BILL_CONFLICT` |
 | HBL 号为空或超过 128 个字符 | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |
 | 同一真实签发主体的规范化 HBL 号重复 | 409 `SEA_HOUSE_BILL_EXISTS`，由数据库唯一索引兜底 |
@@ -100,7 +128,7 @@
 | SELF 无法解析到 company/headquarters | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT`，不得创建占位主体 |
 | 已有 CUSTOMER HBL 时修改订单客户 | 409 `ORDER_CUSTOMER_CHANGE_WITH_HOUSE_BILL_BLOCKED` |
 | 件数、毛重、体积为负，浮点值为 NaN/Inf，或文本超限 | 400 `SEA_BILL_CONTENT_INVALID_ARGUMENT` |
-| 审计写入失败 | 接口失败，业务写入和版本增加全部回滚 |
+| 操作日志写入失败 | 接口失败，HBL、ReleasePod、Link 版本和其他业务写入全部回滚 |
 
 ### 5. Good / Base / Bad Cases
 
@@ -110,13 +138,17 @@
   `HBL/001`，结构在同一事务变为 `HOUSE`。
 - Good：HBL 选择“本公司”，订单属于部门，系统保存其最近公司/总部的 Organization
   ID，页面显示解析后的名称，不显示品牌选择器。
+- Good：删除有关联待签收/已签收记录的 HBL，页面列出放货编号和回单编号；用户
+  一次确认后，HBL、关联记录和操作日志原子完成。
 - Base：MBL/HBL 内容全部留空仍可保存；阶段 2 不要求用户实际使用全部单证字段。
+- Base：ReleasePod 不关联任何单证；三个外键均为空，列表正常展示。
 - Bad：DIRECT 页面直接显示“添加 HBL”并让后端自动转 HOUSE；必须先执行独立取消
-  动作，留下单独审计。
+  动作，留下单独操作日志。
 - Bad：创建 payload 静默过滤不完整 HBL；必须保留用户输入并由表单/服务端明确
   拒绝。
 - Bad：查询故障被伪装成“未命中”或“无活动 Link”；必须原样返回错误，禁止创建
   新 MBL 或合成默认结构。
+- Bad：删除 HBL 时用数据库 FK 自动置空、只删 HBL，或已回单后仍允许级联删除。
 
 ### 6. Tests Required
 
@@ -128,10 +160,16 @@
   第二条 ACTIVE 被部分唯一索引拒绝。
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
   死锁；批量摘要必须按 `(order_id, active_master_bill_id)` 过滤历史 HBL。
+- Data/PostgreSQL：ReleasePod 的 MBL/HBL 当前归属、跨组织/跨订单拒绝、三引用
+  CHECK、Sea 外键 `NO ACTION`；HBL 删除未确认 400、已回单 409、确认后原子删除，
+  以及操作日志失败后 HBL/记录/Link 全部回滚。
 - Data/PostgreSQL：从完整订单创建入口验证初始 HOUSE、HBL 数量和 `order.create`
-  审计详情。
+  操作日志详情。
 - Frontend：候选请求失败阻止保存；DIRECT 无添加入口；取消后可添加；最后 HBL
   删除确认；原号不 trim；不静默过滤；加载失败清空旧订单状态；区块默认展开。
+- Frontend：无 `release_pod.read` 权限时零请求；有权限时 MBL/HBL 分组、空态和
+  错误态；有关联记录时合并最后一张 HBL 与级联确认；取消时零删除请求；已回单
+  展示阻断记录。
 - Migration：独立 Schema 从阶段 1 真实迁移到阶段 2 并核对表、列、约束、索引和
   revision；存在 SE 数据时迁移原子拒绝且不留下部分 DDL。
 - Generation：连续运行 API、Ent/Wire、Proto 常量和 Web Client 生成命令，
@@ -172,6 +210,19 @@ if link.Status != seamasterbillorderlink.StatusACTIVE || link.MasterBillID != mb
 const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
 ```
 
+```go
+// 类型和 ID 显式成对；锁住订单后再验证当前活动 MBL/HBL 归属。
+input := &biz.OrderReleasePod{
+	SeaDocumentType: biz.SeaDocumentTypeHouseBill,
+	SeaDocumentID:   &houseBillID,
+}
+return data.WithinTransaction(ctx, func(txCtx context.Context) error {
+	client, err := data.client(txCtx)
+	// Order -> MBL -> Active Link -> HBL，随后才写 ReleasePod。
+	return err
+})
+```
+
 ## Scenario：拆票与改配目标引用闭环
 
 ### 1. Scope / Trigger
@@ -197,6 +248,11 @@ const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
   不得夹带候选字段，并满足新 MBL 的号码、主体、港口和日期规则。
 - Preview 与 Execute 必须复用同一个 biz 输入校验；Execute 仍在事务锁内重验候选身份、
   版本、唯一性和共享航程。
+- Execute 事务前只允许校验不依赖数据库当前状态的结构规则、幂等键和必填预期版本；
+  禁止调用有状态 `PreviewSplit` 作为执行门禁。事务内必须先锁 Order 并比较
+  `expected_order_version`，再校验 Link、Allocation、HBL、箱货、费用和候选 MBL/TE。
+  这保证相同版本的并发请求稳定为一成功一 409，而不会被胜方提交后的新状态抢先
+  解释为 400。
 - data 层按已验证的显式类型 `switch`，`default` 返回领域错误，禁止依据某个可空 ID
   猜测目标类型。
 
@@ -211,6 +267,8 @@ const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
 | CURRENT/NEW 夹带其他类型字段 | 对应 400 InvalidArgument |
 | 候选身份字段缺失或版本与 expected map 不一致 | 对应 400/409，Preview 与 Execute 一致 |
 | NEW 主体、港口、日期或 MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
+| 两个不同幂等键以同一 Order 版本并发执行合法拆票 | 一个成功，另一个 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT` |
+| Execute 的 Order/Link/Allocation/HBL/箱货/费用版本过期 | 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT`，不得先返回可变业务状态 400 |
 
 ### 5. Good / Base / Bad Cases
 
@@ -219,6 +277,8 @@ const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
 - Base：结果引用 `CURRENT` 目标，顶层仍显式声明该键和类型，不靠空字符串表达沿用。
 - Bad：结果传入 `MISSING`，data 查询不到后自动沿用当前 MBL。
 - Bad：整体改配传 `UNKNOWN`，因候选 ID 为空而被猜成 NEW。
+- Bad：Execute 事务前调用完整 Preview；并发失败方先看到胜方提交后的 HBL/费用状态，
+  返回“数量不足”等 400，导致用户无法通过刷新恢复。
 
 ### 6. Tests Required
 
@@ -227,6 +287,8 @@ const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
 - Service：畸形 DTO 转换后仍被领域校验拒绝，错误 reason 不变化。
 - Data/PostgreSQL：未知键不写入；共享 NEW 键只建一个 MBL；候选版本锁后变化返回 409；
   Preview/Execute 对非法主体、港口、日期和重复 MBL 一致。
+- Data/PostgreSQL：完整拆票父测试至少 `-count=3`；每轮断言同版本并发一成功一
+  `SEA_ORDER_SPLIT_VERSION_CONFLICT`，且无双成功、孤儿行或重复事件。
 
 ### 7. Wrong vs Correct
 
@@ -252,4 +314,14 @@ case SplitTargetTypeCurrent, SplitTargetTypeCandidate, SplitTargetTypeNew:
 default:
 	return ErrSeaOrderSplitInvalidArgument
 }
+```
+
+```go
+// Execute 不调用有状态 Preview；仓储事务先取得版本裁决权，再重验业务状态。
+if err := validateSplitTargetsAndResults(input.Targets, input.Results, input.ExpectedVersions); err != nil {
+	return nil, err
+}
+return transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+	return repo.ExecuteSplit(txCtx, organizationID, actorID, input, operationLog)
+})
 ```

@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
@@ -309,6 +310,29 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		_ = data.db.SeaHouseBill.DeleteOneID(createdHB.ID).Exec(ctx)
 	}()
 
+	// 真实海运 MBL/HBL 引用必须由放货记录仓储在订单锁后按当前活动关系验证。
+	releasePodUsecase := biz.NewOrderReleasePodUsecase(NewOrderReleasePodRepo(data))
+	mblPod, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
+		SeaDocumentType: biz.SeaDocumentTypeMasterBill,
+		SeaDocumentID:   &mbl.ID,
+		ReleaseNo:       ptr("REL-MBL"),
+	})
+	if err != nil {
+		t.Fatalf("添加关联当前 MBL 的放货记录失败: %v", err)
+	}
+	defer func() {
+		_ = data.db.OrderReleasePod.DeleteOneID(mblPod.ID).Exec(ctx)
+	}()
+	if mblPod.SeaDocumentType != biz.SeaDocumentTypeMasterBill || mblPod.SeaDocumentID == nil || *mblPod.SeaDocumentID != mbl.ID {
+		t.Fatalf("MBL 放货记录回显错误: %+v", mblPod)
+	}
+	invalidMBLID := uuid.New()
+	if _, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
+		SeaDocumentType: biz.SeaDocumentTypeMasterBill,
+		SeaDocumentID:   &invalidMBLID,
+	}); err != biz.ErrOrderReleasePodDocumentInvalid {
+		t.Fatalf("非当前 MBL 引用错误 = %v，期望 %v", err, biz.ErrOrderReleasePodDocumentInvalid)
+	}
 	// 重新获取聚合对象验证结构已自动转为 HOUSE
 	docAgg, err = repo.GetSeaOrderDocuments(ctx, deptOrg.ID, testOrder.ID)
 	if err != nil {
@@ -347,21 +371,109 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 校验 7：删除最后一张 HBL 如果没有传 returnToUndetermined=true 必须被拒绝
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, false, makeAudit())
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, false, false, makeAudit())
 	if err != biz.ErrSeaDocumentDeleteLastHBLConfirmationRequired {
 		t.Fatalf("expected ErrSeaDocumentDeleteLastHBLConfirmationRequired, got %v", err)
 	}
 
 	// 校验 8：HBL 版本冲突校验
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version+99, docAgg.LinkVersion, true, makeAudit())
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version+99, docAgg.LinkVersion, true, false, makeAudit())
 	if err != biz.ErrSeaHouseBillConflict {
 		t.Fatalf("expected ErrSeaHouseBillConflict on mismatched HBL version, got %v", err)
 	}
 
-	// 校验 9：删除最后一张 HBL 传 returnToUndetermined=true 成功回到 UNDETERMINED
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, makeAudit())
+	// 校验 9：有关联放货记录时必须显式确认，且已回单记录始终阻断。
+	pendingPod, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
+		SeaDocumentType: biz.SeaDocumentTypeHouseBill,
+		SeaDocumentID:   &createdHB.ID,
+		ReleaseNo:       ptr("REL-PENDING"),
+	})
+	if err != nil {
+		t.Fatalf("添加关联当前 HBL 的放货记录失败: %v", err)
+	}
+	if pendingPod.SeaDocumentType != biz.SeaDocumentTypeHouseBill || pendingPod.SeaDocumentID == nil || *pendingPod.SeaDocumentID != createdHB.ID {
+		t.Fatalf("HBL 放货记录回显错误: %+v", pendingPod)
+	}
+
+	signedPod, err := data.db.OrderReleasePod.Create().
+		SetOrderID(testOrder.ID).
+		SetSeaHouseBillID(createdHB.ID).
+		SetReleaseNo("REL-SIGNED").
+		SetStatus(orderreleasepodent.StatusSIGNED).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建已签收放货记录失败: %v", err)
+	}
+	returnedPod, err := data.db.OrderReleasePod.Create().
+		SetOrderID(testOrder.ID).
+		SetSeaHouseBillID(createdHB.ID).
+		SetReleaseNo("REL-RETURNED").
+		SetStatus(orderreleasepodent.StatusRETURNED).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建已回单放货记录失败: %v", err)
+	}
+
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, makeAudit())
+	if err != biz.ErrSeaHouseBillReturnedReleasePodBlocked {
+		t.Fatalf("存在已回单放货记录时错误 = %v，期望 %v", err, biz.ErrSeaHouseBillReturnedReleasePodBlocked)
+	}
+	if err := data.db.OrderReleasePod.DeleteOne(returnedPod).Exec(ctx); err != nil {
+		t.Fatalf("移除已回单测试记录失败: %v", err)
+	}
+
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, false, makeAudit())
+	if err != biz.ErrSeaHouseBillReleasePodConfirmationRequired {
+		t.Fatalf("未确认关联删除时错误 = %v，期望 %v", err, biz.ErrSeaHouseBillReleasePodConfirmationRequired)
+	}
+
+	// 校验 10：确认关联删除后日志写入失败，HBL、放货记录和 Link 版本必须全部回滚。
+	failedRemoveAudit := makeAudit()
+	failedRemoveAudit.Result = "invalid-result"
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, failedRemoveAudit)
+	if err == nil {
+		t.Fatal("关联删除日志写入失败时应返回错误")
+	}
+	if _, err := data.db.SeaHouseBill.Get(ctx, createdHB.ID); err != nil {
+		t.Fatalf("日志失败后检查 HBL 失败: %v", err)
+	}
+	for _, podID := range []uuid.UUID{pendingPod.ID, signedPod.ID} {
+		exists, queryErr := data.db.OrderReleasePod.Query().Where(orderreleasepodent.IDEQ(podID)).Exist(ctx)
+		if queryErr != nil {
+			t.Fatalf("日志失败后检查放货记录 %s 失败: %v", podID, queryErr)
+		}
+		if !exists {
+			t.Fatalf("日志失败后放货记录 %s 不应被删除", podID)
+		}
+	}
+	rolledBackDeleteLink, err := data.db.SeaMasterBillOrderLink.Get(ctx, link.ID)
+	if err != nil {
+		t.Fatalf("日志失败后检查 Link 失败: %v", err)
+	}
+	if rolledBackDeleteLink.Version != docAgg.LinkVersion {
+		t.Fatalf("日志失败后 Link 版本 = %d，期望 %d", rolledBackDeleteLink.Version, docAgg.LinkVersion)
+	}
+
+	// 校验 11：确认后原子删除 HBL 与待签收/已签收记录，并写入一条操作日志。
+	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, makeAudit())
 	if err != nil {
 		t.Fatalf("RemoveSeaHouseBill with confirmation failed: %v", err)
+	}
+	podCount, err := data.db.OrderReleasePod.Query().
+		Where(orderreleasepodent.IDIn(pendingPod.ID, signedPod.ID)).
+		Count(ctx)
+	if err != nil {
+		t.Fatalf("关联删除后统计放货记录失败: %v", err)
+	}
+	if podCount != 0 {
+		t.Fatalf("关联删除后仍有 %d 条放货记录", podCount)
+	}
+	var removeAuditCount int
+	if err := data.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM audit_logs WHERE action = 'sea_house_bill.remove'`).Scan(&removeAuditCount); err != nil {
+		t.Fatalf("统计分单删除操作日志失败: %v", err)
+	}
+	if removeAuditCount != 1 {
+		t.Fatalf("确认关联删除后操作日志数量 = %d，期望 1", removeAuditCount)
 	}
 
 	docAgg, err = repo.GetSeaOrderDocuments(ctx, deptOrg.ID, testOrder.ID)
@@ -372,7 +484,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("expected UNDETERMINED after deleting last HBL, got %s", docAgg.DocumentStructure)
 	}
 
-	// 校验 10：当存在 CUSTOMER_PARTNER 签发的 HBL 时，修改订单客户必须被阻断
+	// 校验 12：当存在 CUSTOMER_PARTNER 签发的 HBL 时，修改订单客户必须被阻断
 	customerHB, err := repo.AddSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, &biz.SeaHouseBillInput{
 		HouseNo:      "HBL-CUST-002",
 		IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner,

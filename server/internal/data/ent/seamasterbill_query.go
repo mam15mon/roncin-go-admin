@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -50,6 +51,7 @@ type SeaMasterBillQuery struct {
 	withLockRecords                   *OrderLockRecordQuery
 	withVoidEvents                    *SeaDocumentVoidEventQuery
 	withSwitchEvents                  *SeaHouseBillSwitchEventQuery
+	withReleasePods                   *OrderReleasePodQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -395,6 +397,28 @@ func (_q *SeaMasterBillQuery) QuerySwitchEvents() *SeaHouseBillSwitchEventQuery 
 	return query
 }
 
+// QueryReleasePods chains the current query on the "release_pods" edge.
+func (_q *SeaMasterBillQuery) QueryReleasePods() *OrderReleasePodQuery {
+	query := (&OrderReleasePodClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(orderreleasepod.Table, orderreleasepod.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.ReleasePodsTable, seamasterbill.ReleasePodsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first SeaMasterBill entity from the query.
 // Returns a *NotFoundError when no SeaMasterBill was found.
 func (_q *SeaMasterBillQuery) First(ctx context.Context) (*SeaMasterBill, error) {
@@ -601,6 +625,7 @@ func (_q *SeaMasterBillQuery) Clone() *SeaMasterBillQuery {
 		withLockRecords:                   _q.withLockRecords.Clone(),
 		withVoidEvents:                    _q.withVoidEvents.Clone(),
 		withSwitchEvents:                  _q.withSwitchEvents.Clone(),
+		withReleasePods:                   _q.withReleasePods.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -761,6 +786,17 @@ func (_q *SeaMasterBillQuery) WithSwitchEvents(opts ...func(*SeaHouseBillSwitchE
 	return _q
 }
 
+// WithReleasePods tells the query-builder to eager-load the nodes that are connected to
+// the "release_pods" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithReleasePods(opts ...func(*OrderReleasePodQuery)) *SeaMasterBillQuery {
+	query := (&OrderReleasePodClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withReleasePods = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -839,7 +875,7 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*SeaMasterBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [14]bool{
+		loadedTypes = [15]bool{
 			_q.withOrganization != nil,
 			_q.withTransportExecution != nil,
 			_q.withOrderLinks != nil,
@@ -854,6 +890,7 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			_q.withLockRecords != nil,
 			_q.withVoidEvents != nil,
 			_q.withSwitchEvents != nil,
+			_q.withReleasePods != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -981,6 +1018,13 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			func(n *SeaMasterBill, e *SeaHouseBillSwitchEvent) {
 				n.Edges.SwitchEvents = append(n.Edges.SwitchEvents, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withReleasePods; query != nil {
+		if err := _q.loadReleasePods(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.ReleasePods = []*OrderReleasePod{} },
+			func(n *SeaMasterBill, e *OrderReleasePod) { n.Edges.ReleasePods = append(n.Edges.ReleasePods, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1408,6 +1452,39 @@ func (_q *SeaMasterBillQuery) loadSwitchEvents(ctx context.Context, query *SeaHo
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadReleasePods(ctx context.Context, query *OrderReleasePodQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *OrderReleasePod)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderreleasepod.FieldSeaMasterBillID)
+	}
+	query.Where(predicate.OrderReleasePod(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.ReleasePodsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SeaMasterBillID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "sea_master_bill_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "sea_master_bill_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

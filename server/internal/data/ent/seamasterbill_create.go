@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -536,6 +537,21 @@ func (_c *SeaMasterBillCreate) AddSwitchEvents(v ...*SeaHouseBillSwitchEvent) *S
 	return _c.AddSwitchEventIDs(ids...)
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_c *SeaMasterBillCreate) AddReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.AddReleasePodIDs(ids...)
+	return _c
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_c *SeaMasterBillCreate) AddReleasePods(v ...*OrderReleasePod) *SeaMasterBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReleasePodIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillMutation object of the builder.
 func (_c *SeaMasterBillCreate) Mutation() *SeaMasterBillMutation {
 	return _c.mutation
@@ -1026,6 +1042,22 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -14,6 +14,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
 
 // OrderReleasePodCreate is the builder for creating a OrderReleasePod entity.
@@ -67,6 +69,34 @@ func (_c *OrderReleasePodCreate) SetShippingDocumentID(v uuid.UUID) *OrderReleas
 func (_c *OrderReleasePodCreate) SetNillableShippingDocumentID(v *uuid.UUID) *OrderReleasePodCreate {
 	if v != nil {
 		_c.SetShippingDocumentID(*v)
+	}
+	return _c
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (_c *OrderReleasePodCreate) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodCreate {
+	_c.mutation.SetSeaMasterBillID(v)
+	return _c
+}
+
+// SetNillableSeaMasterBillID sets the "sea_master_bill_id" field if the given value is not nil.
+func (_c *OrderReleasePodCreate) SetNillableSeaMasterBillID(v *uuid.UUID) *OrderReleasePodCreate {
+	if v != nil {
+		_c.SetSeaMasterBillID(*v)
+	}
+	return _c
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (_c *OrderReleasePodCreate) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodCreate {
+	_c.mutation.SetSeaHouseBillID(v)
+	return _c
+}
+
+// SetNillableSeaHouseBillID sets the "sea_house_bill_id" field if the given value is not nil.
+func (_c *OrderReleasePodCreate) SetNillableSeaHouseBillID(v *uuid.UUID) *OrderReleasePodCreate {
+	if v != nil {
+		_c.SetSeaHouseBillID(*v)
 	}
 	return _c
 }
@@ -177,6 +207,16 @@ func (_c *OrderReleasePodCreate) SetOrder(v *Order) *OrderReleasePodCreate {
 // SetShippingDocument sets the "shipping_document" edge to the OrderShippingDocument entity.
 func (_c *OrderReleasePodCreate) SetShippingDocument(v *OrderShippingDocument) *OrderReleasePodCreate {
 	return _c.SetShippingDocumentID(v.ID)
+}
+
+// SetSeaMasterBill sets the "sea_master_bill" edge to the SeaMasterBill entity.
+func (_c *OrderReleasePodCreate) SetSeaMasterBill(v *SeaMasterBill) *OrderReleasePodCreate {
+	return _c.SetSeaMasterBillID(v.ID)
+}
+
+// SetSeaHouseBill sets the "sea_house_bill" edge to the SeaHouseBill entity.
+func (_c *OrderReleasePodCreate) SetSeaHouseBill(v *SeaHouseBill) *OrderReleasePodCreate {
+	return _c.SetSeaHouseBillID(v.ID)
 }
 
 // Mutation returns the OrderReleasePodMutation object of the builder.
@@ -368,6 +408,40 @@ func (_c *OrderReleasePodCreate) createSpec() (*OrderReleasePod, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ShippingDocumentID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaMasterBillTable,
+			Columns: []string{orderreleasepod.SeaMasterBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SeaMasterBillID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaHouseBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaHouseBillTable,
+			Columns: []string{orderreleasepod.SeaHouseBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SeaHouseBillID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

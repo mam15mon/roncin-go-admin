@@ -44,6 +44,7 @@ func (SeaMasterBill) Edges() []ent.Edge {
 		edge.To("lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("switch_events", SeaHouseBillSwitchEvent.Type),
+		edge.To("release_pods", OrderReleasePod.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

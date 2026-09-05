@@ -94,6 +94,8 @@ const (
 	EdgeVoidEvents = "void_events"
 	// EdgeSwitchEvents holds the string denoting the switch_events edge name in mutations.
 	EdgeSwitchEvents = "switch_events"
+	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
+	EdgeReleasePods = "release_pods"
 	// Table holds the table name of the seamasterbill in the database.
 	Table = "sea_master_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -194,6 +196,13 @@ const (
 	SwitchEventsInverseTable = "sea_house_bill_switch_events"
 	// SwitchEventsColumn is the table column denoting the switch_events relation/edge.
 	SwitchEventsColumn = "master_bill_id"
+	// ReleasePodsTable is the table that holds the release_pods relation/edge.
+	ReleasePodsTable = "order_release_pods"
+	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
+	// It exists in this package in order to avoid circular dependency with the "orderreleasepod" package.
+	ReleasePodsInverseTable = "order_release_pods"
+	// ReleasePodsColumn is the table column denoting the release_pods relation/edge.
+	ReleasePodsColumn = "sea_master_bill_id"
 )
 
 // Columns holds all SQL columns for seamasterbill fields.
@@ -604,6 +613,20 @@ func BySwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByReleasePodsCount orders the results by release_pods count.
+func ByReleasePodsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReleasePodsStep(), opts...)
+	}
+}
+
+// ByReleasePods orders the results by release_pods terms.
+func ByReleasePods(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReleasePodsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -700,5 +723,12 @@ func newSwitchEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SwitchEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SwitchEventsTable, SwitchEventsColumn),
+	)
+}
+func newReleasePodsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReleasePodsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReleasePodsTable, ReleasePodsColumn),
 	)
 }

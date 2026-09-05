@@ -267,7 +267,7 @@ type seaDocumentRepoMock struct {
 	cancelSeaOrderDirectFunc       func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
 	addSeaHouseBillFunc            func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
 	updateSeaHouseBillFunc         func(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
-	removeSeaHouseBillFunc         func(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined bool, audit *AuditEvent) error
+	removeSeaHouseBillFunc         func(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error
 	updateSeaMasterBillContentFunc func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error)
 }
 
@@ -313,9 +313,9 @@ func (m *seaDocumentRepoMock) UpdateSeaHouseBill(ctx context.Context, organizati
 	return &SeaHouseBill{}, nil
 }
 
-func (m *seaDocumentRepoMock) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined bool, audit *AuditEvent) error {
+func (m *seaDocumentRepoMock) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error {
 	if m.removeSeaHouseBillFunc != nil {
-		return m.removeSeaHouseBillFunc(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, audit)
+		return m.removeSeaHouseBillFunc(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, removeRelatedReleasePods, audit)
 	}
 	return nil
 }

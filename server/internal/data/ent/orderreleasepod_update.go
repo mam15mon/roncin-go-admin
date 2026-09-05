@@ -16,6 +16,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 )
 
 // OrderReleasePodUpdate is the builder for updating OrderReleasePod entities.
@@ -68,6 +70,46 @@ func (_u *OrderReleasePodUpdate) SetNillableShippingDocumentID(v *uuid.UUID) *Or
 // ClearShippingDocumentID clears the value of the "shipping_document_id" field.
 func (_u *OrderReleasePodUpdate) ClearShippingDocumentID() *OrderReleasePodUpdate {
 	_u.mutation.ClearShippingDocumentID()
+	return _u
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (_u *OrderReleasePodUpdate) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodUpdate {
+	_u.mutation.SetSeaMasterBillID(v)
+	return _u
+}
+
+// SetNillableSeaMasterBillID sets the "sea_master_bill_id" field if the given value is not nil.
+func (_u *OrderReleasePodUpdate) SetNillableSeaMasterBillID(v *uuid.UUID) *OrderReleasePodUpdate {
+	if v != nil {
+		_u.SetSeaMasterBillID(*v)
+	}
+	return _u
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (_u *OrderReleasePodUpdate) ClearSeaMasterBillID() *OrderReleasePodUpdate {
+	_u.mutation.ClearSeaMasterBillID()
+	return _u
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (_u *OrderReleasePodUpdate) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodUpdate {
+	_u.mutation.SetSeaHouseBillID(v)
+	return _u
+}
+
+// SetNillableSeaHouseBillID sets the "sea_house_bill_id" field if the given value is not nil.
+func (_u *OrderReleasePodUpdate) SetNillableSeaHouseBillID(v *uuid.UUID) *OrderReleasePodUpdate {
+	if v != nil {
+		_u.SetSeaHouseBillID(*v)
+	}
+	return _u
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (_u *OrderReleasePodUpdate) ClearSeaHouseBillID() *OrderReleasePodUpdate {
+	_u.mutation.ClearSeaHouseBillID()
 	return _u
 }
 
@@ -195,6 +237,16 @@ func (_u *OrderReleasePodUpdate) SetShippingDocument(v *OrderShippingDocument) *
 	return _u.SetShippingDocumentID(v.ID)
 }
 
+// SetSeaMasterBill sets the "sea_master_bill" edge to the SeaMasterBill entity.
+func (_u *OrderReleasePodUpdate) SetSeaMasterBill(v *SeaMasterBill) *OrderReleasePodUpdate {
+	return _u.SetSeaMasterBillID(v.ID)
+}
+
+// SetSeaHouseBill sets the "sea_house_bill" edge to the SeaHouseBill entity.
+func (_u *OrderReleasePodUpdate) SetSeaHouseBill(v *SeaHouseBill) *OrderReleasePodUpdate {
+	return _u.SetSeaHouseBillID(v.ID)
+}
+
 // Mutation returns the OrderReleasePodMutation object of the builder.
 func (_u *OrderReleasePodUpdate) Mutation() *OrderReleasePodMutation {
 	return _u.mutation
@@ -209,6 +261,18 @@ func (_u *OrderReleasePodUpdate) ClearOrder() *OrderReleasePodUpdate {
 // ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
 func (_u *OrderReleasePodUpdate) ClearShippingDocument() *OrderReleasePodUpdate {
 	_u.mutation.ClearShippingDocument()
+	return _u
+}
+
+// ClearSeaMasterBill clears the "sea_master_bill" edge to the SeaMasterBill entity.
+func (_u *OrderReleasePodUpdate) ClearSeaMasterBill() *OrderReleasePodUpdate {
+	_u.mutation.ClearSeaMasterBill()
+	return _u
+}
+
+// ClearSeaHouseBill clears the "sea_house_bill" edge to the SeaHouseBill entity.
+func (_u *OrderReleasePodUpdate) ClearSeaHouseBill() *OrderReleasePodUpdate {
+	_u.mutation.ClearSeaHouseBill()
 	return _u
 }
 
@@ -382,6 +446,64 @@ func (_u *OrderReleasePodUpdate) sqlSave(ctx context.Context) (_node int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaMasterBillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaMasterBillTable,
+			Columns: []string{orderreleasepod.SeaMasterBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaMasterBillTable,
+			Columns: []string{orderreleasepod.SeaMasterBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaHouseBillTable,
+			Columns: []string{orderreleasepod.SeaHouseBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaHouseBillTable,
+			Columns: []string{orderreleasepod.SeaHouseBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderreleasepod.Label}
@@ -439,6 +561,46 @@ func (_u *OrderReleasePodUpdateOne) SetNillableShippingDocumentID(v *uuid.UUID) 
 // ClearShippingDocumentID clears the value of the "shipping_document_id" field.
 func (_u *OrderReleasePodUpdateOne) ClearShippingDocumentID() *OrderReleasePodUpdateOne {
 	_u.mutation.ClearShippingDocumentID()
+	return _u
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (_u *OrderReleasePodUpdateOne) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodUpdateOne {
+	_u.mutation.SetSeaMasterBillID(v)
+	return _u
+}
+
+// SetNillableSeaMasterBillID sets the "sea_master_bill_id" field if the given value is not nil.
+func (_u *OrderReleasePodUpdateOne) SetNillableSeaMasterBillID(v *uuid.UUID) *OrderReleasePodUpdateOne {
+	if v != nil {
+		_u.SetSeaMasterBillID(*v)
+	}
+	return _u
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (_u *OrderReleasePodUpdateOne) ClearSeaMasterBillID() *OrderReleasePodUpdateOne {
+	_u.mutation.ClearSeaMasterBillID()
+	return _u
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (_u *OrderReleasePodUpdateOne) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodUpdateOne {
+	_u.mutation.SetSeaHouseBillID(v)
+	return _u
+}
+
+// SetNillableSeaHouseBillID sets the "sea_house_bill_id" field if the given value is not nil.
+func (_u *OrderReleasePodUpdateOne) SetNillableSeaHouseBillID(v *uuid.UUID) *OrderReleasePodUpdateOne {
+	if v != nil {
+		_u.SetSeaHouseBillID(*v)
+	}
+	return _u
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (_u *OrderReleasePodUpdateOne) ClearSeaHouseBillID() *OrderReleasePodUpdateOne {
+	_u.mutation.ClearSeaHouseBillID()
 	return _u
 }
 
@@ -566,6 +728,16 @@ func (_u *OrderReleasePodUpdateOne) SetShippingDocument(v *OrderShippingDocument
 	return _u.SetShippingDocumentID(v.ID)
 }
 
+// SetSeaMasterBill sets the "sea_master_bill" edge to the SeaMasterBill entity.
+func (_u *OrderReleasePodUpdateOne) SetSeaMasterBill(v *SeaMasterBill) *OrderReleasePodUpdateOne {
+	return _u.SetSeaMasterBillID(v.ID)
+}
+
+// SetSeaHouseBill sets the "sea_house_bill" edge to the SeaHouseBill entity.
+func (_u *OrderReleasePodUpdateOne) SetSeaHouseBill(v *SeaHouseBill) *OrderReleasePodUpdateOne {
+	return _u.SetSeaHouseBillID(v.ID)
+}
+
 // Mutation returns the OrderReleasePodMutation object of the builder.
 func (_u *OrderReleasePodUpdateOne) Mutation() *OrderReleasePodMutation {
 	return _u.mutation
@@ -580,6 +752,18 @@ func (_u *OrderReleasePodUpdateOne) ClearOrder() *OrderReleasePodUpdateOne {
 // ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
 func (_u *OrderReleasePodUpdateOne) ClearShippingDocument() *OrderReleasePodUpdateOne {
 	_u.mutation.ClearShippingDocument()
+	return _u
+}
+
+// ClearSeaMasterBill clears the "sea_master_bill" edge to the SeaMasterBill entity.
+func (_u *OrderReleasePodUpdateOne) ClearSeaMasterBill() *OrderReleasePodUpdateOne {
+	_u.mutation.ClearSeaMasterBill()
+	return _u
+}
+
+// ClearSeaHouseBill clears the "sea_house_bill" edge to the SeaHouseBill entity.
+func (_u *OrderReleasePodUpdateOne) ClearSeaHouseBill() *OrderReleasePodUpdateOne {
+	_u.mutation.ClearSeaHouseBill()
 	return _u
 }
 
@@ -776,6 +960,64 @@ func (_u *OrderReleasePodUpdateOne) sqlSave(ctx context.Context) (_node *OrderRe
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaMasterBillTable,
+			Columns: []string{orderreleasepod.SeaMasterBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaMasterBillTable,
+			Columns: []string{orderreleasepod.SeaMasterBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaHouseBillTable,
+			Columns: []string{orderreleasepod.SeaHouseBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderreleasepod.SeaHouseBillTable,
+			Columns: []string{orderreleasepod.SeaHouseBillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

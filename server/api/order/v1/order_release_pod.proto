@@ -5,6 +5,7 @@ package order.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "order/v1/sea_document.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -75,6 +76,8 @@ message OrderReleasePod {
   string created_at = 10;
   string updated_at = 11;
   repeated OrderReleasePodStatus allowed_target_statuses = 12;
+  SeaDocumentType sea_document_type = 13;
+  optional string sea_document_id = 14;
 }
 
 // ListReleasePodsRequest 获取放货凭证列表请求。
@@ -89,6 +92,8 @@ message AddReleasePodRequest {
   optional string release_no = 3;
   optional string pod_no = 4;
   optional string note = 5;
+  SeaDocumentType sea_document_type = 6;
+  optional string sea_document_id = 7;
 }
 
 // UpdateReleasePodRequest 更新放货凭证字段请求。
@@ -99,6 +104,8 @@ message UpdateReleasePodRequest {
   optional string release_no = 4;
   optional string pod_no = 5;
   optional string note = 6;
+  SeaDocumentType sea_document_type = 7;
+  optional string sea_document_id = 8;
 }
 
 // TransitionReleasePodStatusRequest 流转凭证状态请求。

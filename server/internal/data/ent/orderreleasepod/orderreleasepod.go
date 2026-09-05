@@ -24,6 +24,10 @@ const (
 	FieldOrderID = "order_id"
 	// FieldShippingDocumentID holds the string denoting the shipping_document_id field in the database.
 	FieldShippingDocumentID = "shipping_document_id"
+	// FieldSeaMasterBillID holds the string denoting the sea_master_bill_id field in the database.
+	FieldSeaMasterBillID = "sea_master_bill_id"
+	// FieldSeaHouseBillID holds the string denoting the sea_house_bill_id field in the database.
+	FieldSeaHouseBillID = "sea_house_bill_id"
 	// FieldReleaseNo holds the string denoting the release_no field in the database.
 	FieldReleaseNo = "release_no"
 	// FieldPodNo holds the string denoting the pod_no field in the database.
@@ -40,6 +44,10 @@ const (
 	EdgeOrder = "order"
 	// EdgeShippingDocument holds the string denoting the shipping_document edge name in mutations.
 	EdgeShippingDocument = "shipping_document"
+	// EdgeSeaMasterBill holds the string denoting the sea_master_bill edge name in mutations.
+	EdgeSeaMasterBill = "sea_master_bill"
+	// EdgeSeaHouseBill holds the string denoting the sea_house_bill edge name in mutations.
+	EdgeSeaHouseBill = "sea_house_bill"
 	// Table holds the table name of the orderreleasepod in the database.
 	Table = "order_release_pods"
 	// OrderTable is the table that holds the order relation/edge.
@@ -56,6 +64,20 @@ const (
 	ShippingDocumentInverseTable = "order_shipping_documents"
 	// ShippingDocumentColumn is the table column denoting the shipping_document relation/edge.
 	ShippingDocumentColumn = "shipping_document_id"
+	// SeaMasterBillTable is the table that holds the sea_master_bill relation/edge.
+	SeaMasterBillTable = "order_release_pods"
+	// SeaMasterBillInverseTable is the table name for the SeaMasterBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbill" package.
+	SeaMasterBillInverseTable = "sea_master_bills"
+	// SeaMasterBillColumn is the table column denoting the sea_master_bill relation/edge.
+	SeaMasterBillColumn = "sea_master_bill_id"
+	// SeaHouseBillTable is the table that holds the sea_house_bill relation/edge.
+	SeaHouseBillTable = "order_release_pods"
+	// SeaHouseBillInverseTable is the table name for the SeaHouseBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebill" package.
+	SeaHouseBillInverseTable = "sea_house_bills"
+	// SeaHouseBillColumn is the table column denoting the sea_house_bill relation/edge.
+	SeaHouseBillColumn = "sea_house_bill_id"
 )
 
 // Columns holds all SQL columns for orderreleasepod fields.
@@ -65,6 +87,8 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrderID,
 	FieldShippingDocumentID,
+	FieldSeaMasterBillID,
+	FieldSeaHouseBillID,
 	FieldReleaseNo,
 	FieldPodNo,
 	FieldStatus,
@@ -155,6 +179,16 @@ func ByShippingDocumentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShippingDocumentID, opts...).ToFunc()
 }
 
+// BySeaMasterBillID orders the results by the sea_master_bill_id field.
+func BySeaMasterBillID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSeaMasterBillID, opts...).ToFunc()
+}
+
+// BySeaHouseBillID orders the results by the sea_house_bill_id field.
+func BySeaHouseBillID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSeaHouseBillID, opts...).ToFunc()
+}
+
 // ByReleaseNo orders the results by the release_no field.
 func ByReleaseNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReleaseNo, opts...).ToFunc()
@@ -198,6 +232,20 @@ func ByShippingDocumentField(field string, opts ...sql.OrderTermOption) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newShippingDocumentStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// BySeaMasterBillField orders the results by sea_master_bill field.
+func BySeaMasterBillField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySeaHouseBillField orders the results by sea_house_bill field.
+func BySeaHouseBillField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -210,5 +258,19 @@ func newShippingDocumentStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShippingDocumentInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ShippingDocumentTable, ShippingDocumentColumn),
+	)
+}
+func newSeaMasterBillStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SeaMasterBillTable, SeaMasterBillColumn),
+	)
+}
+func newSeaHouseBillStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SeaHouseBillTable, SeaHouseBillColumn),
 	)
 }

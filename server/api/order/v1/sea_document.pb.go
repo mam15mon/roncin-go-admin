@@ -1864,14 +1864,15 @@ func (x *UpdateSeaHouseBillResponse) GetTraceId() string {
 
 // RemoveSeaHouseBillRequest 移除分单请求。
 type RemoveSeaHouseBillRequest struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	OrderId              string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id                   string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	ExpectedVersion      uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	ExpectedLinkVersion  uint64                 `protobuf:"varint,4,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
-	ReturnToUndetermined *bool                  `protobuf:"varint,5,opt,name=return_to_undetermined,json=returnToUndetermined,proto3,oneof" json:"return_to_undetermined,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                  string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id                       string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion          uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	ExpectedLinkVersion      uint64                 `protobuf:"varint,4,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
+	ReturnToUndetermined     *bool                  `protobuf:"varint,5,opt,name=return_to_undetermined,json=returnToUndetermined,proto3,oneof" json:"return_to_undetermined,omitempty"`
+	RemoveRelatedReleasePods *bool                  `protobuf:"varint,6,opt,name=remove_related_release_pods,json=removeRelatedReleasePods,proto3,oneof" json:"remove_related_release_pods,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *RemoveSeaHouseBillRequest) Reset() {
@@ -1935,6 +1936,13 @@ func (x *RemoveSeaHouseBillRequest) GetExpectedLinkVersion() uint64 {
 func (x *RemoveSeaHouseBillRequest) GetReturnToUndetermined() bool {
 	if x != nil && x.ReturnToUndetermined != nil {
 		return *x.ReturnToUndetermined
+	}
+	return false
+}
+
+func (x *RemoveSeaHouseBillRequest) GetRemoveRelatedReleasePods() bool {
+	if x != nil && x.RemoveRelatedReleasePods != nil {
+		return *x.RemoveRelatedReleasePods
 	}
 	return false
 }
@@ -4776,14 +4784,16 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
 	"\x04data\x18\x04 \x01(\v2\x16.order.v1.SeaHouseBillR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x8f\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf3\x02\n" +
 	"\x19RemoveSeaHouseBillRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x127\n" +
 	"\x15expected_link_version\x18\x04 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x129\n" +
-	"\x16return_to_undetermined\x18\x05 \x01(\bH\x00R\x14returnToUndetermined\x88\x01\x01B\x19\n" +
-	"\x17_return_to_undetermined\"\x7f\n" +
+	"\x16return_to_undetermined\x18\x05 \x01(\bH\x00R\x14returnToUndetermined\x88\x01\x01\x12B\n" +
+	"\x1bremove_related_release_pods\x18\x06 \x01(\bH\x01R\x18removeRelatedReleasePods\x88\x01\x01B\x19\n" +
+	"\x17_return_to_undeterminedB\x1e\n" +
+	"\x1c_remove_related_release_pods\"\x7f\n" +
 	"\x1aRemoveSeaHouseBillResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

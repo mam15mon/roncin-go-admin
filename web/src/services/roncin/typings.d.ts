@@ -66,6 +66,8 @@ declare namespace API {
     releaseNo?: string;
     podNo?: string;
     note?: string;
+    seaDocumentType?: number;
+    seaDocumentId?: string;
   };
 
   type AddReleasePodResponse = {
@@ -4118,6 +4120,8 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     allowedTargetStatuses?: number[];
+    seaDocumentType?: number;
+    seaDocumentId?: string;
   };
 
   type OrderReleasePodServiceAddReleasePodParams = {
@@ -5415,6 +5419,7 @@ declare namespace API {
     expectedVersion?: string;
     expectedLinkVersion?: string;
     returnToUndetermined?: boolean;
+    removeRelatedReleasePods?: boolean;
   };
 
   type SeaDocumentServiceUpdateSeaHouseBillParams = {
@@ -6928,6 +6933,8 @@ declare namespace API {
     releaseNo?: string;
     podNo?: string;
     note?: string;
+    seaDocumentType?: number;
+    seaDocumentId?: string;
   };
 
   type UpdateReleasePodResponse = {

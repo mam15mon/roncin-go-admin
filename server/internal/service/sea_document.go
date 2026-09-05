@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -167,6 +168,12 @@ func (s *SeaDocumentService) RemoveSeaHouseBill(ctx context.Context, req *v1.Rem
 	if err != nil {
 		return nil, biz.ErrSeaHouseBillInvalidArgument
 	}
+	if req.GetRemoveRelatedReleasePods() && !principal.HasPermissionInScope(
+		access.OrderPermission(access.OrderBusinessSE, access.OrderReleasePodDelete),
+		biz.DataScopeOrganization,
+	) {
+		return nil, biz.ErrPermissionDenied
+	}
 	hbID, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaHouseBillInvalidArgument
@@ -178,7 +185,7 @@ func (s *SeaDocumentService) RemoveSeaHouseBill(ctx context.Context, req *v1.Rem
 		Result:         "success",
 	}
 
-	if err := s.usecase.RemoveSeaHouseBill(ctx, principal.Organization.ID, principal.UserID, orderID, hbID, req.GetExpectedVersion(), req.GetExpectedLinkVersion(), req.GetReturnToUndetermined(), audit); err != nil {
+	if err := s.usecase.RemoveSeaHouseBill(ctx, principal.Organization.ID, principal.UserID, orderID, hbID, req.GetExpectedVersion(), req.GetExpectedLinkVersion(), req.GetReturnToUndetermined(), req.GetRemoveRelatedReleasePods(), audit); err != nil {
 		return nil, err
 	}
 

@@ -163,7 +163,7 @@ func TestOrderReleasePodRepo_Transition_PendingToSigned_Success(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	// 5. Ent 更新后重新加载实体
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id", "created_at", "updated_at", "order_id", "shipping_document_id", "release_no", "pod_no", "status", "signed_at", "signed_by", "note" FROM "order_release_pods" WHERE "id" = $1`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id", "created_at", "updated_at", "order_id", "shipping_document_id", "sea_master_bill_id", "sea_house_bill_id", "release_no", "pod_no", "status", "signed_at", "signed_by", "note" FROM "order_release_pods" WHERE "id" = $1`)).
 		WithArgs(podID).
 		WillReturnRows(releasePodRows(podID, orderID, "SIGNED", &signedAt, &actorID))
 
@@ -336,7 +336,7 @@ func TestOrderReleasePodRepo_Transition_AuditSQLError_Rollback(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	// 5. Ent 更新后重新加载实体
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id", "created_at", "updated_at", "order_id", "shipping_document_id", "release_no", "pod_no", "status", "signed_at", "signed_by", "note" FROM "order_release_pods" WHERE "id" = $1`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id", "created_at", "updated_at", "order_id", "shipping_document_id", "sea_master_bill_id", "sea_house_bill_id", "release_no", "pod_no", "status", "signed_at", "signed_by", "note" FROM "order_release_pods" WHERE "id" = $1`)).
 		WithArgs(podID).
 		WillReturnRows(releasePodRows(podID, orderID, "SIGNED", &signedAt, &actorID))
 

@@ -30,11 +30,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
   OrderBusinessType,
+  OrderReleasePodStatus,
   SeaDocumentStructure,
   SeaDocumentType,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
+import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
 import {
   seaCargoAllocationServiceApplySeaHouseBillAllocationSummary,
   seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill,
@@ -55,6 +57,7 @@ import SeaCargoAllocationDrawer, {
 } from '../../../components/drawers/SeaCargoAllocationDrawer';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
+import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
 
 const { Text } = Typography;
 
@@ -288,6 +291,8 @@ export function SeaDocumentSectionComponent({
   );
   const [houseBills, setHouseBills] = useState<API.SeaHouseBill[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [releasePods, setReleasePods] = useState<API.OrderReleasePod[]>([]);
+  const [releasePodsError, setReleasePodsError] = useState<string | null>(null);
   const [applyingHblId, setApplyingHblId] = useState<string | null>(null);
   const [applyingMbl, setApplyingMbl] = useState(false);
   const allocationDrawerRef = useRef<SeaCargoAllocationDrawerRef>(null);
@@ -296,6 +301,34 @@ export function SeaDocumentSectionComponent({
   const orderVersion =
     Form.useWatch('version', form) || form.getFieldValue('version');
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
+  const canReadReleasePods = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'release_pod.read',
+  );
+  const canDeleteReleasePods = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'release_pod.delete',
+  );
+
+  const loadReleasePods = useCallback(async () => {
+    if (!orderId || !isDetail || !canReadReleasePods) {
+      setReleasePods([]);
+      setReleasePodsError(null);
+      return;
+    }
+    try {
+      setReleasePodsError(null);
+      const response = await orderReleasePodServiceListReleasePods({
+        orderId: String(orderId),
+      });
+      setReleasePods(response.data ?? []);
+    } catch (error: unknown) {
+      setReleasePods([]);
+      setReleasePodsError(
+        error instanceof Error ? error.message : '放货记录加载失败',
+      );
+    }
+  }, [orderId, isDetail, canReadReleasePods]);
 
   // 详情页加载单证聚合数据
   const loadOrderDocuments = useCallback(async () => {
@@ -357,8 +390,69 @@ export function SeaDocumentSectionComponent({
   useEffect(() => {
     if (isDetail && orderId) {
       loadOrderDocuments();
+      loadReleasePods();
     }
-  }, [isDetail, orderId, loadOrderDocuments]);
+  }, [isDetail, orderId, loadOrderDocuments, loadReleasePods]);
+
+  useEffect(() => {
+    const handleChanged = (event: Event) => {
+      const changedOrderId = (event as CustomEvent<{ orderId?: string }>).detail
+        ?.orderId;
+      if (changedOrderId === String(orderId)) {
+        void loadReleasePods();
+      }
+    };
+    window.addEventListener(RELEASE_PODS_CHANGED_EVENT, handleChanged);
+    return () =>
+      window.removeEventListener(RELEASE_PODS_CHANGED_EVENT, handleChanged);
+  }, [orderId, loadReleasePods]);
+
+  const relatedReleasePods = (documentType: number, documentId?: string) =>
+    documentId
+      ? releasePods.filter(
+          (item) =>
+            item.seaDocumentType === documentType &&
+            item.seaDocumentId === documentId,
+        )
+      : [];
+
+  const renderReleasePods = (items: API.OrderReleasePod[]) => {
+    if (!canReadReleasePods) return null;
+    if (releasePodsError) {
+      return (
+        <Alert
+          type="error"
+          showIcon
+          title="关联放货记录加载失败"
+          description={releasePodsError}
+          style={{ marginTop: 12 }}
+        />
+      );
+    }
+    return (
+      <Card size="small" title="关联放货记录" style={{ marginTop: 12 }}>
+        {items.length === 0 ? (
+          <Text type="secondary">暂无关联放货记录</Text>
+        ) : (
+          <Space direction="vertical" size={4}>
+            {items.map((item) => (
+              <Space key={item.id} wrap>
+                <Text>放货编号：{item.releaseNo || '-'}</Text>
+                <Text>回单编号：{item.podNo || '-'}</Text>
+                <Tag>
+                  {item.status === OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED
+                    ? '已回单'
+                    : item.status === OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED
+                      ? '已签收'
+                      : '待签收'}
+                </Tag>
+              </Space>
+            ))}
+          </Space>
+        )}
+      </Card>
+    );
+  };
 
   // 操作：标记直单
   const handleMarkDirect = async () => {
@@ -486,23 +580,57 @@ export function SeaDocumentSectionComponent({
   const handleRemoveHouseBill = async (index: number) => {
     const targetHB = houseBills[index];
     const isLast = houseBills.length === 1;
+    const relatedPods = relatedReleasePods(
+      SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
+      targetHB.id,
+    );
+    const returnedPods = relatedPods.filter(
+      (item) =>
+        item.status ===
+        OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED,
+    );
+
+    if (returnedPods.length > 0) {
+      modal.error({
+        title: '该分单不能删除',
+        content: `存在已回单记录：${returnedPods
+          .map((item) => item.releaseNo || item.podNo || item.id)
+          .join('、')}`,
+      });
+      return;
+    }
+    if (relatedPods.length > 0 && !canDeleteReleasePods) {
+      message.error('该分单有关联放货记录，请联系具备放货记录删除权限的人员处理');
+      return;
+    }
 
     const performDelete = async () => {
       if (isDetail && orderId && targetHB.id) {
+        if (!targetHB.version || Number(targetHB.version) <= 0) {
+          message.error('分单版本缺失，请刷新后重试');
+          return;
+        }
+        if (!Number.isSafeInteger(Number(linkVersion)) || Number(linkVersion) <= 0) {
+          message.error('单证结构版本缺失，请刷新后重试');
+          return;
+        }
         try {
           await seaDocumentServiceRemoveSeaHouseBill({
             orderId: String(orderId),
             id: targetHB.id,
-            expectedVersion: targetHB.version || '1',
+            expectedVersion: String(targetHB.version),
             expectedLinkVersion: linkVersion,
             returnToUndetermined: isLast,
+            removeRelatedReleasePods: relatedPods.length > 0,
           });
           message.success('分单已删除');
           await loadOrderDocuments();
+          await loadReleasePods();
           setActiveTabKey('mbl');
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : '删除分单失败';
           message.error(msg);
+          await Promise.all([loadOrderDocuments(), loadReleasePods()]);
         }
       } else {
         const nextHBs = houseBills.filter((_, i) => i !== index);
@@ -528,7 +656,27 @@ export function SeaDocumentSectionComponent({
       }
     };
 
-    if (isLast) {
+    if (relatedPods.length > 0) {
+      modal.confirm({
+        title: '确认删除分单及关联放货记录',
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <Space direction="vertical">
+            <Text>以下待签收/已签收记录将与分单一起删除：</Text>
+            {relatedPods.map((item) => (
+              <Text key={item.id}>
+                {item.releaseNo || '-'} / {item.podNo || '-'}
+              </Text>
+            ))}
+            {isLast ? <Text>同时单证结构将回到未确定状态。</Text> : null}
+          </Space>
+        ),
+        okText: '确认一并删除',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk: performDelete,
+      });
+    } else if (isLast) {
       modal.confirm({
         title: '删除最后一张分单确认',
         icon: <ExclamationCircleOutlined />,
@@ -779,6 +927,12 @@ export function SeaDocumentSectionComponent({
             namePathPrefix={['seaMasterBillContent']}
             disabled={disabled || mblDetail?.status === 'VOIDED'}
           />
+          {renderReleasePods(
+            relatedReleasePods(
+              SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+              mblDetail?.id,
+            ),
+          )}
 
           {isDetail &&
           mblDetail &&
@@ -1030,6 +1184,12 @@ export function SeaDocumentSectionComponent({
               disabled={disabled || isTerminalHouseBill(hb.status)}
             />
           </div>
+          {renderReleasePods(
+            relatedReleasePods(
+              SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
+              hb.id,
+            ),
+          )}
 
           {isDetail && !disabled && !isTerminalHouseBill(hb.status) ? (
             <div style={{ textAlign: 'right', marginTop: 12 }}>

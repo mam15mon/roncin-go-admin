@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -672,6 +673,21 @@ func (_u *SeaMasterBillUpdate) AddSwitchEvents(v ...*SeaHouseBillSwitchEvent) *S
 	return _u.AddSwitchEventIDs(ids...)
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_u *SeaMasterBillUpdate) AddReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
+	_u.mutation.AddReleasePodIDs(ids...)
+	return _u
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_u *SeaMasterBillUpdate) AddReleasePods(v ...*OrderReleasePod) *SeaMasterBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReleasePodIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillMutation object of the builder.
 func (_u *SeaMasterBillUpdate) Mutation() *SeaMasterBillMutation {
 	return _u.mutation
@@ -924,6 +940,27 @@ func (_u *SeaMasterBillUpdate) RemoveSwitchEvents(v ...*SeaHouseBillSwitchEvent)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSwitchEventIDs(ids...)
+}
+
+// ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
+func (_u *SeaMasterBillUpdate) ClearReleasePods() *SeaMasterBillUpdate {
+	_u.mutation.ClearReleasePods()
+	return _u
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to OrderReleasePod entities by IDs.
+func (_u *SeaMasterBillUpdate) RemoveReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
+	_u.mutation.RemoveReleasePodIDs(ids...)
+	return _u
+}
+
+// RemoveReleasePods removes "release_pods" edges to OrderReleasePod entities.
+func (_u *SeaMasterBillUpdate) RemoveReleasePods(v ...*OrderReleasePod) *SeaMasterBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReleasePodIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1742,6 +1779,51 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ReleasePodsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReleasePodsIDs(); len(nodes) > 0 && !_u.mutation.ReleasePodsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{seamasterbill.Label}
@@ -2394,6 +2476,21 @@ func (_u *SeaMasterBillUpdateOne) AddSwitchEvents(v ...*SeaHouseBillSwitchEvent)
 	return _u.AddSwitchEventIDs(ids...)
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_u *SeaMasterBillUpdateOne) AddReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
+	_u.mutation.AddReleasePodIDs(ids...)
+	return _u
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_u *SeaMasterBillUpdateOne) AddReleasePods(v ...*OrderReleasePod) *SeaMasterBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReleasePodIDs(ids...)
+}
+
 // Mutation returns the SeaMasterBillMutation object of the builder.
 func (_u *SeaMasterBillUpdateOne) Mutation() *SeaMasterBillMutation {
 	return _u.mutation
@@ -2646,6 +2743,27 @@ func (_u *SeaMasterBillUpdateOne) RemoveSwitchEvents(v ...*SeaHouseBillSwitchEve
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSwitchEventIDs(ids...)
+}
+
+// ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
+func (_u *SeaMasterBillUpdateOne) ClearReleasePods() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearReleasePods()
+	return _u
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to OrderReleasePod entities by IDs.
+func (_u *SeaMasterBillUpdateOne) RemoveReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
+	_u.mutation.RemoveReleasePodIDs(ids...)
+	return _u
+}
+
+// RemoveReleasePods removes "release_pods" edges to OrderReleasePod entities.
+func (_u *SeaMasterBillUpdateOne) RemoveReleasePods(v ...*OrderReleasePod) *SeaMasterBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReleasePodIDs(ids...)
 }
 
 // Where appends a list predicates to the SeaMasterBillUpdate builder.
@@ -3487,6 +3605,51 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReleasePodsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReleasePodsIDs(); len(nodes) > 0 && !_u.mutation.ReleasePodsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.ReleasePodsTable,
+			Columns: []string{seamasterbill.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -239,7 +239,7 @@ func TestSeaDocumentChangePostgresFlows(t *testing.T) {
 		if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
 			t.Fatalf("VOIDED HBL 仍可走普通编辑，错误=%v", err)
 		}
-		err = documentRepo.RemoveSeaHouseBill(ctx, f.orgID, f.actorID, f.orderID, hbl.ID, hbl.Version, link.Version, true, f.audit())
+		err = documentRepo.RemoveSeaHouseBill(ctx, f.orgID, f.actorID, f.orderID, hbl.ID, hbl.Version, link.Version, true, false, f.audit())
 		if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
 			t.Fatalf("VOIDED HBL 仍可走普通删除，错误=%v", err)
 		}

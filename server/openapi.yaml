@@ -5209,6 +5209,10 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: removeRelatedReleasePods
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -12739,6 +12743,11 @@ components:
                     type: string
                 note:
                     type: string
+                seaDocumentType:
+                    type: integer
+                    format: enum
+                seaDocumentId:
+                    type: string
             description: AddReleasePodRequest 添加放货凭证请求。
         order.v1.AddReleasePodResponse:
             type: object
@@ -14901,6 +14910,11 @@ components:
                     items:
                         type: integer
                         format: enum
+                seaDocumentType:
+                    type: integer
+                    format: enum
+                seaDocumentId:
+                    type: string
             description: OrderReleasePod 放货凭证信息。
         order.v1.OrderShippingDocument:
             type: object
@@ -17349,6 +17363,11 @@ components:
                 podNo:
                     type: string
                 note:
+                    type: string
+                seaDocumentType:
+                    type: integer
+                    format: enum
+                seaDocumentId:
                     type: string
             description: UpdateReleasePodRequest 更新放货凭证字段请求。
         order.v1.UpdateReleasePodResponse:

@@ -80,6 +80,8 @@ func TestPostgresColdStartMigration(t *testing.T) {
 		"financeinvoice_org_red_invoice_no":    {"UNIQUE", "organization_id", "red_invoice_no", "red_invoice_no IS NOT NULL"},
 		"finance_bill_lines_active_fee_unique": {"UNIQUE", "order_fee_id", "active = true"},
 		"verification_allocation_pair_unique":  {"UNIQUE", "verification_id", "cashflow_id", "bill_id"},
+		"orderreleasepod_sea_master_bill_id":   {"sea_master_bill_id"},
+		"orderreleasepod_sea_house_bill_id":    {"sea_house_bill_id"},
 	}
 	for name, fragments := range expectedIndexes {
 		var definition string
@@ -91,6 +93,52 @@ func TestPostgresColdStartMigration(t *testing.T) {
 			if !strings.Contains(definition, fragment) {
 				t.Errorf("索引 %s 定义缺少 %q: %s", name, fragment, definition)
 			}
+		}
+	}
+
+	for _, columnName := range []string{"sea_master_bill_id", "sea_house_bill_id"} {
+		var nullable string
+		if err := db.QueryRowContext(ctx, `SELECT is_nullable
+			FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'order_release_pods' AND column_name = $2`,
+			schemaName, columnName).Scan(&nullable); err != nil {
+			t.Errorf("迁移后缺少 order_release_pods.%s: %v", columnName, err)
+			continue
+		}
+		if nullable != "YES" {
+			t.Errorf("order_release_pods.%s 必须可空，实际 is_nullable=%s", columnName, nullable)
+		}
+	}
+
+	var checkDefinition string
+	if err := db.QueryRowContext(ctx, `SELECT pg_get_constraintdef(c.oid)
+		FROM pg_constraint c
+		JOIN pg_namespace n ON n.oid = c.connamespace
+		WHERE n.nspname = $1 AND c.conname = 'order_release_pods_document_reference_check'`,
+		schemaName).Scan(&checkDefinition); err != nil {
+		t.Errorf("迁移后缺少放货记录单证互斥 CHECK: %v", err)
+	} else {
+		for _, fragment := range []string{"shipping_document_id", "sea_master_bill_id", "sea_house_bill_id", "num_nonnulls", "<= 1"} {
+			if !strings.Contains(checkDefinition, fragment) {
+				t.Errorf("放货记录单证互斥 CHECK 缺少 %q: %s", fragment, checkDefinition)
+			}
+		}
+	}
+
+	for _, constraintName := range []string{
+		"order_release_pods_sea_master_bills_release_pods",
+		"order_release_pods_sea_house_bills_release_pods",
+	} {
+		var deleteRule string
+		if err := db.QueryRowContext(ctx, `SELECT delete_rule
+			FROM information_schema.referential_constraints
+			WHERE constraint_schema = $1 AND constraint_name = $2`,
+			schemaName, constraintName).Scan(&deleteRule); err != nil {
+			t.Errorf("迁移后缺少真实海运单证外键 %s: %v", constraintName, err)
+			continue
+		}
+		if deleteRule != "NO ACTION" {
+			t.Errorf("真实海运单证外键 %s delete_rule=%q，期望 NO ACTION", constraintName, deleteRule)
 		}
 	}
 }

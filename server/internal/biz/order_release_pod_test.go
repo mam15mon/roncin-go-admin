@@ -119,6 +119,22 @@ func TestOrderReleasePodStatusValid(t *testing.T) {
 	}
 }
 
+func TestNormalizeOrderReleasePodRejectsMixedDocumentReferences(t *testing.T) {
+	legacyID, seaID := uuid.New(), uuid.New()
+	_, err := normalizeOrderReleasePod(&OrderReleasePod{
+		ShippingDocumentID: &legacyID,
+		SeaDocumentType:    SeaDocumentTypeHouseBill,
+		SeaDocumentID:      &seaID,
+	})
+	if err != ErrOrderReleasePodDocumentInvalid {
+		t.Fatalf("混合单证引用错误 = %v，期望 %v", err, ErrOrderReleasePodDocumentInvalid)
+	}
+	_, err = normalizeOrderReleasePod(&OrderReleasePod{SeaDocumentType: SeaDocumentTypeMasterBill})
+	if err != ErrOrderReleasePodDocumentInvalid {
+		t.Fatalf("缺少海运单证 ID 错误 = %v，期望 %v", err, ErrOrderReleasePodDocumentInvalid)
+	}
+}
+
 func TestOrderReleasePodAllowedTargetStatuses(t *testing.T) {
 	tests := []struct {
 		status OrderReleasePodStatus
