@@ -32,6 +32,16 @@ func TestOrderLockSchemaMetadataSupportsAllBusinessTypes(t *testing.T) {
 	if OrderLockRecordsTable.Annotation == nil || OrderLockRecordsTable.Annotation.Checks[checkName] != checkExpression {
 		t.Fatalf("锁记录 CHECK 元数据缺失或不一致: %#v", OrderLockRecordsTable.Annotation)
 	}
+
+	for _, symbol := range []string{
+		"order_lock_records_sea_master_bills_lock_records",
+		"order_lock_records_sea_master_bill_versions_lock_records",
+	} {
+		foreignKey := requireForeignKey(t, OrderLockRecordsTable.ForeignKeys, symbol)
+		if foreignKey.OnDelete != schema.NoAction {
+			t.Fatalf("锁记录历史快照外键 %s 的删除策略 = %v，期望 NO ACTION", symbol, foreignKey.OnDelete)
+		}
+	}
 }
 
 func requireColumn(t *testing.T, columns []*schema.Column, name string) *schema.Column {
@@ -55,4 +65,15 @@ func equalStrings(left, right []string) bool {
 		}
 	}
 	return true
+}
+
+func requireForeignKey(t *testing.T, foreignKeys []*schema.ForeignKey, symbol string) *schema.ForeignKey {
+	t.Helper()
+	for _, foreignKey := range foreignKeys {
+		if foreignKey.Symbol == symbol {
+			return foreignKey
+		}
+	}
+	t.Fatalf("生成的迁移元数据缺少外键 %s", symbol)
+	return nil
 }

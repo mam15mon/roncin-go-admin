@@ -56,7 +56,7 @@ func (SeaMasterBillVersion) Edges() []ent.Edge {
 		edge.From("issuer_partner", Partner.Type).Ref("sea_master_bill_versions").Field("issuer_partner_id").Unique().Required().Immutable(),
 		edge.From("transport_execution", SeaTransportExecution.Type).Ref("master_bill_versions").Field("transport_execution_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_master_bill_versions").Field("created_by").Unique().Immutable(),
-		edge.To("lock_records", OrderLockRecord.Type),
+		edge.To("lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("previous_void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}

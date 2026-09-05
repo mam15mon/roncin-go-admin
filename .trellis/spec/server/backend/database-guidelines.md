@@ -28,6 +28,10 @@
 
 - Ent 注解、生成的 `ent/migrate/schema.go` 与正式 SQL 迁移必须使用相同的稳定约束名
   和等价表达式。
+- Ent 可空外键默认可能生成为 `ON DELETE SET NULL`；正式迁移要求保留历史引用为
+  `NO ACTION` 时，必须在实际拥有关系定义的 `edge.To(...).Annotations(entsql.OnDelete(entsql.NoAction))`
+  一侧声明，并断言生成元数据中的 `ForeignKey.OnDelete`。只在对应 `edge.From(...).Ref(...)`
+  一侧添加注解不能证明生成结果生效。
 - 生产迁移仍以 `pnpm run migrate:server` 执行；Ent 注解用于保持 Schema 真相源完整，
   防止开发期 `Schema.Create` 或后续差异生成把正式约束识别为漂移。
 - 生成文件只能通过 `go -C server generate ./...` 更新，不得手改。
@@ -74,6 +78,24 @@ func (SeaOrderSplitResult) Annotations() []schema.Annotation {
 			"result_role IN ('ORIGINAL', 'CREATED')",
 	})}
 }
+```
+
+#### Wrong（可空外键删除策略声明在非拥有侧）
+
+```go
+edge.From("master_bill", SeaMasterBill.Type).
+	Ref("lock_records").
+	Field("master_bill_id").
+	Annotations(entsql.OnDelete(entsql.NoAction))
+```
+
+#### Correct（在拥有关系定义的反向边声明并验证生成结果）
+
+```go
+edge.To("lock_records", OrderLockRecord.Type).
+	Annotations(entsql.OnDelete(entsql.NoAction))
+
+// 生成后必须断言对应 ForeignKey.OnDelete == schema.NoAction。
 ```
 
 ## 事务统一封装（`internal/data/transaction.go`）

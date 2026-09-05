@@ -41,7 +41,7 @@ func (SeaMasterBill) Edges() []ent.Edge {
 		edge.To("current_version", SeaMasterBillVersion.Type).Field("current_version_id").Unique(),
 		edge.To("versions", SeaMasterBillVersion.Type),
 		edge.To("house_bill_versions", SeaHouseBillVersion.Type),
-		edge.To("lock_records", OrderLockRecord.Type),
+		edge.To("lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("switch_events", SeaHouseBillSwitchEvent.Type),
 	}

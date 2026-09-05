@@ -386,6 +386,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		EventAesKey:         "EVENT-AES-KEY-TEST",
 	}})
 	orderWriteRepo := NewOrderRepo(data)
+	orderFeeRepo := NewOrderFeeRepo(data)
 	seaDocRepo := NewSeaDocumentRepo(data)
 
 	createSEOrder := func(orderNo string) *ent.Order {
@@ -526,13 +527,15 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				if lockResult.LockRecord.BusinessType != businessType || lockResult.LockRecord.MasterBillID != nil || lockResult.LockRecord.MasterBillVersionID != nil || len(lockResult.LockRecord.HouseBillSnapshots) != 0 {
 					t.Fatalf("%s 非SE锁事实包含意外海运快照: %#v", businessType, lockResult.LockRecord)
 				}
-				if businessType == biz.OrderBusinessAE {
-					gateErr := data.WithTx(ctx, func(tx *ent.Tx) error {
-						return lockOrderForFeeMutation(ctx, tx, org.ID, o.ID)
-					})
-					if kErr := errors.FromError(gateErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
-						t.Fatalf("非SE费用写门禁错误 = %v，期望 ORDER_BUSINESS_LOCKED", gateErr)
-					}
+				_, updateErr := orderWriteRepo.UpdateDraft(ctx, org.ID, o.ID, 2, &biz.Order{
+					ID: o.ID, BusinessType: businessType, CustomerReferenceNo: "locked-update",
+				}, nil)
+				if kErr := errors.FromError(updateErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+					t.Fatalf("%s 订单资料写错误 = %v，期望 ORDER_BUSINESS_LOCKED", businessType, updateErr)
+				}
+				feeErr := orderFeeRepo.Remove(ctx, org.ID, o.ID, uuid.New(), roleUser.ID, 1, "locked-remove", nil)
+				if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+					t.Fatalf("%s 订单费用写错误 = %v，期望 ORDER_BUSINESS_LOCKED", businessType, feeErr)
 				}
 				unlockResult, err := orderLockRepo.RequestOrderUnlock(ctx, rolePrincipal, o.ID, 2, "idem-unlock-"+strings.ToLower(string(businessType))+"-"+suffix, nil, nil)
 				if err != nil {
@@ -799,6 +802,10 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		if kErr.Metadata["lock_generation"] != "1" {
 			t.Errorf("元数据中缺少正确的 lock_generation: %v", kErr.Metadata)
+		}
+		feeErr := orderFeeRepo.Remove(ctx, org.ID, orderA.ID, uuid.New(), roleUser.ID, 1, "locked-remove", nil)
+		if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("SE 订单费用写错误 = %v，期望 ORDER_BUSINESS_LOCKED", feeErr)
 		}
 	})
 

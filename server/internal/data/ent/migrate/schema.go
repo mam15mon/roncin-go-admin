@@ -3711,13 +3711,13 @@ var (
 				Symbol:     "order_lock_records_sea_master_bills_lock_records",
 				Columns:    []*schema.Column{OrderLockRecordsColumns[16]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bill_versions_lock_records",
 				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_order_lock_records",

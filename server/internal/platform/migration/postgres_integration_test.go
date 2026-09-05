@@ -636,3 +636,223 @@ func TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline(t *testing.T) 
 		t.Fatalf("Switch 链序号唯一索引缺失: definition=%q err=%v", switchIndexDefinition, err)
 	}
 }
+
+func TestPostgresUniversalOrderLockMigrationFromSEBaseline(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+
+	const baselineMigration = "20260904160000_sea_document_change_idempotency.sql"
+	const universalLockRevision = "20260905120000_universal_order_lock"
+	fullDir := filepath.Join("..", "..", "..", "migrations")
+	baselineDir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > baselineMigration {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if err != nil {
+			t.Fatalf("读取全业务订单锁基线迁移 %s 失败: %v", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(baselineDir, entry.Name()), content, 0o600); err != nil {
+			t.Fatalf("复制全业务订单锁基线迁移 %s 失败: %v", entry.Name(), err)
+		}
+	}
+
+	db, err := sql.Open("pgx", source)
+	if err != nil {
+		t.Fatalf("打开 PostgreSQL 失败: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		t.Fatalf("连接 PostgreSQL 失败: %v", err)
+	}
+
+	schemaName := "roncin_universal_lock_mig_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	quotedSchema := `"` + schemaName + `"`
+	if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+		t.Fatalf("创建临时 Schema 失败: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cleanupCancel()
+		if _, err := db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE"); err != nil {
+			t.Errorf("删除临时 Schema 失败: %v", err)
+		}
+	})
+	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+		t.Fatalf("切换临时 Schema 失败: %v", err)
+	}
+	if err := Apply(ctx, db, baselineDir); err != nil {
+		t.Fatalf("建立全业务订单锁升级基线失败: %v", err)
+	}
+
+	orgID, userID, partnerID := uuid.New(), uuid.New(), uuid.New()
+	orderID, executionID, masterBillID := uuid.New(), uuid.New(), uuid.New()
+	masterVersionID, lockRecordID, unlockRequestID := uuid.New(), uuid.New(), uuid.New()
+	orderNo := "MIG-SE-" + orderID.String()[:8]
+	if _, err := db.ExecContext(ctx, `INSERT INTO organizations
+		(id, created_at, updated_at, code, name, kind, base_currency)
+		VALUES ($1, now(), now(), $2, '全业务订单锁迁移组织', 'company', 'CNY')`,
+		orgID, "MIG-ORG-"+orgID.String()[:8]); err != nil {
+		t.Fatalf("插入迁移测试组织失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO users
+		(id, created_at, updated_at, username, display_name, password_hash)
+		VALUES ($1, now(), now(), $2, '迁移锁定人', 'migration-test')`,
+		userID, "mig-user-"+userID.String()[:8]); err != nil {
+		t.Fatalf("插入迁移测试用户失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO partners
+		(id, created_at, updated_at, organization_id, code, legal_name, normalized_name)
+		VALUES ($1, now(), now(), $2, $3, '迁移测试客户', '迁移测试客户')`,
+		partnerID, orgID, "MIG-PARTNER-"+partnerID.String()[:8]); err != nil {
+		t.Fatalf("插入迁移测试客户失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO orders
+		(id, created_at, updated_at, organization_id, order_no, customer_id,
+		 business_type, trade_direction, trade_term, payment_term,
+		 flow_status, termination_status, closure_status, version)
+		VALUES ($1, now(), now(), $2, $3, $4,
+		 'SE', 'export', 'FOB', 'PREPAID', 'DRAFT', 'ACTIVE', 'OPEN', 2)`,
+		orderID, orgID, orderNo, partnerID); err != nil {
+		t.Fatalf("插入迁移测试 SE 订单失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO sea_transport_executions
+		(id, created_at, updated_at, organization_id)
+		VALUES ($1, now(), now(), $2)`, executionID, orgID); err != nil {
+		t.Fatalf("插入迁移测试运输执行失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO sea_master_bills
+		(id, created_at, updated_at, organization_id, issuer_partner_id,
+		 transport_execution_id, master_no, normalized_master_no)
+		VALUES ($1, now(), now(), $2, $3, $4, 'MIG-MBL-001', 'MIG-MBL-001')`,
+		masterBillID, orgID, partnerID, executionID); err != nil {
+		t.Fatalf("插入迁移测试 MBL 失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO sea_master_bill_versions
+		(id, created_at, version_no, source_entity_version, issuer_partner_id,
+		 transport_execution_id, master_no, normalized_master_no, status,
+		 content_hash, source, master_bill_id, organization_id)
+		VALUES ($1, now(), 1, 1, $2, $3, 'MIG-MBL-001', 'MIG-MBL-001', 'CONFIRMED',
+		 $4, 'ORDER_LOCK', $5, $6)`,
+		masterVersionID, partnerID, executionID, strings.Repeat("a", 64), masterBillID, orgID); err != nil {
+		t.Fatalf("插入迁移测试 MBL 版本失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO order_lock_records
+		(id, created_at, order_no, generation, locked_at, order_version_at_lock,
+		 idempotency_key, request_fingerprint, order_id, organization_id, locked_by,
+		 master_bill_id, master_bill_version_id)
+		VALUES ($1, now(), $2, 1, now(), 1, $3, $4, $5, $6, $7, $8, $9)`,
+		lockRecordID, orderNo, "lock-"+lockRecordID.String(), "lock-fingerprint",
+		orderID, orgID, userID, masterBillID, masterVersionID); err != nil {
+		t.Fatalf("插入升级前 SE 锁定周期失败: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `INSERT INTO order_unlock_requests
+		(id, created_at, order_no, lock_generation, requested_at, reason,
+		 expected_order_version, idempotency_key, request_fingerprint, route, status,
+		 dingtalk_process_instance_id, dingtalk_process_code,
+		 order_id, lock_record_id, organization_id, requested_by)
+		VALUES ($1, now(), $2, 1, now(), '升级前解锁申请', 2, $3, $4,
+		 'DINGTALK_APPROVAL', 'PENDING_APPROVAL', 'migration-process-instance',
+		 'migration-process-code', $5, $6, $7, $8)`,
+		unlockRequestID, orderNo, "unlock-"+unlockRequestID.String(), "unlock-fingerprint",
+		orderID, lockRecordID, orgID, userID); err != nil {
+		t.Fatalf("插入升级前 SE 解锁请求失败: %v", err)
+	}
+
+	if err := Apply(ctx, db, fullDir); err != nil {
+		t.Fatalf("升级全业务订单锁迁移失败: %v", err)
+	}
+	if err := Apply(ctx, db, fullDir); err != nil {
+		t.Fatalf("全业务订单锁迁移重复执行失败: %v", err)
+	}
+
+	var lockBusinessType, requestBusinessType, processInstanceID, processCode string
+	if err := db.QueryRowContext(ctx, `SELECT business_type FROM order_lock_records WHERE id = $1`, lockRecordID).Scan(&lockBusinessType); err != nil {
+		t.Fatalf("读取迁移后锁定周期失败: %v", err)
+	}
+	if err := db.QueryRowContext(ctx, `SELECT business_type, dingtalk_process_instance_id, dingtalk_process_code
+		FROM order_unlock_requests WHERE id = $1`, unlockRequestID).
+		Scan(&requestBusinessType, &processInstanceID, &processCode); err != nil {
+		t.Fatalf("读取迁移后解锁请求失败: %v", err)
+	}
+	if lockBusinessType != "SE" || requestBusinessType != "SE" {
+		t.Fatalf("升级前 SE 事实回填异常: lock=%q request=%q", lockBusinessType, requestBusinessType)
+	}
+	if processInstanceID != "migration-process-instance" || processCode != "migration-process-code" {
+		t.Fatalf("升级不得改写既有 OA 关联: instance=%q code=%q", processInstanceID, processCode)
+	}
+
+	for _, column := range []struct {
+		table, name string
+		nullable    bool
+	}{
+		{table: "order_lock_records", name: "business_type", nullable: false},
+		{table: "order_unlock_requests", name: "business_type", nullable: false},
+		{table: "order_lock_records", name: "master_bill_id", nullable: true},
+		{table: "order_lock_records", name: "master_bill_version_id", nullable: true},
+	} {
+		var nullable string
+		if err := db.QueryRowContext(ctx, `SELECT is_nullable FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = $2 AND column_name = $3`,
+			schemaName, column.table, column.name).Scan(&nullable); err != nil {
+			t.Fatalf("读取列元数据 %s.%s 失败: %v", column.table, column.name, err)
+		}
+		if got := nullable == "YES"; got != column.nullable {
+			t.Errorf("列 %s.%s nullable=%v，期望 %v", column.table, column.name, got, column.nullable)
+		}
+	}
+
+	var checkValidated bool
+	var checkDefinition string
+	if err := db.QueryRowContext(ctx, `SELECT c.convalidated, pg_get_constraintdef(c.oid)
+		FROM pg_constraint c
+		JOIN pg_namespace n ON n.oid = c.connamespace
+		WHERE n.nspname = $1 AND c.conname = 'order_lock_records_business_type_document_refs_check'`,
+		schemaName).Scan(&checkValidated, &checkDefinition); err != nil {
+		t.Fatalf("读取全业务锁文档引用 CHECK 失败: %v", err)
+	}
+	for _, fragment := range []string{"business_type", "master_bill_id", "master_bill_version_id", "LAND", "RAIL"} {
+		if !strings.Contains(checkDefinition, fragment) {
+			t.Errorf("全业务锁文档引用 CHECK 缺少 %q: %s", fragment, checkDefinition)
+		}
+	}
+	if !checkValidated {
+		t.Error("全业务锁文档引用 CHECK 必须立即验证")
+	}
+
+	for _, constraintName := range []string{
+		"order_lock_records_sea_master_bills_lock_records",
+		"order_lock_records_sea_master_bill_versions_lock_records",
+	} {
+		var deleteRule string
+		if err := db.QueryRowContext(ctx, `SELECT delete_rule FROM information_schema.referential_constraints
+			WHERE constraint_schema = $1 AND constraint_name = $2`, schemaName, constraintName).Scan(&deleteRule); err != nil {
+			t.Fatalf("读取历史快照外键 %s 失败: %v", constraintName, err)
+		}
+		if deleteRule != "NO ACTION" {
+			t.Errorf("历史快照外键 %s delete_rule=%q，期望 NO ACTION", constraintName, deleteRule)
+		}
+	}
+
+	var revisionChecksum string
+	if err := db.QueryRowContext(ctx, `SELECT checksum FROM schema_migrations WHERE version = $1`, universalLockRevision).Scan(&revisionChecksum); err != nil {
+		t.Fatalf("全业务订单锁迁移记录不存在: %v", err)
+	}
+	if len(revisionChecksum) != 64 {
+		t.Errorf("全业务订单锁迁移 checksum 长度=%d，期望 64", len(revisionChecksum))
+	}
+}
