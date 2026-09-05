@@ -1,0 +1,5 @@
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"核对订单页统一使用标准页头且未破坏操作区"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"核对前端质量门和测试完整性"}
+{"file":".trellis/tasks/09-05-unify-order-breadcrumbs/prd.md","reason":"逐项复核业务层级、返回入口和异常状态验收"}
+{"file":".trellis/tasks/09-05-unify-order-breadcrumbs/design.md","reason":"复核公共页头契约、链接语义、接入边界和回滚风险"}
+{"file":".trellis/tasks/09-05-unify-order-breadcrumbs/research/current-breadcrumb-audit.md","reason":"确认所有现存重复和不一致均被覆盖"}
