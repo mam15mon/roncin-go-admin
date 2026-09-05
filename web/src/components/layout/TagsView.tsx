@@ -16,7 +16,7 @@ import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EllipsisTooltip } from '@/components/ui';
-import { resolveRouteTitle } from './routeUtils';
+import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 
 export interface TagItem {
   key: string;
@@ -50,9 +50,9 @@ export function shouldIgnorePath(pathname: string): boolean {
 export function computeNextActivePath(
   tags: TagItem[],
   closedKey: string,
-  currentPath: string,
+  currentKey: string,
 ): string | null {
-  if (currentPath !== closedKey) {
+  if (currentKey !== closedKey) {
     return null;
   }
   const index = tags.findIndex((t) => t.key === closedKey);
@@ -96,6 +96,8 @@ function getRouteIcon(path: string) {
 export const TagsView: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const fullPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
+  const currentTabKey = resolveTabKey(currentPath);
 
   const [tags, setTags] = useState<TagItem[]>(() => {
     if (
@@ -104,11 +106,15 @@ export const TagsView: React.FC = () => {
       currentPath !== '/welcome' &&
       !shouldIgnorePath(currentPath)
     ) {
+      const initialKey = resolveTabKey(currentPath);
+      if (initialKey === '/welcome') {
+        return [FIXED_TAB];
+      }
       return [
         FIXED_TAB,
         {
-          key: currentPath,
-          path: currentPath,
+          key: initialKey,
+          path: fullPath,
           title: resolveRouteTitle(currentPath),
           closable: true,
         },
@@ -126,20 +132,41 @@ export const TagsView: React.FC = () => {
       return;
     }
 
+    const tabKey = resolveTabKey(currentPath);
+    if (tabKey === '/welcome') {
+      return;
+    }
+
     setTags((prevTags) => {
-      const exists = prevTags.some((t) => t.key === currentPath);
-      if (exists) return prevTags;
+      const index = prevTags.findIndex((t) => t.key === tabKey);
+      if (index !== -1) {
+        const prevTag = prevTags[index];
+        const prevPathname = prevTag.path.split('?')[0].split('#')[0];
+        const title =
+          prevPathname === currentPath
+            ? prevTag.title
+            : resolveRouteTitle(currentPath);
+
+        const updated = [...prevTags];
+        updated[index] = {
+          ...prevTag,
+          path: fullPath,
+          title,
+        };
+        return updated;
+      }
+
       return [
         ...prevTags,
         {
-          key: currentPath,
-          path: currentPath,
+          key: tabKey,
+          path: fullPath,
           title: resolveRouteTitle(currentPath),
           closable: true,
         },
       ];
     });
-  }, [currentPath]);
+  }, [currentPath, fullPath]);
 
   // 监听动态更新页签标题事件（如详情页加载完真实单号后更新 Tab 标题）
   useEffect(() => {
@@ -148,21 +175,35 @@ export const TagsView: React.FC = () => {
     ) => {
       if (!e.detail?.path || !e.detail?.title) return;
       const { path, title } = e.detail;
+      const eventPathname = path.split('?')[0].split('#')[0];
+      const targetKey = resolveTabKey(eventPathname);
+
       setTags((prev) =>
-        prev.map((t) =>
-          t.key === path || t.path === path ? { ...t, title } : t,
-        ),
+        prev.map((t) => {
+          if (t.key !== targetKey) return t;
+          const currentTagPathname = t.path.split('?')[0].split('#')[0];
+          if (currentTagPathname === eventPathname) {
+            return { ...t, title };
+          }
+          return t;
+        }),
       );
     };
 
-    window.addEventListener('roncin:update-tab-title', handleUpdateTabTitle as EventListener);
+    window.addEventListener(
+      'roncin:update-tab-title',
+      handleUpdateTabTitle as EventListener,
+    );
     return () => {
-      window.removeEventListener('roncin:update-tab-title', handleUpdateTabTitle as EventListener);
+      window.removeEventListener(
+        'roncin:update-tab-title',
+        handleUpdateTabTitle as EventListener,
+      );
     };
   }, []);
 
   const handleTabClick = (tag: TagItem) => {
-    if (currentPath === tag.path) return;
+    if (fullPath === tag.path) return;
     history.push(tag.path);
   };
 
@@ -170,10 +211,10 @@ export const TagsView: React.FC = () => {
     e.stopPropagation();
     if (!tag.closable) return;
 
-    const nextPath = computeNextActivePath(tags, tag.key, currentPath);
+    const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
     setTags((prev) => prev.filter((t) => t.key !== tag.key));
 
-    if (nextPath && nextPath !== currentPath) {
+    if (nextPath && nextPath !== fullPath) {
       history.push(nextPath);
     }
   };
@@ -192,7 +233,7 @@ export const TagsView: React.FC = () => {
         icon: <ReloadOutlined />,
         label: '重新加载',
         onClick: () => {
-          if (currentPath === tag.path) {
+          if (fullPath === tag.path) {
             window.location.reload();
           } else {
             history.push(tag.path);
@@ -206,9 +247,9 @@ export const TagsView: React.FC = () => {
         label: '关闭标签页',
         disabled: !tag.closable,
         onClick: () => {
-          const nextPath = computeNextActivePath(tags, tag.key, currentPath);
+          const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
           setTags((prev) => prev.filter((t) => t.key !== tag.key));
-          if (nextPath && nextPath !== currentPath) {
+          if (nextPath && nextPath !== fullPath) {
             history.push(nextPath);
           }
         },
@@ -235,7 +276,8 @@ export const TagsView: React.FC = () => {
         disabled: !hasRight,
         onClick: () => {
           setTags((prev) => prev.slice(0, currentIndex + 1));
-          if (currentIndex < tags.findIndex((t) => t.key === currentPath)) {
+          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+          if (currentIndex < activeIndex) {
             history.push(tag.path);
           }
         },
@@ -247,7 +289,8 @@ export const TagsView: React.FC = () => {
         disabled: !hasLeft,
         onClick: () => {
           setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
-          if (tags.findIndex((t) => t.key === currentPath) < currentIndex) {
+          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+          if (activeIndex > 0 && activeIndex < currentIndex) {
             history.push(tag.path);
           }
         },
@@ -259,18 +302,10 @@ export const TagsView: React.FC = () => {
     <nav className="roncin-tags-view" aria-label="多页签导航">
       <div className="roncin-tags-view-container" role="tablist">
         {tags.map((tag, index) => {
-          const isActive =
-            tag.path === '/welcome'
-              ? currentPath === '/welcome' || currentPath === '/'
-              : currentPath === tag.path ||
-                currentPath.startsWith(`${tag.path}/`);
-
+          const isActive = currentTabKey === tag.key;
           const isNextActive =
             index < tags.length - 1 &&
-            (tags[index + 1].path === '/welcome'
-              ? currentPath === '/welcome' || currentPath === '/'
-              : currentPath === tags[index + 1].path ||
-                currentPath.startsWith(`${tags[index + 1].path}/`));
+            currentTabKey === tags[index + 1].key;
 
           return (
             <Dropdown
@@ -294,7 +329,7 @@ export const TagsView: React.FC = () => {
                 }}
               >
                 {/* 标签主体内容 */}
-                {getRouteIcon(tag.path)}
+                {getRouteIcon(tag.key)}
                 <span className="roncin-chrome-tab-title">
                   <EllipsisTooltip autoDetect maxWidth="100%">
                     {tag.title}

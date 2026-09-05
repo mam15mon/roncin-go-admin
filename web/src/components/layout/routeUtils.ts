@@ -57,10 +57,57 @@ export const DYNAMIC_ROUTE_PATTERNS: Array<{
     title: (m) => `${KIND_NAMES[m[1]] || '订单'}费用录入`,
   },
   {
+    pattern: /^\/orders\/([^/]+)\/([^/]+)\/split$/,
+    title: (m) => `${KIND_NAMES[m[1]] || '订单'}拆票`,
+  },
+  {
     pattern: /^\/orders\/([^/]+)\/(?!new)[^/]+$/,
     title: (m) => `${KIND_NAMES[m[1]] || '订单'}详情`,
   },
+  {
+    pattern: /^\/finance\/fees\/detail\/[^/]+$/,
+    title: '费用详情',
+  },
 ];
+
+/**
+ * 集中配置内部子页面向稳定菜单页签键的归组规则表
+ */
+export const TAB_KEY_RULES: Array<{ pattern: RegExp; key: string }> = [
+  // 1. 海运出口订单：列表、新建、详情、费用录入、拆票
+  { pattern: /^\/orders\/sea-export(?:\/.*)?$/, key: '/orders/sea-export' },
+  // 2. 客商管理：客户列表、新建、详情
+  { pattern: /^\/partners\/customers(?:\/.*)?$/, key: '/partners/customers' },
+  // 3. 客商管理：供应商列表、新建、详情
+  { pattern: /^\/partners\/suppliers(?:\/.*)?$/, key: '/partners/suppliers' },
+  // 4. 客商管理：国外代理列表、新建、详情
+  { pattern: /^\/partners\/foreign-agents(?:\/.*)?$/, key: '/partners/foreign-agents' },
+  // 5. 费用管理：集运费用明细与单票费用详情
+  { pattern: /^\/finance\/fees(?:\/detail\/.*)?$/, key: '/finance/fees' },
+];
+
+/**
+ * 将任意 URL pathname 解析为对应的稳定页签 key
+ */
+export function resolveTabKey(pathname: string): string {
+  if (!pathname || pathname === '/' || pathname === '/welcome') {
+    return '/welcome';
+  }
+
+  // 规范化：去除末尾的斜杠
+  const normalized =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname;
+
+  for (const { pattern, key } of TAB_KEY_RULES) {
+    if (pattern.test(normalized)) {
+      return key;
+    }
+  }
+
+  return normalized;
+}
 
 /**
  * 根据 pathname 解析展示的模块/页面标题
