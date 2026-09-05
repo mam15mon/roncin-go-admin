@@ -29,6 +29,31 @@
 - 页签标题随当前子页面动态呈现（列表展示列表名、新建展示新建名、详情与费用在数据加载后展示真实单号），标题变更不影响页签稳定 key。
 - 新增具有内部整页子路由的菜单入口时，统一在 `src/components/layout/routeUtils.ts` 的 `TAB_KEY_RULES` 与测试矩阵中集中登记。
 
+### 复用页面的业务数据隔离
+
+- TagsView 菜单内部从实体 A 导航到实体 B 时，React 可能复用同一个页面组件实例；所有与实体相关的页面状态（选择项、汇总、弹窗、编辑对象、工作台上下文）必须绑定当前业务 ID。渲染和提交前均校验状态所属 ID，不能只依赖 `useEffect` 在切换后清空。
+- 异步请求同时记录“请求所属业务 ID”和单调递增请求序号；仅当业务 ID 仍等于当前路由且序号仍为最新时，才允许写入状态。该规则同时适用于成功、失败、卸载、延迟回填和手工刷新路径。
+- 含内部预览、选择或提交状态的工作台，在业务 ID 变化时使用稳定的业务 ID 作为 React `key` 重新挂载；提交载荷中的实体 ID/子项 ID 必须来自同一个已校验上下文。
+- ProTable 等自行保存数据源的组件除拦截迟到响应外，还应在业务 ID 变化时重新挂载或立即提供空数据，禁止 B 加载期间暂时显示 A 的旧行。
+- 回归测试必须在**同一个组件实例**内把路由参数从 A 改为 B，并至少覆盖：切换后立即隐藏 A、B 先返回/A 后返回、A 迟到失败、B 失败、组件卸载和已打开提交工作台。通过重新挂载页面得到的测试不能证明页面复用安全。
+
+```tsx
+// 错误：迟到的 A 响应可以覆盖当前 B。
+const result = await loadEntity(id);
+setEntity(result);
+
+// 正确：响应的业务 ID 和请求序号都必须仍然属于当前页面。
+const requestedId = id;
+const requestSequence = ++requestSequenceRef.current;
+const result = await loadEntity(requestedId);
+if (
+  requestedId === activeIdRef.current &&
+  requestSequence === requestSequenceRef.current
+) {
+  setEntity({ id: requestedId, value: result });
+}
+```
+
 ## 页头与面包屑规范 (PageHeaderShell / OrderPageHeader)
 
 - **面包屑契约**：`breadcrumbs` 仅传**上级路径**，支持真实链接语义（基于 Umi `Link`），支持快捷点击与右键新标签打开；当前页面名称**仅由 `title` 渲染**，不在 `breadcrumbs` 末尾重复输出且不可点击。

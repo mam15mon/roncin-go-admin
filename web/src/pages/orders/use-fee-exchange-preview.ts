@@ -3,12 +3,12 @@ import { App } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
-import type { FeeFormValues } from './components/fees/FeeFormModal';
 import {
   calculateExactFeeTotal,
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { trimDecimal } from '@/utils/format';
+import type { FeeFormValues } from './components/fees/FeeFormModal';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -31,6 +31,7 @@ export function useFeeExchangePreview(
   const [manualExchangeRate, setManualExchangeRate] = useState(false);
 
   const resetPreview = () => {
+    exchangeRateRequestRef.current += 1;
     setTotalPreview(undefined);
     setExchangeRatePreview(undefined);
     setExchangeRateStatus('idle');

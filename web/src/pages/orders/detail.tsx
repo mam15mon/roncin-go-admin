@@ -19,7 +19,13 @@ import {
   Spin,
   Typography,
 } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
@@ -37,7 +43,6 @@ import AbnormalCasePanel, {
 import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
-import OrderPageHeader from './components/OrderPageHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import {
   buildInitialValues,
@@ -48,6 +53,7 @@ import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
 } from './components/drawers/SeaOrderChangeHistoryDrawer';
 import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
+import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
   confirmOrderTermination,
@@ -96,26 +102,63 @@ export default function OrderDetailPage() {
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
-  const [changeActions, setChangeActions] =
-    useState<API.SeaOrderChangeActionsData | null>(null);
+  const changeActionsTargetKey =
+    orderId && config?.category === 'sea'
+      ? `${config.kind}:${orderId}`
+      : undefined;
+  const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
+  activeChangeActionsTargetRef.current = changeActionsTargetKey;
+  const changeActionsRequestIdRef = useRef(0);
+  const [changeActionsState, setChangeActionsState] = useState<{
+    targetKey: string;
+    data: API.SeaOrderChangeActionsData;
+  } | null>(null);
+  const changeActions =
+    changeActionsState &&
+    changeActionsState.targetKey === changeActionsTargetKey
+      ? changeActionsState.data
+      : null;
   const [reassignModalOpen, setReassignModalOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
-  const loadChangeActions = async () => {
-    if (!orderId || config?.category !== 'sea') return;
+  const loadChangeActions = useCallback(async () => {
+    const requestOrderId = orderId;
+    const requestTargetKey = changeActionsTargetKey;
+    if (!requestOrderId || !requestTargetKey) {
+      changeActionsRequestIdRef.current += 1;
+      setChangeActionsState(null);
+      return;
+    }
+    // 等待其他刷新任务结束的旧闭包不得使当前订单请求失效。
+    if (requestTargetKey !== activeChangeActionsTargetRef.current) return;
+    const requestId = ++changeActionsRequestIdRef.current;
     try {
       const resp = await seaOrderChangeServiceGetSeaOrderChangeActions({
-        orderId,
+        orderId: requestOrderId,
       });
-      if (resp?.data) {
-        setChangeActions(resp.data);
+      if (
+        requestId !== changeActionsRequestIdRef.current ||
+        requestTargetKey !== activeChangeActionsTargetRef.current
+      ) {
+        return;
       }
+
+      setChangeActionsState(
+        resp?.data ? { targetKey: requestTargetKey, data: resp.data } : null,
+      );
     } catch (error: unknown) {
+      if (
+        requestId !== changeActionsRequestIdRef.current ||
+        requestTargetKey !== activeChangeActionsTargetRef.current
+      ) {
+        return;
+      }
+      setChangeActionsState(null);
       message.error(
         error instanceof Error ? error.message : '加载拆票与改配动作失败',
       );
     }
-  };
+  }, [changeActionsTargetKey, message, orderId]);
 
   const {
     state: lockState,
@@ -126,10 +169,13 @@ export default function OrderDetailPage() {
   const [synchronizingLockChange, setSynchronizingLockChange] = useState(false);
 
   useEffect(() => {
-    if (orderId && config?.category === 'sea') {
-      loadChangeActions();
-    }
-  }, [orderId, order?.version]);
+    setChangeActionsState(null);
+    void loadChangeActions();
+
+    return () => {
+      changeActionsRequestIdRef.current += 1;
+    };
+  }, [loadChangeActions, order?.version]);
 
   useEffect(() => {
     if (
@@ -426,6 +472,7 @@ export default function OrderDetailPage() {
       onClick: () => {
         void loadData();
         void refreshLockState();
+        void loadChangeActions();
       },
     },
   ];

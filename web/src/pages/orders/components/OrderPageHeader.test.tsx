@@ -70,7 +70,10 @@ describe('OrderPageHeader', () => {
     );
 
     expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
-    expect(screen.getByText('海运出口')).toHaveAttribute('href', '/orders/sea-export');
+    expect(screen.getByText('海运出口')).toHaveAttribute(
+      'href',
+      '/orders/sea-export',
+    );
     expect(screen.getByText('SE2026082600004')).toBeInTheDocument();
 
     const backBtn = screen.getByRole('button', { name: /返回列表/ });
@@ -89,7 +92,10 @@ describe('OrderPageHeader', () => {
     );
 
     expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
-    expect(screen.getByText('海运出口')).toHaveAttribute('href', '/orders/sea-export');
+    expect(screen.getByText('海运出口')).toHaveAttribute(
+      'href',
+      '/orders/sea-export',
+    );
 
     // 订单号为上级链接
     const orderLink = screen.getByText('SE2026082600004');
@@ -115,7 +121,10 @@ describe('OrderPageHeader', () => {
     );
 
     expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
-    expect(screen.getByText('海运出口')).toHaveAttribute('href', '/orders/sea-export');
+    expect(screen.getByText('海运出口')).toHaveAttribute(
+      'href',
+      '/orders/sea-export',
+    );
 
     const orderLink = screen.getByText('SE2026082600004');
     expect(orderLink).toHaveAttribute('href', '/orders/sea-export/ord-123');
@@ -139,7 +148,10 @@ describe('OrderPageHeader', () => {
 
     // 面包屑中使用 orderId 作为过渡标识
     const orderLink = screen.getByText('ord-pending-1');
-    expect(orderLink).toHaveAttribute('href', '/orders/sea-export/ord-pending-1');
+    expect(orderLink).toHaveAttribute(
+      'href',
+      '/orders/sea-export/ord-pending-1',
+    );
   });
 
   it('支持在页头中渲染 tags 与 extra 动作插槽', () => {
@@ -150,7 +162,11 @@ describe('OrderPageHeader', () => {
         orderId="ord-123"
         orderNo="SE2026082600004"
         tags={<span data-testid="test-tag">已锁定</span>}
-        extra={<button type="button" data-testid="test-action">操作</button>}
+        extra={
+          <button type="button" data-testid="test-action">
+            操作
+          </button>
+        }
       />,
     );
 
@@ -158,4 +174,3 @@ describe('OrderPageHeader', () => {
     expect(screen.getByTestId('test-action')).toBeInTheDocument();
   });
 });
-

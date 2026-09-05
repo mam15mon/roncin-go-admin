@@ -2,7 +2,7 @@ import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Space, Tabs, Tag } from 'antd';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
 import { unwrapList } from '@/utils/api';
 import {
@@ -58,6 +58,36 @@ export default function OrderFeeTableTabs({
   onOpenFeeModal,
   getTableColumns,
 }: OrderFeeTableTabsProps) {
+  const currentOrderIdRef = useRef(orderId);
+  const mountedRef = useRef(true);
+  const receivableRequestSequenceRef = useRef(0);
+  const payableRequestSequenceRef = useRef(0);
+  const latestReceivableResultRef = useRef<
+    | {
+        orderId: string;
+        items: API.OrderFee[];
+      }
+    | undefined
+  >(undefined);
+  const latestPayableResultRef = useRef<
+    | {
+        orderId: string;
+        items: API.OrderFee[];
+      }
+    | undefined
+  >(undefined);
+
+  currentOrderIdRef.current = orderId;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      receivableRequestSequenceRef.current += 1;
+      payableRequestSequenceRef.current += 1;
+    };
+  }, []);
+
   return (
     <Tabs
       type="card"
@@ -73,9 +103,11 @@ export default function OrderFeeTableTabs({
           ),
           children: (
             <ProTable<API.OrderFee>
+              key={`receivable:${orderId}`}
               actionRef={receivableActionRef}
               rowKey="id"
               search={false}
+              params={{ orderId }}
               bordered
               pagination={false}
               rowSelection={{
@@ -117,27 +149,65 @@ export default function OrderFeeTableTabs({
               }
               request={async () => {
                 if (!orderId) return { data: [], success: true };
-                const res = await orderFeeServiceListFees({ orderId });
-                const rItems = unwrapList(res).filter(
-                  (f) => feeDirectionCode(f.direction) === RECEIVABLE,
-                );
-                setAllReceivableItems(rItems);
-                const activeItems = rItems.filter(
-                  (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                );
-                const total = activeItems.reduce(
-                  (acc, cur) =>
-                    acc +
-                    (cur.baseCurrencyAmount
-                      ? Number(cur.baseCurrencyAmount)
-                      : 0),
-                  0,
-                );
-                setReceivableSummary({
-                  totalAmount: total,
-                  count: rItems.length,
-                });
-                return { data: rItems, success: true };
+                const requestedOrderId = orderId;
+                const requestSequence = ++receivableRequestSequenceRef.current;
+                try {
+                  const res = await orderFeeServiceListFees({ orderId });
+                  const rItems = unwrapList(res).filter(
+                    (f) => feeDirectionCode(f.direction) === RECEIVABLE,
+                  );
+                  const isCurrentRequest =
+                    mountedRef.current &&
+                    currentOrderIdRef.current === requestedOrderId &&
+                    receivableRequestSequenceRef.current === requestSequence;
+                  if (!isCurrentRequest) {
+                    const currentResult = latestReceivableResultRef.current;
+                    return {
+                      data:
+                        currentResult?.orderId === currentOrderIdRef.current
+                          ? currentResult.items
+                          : [],
+                      success: true,
+                    };
+                  }
+                  latestReceivableResultRef.current = {
+                    orderId: requestedOrderId,
+                    items: rItems,
+                  };
+                  setAllReceivableItems(rItems);
+                  const activeItems = rItems.filter(
+                    (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+                  );
+                  const total = activeItems.reduce(
+                    (acc, cur) =>
+                      acc +
+                      (cur.baseCurrencyAmount
+                        ? Number(cur.baseCurrencyAmount)
+                        : 0),
+                    0,
+                  );
+                  setReceivableSummary({
+                    totalAmount: total,
+                    count: rItems.length,
+                  });
+                  return { data: rItems, success: true };
+                } catch {
+                  const isCurrentRequest =
+                    mountedRef.current &&
+                    currentOrderIdRef.current === requestedOrderId &&
+                    receivableRequestSequenceRef.current === requestSequence;
+                  if (isCurrentRequest) {
+                    return { data: [], success: false };
+                  }
+                  const currentResult = latestReceivableResultRef.current;
+                  return {
+                    data:
+                      currentResult?.orderId === currentOrderIdRef.current
+                        ? currentResult.items
+                        : [],
+                    success: true,
+                  };
+                }
               }}
               columns={getTableColumns(RECEIVABLE)}
             />
@@ -148,9 +218,11 @@ export default function OrderFeeTableTabs({
           label: `应付费用 (${payableSummary.count})`,
           children: (
             <ProTable<API.OrderFee>
+              key={`payable:${orderId}`}
               actionRef={payableActionRef}
               rowKey="id"
               search={false}
+              params={{ orderId }}
               bordered
               size="small"
               pagination={false}
@@ -195,27 +267,65 @@ export default function OrderFeeTableTabs({
               }
               request={async () => {
                 if (!orderId) return { data: [], success: true };
-                const res = await orderFeeServiceListFees({ orderId });
-                const pItems = unwrapList(res).filter(
-                  (f) => feeDirectionCode(f.direction) === PAYABLE,
-                );
-                setAllPayableItems(pItems);
-                const activeItems = pItems.filter(
-                  (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                );
-                const total = activeItems.reduce(
-                  (acc, cur) =>
-                    acc +
-                    (cur.baseCurrencyAmount
-                      ? Number(cur.baseCurrencyAmount)
-                      : 0),
-                  0,
-                );
-                setPayableSummary({
-                  totalAmount: total,
-                  count: pItems.length,
-                });
-                return { data: pItems, success: true };
+                const requestedOrderId = orderId;
+                const requestSequence = ++payableRequestSequenceRef.current;
+                try {
+                  const res = await orderFeeServiceListFees({ orderId });
+                  const pItems = unwrapList(res).filter(
+                    (f) => feeDirectionCode(f.direction) === PAYABLE,
+                  );
+                  const isCurrentRequest =
+                    mountedRef.current &&
+                    currentOrderIdRef.current === requestedOrderId &&
+                    payableRequestSequenceRef.current === requestSequence;
+                  if (!isCurrentRequest) {
+                    const currentResult = latestPayableResultRef.current;
+                    return {
+                      data:
+                        currentResult?.orderId === currentOrderIdRef.current
+                          ? currentResult.items
+                          : [],
+                      success: true,
+                    };
+                  }
+                  latestPayableResultRef.current = {
+                    orderId: requestedOrderId,
+                    items: pItems,
+                  };
+                  setAllPayableItems(pItems);
+                  const activeItems = pItems.filter(
+                    (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+                  );
+                  const total = activeItems.reduce(
+                    (acc, cur) =>
+                      acc +
+                      (cur.baseCurrencyAmount
+                        ? Number(cur.baseCurrencyAmount)
+                        : 0),
+                    0,
+                  );
+                  setPayableSummary({
+                    totalAmount: total,
+                    count: pItems.length,
+                  });
+                  return { data: pItems, success: true };
+                } catch {
+                  const isCurrentRequest =
+                    mountedRef.current &&
+                    currentOrderIdRef.current === requestedOrderId &&
+                    payableRequestSequenceRef.current === requestSequence;
+                  if (isCurrentRequest) {
+                    return { data: [], success: false };
+                  }
+                  const currentResult = latestPayableResultRef.current;
+                  return {
+                    data:
+                      currentResult?.orderId === currentOrderIdRef.current
+                        ? currentResult.items
+                        : [],
+                    success: true,
+                  };
+                }
               }}
               columns={getTableColumns(PAYABLE)}
             />

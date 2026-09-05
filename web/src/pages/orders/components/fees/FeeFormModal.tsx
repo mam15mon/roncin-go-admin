@@ -6,17 +6,14 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import {
-  ExchangeRatePreviewCard,
-  ProFormSearchableSelect,
-} from '@/components/ui';
 import { Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React, { useRef } from 'react';
 import {
-  exchangeRatePattern,
-  quantityOrPricePattern,
-} from '@/utils/decimal';
+  ExchangeRatePreviewCard,
+  ProFormSearchableSelect,
+} from '@/components/ui';
+import { exchangeRatePattern, quantityOrPricePattern } from '@/utils/decimal';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
@@ -42,6 +39,7 @@ export type FeeFormValues = {
 };
 
 type FeeFormModalProps = {
+  formRef?: React.RefObject<ProFormInstance<FeeFormValues> | undefined>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingFee?: API.OrderFee;
@@ -64,6 +62,7 @@ type FeeFormModalProps = {
 };
 
 export default function FeeFormModal({
+  formRef,
   open,
   onOpenChange,
   editingFee,
@@ -84,7 +83,10 @@ export default function FeeFormModal({
   onFeeSettingSelect,
   onSubmit,
 }: FeeFormModalProps) {
-  const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
+  const internalFormRef = useRef<ProFormInstance<FeeFormValues> | undefined>(
+    undefined,
+  );
+  const activeFormRef = formRef ?? internalFormRef;
 
   return (
     <ModalForm<FeeFormValues>
@@ -94,7 +96,7 @@ export default function FeeFormModal({
           : `新增${modalDirection === 1 ? '应收' : '应付'}费用`
       }
       open={open}
-      formRef={formRef}
+      formRef={activeFormRef}
       onOpenChange={onOpenChange}
       onFinish={onSubmit}
       onValuesChange={onValuesChange}
@@ -144,13 +146,13 @@ export default function FeeFormModal({
                 const setting = feeSettings.find((item) => item.id === val);
                 onFeeSettingSelect(setting);
                 if (setting?.defaultBillingUnitId) {
-                  formRef.current?.setFieldValue(
+                  activeFormRef.current?.setFieldValue(
                     'billingUnitId',
                     setting.defaultBillingUnitId,
                   );
                 }
                 if (setting?.defaultCurrency) {
-                  formRef.current?.setFieldValue(
+                  activeFormRef.current?.setFieldValue(
                     'currency',
                     setting.defaultCurrency,
                   );
@@ -274,7 +276,7 @@ export default function FeeFormModal({
         <Col span={24}>
           <ExchangeRatePreviewCard
             amountPreview={totalPreview}
-            currency={formRef.current?.getFieldValue('currency')}
+            currency={activeFormRef.current?.getFieldValue('currency')}
             amountColor={modalDirection === 1 ? '#1677ff' : '#fa8c16'}
             status={exchangeRateStatus}
             ratePreview={exchangeRatePreview}

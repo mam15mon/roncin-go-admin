@@ -1,7 +1,4 @@
-import {
-  LockOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { LockOutlined, ReloadOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -36,11 +33,11 @@ import {
   RECEIVABLE,
 } from './components/fees/feeConstants';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
-import OrderPageHeader from './components/OrderPageHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
+import OrderPageHeader from './components/OrderPageHeader';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
 import {
@@ -63,6 +60,10 @@ export default function OrderFeesPage() {
   const payableActionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
   const createIdempotencyKeyRef = useRef(generateUUID());
+  const activeFeeOrderIdRef = useRef(targetOrderId);
+  const taxableServicesRequestIdRef = useRef(0);
+  const feeFormPopulationIdRef = useRef(0);
+  activeFeeOrderIdRef.current = targetOrderId;
 
   const {
     loading,
@@ -96,12 +97,20 @@ export default function OrderFeesPage() {
     seedFromFee,
     handleValuesChange,
   } = useFeeExchangePreview(targetOrderId, formRef);
+  const resetPreviewRef = useRef(resetPreview);
+  resetPreviewRef.current = resetPreview;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
   const [editingFee, setEditingFee] = useState<API.OrderFee>();
-  const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
-  const [billWorkbenchFeeIds, setBillWorkbenchFeeIds] = useState<string[]>([]);
+  const [billWorkbenchContext, setBillWorkbenchContext] = useState<{
+    orderId: string;
+    feeIds: string[];
+  }>();
+  const currentBillWorkbenchContext =
+    billWorkbenchContext?.orderId === targetOrderId
+      ? billWorkbenchContext
+      : undefined;
   const [selectedReceivableFeeIds, setSelectedReceivableFeeIds] = useState<
     React.Key[]
   >([]);
@@ -134,6 +143,30 @@ export default function OrderFeesPage() {
   // 快捷新建结算单位状态
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
     useState(false);
+
+  // TagsView 会复用同一个页面实例。订单切换时，上一订单的选择、汇总和弹窗
+  // 都必须立即失效，不能等新订单数据返回后再覆盖。
+  useEffect(() => {
+    taxableServicesRequestIdRef.current += 1;
+    feeFormPopulationIdRef.current += 1;
+    setModalOpen(false);
+    setModalDirection(RECEIVABLE);
+    setEditingFee(undefined);
+    setBillWorkbenchContext(undefined);
+    setSelectedReceivableFeeIds([]);
+    setSelectedPayableFeeIds([]);
+    setAllReceivableItems([]);
+    setAllPayableItems([]);
+    setSelectedFeeSetting(undefined);
+    setReceivableSummary({ totalAmount: 0, count: 0 });
+    setPayableSummary({ totalAmount: 0, count: 0 });
+    setQuickAddFeeModalOpen(false);
+    setTaxableServices([]);
+    setQuickAddPartnerModalOpen(false);
+    createIdempotencyKeyRef.current = generateUUID();
+    formRef.current?.resetFields();
+    resetPreviewRef.current();
+  }, [targetOrderId]);
 
   const lockWritePolicy = getOrderBusinessWritePolicy({
     state: lockState,
@@ -191,11 +224,20 @@ export default function OrderFeesPage() {
 
   const handleOpenQuickAddFee = async () => {
     if (!ensureFeeWriteAllowed()) return;
+    const requestedOrderId = targetOrderId;
+    if (!requestedOrderId) return;
+    const requestId = ++taxableServicesRequestIdRef.current;
     setQuickAddFeeModalOpen(true);
     try {
       const res = await feeCatalogServiceListTaxableServices({
         skipErrorHandler: true,
       });
+      if (
+        requestId !== taxableServicesRequestIdRef.current ||
+        requestedOrderId !== activeFeeOrderIdRef.current
+      ) {
+        return;
+      }
       setTaxableServices(unwrapList(res));
     } catch {
       // ignore
@@ -209,6 +251,9 @@ export default function OrderFeesPage() {
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
     if (!ensureFeeWriteAllowed()) return;
+    const requestedOrderId = targetOrderId;
+    if (!requestedOrderId) return;
+    const populationId = ++feeFormPopulationIdRef.current;
     if (!fee) createIdempotencyKeyRef.current = generateUUID();
     setEditingFee(fee);
     setModalDirection(direction);
@@ -221,6 +266,12 @@ export default function OrderFeesPage() {
       setSelectedFeeSetting(setting);
       seedFromFee(fee);
       setTimeout(() => {
+        if (
+          populationId !== feeFormPopulationIdRef.current ||
+          requestedOrderId !== activeFeeOrderIdRef.current
+        ) {
+          return;
+        }
         formRef.current?.setFieldsValue({
           direction: fee.direction ?? direction,
           feeSettingId: fee.feeSettingId ?? '',
@@ -239,6 +290,12 @@ export default function OrderFeesPage() {
           ? order?.customerId
           : order?.bookingAgentId || order?.carrierId;
       setTimeout(() => {
+        if (
+          populationId !== feeFormPopulationIdRef.current ||
+          requestedOrderId !== activeFeeOrderIdRef.current
+        ) {
+          return;
+        }
         formRef.current?.setFieldsValue({
           direction,
           settlementPartyId: defaultParty ?? '',
@@ -509,8 +566,8 @@ export default function OrderFeesPage() {
           canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
           feeWritesDisabled={feeWritesDisabled}
           onOpenBillWorkbench={(feeIds) => {
-            setBillWorkbenchFeeIds(feeIds);
-            setBillWorkbenchOpen(true);
+            if (!orderId) return;
+            setBillWorkbenchContext({ orderId, feeIds });
           }}
           onOpenFeeModal={openFeeModal}
           getTableColumns={getTableColumns}
@@ -529,10 +586,11 @@ export default function OrderFeesPage() {
       </div>
 
       <BillCreationWorkbench
-        open={billWorkbenchOpen}
-        initialFeeIds={billWorkbenchFeeIds}
+        key={targetOrderId}
+        open={Boolean(currentBillWorkbenchContext)}
+        initialFeeIds={currentBillWorkbenchContext?.feeIds ?? []}
         sourceLabel={`订单 ${order.orderNo || order.id}`}
-        onClose={() => setBillWorkbenchOpen(false)}
+        onClose={() => setBillWorkbenchContext(undefined)}
         onCreated={() => {
           setSelectedReceivableFeeIds([]);
           setSelectedPayableFeeIds([]);
@@ -543,6 +601,7 @@ export default function OrderFeesPage() {
 
       {/* 4. 费用录入/编辑 ModalForm */}
       <FeeFormModal
+        formRef={formRef}
         open={modalOpen}
         onOpenChange={setModalOpen}
         editingFee={editingFee}
@@ -572,6 +631,9 @@ export default function OrderFeesPage() {
         billingUnits={billingUnits}
         taxableServices={taxableServices}
         onSuccess={(created) => {
+          if (!targetOrderId || targetOrderId !== activeFeeOrderIdRef.current) {
+            return;
+          }
           const newOption: API.OrderFeeSettingOption = {
             id: created.id,
             feeCode: created.feeCode,
@@ -607,6 +669,9 @@ export default function OrderFeesPage() {
         open={quickAddPartnerModalOpen}
         onCancel={() => setQuickAddPartnerModalOpen(false)}
         onSuccess={(newOption) => {
+          if (!targetOrderId || targetOrderId !== activeFeeOrderIdRef.current) {
+            return;
+          }
           setSettlementParties((prev) => [newOption, ...prev]);
           formRef.current?.setFieldValue('settlementPartyId', newOption.id);
           message.success(`已成功新建往来单位【${newOption.name}】并自动选用`);
