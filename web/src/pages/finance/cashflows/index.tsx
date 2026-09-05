@@ -28,6 +28,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
+import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
 type Values = {
@@ -380,7 +381,7 @@ export default function FinanceCashflowsPage() {
               paymentMethod: v.paymentMethod,
               bankReferenceNo: v.bankReferenceNo,
               note: v.note,
-              idempotencyKey: globalThis.crypto.randomUUID(),
+              idempotencyKey: generateUUID(),
             });
             message.success('资金流水已登记');
             setOpen(false);

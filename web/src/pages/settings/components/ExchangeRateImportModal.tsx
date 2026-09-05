@@ -26,6 +26,7 @@ import {
 } from '@/services/roncin/exchangeRateService';
 import { formatDate } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
+import { generateUUID } from '@/utils/uuid';
 
 const rateTypeLabels: Record<string, string> = {
   BASE_CURRENCY: '折本币',
@@ -161,7 +162,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       await exchangeRateServiceConfirmExchangeRateImport(
         {
           previewToken,
-          idempotencyKey: globalThis.crypto.randomUUID(),
+          idempotencyKey: generateUUID(),
         },
         longRequestOptions,
       );

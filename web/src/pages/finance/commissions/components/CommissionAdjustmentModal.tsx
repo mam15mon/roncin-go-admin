@@ -8,6 +8,7 @@ import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
+import { generateUUID } from '@/utils/uuid';
 import { decimalText, type AdjustmentValues } from '../types';
 
 type CommissionAdjustmentModalProps = {
@@ -26,7 +27,7 @@ export default function CommissionAdjustmentModal({
   const { message } = App.useApp();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [adjustmentIdempotencyKey] = useState(() =>
-    globalThis.crypto.randomUUID(),
+    generateUUID(),
   );
 
   return (

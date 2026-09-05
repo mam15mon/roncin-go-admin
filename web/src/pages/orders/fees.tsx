@@ -26,6 +26,7 @@ import {
 import { unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { trimDecimal } from '@/utils/format';
+import { generateUUID } from '@/utils/uuid';
 import { parseOrderKind } from './common';
 import FeeFormModal, {
   type FeeFormValues,
@@ -64,7 +65,7 @@ export default function OrderFeesPage() {
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
-  const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
+  const createIdempotencyKeyRef = useRef(generateUUID());
 
   const {
     loading,
@@ -205,7 +206,7 @@ export default function OrderFeesPage() {
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
     if (!ensureFeeWriteAllowed()) return;
-    if (!fee) createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
+    if (!fee) createIdempotencyKeyRef.current = generateUUID();
     setEditingFee(fee);
     setModalDirection(direction);
     setSelectedFeeSetting(undefined);
@@ -284,7 +285,7 @@ export default function OrderFeesPage() {
           { orderId },
           { ...body, orderId, idempotencyKey: createIdempotencyKeyRef.current },
         );
-        createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
+        createIdempotencyKeyRef.current = generateUUID();
         message.success('费用录入成功');
       }
       setModalOpen(false);

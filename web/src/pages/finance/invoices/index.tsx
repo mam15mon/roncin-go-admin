@@ -26,6 +26,7 @@ import {
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
@@ -134,7 +135,7 @@ export default function FinanceInvoicesPage() {
         invoiceProfileId: values.invoiceProfileId,
         invoiceType: values.invoiceType,
         note: values.note,
-        idempotencyKey: globalThis.crypto.randomUUID(),
+        idempotencyKey: generateUUID(),
       });
       message.success('开票记录已创建，账单已占用');
       setCreateOpen(false);

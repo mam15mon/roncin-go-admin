@@ -28,6 +28,7 @@ import {
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { generateUUID } from '@/utils/uuid';
 import {
   getCurrencyOptions,
   searchPartnerOptions,
@@ -264,7 +265,7 @@ export default function VerificationWorkbench({
         allocations,
         verificationDate: scope.verificationDate.format('YYYY-MM-DD'),
         note: scope.note,
-        idempotencyKey: globalThis.crypto.randomUUID(),
+        idempotencyKey: generateUUID(),
       });
       message.success('核销成功，资金与账单余额已同步更新');
       onCreated();

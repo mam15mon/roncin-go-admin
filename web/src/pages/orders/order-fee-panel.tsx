@@ -26,6 +26,7 @@ import {
 } from '@/services/roncin/orderFeeService';
 import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
@@ -59,7 +60,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
     const feeOptionsRequestRef = useRef(0);
-    const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
+    const createIdempotencyKeyRef = useRef(generateUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
     const [selectedFees, setSelectedFees] = useState<API.OrderFee[]>([]);
@@ -149,7 +150,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const openCreate = () => {
       if (!ensureFeeWriteAllowed()) return;
-      createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
+      createIdempotencyKeyRef.current = generateUUID();
       setEditingFee(undefined);
       setSelectedFeeSetting(undefined);
       resetPreview();

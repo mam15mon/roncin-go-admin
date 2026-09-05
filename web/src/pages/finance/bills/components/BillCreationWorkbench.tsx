@@ -41,6 +41,7 @@ import {
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { generateUUID } from '@/utils/uuid';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
@@ -287,7 +288,7 @@ export default function BillCreationWorkbench({
     setResult(undefined);
     setLoading(false);
     setConfirming(false);
-    setIdempotencyKey(globalThis.crypto.randomUUID());
+    setIdempotencyKey(generateUUID());
     form.resetFields();
 
     if (initialIds.length > 0) {

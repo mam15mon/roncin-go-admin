@@ -16,6 +16,7 @@ import {
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { generateUUID } from '@/utils/uuid';
 import {
   calculationBasisText,
   calculationSignature,
@@ -43,7 +44,7 @@ export default function CommissionCreateModal({
   const [previewSignature, setPreviewSignature] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [createIdempotencyKey, setCreateIdempotencyKey] = useState(() =>
-    globalThis.crypto.randomUUID(),
+    generateUUID(),
   );
 
   return (
@@ -72,7 +73,7 @@ export default function CommissionCreateModal({
         ) {
           setPreview(undefined);
           setPreviewSignature('');
-          setCreateIdempotencyKey(globalThis.crypto.randomUUID());
+          setCreateIdempotencyKey(generateUUID());
         }
       }}
       onFinish={async (values) => {

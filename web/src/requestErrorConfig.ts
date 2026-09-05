@@ -2,6 +2,7 @@ import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { history } from '@umijs/max';
 import { showErrorMessage, showErrorNotification } from '@/utils/appFeedback';
+import { generateUUID } from '@/utils/uuid';
 
 interface ErrorEnvelope {
   success: false;
@@ -88,7 +89,7 @@ export const errorConfig: RequestConfig = {
       ...config,
       headers: {
         ...config.headers,
-        'X-Request-ID': crypto.randomUUID(),
+        'X-Request-ID': generateUUID(),
       },
     }),
   ],

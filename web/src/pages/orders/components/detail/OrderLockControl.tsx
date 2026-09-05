@@ -12,6 +12,7 @@ import {
   orderLockServiceRequestOrderUnlock,
 } from '@/services/roncin/orderLockService';
 import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
+import { generateUUID } from '@/utils/uuid';
 import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
 
 type UnlockRoute = 'ROLE_DIRECT' | 'ADMIN_EMERGENCY' | 'DINGTALK_APPROVAL';
@@ -32,14 +33,7 @@ type OrderLockStatusTagProps = Pick<
 >;
 
 function generateIdempotencyKey(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (value) => {
-    const random = (Math.random() * 16) | 0;
-    const digit = value === 'x' ? random : (random & 0x3) | 0x8;
-    return digit.toString(16);
-  });
+  return generateUUID();
 }
 
 export function getOrderLockConfirmationDescription(

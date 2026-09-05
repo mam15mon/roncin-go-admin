@@ -41,6 +41,7 @@ import {
   seaDocumentServicePreviewSeaHouseBillSwitch,
 } from '@/services/roncin/seaDocumentService';
 import { searchPartnerOptions } from '@/utils/options';
+import { generateUUID } from '@/utils/uuid';
 
 type ActionMode = 'amendment' | 'void' | 'switch';
 type ChangePreview =
@@ -92,7 +93,7 @@ const eventText: Record<number, string> = {
 };
 
 function createIdempotencyKey() {
-  return `sea-document-${crypto.randomUUID()}`;
+  return `sea-document-${generateUUID()}`;
 }
 
 function PreviewResult({ preview }: { preview: ChangePreview }) {
