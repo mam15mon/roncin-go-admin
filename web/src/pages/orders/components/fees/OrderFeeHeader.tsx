@@ -1,4 +1,3 @@
-import { history } from '@umijs/max';
 import {
   Alert,
   Button,
@@ -34,8 +33,8 @@ type OrderFeeHeaderProps = {
 
 export default function OrderFeeHeader({
   order,
-  kind,
-  orderId,
+  kind: _kind,
+  orderId: _orderId,
   configTitle,
   customerName,
   financeLocked,
@@ -83,16 +82,14 @@ export default function OrderFeeHeader({
           column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
         >
           <Descriptions.Item label="订单编号">
-            <a
+            <span
               style={{
                 fontWeight: 600,
-                color: '#1677ff',
                 fontFamily: 'monospace',
               }}
-              onClick={() => history.push(`/orders/${kind}/${orderId}`)}
             >
               {order.orderNo || order.id}
-            </a>
+            </span>
           </Descriptions.Item>
           <Descriptions.Item label="委托单位">
             {customerName || order.customerId || '-'}

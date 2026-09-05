@@ -4,13 +4,13 @@ import { history, useAccess, useModel, useParams } from '@umijs/max';
 import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { PageHeaderShell } from '@/components/ui';
 import {
   OrderReferenceType,
   ShipmentMode,
   ShipmentType,
 } from '@/enums.generated';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
+import OrderPageHeader from './components/OrderPageHeader';
 import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
@@ -208,15 +208,10 @@ export default function NewOrderPage() {
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
       header={
-        <PageHeaderShell
-          title={<span style={{ fontSize: 16, fontWeight: 600 }}>新建{config.title}</span>}
+        <OrderPageHeader
+          page="create"
+          orderKind={config.kind}
           subTitle="填写业务委托与配舱信息"
-          breadcrumbs={[
-            { label: '订单管理' },
-            { label: config.title, onClick: () => history.push(`/orders/${config.kind}`) },
-            { label: '新建订单' },
-          ]}
-          onBack={() => history.push(`/orders/${config.kind}`)}
         />
       }
       sections={sections}

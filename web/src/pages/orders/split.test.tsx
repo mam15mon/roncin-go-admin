@@ -15,6 +15,11 @@ vi.mock('@umijs/max', () => ({
   history: {
     push: vi.fn(),
   },
+  Link: ({ to, children, ...rest }: any) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('@/services/roncin/orderLockService', () => ({
@@ -187,7 +192,7 @@ describe('SeaOrderSplitPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('海运出口拆票工作台')).toBeInTheDocument();
+      expect(screen.getByText('拆票')).toBeInTheDocument();
       expect(screen.getByText('SE20260903001')).toBeInTheDocument();
       expect(screen.getByText('HBL001')).toBeInTheDocument();
       expect(screen.getByText('HBL002')).toBeInTheDocument();

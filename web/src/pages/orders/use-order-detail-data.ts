@@ -1,5 +1,6 @@
 import { App } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
 import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
 import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
@@ -23,12 +24,17 @@ import type { SelectOption } from './templates';
 /** 订单详情页的订单档案与主数据候选项加载。 */
 export function useOrderDetailData(
   orderId: string | undefined,
-  config: OrderKindConfig,
+  config?: OrderKindConfig,
 ) {
   const { message } = App.useApp();
-  const { businessType, category } = config;
-  const [loading, setLoading] = useState(true);
+  const businessType =
+    config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
+  const category = config?.category;
+  const [loading, setLoading] = useState(Boolean(config && orderId));
   const [order, setOrder] = useState<API.Order>();
+  const activeOrderIdRef = useRef(orderId);
+  activeOrderIdRef.current = orderId;
+  const requestIdRef = useRef(0);
   const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
     [],
   );
@@ -53,7 +59,12 @@ export function useOrderDetailData(
   >([]);
 
   const loadData = useCallback(async () => {
-    if (!orderId) return;
+    if (!orderId || !config) {
+      setLoading(false);
+      return;
+    }
+    const currentRequestId = ++requestIdRef.current;
+    const currentOrderId = orderId;
     setLoading(true);
     try {
       const [
@@ -81,6 +92,13 @@ export function useOrderDetailData(
         orderMilestoneServiceListMilestones({ orderId }),
         orderPersonnelServiceListPersonnel({ orderId }),
       ]);
+
+      if (
+        currentRequestId !== requestIdRef.current ||
+        currentOrderId !== activeOrderIdRef.current
+      ) {
+        return;
+      }
 
       const nextServiceTypeOptions =
         category === 'sea'
@@ -119,18 +137,29 @@ export function useOrderDetailData(
       setMilestones(unwrapList(milestonesRes));
       setPersonnel(unwrapList(personnelRes));
     } catch (error: any) {
-      message.error(error.message || '加载订单数据失败');
+      if (
+        currentRequestId === requestIdRef.current &&
+        currentOrderId === activeOrderIdRef.current
+      ) {
+        message.error(error.message || '加载订单数据失败');
+      }
     } finally {
-      setLoading(false);
+      if (
+        currentRequestId === requestIdRef.current &&
+        currentOrderId === activeOrderIdRef.current
+      ) {
+        setLoading(false);
+      }
     }
-  }, [businessType, category, message, orderId]);
+  }, [businessType, category, message, orderId, config]);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
 
   const searchLocations = useCallback(
-    (keyword?: string) => searchOrderLocations(category, keyword),
+    (keyword?: string) =>
+      category ? searchOrderLocations(category, keyword) : Promise.resolve([]),
     [category],
   );
 

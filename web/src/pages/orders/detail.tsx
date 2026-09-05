@@ -14,6 +14,7 @@ import {
   Card,
   Empty,
   type MenuProps,
+  Result,
   Space,
   Spin,
   Typography,
@@ -24,10 +25,8 @@ import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTempl
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 import {
   OrderAllowedAction,
-  OrderBusinessType,
   OrderClosureStatus,
   OrderTerminationStatus,
-  TradeDirection,
 } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
@@ -38,6 +37,7 @@ import AbnormalCasePanel, {
 import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
+import OrderPageHeader from './components/OrderPageHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import {
   buildInitialValues,
@@ -69,15 +69,9 @@ export default function OrderDetailPage() {
   const { message, modal } = App.useApp();
   const access = useAccess();
 
-  const kind = params.kind || 'sea-export';
+  const kind = params.kind;
   const orderId = params.id;
-  const config = parseOrderKind(kind) || {
-    kind: 'sea-export' as const,
-    title: '海运出口',
-    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
-    category: 'sea' as const,
-  };
+  const config = parseOrderKind(kind);
 
   const [saving, setSaving] = useState(false);
 
@@ -106,7 +100,7 @@ export default function OrderDetailPage() {
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
   const loadChangeActions = async () => {
-    if (!orderId || config.category !== 'sea') return;
+    if (!orderId || config?.category !== 'sea') return;
     try {
       const resp = await seaOrderChangeServiceGetSeaOrderChangeActions({
         orderId,
@@ -130,23 +124,28 @@ export default function OrderDetailPage() {
   const [synchronizingLockChange, setSynchronizingLockChange] = useState(false);
 
   useEffect(() => {
-    if (orderId && config.category === 'sea') {
+    if (orderId && config?.category === 'sea') {
       loadChangeActions();
     }
   }, [orderId, order?.version]);
 
   useEffect(() => {
-    if (order?.orderNo && typeof window !== 'undefined') {
+    if (
+      order?.orderNo &&
+      orderId &&
+      config?.kind &&
+      typeof window !== 'undefined'
+    ) {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
           detail: {
-            path: window.location.pathname,
-            title: `${order.orderNo}_${config.title}详情`,
+            path: `/orders/${config.kind}/${orderId}`,
+            title: `${order.orderNo}_${config?.title || ''}详情`,
           },
         }),
       );
     }
-  }, [order?.orderNo]);
+  }, [order?.orderNo, orderId, config?.kind, config?.title]);
 
   // 2. 构造表单初始值
   const initialValues = useMemo(
@@ -180,7 +179,7 @@ export default function OrderDetailPage() {
     setSynchronizingLockChange(true);
     try {
       await Promise.all([loadData(), refreshLockState()]);
-      if (config.category === 'sea') {
+      if (config?.category === 'sea') {
         await loadChangeActions();
       }
     } finally {
@@ -237,11 +236,11 @@ export default function OrderDetailPage() {
   );
 
   const formSections = useMemo(() => {
-    if (config.category === 'air') {
+    if (config?.category === 'air') {
       return getAirTemplateSections(templateProps);
     }
     return getSeaTemplateSections(templateProps);
-  }, [config.category, templateProps]);
+  }, [config?.category, templateProps]);
 
   // 4. 海管家风格「订单状态」卡片（作为前置区块）
   const prependSections: OrderFormTemplateSection[] = useMemo(
@@ -252,7 +251,7 @@ export default function OrderDetailPage() {
   // 5. 后置区块：拆票/改配历史与操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(
     () => [
-      ...(config.category === 'sea' && orderId
+      ...(config?.category === 'sea' && orderId
         ? [
             {
               key: 'sea-order-change-history',
@@ -268,7 +267,7 @@ export default function OrderDetailPage() {
         : []),
       buildOrderAuditTimelineSection(order),
     ],
-    [config.category, order, orderId],
+    [config?.category, order, orderId],
   );
 
   // 6. 保存修改提交处理
@@ -293,37 +292,71 @@ export default function OrderDetailPage() {
     }
   };
 
+  if (!config) {
+    return (
+      <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
+        <Result
+          status="404"
+          title="业务类型不存在"
+          subTitle={`未知的业务类型路径 "${params.kind || ''}"，请选择有效业务入口。`}
+          extra={
+            <Button
+              type="primary"
+              onClick={() => history.push('/orders/sea-export')}
+            >
+              返回海运出口订单
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '120px 0',
-          background: '#f5f7fa',
-          minHeight: '100vh',
-        }}
-      >
-        <Spin size="large" description="正在加载订单详情..." />
+      <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
+        <OrderPageHeader
+          page="detail"
+          orderKind={config.kind}
+          orderId={orderId}
+          orderNo={order?.orderNo}
+        />
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '120px 0',
+          }}
+        >
+          <Spin size="large" description="正在加载订单详情..." />
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
-        <Card
-          variant="borderless"
-          style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
-        >
-          <Empty description="未找到对应的订单档案" />
-          <Button
-            type="primary"
-            onClick={() => history.push(`/orders/${kind}`)}
-            style={{ marginTop: 16 }}
+      <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
+        <OrderPageHeader
+          page="detail"
+          orderKind={config.kind}
+          orderId={orderId}
+          orderNo={orderId}
+        />
+        <div style={{ padding: 48 }}>
+          <Card
+            variant="borderless"
+            style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
           >
-            返回订单列表
-          </Button>
-        </Card>
+            <Empty description="未找到对应的订单档案" />
+            <Button
+              type="primary"
+              onClick={() => history.push(`/orders/${config.kind}`)}
+              style={{ marginTop: 16 }}
+            >
+              返回订单列表
+            </Button>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -414,7 +447,7 @@ export default function OrderDetailPage() {
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader
-            kind={kind}
+            kind={config.kind}
             orderId={orderId || ''}
             configTitle={config.title}
             order={order}

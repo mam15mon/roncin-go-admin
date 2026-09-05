@@ -1,4 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Link } from '@umijs/max';
 import { Button, Divider, Space, Typography } from 'antd';
 import React from 'react';
 import type { PageHeaderShellProps } from './types';
@@ -70,7 +71,20 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
           breadcrumbs.length > 0 &&
           breadcrumbs.map((crumb, idx) => (
             <React.Fragment key={crumb.label || idx}>
-              {crumb.onClick ? (
+              {crumb.href ? (
+                <Link
+                  to={crumb.href}
+                  style={{
+                    color: 'rgba(0, 0, 0, 0.45)',
+                    fontSize: 13,
+                    textDecoration: 'none',
+                    lineHeight: 'normal',
+                  }}
+                  onClick={crumb.onClick}
+                >
+                  {crumb.label}
+                </Link>
+              ) : crumb.onClick ? (
                 <Button
                   type="link"
                   size="small"

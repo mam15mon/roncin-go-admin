@@ -17,6 +17,8 @@ import {
   OrderTerminationStatus,
 } from '@/enums.generated';
 import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
+import OrderPageHeader from '../OrderPageHeader';
+import type { OrderKind } from '../../common';
 
 type OrderDetailHeaderProps = {
   kind: string;
@@ -54,7 +56,7 @@ type OrderDetailHeaderProps = {
 export default function OrderDetailHeader({
   kind,
   orderId,
-  configTitle,
+  configTitle: _configTitle,
   order,
   saving,
   canManageFee,
@@ -84,20 +86,23 @@ export default function OrderDetailHeader({
   onSynchronizeLockChange,
 }: OrderDetailHeaderProps) {
   return (
-    <DocumentDetailLayout
-      breadcrumbs={[
-        { label: configTitle, path: `/orders/${kind}` },
-        { label: `${configTitle}详情` },
-      ]}
-      code={order.orderNo}
-      extraBreadcrumb={
-        <OrderLockStatusTag
-          state={lockState}
-          loading={lockStateLoading}
-          error={lockStateError}
-        />
-      }
-      actions={
+    <>
+      <OrderPageHeader
+        page="detail"
+        orderKind={kind as OrderKind}
+        orderId={orderId}
+        orderNo={order?.orderNo}
+        tags={
+          <OrderLockStatusTag
+            state={lockState}
+            loading={lockStateLoading}
+            error={lockStateError}
+          />
+        }
+      />
+      <DocumentDetailLayout
+        breadcrumbs={[]}
+        actions={
         <>
           <OrderLockControl
             orderId={orderId}
@@ -301,5 +306,6 @@ export default function OrderDetailHeader({
     >
       {null}
     </DocumentDetailLayout>
-  );
+  </>
+);
 }

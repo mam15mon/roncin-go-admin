@@ -30,7 +30,8 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
+import { SectionCard, StickyFooterBar } from '@/components/ui';
+import OrderPageHeader from './components/OrderPageHeader';
 import { OrderBusinessType } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
@@ -769,33 +770,14 @@ export default function SeaOrderSplitPage() {
 
   return (
     <Spin spinning={loadingContext}>
-      {/* 顶部 PageHeaderShell */}
-      <PageHeaderShell
-        title={
-          <Space>
-            <span>海运出口拆票工作台</span>
-            {splitContext?.orderNo && (
-              <Text code style={{ fontSize: 16 }}>
-                {splitContext.orderNo}
-              </Text>
-            )}
-          </Space>
-        }
+      {/* 顶部 OrderPageHeader */}
+      <OrderPageHeader
+        page="split"
+        orderKind="sea-export"
+        orderId={orderId}
+        orderNo={splitContext?.orderNo}
         subTitle="支持整单部分拆票、HBL/箱货零误差守恒切分、草稿费用整行归属及多票并行派生"
         tags={<Tag color="blue">海运出口 (HOUSE)</Tag>}
-        onBack={() => history.push(`/orders/sea-export/${orderId}`)}
-        backText="返回订单详情"
-        breadcrumbs={[
-          {
-            label: '海运出口',
-            onClick: () => history.push('/orders/sea-export'),
-          },
-          {
-            label: `${splitContext?.orderNo || '原订单'} 详情`,
-            onClick: () => history.push(`/orders/sea-export/${orderId}`),
-          },
-          { label: '拆票工作台' },
-        ]}
         extra={
           <Button
             icon={<ReloadOutlined />}

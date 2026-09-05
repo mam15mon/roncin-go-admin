@@ -1,5 +1,5 @@
 import { App } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 
@@ -8,6 +8,9 @@ export function useOrderFeeOptions(orderId?: string) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<API.Order>();
+  const activeOrderIdRef = useRef(orderId);
+  activeOrderIdRef.current = orderId;
+  const requestIdRef = useRef(0);
   const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
     [],
   );
@@ -29,12 +32,20 @@ export function useOrderFeeOptions(orderId?: string) {
 
   const loadData = useCallback(async () => {
     if (!orderId) return;
+    const currentRequestId = ++requestIdRef.current;
+    const currentOrderId = orderId;
     setLoading(true);
     try {
       const [orderRes, optionsRes] = await Promise.all([
         orderServiceGetOrder({ id: orderId }),
         orderFeeServiceListFeeOptions({ orderId }),
       ]);
+      if (
+        currentRequestId !== requestIdRef.current ||
+        currentOrderId !== activeOrderIdRef.current
+      ) {
+        return;
+      }
       setOrder(orderRes.data);
       setCurrencies(optionsRes.currencies ?? []);
       setSettlementParties(optionsRes.settlementParties ?? []);
@@ -45,9 +56,19 @@ export function useOrderFeeOptions(orderId?: string) {
       setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
       setCustomerName(optionsRes.customerName || '');
     } catch (error: any) {
-      message.error(error.message || '加载费用信息失败');
+      if (
+        currentRequestId === requestIdRef.current &&
+        currentOrderId === activeOrderIdRef.current
+      ) {
+        message.error(error.message || '加载费用信息失败');
+      }
     } finally {
-      setLoading(false);
+      if (
+        currentRequestId === requestIdRef.current &&
+        currentOrderId === activeOrderIdRef.current
+      ) {
+        setLoading(false);
+      }
     }
   }, [orderId, message]);
 

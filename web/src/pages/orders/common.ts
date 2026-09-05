@@ -200,6 +200,7 @@ export interface OrderKindConfig {
   businessType: number;
   tradeDirection: number;
   title: string;
+  navigationTitle: string;
   category: 'sea' | 'air';
 }
 
@@ -209,6 +210,7 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     businessType: OrderBusinessType.BUSINESS_TYPE_SE,
     tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
     title: '海运出口订单',
+    navigationTitle: '海运出口',
     category: 'sea',
   },
 };

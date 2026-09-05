@@ -71,19 +71,48 @@ export const DYNAMIC_ROUTE_PATTERNS: Array<{
 ];
 
 /**
- * 集中配置内部子页面向稳定菜单页签键的归组规则表
+ * 纯重定向入口向最终业务菜单页签的映射表，避免进入中转重定向时产生冗余中间页签
+ */
+export const REDIRECT_ROUTES: Record<string, string> = {
+  '/orders': '/orders/sea-export',
+  '/partners': '/partners/customers',
+};
+
+/**
+ * 集中配置内部子页面向稳定菜单页签键的归组规则表。
+ * 严格限定在实际存在的路径结构，未知扩展路径不得被过度合并。
  */
 export const TAB_KEY_RULES: Array<{ pattern: RegExp; key: string }> = [
   // 1. 海运出口订单：列表、新建、详情、费用录入、拆票
-  { pattern: /^\/orders\/sea-export(?:\/.*)?$/, key: '/orders/sea-export' },
+  // 仅允许：/orders/sea-export, /orders/sea-export/new, /orders/sea-export/:id, /orders/sea-export/:id/fees, /orders/sea-export/:id/split
+  {
+    pattern: /^\/orders\/sea-export(?:\/(?:new|[^/]+(?:\/(?:fees|split))?))?$/,
+    key: '/orders/sea-export',
+  },
   // 2. 客商管理：客户列表、新建、详情
-  { pattern: /^\/partners\/customers(?:\/.*)?$/, key: '/partners/customers' },
+  // 仅允许：/partners/customers, /partners/customers/create, /partners/customers/:id
+  {
+    pattern: /^\/partners\/customers(?:\/(?:create|[^/]+))?$/,
+    key: '/partners/customers',
+  },
   // 3. 客商管理：供应商列表、新建、详情
-  { pattern: /^\/partners\/suppliers(?:\/.*)?$/, key: '/partners/suppliers' },
+  // 仅允许：/partners/suppliers, /partners/suppliers/create, /partners/suppliers/:id
+  {
+    pattern: /^\/partners\/suppliers(?:\/(?:create|[^/]+))?$/,
+    key: '/partners/suppliers',
+  },
   // 4. 客商管理：国外代理列表、新建、详情
-  { pattern: /^\/partners\/foreign-agents(?:\/.*)?$/, key: '/partners/foreign-agents' },
+  // 仅允许：/partners/foreign-agents(?:\/(?:create|[^/]+))?$/,
+  {
+    pattern: /^\/partners\/foreign-agents(?:\/(?:create|[^/]+))?$/,
+    key: '/partners/foreign-agents',
+  },
   // 5. 费用管理：集运费用明细与单票费用详情
-  { pattern: /^\/finance\/fees(?:\/detail\/.*)?$/, key: '/finance/fees' },
+  // 仅允许：/finance/fees, /finance/fees/detail/:orderId
+  {
+    pattern: /^\/finance\/fees(?:\/detail\/[^/]+)?$/,
+    key: '/finance/fees',
+  },
 ];
 
 /**
@@ -100,13 +129,15 @@ export function resolveTabKey(pathname: string): string {
       ? pathname.slice(0, -1)
       : pathname;
 
+  const targetPath = REDIRECT_ROUTES[normalized] || normalized;
+
   for (const { pattern, key } of TAB_KEY_RULES) {
-    if (pattern.test(normalized)) {
+    if (pattern.test(targetPath)) {
       return key;
     }
   }
 
-  return normalized;
+  return targetPath;
 }
 
 /**
@@ -114,10 +145,18 @@ export function resolveTabKey(pathname: string): string {
  */
 export function resolveRouteTitle(pathname: string): string {
   if (!pathname || pathname === '/') return '工作台';
-  if (ROUTE_TITLE_MAP[pathname]) return ROUTE_TITLE_MAP[pathname];
+
+  const normalized =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname;
+
+  const targetPath = REDIRECT_ROUTES[normalized] || normalized;
+
+  if (ROUTE_TITLE_MAP[targetPath]) return ROUTE_TITLE_MAP[targetPath];
 
   for (const { pattern, title } of DYNAMIC_ROUTE_PATTERNS) {
-    const match = pathname.match(pattern);
+    const match = targetPath.match(pattern);
     if (match) {
       return typeof title === 'function' ? title(match) : title;
     }
@@ -128,11 +167,11 @@ export function resolveRouteTitle(pathname: string): string {
     (a, b) => b[0].length - a[0].length,
   );
   for (const [routePath, title] of sortedPrefixes) {
-    if (pathname === routePath || pathname.startsWith(`${routePath}/`)) {
+    if (targetPath === routePath || targetPath.startsWith(`${routePath}/`)) {
       return title;
     }
   }
 
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = targetPath.split('/').filter(Boolean);
   return segments[segments.length - 1] || '工作台';
 }

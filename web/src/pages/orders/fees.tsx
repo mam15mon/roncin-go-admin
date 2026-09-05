@@ -1,5 +1,4 @@
 import {
-  ArrowLeftOutlined,
   LockOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -9,11 +8,11 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
-import { App, Button, Card, Empty, Space, Spin, Tag } from 'antd';
+import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { FinanceSummaryBoard } from '@/components/ui';
-import { OrderBusinessType, OrderFlowStatus } from '@/enums.generated';
+import { OrderFlowStatus } from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
@@ -37,6 +36,7 @@ import {
   RECEIVABLE,
 } from './components/fees/feeConstants';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
+import OrderPageHeader from './components/OrderPageHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
@@ -53,14 +53,9 @@ export default function OrderFeesPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
 
-  const kind = params.kind || 'sea-export';
+  const kind = params.kind;
   const orderId = params.id;
-  const config = parseOrderKind(kind) || {
-    kind: 'sea-export',
-    title: '海运出口',
-    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-    category: 'sea',
-  };
+  const config = parseOrderKind(kind);
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
@@ -174,17 +169,22 @@ export default function OrderFeesPage() {
   }, [feeWritesDisabled]);
 
   useEffect(() => {
-    if (order?.orderNo && typeof window !== 'undefined') {
+    if (
+      order?.orderNo &&
+      orderId &&
+      config?.kind &&
+      typeof window !== 'undefined'
+    ) {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
           detail: {
-            path: window.location.pathname,
+            path: `/orders/${config.kind}/${orderId}/fees`,
             title: `${order.orderNo}_费用录入`,
           },
         }),
       );
     }
-  }, [order?.orderNo]);
+  }, [order?.orderNo, orderId, config?.kind]);
 
   const handleOpenQuickAddFee = async () => {
     if (!ensureFeeWriteAllowed()) return;
@@ -363,37 +363,71 @@ export default function OrderFeesPage() {
       onCancelFee: handleCancelFee,
     });
 
+  if (!config) {
+    return (
+      <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
+        <Result
+          status="404"
+          title="业务类型不存在"
+          subTitle={`未知的业务类型路径 "${params.kind || ''}"，请选择有效业务入口。`}
+          extra={
+            <Button
+              type="primary"
+              onClick={() => history.push('/orders/sea-export')}
+            >
+              返回海运出口订单
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '120px 0',
-          background: '#f5f7fa',
-          minHeight: '100vh',
-        }}
-      >
-        <Spin size="large" description="正在加载费用工作台..." />
+      <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
+        <OrderPageHeader
+          page="fees"
+          orderKind={config.kind}
+          orderId={orderId}
+          orderNo={order?.orderNo}
+        />
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '120px 0',
+          }}
+        >
+          <Spin size="large" description="正在加载费用工作台..." />
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
-        <Card
-          variant="borderless"
-          style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
-        >
-          <Empty description="未找到对应的订单档案" />
-          <Button
-            type="primary"
-            onClick={() => history.push(`/orders/${kind}`)}
-            style={{ marginTop: 16 }}
+      <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
+        <OrderPageHeader
+          page="fees"
+          orderKind={config.kind}
+          orderId={orderId}
+          orderNo={orderId}
+        />
+        <div style={{ padding: 48 }}>
+          <Card
+            variant="borderless"
+            style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
           >
-            返回订单列表
-          </Button>
-        </Card>
+            <Empty description="未找到对应的订单档案" />
+            <Button
+              type="primary"
+              onClick={() => history.push(`/orders/${config.kind}`)}
+              style={{ marginTop: 16 }}
+            >
+              返回订单列表
+            </Button>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -408,55 +442,27 @@ export default function OrderFeesPage() {
     <div
       style={{ padding: '0 0 40px', background: '#f5f7fa', minHeight: '100vh' }}
     >
-      {/* 顶部面包屑与快捷返回 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 24px',
-          background: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
-          marginBottom: 16,
-        }}
-      >
-        <Space size={8}>
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => history.push(`/orders/${kind}/${orderId}`)}
-          >
-            返回订单详情
-          </Button>
-          <span style={{ color: '#cbd5e1' }}>|</span>
-          <span style={{ color: '#64748b' }}>{config.title}</span>
-          <span>&gt;</span>
-          <a
-            style={{
-              color: '#1677ff',
-              fontWeight: 600,
-              fontFamily: 'monospace',
-            }}
-            onClick={() => history.push(`/orders/${kind}/${orderId}`)}
-          >
-            {order.orderNo || order.id}
-          </a>
-          <span>&gt;</span>
-          <span style={{ fontWeight: 600, color: '#0f172a' }}>费用录入</span>
-          {order.canModify === false &&
-            order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
-              <Tag color="warning" icon={<LockOutlined />}>
-                已锁单
+      <OrderPageHeader
+        page="fees"
+        orderKind={config.kind}
+        orderId={orderId}
+        orderNo={order.orderNo}
+        tags={
+          <>
+            {order.canModify === false &&
+              order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
+                <Tag color="warning" icon={<LockOutlined />}>
+                  已锁单
+                </Tag>
+              )}
+            {financeLocked && (
+              <Tag color="red" icon={<LockOutlined />}>
+                财务已关账
               </Tag>
             )}
-          {financeLocked && (
-            <Tag color="red" icon={<LockOutlined />}>
-              财务已关账
-            </Tag>
-          )}
-        </Space>
-
-        <Space size={8}>
+          </>
+        }
+        extra={
           <Button
             icon={<ReloadOutlined />}
             onClick={() => {
@@ -468,19 +474,13 @@ export default function OrderFeesPage() {
           >
             刷新数据
           </Button>
-          <Button
-            type="primary"
-            onClick={() => history.push(`/orders/${kind}/${orderId}`)}
-          >
-            回到订单详情
-          </Button>
-        </Space>
-      </div>
+        }
+      />
 
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
+      <div style={{ maxWidth: 1440, margin: '16px auto 0', padding: '0 24px' }}>
         <OrderFeeHeader
           order={order}
-          kind={kind}
+          kind={config.kind}
           orderId={orderId || ''}
           configTitle={config.title}
           customerName={customerName}

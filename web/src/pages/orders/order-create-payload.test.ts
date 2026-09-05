@@ -100,6 +100,7 @@ describe('buildCreateOrderPayload', () => {
       businessType: 2,
       tradeDirection: 1,
       title: '空运出口订单',
+      navigationTitle: '空运出口',
       category: 'air' as const,
     };
     const result = buildCreateOrderPayload(

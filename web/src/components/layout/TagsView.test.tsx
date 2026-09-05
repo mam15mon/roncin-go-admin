@@ -30,7 +30,8 @@ describe('routeUtils', () => {
   describe('resolveRouteTitle', () => {
     it('正确解析已知路由与前缀路由标题', () => {
       expect(resolveRouteTitle('/welcome')).toBe('工作台');
-      expect(resolveRouteTitle('/orders')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders')).toBe('海运出口订单列表');
+      expect(resolveRouteTitle('/partners')).toBe('客户');
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
       expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新增海运出口');
@@ -64,6 +65,26 @@ describe('routeUtils', () => {
   });
 
   describe('resolveTabKey', () => {
+    it('纯重定向入口正确解析为最终业务菜单页签', () => {
+      expect(resolveTabKey('/orders')).toBe('/orders/sea-export');
+      expect(resolveTabKey('/partners')).toBe('/partners/customers');
+    });
+
+    it('已知前缀下的未知子路径不进行合并，保持自身规范化路径', () => {
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004/unknown')).toBe(
+        '/orders/sea-export/SE2026082600004/unknown',
+      );
+      expect(resolveTabKey('/orders/sea-export/foo/bar')).toBe(
+        '/orders/sea-export/foo/bar',
+      );
+      expect(resolveTabKey('/partners/customers/123/logs')).toBe(
+        '/partners/customers/123/logs',
+      );
+      expect(resolveTabKey('/partners/suppliers/456/audit')).toBe(
+        '/partners/suppliers/456/audit',
+      );
+      expect(resolveTabKey('/finance/fees/export')).toBe('/finance/fees/export');
+    });
     it('海运出口所有子路由归组为 /orders/sea-export', () => {
       expect(resolveTabKey('/orders/sea-export')).toBe('/orders/sea-export');
       expect(resolveTabKey('/orders/sea-export/new')).toBe('/orders/sea-export');
@@ -353,5 +374,242 @@ describe('TagsView Component', () => {
 
     expect(mockPush).toHaveBeenCalledWith('/welcome');
     expect(screen.queryByText('海运出口详情')).not.toBeInTheDocument();
+  });
+
+  it('直接访问重定向入口 /orders 时只产生一个业务页签', () => {
+    mockPathname = '/orders';
+    const { rerender } = render(<TagsView />);
+
+    expect(screen.getByText('工作台')).toBeInTheDocument();
+    expect(screen.getByText('海运出口订单列表')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').length).toBe(2);
+
+    // 随后重定向至 /orders/sea-export，不产生重复页签
+    mockPathname = '/orders/sea-export';
+    rerender(<TagsView />);
+    expect(screen.getAllByRole('tab').length).toBe(2);
+    expect(screen.getByText('海运出口订单列表')).toBeInTheDocument();
+  });
+
+  it('不同订单详情之间快速切换时，防止旧订单迟到响应导致标题串号', () => {
+    mockPathname = '/orders/sea-export/SE001';
+    const { rerender } = render(<TagsView />);
+
+    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+
+    // 快速切换至订单 SE002
+    mockPathname = '/orders/sea-export/SE002';
+    rerender(<TagsView />);
+
+    // 此时 SE001 的标题更新事件迟到到达，应被丢弃，不可覆盖 SE002 的标题
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: '/orders/sea-export/SE001',
+            title: 'SE001 (海运出口)',
+          },
+        }),
+      );
+    });
+
+    expect(screen.queryByText('SE001 (海运出口)')).not.toBeInTheDocument();
+    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+
+    // SE002 的标题更新事件正常到达，页签标题更新为 SE002
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: '/orders/sea-export/SE002',
+            title: 'SE002 (海运出口)',
+          },
+        }),
+      );
+    });
+
+    expect(screen.getByText('SE002 (海运出口)')).toBeInTheDocument();
+  });
+
+  it('通过 Enter 和 Space 键盘按键可以切换激活页签', () => {
+    mockPathname = '/orders/sea-export';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/customers';
+    rerender(<TagsView />);
+
+    const tabs = screen.getAllByRole('tab');
+    // tabs: [0: 工作台 (/welcome), 1: 海运出口 (/orders/sea-export), 2: 客户 (/partners/customers)]
+    const seaExportTab = tabs[1];
+
+    // 在非当前页签上按 Enter
+    fireEvent.keyDown(seaExportTab, { key: 'Enter' });
+    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export');
+
+    mockPush.mockClear();
+
+    // 在工作台页签上按 Space
+    const welcomeTab = tabs[0];
+    fireEvent.keyDown(welcomeTab, { key: ' ' });
+    expect(mockPush).toHaveBeenCalledWith('/welcome');
+  });
+
+  function getTabByText(text: string): HTMLElement {
+    const el = screen.getByText(text).closest('[role="tab"]');
+    if (!el || !(el instanceof HTMLElement)) {
+      throw new Error(`Tab element with text "${text}" not found`);
+    }
+    return el;
+  }
+
+  it('右键菜单支持重新加载当前与非当前页签', () => {
+    const originalLocation = window.location;
+    const mockReload = vi.fn();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, reload: mockReload },
+    });
+
+    mockPathname = '/orders/sea-export';
+    const { rerender } = render(<TagsView />);
+
+    // 1. 在当前激活页签（海运出口）右键点击“重新加载”，应调用 window.location.reload
+    const seaExportTab = getTabByText('海运出口订单列表');
+    act(() => {
+      fireEvent.contextMenu(seaExportTab);
+    });
+    const reloadItem = screen.getByText('重新加载');
+    act(() => {
+      fireEvent.click(reloadItem);
+    });
+    expect(mockReload).toHaveBeenCalledTimes(1);
+
+    // 2. 切到工作台，然后在非激活页签（海运出口）右键点击“重新加载”，应调用 history.push('/orders/sea-export')
+    mockPathname = '/welcome';
+    rerender(<TagsView />);
+
+    const seaExportTabInactive = getTabByText('海运出口订单列表');
+    act(() => {
+      fireEvent.contextMenu(seaExportTabInactive);
+    });
+    const reloadInactiveItem = screen.getAllByText('重新加载')[0];
+    act(() => {
+      fireEvent.click(reloadInactiveItem);
+    });
+    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export');
+
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
+  });
+
+  it('右键菜单：支持关闭当前标签页', () => {
+    mockPathname = '/partners/customers';
+    render(<TagsView />);
+
+    expect(screen.getByText('客户')).toBeInTheDocument();
+
+    const customerTab = getTabByText('客户');
+    act(() => {
+      fireEvent.contextMenu(customerTab);
+    });
+    const closeCurrentItem = screen.getByText('关闭标签页');
+    act(() => {
+      fireEvent.click(closeCurrentItem);
+    });
+
+    expect(screen.queryByText('客户')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('tab').length).toBe(1);
+    expect(mockPush).toHaveBeenCalledWith('/welcome');
+  });
+
+  it('右键菜单：支持关闭其他标签页', () => {
+    mockPathname = '/partners/customers';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/suppliers';
+    rerender(<TagsView />);
+
+    expect(screen.getAllByRole('tab').length).toBe(3);
+
+    const customerTab = getTabByText('客户');
+    act(() => {
+      fireEvent.contextMenu(customerTab);
+    });
+    const closeOtherItem = screen.getByText('关闭其他标签页');
+    act(() => {
+      fireEvent.click(closeOtherItem);
+    });
+
+    expect(screen.queryByText('供应商')).not.toBeInTheDocument();
+    expect(screen.getByText('客户')).toBeInTheDocument();
+    expect(screen.getByText('工作台')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').length).toBe(2);
+    expect(mockPush).toHaveBeenCalledWith('/partners/customers');
+  });
+
+  it('右键菜单：支持关闭右侧标签页', () => {
+    mockPathname = '/partners/customers';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/suppliers';
+    rerender(<TagsView />);
+
+    mockPathname = '/partners/foreign-agents';
+    rerender(<TagsView />);
+
+    expect(screen.getAllByRole('tab').length).toBe(4);
+
+    // 当前在国外代理 (index 3)，在供应商 (index 2) 上右键关闭右侧标签页
+    const supplierTab = getTabByText('供应商');
+    act(() => {
+      fireEvent.contextMenu(supplierTab);
+    });
+    const closeRightItem = screen.getByText('关闭右侧标签页');
+    act(() => {
+      fireEvent.click(closeRightItem);
+    });
+
+    expect(screen.queryByText('国外代理')).not.toBeInTheDocument();
+    expect(screen.getByText('工作台')).toBeInTheDocument();
+    expect(screen.getByText('客户')).toBeInTheDocument();
+    expect(screen.getByText('供应商')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').length).toBe(3);
+    expect(mockPush).toHaveBeenCalledWith('/partners/suppliers');
+  });
+
+  it('右键菜单：支持关闭左侧标签页', () => {
+    mockPathname = '/partners/customers';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/suppliers';
+    rerender(<TagsView />);
+
+    mockPathname = '/partners/foreign-agents';
+    rerender(<TagsView />);
+
+    // 当前激活在客户 (index 1)
+    mockPathname = '/partners/customers';
+    rerender(<TagsView />);
+
+    expect(screen.getAllByRole('tab').length).toBe(4);
+
+    // 在供应商 (index 2) 上右键关闭左侧标签页（关闭客户）
+    const supplierTab = getTabByText('供应商');
+    act(() => {
+      fireEvent.contextMenu(supplierTab);
+    });
+    const closeLeftItem = screen.getByText('关闭左侧标签页');
+    act(() => {
+      fireEvent.click(closeLeftItem);
+    });
+
+    expect(screen.queryByText('客户')).not.toBeInTheDocument();
+    expect(screen.getByText('工作台')).toBeInTheDocument();
+    expect(screen.getByText('供应商')).toBeInTheDocument();
+    expect(screen.getByText('国外代理')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').length).toBe(3);
+    expect(mockPush).toHaveBeenCalledWith('/partners/suppliers');
   });
 });
