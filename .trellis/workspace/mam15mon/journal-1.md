@@ -464,3 +464,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 18: 修订海运出口审计业务口径
+<!-- trellis-session: v=2 fp=d95b79f5d11aaefd -->
+
+**Date**: 2026-09-05
+**Task**: 修订海运出口审计业务口径
+**Package**: server
+**Branch**: `feat/universal-order-lock`
+
+### Summary
+
+按用户确认的人工 UI 流程重新评级海运出口上线就绪度：明确已放单为流程终点、共享费用线下计算后逐票录入、关键文件由外部受控库保存且不需要外部提交；统一修订审计 PRD、能力盘点、能力矩阵和就绪度报告，结论调整为批准边界内可以正式使用，同时保留四项真实 P1 故障入口与原始测试证据。独立复核与文档差异检查通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `247c9b79` | docs: 规划海运出口审计口径修订 |
+| `fcaa7aa9` | docs: 按人工流程修订海运出口上线结论 |
+
+### Status
+
+[OK] **Completed**

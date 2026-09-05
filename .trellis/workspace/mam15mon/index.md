@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 17
+- **Total Sessions**: 18
 - **Last Active**: 2026-09-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~466 | Active |
+| `journal-1.md` | ~490 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 18 | 2026-09-05 | 修订海运出口审计业务口径 | `247c9b79`, `fcaa7aa9` | `feat/universal-order-lock` |
 | 17 | 2026-09-05 | 海运出口业务完整度审计 | `ea4e30bc`, `5c02ff6a` | `feat/universal-order-lock` |
 | 16 | 2026-09-05 | 完成全业务类型订单锁定与解锁 | `876da3d4`, `ca237447`, `cb89cb30`, `22f8261c`, `4aa98a74` | `feat/universal-order-lock` |
 | 15 | 2026-09-04 | 完成海运出口单证版本与换单 | `4761ee45`, `d53bef83`, `af0f84fe` | `main` |
