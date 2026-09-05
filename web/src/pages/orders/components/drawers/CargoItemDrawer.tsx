@@ -5,6 +5,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import React, { forwardRef } from 'react';
+import { message } from 'antd';
 import {
   SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
@@ -148,12 +149,19 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
             },
           )
         }
-        removeItem={(record, order) =>
-          orderCargoItemServiceRemoveCargoItem({
+        removeItem={(record, order) => {
+          const version = Number(record.version);
+          if (!Number.isSafeInteger(version) || version <= 0) {
+            const error = new Error('货物记录版本缺失，请刷新后重试');
+            message.error(error.message);
+            return Promise.resolve(false);
+          }
+          return orderCargoItemServiceRemoveCargoItem({
             orderId: order.id as string,
             id: record.id as string,
-          })
-        }
+            expectedVersion: String(record.version),
+          });
+        }}
         initialValues={(editing) =>
           editing
             ? {

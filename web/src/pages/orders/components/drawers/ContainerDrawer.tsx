@@ -5,7 +5,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { Typography } from 'antd';
+import { message, Typography } from 'antd';
 import React, { forwardRef } from 'react';
 import {
   SubEntityDrawerTemplate,
@@ -163,12 +163,19 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             },
           )
         }
-        removeItem={(record, order) =>
-          orderContainerServiceRemoveContainer({
+        removeItem={(record, order) => {
+          const version = Number(record.version);
+          if (!Number.isSafeInteger(version) || version <= 0) {
+            const error = new Error('箱记录版本缺失，请刷新后重试');
+            message.error(error.message);
+            return Promise.resolve(false);
+          }
+          return orderContainerServiceRemoveContainer({
             orderId: order.id as string,
             id: record.id as string,
-          })
-        }
+            expectedVersion: String(record.version),
+          });
+        }}
         initialValues={(editing) =>
           editing
             ? {

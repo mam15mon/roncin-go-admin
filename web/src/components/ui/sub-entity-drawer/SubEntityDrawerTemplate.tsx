@@ -158,7 +158,8 @@ export function SubEntityDrawerTemplateInner<
               title={`确定移除该${entityName}？`}
               onConfirm={async () => {
                 if (!parentRecord) return;
-                await removeItem(record, parentRecord);
+                const removed = await removeItem(record, parentRecord);
+                if (removed === false) return;
                 message.success(`移除${entityName}成功`);
                 actionRef.current?.reload();
               }}

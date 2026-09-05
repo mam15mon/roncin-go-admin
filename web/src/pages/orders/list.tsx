@@ -58,6 +58,10 @@ import TransitionModal, {
   type TransitionModalRef,
 } from './components/modals/TransitionModal';
 import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
+import {
+  getDocumentsActionLabel,
+  openOrderDocuments,
+} from './list-documents-action';
 
 export default function OrderListPage() {
   const location = useLocation();
@@ -171,9 +175,15 @@ export default function OrderListPage() {
         onOpenMilestones={(item) =>
           item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord)
         }
+        documentsActionLabel={getDocumentsActionLabel(config.businessType)}
         onOpenDocuments={(item) =>
-          item.rawRecord &&
-          shippingDocumentDrawerRef.current?.open(item.rawRecord)
+          openOrderDocuments(
+            config.businessType,
+            config.kind,
+            item,
+            (path) => history.push(path),
+            (record) => shippingDocumentDrawerRef.current?.open(record),
+          )
         }
         onOpenContainers={(item) =>
           item.rawRecord && containerDrawerRef.current?.open(item.rawRecord)

@@ -58,6 +58,7 @@ export function OrderListTemplate({
   onOpenFees,
   onOpenMilestones,
   onOpenDocuments,
+  documentsActionLabel = '主分单据管理',
   onOpenContainers,
   onOpenCargo,
   onOpenCargoAllocation,
@@ -488,7 +489,7 @@ export function OrderListTemplate({
                   {
                     key: 'documents',
                     icon: <FileDoneOutlined />,
-                    label: '主分单据管理',
+                    label: documentsActionLabel,
                     onClick: () => onOpenDocuments?.(record),
                   },
                   {
@@ -581,6 +582,7 @@ export function OrderListTemplate({
       onOpenFees,
       onOpenMilestones,
       onOpenDocuments,
+      documentsActionLabel,
       onOpenContainers,
       onOpenCargo,
       onOpenCargoAllocation,

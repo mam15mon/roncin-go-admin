@@ -221,6 +221,8 @@ export interface OrderListTemplateProps {
   onOpenMilestones?: (record: OrderListItem) => void;
   /** 打开单据/提单维护面板 */
   onOpenDocuments?: (record: OrderListItem) => void;
+  /** 单证动作文案，未指定时保持旧入口语义 */
+  documentsActionLabel?: string;
   /** 打开集装箱管理面板 */
   onOpenContainers?: (record: OrderListItem) => void;
   /** 打开货物明细面板 */
