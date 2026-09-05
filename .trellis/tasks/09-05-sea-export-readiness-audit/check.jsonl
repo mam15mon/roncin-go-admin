@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "复核能力矩阵是否符合已经固化的海运出口领域契约"}
+{"file": ".trellis/spec/server/backend/sea-document-change-history.md", "reason": "复核单证变更和历史结论"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "复核订单锁及单证快照结论"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "复核后端测试、生成物和分层证据质量"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "复核前端入口、测试和类型检查证据质量"}
+{"file": ".trellis/tasks/09-05-sea-export-readiness-audit/research/current-capability-inventory.md", "reason": "独立复核审计结论时检查初始证据和候选缺口是否被正确验证"}

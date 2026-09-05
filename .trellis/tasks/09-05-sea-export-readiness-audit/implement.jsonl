@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "核对海运出口共享 MBL、DIRECT/HOUSE、运输执行和 HBL 的跨层契约"}
+{"file": ".trellis/spec/server/backend/sea-document-change-history.md", "reason": "核对改单、作废、Switch、财务门禁和不可变历史"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "核对订单锁、解锁和单证版本固定锁序"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "核对 Ent 约束、事务、并发和 PostgreSQL 验证规则"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "核对前端真实入口、权限和验证边界"}
+{"file": ".trellis/tasks/09-05-sea-export-readiness-audit/research/current-capability-inventory.md", "reason": "提供规划阶段静态代码盘点、候选缺口和上线边界"}
