@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"复核真实单证关系、固定锁序、组织隔离和集成测试覆盖"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核 Ent/SQL 同源、CHECK、FK、迁移和事务原子性"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"复核静态错误、业务阻断和版本冲突没有语义漂移"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"复核锁定门禁、版本比较与共享 MBL 关系"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核生成物、Go 测试、vet 和分层禁令"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"复核生成枚举、请求字段和版本类型"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核前端测试、类型检查、pnpm 和生成文件禁令"}
+{"file":".trellis/tasks/archive/2026-09/09-05-sea-export-readiness-audit/research/readiness-report.md","reason":"逐项核对四个 P1 是否达到原报告验收并移除人工规避"}
+{"file":".trellis/tasks/09-05-fix-sea-export-p1-issues/research/current-defect-analysis.md","reason":"复核实现是否覆盖当前真实调用链和用户确认的关联删除边界"}

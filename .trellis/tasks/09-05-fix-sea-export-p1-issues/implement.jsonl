@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"真实 Sea MBL/HBL、活动关系、组织隔离、事务锁序和生成测试契约"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"Ent Schema、正式迁移、CHECK、外键删除策略与事务规范"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"稳定 400/409/403 reason 与驱动错误映射规范"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"订单锁定后的业务写入门禁、共享单证引用与并发版本规则"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"服务端状态加载、失败清理与刷新规则"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成客户端、枚举和版本字段的类型安全约束"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"pnpm、生成物边界和前端质量门"}
+{"file":".trellis/tasks/archive/2026-09/09-05-sea-export-readiness-audit/research/current-capability-inventory.md","reason":"四项 P1 的原始代码证据、触发场景和测试事实"}
+{"file":".trellis/tasks/09-05-fix-sea-export-p1-issues/research/current-defect-analysis.md","reason":"当前四条故障链、精确代码锚点、根因和用户确认的关联删除规则"}
