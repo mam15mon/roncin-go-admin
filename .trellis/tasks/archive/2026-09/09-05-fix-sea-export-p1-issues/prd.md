@@ -66,21 +66,21 @@
 
 ## 验收标准
 
-- [ ] AC1：从 SE 列表点击单证动作会进入对应订单详情并使用真实海运单证区，不会请求旧 `OrderShippingDocument`；非 SE 原抽屉行为通过回归测试。
-- [ ] AC2：SE ReleasePod 可选择并保存当前共享 MBL，列表和编辑回显显示正确 MBL 号码。
-- [ ] AC3：HOUSE 订单的 ReleasePod 可选择并保存本订单真实 HBL；其他订单、其他组织、非当前 MBL 的 HBL 均被明确拒绝。
-- [ ] AC4：同一 ReleasePod 同时提交旧单证、Sea MBL、Sea HBL，或提交类型与 ID 不完整时返回稳定 400，且事务无业务写入和操作日志残留。
-- [ ] AC5：非 SE ReleasePod 旧分单关联保持可用；SE 不能再保存旧 `shipping_document_id`。
-- [ ] AC6：海运单证页面在 MBL/HBL 下展示各自关联的放货记录及状态；新增、编辑、解除或关联删除后页面数据同步刷新。
-- [ ] AC7：删除有关联放货记录的可删除 HBL 时，页面列出关联记录并二次确认；取消后零变更，确认后 HBL、处于待签收/已签收的关联记录和日志原子删除。
-- [ ] AC8：任一关联记录为“已回单”时，前后端均阻止删除 HBL 及其所有关联记录，页面展示阻断记录；并发变成已回单时服务端仍能原子阻断。
-- [ ] AC9：作废 MBL/HBL 不删除放货记录；记录仍能显示其历史关联。
-- [ ] AC10：ReleasePod Schema、正式迁移、生成元数据、Proto/OpenAPI/Web Client 完整一致，重跑生成命令无新增差异。
-- [ ] AC11：箱和货物删除请求分别断言发送记录真实 `expectedVersion`；缺失/零版本时不调用 API；版本冲突不自动重试。
-- [ ] AC12：并发拆票真实 PostgreSQL 测试连续至少 3 次均为一成功一 409，完整 `TestSeaOrderSplitAndReassignment_PostgresIntegration` 父测试至少 `-count=3` 通过。
-- [ ] AC13：静态非法拆票输入仍返回 400，守恒失败仍返回对应 400；过期 Order/Link/Allocation/HBL/货物/箱/费用版本返回 409。
-- [ ] AC14：ReleasePod 前后端针对性测试、Go 全量测试与 vet、Web 测试与 TypeScript 检查按风险通过；无法运行的真实 PostgreSQL 检查必须明确记录原因。
-- [ ] AC15：本任务仅提交计划内文件；其他窗口的未提交改动和 `clash-for-linux/` 均未被覆盖或纳入提交。
+- [x] AC1：从 SE 列表点击单证动作会进入对应订单详情并使用真实海运单证区，不会请求旧 `OrderShippingDocument`；非 SE 原抽屉行为通过回归测试。
+- [x] AC2：SE ReleasePod 可选择并保存当前共享 MBL，列表和编辑回显显示正确 MBL 号码。
+- [x] AC3：HOUSE 订单的 ReleasePod 可选择并保存本订单真实 HBL；其他订单、其他组织、非当前 MBL 的 HBL 均被明确拒绝。
+- [x] AC4：同一 ReleasePod 同时提交旧单证、Sea MBL、Sea HBL，或提交类型与 ID 不完整时返回稳定 400，且事务无业务写入和操作日志残留。
+- [x] AC5：非 SE ReleasePod 旧分单关联保持可用；SE 不能再保存旧 `shipping_document_id`。
+- [x] AC6：海运单证页面在 MBL/HBL 下展示各自关联的放货记录及状态；新增、编辑、解除或关联删除后页面数据同步刷新。
+- [x] AC7：删除有关联放货记录的可删除 HBL 时，页面列出关联记录并二次确认；取消后零变更，确认后 HBL、处于待签收/已签收的关联记录和日志原子删除。
+- [x] AC8：任一关联记录为“已回单”时，前后端均阻止删除 HBL 及其所有关联记录，页面展示阻断记录；并发变成已回单时服务端仍能原子阻断。
+- [x] AC9：作废 MBL/HBL 不删除放货记录；记录仍能显示其历史关联。
+- [x] AC10：ReleasePod Schema、正式迁移、生成元数据、Proto/OpenAPI/Web Client 完整一致，重跑生成命令无新增差异。
+- [x] AC11：箱和货物删除请求分别断言发送记录真实 `expectedVersion`；缺失/零版本时不调用 API；版本冲突不自动重试。
+- [x] AC12：并发拆票真实 PostgreSQL 测试连续至少 3 次均为一成功一 409，完整 `TestSeaOrderSplitAndReassignment_PostgresIntegration` 父测试至少 `-count=3` 通过。
+- [x] AC13：静态非法拆票输入仍返回 400，守恒失败仍返回对应 400；过期 Order/Link/Allocation/HBL/货物/箱/费用版本返回 409。
+- [x] AC14：ReleasePod 前后端针对性测试、Go 全量测试与 vet、Web 测试与 TypeScript 检查按风险通过；无法运行的真实 PostgreSQL 检查必须明确记录原因。
+- [x] AC15：本任务仅提交计划内文件；其他窗口的未提交改动和 `clash-for-linux/` 均未被覆盖或纳入提交。
 
 ## 不在范围内
 
