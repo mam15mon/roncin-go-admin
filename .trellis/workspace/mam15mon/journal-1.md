@@ -568,3 +568,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 22: 统一全站 TagsView 页面复用规则
+<!-- trellis-session: v=2 fp=028d4638b24e2bf6 -->
+
+**Date**: 2026-09-05
+**Task**: 统一全站 TagsView 页面复用规则
+**Branch**: `main`
+
+### Summary
+
+将 TagsView 页签从完整 URL 改为按稳定菜单入口复用，拆分 key 与 path 并保留 search/hash，门禁拦截迟到动态标题事件
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fc22bc91` | fix(web): 统一菜单内部页面页签复用 |
+
+### Status
+
+[OK] **Completed**

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 21
+- **Total Sessions**: 22
 - **Last Active**: 2026-09-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~570 | Active |
+| `journal-1.md` | ~592 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 22 | 2026-09-05 | 统一全站 TagsView 页面复用规则 | `fc22bc91` | `main` |
 | 21 | 2026-09-05 | 在海运出口配舱信息中增加只读关联分单号展示 | `f8547480` | `main` |
 | 20 | 2026-09-05 | 修复非安全上下文下 crypto.randomUUID 缺失导致的前端请求与登录报错 | `d92fcf8f` | `main` |
 | 19 | 2026-09-05 | 修复海运出口四项P1问题 | `9706cf2b`, `8b1e49df`, `0c64540d` | `feat/universal-order-lock` |
