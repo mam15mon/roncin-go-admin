@@ -1,0 +1,13 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查业务类型、权限、锁状态、审批和页面字段端到端一致"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"检查未复制六套权限、锁事务、候选查询或前端状态逻辑"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"回归 SE 固定锁序、版本快照、三路解锁、幂等与共享 MBL 门禁"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查 Schema/迁移 CHECK 同源、Data.client、行锁顺序与版本冲突"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查通用化后 reason 稳定、消息准确且无驱动错误泄漏"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"检查审计携带业务类型且不记录 OA 秘密或完整外部报文"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"确认生成幂等、全量检查和真实 PostgreSQL 用例确实 PASS 而非 SKIP"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查锁控件、详情、费用页保持既有组件和视觉约束"}
+{"file":".trellis/spec/web/frontend/hook-guidelines.md","reason":"检查跨页面 hook 复用合理且没有多份服务端状态"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查锁定/解锁刷新、错误态和费用只读状态无漂移"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查无裸枚举、手写权限键、any 兜底或生成物手改"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查前端测试、tsc、Biome、check 与 build 结果"}
+{"file":".trellis/tasks/09-05-universal-order-lock/research/current-lock-audit.md","reason":"按已识别的权限、装运单证和费用页缺口逐项验证无遗漏"}

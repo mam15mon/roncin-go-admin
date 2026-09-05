@@ -1,0 +1,13 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"按订单业务类型贯通 Proto、鉴权、Biz、Data、OA 与页面数据流"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"复用现有唯一订单锁、事务门禁、权限解析和前端锁交互，避免六套平行实现"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"保持现有 SE 锁序、三路解锁、不可变版本、幂等和错误契约"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"遵循 Ent 真相源、正式 CHECK、统一事务和悲观加乐观并发控制"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"保持稳定 reason、中文消息、结构化 metadata 和驱动错误边界"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"确保锁定审计完整且 OA 凭据与敏感报文不进入日志"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"执行生成幂等、迁移、真实 PostgreSQL 并发测试和服务端质量门"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"在现有企业级详情结构内抽取通用锁控件并保持页面一致性"}
+{"file":".trellis/spec/web/frontend/hook-guidelines.md","reason":"只因详情与费用页真实复用而抽取订单领域锁状态 hook"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"锁状态使用生成客户端管理并在失败时关闭写入口"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"业务类型、API DTO 和权限键全部消费生成真相"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"使用 pnpm 完成前端测试、类型、Biome 和构建检查"}
+{"file":".trellis/tasks/09-05-universal-order-lock/research/current-lock-audit.md","reason":"依据现有六类型、SE 硬编码、权限缺口、装运单证绕过和费用页现状实施"}
