@@ -81943,6 +81943,7 @@ type OrderLockRecordMutation struct {
 	id                            *uuid.UUID
 	created_at                    *time.Time
 	order_no                      *string
+	business_type                 *orderlockrecord.BusinessType
 	generation                    *uint64
 	addgeneration                 *int64
 	locked_at                     *time.Time
@@ -82229,6 +82230,42 @@ func (m *OrderLockRecordMutation) ResetOrderNo() {
 	m.order_no = nil
 }
 
+// SetBusinessType sets the "business_type" field.
+func (m *OrderLockRecordMutation) SetBusinessType(ot orderlockrecord.BusinessType) {
+	m.business_type = &ot
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *OrderLockRecordMutation) BusinessType() (r orderlockrecord.BusinessType, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldBusinessType(ctx context.Context) (v orderlockrecord.BusinessType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *OrderLockRecordMutation) ResetBusinessType() {
+	m.business_type = nil
+}
+
 // SetGeneration sets the "generation" field.
 func (m *OrderLockRecordMutation) SetGeneration(u uint64) {
 	m.generation = &u
@@ -82430,7 +82467,7 @@ func (m *OrderLockRecordMutation) MasterBillID() (r uuid.UUID, exists bool) {
 // OldMasterBillID returns the old "master_bill_id" field's value of the OrderLockRecord entity.
 // If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderLockRecordMutation) OldMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *OrderLockRecordMutation) OldMasterBillID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMasterBillID is only allowed on UpdateOne operations")
 	}
@@ -82444,9 +82481,22 @@ func (m *OrderLockRecordMutation) OldMasterBillID(ctx context.Context) (v uuid.U
 	return oldValue.MasterBillID, nil
 }
 
+// ClearMasterBillID clears the value of the "master_bill_id" field.
+func (m *OrderLockRecordMutation) ClearMasterBillID() {
+	m.master_bill = nil
+	m.clearedFields[orderlockrecord.FieldMasterBillID] = struct{}{}
+}
+
+// MasterBillIDCleared returns if the "master_bill_id" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) MasterBillIDCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldMasterBillID]
+	return ok
+}
+
 // ResetMasterBillID resets all changes to the "master_bill_id" field.
 func (m *OrderLockRecordMutation) ResetMasterBillID() {
 	m.master_bill = nil
+	delete(m.clearedFields, orderlockrecord.FieldMasterBillID)
 }
 
 // SetMasterBillVersionID sets the "master_bill_version_id" field.
@@ -82466,7 +82516,7 @@ func (m *OrderLockRecordMutation) MasterBillVersionID() (r uuid.UUID, exists boo
 // OldMasterBillVersionID returns the old "master_bill_version_id" field's value of the OrderLockRecord entity.
 // If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderLockRecordMutation) OldMasterBillVersionID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *OrderLockRecordMutation) OldMasterBillVersionID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMasterBillVersionID is only allowed on UpdateOne operations")
 	}
@@ -82480,9 +82530,22 @@ func (m *OrderLockRecordMutation) OldMasterBillVersionID(ctx context.Context) (v
 	return oldValue.MasterBillVersionID, nil
 }
 
+// ClearMasterBillVersionID clears the value of the "master_bill_version_id" field.
+func (m *OrderLockRecordMutation) ClearMasterBillVersionID() {
+	m.master_bill_version = nil
+	m.clearedFields[orderlockrecord.FieldMasterBillVersionID] = struct{}{}
+}
+
+// MasterBillVersionIDCleared returns if the "master_bill_version_id" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) MasterBillVersionIDCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldMasterBillVersionID]
+	return ok
+}
+
 // ResetMasterBillVersionID resets all changes to the "master_bill_version_id" field.
 func (m *OrderLockRecordMutation) ResetMasterBillVersionID() {
 	m.master_bill_version = nil
+	delete(m.clearedFields, orderlockrecord.FieldMasterBillVersionID)
 }
 
 // SetUnlockedBy sets the "unlocked_by" field.
@@ -83014,7 +83077,7 @@ func (m *OrderLockRecordMutation) ClearMasterBill() {
 
 // MasterBillCleared reports if the "master_bill" edge to the SeaMasterBill entity was cleared.
 func (m *OrderLockRecordMutation) MasterBillCleared() bool {
-	return m.clearedmaster_bill
+	return m.MasterBillIDCleared() || m.clearedmaster_bill
 }
 
 // MasterBillIDs returns the "master_bill" edge IDs in the mutation.
@@ -83041,7 +83104,7 @@ func (m *OrderLockRecordMutation) ClearMasterBillVersion() {
 
 // MasterBillVersionCleared reports if the "master_bill_version" edge to the SeaMasterBillVersion entity was cleared.
 func (m *OrderLockRecordMutation) MasterBillVersionCleared() bool {
-	return m.clearedmaster_bill_version
+	return m.MasterBillVersionIDCleared() || m.clearedmaster_bill_version
 }
 
 // MasterBillVersionIDs returns the "master_bill_version" edge IDs in the mutation.
@@ -83242,7 +83305,7 @@ func (m *OrderLockRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderLockRecordMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, orderlockrecord.FieldCreatedAt)
 	}
@@ -83254,6 +83317,9 @@ func (m *OrderLockRecordMutation) Fields() []string {
 	}
 	if m.order_no != nil {
 		fields = append(fields, orderlockrecord.FieldOrderNo)
+	}
+	if m.business_type != nil {
+		fields = append(fields, orderlockrecord.FieldBusinessType)
 	}
 	if m.generation != nil {
 		fields = append(fields, orderlockrecord.FieldGeneration)
@@ -83313,6 +83379,8 @@ func (m *OrderLockRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case orderlockrecord.FieldOrderNo:
 		return m.OrderNo()
+	case orderlockrecord.FieldBusinessType:
+		return m.BusinessType()
 	case orderlockrecord.FieldGeneration:
 		return m.Generation()
 	case orderlockrecord.FieldLockedBy:
@@ -83358,6 +83426,8 @@ func (m *OrderLockRecordMutation) OldField(ctx context.Context, name string) (en
 		return m.OldOrderID(ctx)
 	case orderlockrecord.FieldOrderNo:
 		return m.OldOrderNo(ctx)
+	case orderlockrecord.FieldBusinessType:
+		return m.OldBusinessType(ctx)
 	case orderlockrecord.FieldGeneration:
 		return m.OldGeneration(ctx)
 	case orderlockrecord.FieldLockedBy:
@@ -83422,6 +83492,13 @@ func (m *OrderLockRecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderNo(v)
+		return nil
+	case orderlockrecord.FieldBusinessType:
+		v, ok := value.(orderlockrecord.BusinessType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
 		return nil
 	case orderlockrecord.FieldGeneration:
 		v, ok := value.(uint64)
@@ -83590,6 +83667,12 @@ func (m *OrderLockRecordMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderLockRecordMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(orderlockrecord.FieldMasterBillID) {
+		fields = append(fields, orderlockrecord.FieldMasterBillID)
+	}
+	if m.FieldCleared(orderlockrecord.FieldMasterBillVersionID) {
+		fields = append(fields, orderlockrecord.FieldMasterBillVersionID)
+	}
 	if m.FieldCleared(orderlockrecord.FieldUnlockedBy) {
 		fields = append(fields, orderlockrecord.FieldUnlockedBy)
 	}
@@ -83622,6 +83705,12 @@ func (m *OrderLockRecordMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderLockRecordMutation) ClearField(name string) error {
 	switch name {
+	case orderlockrecord.FieldMasterBillID:
+		m.ClearMasterBillID()
+		return nil
+	case orderlockrecord.FieldMasterBillVersionID:
+		m.ClearMasterBillVersionID()
+		return nil
 	case orderlockrecord.FieldUnlockedBy:
 		m.ClearUnlockedBy()
 		return nil
@@ -83659,6 +83748,9 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 		return nil
 	case orderlockrecord.FieldOrderNo:
 		m.ResetOrderNo()
+		return nil
+	case orderlockrecord.FieldBusinessType:
+		m.ResetBusinessType()
 		return nil
 	case orderlockrecord.FieldGeneration:
 		m.ResetGeneration()
@@ -88935,6 +89027,7 @@ type OrderUnlockRequestMutation struct {
 	id                           *uuid.UUID
 	created_at                   *time.Time
 	order_no                     *string
+	business_type                *orderunlockrequest.BusinessType
 	lock_generation              *uint64
 	addlock_generation           *int64
 	requested_at                 *time.Time
@@ -89226,6 +89319,42 @@ func (m *OrderUnlockRequestMutation) OldOrderNo(ctx context.Context) (v string, 
 // ResetOrderNo resets all changes to the "order_no" field.
 func (m *OrderUnlockRequestMutation) ResetOrderNo() {
 	m.order_no = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *OrderUnlockRequestMutation) SetBusinessType(ot orderunlockrequest.BusinessType) {
+	m.business_type = &ot
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *OrderUnlockRequestMutation) BusinessType() (r orderunlockrequest.BusinessType, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the OrderUnlockRequest entity.
+// If the OrderUnlockRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderUnlockRequestMutation) OldBusinessType(ctx context.Context) (v orderunlockrequest.BusinessType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *OrderUnlockRequestMutation) ResetBusinessType() {
+	m.business_type = nil
 }
 
 // SetLockRecordID sets the "lock_record_id" field.
@@ -90521,7 +90650,7 @@ func (m *OrderUnlockRequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderUnlockRequestMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, orderunlockrequest.FieldCreatedAt)
 	}
@@ -90533,6 +90662,9 @@ func (m *OrderUnlockRequestMutation) Fields() []string {
 	}
 	if m.order_no != nil {
 		fields = append(fields, orderunlockrequest.FieldOrderNo)
+	}
+	if m.business_type != nil {
+		fields = append(fields, orderunlockrequest.FieldBusinessType)
 	}
 	if m.lock_record != nil {
 		fields = append(fields, orderunlockrequest.FieldLockRecordID)
@@ -90610,6 +90742,8 @@ func (m *OrderUnlockRequestMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case orderunlockrequest.FieldOrderNo:
 		return m.OrderNo()
+	case orderunlockrequest.FieldBusinessType:
+		return m.BusinessType()
 	case orderunlockrequest.FieldLockRecordID:
 		return m.LockRecordID()
 	case orderunlockrequest.FieldLockGeneration:
@@ -90667,6 +90801,8 @@ func (m *OrderUnlockRequestMutation) OldField(ctx context.Context, name string) 
 		return m.OldOrderID(ctx)
 	case orderunlockrequest.FieldOrderNo:
 		return m.OldOrderNo(ctx)
+	case orderunlockrequest.FieldBusinessType:
+		return m.OldBusinessType(ctx)
 	case orderunlockrequest.FieldLockRecordID:
 		return m.OldLockRecordID(ctx)
 	case orderunlockrequest.FieldLockGeneration:
@@ -90743,6 +90879,13 @@ func (m *OrderUnlockRequestMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderNo(v)
+		return nil
+	case orderunlockrequest.FieldBusinessType:
+		v, ok := value.(orderunlockrequest.BusinessType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
 		return nil
 	case orderunlockrequest.FieldLockRecordID:
 		v, ok := value.(uuid.UUID)
@@ -91052,6 +91195,9 @@ func (m *OrderUnlockRequestMutation) ResetField(name string) error {
 		return nil
 	case orderunlockrequest.FieldOrderNo:
 		m.ResetOrderNo()
+		return nil
+	case orderunlockrequest.FieldBusinessType:
+		m.ResetBusinessType()
 		return nil
 	case orderunlockrequest.FieldLockRecordID:
 		m.ResetLockRecordID()

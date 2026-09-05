@@ -5,6 +5,7 @@ package order.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "order/v1/order.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -16,7 +17,7 @@ service OrderLockService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/lock-state"};
   }
 
-  // LockOrder 锁定海运出口订单并固定单证不可变版本。
+  // LockOrder 锁定订单；海运出口同时固定单证不可变版本。
   rpc LockOrder(LockOrderRequest) returns (LockOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "lock" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -140,6 +141,7 @@ message OrderLockStateData {
   repeated string unlock_blocked_reasons = 14;
   optional OrderUnlockRequestData active_unlock_request = 15;
   optional OrderLockRecordData current_lock_record = 16;
+  BusinessType business_type = 17;
 }
 
 message OrderLockResultData {
@@ -168,8 +170,8 @@ message OrderLockRecordData {
   string locked_by_name = 6;
   string locked_at = 7;
   uint64 order_version_at_lock = 8;
-  string master_bill_id = 9;
-  string master_bill_version_id = 10;
+  optional string master_bill_id = 9;
+  optional string master_bill_version_id = 10;
   optional string unlocked_by = 11;
   optional string unlocked_by_name = 12;
   optional string unlocked_at = 13;
@@ -178,6 +180,7 @@ message OrderLockRecordData {
   optional string unlock_reason = 16;
   optional string unlock_mode = 17;
   repeated OrderLockHouseBillSnapshotData house_bill_snapshots = 18;
+  BusinessType business_type = 19;
 }
 
 message OrderLockHouseBillSnapshotData {
@@ -215,6 +218,7 @@ message OrderUnlockRequestData {
   optional string unlocked_at = 23;
   optional uint64 result_order_version = 24;
   repeated OrderUnlockApproverCandidateData approver_candidates = 25;
+  BusinessType business_type = 26;
 }
 
 message OrderUnlockApproverCandidateData {

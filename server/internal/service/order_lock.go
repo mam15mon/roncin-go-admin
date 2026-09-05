@@ -10,7 +10,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
-// OrderLockService 提供订单业务锁定与单证不可变版本服务实现。
+// OrderLockService 提供订单业务锁定服务；海运出口同时管理单证不可变版本。
 type OrderLockService struct {
 	v1.UnimplementedOrderLockServiceServer
 	usecase *biz.OrderLockUsecase
@@ -168,6 +168,7 @@ func orderLockStateToAPI(s *biz.OrderLockState) *v1.OrderLockStateData {
 	data := &v1.OrderLockStateData{
 		OrderId:                 s.OrderID.String(),
 		OrderNo:                 s.OrderNo,
+		BusinessType:            orderBusinessTypeToAPI(s.BusinessType),
 		IsLocked:                s.IsLocked,
 		LockGeneration:          s.LockGeneration,
 		OrderVersion:            s.OrderVersion,
@@ -203,18 +204,25 @@ func orderLockRecordToAPI(r *biz.OrderLockRecord) *v1.OrderLockRecordData {
 		return nil
 	}
 	data := &v1.OrderLockRecordData{
-		Id:                  r.ID.String(),
-		OrderId:             r.OrderID.String(),
-		OrderNo:             r.OrderNo,
-		Generation:          r.Generation,
-		LockedBy:            r.LockedBy.String(),
-		LockedByName:        r.LockedByName,
-		LockedAt:            r.LockedAt.Format(time.RFC3339),
-		OrderVersionAtLock:  r.OrderVersionAtLock,
-		MasterBillId:        r.MasterBillID.String(),
-		MasterBillVersionId: r.MasterBillVersionID.String(),
-		UnlockReason:        r.UnlockReason,
-		UnlockMode:          r.UnlockMode,
+		Id:                 r.ID.String(),
+		OrderId:            r.OrderID.String(),
+		OrderNo:            r.OrderNo,
+		Generation:         r.Generation,
+		LockedBy:           r.LockedBy.String(),
+		LockedByName:       r.LockedByName,
+		LockedAt:           r.LockedAt.Format(time.RFC3339),
+		OrderVersionAtLock: r.OrderVersionAtLock,
+		BusinessType:       orderBusinessTypeToAPI(r.BusinessType),
+		UnlockReason:       r.UnlockReason,
+		UnlockMode:         r.UnlockMode,
+	}
+	if r.MasterBillID != nil {
+		id := r.MasterBillID.String()
+		data.MasterBillId = &id
+	}
+	if r.MasterBillVersionID != nil {
+		id := r.MasterBillVersionID.String()
+		data.MasterBillVersionId = &id
 	}
 	if r.UnlockedBy != nil {
 		uStr := r.UnlockedBy.String()
@@ -259,6 +267,7 @@ func orderUnlockRequestToAPI(r *biz.OrderUnlockRequest) *v1.OrderUnlockRequestDa
 		Id:                        r.ID.String(),
 		OrderId:                   r.OrderID.String(),
 		OrderNo:                   r.OrderNo,
+		BusinessType:              orderBusinessTypeToAPI(r.BusinessType),
 		LockRecordId:              r.LockRecordID.String(),
 		LockGeneration:            r.LockGeneration,
 		RequestedBy:               r.RequestedBy.String(),

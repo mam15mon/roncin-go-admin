@@ -35,9 +35,9 @@ const (
 var (
 	ErrOrderAlreadyLocked                 = errors.Conflict("ORDER_ALREADY_LOCKED", "订单已被锁定")
 	ErrOrderNotLocked                     = errors.Conflict("ORDER_NOT_LOCKED", "订单当前未锁定")
-	ErrOrderLockRoleRequired              = errors.Forbidden("ORDER_LOCK_ROLE_REQUIRED", "当前用户未分配海运出口锁定业务角色或数据范围不满足要求")
+	ErrOrderLockRoleRequired              = errors.Forbidden("ORDER_LOCK_ROLE_REQUIRED", "当前用户未分配对应业务类型的订单锁定角色或数据范围不满足要求")
 	ErrOrderUnlockRequestActive           = errors.Conflict("ORDER_UNLOCK_REQUEST_ACTIVE", "当前订单已有生效中或审批中的解锁请求")
-	ErrOrderUnlockApproverNotConfigured   = errors.BadRequest("ORDER_UNLOCK_APPROVER_NOT_CONFIGURED", "未配置具备海运出口锁定权限的业务角色成员")
+	ErrOrderUnlockApproverNotConfigured   = errors.BadRequest("ORDER_UNLOCK_APPROVER_NOT_CONFIGURED", "未配置具备对应业务类型订单锁定权限的业务角色成员")
 	ErrOrderUnlockDingTalkNotConfigured   = errors.BadRequest("ORDER_UNLOCK_DINGTALK_NOT_CONFIGURED", "申请人或审批候选人未绑定钉钉账号")
 	ErrOrderUnlockDingTalkDispatchFailed  = errors.InternalServer("ORDER_UNLOCK_DINGTALK_DISPATCH_FAILED", "钉钉审批发起明确失败")
 	ErrOrderUnlockDingTalkDispatchUnknown = errors.InternalServer("ORDER_UNLOCK_DINGTALK_DISPATCH_UNKNOWN", "钉钉审批发起结果未知")
@@ -70,6 +70,7 @@ func NewErrSeaMasterBillMemberOrderLocked(count int, lockedOrderNos []string) er
 type OrderLockState struct {
 	OrderID                 uuid.UUID
 	OrderNo                 string
+	BusinessType            OrderBusinessType
 	IsLocked                bool
 	LockGeneration          uint64
 	LockedAt                *time.Time
@@ -92,13 +93,14 @@ type OrderLockRecord struct {
 	OrganizationID       uuid.UUID
 	OrderID              uuid.UUID
 	OrderNo              string
+	BusinessType         OrderBusinessType
 	Generation           uint64
 	LockedBy             uuid.UUID
 	LockedByName         string
 	LockedAt             time.Time
 	OrderVersionAtLock   uint64
-	MasterBillID         uuid.UUID
-	MasterBillVersionID  uuid.UUID
+	MasterBillID         *uuid.UUID
+	MasterBillVersionID  *uuid.UUID
 	UnlockedBy           *uuid.UUID
 	UnlockedByName       *string
 	UnlockedAt           *time.Time
@@ -126,6 +128,7 @@ type OrderUnlockRequest struct {
 	OrganizationID            uuid.UUID
 	OrderID                   uuid.UUID
 	OrderNo                   string
+	BusinessType              OrderBusinessType
 	LockRecordID              uuid.UUID
 	LockGeneration            uint64
 	RequestedBy               uuid.UUID

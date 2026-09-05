@@ -30,7 +30,7 @@ type OrderLockServiceHTTPServer interface {
 	GetOrderUnlockRequest(context.Context, *GetOrderUnlockRequestRequest) (*GetOrderUnlockRequestResponse, error)
 	// ListOrderUnlockRequests ListOrderUnlockRequests 查询订单解锁请求历史。
 	ListOrderUnlockRequests(context.Context, *ListOrderUnlockRequestsRequest) (*ListOrderUnlockRequestsResponse, error)
-	// LockOrder LockOrder 锁定海运出口订单并固定单证不可变版本。
+	// LockOrder LockOrder 锁定订单；海运出口同时固定单证不可变版本。
 	LockOrder(context.Context, *LockOrderRequest) (*LockOrderResponse, error)
 	// RequestOrderUnlock RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
 	RequestOrderUnlock(context.Context, *RequestOrderUnlockRequest) (*RequestOrderUnlockResponse, error)
@@ -162,7 +162,7 @@ type OrderLockServiceHTTPClient interface {
 	GetOrderUnlockRequest(ctx context.Context, req *GetOrderUnlockRequestRequest, opts ...http.CallOption) (rsp *GetOrderUnlockRequestResponse, err error)
 	// ListOrderUnlockRequests ListOrderUnlockRequests 查询订单解锁请求历史。
 	ListOrderUnlockRequests(ctx context.Context, req *ListOrderUnlockRequestsRequest, opts ...http.CallOption) (rsp *ListOrderUnlockRequestsResponse, err error)
-	// LockOrder LockOrder 锁定海运出口订单并固定单证不可变版本。
+	// LockOrder LockOrder 锁定订单；海运出口同时固定单证不可变版本。
 	LockOrder(ctx context.Context, req *LockOrderRequest, opts ...http.CallOption) (rsp *LockOrderResponse, err error)
 	// RequestOrderUnlock RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
 	RequestOrderUnlock(ctx context.Context, req *RequestOrderUnlockRequest, opts ...http.CallOption) (rsp *RequestOrderUnlockResponse, err error)
@@ -227,7 +227,7 @@ func (c *OrderLockServiceHTTPClientImpl) ListOrderUnlockRequests(ctx context.Con
 	return &out, nil
 }
 
-// LockOrder LockOrder 锁定海运出口订单并固定单证不可变版本。
+// LockOrder LockOrder 锁定订单；海运出口同时固定单证不可变版本。
 func (c *OrderLockServiceHTTPClientImpl) LockOrder(ctx context.Context, in *LockOrderRequest, opts ...http.CallOption) (*LockOrderResponse, error) {
 	var out LockOrderResponse
 	pattern := "/api/v1/orders/{order_id}/lock"

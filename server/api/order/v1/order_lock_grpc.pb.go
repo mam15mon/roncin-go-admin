@@ -34,7 +34,7 @@ const (
 type OrderLockServiceClient interface {
 	// GetOrderLockState 获取订单当前锁定状态与可执行动作。
 	GetOrderLockState(ctx context.Context, in *GetOrderLockStateRequest, opts ...grpc.CallOption) (*GetOrderLockStateResponse, error)
-	// LockOrder 锁定海运出口订单并固定单证不可变版本。
+	// LockOrder 锁定订单；海运出口同时固定单证不可变版本。
 	LockOrder(ctx context.Context, in *LockOrderRequest, opts ...grpc.CallOption) (*LockOrderResponse, error)
 	// RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
 	RequestOrderUnlock(ctx context.Context, in *RequestOrderUnlockRequest, opts ...grpc.CallOption) (*RequestOrderUnlockResponse, error)
@@ -110,7 +110,7 @@ func (c *orderLockServiceClient) GetOrderUnlockRequest(ctx context.Context, in *
 type OrderLockServiceServer interface {
 	// GetOrderLockState 获取订单当前锁定状态与可执行动作。
 	GetOrderLockState(context.Context, *GetOrderLockStateRequest) (*GetOrderLockStateResponse, error)
-	// LockOrder 锁定海运出口订单并固定单证不可变版本。
+	// LockOrder 锁定订单；海运出口同时固定单证不可变版本。
 	LockOrder(context.Context, *LockOrderRequest) (*LockOrderResponse, error)
 	// RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。
 	RequestOrderUnlock(context.Context, *RequestOrderUnlockRequest) (*RequestOrderUnlockResponse, error)

@@ -46,9 +46,79 @@ func TestOrderPermissionsIncludeBusinessType(t *testing.T) {
 		if !strings.HasPrefix(permission.Key, "business.order.") {
 			continue
 		}
-		if !strings.Contains(permission.Key, ".se.") && !strings.Contains(permission.Key, ".si.") && !strings.Contains(permission.Key, ".ae.") && !strings.Contains(permission.Key, ".ai.") {
+		if !strings.Contains(permission.Key, ".se.") && !strings.Contains(permission.Key, ".si.") && !strings.Contains(permission.Key, ".ae.") && !strings.Contains(permission.Key, ".ai.") && !strings.Contains(permission.Key, ".land.") && !strings.Contains(permission.Key, ".rail.") {
 			t.Fatalf("订单权限未包含业务类型: %s", permission.Key)
 		}
+	}
+}
+
+func TestOrderLockPermissionIsIndependentForEveryBusinessType(t *testing.T) {
+	types := []OrderBusinessType{
+		OrderBusinessSE,
+		OrderBusinessSI,
+		OrderBusinessAE,
+		OrderBusinessAI,
+		OrderBusinessLand,
+		OrderBusinessRail,
+	}
+	manifestByKey := make(map[string]Permission, len(Manifest()))
+	for _, permission := range Manifest() {
+		manifestByKey[permission.Key] = permission
+	}
+
+	for _, businessType := range types {
+		key := OrderPermission(businessType, OrderLock)
+		if key == "" {
+			t.Fatalf("业务类型 %s 缺少锁定权限", businessType)
+		}
+		permission, ok := manifestByKey[key]
+		if !ok {
+			t.Fatalf("权限清单缺少 %s", key)
+		}
+		wantRequires := []string{
+			OrderPermission(businessType, OrderRead),
+			OrderPermission(businessType, OrderUpdate),
+		}
+		if !slicesEqual(permission.Requires, wantRequires) {
+			t.Fatalf("权限 %s 依赖 = %v，期望 %v", key, permission.Requires, wantRequires)
+		}
+		for _, otherType := range types {
+			if otherType == businessType {
+				continue
+			}
+			for _, required := range permission.Requires {
+				if strings.Contains(required, "."+otherType.code()+".") {
+					t.Fatalf("权限 %s 错误依赖其他业务类型权限 %s", key, required)
+				}
+			}
+		}
+	}
+}
+
+func TestOrderBusinessTypesReturnsDefensiveCompleteCopy(t *testing.T) {
+	types := OrderBusinessTypes()
+	want := []OrderBusinessType{
+		OrderBusinessSE,
+		OrderBusinessSI,
+		OrderBusinessAE,
+		OrderBusinessAI,
+		OrderBusinessLand,
+		OrderBusinessRail,
+	}
+	if len(types) != len(want) {
+		t.Fatalf("订单业务类型数量 = %d，期望 %d", len(types), len(want))
+	}
+	for i := range want {
+		if types[i] != want[i] || !types[i].Valid() {
+			t.Fatalf("订单业务类型[%d] = %q，期望 %q", i, types[i], want[i])
+		}
+	}
+	types[0] = "BROKEN"
+	if OrderBusinessTypes()[0] != OrderBusinessSE {
+		t.Fatal("调用方不应能修改订单业务类型真相源")
+	}
+	if OrderPermission("BROKEN", OrderLock) != "" {
+		t.Fatal("非法业务类型不得生成锁定权限")
 	}
 }
 

@@ -3665,6 +3665,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "generation", Type: field.TypeUint64},
 		{Name: "locked_at", Type: field.TypeTime},
 		{Name: "order_version_at_lock", Type: field.TypeUint64},
@@ -3677,8 +3678,8 @@ var (
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "unlock_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "master_bill_id", Type: field.TypeUUID},
-		{Name: "master_bill_version_id", Type: field.TypeUUID},
+		{Name: "master_bill_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "master_bill_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "locked_by", Type: field.TypeUUID},
 		{Name: "unlocked_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -3690,43 +3691,43 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_lock_records_orders_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[12]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[13]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_order_unlock_requests_applied_unlock_request",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[13]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[14]},
 				RefColumns: []*schema.Column{OrderUnlockRequestsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_organizations_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[14]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[15]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bills_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[15]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[16]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bill_versions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[16]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_users_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_unlocked_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -3735,22 +3736,22 @@ var (
 			{
 				Name:    "order_lock_record_order_generation",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[12], OrderLockRecordsColumns[3]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[13], OrderLockRecordsColumns[4]},
 			},
 			{
 				Name:    "order_lock_record_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[14], OrderLockRecordsColumns[10]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[15], OrderLockRecordsColumns[11]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[14], OrderLockRecordsColumns[12]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[15], OrderLockRecordsColumns[13]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[14], OrderLockRecordsColumns[4]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[15], OrderLockRecordsColumns[5]},
 			},
 		},
 	}
@@ -4049,6 +4050,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "lock_generation", Type: field.TypeUint64},
 		{Name: "requested_at", Type: field.TypeTime},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
@@ -4080,37 +4082,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_unlock_requests_orders_unlock_requests",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[19]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[20]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_unlock_requests_order_lock_records_unlock_requests",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[20]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[21]},
 				RefColumns: []*schema.Column{OrderLockRecordsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_unlock_requests_order_unlock_requests_superseded_by_request",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[21]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[22]},
 				RefColumns: []*schema.Column{OrderUnlockRequestsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_unlock_requests_organizations_order_unlock_requests",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[22]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_unlock_requests_users_order_unlock_requests",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[23]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[24]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_unlock_requests_users_decided_order_unlock_requests",
-				Columns:    []*schema.Column{OrderUnlockRequestsColumns[24]},
+				Columns:    []*schema.Column{OrderUnlockRequestsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -4119,12 +4121,12 @@ var (
 			{
 				Name:    "order_unlock_request_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderUnlockRequestsColumns[22], OrderUnlockRequestsColumns[7]},
+				Columns: []*schema.Column{OrderUnlockRequestsColumns[23], OrderUnlockRequestsColumns[8]},
 			},
 			{
 				Name:    "order_unlock_request_process_instance_id",
 				Unique:  true,
-				Columns: []*schema.Column{OrderUnlockRequestsColumns[11]},
+				Columns: []*schema.Column{OrderUnlockRequestsColumns[12]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "dingtalk_process_instance_id IS NOT NULL",
 				},
@@ -4132,7 +4134,7 @@ var (
 			{
 				Name:    "order_unlock_request_active_unique",
 				Unique:  true,
-				Columns: []*schema.Column{OrderUnlockRequestsColumns[19], OrderUnlockRequestsColumns[3]},
+				Columns: []*schema.Column{OrderUnlockRequestsColumns[20], OrderUnlockRequestsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status IN ('PENDING_DISPATCH', 'PENDING_APPROVAL', 'APPROVED_PENDING_APPLY', 'DISPATCH_UNKNOWN')",
 				},
@@ -4140,7 +4142,7 @@ var (
 			{
 				Name:    "orderunlockrequest_organization_id_order_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderUnlockRequestsColumns[22], OrderUnlockRequestsColumns[19], OrderUnlockRequestsColumns[1]},
+				Columns: []*schema.Column{OrderUnlockRequestsColumns[23], OrderUnlockRequestsColumns[20], OrderUnlockRequestsColumns[1]},
 			},
 		},
 	}
@@ -6564,6 +6566,10 @@ func init() {
 	OrderLockRecordsTable.ForeignKeys[4].RefTable = SeaMasterBillVersionsTable
 	OrderLockRecordsTable.ForeignKeys[5].RefTable = UsersTable
 	OrderLockRecordsTable.ForeignKeys[6].RefTable = UsersTable
+	OrderLockRecordsTable.Annotation = &entsql.Annotation{}
+	OrderLockRecordsTable.Annotation.Checks = map[string]string{
+		"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL)",
+	}
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable

@@ -334,12 +334,6 @@ func (_u *OrderLockRecordUpdate) check() error {
 	if _u.mutation.LockedByUserCleared() && len(_u.mutation.LockedByUserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.locked_by_user"`)
 	}
-	if _u.mutation.MasterBillCleared() && len(_u.mutation.MasterBillIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.master_bill"`)
-	}
-	if _u.mutation.MasterBillVersionCleared() && len(_u.mutation.MasterBillVersionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.master_bill_version"`)
-	}
 	return nil
 }
 
@@ -864,12 +858,6 @@ func (_u *OrderLockRecordUpdateOne) check() error {
 	}
 	if _u.mutation.LockedByUserCleared() && len(_u.mutation.LockedByUserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.locked_by_user"`)
-	}
-	if _u.mutation.MasterBillCleared() && len(_u.mutation.MasterBillIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.master_bill"`)
-	}
-	if _u.mutation.MasterBillVersionCleared() && len(_u.mutation.MasterBillVersionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.master_bill_version"`)
 	}
 	return nil
 }

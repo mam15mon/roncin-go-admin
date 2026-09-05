@@ -32,6 +32,8 @@ type OrderLockRecord struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// OrderNo holds the value of the "order_no" field.
 	OrderNo string `json:"order_no,omitempty"`
+	// BusinessType holds the value of the "business_type" field.
+	BusinessType orderlockrecord.BusinessType `json:"business_type,omitempty"`
 	// Generation holds the value of the "generation" field.
 	Generation uint64 `json:"generation,omitempty"`
 	// LockedBy holds the value of the "locked_by" field.
@@ -41,9 +43,9 @@ type OrderLockRecord struct {
 	// OrderVersionAtLock holds the value of the "order_version_at_lock" field.
 	OrderVersionAtLock uint64 `json:"order_version_at_lock,omitempty"`
 	// MasterBillID holds the value of the "master_bill_id" field.
-	MasterBillID uuid.UUID `json:"master_bill_id,omitempty"`
+	MasterBillID *uuid.UUID `json:"master_bill_id,omitempty"`
 	// MasterBillVersionID holds the value of the "master_bill_version_id" field.
-	MasterBillVersionID uuid.UUID `json:"master_bill_version_id,omitempty"`
+	MasterBillVersionID *uuid.UUID `json:"master_bill_version_id,omitempty"`
 	// UnlockedBy holds the value of the "unlocked_by" field.
 	UnlockedBy *uuid.UUID `json:"unlocked_by,omitempty"`
 	// UnlockedAt holds the value of the "unlocked_at" field.
@@ -191,15 +193,15 @@ func (*OrderLockRecord) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
+		case orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldOrderVersionAtUnlock:
 			values[i] = new(sql.NullInt64)
-		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
+		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
 			values[i] = new(sql.NullString)
 		case orderlockrecord.FieldCreatedAt, orderlockrecord.FieldLockedAt, orderlockrecord.FieldUnlockedAt:
 			values[i] = new(sql.NullTime)
-		case orderlockrecord.FieldID, orderlockrecord.FieldOrganizationID, orderlockrecord.FieldOrderID, orderlockrecord.FieldLockedBy, orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID:
+		case orderlockrecord.FieldID, orderlockrecord.FieldOrganizationID, orderlockrecord.FieldOrderID, orderlockrecord.FieldLockedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -246,6 +248,12 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OrderNo = value.String
 			}
+		case orderlockrecord.FieldBusinessType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field business_type", values[i])
+			} else if value.Valid {
+				_m.BusinessType = orderlockrecord.BusinessType(value.String)
+			}
 		case orderlockrecord.FieldGeneration:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field generation", values[i])
@@ -271,16 +279,18 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 				_m.OrderVersionAtLock = uint64(value.Int64)
 			}
 		case orderlockrecord.FieldMasterBillID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field master_bill_id", values[i])
-			} else if value != nil {
-				_m.MasterBillID = *value
+			} else if value.Valid {
+				_m.MasterBillID = new(uuid.UUID)
+				*_m.MasterBillID = *value.S.(*uuid.UUID)
 			}
 		case orderlockrecord.FieldMasterBillVersionID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field master_bill_version_id", values[i])
-			} else if value != nil {
-				_m.MasterBillVersionID = *value
+			} else if value.Valid {
+				_m.MasterBillVersionID = new(uuid.UUID)
+				*_m.MasterBillVersionID = *value.S.(*uuid.UUID)
 			}
 		case orderlockrecord.FieldUnlockedBy:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -429,6 +439,9 @@ func (_m *OrderLockRecord) String() string {
 	builder.WriteString("order_no=")
 	builder.WriteString(_m.OrderNo)
 	builder.WriteString(", ")
+	builder.WriteString("business_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BusinessType))
+	builder.WriteString(", ")
 	builder.WriteString("generation=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Generation))
 	builder.WriteString(", ")
@@ -441,11 +454,15 @@ func (_m *OrderLockRecord) String() string {
 	builder.WriteString("order_version_at_lock=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderVersionAtLock))
 	builder.WriteString(", ")
-	builder.WriteString("master_bill_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.MasterBillID))
+	if v := _m.MasterBillID; v != nil {
+		builder.WriteString("master_bill_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("master_bill_version_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.MasterBillVersionID))
+	if v := _m.MasterBillVersionID; v != nil {
+		builder.WriteString("master_bill_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := _m.UnlockedBy; v != nil {
 		builder.WriteString("unlocked_by=")

@@ -24,6 +24,8 @@ const (
 	FieldOrderID = "order_id"
 	// FieldOrderNo holds the string denoting the order_no field in the database.
 	FieldOrderNo = "order_no"
+	// FieldBusinessType holds the string denoting the business_type field in the database.
+	FieldBusinessType = "business_type"
 	// FieldLockRecordID holds the string denoting the lock_record_id field in the database.
 	FieldLockRecordID = "lock_record_id"
 	// FieldLockGeneration holds the string denoting the lock_generation field in the database.
@@ -150,6 +152,7 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldOrderID,
 	FieldOrderNo,
+	FieldBusinessType,
 	FieldLockRecordID,
 	FieldLockGeneration,
 	FieldRequestedBy,
@@ -206,6 +209,33 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// BusinessType defines the type for the "business_type" enum field.
+type BusinessType string
+
+// BusinessType values.
+const (
+	BusinessTypeSE   BusinessType = "SE"
+	BusinessTypeSI   BusinessType = "SI"
+	BusinessTypeAE   BusinessType = "AE"
+	BusinessTypeAI   BusinessType = "AI"
+	BusinessTypeLAND BusinessType = "LAND"
+	BusinessTypeRAIL BusinessType = "RAIL"
+)
+
+func (bt BusinessType) String() string {
+	return string(bt)
+}
+
+// BusinessTypeValidator is a validator for the "business_type" field enum values. It is called by the builders before save.
+func BusinessTypeValidator(bt BusinessType) error {
+	switch bt {
+	case BusinessTypeSE, BusinessTypeSI, BusinessTypeAE, BusinessTypeAI, BusinessTypeLAND, BusinessTypeRAIL:
+		return nil
+	default:
+		return fmt.Errorf("orderunlockrequest: invalid enum value for business_type field: %q", bt)
+	}
+}
 
 // Route defines the type for the "route" enum field.
 type Route string
@@ -290,6 +320,11 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 // ByOrderNo orders the results by the order_no field.
 func ByOrderNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderNo, opts...).ToFunc()
+}
+
+// ByBusinessType orders the results by the business_type field.
+func ByBusinessType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBusinessType, opts...).ToFunc()
 }
 
 // ByLockRecordID orders the results by the lock_record_id field.

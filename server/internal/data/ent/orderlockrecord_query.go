@@ -879,7 +879,10 @@ func (_q *OrderLockRecordQuery) loadMasterBill(ctx context.Context, query *SeaMa
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
 	for i := range nodes {
-		fk := nodes[i].MasterBillID
+		if nodes[i].MasterBillID == nil {
+			continue
+		}
+		fk := *nodes[i].MasterBillID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -908,7 +911,10 @@ func (_q *OrderLockRecordQuery) loadMasterBillVersion(ctx context.Context, query
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
 	for i := range nodes {
-		fk := nodes[i].MasterBillVersionID
+		if nodes[i].MasterBillVersionID == nil {
+			continue
+		}
+		fk := *nodes[i].MasterBillVersionID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

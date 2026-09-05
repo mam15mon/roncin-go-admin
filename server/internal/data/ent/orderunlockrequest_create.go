@@ -59,6 +59,12 @@ func (_c *OrderUnlockRequestCreate) SetOrderNo(v string) *OrderUnlockRequestCrea
 	return _c
 }
 
+// SetBusinessType sets the "business_type" field.
+func (_c *OrderUnlockRequestCreate) SetBusinessType(v orderunlockrequest.BusinessType) *OrderUnlockRequestCreate {
+	_c.mutation.SetBusinessType(v)
+	return _c
+}
+
 // SetLockRecordID sets the "lock_record_id" field.
 func (_c *OrderUnlockRequestCreate) SetLockRecordID(v uuid.UUID) *OrderUnlockRequestCreate {
 	_c.mutation.SetLockRecordID(v)
@@ -456,6 +462,14 @@ func (_c *OrderUnlockRequestCreate) check() error {
 			return &ValidationError{Name: "order_no", err: fmt.Errorf(`ent: validator failed for field "OrderUnlockRequest.order_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.BusinessType(); !ok {
+		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "OrderUnlockRequest.business_type"`)}
+	}
+	if v, ok := _c.mutation.BusinessType(); ok {
+		if err := orderunlockrequest.BusinessTypeValidator(v); err != nil {
+			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "OrderUnlockRequest.business_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.LockRecordID(); !ok {
 		return &ValidationError{Name: "lock_record_id", err: errors.New(`ent: missing required field "OrderUnlockRequest.lock_record_id"`)}
 	}
@@ -587,6 +601,10 @@ func (_c *OrderUnlockRequestCreate) createSpec() (*OrderUnlockRequest, *sqlgraph
 	if value, ok := _c.mutation.OrderNo(); ok {
 		_spec.SetField(orderunlockrequest.FieldOrderNo, field.TypeString, value)
 		_node.OrderNo = value
+	}
+	if value, ok := _c.mutation.BusinessType(); ok {
+		_spec.SetField(orderunlockrequest.FieldBusinessType, field.TypeEnum, value)
+		_node.BusinessType = value
 	}
 	if value, ok := _c.mutation.LockGeneration(); ok {
 		_spec.SetField(orderunlockrequest.FieldLockGeneration, field.TypeUint64, value)

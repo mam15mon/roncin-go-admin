@@ -31,6 +31,8 @@ type OrderUnlockRequest struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// OrderNo holds the value of the "order_no" field.
 	OrderNo string `json:"order_no,omitempty"`
+	// BusinessType holds the value of the "business_type" field.
+	BusinessType orderunlockrequest.BusinessType `json:"business_type,omitempty"`
 	// LockRecordID holds the value of the "lock_record_id" field.
 	LockRecordID uuid.UUID `json:"lock_record_id,omitempty"`
 	// LockGeneration holds the value of the "lock_generation" field.
@@ -206,7 +208,7 @@ func (*OrderUnlockRequest) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderunlockrequest.FieldLockGeneration, orderunlockrequest.FieldExpectedOrderVersion, orderunlockrequest.FieldResultOrderVersion:
 			values[i] = new(sql.NullInt64)
-		case orderunlockrequest.FieldOrderNo, orderunlockrequest.FieldReason, orderunlockrequest.FieldIdempotencyKey, orderunlockrequest.FieldRequestFingerprint, orderunlockrequest.FieldRoute, orderunlockrequest.FieldStatus, orderunlockrequest.FieldDingtalkProcessInstanceID, orderunlockrequest.FieldDingtalkProcessCode, orderunlockrequest.FieldDecisionSource, orderunlockrequest.FieldFailureCode, orderunlockrequest.FieldFailureMessage:
+		case orderunlockrequest.FieldOrderNo, orderunlockrequest.FieldBusinessType, orderunlockrequest.FieldReason, orderunlockrequest.FieldIdempotencyKey, orderunlockrequest.FieldRequestFingerprint, orderunlockrequest.FieldRoute, orderunlockrequest.FieldStatus, orderunlockrequest.FieldDingtalkProcessInstanceID, orderunlockrequest.FieldDingtalkProcessCode, orderunlockrequest.FieldDecisionSource, orderunlockrequest.FieldFailureCode, orderunlockrequest.FieldFailureMessage:
 			values[i] = new(sql.NullString)
 		case orderunlockrequest.FieldCreatedAt, orderunlockrequest.FieldRequestedAt, orderunlockrequest.FieldDecidedAt, orderunlockrequest.FieldUnlockedAt:
 			values[i] = new(sql.NullTime)
@@ -256,6 +258,12 @@ func (_m *OrderUnlockRequest) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field order_no", values[i])
 			} else if value.Valid {
 				_m.OrderNo = value.String
+			}
+		case orderunlockrequest.FieldBusinessType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field business_type", values[i])
+			} else if value.Valid {
+				_m.BusinessType = orderunlockrequest.BusinessType(value.String)
 			}
 		case orderunlockrequest.FieldLockRecordID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -480,6 +488,9 @@ func (_m *OrderUnlockRequest) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_no=")
 	builder.WriteString(_m.OrderNo)
+	builder.WriteString(", ")
+	builder.WriteString("business_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BusinessType))
 	builder.WriteString(", ")
 	builder.WriteString("lock_record_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LockRecordID))

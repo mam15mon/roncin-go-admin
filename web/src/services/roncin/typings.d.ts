@@ -3984,6 +3984,7 @@ declare namespace API {
     unlockReason?: string;
     unlockMode?: string;
     houseBillSnapshots?: OrderLockHouseBillSnapshotData[];
+    businessType?: number;
   };
 
   type OrderLockResultData = {
@@ -4031,6 +4032,7 @@ declare namespace API {
     unlockBlockedReasons?: string[];
     activeUnlockRequest?: OrderUnlockRequestData;
     currentLockRecord?: OrderLockRecordData;
+    businessType?: number;
   };
 
   type OrderMilestone = {
@@ -4317,6 +4319,7 @@ declare namespace API {
     unlockedAt?: string;
     resultOrderVersion?: string;
     approverCandidates?: OrderUnlockApproverCandidateData[];
+    businessType?: number;
   };
 
   type OrderUnlockResultData = {

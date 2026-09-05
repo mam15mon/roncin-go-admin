@@ -60,6 +60,12 @@ func (_c *OrderLockRecordCreate) SetOrderNo(v string) *OrderLockRecordCreate {
 	return _c
 }
 
+// SetBusinessType sets the "business_type" field.
+func (_c *OrderLockRecordCreate) SetBusinessType(v orderlockrecord.BusinessType) *OrderLockRecordCreate {
+	_c.mutation.SetBusinessType(v)
+	return _c
+}
+
 // SetGeneration sets the "generation" field.
 func (_c *OrderLockRecordCreate) SetGeneration(v uint64) *OrderLockRecordCreate {
 	_c.mutation.SetGeneration(v)
@@ -90,9 +96,25 @@ func (_c *OrderLockRecordCreate) SetMasterBillID(v uuid.UUID) *OrderLockRecordCr
 	return _c
 }
 
+// SetNillableMasterBillID sets the "master_bill_id" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableMasterBillID(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetMasterBillID(*v)
+	}
+	return _c
+}
+
 // SetMasterBillVersionID sets the "master_bill_version_id" field.
 func (_c *OrderLockRecordCreate) SetMasterBillVersionID(v uuid.UUID) *OrderLockRecordCreate {
 	_c.mutation.SetMasterBillVersionID(v)
+	return _c
+}
+
+// SetNillableMasterBillVersionID sets the "master_bill_version_id" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableMasterBillVersionID(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetMasterBillVersionID(*v)
+	}
 	return _c
 }
 
@@ -369,6 +391,14 @@ func (_c *OrderLockRecordCreate) check() error {
 			return &ValidationError{Name: "order_no", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.order_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.BusinessType(); !ok {
+		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "OrderLockRecord.business_type"`)}
+	}
+	if v, ok := _c.mutation.BusinessType(); ok {
+		if err := orderlockrecord.BusinessTypeValidator(v); err != nil {
+			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.business_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Generation(); !ok {
 		return &ValidationError{Name: "generation", err: errors.New(`ent: missing required field "OrderLockRecord.generation"`)}
 	}
@@ -380,12 +410,6 @@ func (_c *OrderLockRecordCreate) check() error {
 	}
 	if _, ok := _c.mutation.OrderVersionAtLock(); !ok {
 		return &ValidationError{Name: "order_version_at_lock", err: errors.New(`ent: missing required field "OrderLockRecord.order_version_at_lock"`)}
-	}
-	if _, ok := _c.mutation.MasterBillID(); !ok {
-		return &ValidationError{Name: "master_bill_id", err: errors.New(`ent: missing required field "OrderLockRecord.master_bill_id"`)}
-	}
-	if _, ok := _c.mutation.MasterBillVersionID(); !ok {
-		return &ValidationError{Name: "master_bill_version_id", err: errors.New(`ent: missing required field "OrderLockRecord.master_bill_version_id"`)}
 	}
 	if v, ok := _c.mutation.UnlockReason(); ok {
 		if err := orderlockrecord.UnlockReasonValidator(v); err != nil {
@@ -421,12 +445,6 @@ func (_c *OrderLockRecordCreate) check() error {
 	}
 	if len(_c.mutation.LockedByUserIDs()) == 0 {
 		return &ValidationError{Name: "locked_by_user", err: errors.New(`ent: missing required edge "OrderLockRecord.locked_by_user"`)}
-	}
-	if len(_c.mutation.MasterBillIDs()) == 0 {
-		return &ValidationError{Name: "master_bill", err: errors.New(`ent: missing required edge "OrderLockRecord.master_bill"`)}
-	}
-	if len(_c.mutation.MasterBillVersionIDs()) == 0 {
-		return &ValidationError{Name: "master_bill_version", err: errors.New(`ent: missing required edge "OrderLockRecord.master_bill_version"`)}
 	}
 	return nil
 }
@@ -470,6 +488,10 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 	if value, ok := _c.mutation.OrderNo(); ok {
 		_spec.SetField(orderlockrecord.FieldOrderNo, field.TypeString, value)
 		_node.OrderNo = value
+	}
+	if value, ok := _c.mutation.BusinessType(); ok {
+		_spec.SetField(orderlockrecord.FieldBusinessType, field.TypeEnum, value)
+		_node.BusinessType = value
 	}
 	if value, ok := _c.mutation.Generation(); ok {
 		_spec.SetField(orderlockrecord.FieldGeneration, field.TypeUint64, value)
@@ -589,7 +611,7 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.MasterBillID = nodes[0]
+		_node.MasterBillID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.MasterBillVersionIDs(); len(nodes) > 0 {
@@ -606,7 +628,7 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.MasterBillVersionID = nodes[0]
+		_node.MasterBillVersionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UnlockRequestsIDs(); len(nodes) > 0 {

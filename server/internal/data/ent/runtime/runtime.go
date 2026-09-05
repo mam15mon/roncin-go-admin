@@ -5206,11 +5206,11 @@ func init() {
 		}
 	}()
 	// orderlockrecordDescUnlockReason is the schema descriptor for unlock_reason field.
-	orderlockrecordDescUnlockReason := orderlockrecordFields[14].Descriptor()
+	orderlockrecordDescUnlockReason := orderlockrecordFields[15].Descriptor()
 	// orderlockrecord.UnlockReasonValidator is a validator for the "unlock_reason" field. It is called by the builders before save.
 	orderlockrecord.UnlockReasonValidator = orderlockrecordDescUnlockReason.Validators[0].(func(string) error)
 	// orderlockrecordDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderlockrecordDescIdempotencyKey := orderlockrecordFields[16].Descriptor()
+	orderlockrecordDescIdempotencyKey := orderlockrecordFields[17].Descriptor()
 	// orderlockrecord.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderlockrecord.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderlockrecordDescIdempotencyKey.Validators
@@ -5228,7 +5228,7 @@ func init() {
 		}
 	}()
 	// orderlockrecordDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderlockrecordDescRequestFingerprint := orderlockrecordFields[17].Descriptor()
+	orderlockrecordDescRequestFingerprint := orderlockrecordFields[18].Descriptor()
 	// orderlockrecord.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderlockrecord.RequestFingerprintValidator = func() func(string) error {
 		validators := orderlockrecordDescRequestFingerprint.Validators
@@ -5503,11 +5503,11 @@ func init() {
 		}
 	}()
 	// orderunlockrequestDescReason is the schema descriptor for reason field.
-	orderunlockrequestDescReason := orderunlockrequestFields[8].Descriptor()
+	orderunlockrequestDescReason := orderunlockrequestFields[9].Descriptor()
 	// orderunlockrequest.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	orderunlockrequest.ReasonValidator = orderunlockrequestDescReason.Validators[0].(func(string) error)
 	// orderunlockrequestDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderunlockrequestDescIdempotencyKey := orderunlockrequestFields[10].Descriptor()
+	orderunlockrequestDescIdempotencyKey := orderunlockrequestFields[11].Descriptor()
 	// orderunlockrequest.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderunlockrequest.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderunlockrequestDescIdempotencyKey.Validators
@@ -5525,7 +5525,7 @@ func init() {
 		}
 	}()
 	// orderunlockrequestDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderunlockrequestDescRequestFingerprint := orderunlockrequestFields[11].Descriptor()
+	orderunlockrequestDescRequestFingerprint := orderunlockrequestFields[12].Descriptor()
 	// orderunlockrequest.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderunlockrequest.RequestFingerprintValidator = func() func(string) error {
 		validators := orderunlockrequestDescRequestFingerprint.Validators
@@ -5543,23 +5543,23 @@ func init() {
 		}
 	}()
 	// orderunlockrequestDescDingtalkProcessInstanceID is the schema descriptor for dingtalk_process_instance_id field.
-	orderunlockrequestDescDingtalkProcessInstanceID := orderunlockrequestFields[14].Descriptor()
+	orderunlockrequestDescDingtalkProcessInstanceID := orderunlockrequestFields[15].Descriptor()
 	// orderunlockrequest.DingtalkProcessInstanceIDValidator is a validator for the "dingtalk_process_instance_id" field. It is called by the builders before save.
 	orderunlockrequest.DingtalkProcessInstanceIDValidator = orderunlockrequestDescDingtalkProcessInstanceID.Validators[0].(func(string) error)
 	// orderunlockrequestDescDingtalkProcessCode is the schema descriptor for dingtalk_process_code field.
-	orderunlockrequestDescDingtalkProcessCode := orderunlockrequestFields[15].Descriptor()
+	orderunlockrequestDescDingtalkProcessCode := orderunlockrequestFields[16].Descriptor()
 	// orderunlockrequest.DingtalkProcessCodeValidator is a validator for the "dingtalk_process_code" field. It is called by the builders before save.
 	orderunlockrequest.DingtalkProcessCodeValidator = orderunlockrequestDescDingtalkProcessCode.Validators[0].(func(string) error)
 	// orderunlockrequestDescDecisionSource is the schema descriptor for decision_source field.
-	orderunlockrequestDescDecisionSource := orderunlockrequestFields[18].Descriptor()
+	orderunlockrequestDescDecisionSource := orderunlockrequestFields[19].Descriptor()
 	// orderunlockrequest.DecisionSourceValidator is a validator for the "decision_source" field. It is called by the builders before save.
 	orderunlockrequest.DecisionSourceValidator = orderunlockrequestDescDecisionSource.Validators[0].(func(string) error)
 	// orderunlockrequestDescFailureCode is the schema descriptor for failure_code field.
-	orderunlockrequestDescFailureCode := orderunlockrequestFields[19].Descriptor()
+	orderunlockrequestDescFailureCode := orderunlockrequestFields[20].Descriptor()
 	// orderunlockrequest.FailureCodeValidator is a validator for the "failure_code" field. It is called by the builders before save.
 	orderunlockrequest.FailureCodeValidator = orderunlockrequestDescFailureCode.Validators[0].(func(string) error)
 	// orderunlockrequestDescFailureMessage is the schema descriptor for failure_message field.
-	orderunlockrequestDescFailureMessage := orderunlockrequestFields[20].Descriptor()
+	orderunlockrequestDescFailureMessage := orderunlockrequestFields[21].Descriptor()
 	// orderunlockrequest.FailureMessageValidator is a validator for the "failure_message" field. It is called by the builders before save.
 	orderunlockrequest.FailureMessageValidator = orderunlockrequestDescFailureMessage.Validators[0].(func(string) error)
 	// orderunlockrequestDescID is the schema descriptor for id field.

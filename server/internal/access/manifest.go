@@ -117,11 +117,22 @@ const UserAuthorizeDingTalk = "system.user.authorize_dingtalk"
 type OrderBusinessType string
 
 const (
-	OrderBusinessSE OrderBusinessType = "SE"
-	OrderBusinessSI OrderBusinessType = "SI"
-	OrderBusinessAE OrderBusinessType = "AE"
-	OrderBusinessAI OrderBusinessType = "AI"
+	OrderBusinessSE   OrderBusinessType = "SE"
+	OrderBusinessSI   OrderBusinessType = "SI"
+	OrderBusinessAE   OrderBusinessType = "AE"
+	OrderBusinessAI   OrderBusinessType = "AI"
+	OrderBusinessLand OrderBusinessType = "LAND"
+	OrderBusinessRail OrderBusinessType = "RAIL"
 )
+
+var orderBusinessTypes = []OrderBusinessType{
+	OrderBusinessSE,
+	OrderBusinessSI,
+	OrderBusinessAE,
+	OrderBusinessAI,
+	OrderBusinessLand,
+	OrderBusinessRail,
+}
 
 type OrderOperation string
 
@@ -284,7 +295,7 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{operation: OrderFeeRead, name: "查看费用", resource: "费用", description: "查看订单应收应付费用"}, {operation: OrderFeeCreate, name: "录入费用", resource: "费用", description: "录入订单应收应付费用"}, {operation: OrderFeeUpdate, name: "编辑费用", resource: "费用", description: "修改订单应收应付费用"}, {operation: OrderFeeDelete, name: "删除费用", resource: "费用", description: "删除订单应收应付费用"},
 	{operation: OrderSplit, name: "拆票", resource: "订单", description: "执行海运出口拆票", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderReassign, name: "整体改配", resource: "订单", description: "执行海运出口整体改配", businessTypes: []OrderBusinessType{OrderBusinessSE}},
-	{operation: OrderLock, name: "锁定/直接解锁订单", resource: "订单", description: "执行海运出口订单锁定与直接解锁", businessTypes: []OrderBusinessType{OrderBusinessSE}},
+	{operation: OrderLock, name: "锁定/直接解锁订单", resource: "订单", description: "执行订单锁定与直接解锁"},
 	{operation: OrderAmend, name: "改单", resource: "订单", description: "执行海运出口单证改单", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderVoid, name: "作废提单", resource: "订单", description: "执行海运出口单证作废", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderSwitch, name: "Switch B/L", resource: "订单", description: "执行海运出口换单（Switch B/L）", businessTypes: []OrderBusinessType{OrderBusinessSE}},
@@ -312,15 +323,39 @@ func OrderPermission(businessType OrderBusinessType, operation OrderOperation) s
 }
 
 func (v OrderBusinessType) Valid() bool {
-	return v == OrderBusinessSE || v == OrderBusinessSI || v == OrderBusinessAE || v == OrderBusinessAI
+	for _, businessType := range orderBusinessTypes {
+		if v == businessType {
+			return true
+		}
+	}
+	return false
 }
 
 func (v OrderBusinessType) code() string {
-	return map[OrderBusinessType]string{OrderBusinessSE: "se", OrderBusinessSI: "si", OrderBusinessAE: "ae", OrderBusinessAI: "ai"}[v]
+	return map[OrderBusinessType]string{
+		OrderBusinessSE:   "se",
+		OrderBusinessSI:   "si",
+		OrderBusinessAE:   "ae",
+		OrderBusinessAI:   "ai",
+		OrderBusinessLand: "land",
+		OrderBusinessRail: "rail",
+	}[v]
 }
 
 func (v OrderBusinessType) name() string {
-	return map[OrderBusinessType]string{OrderBusinessSE: "海运出口（SE）", OrderBusinessSI: "海运进口（SI）", OrderBusinessAE: "空运出口（AE）", OrderBusinessAI: "空运进口（AI）"}[v]
+	return map[OrderBusinessType]string{
+		OrderBusinessSE:   "海运出口（SE）",
+		OrderBusinessSI:   "海运进口（SI）",
+		OrderBusinessAE:   "空运出口（AE）",
+		OrderBusinessAI:   "空运进口（AI）",
+		OrderBusinessLand: "陆运（LAND）",
+		OrderBusinessRail: "铁路（RAIL）",
+	}[v]
+}
+
+// OrderBusinessTypes 返回权限目录支持的全部订单业务类型副本。
+func OrderBusinessTypes() []OrderBusinessType {
+	return append([]OrderBusinessType(nil), orderBusinessTypes...)
 }
 
 func (v OrderOperation) Valid() bool {
@@ -333,9 +368,8 @@ func (v OrderOperation) Valid() bool {
 }
 
 func orderManifest() []Permission {
-	types := []OrderBusinessType{OrderBusinessSE, OrderBusinessSI, OrderBusinessAE, OrderBusinessAI}
-	items := make([]Permission, 0, len(types)*len(orderPermissionDefinitions))
-	for _, businessType := range types {
+	items := make([]Permission, 0, len(orderBusinessTypes)*len(orderPermissionDefinitions))
+	for _, businessType := range orderBusinessTypes {
 		for _, definition := range orderPermissionDefinitions {
 			if len(definition.businessTypes) > 0 {
 				supported := false

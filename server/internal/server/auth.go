@@ -118,7 +118,7 @@ func hasPermission(ctx context.Context, request any, principal *biz.Principal, r
 }
 
 func hasAnyOrderPermission(principal *biz.Principal, operation access.OrderOperation, scope biz.DataScope) bool {
-	for _, businessType := range []access.OrderBusinessType{access.OrderBusinessSE, access.OrderBusinessSI, access.OrderBusinessAE, access.OrderBusinessAI} {
+	for _, businessType := range access.OrderBusinessTypes() {
 		if principal.HasPermissionInScope(access.OrderPermission(businessType, operation), scope) {
 			return true
 		}
@@ -172,6 +172,10 @@ func orderBusinessTypeFromAPI(value orderv1.BusinessType) (access.OrderBusinessT
 		return access.OrderBusinessAE, true
 	case orderv1.BusinessType_BUSINESS_TYPE_AI:
 		return access.OrderBusinessAI, true
+	case orderv1.BusinessType_BUSINESS_TYPE_LAND:
+		return access.OrderBusinessLand, true
+	case orderv1.BusinessType_BUSINESS_TYPE_RAIL:
+		return access.OrderBusinessRail, true
 	default:
 		return "", false
 	}
@@ -187,6 +191,10 @@ func orderBusinessTypeFromBiz(value biz.OrderBusinessType) (access.OrderBusiness
 		return access.OrderBusinessAE, true
 	case biz.OrderBusinessAI:
 		return access.OrderBusinessAI, true
+	case biz.OrderBusinessLand:
+		return access.OrderBusinessLand, true
+	case biz.OrderBusinessRail:
+		return access.OrderBusinessRail, true
 	default:
 		return "", false
 	}

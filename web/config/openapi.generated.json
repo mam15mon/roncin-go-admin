@@ -7450,7 +7450,7 @@
         "tags": [
           "OrderLockService"
         ],
-        "description": "LockOrder 锁定海运出口订单并固定单证不可变版本。",
+        "description": "LockOrder 锁定订单；海运出口同时固定单证不可变版本。",
         "operationId": "OrderLockService_LockOrder",
         "parameters": [
           {
@@ -22909,6 +22909,10 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderLockHouseBillSnapshotData"
             }
+          },
+          "businessType": {
+            "type": "integer",
+            "format": "enum"
           }
         }
       },
@@ -22979,6 +22983,10 @@
           },
           "currentLockRecord": {
             "$ref": "#/components/schemas/order.v1.OrderLockRecordData"
+          },
+          "businessType": {
+            "type": "integer",
+            "format": "enum"
           }
         }
       },
@@ -23309,6 +23317,10 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderUnlockApproverCandidateData"
             }
+          },
+          "businessType": {
+            "type": "integer",
+            "format": "enum"
           }
         }
       },

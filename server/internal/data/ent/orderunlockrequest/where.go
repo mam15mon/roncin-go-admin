@@ -311,6 +311,26 @@ func OrderNoContainsFold(v string) predicate.OrderUnlockRequest {
 	return predicate.OrderUnlockRequest(sql.FieldContainsFold(FieldOrderNo, v))
 }
 
+// BusinessTypeEQ applies the EQ predicate on the "business_type" field.
+func BusinessTypeEQ(v BusinessType) predicate.OrderUnlockRequest {
+	return predicate.OrderUnlockRequest(sql.FieldEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeNEQ applies the NEQ predicate on the "business_type" field.
+func BusinessTypeNEQ(v BusinessType) predicate.OrderUnlockRequest {
+	return predicate.OrderUnlockRequest(sql.FieldNEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeIn applies the In predicate on the "business_type" field.
+func BusinessTypeIn(vs ...BusinessType) predicate.OrderUnlockRequest {
+	return predicate.OrderUnlockRequest(sql.FieldIn(FieldBusinessType, vs...))
+}
+
+// BusinessTypeNotIn applies the NotIn predicate on the "business_type" field.
+func BusinessTypeNotIn(vs ...BusinessType) predicate.OrderUnlockRequest {
+	return predicate.OrderUnlockRequest(sql.FieldNotIn(FieldBusinessType, vs...))
+}
+
 // LockRecordIDEQ applies the EQ predicate on the "lock_record_id" field.
 func LockRecordIDEQ(v uuid.UUID) predicate.OrderUnlockRequest {
 	return predicate.OrderUnlockRequest(sql.FieldEQ(FieldLockRecordID, v))

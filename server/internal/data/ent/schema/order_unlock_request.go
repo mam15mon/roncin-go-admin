@@ -22,6 +22,7 @@ func (OrderUnlockRequest) Fields() []ent.Field {
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
+		field.Enum("business_type").Values("SE", "SI", "AE", "AI", "LAND", "RAIL").Immutable(),
 		field.UUID("lock_record_id", uuid.Nil).Immutable(),
 		field.Uint64("lock_generation").Immutable(),
 		field.UUID("requested_by", uuid.Nil).Immutable(),

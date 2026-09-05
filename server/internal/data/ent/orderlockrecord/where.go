@@ -286,6 +286,26 @@ func OrderNoContainsFold(v string) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldContainsFold(FieldOrderNo, v))
 }
 
+// BusinessTypeEQ applies the EQ predicate on the "business_type" field.
+func BusinessTypeEQ(v BusinessType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeNEQ applies the NEQ predicate on the "business_type" field.
+func BusinessTypeNEQ(v BusinessType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeIn applies the In predicate on the "business_type" field.
+func BusinessTypeIn(vs ...BusinessType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldBusinessType, vs...))
+}
+
+// BusinessTypeNotIn applies the NotIn predicate on the "business_type" field.
+func BusinessTypeNotIn(vs ...BusinessType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldBusinessType, vs...))
+}
+
 // GenerationEQ applies the EQ predicate on the "generation" field.
 func GenerationEQ(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldGeneration, v))
@@ -446,6 +466,16 @@ func MasterBillIDNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldNotIn(FieldMasterBillID, vs...))
 }
 
+// MasterBillIDIsNil applies the IsNil predicate on the "master_bill_id" field.
+func MasterBillIDIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldMasterBillID))
+}
+
+// MasterBillIDNotNil applies the NotNil predicate on the "master_bill_id" field.
+func MasterBillIDNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldMasterBillID))
+}
+
 // MasterBillVersionIDEQ applies the EQ predicate on the "master_bill_version_id" field.
 func MasterBillVersionIDEQ(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldMasterBillVersionID, v))
@@ -464,6 +494,16 @@ func MasterBillVersionIDIn(vs ...uuid.UUID) predicate.OrderLockRecord {
 // MasterBillVersionIDNotIn applies the NotIn predicate on the "master_bill_version_id" field.
 func MasterBillVersionIDNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldNotIn(FieldMasterBillVersionID, vs...))
+}
+
+// MasterBillVersionIDIsNil applies the IsNil predicate on the "master_bill_version_id" field.
+func MasterBillVersionIDIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldMasterBillVersionID))
+}
+
+// MasterBillVersionIDNotNil applies the NotNil predicate on the "master_bill_version_id" field.
+func MasterBillVersionIDNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldMasterBillVersionID))
 }
 
 // UnlockedByEQ applies the EQ predicate on the "unlocked_by" field.

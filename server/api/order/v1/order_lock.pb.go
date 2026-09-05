@@ -705,6 +705,7 @@ type OrderLockStateData struct {
 	UnlockBlockedReasons    []string                `protobuf:"bytes,14,rep,name=unlock_blocked_reasons,json=unlockBlockedReasons,proto3" json:"unlock_blocked_reasons,omitempty"`
 	ActiveUnlockRequest     *OrderUnlockRequestData `protobuf:"bytes,15,opt,name=active_unlock_request,json=activeUnlockRequest,proto3,oneof" json:"active_unlock_request,omitempty"`
 	CurrentLockRecord       *OrderLockRecordData    `protobuf:"bytes,16,opt,name=current_lock_record,json=currentLockRecord,proto3,oneof" json:"current_lock_record,omitempty"`
+	BusinessType            BusinessType            `protobuf:"varint,17,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -849,6 +850,13 @@ func (x *OrderLockStateData) GetCurrentLockRecord() *OrderLockRecordData {
 		return x.CurrentLockRecord
 	}
 	return nil
+}
+
+func (x *OrderLockStateData) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
 }
 
 type OrderLockResultData struct {
@@ -1033,8 +1041,8 @@ type OrderLockRecordData struct {
 	LockedByName         string                            `protobuf:"bytes,6,opt,name=locked_by_name,json=lockedByName,proto3" json:"locked_by_name,omitempty"`
 	LockedAt             string                            `protobuf:"bytes,7,opt,name=locked_at,json=lockedAt,proto3" json:"locked_at,omitempty"`
 	OrderVersionAtLock   uint64                            `protobuf:"varint,8,opt,name=order_version_at_lock,json=orderVersionAtLock,proto3" json:"order_version_at_lock,omitempty"`
-	MasterBillId         string                            `protobuf:"bytes,9,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
-	MasterBillVersionId  string                            `protobuf:"bytes,10,opt,name=master_bill_version_id,json=masterBillVersionId,proto3" json:"master_bill_version_id,omitempty"`
+	MasterBillId         *string                           `protobuf:"bytes,9,opt,name=master_bill_id,json=masterBillId,proto3,oneof" json:"master_bill_id,omitempty"`
+	MasterBillVersionId  *string                           `protobuf:"bytes,10,opt,name=master_bill_version_id,json=masterBillVersionId,proto3,oneof" json:"master_bill_version_id,omitempty"`
 	UnlockedBy           *string                           `protobuf:"bytes,11,opt,name=unlocked_by,json=unlockedBy,proto3,oneof" json:"unlocked_by,omitempty"`
 	UnlockedByName       *string                           `protobuf:"bytes,12,opt,name=unlocked_by_name,json=unlockedByName,proto3,oneof" json:"unlocked_by_name,omitempty"`
 	UnlockedAt           *string                           `protobuf:"bytes,13,opt,name=unlocked_at,json=unlockedAt,proto3,oneof" json:"unlocked_at,omitempty"`
@@ -1043,6 +1051,7 @@ type OrderLockRecordData struct {
 	UnlockReason         *string                           `protobuf:"bytes,16,opt,name=unlock_reason,json=unlockReason,proto3,oneof" json:"unlock_reason,omitempty"`
 	UnlockMode           *string                           `protobuf:"bytes,17,opt,name=unlock_mode,json=unlockMode,proto3,oneof" json:"unlock_mode,omitempty"`
 	HouseBillSnapshots   []*OrderLockHouseBillSnapshotData `protobuf:"bytes,18,rep,name=house_bill_snapshots,json=houseBillSnapshots,proto3" json:"house_bill_snapshots,omitempty"`
+	BusinessType         BusinessType                      `protobuf:"varint,19,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -1134,15 +1143,15 @@ func (x *OrderLockRecordData) GetOrderVersionAtLock() uint64 {
 }
 
 func (x *OrderLockRecordData) GetMasterBillId() string {
-	if x != nil {
-		return x.MasterBillId
+	if x != nil && x.MasterBillId != nil {
+		return *x.MasterBillId
 	}
 	return ""
 }
 
 func (x *OrderLockRecordData) GetMasterBillVersionId() string {
-	if x != nil {
-		return x.MasterBillVersionId
+	if x != nil && x.MasterBillVersionId != nil {
+		return *x.MasterBillVersionId
 	}
 	return ""
 }
@@ -1201,6 +1210,13 @@ func (x *OrderLockRecordData) GetHouseBillSnapshots() []*OrderLockHouseBillSnaps
 		return x.HouseBillSnapshots
 	}
 	return nil
+}
+
+func (x *OrderLockRecordData) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
 }
 
 type OrderLockHouseBillSnapshotData struct {
@@ -1314,6 +1330,7 @@ type OrderUnlockRequestData struct {
 	UnlockedAt                *string                             `protobuf:"bytes,23,opt,name=unlocked_at,json=unlockedAt,proto3,oneof" json:"unlocked_at,omitempty"`
 	ResultOrderVersion        *uint64                             `protobuf:"varint,24,opt,name=result_order_version,json=resultOrderVersion,proto3,oneof" json:"result_order_version,omitempty"`
 	ApproverCandidates        []*OrderUnlockApproverCandidateData `protobuf:"bytes,25,rep,name=approver_candidates,json=approverCandidates,proto3" json:"approver_candidates,omitempty"`
+	BusinessType              BusinessType                        `protobuf:"varint,26,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -1523,6 +1540,13 @@ func (x *OrderUnlockRequestData) GetApproverCandidates() []*OrderUnlockApproverC
 	return nil
 }
 
+func (x *OrderUnlockRequestData) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
 type OrderUnlockApproverCandidateData struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	Id                     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1619,7 +1643,7 @@ var File_order_v1_order_lock_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\n" +
-	"\x19order/v1/order_lock.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\":\n" +
+	"\x19order/v1/order_lock.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\":\n" +
 	"\x18GetOrderLockStateRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb0\x01\n" +
 	"\x19GetOrderLockStateResponse\x12\x18\n" +
@@ -1669,7 +1693,7 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
 	"\x04data\x18\x04 \x01(\v2 .order.v1.OrderUnlockRequestDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xd7\x06\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x94\a\n" +
 	"\x12OrderLockStateData\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\x1b\n" +
@@ -1687,7 +1711,8 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x14lock_blocked_reasons\x18\r \x03(\tR\x12lockBlockedReasons\x124\n" +
 	"\x16unlock_blocked_reasons\x18\x0e \x03(\tR\x14unlockBlockedReasons\x12Y\n" +
 	"\x15active_unlock_request\x18\x0f \x01(\v2 .order.v1.OrderUnlockRequestDataH\x03R\x13activeUnlockRequest\x88\x01\x01\x12R\n" +
-	"\x13current_lock_record\x18\x10 \x01(\v2\x1d.order.v1.OrderLockRecordDataH\x04R\x11currentLockRecord\x88\x01\x01B\f\n" +
+	"\x13current_lock_record\x18\x10 \x01(\v2\x1d.order.v1.OrderLockRecordDataH\x04R\x11currentLockRecord\x88\x01\x01\x12;\n" +
+	"\rbusiness_type\x18\x11 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessTypeB\f\n" +
 	"\n" +
 	"_locked_atB\f\n" +
 	"\n" +
@@ -1706,7 +1731,7 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2 .order.v1.OrderUnlockRequestDataR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x86\a\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xfb\a\n" +
 	"\x13OrderLockRecordData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -1717,21 +1742,24 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\tlocked_by\x18\x05 \x01(\tR\blockedBy\x12$\n" +
 	"\x0elocked_by_name\x18\x06 \x01(\tR\flockedByName\x12\x1b\n" +
 	"\tlocked_at\x18\a \x01(\tR\blockedAt\x121\n" +
-	"\x15order_version_at_lock\x18\b \x01(\x04R\x12orderVersionAtLock\x12$\n" +
-	"\x0emaster_bill_id\x18\t \x01(\tR\fmasterBillId\x123\n" +
+	"\x15order_version_at_lock\x18\b \x01(\x04R\x12orderVersionAtLock\x12)\n" +
+	"\x0emaster_bill_id\x18\t \x01(\tH\x00R\fmasterBillId\x88\x01\x01\x128\n" +
 	"\x16master_bill_version_id\x18\n" +
-	" \x01(\tR\x13masterBillVersionId\x12$\n" +
-	"\vunlocked_by\x18\v \x01(\tH\x00R\n" +
+	" \x01(\tH\x01R\x13masterBillVersionId\x88\x01\x01\x12$\n" +
+	"\vunlocked_by\x18\v \x01(\tH\x02R\n" +
 	"unlockedBy\x88\x01\x01\x12-\n" +
-	"\x10unlocked_by_name\x18\f \x01(\tH\x01R\x0eunlockedByName\x88\x01\x01\x12$\n" +
-	"\vunlocked_at\x18\r \x01(\tH\x02R\n" +
+	"\x10unlocked_by_name\x18\f \x01(\tH\x03R\x0eunlockedByName\x88\x01\x01\x12$\n" +
+	"\vunlocked_at\x18\r \x01(\tH\x04R\n" +
 	"unlockedAt\x88\x01\x01\x12:\n" +
-	"\x17order_version_at_unlock\x18\x0e \x01(\x04H\x03R\x14orderVersionAtUnlock\x88\x01\x01\x12/\n" +
-	"\x11unlock_request_id\x18\x0f \x01(\tH\x04R\x0funlockRequestId\x88\x01\x01\x12(\n" +
-	"\runlock_reason\x18\x10 \x01(\tH\x05R\funlockReason\x88\x01\x01\x12$\n" +
-	"\vunlock_mode\x18\x11 \x01(\tH\x06R\n" +
+	"\x17order_version_at_unlock\x18\x0e \x01(\x04H\x05R\x14orderVersionAtUnlock\x88\x01\x01\x12/\n" +
+	"\x11unlock_request_id\x18\x0f \x01(\tH\x06R\x0funlockRequestId\x88\x01\x01\x12(\n" +
+	"\runlock_reason\x18\x10 \x01(\tH\aR\funlockReason\x88\x01\x01\x12$\n" +
+	"\vunlock_mode\x18\x11 \x01(\tH\bR\n" +
 	"unlockMode\x88\x01\x01\x12Z\n" +
-	"\x14house_bill_snapshots\x18\x12 \x03(\v2(.order.v1.OrderLockHouseBillSnapshotDataR\x12houseBillSnapshotsB\x0e\n" +
+	"\x14house_bill_snapshots\x18\x12 \x03(\v2(.order.v1.OrderLockHouseBillSnapshotDataR\x12houseBillSnapshots\x12;\n" +
+	"\rbusiness_type\x18\x13 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessTypeB\x11\n" +
+	"\x0f_master_bill_idB\x19\n" +
+	"\x17_master_bill_version_idB\x0e\n" +
 	"\f_unlocked_byB\x13\n" +
 	"\x11_unlocked_by_nameB\x0e\n" +
 	"\f_unlocked_atB\x1a\n" +
@@ -1746,7 +1774,7 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x15house_bill_version_id\x18\x04 \x01(\tR\x12houseBillVersionId\x12*\n" +
 	"\x11house_no_snapshot\x18\x05 \x01(\tR\x0fhouseNoSnapshot\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\"\xb0\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\"\xed\n" +
 	"\n" +
 	"\x16OrderUnlockRequestData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
@@ -1778,7 +1806,8 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"R\n" +
 	"unlockedAt\x88\x01\x01\x125\n" +
 	"\x14result_order_version\x18\x18 \x01(\x04H\vR\x12resultOrderVersion\x88\x01\x01\x12[\n" +
-	"\x13approver_candidates\x18\x19 \x03(\v2*.order.v1.OrderUnlockApproverCandidateDataR\x12approverCandidatesB\t\n" +
+	"\x13approver_candidates\x18\x19 \x03(\v2*.order.v1.OrderUnlockApproverCandidateDataR\x12approverCandidates\x12;\n" +
+	"\rbusiness_type\x18\x1a \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessTypeB\t\n" +
 	"\a_reasonB\x1f\n" +
 	"\x1d_dingtalk_process_instance_idB\x18\n" +
 	"\x16_dingtalk_process_codeB\r\n" +
@@ -1843,6 +1872,7 @@ var file_order_v1_order_lock_proto_goTypes = []any{
 	(*OrderLockHouseBillSnapshotData)(nil),   // 15: order.v1.OrderLockHouseBillSnapshotData
 	(*OrderUnlockRequestData)(nil),           // 16: order.v1.OrderUnlockRequestData
 	(*OrderUnlockApproverCandidateData)(nil), // 17: order.v1.OrderUnlockApproverCandidateData
+	(BusinessType)(0),                        // 18: order.v1.BusinessType
 }
 var file_order_v1_order_lock_proto_depIdxs = []int32{
 	10, // 0: order.v1.GetOrderLockStateResponse.data:type_name -> order.v1.OrderLockStateData
@@ -1852,28 +1882,31 @@ var file_order_v1_order_lock_proto_depIdxs = []int32{
 	16, // 4: order.v1.GetOrderUnlockRequestResponse.data:type_name -> order.v1.OrderUnlockRequestData
 	16, // 5: order.v1.OrderLockStateData.active_unlock_request:type_name -> order.v1.OrderUnlockRequestData
 	14, // 6: order.v1.OrderLockStateData.current_lock_record:type_name -> order.v1.OrderLockRecordData
-	10, // 7: order.v1.OrderLockResultData.state:type_name -> order.v1.OrderLockStateData
-	14, // 8: order.v1.OrderLockResultData.lock_record:type_name -> order.v1.OrderLockRecordData
-	10, // 9: order.v1.OrderUnlockResultData.state:type_name -> order.v1.OrderLockStateData
-	16, // 10: order.v1.OrderUnlockResultData.request:type_name -> order.v1.OrderUnlockRequestData
-	16, // 11: order.v1.ListOrderUnlockRequestsData.items:type_name -> order.v1.OrderUnlockRequestData
-	15, // 12: order.v1.OrderLockRecordData.house_bill_snapshots:type_name -> order.v1.OrderLockHouseBillSnapshotData
-	17, // 13: order.v1.OrderUnlockRequestData.approver_candidates:type_name -> order.v1.OrderUnlockApproverCandidateData
-	0,  // 14: order.v1.OrderLockService.GetOrderLockState:input_type -> order.v1.GetOrderLockStateRequest
-	2,  // 15: order.v1.OrderLockService.LockOrder:input_type -> order.v1.LockOrderRequest
-	4,  // 16: order.v1.OrderLockService.RequestOrderUnlock:input_type -> order.v1.RequestOrderUnlockRequest
-	6,  // 17: order.v1.OrderLockService.ListOrderUnlockRequests:input_type -> order.v1.ListOrderUnlockRequestsRequest
-	8,  // 18: order.v1.OrderLockService.GetOrderUnlockRequest:input_type -> order.v1.GetOrderUnlockRequestRequest
-	1,  // 19: order.v1.OrderLockService.GetOrderLockState:output_type -> order.v1.GetOrderLockStateResponse
-	3,  // 20: order.v1.OrderLockService.LockOrder:output_type -> order.v1.LockOrderResponse
-	5,  // 21: order.v1.OrderLockService.RequestOrderUnlock:output_type -> order.v1.RequestOrderUnlockResponse
-	7,  // 22: order.v1.OrderLockService.ListOrderUnlockRequests:output_type -> order.v1.ListOrderUnlockRequestsResponse
-	9,  // 23: order.v1.OrderLockService.GetOrderUnlockRequest:output_type -> order.v1.GetOrderUnlockRequestResponse
-	19, // [19:24] is the sub-list for method output_type
-	14, // [14:19] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	18, // 7: order.v1.OrderLockStateData.business_type:type_name -> order.v1.BusinessType
+	10, // 8: order.v1.OrderLockResultData.state:type_name -> order.v1.OrderLockStateData
+	14, // 9: order.v1.OrderLockResultData.lock_record:type_name -> order.v1.OrderLockRecordData
+	10, // 10: order.v1.OrderUnlockResultData.state:type_name -> order.v1.OrderLockStateData
+	16, // 11: order.v1.OrderUnlockResultData.request:type_name -> order.v1.OrderUnlockRequestData
+	16, // 12: order.v1.ListOrderUnlockRequestsData.items:type_name -> order.v1.OrderUnlockRequestData
+	15, // 13: order.v1.OrderLockRecordData.house_bill_snapshots:type_name -> order.v1.OrderLockHouseBillSnapshotData
+	18, // 14: order.v1.OrderLockRecordData.business_type:type_name -> order.v1.BusinessType
+	17, // 15: order.v1.OrderUnlockRequestData.approver_candidates:type_name -> order.v1.OrderUnlockApproverCandidateData
+	18, // 16: order.v1.OrderUnlockRequestData.business_type:type_name -> order.v1.BusinessType
+	0,  // 17: order.v1.OrderLockService.GetOrderLockState:input_type -> order.v1.GetOrderLockStateRequest
+	2,  // 18: order.v1.OrderLockService.LockOrder:input_type -> order.v1.LockOrderRequest
+	4,  // 19: order.v1.OrderLockService.RequestOrderUnlock:input_type -> order.v1.RequestOrderUnlockRequest
+	6,  // 20: order.v1.OrderLockService.ListOrderUnlockRequests:input_type -> order.v1.ListOrderUnlockRequestsRequest
+	8,  // 21: order.v1.OrderLockService.GetOrderUnlockRequest:input_type -> order.v1.GetOrderUnlockRequestRequest
+	1,  // 22: order.v1.OrderLockService.GetOrderLockState:output_type -> order.v1.GetOrderLockStateResponse
+	3,  // 23: order.v1.OrderLockService.LockOrder:output_type -> order.v1.LockOrderResponse
+	5,  // 24: order.v1.OrderLockService.RequestOrderUnlock:output_type -> order.v1.RequestOrderUnlockResponse
+	7,  // 25: order.v1.OrderLockService.ListOrderUnlockRequests:output_type -> order.v1.ListOrderUnlockRequestsResponse
+	9,  // 26: order.v1.OrderLockService.GetOrderUnlockRequest:output_type -> order.v1.GetOrderUnlockRequestResponse
+	22, // [22:27] is the sub-list for method output_type
+	17, // [17:22] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_lock_proto_init() }
@@ -1881,6 +1914,7 @@ func file_order_v1_order_lock_proto_init() {
 	if File_order_v1_order_lock_proto != nil {
 		return
 	}
+	file_order_v1_order_proto_init()
 	file_order_v1_order_lock_proto_msgTypes[4].OneofWrappers = []any{}
 	file_order_v1_order_lock_proto_msgTypes[10].OneofWrappers = []any{}
 	file_order_v1_order_lock_proto_msgTypes[14].OneofWrappers = []any{}
