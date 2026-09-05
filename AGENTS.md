@@ -36,12 +36,14 @@
 - agy 的委派提示必须从当前 Trellis 任务路径开始，并要求依次完整读取
   `implement.jsonl` 及其引用、`prd.md`、`design.md`、`implement.md` 和本文件；
   只实现当前阶段，不扩展到后续阶段或未批准功能。
-- agy 可以修改代码、运行生成命令和测试，但禁止执行 `git commit`、`git push`、
-  `git merge`、`git rebase`、`git reset` 或覆盖工作区文件的操作。新任务使用独立
-  会话，同一任务的后续修正复用原会话，避免重复加载上下文。
-- agy 完成后，Codex 主会话必须检查真实 Git 差异和跨层数据流，调用独立
-  `trellis-check`，并按风险重跑关键测试、类型检查、静态检查与生成幂等验证；
-  全部通过后才能由 Codex 提交并执行 Trellis finish / archive。
+- agy 可以修改代码、运行生成命令和测试，允许在通过全面验证或用户明确指示时
+  执行 `git commit`（提交信息必须严格遵循 Conventional Commits 规范）；但未经明确
+  授权，禁止执行 `git push`、`git merge`、`git rebase`、`git reset` 或覆盖工作区文件的
+  操作。新任务使用独立会话，同一任务的后续修正复用原会话，避免重复加载上下文。
+- 当由 agy 闭环提交时，必须在提交前执行完整的验证与检查（质量门禁、类型检查、
+  静态检查与 `git diff --check`），确认无误后再执行提交及相应的 Trellis 归档
+  （finish / archive）；若由 Codex 主会话统筹，Codex 检查真实差异和跨层数据流
+  后再行提交。
 
 ## 仓库结构与职责
 
