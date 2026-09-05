@@ -156,11 +156,3 @@ channel:
 #
 # prompt_injection:
 #   skip_keyword: "no-trellis"   # "" disables the escape hatch entirely
-
-# Monorepo packages（server 为 Go 后端，未被自动检测，手工登记）
-packages:
-  web:
-    path: web
-  server:
-    path: server
-default_package: server
