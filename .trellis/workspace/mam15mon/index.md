@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 15
-- **Last Active**: 2026-09-04
+- **Total Sessions**: 16
+- **Last Active**: 2026-09-05
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~415 | Active |
+| `journal-1.md` | ~442 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 16 | 2026-09-05 | 完成全业务类型订单锁定与解锁 | `876da3d4`, `ca237447`, `cb89cb30`, `22f8261c`, `4aa98a74` | `feat/universal-order-lock` |
 | 15 | 2026-09-04 | 完成海运出口单证版本与换单 | `4761ee45`, `d53bef83`, `af0f84fe` | `main` |
 | 14 | 2026-09-04 | 完成海运出口拆票与改配 | `c2ca2f98` | `main` |
 | 13 | 2026-09-03 | 完成海运出口箱货定量分配 | `949b7247`, `3cdbbdb4`, `e64c646f`, `63b1e042`, `1747245d`, `d4a259bb`, `b8780b70` | `main` |

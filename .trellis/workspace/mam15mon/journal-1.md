@@ -413,3 +413,30 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 16: 完成全业务类型订单锁定与解锁
+<!-- trellis-session: v=2 fp=ecab30115f7f90fd -->
+
+**Date**: 2026-09-05
+**Task**: 完成全业务类型订单锁定与解锁
+**Package**: server
+**Branch**: `feat/universal-order-lock`
+
+### Summary
+
+将订单锁扩展到 SE/SI/AE/AI/LAND/RAIL 六种业务类型，按类型隔离锁权限与解锁审批候选；锁后统一阻断订单资料和费用写入，保留费用读取与账单生成；SE 保留 MBL/HBL 不可变快照，非 SE 不创建海运快照；前端接入通用锁控件与失败关闭；补全真实 PostgreSQL 六类型并发、升级回填和外键不可变验证。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `876da3d4` | docs: 规划全业务类型订单锁 |
+| `ca237447` | feat: 扩展全业务订单锁契约与权限 |
+| `cb89cb30` | feat: 统一全业务订单锁与解锁审批 |
+| `22f8261c` | feat: 接入通用订单锁前端交互 |
+| `4aa98a74` | fix: 保持订单锁历史外键不可变 |
+
+### Status
+
+[OK] **Completed**
