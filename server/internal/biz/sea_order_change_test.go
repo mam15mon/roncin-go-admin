@@ -191,9 +191,11 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 	actorID := uuid.New()
 	orderID := uuid.New()
 	targetKey := "res-origin"
+	previewCalls := 0
 
 	repo := &mockSeaOrderChangeRepo{
 		previewSplitFunc: func(ctx context.Context, oid uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error) {
+			previewCalls++
 			return &SeaOrderSplitPreview{
 				IsValid:            true,
 				ConservationPassed: true,
@@ -295,6 +297,9 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 	}
 	if len(execRes.Results) != 2 {
 		t.Errorf("expected 2 results, got %d", len(execRes.Results))
+	}
+	if previewCalls != 1 {
+		t.Fatalf("ExecuteSplit 不应调用有状态 Preview，Preview 调用次数 = %d，期望仅显式预览的 1 次", previewCalls)
 	}
 }
 

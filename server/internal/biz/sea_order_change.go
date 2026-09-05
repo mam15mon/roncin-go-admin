@@ -655,7 +655,7 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 		input.Note = &trimmed
 	}
 
-	// 1. 先查幂等键并核对指纹（先于依赖当前业务状态的 preview，确保幂等重试不受业务状态变更影响）
+	// 1. 先查幂等键并核对指纹；执行命令的可变业务状态统一在事务锁内重验。
 	existing, err := uc.repo.GetSplitEventByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
 	if err != nil {
 		return nil, err
@@ -665,34 +665,6 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 			return nil, ErrSeaOrderSplitIdempotencyConflict
 		}
 		return existing, nil
-	}
-
-	// 2. 业务层前置校验：守恒与门禁判定
-	preview, err := uc.PreviewSplit(ctx, organizationID, input)
-	if err != nil {
-		return nil, err
-	}
-	if !preview.IsValid || !preview.ConservationPassed {
-		if len(preview.ValidationErrors) > 0 {
-			firstErr := preview.ValidationErrors[0]
-			if firstErr.Reason == "CONTAINER_CROSSES_RESULTS" {
-				return nil, MetadataError(ErrSeaOrderSplitEntityCrossesResults, map[string]string{
-					"reason":  firstErr.Reason,
-					"message": firstErr.Message,
-				})
-			}
-			if firstErr.Reason == "QUANTITY_CONSERVATION_FAILED" {
-				return nil, MetadataError(ErrSeaOrderSplitConservationFailed, map[string]string{
-					"reason":  firstErr.Reason,
-					"message": firstErr.Message,
-				})
-			}
-			return nil, MetadataError(ErrSeaOrderSplitInvalidArgument, map[string]string{
-				"reason":  firstErr.Reason,
-				"message": firstErr.Message,
-			})
-		}
-		return nil, ErrSeaOrderSplitConservationFailed
 	}
 
 	auditResult := "success"
@@ -713,7 +685,7 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 
 	var splitEventID uuid.UUID
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		// 3. 事务内二次幂等防并发
+		// 2. 事务内二次幂等防并发
 		existingInTx, transErr := uc.repo.GetSplitEventByIdempotencyKey(txCtx, organizationID, input.IdempotencyKey)
 		if transErr != nil {
 			return transErr
@@ -726,7 +698,7 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 			return nil
 		}
 
-		// 4. 仓储层执行拆票原子写入
+		// 3. 仓储层执行拆票原子写入
 		saved, transErr := uc.repo.ExecuteSplit(txCtx, organizationID, actorID, input, audit)
 		if transErr != nil {
 			return transErr

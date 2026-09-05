@@ -2730,7 +2730,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				},
 			},
 			Results: []*biz.SeaOrderSplitResultInput{
-				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}},
+				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}, DraftFeeIDs: []uuid.UUID{fVal.fee1.ID}},
 				{ClientResultKey: "res-new", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "res-new", HouseBillIDs: []uuid.UUID{fVal.hbl2.ID}},
 			},
 			ExpectedVersions: buildFixtureExpectedVersions(fVal),
@@ -2759,7 +2759,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				},
 			},
 			Results: []*biz.SeaOrderSplitResultInput{
-				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}},
+				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}, DraftFeeIDs: []uuid.UUID{fVal.fee1.ID}},
 				{ClientResultKey: "res-new", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "res-new", HouseBillIDs: []uuid.UUID{fVal.hbl2.ID}},
 			},
 			ExpectedVersions: buildFixtureExpectedVersions(fVal),
@@ -2788,7 +2788,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				},
 			},
 			Results: []*biz.SeaOrderSplitResultInput{
-				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}},
+				{ClientResultKey: "res-origin", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "res-origin", HouseBillIDs: []uuid.UUID{fVal.hbl1.ID}, DraftFeeIDs: []uuid.UUID{fVal.fee1.ID}},
 				{ClientResultKey: "res-new", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "res-new", HouseBillIDs: []uuid.UUID{fVal.hbl2.ID}},
 			},
 			ExpectedVersions: buildFixtureExpectedVersions(fVal),
