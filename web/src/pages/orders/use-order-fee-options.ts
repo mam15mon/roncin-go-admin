@@ -6,8 +6,10 @@ import { orderServiceGetOrder } from '@/services/roncin/orderService';
 /** 加载订单档案与费用录入候选项、财务锁定状态。 */
 export function useOrderFeeOptions(orderId?: string) {
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(orderId));
   const [order, setOrder] = useState<API.Order>();
+  const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
+  const [failedOrderId, setFailedOrderId] = useState<string | undefined>();
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
   const requestIdRef = useRef(0);
@@ -31,10 +33,25 @@ export function useOrderFeeOptions(orderId?: string) {
   const [customerName, setCustomerName] = useState('');
 
   const loadData = useCallback(async () => {
-    if (!orderId) return;
+    if (!orderId) {
+      setOrder(undefined);
+      setLoadedOrderId(undefined);
+      setFailedOrderId(undefined);
+      setCurrencies([]);
+      setSettlementParties([]);
+      setFeeSettings([]);
+      setBillingUnits([]);
+      setFinanceLocked(false);
+      setFinanceLockReason('');
+      setFinanceLockCommissionNos([]);
+      setCustomerName('');
+      setLoading(false);
+      return;
+    }
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
     setLoading(true);
+    setFailedOrderId(undefined);
     try {
       const [orderRes, optionsRes] = await Promise.all([
         orderServiceGetOrder({ id: orderId }),
@@ -47,6 +64,7 @@ export function useOrderFeeOptions(orderId?: string) {
         return;
       }
       setOrder(orderRes.data);
+      setLoadedOrderId(currentOrderId);
       setCurrencies(optionsRes.currencies ?? []);
       setSettlementParties(optionsRes.settlementParties ?? []);
       setFeeSettings(optionsRes.feeSettings ?? []);
@@ -60,6 +78,17 @@ export function useOrderFeeOptions(orderId?: string) {
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current
       ) {
+        setOrder(undefined);
+        setLoadedOrderId(undefined);
+        setFailedOrderId(currentOrderId);
+        setCurrencies([]);
+        setSettlementParties([]);
+        setFeeSettings([]);
+        setBillingUnits([]);
+        setFinanceLocked(false);
+        setFinanceLockReason('');
+        setFinanceLockCommissionNos([]);
+        setCustomerName('');
         message.error(error.message || '加载费用信息失败');
       }
     } finally {
@@ -76,19 +105,31 @@ export function useOrderFeeOptions(orderId?: string) {
     void loadData();
   }, [loadData]);
 
+  const isOrderMatched = Boolean(orderId && loadedOrderId === orderId);
+  const effectiveOrder = isOrderMatched ? order : undefined;
+  const effectiveCurrencies = isOrderMatched ? currencies : [];
+  const effectiveSettlementParties = isOrderMatched ? settlementParties : [];
+  const effectiveFeeSettings = isOrderMatched ? feeSettings : [];
+  const effectiveBillingUnits = isOrderMatched ? billingUnits : [];
+  const effectiveCustomerName = isOrderMatched ? customerName : '';
+  const isPending =
+    Boolean(orderId) && !isOrderMatched && failedOrderId !== orderId;
+  const effectiveLoading = loading || isPending;
+
   return {
-    loading,
-    order,
-    currencies,
-    settlementParties,
+    loading: effectiveLoading,
+    order: effectiveOrder,
+    loadedOrderId,
+    currencies: effectiveCurrencies,
+    settlementParties: effectiveSettlementParties,
     setSettlementParties,
-    feeSettings,
+    feeSettings: effectiveFeeSettings,
     setFeeSettings,
-    billingUnits,
-    financeLocked,
-    financeLockReason,
-    financeLockCommissionNos,
-    customerName,
+    billingUnits: effectiveBillingUnits,
+    financeLocked: isOrderMatched ? financeLocked : false,
+    financeLockReason: isOrderMatched ? financeLockReason : '',
+    financeLockCommissionNos: isOrderMatched ? financeLockCommissionNos : [],
+    customerName: effectiveCustomerName,
     loadData,
   };
 }

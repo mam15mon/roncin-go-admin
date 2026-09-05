@@ -73,6 +73,8 @@ export default function OrderDetailPage() {
   const orderId = params.id;
   const config = parseOrderKind(kind);
 
+  const targetOrderId = config ? orderId : undefined;
+
   const [saving, setSaving] = useState(false);
 
   const {
@@ -88,7 +90,7 @@ export default function OrderDetailPage() {
     containerSpecOptions,
     personnelOptions,
     loadData,
-  } = useOrderDetailData(orderId, config);
+  } = useOrderDetailData(targetOrderId, config);
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
@@ -120,7 +122,7 @@ export default function OrderDetailPage() {
     loading: lockStateLoading,
     error: lockStateError,
     refresh: refreshLockState,
-  } = useOrderLockState(orderId);
+  } = useOrderLockState(targetOrderId);
   const [synchronizingLockChange, setSynchronizingLockChange] = useState(false);
 
   useEffect(() => {
@@ -133,6 +135,7 @@ export default function OrderDetailPage() {
     if (
       order?.orderNo &&
       orderId &&
+      order.id === orderId &&
       config?.kind &&
       typeof window !== 'undefined'
     ) {
@@ -145,7 +148,7 @@ export default function OrderDetailPage() {
         }),
       );
     }
-  }, [order?.orderNo, orderId, config?.kind, config?.title]);
+  }, [order?.orderNo, order?.id, orderId, config?.kind, config?.title]);
 
   // 2. 构造表单初始值
   const initialValues = useMemo(
@@ -348,13 +351,6 @@ export default function OrderDetailPage() {
             style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
           >
             <Empty description="未找到对应的订单档案" />
-            <Button
-              type="primary"
-              onClick={() => history.push(`/orders/${config.kind}`)}
-              style={{ marginTop: 16 }}
-            >
-              返回订单列表
-            </Button>
           </Card>
         </div>
       </div>

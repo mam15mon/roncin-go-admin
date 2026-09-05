@@ -32,6 +32,8 @@ export function useOrderDetailData(
   const category = config?.category;
   const [loading, setLoading] = useState(Boolean(config && orderId));
   const [order, setOrder] = useState<API.Order>();
+  const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
+  const [failedOrderId, setFailedOrderId] = useState<string | undefined>();
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
   const requestIdRef = useRef(0);
@@ -60,12 +62,21 @@ export function useOrderDetailData(
 
   const loadData = useCallback(async () => {
     if (!orderId || !config) {
+      setOrder(undefined);
+      setLoadedOrderId(undefined);
+      setFailedOrderId(undefined);
+      setShippingDocs([]);
+      setContainers([]);
+      setCargoItems([]);
+      setMilestones([]);
+      setPersonnel([]);
       setLoading(false);
       return;
     }
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
     setLoading(true);
+    setFailedOrderId(undefined);
     try {
       const [
         masterData,
@@ -131,6 +142,7 @@ export function useOrderDetailData(
       setPersonnelOptions(unwrapList(personnelOptRes));
 
       setOrder(orderRes.data);
+      setLoadedOrderId(currentOrderId);
       setShippingDocs(unwrapList(docsRes));
       setContainers(unwrapList(cntrsRes));
       setCargoItems(unwrapList(cargoRes));
@@ -141,6 +153,14 @@ export function useOrderDetailData(
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current
       ) {
+        setOrder(undefined);
+        setLoadedOrderId(undefined);
+        setFailedOrderId(currentOrderId);
+        setShippingDocs([]);
+        setContainers([]);
+        setCargoItems([]);
+        setMilestones([]);
+        setPersonnel([]);
         message.error(error.message || '加载订单数据失败');
       }
     } finally {
@@ -163,11 +183,20 @@ export function useOrderDetailData(
     [category],
   );
 
+  const isOrderMatched = Boolean(orderId && loadedOrderId === orderId);
+  const effectiveOrder = isOrderMatched ? order : undefined;
+  const effectiveShippingDocs = isOrderMatched ? shippingDocs : [];
+  const effectivePersonnel = isOrderMatched ? personnel : [];
+  const isPending =
+    Boolean(config && orderId) && !isOrderMatched && failedOrderId !== orderId;
+  const effectiveLoading = loading || isPending;
+
   return {
-    loading,
-    order,
-    shippingDocs,
-    personnel,
+    loading: effectiveLoading,
+    order: effectiveOrder,
+    loadedOrderId,
+    shippingDocs: effectiveShippingDocs,
+    personnel: effectivePersonnel,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,

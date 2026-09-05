@@ -57,6 +57,8 @@ export default function OrderFeesPage() {
   const orderId = params.id;
   const config = parseOrderKind(kind);
 
+  const targetOrderId = config ? orderId : undefined;
+
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
@@ -76,13 +78,13 @@ export default function OrderFeesPage() {
     financeLockCommissionNos,
     customerName,
     loadData,
-  } = useOrderFeeOptions(orderId);
+  } = useOrderFeeOptions(targetOrderId);
   const {
     state: lockState,
     loading: lockStateLoading,
     error: lockStateError,
     refresh: refreshLockState,
-  } = useOrderLockState(orderId);
+  } = useOrderLockState(targetOrderId);
 
   const {
     totalPreview,
@@ -93,7 +95,7 @@ export default function OrderFeesPage() {
     resetPreview,
     seedFromFee,
     handleValuesChange,
-  } = useFeeExchangePreview(orderId, formRef);
+  } = useFeeExchangePreview(targetOrderId, formRef);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
@@ -172,6 +174,7 @@ export default function OrderFeesPage() {
     if (
       order?.orderNo &&
       orderId &&
+      order.id === orderId &&
       config?.kind &&
       typeof window !== 'undefined'
     ) {
@@ -184,7 +187,7 @@ export default function OrderFeesPage() {
         }),
       );
     }
-  }, [order?.orderNo, orderId, config?.kind]);
+  }, [order?.orderNo, order?.id, orderId, config?.kind]);
 
   const handleOpenQuickAddFee = async () => {
     if (!ensureFeeWriteAllowed()) return;
@@ -419,13 +422,6 @@ export default function OrderFeesPage() {
             style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
           >
             <Empty description="未找到对应的订单档案" />
-            <Button
-              type="primary"
-              onClick={() => history.push(`/orders/${config.kind}`)}
-              style={{ marginTop: 16 }}
-            >
-              返回订单列表
-            </Button>
           </Card>
         </div>
       </div>
