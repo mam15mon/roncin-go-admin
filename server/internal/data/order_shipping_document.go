@@ -33,6 +33,24 @@ func (r *orderShippingDocumentRepo) order(ctx context.Context, organizationID, o
 	return item, nil
 }
 
+// lockOrderForShippingDocumentWrite 先锁订单，再按旧端点适用范围和业务锁顺序执行写门禁。
+func lockOrderForShippingDocumentWrite(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*ent.Order, error) {
+	item, err := tx.Order.Query().
+		Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrOrderShippingDocumentNotFound, nil)
+	}
+	if item.BusinessType == orderent.BusinessTypeSE {
+		return nil, biz.ErrSeaShippingDocumentsDeprecated
+	}
+	if err := ensureOrderBusinessEditable(ctx, tx, item); err != nil {
+		return nil, err
+	}
+	return item, nil
+}
+
 func (r *orderShippingDocumentRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderShippingDocument, error) {
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
@@ -56,11 +74,11 @@ func (r *orderShippingDocumentRepo) List(ctx context.Context, organizationID, or
 }
 
 func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
-	if _, err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
 	var created *ent.OrderShippingDocument
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, err := lockOrderForShippingDocumentWrite(ctx, tx, organizationID, orderID); err != nil {
+			return err
+		}
 		builder := tx.OrderShippingDocument.Create().
 			SetID(input.ID).
 			SetOrderID(orderID).
@@ -86,11 +104,11 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 }
 
 func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
-	if _, err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
 	var updated *ent.OrderShippingDocument
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, err := lockOrderForShippingDocumentWrite(ctx, tx, organizationID, orderID); err != nil {
+			return err
+		}
 		item, queryErr := tx.OrderShippingDocument.Query().
 			Where(
 				ordershippingdocumentent.IDEQ(id),
@@ -130,11 +148,11 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 }
 
 func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to biz.OrderShippingDocumentStatus, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
-	if _, err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
 	var updated *ent.OrderShippingDocument
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, err := lockOrderForShippingDocumentWrite(ctx, tx, organizationID, orderID); err != nil {
+			return err
+		}
 		item, queryErr := tx.OrderShippingDocument.Query().
 			Where(
 				ordershippingdocumentent.IDEQ(id),
@@ -169,10 +187,10 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 }
 
 func (r *orderShippingDocumentRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
-	if _, err := r.order(ctx, organizationID, orderID); err != nil {
-		return err
-	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, err := lockOrderForShippingDocumentWrite(ctx, tx, organizationID, orderID); err != nil {
+			return err
+		}
 		item, queryErr := tx.OrderShippingDocument.Query().
 			Where(
 				ordershippingdocumentent.IDEQ(id),

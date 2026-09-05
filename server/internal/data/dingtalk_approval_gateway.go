@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,7 +89,8 @@ func (g *dingTalkApprovalGateway) Create(ctx context.Context, command *biz.DingT
 		return nil, &biz.DingTalkApprovalDispatchError{Kind: biz.DingTalkApprovalDispatchFailureRejected, Code: "DINGTALK_APPROVAL_DISABLED", Message: "钉钉审批未启用"}
 	}
 	if command == nil || strings.TrimSpace(command.ProcessCode) == "" || strings.TrimSpace(command.ApplicantUserID) == "" ||
-		strings.TrimSpace(command.OrderNo) == "" || len(command.ApproverUserIDs) == 0 {
+		!command.BusinessType.Valid() || strings.TrimSpace(command.OrderNo) == "" || strings.TrimSpace(command.ApplicantDisplayName) == "" ||
+		command.LockGeneration == 0 || len(command.ApproverUserIDs) == 0 {
 		return nil, &biz.DingTalkApprovalDispatchError{
 			Kind:    biz.DingTalkApprovalDispatchFailureRejected,
 			Code:    "DINGTALK_APPROVAL_ARGUMENT_INVALID",
@@ -113,7 +115,12 @@ func (g *dingTalkApprovalGateway) Create(ctx context.Context, command *biz.DingT
 		approvers = append(approvers, userID)
 	}
 
-	formValues := []dingTalkStartProcessFormComponent{{Name: "操作票号", Value: command.OrderNo}}
+	formValues := []dingTalkStartProcessFormComponent{
+		{Name: "业务类型", Value: command.BusinessType.DisplayName()},
+		{Name: "操作票号", Value: strings.TrimSpace(command.OrderNo)},
+		{Name: "申请人", Value: strings.TrimSpace(command.ApplicantDisplayName)},
+		{Name: "锁定代次", Value: strconv.FormatUint(command.LockGeneration, 10)},
+	}
 	if command.Reason != nil && strings.TrimSpace(*command.Reason) != "" {
 		formValues = append(formValues, dingTalkStartProcessFormComponent{Name: "解锁原因", Value: strings.TrimSpace(*command.Reason)})
 	}

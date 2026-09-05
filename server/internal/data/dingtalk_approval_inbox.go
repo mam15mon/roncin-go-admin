@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	dingtalkapprovalinboxeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
@@ -163,12 +164,16 @@ func (r *dingTalkApprovalRepo) PrepareApproved(ctx context.Context, job *biz.Din
 		if err != nil {
 			return err
 		}
-		_, _, request, err = lockApprovalOrderFacts(ctx, tx, request)
+		order, lockRecord, request, err := lockApprovalOrderFacts(ctx, tx, request)
 		if err != nil {
 			return err
 		}
 		switch request.Status {
 		case orderunlockrequestent.StatusPENDING_APPROVAL:
+			_, staleCode, staleMessage := validateApprovalOrderFacts(order, lockRecord, request)
+			if staleCode != "" {
+				return markApprovalStale(ctx, tx, event, request, staleCode, staleMessage)
+			}
 			decidedAt := now
 			if result.DecidedAt != nil {
 				decidedAt = result.DecidedAt.UTC()
@@ -184,6 +189,10 @@ func (r *dingTalkApprovalRepo) PrepareApproved(ctx context.Context, job *biz.Din
 			}
 			shouldApply = true
 		case orderunlockrequestent.StatusAPPROVED_PENDING_APPLY:
+			_, staleCode, staleMessage := validateApprovalOrderFacts(order, lockRecord, request)
+			if staleCode != "" {
+				return markApprovalStale(ctx, tx, event, request, staleCode, staleMessage)
+			}
 			shouldApply = true
 		case orderunlockrequestent.StatusAPPROVED:
 			return finishApprovalInbox(ctx, tx, event, dingtalkapprovalinboxeventent.StatusPROCESSED, "ALREADY_APPLIED")
@@ -220,7 +229,11 @@ func (r *dingTalkApprovalRepo) ApplyApproved(ctx context.Context, job *biz.DingT
 		if request.Status != orderunlockrequestent.StatusAPPROVED_PENDING_APPLY {
 			return finishApprovalInbox(ctx, tx, event, dingtalkapprovalinboxeventent.StatusIGNORED, "REQUEST_SUPERSEDED")
 		}
-		if order.LockedAt == nil || order.LockGeneration != request.LockGeneration || order.Version != request.ExpectedOrderVersion || lockRecord.UnlockedAt != nil {
+		businessType, staleCode, staleMessage := validateApprovalOrderFacts(order, lockRecord, request)
+		if staleCode != "" {
+			return markApprovalStale(ctx, tx, event, request, staleCode, staleMessage)
+		}
+		if order.LockedAt == nil || order.Version != request.ExpectedOrderVersion || lockRecord.UnlockedAt != nil {
 			return markApprovalStale(ctx, tx, event, request, "ORDER_LOCK_CHANGED", "审批对应的锁定代次或订单版本已变化")
 		}
 
@@ -247,7 +260,7 @@ func (r *dingTalkApprovalRepo) ApplyApproved(ctx context.Context, job *biz.DingT
 		if !candidateMatched || approver == nil {
 			return markApprovalStale(ctx, tx, event, request, "APPROVER_NOT_IN_SNAPSHOT", "钉钉审批人不在申请时的候选快照中")
 		}
-		qualified, err := isUserQualifiedBusinessLockRole(ctx, tx.Client(), request.OrganizationID, approver.ID)
+		qualified, err := isUserQualifiedBusinessLockRole(ctx, tx.Client(), request.OrganizationID, approver.ID, businessType)
 		if err != nil {
 			return err
 		}
@@ -292,6 +305,7 @@ func (r *dingTalkApprovalRepo) ApplyApproved(ctx context.Context, job *biz.DingT
 			ResourceID:     order.ID.String(),
 			Result:         "success",
 			Details: map[string]string{
+				"business_type":        string(businessType),
 				"order_no":             order.OrderNo,
 				"unlock_request_id":    request.ID.String(),
 				"lock_generation":      fmt.Sprintf("%d", request.LockGeneration),
@@ -335,17 +349,36 @@ func lockApprovalInboxEvent(ctx context.Context, tx *ent.Tx, job *biz.DingTalkAp
 
 func lockApprovalOrderFacts(ctx context.Context, tx *ent.Tx, located *ent.OrderUnlockRequest) (*ent.Order, *ent.OrderLockRecord, *ent.OrderUnlockRequest, error) {
 	// 与 RequestOrderUnlock 保持同一顺序：Order → LockRecord → UnlockRequest。
-	order, err := tx.Order.Query().Where(orderent.IDEQ(located.OrderID), orderent.OrganizationIDEQ(located.OrganizationID)).ForUpdate().Only(ctx)
+	order, err := tx.Order.Query().Where(orderent.IDEQ(located.OrderID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	lockRecord, err := tx.OrderLockRecord.Query().
-		Where(orderlockrecordent.IDEQ(located.LockRecordID), orderlockrecordent.OrderIDEQ(order.ID)).ForUpdate().Only(ctx)
+		Where(orderlockrecordent.IDEQ(located.LockRecordID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	request, err := tx.OrderUnlockRequest.Query().Where(orderunlockrequestent.IDEQ(located.ID)).ForUpdate().Only(ctx)
 	return order, lockRecord, request, err
+}
+
+// validateApprovalOrderFacts 显式复核审批关联的三份事实，避免只依赖外键或查询谓词推断一致性。
+func validateApprovalOrderFacts(order *ent.Order, lockRecord *ent.OrderLockRecord, request *ent.OrderUnlockRequest) (access.OrderBusinessType, string, string) {
+	if order == nil || lockRecord == nil || request == nil {
+		return "", "ORDER_LOCK_CHANGED", "审批对应的订单锁事实不完整"
+	}
+	businessType, err := orderAccessBusinessType(order.BusinessType)
+	if err != nil || access.OrderBusinessType(lockRecord.BusinessType) != businessType || access.OrderBusinessType(request.BusinessType) != businessType {
+		return "", "ORDER_BUSINESS_TYPE_CHANGED", "审批对应的订单业务类型已变化或事实不一致"
+	}
+	if order.OrganizationID != lockRecord.OrganizationID || order.OrganizationID != request.OrganizationID ||
+		order.ID != lockRecord.OrderID || order.ID != request.OrderID || request.LockRecordID != lockRecord.ID {
+		return "", "ORDER_LOCK_CHANGED", "审批对应的订单或锁定事实已变化"
+	}
+	if order.LockGeneration != lockRecord.Generation || order.LockGeneration != request.LockGeneration {
+		return "", "ORDER_LOCK_CHANGED", "审批对应的锁定代次或订单版本已变化"
+	}
+	return businessType, "", ""
 }
 
 func finishApprovalInbox(ctx context.Context, tx *ent.Tx, event *ent.DingTalkApprovalInboxEvent, status dingtalkapprovalinboxeventent.Status, resultCode string) error {

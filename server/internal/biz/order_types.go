@@ -21,6 +21,26 @@ func (v OrderBusinessType) Valid() bool {
 	return v == OrderBusinessSE || v == OrderBusinessSI || v == OrderBusinessAE || v == OrderBusinessAI || v == OrderBusinessLand || v == OrderBusinessRail
 }
 
+// DisplayName 返回审批表单和审计中使用的稳定业务类型名称。
+func (v OrderBusinessType) DisplayName() string {
+	switch v {
+	case OrderBusinessSE:
+		return "海运出口（SE）"
+	case OrderBusinessSI:
+		return "海运进口（SI）"
+	case OrderBusinessAE:
+		return "空运出口（AE）"
+	case OrderBusinessAI:
+		return "空运进口（AI）"
+	case OrderBusinessLand:
+		return "陆运（LAND）"
+	case OrderBusinessRail:
+		return "铁路（RAIL）"
+	default:
+		return ""
+	}
+}
+
 type OrderFlowStatus string
 
 const (

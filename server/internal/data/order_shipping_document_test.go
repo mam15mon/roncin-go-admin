@@ -106,9 +106,11 @@ func TestOrderShippingDocumentRepo_RejectsSEOrder(t *testing.T) {
 		HouseNo: "HBL999999",
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(orderRows(orderID, orgID))
+	mock.ExpectRollback()
 
 	_, err := repo.Add(context.Background(), orgID, orderID, input, nil)
 	if !errors.Is(err, biz.ErrSeaShippingDocumentsDeprecated) {
@@ -131,11 +133,10 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		HouseNo: "HBL999999",
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(airOrderRows(orderID, orgID))
-
-	mock.ExpectBegin()
 
 	// Unique constraint error with Postgres constraint name
 	mock.ExpectExec(`INSERT INTO "order_shipping_documents"`).
@@ -161,11 +162,10 @@ func TestOrderShippingDocumentRepo_Remove_ReleasedStatusPrevented(t *testing.T) 
 	orderID := uuid.New()
 	docID := uuid.New()
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(airOrderRows(orderID, orgID))
-
-	mock.ExpectBegin()
 
 	// ForUpdate returns document with RELEASED status
 	mock.ExpectQuery(`SELECT "order_shipping_documents"\."id".*FOR UPDATE`).
@@ -199,8 +199,8 @@ func TestOrderShippingDocumentRepo_Remove_AuditErrorRollsBack(t *testing.T) {
 		Result:         "success",
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(airOrderRows(orderID, orgID))
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).WithArgs(orderID, orgID).WillReturnRows(airOrderRows(orderID, orgID))
 	mock.ExpectQuery(`SELECT "order_shipping_documents"\."id".*FOR UPDATE`).
 		WithArgs(docID, orderID).
 		WillReturnRows(shippingDocRows(docID, orderID, "HBL001", "DRAFT"))

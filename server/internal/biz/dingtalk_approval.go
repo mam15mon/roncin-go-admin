@@ -46,11 +46,14 @@ func (e *DingTalkApprovalDispatchError) Unwrap() error {
 
 // DingTalkApprovalCreateCommand 是平台无关的审批创建命令。
 type DingTalkApprovalCreateCommand struct {
-	ProcessCode     string
-	ApplicantUserID string
-	ApproverUserIDs []string
-	OrderNo         string
-	Reason          *string
+	ProcessCode          string
+	ApplicantUserID      string
+	ApproverUserIDs      []string
+	BusinessType         OrderBusinessType
+	OrderNo              string
+	ApplicantDisplayName string
+	LockGeneration       uint64
+	Reason               *string
 }
 
 // DingTalkApprovalCreateResult 是审批创建成功后的最小结果。
@@ -83,18 +86,21 @@ type DingTalkApprovalGateway interface {
 
 // DingTalkApprovalDispatch 保存 Worker 创建审批所需的不可变快照。
 type DingTalkApprovalDispatch struct {
-	TaskID            uuid.UUID
-	OrganizationID    uuid.UUID
-	UnlockRequestID   uuid.UUID
-	ProcessCode       string
-	ApplicantUserID   string
-	ApproverUserIDs   []string
-	OrderNo           string
-	Reason            *string
-	DispatchStatus    string
-	ShouldSend        bool
-	ProcessInstanceID string
-	ErrorCategory     string
+	TaskID               uuid.UUID
+	OrganizationID       uuid.UUID
+	UnlockRequestID      uuid.UUID
+	ProcessCode          string
+	ApplicantUserID      string
+	ApproverUserIDs      []string
+	BusinessType         OrderBusinessType
+	OrderNo              string
+	ApplicantDisplayName string
+	LockGeneration       uint64
+	Reason               *string
+	DispatchStatus       string
+	ShouldSend           bool
+	ProcessInstanceID    string
+	ErrorCategory        string
 }
 
 // DingTalkApprovalDispatchOutcome 是外部调用完成后写回的最小结果。
@@ -203,11 +209,14 @@ func (uc *DingTalkApprovalUsecase) ProcessNextDispatch(ctx context.Context, leas
 	}
 
 	result, createErr := uc.gateway.Create(ctx, &DingTalkApprovalCreateCommand{
-		ProcessCode:     dispatch.ProcessCode,
-		ApplicantUserID: dispatch.ApplicantUserID,
-		ApproverUserIDs: append([]string(nil), dispatch.ApproverUserIDs...),
-		OrderNo:         dispatch.OrderNo,
-		Reason:          dispatch.Reason,
+		ProcessCode:          dispatch.ProcessCode,
+		ApplicantUserID:      dispatch.ApplicantUserID,
+		ApproverUserIDs:      append([]string(nil), dispatch.ApproverUserIDs...),
+		BusinessType:         dispatch.BusinessType,
+		OrderNo:              dispatch.OrderNo,
+		ApplicantDisplayName: dispatch.ApplicantDisplayName,
+		LockGeneration:       dispatch.LockGeneration,
+		Reason:               dispatch.Reason,
 	})
 	outcome := &DingTalkApprovalDispatchOutcome{}
 	if createErr == nil && result != nil {

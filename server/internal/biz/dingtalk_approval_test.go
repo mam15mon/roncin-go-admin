@@ -59,13 +59,23 @@ func (*dingTalkApprovalRepoStub) ApplyApproved(context.Context, *DingTalkApprova
 }
 
 type dingTalkApprovalGatewayStub struct {
-	createCalls int
-	queryResult *DingTalkApprovalQueryResult
-	queryErr    error
+	createCalls   int
+	createCommand *DingTalkApprovalCreateCommand
+	createResult  *DingTalkApprovalCreateResult
+	createErr     error
+	queryResult   *DingTalkApprovalQueryResult
+	queryErr      error
 }
 
-func (s *dingTalkApprovalGatewayStub) Create(context.Context, *DingTalkApprovalCreateCommand) (*DingTalkApprovalCreateResult, error) {
+func (s *dingTalkApprovalGatewayStub) Create(_ context.Context, command *DingTalkApprovalCreateCommand) (*DingTalkApprovalCreateResult, error) {
 	s.createCalls++
+	s.createCommand = command
+	if s.createErr != nil {
+		return nil, s.createErr
+	}
+	if s.createResult != nil {
+		return s.createResult, nil
+	}
 	return nil, errors.New("测试不应发起审批")
 }
 
@@ -130,6 +140,37 @@ func TestDingTalkApprovalSendingRecoveryStopsDuplicateCreate(t *testing.T) {
 	}
 	if repo.dispatchResult == nil || repo.dispatchResult.FailureKind != DingTalkApprovalDispatchFailureUnknown {
 		t.Fatalf("dispatch outcome = %#v, want UNKNOWN", repo.dispatchResult)
+	}
+}
+
+func TestDingTalkApprovalDispatchForwardsUniversalOrderContext(t *testing.T) {
+	leaseToken := uuid.NewString()
+	task := &BackgroundTask{ID: uuid.New(), OrganizationID: uuid.New(), LeaseToken: &leaseToken}
+	taskRepo := &backgroundTaskRepoStub{claimTask: task}
+	reason := "修改空运单证"
+	repo := &dingTalkApprovalRepoStub{dispatch: &DingTalkApprovalDispatch{
+		TaskID:               task.ID,
+		OrganizationID:       task.OrganizationID,
+		ProcessCode:          "PROC-ORDER-UNLOCK",
+		ApplicantUserID:      "dt-applicant",
+		ApproverUserIDs:      []string{"dt-approver"},
+		BusinessType:         OrderBusinessAI,
+		OrderNo:              "AI-001",
+		ApplicantDisplayName: "申请人甲",
+		LockGeneration:       3,
+		Reason:               &reason,
+		DispatchStatus:       "PENDING",
+		ShouldSend:           true,
+	}}
+	gateway := &dingTalkApprovalGatewayStub{createResult: &DingTalkApprovalCreateResult{ProcessInstanceID: "instance-1"}}
+	usecase := NewDingTalkApprovalUsecase(NewBackgroundTaskUsecase(taskRepo), repo, gateway, dingTalkApprovalCodecStub{})
+
+	if err := usecase.ProcessNextDispatch(context.Background(), time.Minute); err != nil {
+		t.Fatalf("派发通用订单审批失败: %v", err)
+	}
+	command := gateway.createCommand
+	if command == nil || command.BusinessType != OrderBusinessAI || command.OrderNo != "AI-001" || command.ApplicantDisplayName != "申请人甲" || command.LockGeneration != 3 || command.Reason == nil || *command.Reason != reason {
+		t.Fatalf("审批命令上下文未完整转发: %#v", command)
 	}
 }
 

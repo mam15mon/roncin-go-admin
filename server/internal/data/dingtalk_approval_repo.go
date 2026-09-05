@@ -84,6 +84,10 @@ func (r *dingTalkApprovalRepo) PrepareDispatch(ctx context.Context, claimed *biz
 		if request == nil {
 			return fmt.Errorf("钉钉审批派发缺少解锁请求")
 		}
+		applicant, err := tx.User.Get(ctx, request.RequestedBy)
+		if err != nil {
+			return err
+		}
 		shouldSend := dispatch.DispatchStatus == dingtalkapprovaldispatchent.DispatchStatusPENDING
 		if shouldSend {
 			dispatch, err = tx.DingTalkApprovalDispatch.UpdateOne(dispatch).
@@ -104,18 +108,21 @@ func (r *dingTalkApprovalRepo) PrepareDispatch(ctx context.Context, claimed *biz
 			errorCategory = *dispatch.ErrorCategory
 		}
 		result = &biz.DingTalkApprovalDispatch{
-			TaskID:            task.ID,
-			OrganizationID:    task.OrganizationID,
-			UnlockRequestID:   request.ID,
-			ProcessCode:       dispatch.ProcessCodeSnapshot,
-			ApplicantUserID:   dispatch.ApplicantDingtalkUserid,
-			ApproverUserIDs:   append([]string(nil), dispatch.CandidateDingtalkUserids...),
-			OrderNo:           request.OrderNo,
-			Reason:            request.Reason,
-			DispatchStatus:    string(dispatch.DispatchStatus),
-			ShouldSend:        shouldSend,
-			ProcessInstanceID: processInstanceID,
-			ErrorCategory:     errorCategory,
+			TaskID:               task.ID,
+			OrganizationID:       task.OrganizationID,
+			UnlockRequestID:      request.ID,
+			ProcessCode:          dispatch.ProcessCodeSnapshot,
+			ApplicantUserID:      dispatch.ApplicantDingtalkUserid,
+			ApproverUserIDs:      append([]string(nil), dispatch.CandidateDingtalkUserids...),
+			BusinessType:         biz.OrderBusinessType(request.BusinessType),
+			OrderNo:              request.OrderNo,
+			ApplicantDisplayName: applicant.DisplayName,
+			LockGeneration:       request.LockGeneration,
+			Reason:               request.Reason,
+			DispatchStatus:       string(dispatch.DispatchStatus),
+			ShouldSend:           shouldSend,
+			ProcessInstanceID:    processInstanceID,
+			ErrorCategory:        errorCategory,
 		}
 		return nil
 	})

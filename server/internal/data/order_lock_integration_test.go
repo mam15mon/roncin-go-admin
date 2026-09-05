@@ -11,6 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -19,6 +20,7 @@ import (
 	dingtalkapprovalinboxeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
+	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -184,6 +186,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			DELETE FROM sea_master_bill_order_links WHERE organization_id = $1;
 			DELETE FROM sea_master_bills WHERE organization_id = $1;
 			DELETE FROM sea_transport_executions WHERE organization_id = $1;
+			DELETE FROM order_shipping_documents WHERE order_id IN (SELECT id FROM orders WHERE organization_id = $1);
 			DELETE FROM orders WHERE organization_id = $1;
 			DELETE FROM role_assignments WHERE membership_id IN (SELECT id FROM memberships WHERE organization_id = $1);
 			DELETE FROM role_permissions WHERE role_id IN (SELECT id FROM roles WHERE organization_id = $1);
@@ -441,6 +444,179 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		return hbl
 	}
 
+	createGenericOrder := func(businessType biz.OrderBusinessType) *ent.Order {
+		o, err := data.db.Order.Create().
+			SetOrganizationID(org.ID).
+			SetOrderNo(string(businessType) + "-" + suffix + "-" + strings.ReplaceAll(uuid.NewString(), "-", "")[:6]).
+			SetCustomerID(customer.ID).
+			SetBusinessType(orderent.BusinessType(businessType)).
+			SetTradeDirection(orderent.TradeDirectionExport).
+			SetTradeTerm(orderent.TradeTermFOB).
+			SetPaymentTerm(orderent.PaymentTermPREPAID).
+			SetShipmentType(orderent.ShipmentTypeFCL).
+			SetFlowStatus(orderent.FlowStatusDRAFT).
+			SetTerminationStatus(orderent.TerminationStatusACTIVE).
+			SetClosureStatus(orderent.ClosureStatusOPEN).
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建 %s 订单失败: %v", businessType, err)
+		}
+		return o
+	}
+
+	genericOrders := make(map[biz.OrderBusinessType]*ent.Order)
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
+		genericOrders[businessType] = createGenericOrder(businessType)
+	}
+
+	t.Run("仅持有SE锁权限不能锁定AI订单", func(t *testing.T) {
+		_, err := orderLockRepo.LockOrder(ctx, rolePrincipal, genericOrders[biz.OrderBusinessAI].ID, 1, "idem-cross-type-"+suffix, nil)
+		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
+			t.Fatalf("跨类型锁定错误 = %v，期望 ORDER_LOCK_ROLE_REQUIRED", err)
+		}
+	})
+
+	t.Run("五种非SE订单共用锁定与角色直解且不创建海运快照", func(t *testing.T) {
+		for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
+			businessType := businessType
+			t.Run(string(businessType), func(t *testing.T) {
+				accessType := access.OrderBusinessType(businessType)
+				lockKey := access.OrderPermission(accessType, access.OrderLock)
+				updateKey := access.OrderPermission(accessType, access.OrderUpdate)
+				permissions := make([]*ent.Permission, 0, 2)
+				for _, key := range []string{lockKey, updateKey} {
+					permission, queryErr := data.db.Permission.Query().Where(permissionent.KeyEQ(key)).First(ctx)
+					if ent.IsNotFound(queryErr) {
+						permission, queryErr = data.db.Permission.Create().
+							SetKey(key).
+							SetName(string(businessType) + "订单测试权限").
+							SetDescription("通用订单锁集成测试").
+							SetGroup("order").
+							Save(ctx)
+					}
+					if queryErr != nil {
+						t.Fatalf("准备 %s 权限失败: %v", key, queryErr)
+					}
+					permissions = append(permissions, permission)
+				}
+				role, err := data.db.Role.Create().
+					SetOrganizationID(org.ID).
+					SetCode(strings.ToLower(string(businessType)) + "_locker_" + suffix).
+					SetName(string(businessType) + "锁定专员-" + suffix).
+					SetDataScope(roleent.DataScopeOrganization).
+					AddPermissions(permissions...).
+					Save(ctx)
+				if err != nil {
+					t.Fatalf("创建 %s 锁定角色失败: %v", businessType, err)
+				}
+				if _, err := data.db.RoleAssignment.Create().SetMembershipID(roleMembership.ID).SetRoleID(role.ID).Save(ctx); err != nil {
+					t.Fatalf("分配 %s 锁定角色失败: %v", businessType, err)
+				}
+
+				o := genericOrders[businessType]
+				state, err := orderLockRepo.GetOrderLockState(ctx, org.ID, o.ID, rolePrincipal)
+				if err != nil || state.BusinessType != businessType || !state.CanLock {
+					t.Fatalf("%s 锁状态 = %#v, err=%v", businessType, state, err)
+				}
+				lockResult, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-lock-"+strings.ToLower(string(businessType))+"-"+suffix, nil)
+				if err != nil {
+					t.Fatalf("锁定 %s 订单失败: %v", businessType, err)
+				}
+				if lockResult.LockRecord.BusinessType != businessType || lockResult.LockRecord.MasterBillID != nil || lockResult.LockRecord.MasterBillVersionID != nil || len(lockResult.LockRecord.HouseBillSnapshots) != 0 {
+					t.Fatalf("%s 非SE锁事实包含意外海运快照: %#v", businessType, lockResult.LockRecord)
+				}
+				if businessType == biz.OrderBusinessAE {
+					gateErr := data.WithTx(ctx, func(tx *ent.Tx) error {
+						return lockOrderForFeeMutation(ctx, tx, org.ID, o.ID)
+					})
+					if kErr := errors.FromError(gateErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+						t.Fatalf("非SE费用写门禁错误 = %v，期望 ORDER_BUSINESS_LOCKED", gateErr)
+					}
+				}
+				unlockResult, err := orderLockRepo.RequestOrderUnlock(ctx, rolePrincipal, o.ID, 2, "idem-unlock-"+strings.ToLower(string(businessType))+"-"+suffix, nil, nil)
+				if err != nil {
+					t.Fatalf("直接解锁 %s 订单失败: %v", businessType, err)
+				}
+				if unlockResult.Request.BusinessType != businessType || unlockResult.Request.Status != biz.UnlockStatusApproved || unlockResult.State.IsLocked || unlockResult.State.OrderVersion != 3 {
+					t.Fatalf("%s 解锁结果异常: %#v", businessType, unlockResult)
+				}
+			})
+		}
+	})
+
+	t.Run("通用装运单证四种写入在订单锁后全部阻断", func(t *testing.T) {
+		repo := NewOrderShippingDocumentRepo(data)
+		o := genericOrders[biz.OrderBusinessAE]
+		audit := &biz.AuditEvent{OrganizationID: &org.ID, UserID: &roleUser.ID, Action: "order.shipping_document.add", ResourceType: "order_shipping_document", Result: "success", Details: map[string]string{}}
+		document, err := repo.Add(ctx, org.ID, o.ID, &biz.OrderShippingDocument{ID: uuid.Must(uuid.NewV7()), HouseNo: "AE-DOC-" + suffix}, audit)
+		if err != nil {
+			t.Fatalf("准备通用装运单证失败: %v", err)
+		}
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 3, "idem-ae-doc-lock-"+suffix, nil); err != nil {
+			t.Fatalf("锁定装运单证测试订单失败: %v", err)
+		}
+		assertLocked := func(operation string, err error) {
+			t.Helper()
+			if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+				t.Fatalf("%s 错误 = %v，期望 ORDER_BUSINESS_LOCKED", operation, err)
+			}
+		}
+		_, err = repo.Add(ctx, org.ID, o.ID, &biz.OrderShippingDocument{ID: uuid.Must(uuid.NewV7()), HouseNo: "AE-DOC-NEW-" + suffix}, nil)
+		assertLocked("新增", err)
+		_, err = repo.Update(ctx, org.ID, o.ID, document.ID, &biz.OrderShippingDocument{HouseNo: document.HouseNo + "-U"}, nil)
+		assertLocked("修改", err)
+		_, err = repo.Transition(ctx, org.ID, o.ID, document.ID, biz.OrderShippingDocumentStatusDraft, biz.OrderShippingDocumentStatusConfirmed, nil)
+		assertLocked("流转", err)
+		assertLocked("删除", repo.Remove(ctx, org.ID, o.ID, document.ID, nil))
+	})
+
+	t.Run("通用装运单证新增与锁定并发不会在锁后写入", func(t *testing.T) {
+		repo := NewOrderShippingDocumentRepo(data)
+		o := createGenericOrder(biz.OrderBusinessSI)
+		documentID := uuid.Must(uuid.NewV7())
+		start := make(chan struct{})
+		var lockErr error
+		var addErr error
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			<-start
+			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-si-doc-race-lock-"+suffix, nil)
+		}()
+		go func() {
+			defer wg.Done()
+			<-start
+			audit := &biz.AuditEvent{OrganizationID: &org.ID, UserID: &roleUser.ID, Action: "order.shipping_document.add", ResourceType: "order_shipping_document", Result: "success", Details: map[string]string{}}
+			_, addErr = repo.Add(ctx, org.ID, o.ID, &biz.OrderShippingDocument{ID: documentID, HouseNo: "SI-RACE-" + suffix}, audit)
+		}()
+		close(start)
+		wg.Wait()
+		if lockErr != nil {
+			t.Fatalf("并发锁定失败: %v", lockErr)
+		}
+		if addErr != nil {
+			if kErr := errors.FromError(addErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
+				t.Fatalf("并发新增错误 = %v，期望成功或 ORDER_BUSINESS_LOCKED", addErr)
+			}
+		}
+		stored, err := data.db.Order.Get(ctx, o.ID)
+		if err != nil || stored.LockedAt == nil {
+			t.Fatalf("并发后订单未保持锁定: order=%#v err=%v", stored, err)
+		}
+		documentExists, err := data.db.OrderShippingDocument.Query().Where(ordershippingdocumentent.IDEQ(documentID), ordershippingdocumentent.OrderIDEQ(o.ID)).Exist(ctx)
+		if err != nil {
+			t.Fatalf("查询并发装运单证结果失败: %v", err)
+		}
+		if addErr == nil && !documentExists {
+			t.Fatal("并发新增报告成功但单证事实不存在")
+		}
+		if addErr != nil && documentExists {
+			t.Fatal("并发新增被业务锁阻断后不应留下单证事实")
+		}
+	})
+
 	// --- 阶段 1：普通用户尝试锁定订单应被业务角色资格校验拦截 ---
 	t.Run("非海运出口业务角色成员锁定订单应被拦截", func(t *testing.T) {
 		audit := &biz.AuditEvent{Action: "order.lock", UserID: &normalUser.ID, Details: map[string]string{}}
@@ -534,7 +710,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取锁定事实记录失败: %v", err)
 		}
-		if record.MasterBillVersionID != mblVer.ID {
+		if record.MasterBillVersionID == nil || *record.MasterBillVersionID != mblVer.ID {
 			t.Errorf("锁定事实记录中的 MBL 版本 ID 不匹配")
 		}
 		if len(record.Edges.HouseBillSnapshots) != 1 {
@@ -542,6 +718,17 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		if record.Edges.HouseBillSnapshots[0].HouseBillVersionID != hblVer.ID {
 			t.Errorf("HBL 快照版本 ID 不匹配")
+		}
+		if _, err := data.sqlDB.ExecContext(
+			ctx,
+			`UPDATE order_lock_records SET business_type = 'AI' WHERE id = $1`,
+			record.ID,
+		); err == nil {
+			t.Fatal("数据库 CHECK 不应允许携带 SE 单证引用的锁记录改为非 SE 类型")
+		}
+		unchangedRecord, err := data.db.OrderLockRecord.Get(ctx, record.ID)
+		if err != nil || unchangedRecord.BusinessType != orderlockrecordent.BusinessTypeSE {
+			t.Fatalf("CHECK 拒绝后锁记录业务类型应保持 SE: record=%#v err=%v", unchangedRecord, err)
 		}
 	})
 
@@ -1022,6 +1209,16 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if len(tasks) == 0 {
 			t.Errorf("未找到预期的 order.unlock.dingtalk.dispatch 后台调度任务")
 		}
+
+		// bootstrap 管理员取代活动审批时，必须先保存新请求，避免 superseded 外键指向未落库事实。
+		adminResult, err := orderLockRepo.RequestOrderUnlock(ctx, adminPrincipal, orderA.ID, 7, "idem-admin-supersede-"+suffix, nil, &biz.AuditEvent{Action: "order.unlock", OrganizationID: &org.ID, UserID: &adminUser.ID, Result: "success"})
+		if err != nil {
+			t.Fatalf("管理员取代活动审批失败: %v", err)
+		}
+		superseded, err := data.db.OrderUnlockRequest.Get(ctx, reqRecord.ID)
+		if err != nil || superseded.Status != orderunlockrequestent.StatusSTALE || superseded.SupersededByRequestID == nil || *superseded.SupersededByRequestID != adminResult.Request.ID {
+			t.Fatalf("活动审批未被管理员请求正确取代: request=%#v err=%v", superseded, err)
+		}
 	})
 
 	// --- 阶段 9：DIRECT 单证结构零 HBL 成功锁定与结构异常校验 ---
@@ -1078,7 +1275,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			t.Fatalf("读取 Gen 2 锁定记录失败: %v", err)
 		}
 
-		if recGen1.MasterBillVersionID != recGen2.MasterBillVersionID {
+		if recGen1.MasterBillVersionID == nil || recGen2.MasterBillVersionID == nil || *recGen1.MasterBillVersionID != *recGen2.MasterBillVersionID {
 			t.Errorf("MBL 未修改时期望 Gen 1 与 Gen 2 指向同一 MBL 版本，但不同: %v vs %v", recGen1.MasterBillVersionID, recGen2.MasterBillVersionID)
 		}
 
@@ -1145,7 +1342,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("重新读取 Order D Gen 1 失败: %v", err)
 		}
-		if recDGen1.MasterBillVersionID != mblVerD1ID {
+		if recDGen1.MasterBillVersionID == nil || mblVerD1ID == nil || *recDGen1.MasterBillVersionID != *mblVerD1ID {
 			t.Errorf("Order D Gen 1 历史记录被污染: %v vs %v", recDGen1.MasterBillVersionID, mblVerD1ID)
 		}
 		recDGen2, err := data.db.OrderLockRecord.Query().
@@ -1154,7 +1351,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取 Order D Gen 2 失败: %v", err)
 		}
-		if recDGen2.MasterBillVersionID != lockDRes2.LockRecord.MasterBillVersionID {
+		if recDGen2.MasterBillVersionID == nil || lockDRes2.LockRecord.MasterBillVersionID == nil || *recDGen2.MasterBillVersionID != *lockDRes2.LockRecord.MasterBillVersionID {
 			t.Errorf("Order D Gen 2 版本记录不匹配: %v vs %v", recDGen2.MasterBillVersionID, lockDRes2.LockRecord.MasterBillVersionID)
 		}
 
@@ -1524,6 +1721,9 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil || !dispatch.ShouldSend {
 			t.Fatalf("准备审批派发失败: dispatch=%#v err=%v", dispatch, err)
 		}
+		if dispatch.BusinessType != biz.OrderBusinessSE || dispatch.OrderNo != orderK.OrderNo || dispatch.ApplicantDisplayName != normalUser.DisplayName || dispatch.LockGeneration != 1 {
+			t.Fatalf("审批派发上下文不完整: %#v", dispatch)
+		}
 		if err := approvalRepo.FinishDispatch(ctx, claimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: "PROC-" + suffix}, time.Now().UTC()); err != nil {
 			t.Fatalf("保存审批实例失败: %v", err)
 		}
@@ -1573,6 +1773,60 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		unchanged, err := data.db.Order.Get(ctx, orderK.ID)
 		if err != nil || unchanged.Version != 3 {
 			t.Fatalf("重复事件不应再次递增版本: order=%#v err=%v", unchanged, err)
+		}
+
+		// 新建第二锁定代次和独立待审批请求，再模拟类型漂移；已批准的第一代历史保持不变。
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 3, "ding-type-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+			t.Fatalf("准备类型漂移锁定代次失败: %v", err)
+		}
+		typeResult, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderK.ID, 4, "ding-type-unlock", nil, &biz.AuditEvent{Action: "order.unlock.request", OrganizationID: &org.ID, UserID: &normalUser.ID, Result: "success"})
+		if err != nil {
+			t.Fatalf("准备类型漂移审批失败: %v", err)
+		}
+		typeEntity, err := data.db.OrderUnlockRequest.Get(ctx, typeResult.Request.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		typeDispatch, err := typeEntity.QueryDispatch().Only(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		typeLease := uuid.NewString()
+		if _, err := data.db.BackgroundTask.UpdateOneID(typeDispatch.BackgroundTaskID).SetStatus(backgroundtaskent.StatusRUNNING).SetLeaseToken(typeLease).SetLeaseExpiresAt(time.Now().Add(time.Minute)).Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+		typeClaimed := &biz.BackgroundTask{ID: typeDispatch.BackgroundTaskID, OrganizationID: org.ID, LeaseToken: &typeLease}
+		if _, err := approvalRepo.PrepareDispatch(ctx, typeClaimed); err != nil {
+			t.Fatal(err)
+		}
+		if err := approvalRepo.FinishDispatch(ctx, typeClaimed, &biz.DingTalkApprovalDispatchOutcome{ProcessInstanceID: "PROC-TYPE-" + suffix}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := data.sqlDB.ExecContext(ctx, `UPDATE order_unlock_requests SET business_type = 'AI' WHERE id = $1`, typeResult.Request.ID); err != nil {
+			t.Fatalf("构造审批类型漂移失败: %v", err)
+		}
+		if err := approvalRepo.StoreCallback(ctx, &biz.DingTalkApprovalCallbackEvent{EventID: "EVENT-TYPE-" + suffix, CorpID: "CORP", EventType: "bpms_instance_change", ProcessInstanceID: "PROC-TYPE-" + suffix, EncryptedPayloadHash: strings.Repeat("c", 64)}); err != nil {
+			t.Fatalf("写入类型漂移回调失败: %v", err)
+		}
+		typeJob, err := approvalRepo.ClaimInbox(ctx, time.Minute, time.Now().UTC())
+		if err != nil {
+			t.Fatalf("领取类型漂移回调失败: %v", err)
+		}
+		_, shouldApply, err = approvalRepo.PrepareApproved(ctx, typeJob, decision, time.Now().UTC())
+		if err != nil || shouldApply {
+			t.Fatalf("类型漂移不应进入解锁生效: shouldApply=%t err=%v", shouldApply, err)
+		}
+		staleRequest, err := data.db.OrderUnlockRequest.Get(ctx, typeResult.Request.ID)
+		if err != nil || staleRequest.Status != orderunlockrequestent.StatusSTALE || staleRequest.FailureCode == nil || *staleRequest.FailureCode != "ORDER_BUSINESS_TYPE_CHANGED" {
+			t.Fatalf("类型漂移请求未稳定标记 STALE: request=%#v err=%v", staleRequest, err)
+		}
+		preservedApproved, err := data.db.OrderUnlockRequest.Get(ctx, requestID)
+		if err != nil || preservedApproved.Status != orderunlockrequestent.StatusAPPROVED {
+			t.Fatalf("第一代已批准历史被篡改: request=%#v err=%v", preservedApproved, err)
+		}
+		stillLocked, err := data.db.Order.Get(ctx, orderK.ID)
+		if err != nil || stillLocked.LockedAt == nil || stillLocked.Version != 4 {
+			t.Fatalf("类型漂移后订单不应解锁: order=%#v err=%v", stillLocked, err)
 		}
 	})
 
