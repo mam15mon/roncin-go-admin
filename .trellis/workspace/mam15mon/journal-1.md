@@ -546,3 +546,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 21: 在海运出口配舱信息中增加只读关联分单号展示
+<!-- trellis-session: v=2 fp=59d1bc29b68ce72b -->
+
+**Date**: 2026-09-05
+**Task**: 在海运出口配舱信息中增加只读关联分单号展示
+**Branch**: `main`
+
+### Summary
+
+在 SeaTransportSection 中增加 SeaAssociatedHouseBillsField，实现分单直单/多分单标签/未录入的三态只读联动展示，避免就地编辑
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f8547480` | feat(web): 在海运出口配舱信息中增加只读关联分单号展示 |
+
+### Status
+
+[OK] **Completed**
