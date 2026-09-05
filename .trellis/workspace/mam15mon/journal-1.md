@@ -440,3 +440,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 17: 海运出口业务完整度审计
+<!-- trellis-session: v=2 fp=3fb181ca6042ab5c -->
+
+**Date**: 2026-09-05
+**Task**: 海运出口业务完整度审计
+**Package**: server
+**Branch**: `feat/universal-order-lock`
+
+### Summary
+
+按内部货代业务、操作、单证和财务管理平台定位完成海运出口跨层就绪度审计；确认主体可受限上线，识别结案门禁、真实单证状态、共享费用、附件、旧分单入口及拆票并发错误语义等缺口，并记录全量与 PostgreSQL 验证结果。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ea4e30bc` | docs: 规划海运出口业务完整度审计 |
+| `5c02ff6a` | docs: 完成海运出口上线就绪度审计 |
+
+### Status
+
+[OK] **Completed**
