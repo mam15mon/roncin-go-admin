@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderTerminationStatus } from '@/enums.generated';
 import { ORDER_KIND_CONFIGS } from './common';
 import { queryOrderList } from './list-query';
 
@@ -20,7 +21,7 @@ describe('queryOrderList', () => {
       {
         page: 2,
         pageSize: 50,
-        stage: 'abnormal',
+        stage: 'returned',
         numberType: 'consolidated_master',
         numberKeyword: 'MBL-001',
         isLocked: 'locked',
@@ -36,7 +37,8 @@ describe('queryOrderList', () => {
         page: 2,
         pageSize: 50,
         businessType: 1,
-        hasActiveException: true,
+        terminationStatus:
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
         numberType: 3,
         numberKeyword: 'MBL-001',
         isLocked: true,

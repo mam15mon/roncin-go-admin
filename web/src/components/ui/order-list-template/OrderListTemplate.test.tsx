@@ -35,7 +35,7 @@ describe('OrderListTemplate', () => {
     cleanup();
   });
 
-  it('默认无状态切签与面包屑时，正确渲染标题、工具栏与数据表格', async () => {
+  it('不渲染面包屑和状态切签，并正确渲染标题、工具栏与数据表格', async () => {
     const mockQuery = vi.fn().mockResolvedValue({
       data: [
         {
@@ -72,6 +72,7 @@ describe('OrderListTemplate', () => {
 
     expect(screen.getByText('海运出口订单')).toBeInTheDocument();
     expect(container.querySelector('.ant-breadcrumb')).not.toBeInTheDocument();
+    expect(container.querySelector('.ant-tabs')).not.toBeInTheDocument();
     expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
     expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
@@ -82,44 +83,6 @@ describe('OrderListTemplate', () => {
       expect(screen.getByText('阿里巴巴国际站')).toBeInTheDocument();
       expect(screen.getByText('COSCO STAR / 024W')).toBeInTheDocument();
       expect(screen.getByText('COSU632189472')).toBeInTheDocument();
-    });
-  });
-
-  it('支持显式传入状态切签并触发重新查询', async () => {
-    const mockQuery = vi.fn().mockResolvedValue({
-      data: [],
-      total: 0,
-      success: true,
-    });
-    const onStatusTabChange = vi.fn();
-    const testTabs = [
-      { key: 'all', label: '全部订单' },
-      { key: 'booking', label: '待订舱', count: 2 },
-    ];
-
-    render(
-      <OrderListTemplate
-        orderKind="sea-export"
-        statusTabs={testTabs}
-        queryOrders={mockQuery}
-        onStatusTabChange={onStatusTabChange}
-      />,
-    );
-
-    expect(screen.getByText('全部订单')).toBeInTheDocument();
-    expect(screen.getByText('待订舱')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(mockQuery).toHaveBeenCalled();
-    });
-    mockQuery.mockClear();
-
-    fireEvent.click(screen.getByText('待订舱'));
-    expect(onStatusTabChange).toHaveBeenCalledWith('booking');
-    await waitFor(() => {
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ stage: 'booking' }),
-      );
     });
   });
 });

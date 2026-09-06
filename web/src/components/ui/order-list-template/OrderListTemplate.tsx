@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { Badge, Button, Card, Dropdown, Space, Tabs, Tag, Tooltip } from 'antd';
+import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import OrderListSearchFilter from './OrderListSearchFilter';
@@ -31,10 +31,6 @@ export function OrderListTemplate({
   orderKind,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
-  showBreadcrumb = false,
-  statusTabs,
-  activeStatusTab = 'all',
-  onStatusTabChange,
   customColumns,
   extraColumns = [],
   queryOrders,
@@ -68,7 +64,6 @@ export function OrderListTemplate({
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const currentFilterRef = useRef<OrderListFilterParams>({});
-  const [currentTab, setCurrentTab] = useState<string>(activeStatusTab);
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 1. 构建完整表头列定义
@@ -587,57 +582,15 @@ export function OrderListTemplate({
 
   const columns = customColumns || defaultColumns;
 
-  // 状态切签切换
-  const handleTabChange = (key: string) => {
-    setCurrentTab(key);
-    onStatusTabChange?.(key);
-    actionRef.current?.reload();
-  };
-
   return (
     <PageContainer
-      breadcrumbRender={showBreadcrumb ? undefined : false}
+      breadcrumbRender={false}
       header={{
         title,
         subTitle,
-        breadcrumb: undefined,
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
-      {/* 顶部状态快捷切签卡片 */}
-      {statusTabs && statusTabs.length > 0 && (
-        <Card
-          variant="borderless"
-          style={{
-            borderRadius: 8,
-            border: '1px solid #f0f0f0',
-            backgroundColor: '#ffffff',
-            marginBottom: 12,
-          }}
-          styles={{ body: { padding: '4px 16px 0' } }}
-        >
-          <Tabs
-            activeKey={currentTab}
-            onChange={handleTabChange}
-            items={statusTabs.map((tab) => ({
-              key: tab.key,
-              label: (
-                <Space size={4}>
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <Badge
-                      count={tab.count}
-                      color={tab.badgeColor || '#1677ff'}
-                      style={{ boxShadow: 'none' }}
-                    />
-                  )}
-                </Space>
-              ),
-            }))}
-          />
-        </Card>
-      )}
-
       {/* 展开/收起的专业多维筛选面板（默认收起） */}
       {filterVisible && (
         <OrderListSearchFilter
@@ -704,7 +657,6 @@ export function OrderListTemplate({
 
             const res = await queryOrders({
               ...currentFilter,
-              stage: currentTab !== 'all' ? currentTab : currentFilter.stage,
               page: params.current,
               pageSize: params.pageSize,
               sorterField,
