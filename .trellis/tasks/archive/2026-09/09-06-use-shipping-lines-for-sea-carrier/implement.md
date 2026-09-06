@@ -45,8 +45,8 @@
   归档任务或 HBL 合法语境中保留。
 - [x] 更新 `.trellis/spec/server/backend/sea-export-document-contract.md`，记录 ShippingLine 权威身份、
   三方不变量、费用边界和迁移前置条件。
-- [ ] 逐文件暂存并提交本任务代码、测试、迁移、生成物、规范和任务材料；排除用户已有的船公司同步改动。
-- [ ] 完成 Trellis finish/archive 和开发日志记录。
+- [x] 逐文件暂存并提交本任务代码、测试、迁移、生成物、规范和任务材料；排除用户已有的船公司同步改动。
+- [x] 完成 Trellis finish/archive 和开发日志记录。
 
 ## 验证记录
 
