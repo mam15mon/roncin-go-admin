@@ -25,6 +25,9 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [loadedOrganizationId, setLoadedOrganizationId] = useState<
+    string | null
+  >(null);
 
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
     [],
@@ -49,23 +52,27 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
     if (organizationId) {
       clearOrderMasterDataCache(organizationId);
     }
+    setLoadedOrganizationId(null);
     setReloadKey((k) => k + 1);
   }, [organizationId]);
 
   useEffect(() => {
     if (!config) {
+      setLoadedOrganizationId(null);
       setLoading(false);
       setError(null);
       return;
     }
 
     if (isUserLoaded && !organizationId) {
+      setLoadedOrganizationId(null);
       setLoading(false);
       setError(new Error('缺少当前组织，无法加载订单主数据'));
       return;
     }
 
     if (!organizationId) {
+      setLoadedOrganizationId(null);
       setLoading(true);
       return;
     }
@@ -118,6 +125,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
             .filter((item) => item.value !== ''),
         );
         setPersonnelOptions(personnelResponse);
+        setLoadedOrganizationId(currentOrgId);
         setError(null);
       })
       .catch((err: Error) => {
@@ -127,6 +135,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
         ) {
           return;
         }
+        setLoadedOrganizationId(null);
         setError(err);
         message.error(err.message || '加载订单主数据失败');
       })
@@ -152,16 +161,27 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
     [config?.category],
   );
 
+  const isOrgMatched = Boolean(
+    organizationId && loadedOrganizationId === organizationId,
+  );
+  const effectiveLoading = !config
+    ? false
+    : isUserLoaded && !organizationId
+      ? false
+      : error
+        ? false
+        : !isOrgMatched || loading;
+
   return {
-    loading,
+    loading: effectiveLoading,
     error,
     retry,
-    serviceTypeOptions,
-    cargoCategoryOptions,
-    locationOptions,
+    serviceTypeOptions: isOrgMatched ? serviceTypeOptions : [],
+    cargoCategoryOptions: isOrgMatched ? cargoCategoryOptions : [],
+    locationOptions: isOrgMatched ? locationOptions : [],
     searchLocations,
-    currencyOptions,
-    containerSpecOptions,
-    personnelOptions,
+    currencyOptions: isOrgMatched ? currencyOptions : [],
+    containerSpecOptions: isOrgMatched ? containerSpecOptions : [],
+    personnelOptions: isOrgMatched ? personnelOptions : [],
   };
 }

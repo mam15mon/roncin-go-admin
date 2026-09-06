@@ -85,6 +85,7 @@ export default function OrderDetailPage() {
 
   const {
     loading,
+    error,
     order,
     shippingDocs,
     personnel,
@@ -377,6 +378,42 @@ export default function OrderDetailPage() {
           }}
         >
           <Spin size="large" description="正在加载订单详情..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !loading) {
+    return (
+      <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
+        <OrderPageHeader
+          page="detail"
+          orderKind={config.kind}
+          orderId={orderId}
+          orderNo={orderId}
+        />
+        <div style={{ padding: 48 }}>
+          <Card
+            variant="borderless"
+            style={{
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+              backgroundColor: '#ffffff',
+            }}
+          >
+            <Result
+              status="warning"
+              title="加载订单详情失败"
+              subTitle={
+                error.message || '无法获取订单详情数据，请检查网络或重试。'
+              }
+              extra={
+                <Button type="primary" onClick={() => void loadData()}>
+                  重新加载
+                </Button>
+              }
+            />
+          </Card>
         </div>
       </div>
     );

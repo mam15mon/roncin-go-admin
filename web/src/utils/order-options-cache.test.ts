@@ -92,6 +92,37 @@ describe('order-options-cache', () => {
     expect(mockListAirports).toHaveBeenCalledTimes(2);
   });
 
+  it('旧失败请求迟到 reject 时，不得误删已写入的新请求缓存', async () => {
+    let rejectReq1!: (err: Error) => void;
+    const p1 = new Promise<any>((_, reject) => {
+      rejectReq1 = reject;
+    });
+    mockListOptions.mockImplementationOnce(() => p1);
+
+    // 1. 发起请求 1，进入 pending
+    const req1Promise = getMasterDataOptions('org-1');
+
+    // 2. 在请求 1 尚未 reject 前，清理 org-1 缓存并启动请求 2
+    clearOrderMasterDataCache('org-1');
+    mockListOptions.mockResolvedValueOnce({
+      data: [{ id: 'opt-2', name: '新选项' } as any],
+    });
+    const req2Promise = getMasterDataOptions('org-1');
+
+    // 3. 请求 1 发生迟到错误
+    rejectReq1(new Error('旧网络超时'));
+    await expect(req1Promise).rejects.toThrow('旧网络超时');
+
+    // 4. 请求 2 成功完成
+    const res2 = await req2Promise;
+    expect(res2).toEqual([{ id: 'opt-2', name: '新选项' }]);
+
+    // 5. 再次调用 getMasterDataOptions('org-1')，应继续命中请求 2 缓存，而不会因旧请求的 catch 误删缓存重新触发第 3 次网络请求
+    const resCached = await getMasterDataOptions('org-1');
+    expect(resCached).toEqual([{ id: 'opt-2', name: '新选项' }]);
+    expect(mockListOptions).toHaveBeenCalledTimes(2);
+  });
+
   it('不同组织隔离不共享缓存', async () => {
     mockListOptions
       .mockResolvedValueOnce({

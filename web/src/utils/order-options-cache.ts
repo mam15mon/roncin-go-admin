@@ -23,15 +23,19 @@ export function getMasterDataOptions(
   if (!organizationId) {
     return Promise.reject(new Error('缺少当前组织，无法加载订单主数据'));
   }
-  let req = masterOptionsCache.get(organizationId);
+  const req = masterOptionsCache.get(organizationId);
   if (!req) {
-    req = masterDataServiceListOptions()
+    let createdReq: Promise<API.MasterDataItem[]>;
+    createdReq = masterDataServiceListOptions()
       .then(unwrapList)
       .catch((err) => {
-        masterOptionsCache.delete(organizationId);
+        if (masterOptionsCache.get(organizationId) === createdReq) {
+          masterOptionsCache.delete(organizationId);
+        }
         throw err;
       });
-    masterOptionsCache.set(organizationId, req);
+    masterOptionsCache.set(organizationId, createdReq);
+    return createdReq;
   }
   return req;
 }
@@ -45,15 +49,19 @@ export function getCachedPorts(
   if (!organizationId) {
     return Promise.reject(new Error('缺少当前组织，无法加载港口主数据'));
   }
-  let req = portsCache.get(organizationId);
+  const req = portsCache.get(organizationId);
   if (!req) {
-    req = masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true })
+    let createdReq: Promise<API.Port[]>;
+    createdReq = masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true })
       .then(unwrapList)
       .catch((err) => {
-        portsCache.delete(organizationId);
+        if (portsCache.get(organizationId) === createdReq) {
+          portsCache.delete(organizationId);
+        }
         throw err;
       });
-    portsCache.set(organizationId, req);
+    portsCache.set(organizationId, createdReq);
+    return createdReq;
   }
   return req;
 }
@@ -67,19 +75,23 @@ export function getCachedAirports(
   if (!organizationId) {
     return Promise.reject(new Error('缺少当前组织，无法加载机场主数据'));
   }
-  let req = airportsCache.get(organizationId);
+  const req = airportsCache.get(organizationId);
   if (!req) {
-    req = masterDataServiceListAirports({
+    let createdReq: Promise<API.Airport[]>;
+    createdReq = masterDataServiceListAirports({
       page: 1,
       pageSize: 50,
       enabled: true,
     })
       .then(unwrapList)
       .catch((err) => {
-        airportsCache.delete(organizationId);
+        if (airportsCache.get(organizationId) === createdReq) {
+          airportsCache.delete(organizationId);
+        }
         throw err;
       });
-    airportsCache.set(organizationId, req);
+    airportsCache.set(organizationId, createdReq);
+    return createdReq;
   }
   return req;
 }
@@ -95,19 +107,23 @@ export function getOrderPersonnelOptions(
     return Promise.reject(new Error('缺少当前组织，无法加载订单人员选项'));
   }
   const key = `${organizationId}:${businessType}`;
-  let req = personnelOptionsCache.get(key);
+  const req = personnelOptionsCache.get(key);
   if (!req) {
-    req = orderServiceListPersonnelOptions({
+    let createdReq: Promise<API.OrderPersonnelOption[]>;
+    createdReq = orderServiceListPersonnelOptions({
       businessType,
       page: 1,
       pageSize: 200,
     })
       .then(unwrapList)
       .catch((err) => {
-        personnelOptionsCache.delete(key);
+        if (personnelOptionsCache.get(key) === createdReq) {
+          personnelOptionsCache.delete(key);
+        }
         throw err;
       });
-    personnelOptionsCache.set(key, req);
+    personnelOptionsCache.set(key, createdReq);
+    return createdReq;
   }
   return req;
 }

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { App } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -189,5 +189,98 @@ describe('useOrderListResources', () => {
         expect.objectContaining({ id: 'b-item' }),
       ]),
     );
+  });
+
+  it('组织切换时，已落入 React state 的旧组织数据立即清空，绝不在新组织中暴露', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    mockGetMasterData.mockResolvedValueOnce([
+      { id: 'a-item', name: 'A选项', kind: 1, enabled: true },
+    ] as any);
+    mockGetPorts.mockResolvedValueOnce([
+      { id: 'port-a', nameEn: 'Port A', enabled: true } as any,
+    ]);
+    mockSearchPartners.mockResolvedValueOnce([
+      { label: '客户A', value: 'cust-a' },
+    ]);
+
+    const { result, rerender } = renderHook(
+      () => useOrderListResources(seaConfig),
+      { wrapper },
+    );
+
+    await waitFor(() =>
+      expect(result.current.masterOptions).toEqual([
+        expect.objectContaining({ id: 'a-item' }),
+      ]),
+    );
+    expect(result.current.ports).toHaveLength(1);
+    expect(result.current.customerMap).toEqual({ 'cust-a': '客户A' });
+
+    // 组织 A 已经就绪，此时切换至组织 B（组织 B 尚未完成加载）
+    const deferOrgB = deferred<any>();
+    mockGetMasterData.mockImplementationOnce(() => deferOrgB.promise);
+
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    // 在组织 B 响应前，必须立即置空所有数据，严禁暴露组织 A
+    expect(result.current.masterOptions).toEqual([]);
+    expect(result.current.ports).toEqual([]);
+    expect(result.current.customerMap).toEqual({});
+
+    // 组织 B 响应后正常渲染组织 B 数据
+    deferOrgB.resolve([
+      { id: 'b-item', name: 'B选项', kind: 1, enabled: true },
+    ]);
+    await waitFor(() =>
+      expect(result.current.masterOptions).toEqual([
+        expect.objectContaining({ id: 'b-item' }),
+      ]),
+    );
+  });
+
+  it('在旧组织下触发的搜索若迟到返回，不得写入新组织的 customerMap 或 ports', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    const { result, rerender } = renderHook(
+      () => useOrderListResources(seaConfig),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
+
+    // 在组织 A 下触发 searchCustomers
+    let resolveCustomer!: (val: any) => void;
+    mockSearchPartners.mockImplementationOnce(
+      () =>
+        new Promise((res) => {
+          resolveCustomer = res;
+        }),
+    );
+    const searchPromise = result.current.searchCustomers('慢速客户');
+
+    // 切换到组织 B
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    // 组织 A 的搜索完成返回
+    await act(async () => {
+      resolveCustomer([{ label: '旧组织客户', value: 'old-cust' }]);
+      await searchPromise;
+    });
+
+    // customerMap 不得写入 old-cust
+    expect(result.current.customerMap['old-cust']).toBeUndefined();
   });
 });

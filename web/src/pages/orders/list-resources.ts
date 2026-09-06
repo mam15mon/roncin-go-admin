@@ -31,12 +31,17 @@ export function useOrderListResources(config?: OrderKindConfig) {
   const [ports, setPorts] = useState<API.Port[]>([]);
   const [airports, setAirports] = useState<API.Airport[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
+  const [loadedOrganizationId, setLoadedOrganizationId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!organizationId) {
+      setLoadedOrganizationId(null);
       setMasterOptions([]);
       setPorts([]);
       setAirports([]);
+      setCustomerMap({});
       return;
     }
 
@@ -69,16 +74,15 @@ export function useOrderListResources(config?: OrderKindConfig) {
           ) {
             return;
           }
+          setLoadedOrganizationId(currentOrgId);
           setMasterOptions(options);
           setPorts(portsList);
           setAirports(airportsList);
-          setCustomerMap((prev) => {
-            const next = { ...prev };
-            for (const option of partnerOptions) {
-              next[option.value] = option.label;
-            }
-            return next;
-          });
+          const nextCustomerMap: Record<string, string> = {};
+          for (const option of partnerOptions) {
+            nextCustomerMap[option.value] = option.label;
+          }
+          setCustomerMap(nextCustomerMap);
         },
       )
       .catch((error: Error) => {
@@ -88,11 +92,20 @@ export function useOrderListResources(config?: OrderKindConfig) {
         ) {
           return;
         }
+        setLoadedOrganizationId(null);
         message.error(error.message || '订单主数据加载失败');
       });
   }, [config?.category, message, organizationId]);
 
-  const containerSpecOptions = masterOptions
+  const isOrgMatched = Boolean(
+    organizationId && loadedOrganizationId === organizationId,
+  );
+  const effectiveMasterOptions = isOrgMatched ? masterOptions : [];
+  const effectivePorts = isOrgMatched ? ports : [];
+  const effectiveAirports = isOrgMatched ? airports : [];
+  const effectiveCustomerMap = isOrgMatched ? customerMap : {};
+
+  const containerSpecOptions = effectiveMasterOptions
     .filter(
       (item) =>
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
@@ -104,7 +117,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
     }));
 
   const containerSpecMap = Object.fromEntries(
-    masterOptions
+    effectiveMasterOptions
       .filter(
         (item) =>
           isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
@@ -116,7 +129,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       ]),
   );
 
-  const serviceTypeOptions = masterOptions
+  const serviceTypeOptions = effectiveMasterOptions
     .filter(
       (item) =>
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.SERVICE_TYPE) &&
@@ -127,7 +140,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       value: item.id ?? '',
     }));
 
-  const cargoCategoryOptions = masterOptions
+  const cargoCategoryOptions = effectiveMasterOptions
     .filter(
       (item) =>
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.CARGO_CATEGORY) &&
@@ -138,7 +151,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       value: item.id ?? '',
     }));
 
-  const regionLocationOptions = masterOptions
+  const regionLocationOptions = effectiveMasterOptions
     .filter(
       (item) =>
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.REGION) &&
@@ -151,13 +164,13 @@ export function useOrderListResources(config?: OrderKindConfig) {
 
   const locationOptions = [
     ...regionLocationOptions,
-    ...ports
+    ...effectivePorts
       .filter((item) => item.enabled !== false)
       .map((item) => ({
         label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
         value: item.id ?? '',
       })),
-    ...airports
+    ...effectiveAirports
       .filter((item) => item.enabled !== false)
       .map((item) => ({
         label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
@@ -166,21 +179,25 @@ export function useOrderListResources(config?: OrderKindConfig) {
   ];
 
   const searchCustomers = async (keyword?: string) => {
+    const requestOrgId = organizationId;
     const options = await searchPartnerOptions(keyword, {
       role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
       enabled: true,
     });
-    setCustomerMap((prev) => {
-      const next = { ...prev };
-      for (const option of options) {
-        next[option.value] = option.label;
-      }
-      return next;
-    });
+    if (requestOrgId && activeOrgIdRef.current === requestOrgId) {
+      setCustomerMap((prev) => {
+        const next = { ...prev };
+        for (const option of options) {
+          next[option.value] = option.label;
+        }
+        return next;
+      });
+    }
     return options;
   };
 
   const searchOrderPorts = async (keyword?: string) => {
+    const requestOrgId = organizationId;
     const response = await masterDataServiceListPorts({
       page: 1,
       pageSize: 50,
@@ -188,15 +205,17 @@ export function useOrderListResources(config?: OrderKindConfig) {
       enabled: true,
     });
     const result = unwrapList(response);
-    setPorts((current) => {
-      const merged = new Map(
-        current.filter((item) => item.id).map((item) => [item.id, item]),
-      );
-      for (const item of result) {
-        if (item.id) merged.set(item.id, item);
-      }
-      return [...merged.values()];
-    });
+    if (requestOrgId && activeOrgIdRef.current === requestOrgId) {
+      setPorts((current) => {
+        const merged = new Map(
+          current.filter((item) => item.id).map((item) => [item.id, item]),
+        );
+        for (const item of result) {
+          if (item.id) merged.set(item.id, item);
+        }
+        return [...merged.values()];
+      });
+    }
     return result.map((item) => ({
       label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
       value: item.id ?? '',
@@ -214,12 +233,16 @@ export function useOrderListResources(config?: OrderKindConfig) {
   };
 
   const searchOrderPersonnel = async (keyword?: string) => {
+    const requestOrgId = organizationId;
     const response = await orderServiceListPersonnelOptions({
       businessType: config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE,
       keyword,
       page: 1,
       pageSize: 50,
     });
+    if (requestOrgId && activeOrgIdRef.current !== requestOrgId) {
+      return [];
+    }
     return unwrapList(response)
       .filter(
         (item) =>
@@ -237,10 +260,10 @@ export function useOrderListResources(config?: OrderKindConfig) {
   };
 
   return {
-    masterOptions,
-    ports,
-    airports,
-    customerMap,
+    masterOptions: effectiveMasterOptions,
+    ports: effectivePorts,
+    airports: effectiveAirports,
+    customerMap: effectiveCustomerMap,
     containerSpecOptions,
     containerSpecMap,
     serviceTypeOptions,

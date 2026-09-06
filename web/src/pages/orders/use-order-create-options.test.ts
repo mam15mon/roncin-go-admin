@@ -237,4 +237,51 @@ describe('useOrderCreateOptions', () => {
       expect(result.current.cargoCategoryOptions[0].value).toBe('cargo-B'),
     );
   });
+
+  it('组织切换时，已落入 React state 的旧组织数据立即隐藏，绝不在新组织渲染中暴露', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    mockFetchMasterData.mockResolvedValueOnce({
+      ...mockMasterDataSuccess,
+      cargoCategoryOptions: [
+        { code: 'GENERAL', label: '普货-组织A', value: 'cargo-A' },
+      ],
+    });
+
+    const { result, rerender } = renderHook(
+      () => useOrderCreateOptions(seaConfig),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.cargoCategoryOptions[0].value).toBe('cargo-A');
+
+    // 组织 A 已经渲染，此时切换到组织 B，组织 B 处于加载中
+    const deferOrgB = deferred<any>();
+    mockFetchMasterData.mockImplementationOnce(() => deferOrgB.promise);
+
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    // 在组织 B 响应前，必须立即进入 loading 态，且选项必须为空，严防组织 A 数据闪现
+    expect(result.current.loading).toBe(true);
+    expect(result.current.cargoCategoryOptions).toEqual([]);
+    expect(result.current.serviceTypeOptions).toEqual([]);
+
+    // 组织 B 响应后，正常展示组织 B 数据
+    deferOrgB.resolve({
+      ...mockMasterDataSuccess,
+      cargoCategoryOptions: [
+        { code: 'GENERAL', label: '普货-组织B', value: 'cargo-B' },
+      ],
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.cargoCategoryOptions[0].value).toBe('cargo-B');
+  });
 });

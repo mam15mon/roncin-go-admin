@@ -6,19 +6,17 @@ import { parseOrderKind } from './common';
 import { useOrderDetailData } from './use-order-detail-data';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 
-let mockOrgId: string | undefined = 'org-1';
+let mockCurrentUser: any = {
+  id: 'user-1',
+  currentOrganization: { id: 'org-1', name: '测试组织' },
+};
 
 vi.mock('@umijs/max', () => ({
   useModel: (model: string) => {
     if (model === '@@initialState') {
       return {
         initialState: {
-          currentUser: mockOrgId
-            ? {
-                id: 'user-1',
-                currentOrganization: { id: mockOrgId, name: '测试组织' },
-              }
-            : undefined,
+          currentUser: mockCurrentUser,
         },
       };
     }
@@ -96,7 +94,10 @@ function deferred<T>() {
 describe('useOrderDetailData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOrgId = 'org-1';
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-1', name: '测试组织' },
+    };
   });
 
   it('成功加载指定订单的数据', async () => {
@@ -223,7 +224,10 @@ describe('useOrderDetailData', () => {
       .mockImplementationOnce(() => deferOrgA.promise)
       .mockImplementationOnce(() => deferOrgB.promise);
 
-    mockOrgId = 'org-A';
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
     const { result, rerender } = renderHook(
       () => useOrderDetailData('ord-1', config),
       { wrapper },
@@ -232,7 +236,10 @@ describe('useOrderDetailData', () => {
     expect(result.current.loading).toBe(true);
 
     // 切换到组织 B
-    mockOrgId = 'org-B';
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
     rerender();
 
     // 组织 B 先返回
@@ -248,5 +255,65 @@ describe('useOrderDetailData', () => {
 
     // 依然保持 B，A 被成功丢弃
     await waitFor(() => expect(result.current.order?.orderNo).toBe('SE-B'));
+  });
+
+  it('用户已登录但缺少当前组织时，结束加载并暴露明确业务错误，绝不死锁在 loading 态', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: null,
+    };
+
+    const { result } = renderHook(
+      () => useOrderDetailData('ord-1', config),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+    expect(result.current.error?.message).toBe(
+      '缺少当前组织，无法加载订单详情',
+    );
+    expect(mockGetOrder).not.toHaveBeenCalled();
+  });
+
+  it('组织切换时，已落入 React state 的旧组织订单与候选项立即隐藏，绝不在新组织中暴露', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    mockGetOrder.mockResolvedValueOnce({
+      data: { id: 'ord-1', orderNo: 'ORDER-A-001', version: '1' },
+    } as any);
+
+    const { result, rerender } = renderHook(
+      () => useOrderDetailData('ord-1', config),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order?.orderNo).toBe('ORDER-A-001');
+
+    // 组织 A 已经就绪，此时切换至组织 B（组织 B 尚未完成加载）
+    const deferOrgB = deferred<any>();
+    mockGetOrder.mockImplementationOnce(() => deferOrgB.promise);
+
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    // 在组织 B 响应前，必须立即进入 loading 态，且 order 与 options 必须隐藏，严防组织 A 数据闪现
+    expect(result.current.loading).toBe(true);
+    expect(result.current.order).toBeUndefined();
+    expect(result.current.serviceTypeOptions).toEqual([]);
+
+    // 组织 B 响应后，正常展示组织 B 数据
+    deferOrgB.resolve({
+      data: { id: 'ord-1', orderNo: 'ORDER-B-002', version: '1' },
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order?.orderNo).toBe('ORDER-B-002');
   });
 });

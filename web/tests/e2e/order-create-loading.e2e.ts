@@ -38,19 +38,39 @@ test('新建订单主数据加载按需过滤机场，且同一组织二次进�
   );
   expect(airportRequests).toHaveLength(0);
 
-  // 记录首次请求数量
+  // 记录首次必需的主数据、港口、人员与币种请求
   const firstMasterOptions = requestUrls.filter((url) =>
     url.includes('/api/v1/master-data/options'),
   ).length;
-  expect(firstMasterOptions).toBeGreaterThanOrEqual(1);
+  const firstPorts = requestUrls.filter((url) =>
+    url.includes('/api/v1/master-data/ports'),
+  ).length;
+  const firstPersonnel = requestUrls.filter((url) =>
+    url.includes('/api/v1/order-personnel-options'),
+  ).length;
+  const firstCurrencies = requestUrls.filter((url) =>
+    url.includes('/api/v1/reference/currencies'),
+  ).length;
 
-  // 4. 跳转至订单列表页后再二次进入新建订单页
-  await page.goto('/orders/sea-export');
-  await page.waitForLoadState('networkidle');
+  expect(firstMasterOptions).toBeGreaterThanOrEqual(1);
+  expect(firstPorts).toBeGreaterThanOrEqual(1);
+  expect(firstPersonnel).toBeGreaterThanOrEqual(1);
+  expect(firstCurrencies).toBeGreaterThanOrEqual(1);
+
+  // 4. 纯 SPA 路由导航：点击“返回列表”回到海运订单列表页
+  await page.getByRole('button', { name: '返回列表' }).click();
+  await expect(page).toHaveURL(/\/orders\/sea-export$/, { timeout: 15_000 });
+  await expect(
+    page.getByRole('button', { name: '新增海运出口订单' }),
+  ).toBeVisible({ timeout: 15_000 });
 
   const lengthBeforeSecondEnter = requestUrls.length;
 
-  await page.goto('/orders/sea-export/new');
+  // 5. 纯 SPA 路由导航：点击“新增海运出口订单”二次进入新建页
+  await page.getByRole('button', { name: '新增海运出口订单' }).click();
+  await expect(page).toHaveURL(/\/orders\/sea-export\/new$/, {
+    timeout: 15_000,
+  });
   await expect(page.getByRole('button', { name: '创建订单' })).toBeVisible({
     timeout: 15_000,
   });
@@ -67,11 +87,15 @@ test('新建订单主数据加载按需过滤机场，且同一组织二次进�
     url.includes('/api/v1/master-data/airports'),
   ).length;
   const secondPersonnel = secondEnterRequests.filter((url) =>
-    url.includes('/api/v1/orders/personnel-options'),
+    url.includes('/api/v1/order-personnel-options'),
+  ).length;
+  const secondCurrencies = secondEnterRequests.filter((url) =>
+    url.includes('/api/v1/reference/currencies'),
   ).length;
 
   expect(secondAirports).toBe(0);
   expect(secondMasterOptions).toBe(0);
   expect(secondPorts).toBe(0);
   expect(secondPersonnel).toBe(0);
+  expect(secondCurrencies).toBe(0);
 });
