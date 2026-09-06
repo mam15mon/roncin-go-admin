@@ -736,3 +736,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 29: 修复订单缓存组织隔离
+<!-- trellis-session: v=2 fp=5af9b9f618caccb3 -->
+
+**Date**: 2026-09-06
+**Task**: 修复订单缓存组织隔离
+**Branch**: `fix/order-cache-org-isolation`
+
+### Summary
+
+修复订单新建、详情与列表资源在组织切换时的异步搜索和错误状态隔离；空关键字复用当前组织首批缓存，目标浏览器验收与前端完整门禁通过，并补充组织级异步联想规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a70c39e0` | fix(web): 完善订单缓存复用与组织隔离 |
+
+### Status
+
+[OK] **Completed**
