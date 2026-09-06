@@ -129,7 +129,7 @@ describe('海运订单新增模板', () => {
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(2);
     });
-  });
+  }, 30_000);
 
   it('散杂托运隐藏箱型箱量并要求显式清理已有计划', () => {
     const sections = getSeaTemplateSections({

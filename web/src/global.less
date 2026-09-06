@@ -399,12 +399,16 @@ body,
   display: flex;
   align-items: center;
   height: 48px;
+  min-width: 0;
 
   &-text {
     font-size: 14px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.88);
     letter-spacing: 0.1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -991,6 +995,52 @@ ol {
 
 // 响应式
 @media (max-width: 768px) {
+  // 移动端顶栏占满视口，消除侧栏硬编码留白
+  .ant-pro-layout,
+  .ant-pro-layout-mix {
+    .ant-pro-layout-header,
+    .ant-pro-fixed-header,
+    .ant-pro-global-header-layout-mix {
+      left: 0 !important;
+      width: 100% !important;
+      padding: 0 8px !important;
+    }
+  }
+
+  // 移动端顶栏标题弹性自适应，禁止单字竖排折行溢出
+  .roncin-header-content {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    gap: 8px !important;
+  }
+
+  .roncin-header-title {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+
+    &-text {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 180px;
+      display: block;
+    }
+  }
+
+  // 移动端顶栏隐藏桌面端快捷下拉菜单（抽屉中已包含完整菜单）
+  .roncin-header-menus {
+    display: none !important;
+  }
+
+  // 移动端顶栏操作区紧凑对齐
+  .ant-pro-global-header-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
   .roncin-layout-main {
     padding: 8px;
   }
@@ -1009,6 +1059,21 @@ ol {
         white-space: nowrap;
       }
     }
+  }
+}
+
+// 极窄屏（如手机竖屏 <= 480px）优化：收起用户文字名仅保留头像徽标
+@media (max-width: 480px) {
+  .roncin-avatar-name {
+    display: none !important;
+  }
+
+  .roncin-avatar-trigger {
+    padding: 4px 4px !important;
+  }
+
+  .roncin-header-title-text {
+    max-width: 130px;
   }
 }
 

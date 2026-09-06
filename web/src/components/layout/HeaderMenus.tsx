@@ -166,7 +166,11 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     location.pathname.startsWith('/enterprise-resources/');
 
   return (
-    <Space size={4} className={className} align="center">
+    <Space
+      size={4}
+      className={`roncin-header-menus ${className || ''}`.trim()}
+      align="center"
+    >
       {hasEnterprise && (
         <HeaderDropdown
           placement="bottomRight"

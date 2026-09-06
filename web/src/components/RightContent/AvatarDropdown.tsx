@@ -180,6 +180,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
           {avatarLetter}
         </Avatar>
         <span
+          className="roncin-avatar-name"
           style={{
             fontSize: 13,
             fontWeight: 500,

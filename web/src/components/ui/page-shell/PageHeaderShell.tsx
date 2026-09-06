@@ -27,7 +27,7 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: 12,
-        height: 52,
+        minHeight: 52,
         padding: '0 16px',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #f0f0f0',

@@ -38,10 +38,12 @@ describe('HeaderMenus Component', () => {
     cleanup();
   });
 
-  it('具有全部权限时展示设置中心与企业资源', () => {
-    render(<HeaderMenus />);
+  it('具有全部权限时展示设置中心与企业资源并带有 roncin-header-menus 类', () => {
+    const { container } = render(<HeaderMenus className="custom-class" />);
     expect(screen.getByText('设置中心')).toBeInTheDocument();
     expect(screen.getByText('企业资源')).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass('roncin-header-menus');
+    expect(container.firstChild).toHaveClass('custom-class');
   });
 
   it('没有任何模块权限时组件返回 null 不展示', () => {
