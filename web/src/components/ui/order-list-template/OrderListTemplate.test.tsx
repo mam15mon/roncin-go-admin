@@ -7,8 +7,8 @@ import {
 } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderListTemplate } from './OrderListTemplate';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
+import { OrderListTemplate } from './OrderListTemplate';
 import type { OrderListItem } from './types';
 
 // Mock matchMedia
@@ -60,7 +60,7 @@ describe('OrderListTemplate', () => {
       success: true,
     });
 
-    render(
+    const { container } = render(
       <OrderListTemplate
         orderKind="sea-export"
         title="海运出口订单"
@@ -71,6 +71,7 @@ describe('OrderListTemplate', () => {
     );
 
     expect(screen.getByText('海运出口订单')).toBeInTheDocument();
+    expect(container.querySelector('.ant-breadcrumb')).not.toBeInTheDocument();
     expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
     expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
@@ -108,8 +109,18 @@ describe('OrderListTemplate', () => {
     expect(screen.getByText('全部订单')).toBeInTheDocument();
     expect(screen.getByText('待订舱')).toBeInTheDocument();
 
+    await waitFor(() => {
+      expect(mockQuery).toHaveBeenCalled();
+    });
+    mockQuery.mockClear();
+
     fireEvent.click(screen.getByText('待订舱'));
     expect(onStatusTabChange).toHaveBeenCalledWith('booking');
+    await waitFor(() => {
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ stage: 'booking' }),
+      );
+    });
   });
 });
 

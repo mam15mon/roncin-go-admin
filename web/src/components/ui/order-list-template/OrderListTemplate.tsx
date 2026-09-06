@@ -600,7 +600,7 @@ export function OrderListTemplate({
       header={{
         title,
         subTitle,
-        breadcrumb: showBreadcrumb ? undefined : undefined,
+        breadcrumb: undefined,
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
