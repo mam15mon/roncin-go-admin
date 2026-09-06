@@ -304,6 +304,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-" + suffix + "-A").
 		SetCustomerID(customer.ID).
+		SetCarrierID(routeCarrierID).
+		SetOriginLocationID(routeOriginID).
+		SetDischargeLocationID(routeDischargeID).
+		SetTransitLocationID(routeTransitID).
+		SetVesselVoyage("MAERSK MC-KINNEY MOLLER / 2609W").
+		SetEtd(etd.Format(time.RFC3339Nano)).
+		SetEta(eta.Format(time.RFC3339Nano)).
 		SetBusinessType(orderent.BusinessTypeSE).
 		SetTradeDirection(orderent.TradeDirectionExport).
 		SetTradeTerm(orderent.TradeTermFOB).
@@ -394,6 +401,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			SetOrganizationID(org.ID).
 			SetOrderNo(orderNo).
 			SetCustomerID(customer.ID).
+			SetCarrierID(routeCarrierID).
+			SetOriginLocationID(routeOriginID).
+			SetDischargeLocationID(routeDischargeID).
+			SetTransitLocationID(routeTransitID).
+			SetVesselVoyage("MAERSK MC-KINNEY MOLLER / 2609W").
+			SetEtd(etd.Format(time.RFC3339Nano)).
+			SetEta(eta.Format(time.RFC3339Nano)).
 			SetBusinessType(orderent.BusinessTypeSE).
 			SetTradeDirection(orderent.TradeDirectionExport).
 			SetTradeTerm(orderent.TradeTermFOB).
@@ -1093,6 +1107,14 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			TradeTerm:           biz.OrderTradeFOB,
 			PaymentTerm:         biz.OrderPaymentPrepaid,
 			ShipmentType:        &shipType,
+			CarrierID:           &routeCarrierID,
+			OriginLocationID:    &routeOriginID,
+			DischargeLocationID: &routeDischargeID,
+			TransitLocationID:   &routeTransitID,
+			VesselVoyage:        "MAERSK MC-KINNEY MOLLER / 2609W",
+			ETD:                 etd.Format(time.RFC3339Nano),
+			ETA:                 eta.Format(time.RFC3339Nano),
+			SeaMasterBillInput:  &biz.SeaMasterBillInput{MasterNo: mbl.MasterNo},
 		}, auditUpdate)
 		if err != nil {
 			t.Fatalf("解锁后更新订单草稿失败: %v", err)
@@ -1405,6 +1427,14 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipType,
+				CarrierID:           &routeCarrierID,
+				OriginLocationID:    &routeOriginID,
+				DischargeLocationID: &routeDischargeID,
+				TransitLocationID:   &routeTransitID,
+				VesselVoyage:        "MAERSK MC-KINNEY MOLLER / 2609W",
+				ETD:                 etd.Format(time.RFC3339Nano),
+				ETA:                 eta.Format(time.RFC3339Nano),
+				SeaMasterBillInput:  &biz.SeaMasterBillInput{MasterNo: mbl.MasterNo},
 			}, audit)
 		}()
 

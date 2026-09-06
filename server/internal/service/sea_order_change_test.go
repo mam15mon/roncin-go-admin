@@ -80,6 +80,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 	feeID := uuid.New()
 	eventID := uuid.New()
 	transportExecutionID := uuid.New()
+	carrierID := uuid.New()
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actorID, Organization: biz.Organization{ID: orgID}})
 
 	mockRepo := &mockSeaOrderChangeRepoForService{
@@ -96,6 +97,8 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 			CurrentMasterBill: &biz.SeaMasterBillSummary{
 				MasterBillID:              uuid.New(),
 				MasterNo:                  "MBL001",
+				IssuerPartnerID:           carrierID,
+				CarrierID:                 &carrierID,
 				TransportExecutionID:      transportExecutionID,
 				TransportExecutionVersion: 7,
 			},
@@ -279,6 +282,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
+			CarrierId:  strPtr(carrierID.String()),
 		},
 	})
 	if err != nil {
@@ -300,6 +304,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
+			CarrierId:  strPtr(carrierID.String()),
 		},
 	})
 	if err == nil {
@@ -318,6 +323,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
+			CarrierId:  strPtr(carrierID.String()),
 		},
 	})
 	if err != nil {

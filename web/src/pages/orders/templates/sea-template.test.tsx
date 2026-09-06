@@ -1,12 +1,14 @@
-import { ProForm } from '@ant-design/pro-components';
+import { ProForm, ProFormText } from '@ant-design/pro-components';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { getSeaTemplateSections } from './sea-template';
-import {
-  splitSeaVesselVoyage,
-  SeaAssociatedHouseBillsField,
-} from './components/sea/SeaTransportSection';
 import { SeaDocumentStructure } from '@/enums.generated';
+import * as orderService from '@/services/roncin/orderService';
+import {
+  SeaAssociatedHouseBillsField,
+  SeaMasterBillFields,
+  splitSeaVesselVoyage,
+} from './components/sea/SeaTransportSection';
+import { getSeaTemplateSections } from './sea-template';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
@@ -27,6 +29,84 @@ describe('海运订单新增模板', () => {
       vesselName: 'EVERGIVEN',
       voyageNo: undefined,
     });
+  });
+
+  it('候选匹配使用船公司作为内部签发方与承运主体', async () => {
+    const matchCandidate = vi
+      .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')
+      .mockResolvedValue({ matched: false });
+
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          carrierId: 'carrier-1',
+          seaMasterBillMasterNo: 'COSCO123456',
+        }}
+      >
+        <ProFormText name="carrierId" hidden />
+        <SeaMasterBillFields />
+      </ProForm>,
+    );
+
+    await waitFor(
+      () => {
+        expect(matchCandidate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            masterNo: 'COSCO123456',
+            issuerPartnerId: 'carrier-1',
+            carrierId: 'carrier-1',
+          }),
+        );
+      },
+      { timeout: 2_000 },
+    );
+  });
+
+  it('共享主单关联多票时同时禁止修改船公司和 MBL 主单号', () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      searchLocations: vi.fn().mockResolvedValue([]),
+      currencyOptions: [],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+      isDetail: true,
+    });
+
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          carrierId: 'carrier-1',
+          seaMasterBillMasterNo: 'COSCO123456',
+          seaMasterBill: {
+            masterNo: 'COSCO123456',
+            carrierId: 'carrier-1',
+            memberCount: 2,
+          },
+        }}
+      >
+        {sections.map((section) => (
+          <div key={section.key}>{section.content}</div>
+        ))}
+      </ProForm>,
+    );
+
+    const carrierItem = screen.getByText('船公司').closest('.ant-form-item');
+    expect(carrierItem?.querySelector('input')).toBeDisabled();
+    expect(
+      screen.getByPlaceholderText('请输入主单号 (仅大写字母与数字)'),
+    ).toBeDisabled();
   });
 
   it('按配舱、提单、货物顺序生成海运业务区块', () => {
@@ -68,7 +148,8 @@ describe('海运订单新增模板', () => {
     );
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('MBL 主单号');
-    expect(transportSection).toHaveTextContent('实际签发/承运主体');
+    expect(transportSection).not.toHaveTextContent('实际签发/承运主体');
+    expect(transportSection).not.toHaveTextContent('主单签发方');
     expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
     expect(screen.getByRole('button', { name: /添加首张分单/ })).toBeTruthy();
@@ -79,6 +160,9 @@ describe('海运订单新增模板', () => {
     const cargoSection = screen.getByTestId('section-cargoInfo');
     expect(cargoSection).not.toHaveTextContent('主单号');
     expect(cargoSection).not.toHaveTextContent('分单号');
+
+    const carrierLabel = screen.getByText('船公司').closest('label');
+    expect(carrierLabel).toHaveClass('ant-form-item-required');
   });
 
   it('从未确定状态添加首张及多张分单', async () => {
@@ -119,6 +203,7 @@ describe('海运订单新增模板', () => {
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
+      expect(screen.getAllByText('签发主体')).toHaveLength(1);
     });
 
     const addHouseBtn = screen.getByRole('button', {

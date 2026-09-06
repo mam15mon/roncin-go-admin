@@ -58,10 +58,19 @@
 
 ### 3. Contracts
 
-- SE 首次保存必须提交 MBL `master_no` 和 `issuer_partner_id`；HBL 可为空。新建时
-  无 HBL 且未明确直单，结构为 `UNDETERMINED`。
+- SE 首次保存必须选择 `Order.carrier_id`（页面名称“船公司”）并提交 MBL
+  `master_no`；HBL 可为空。新建时无 HBL 且未明确直单，结构为 `UNDETERMINED`。
+- MBL 签发主体不再由业务人员独立维护。所有 SE 创建、普通整单更新、拆票 NEW
+  目标和整票改配 NEW 目标必须满足
+  `Order.carrier_id = SeaTransportExecution.carrier_id = SeaMasterBill.issuer_partner_id`；
+  前端可为兼容现有 DTO 从 carrier 派生 `issuer_partner_id`，Biz 与 Data 仍必须以
+  carrier 规范化或锁内复验，禁止信任调用方提交的不同 issuer。
+- 普通 SE 整单更新仍必须提交 MBL 输入；独立的 MBL 内容更新可以不重复提交 MBL
+  身份，但必须保持当前 carrier 不变，并验证 Order、运输执行和 MBL 的三方身份一致。
+- MBL `issuer_partner_id`、唯一索引、版本、锁定快照和响应字段继续保留；这是系统
+  内部身份，不是人工录入项。HBL 签发主体是独立业务事实，不适用该派生规则。
 - MBL 号码只允许 ASCII 字母和数字，规范化只把 ASCII 小写转大写；不得
-  `TrimSpace`、删除标点或猜测签发主体。
+  `TrimSpace`、删除标点或根据号码猜测船公司。
 - HBL 原号必须无损保存。`normalized_house_no` 只执行 Unicode NFC、去首尾
   Unicode 空白、ASCII 小写转大写；不得删除内部空白/标点、改变年份或前导零。
 - 单证结构只允许：
@@ -110,9 +119,10 @@
 
 | 条件 | 行为 |
 |------|------|
-| SE 首次保存缺 MBL、号码或签发方 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT` |
+| SE 创建或普通整单更新缺船公司、MBL 输入或 MBL 号 | 400 对应订单/MBL InvalidArgument，零写入 |
+| MBL 内容独立更新改变 carrier，或现有 Order/TE/MBL 身份不一致 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT`，零写入 |
 | MBL 含空格、标点、非 ASCII 字母或数字 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT` |
-| 同组织、同签发主体、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
+| 同组织、同船公司、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
 | 候选身份、版本或共享航程变化 | 409 对应 MBL 冲突错误，事务回滚 |
 | 单证聚合找不到活动 Link | 400 `SEA_DOCUMENT_NO_ACTIVE_LINK`，不得构造虚假默认响应 |
 | DIRECT 直接新增 HBL | 409 `SEA_DOCUMENT_DIRECT_ADD_HBL_BLOCKED` |
@@ -132,8 +142,9 @@
 
 ### 5. Good / Base / Bad Cases
 
-- Good：新建 SE 订单填写 MBL，不填写 HBL，保存为 `UNDETERMINED`；用户明确点击
-  “标记为直单”后才进入 `DIRECT`。
+- Good：新建 SE 订单选择船公司并填写 MBL 号，不填写 HBL；系统以船公司维护
+  MBL issuer，三方身份一致并保存为 `UNDETERMINED`。用户明确点击“标记为直单”
+  后才进入 `DIRECT`。
 - Good：用户取消 DIRECT，再新增 `  hbl/001  `；原号按输入保存，唯一检索键为
   `HBL/001`，结构在同一事务变为 `HOUSE`。
 - Good：HBL 选择“本公司”，订单属于部门，系统保存其最近公司/总部的 Organization
@@ -152,12 +163,13 @@
 
 ### 6. Tests Required
 
-- Biz：MBL 必填及字符规则；HBL 原号无损和规范化边界；SELF/CUSTOMER/OTHER
-  互斥；DIRECT 三态转换；内容长度、NaN/Inf、负数。
+- Biz：SE 船公司与 MBL 必填、issuer 从 carrier 派生及字符规则；HBL 原号无损和
+  规范化边界；SELF/CUSTOMER/OTHER 互斥；DIRECT 三态转换；内容长度、NaN/Inf、负数。
 - Service/HTTP：请求 UUID、枚举和必填对象转换；可空 UUID 不输出全零 UUID；静态
   路由不能被 `/orders/{id}` 吞掉；错误 reason 可供前端稳定识别。
-- Data/PostgreSQL：新建原子回滚、同主体同号并发唯一、不同主体同号可并存、一票
-  第二条 ACTIVE 被部分唯一索引拒绝。
+- Data/PostgreSQL：创建/单成员更正后 Order、TE、MBL 三方一致；共享 MBL 的 carrier
+  修改被原子阻断；同船公司同号并发唯一、不同船公司同号可并存；一票第二条 ACTIVE
+  被部分唯一索引拒绝。
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
   死锁；批量摘要必须按 `(order_id, active_master_bill_id)` 过滤历史 HBL。
 - Data/PostgreSQL：ReleasePod 的 MBL/HBL 当前归属、跨组织/跨订单拒绝、三引用
@@ -165,8 +177,10 @@
   以及操作日志失败后 HBL/记录/Link 全部回滚。
 - Data/PostgreSQL：从完整订单创建入口验证初始 HOUSE、HBL 数量和 `order.create`
   操作日志详情。
-- Frontend：候选请求失败阻止保存；DIRECT 无添加入口；取消后可添加；最后 HBL
-  删除确认；原号不 trim；不静默过滤；加载失败清空旧订单状态；区块默认展开。
+- Frontend：SE 船公司和 MBL 号必填且无 MBL 签发方输入；创建、详情和候选 payload
+  从 carrier 派生 issuer；共享 MBL 同时禁用 carrier 与 MBL 号；候选请求失败阻止
+  保存；DIRECT 无添加入口；取消后可添加；最后 HBL 删除确认；原号不 trim；不静默
+  过滤；加载失败清空旧订单状态；区块默认展开。
 - Frontend：无 `release_pod.read` 权限时零请求；有权限时 MBL/HBL 分组、空态和
   错误态；有关联记录时合并最后一张 HBL 与级联确认；取消时零删除请求；已回单
   展示阻断记录。
@@ -244,8 +258,10 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 - `targets[].client_target_key` 去首尾空白后非空，并在请求内唯一；重复键不得按数组顺序
   覆盖。
 - 每个结果键必须命中已定义目标；缺失目标不得按 `CURRENT` 处理。
-- `CURRENT` 不得夹带候选或新建字段；`CANDIDATE` 必须提供完整候选身份与版本；`NEW`
-  不得夹带候选字段，并满足新 MBL 的号码、主体、港口和日期规则。
+- `CURRENT` 不得夹带候选或新建字段；`CANDIDATE` 必须提供完整候选身份与版本，并在
+  锁内验证候选 MBL issuer 与候选运输执行 carrier 一致；`NEW` 不得夹带候选字段，
+  必须提供船公司并满足新 MBL 的号码、港口和日期规则。NEW 的运输执行 carrier 与
+  MBL issuer 均由同一船公司维护。
 - Preview 与 Execute 必须复用同一个 biz 输入校验；Execute 仍在事务锁内重验候选身份、
   版本、唯一性和共享航程。
 - Execute 事务前只允许校验不依赖数据库当前状态的结构规则、幂等键和必填预期版本；
@@ -266,14 +282,16 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 | 改配目标为 `CURRENT`、空值或未知类型 | 400 `SEA_ORDER_REASSIGNMENT_INVALID_ARGUMENT` |
 | CURRENT/NEW 夹带其他类型字段 | 对应 400 InvalidArgument |
 | 候选身份字段缺失或版本与 expected map 不一致 | 对应 400/409，Preview 与 Execute 一致 |
-| NEW 主体、港口、日期或 MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
+| NEW 缺船公司，或船公司、港口、日期、MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
+| CANDIDATE 的 MBL issuer 与运输执行 carrier 不一致 | 409 对应候选冲突错误，事务回滚 |
 | 两个不同幂等键以同一 Order 版本并发执行合法拆票 | 一个成功，另一个 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT` |
 | Execute 的 Order/Link/Allocation/HBL/箱货/费用版本过期 | 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT`，不得先返回可变业务状态 400 |
 
 ### 5. Good / Base / Bad Cases
 
-- Good：两张结果票都引用同一个已定义 `NEW_A`，服务端只创建一个目标 MBL 并分别建立
-  显式关系。
+- Good：两张结果票都引用同一个已定义 `NEW_A`，船公司默认沿用来源但允许用户修改；
+  服务端只创建一个目标 MBL，以该船公司同时维护目标 Order、运输执行和 MBL issuer，
+  再分别建立显式关系。
 - Base：结果引用 `CURRENT` 目标，顶层仍显式声明该键和类型，不靠空字符串表达沿用。
 - Bad：结果传入 `MISSING`，data 查询不到后自动沿用当前 MBL。
 - Bad：整体改配传 `UNKNOWN`，因候选 ID 为空而被猜成 NEW。
@@ -285,8 +303,9 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 - Biz：空键、重复键、未知引用、未知类型、CURRENT/NEW 夹带字段、CANDIDATE 缺字段与
   expected version 不一致；Preview/Execute 断言相同错误。
 - Service：畸形 DTO 转换后仍被领域校验拒绝，错误 reason 不变化。
-- Data/PostgreSQL：未知键不写入；共享 NEW 键只建一个 MBL；候选版本锁后变化返回 409；
-  Preview/Execute 对非法主体、港口、日期和重复 MBL 一致。
+- Data/PostgreSQL：未知键不写入；共享 NEW 键只建一个 MBL 且目标 Order、TE、MBL
+  三方身份一致；候选版本锁后变化或候选 MBL/TE 身份不一致返回 409；Preview/Execute
+  对缺少/非法船公司、港口、日期和重复 MBL 一致。
 - Data/PostgreSQL：完整拆票父测试至少 `-count=3`；每轮断言同版本并发一成功一
   `SEA_ORDER_SPLIT_VERSION_CONFLICT`，且无双成功、孤儿行或重复事件。
 

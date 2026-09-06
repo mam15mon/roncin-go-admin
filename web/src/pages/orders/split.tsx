@@ -58,7 +58,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-interface ResultConfig {
+export interface ResultConfig {
   key: string;
   role: 'ORIGINAL' | 'CREATED';
   title: string;
@@ -68,7 +68,6 @@ interface ResultConfig {
   candidateTeId?: string;
   candidateTeVersion?: string;
   masterNo?: string;
-  issuerPartnerId?: string;
   carrierId?: string;
   vesselName?: string;
   voyageNo?: string;
@@ -90,6 +89,44 @@ interface FeeCurrencySummary {
   baseline: Decimal;
   assignedByResult: Record<string, Decimal>;
   remaining: Decimal;
+}
+
+export function buildSeaOrderSplitTargets(
+  results: ResultConfig[],
+): API.SeaOrderSplitTargetInput[] {
+  return results.map((result) => {
+    const usesCurrentMasterBill = result.targetType === 'CURRENT';
+    return {
+      clientTargetKey: result.key,
+      targetType: result.targetType,
+      candidateId:
+        result.targetType === 'CANDIDATE' ? result.candidateId : undefined,
+      candidateVersion:
+        result.targetType === 'CANDIDATE' ? result.candidateVersion : undefined,
+      candidateTeId:
+        result.targetType === 'CANDIDATE' ? result.candidateTeId : undefined,
+      candidateTeVersion:
+        result.targetType === 'CANDIDATE'
+          ? result.candidateTeVersion
+          : undefined,
+      masterNo: usesCurrentMasterBill ? undefined : result.masterNo,
+      issuerPartnerId: usesCurrentMasterBill ? undefined : result.carrierId,
+      carrierId: usesCurrentMasterBill ? undefined : result.carrierId,
+      vesselName: usesCurrentMasterBill ? undefined : result.vesselName,
+      voyageNo: usesCurrentMasterBill ? undefined : result.voyageNo,
+      originLocationId: usesCurrentMasterBill
+        ? undefined
+        : result.originLocationId,
+      dischargeLocationId: usesCurrentMasterBill
+        ? undefined
+        : result.dischargeLocationId,
+      transitLocationId: usesCurrentMasterBill
+        ? undefined
+        : result.transitLocationId,
+      etd: usesCurrentMasterBill ? undefined : result.etd,
+      eta: usesCurrentMasterBill ? undefined : result.eta,
+    };
+  });
 }
 
 export function calculateFeeCurrencySummaries(
@@ -199,7 +236,7 @@ export default function SeaOrderSplitPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // 下拉选项
-  const [issuerOptions, setIssuerOptions] = useState<DefaultOptionType[]>([]);
+  const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
 
   const feeCurrencySummaries = useMemo(
     () =>
@@ -222,6 +259,16 @@ export default function SeaOrderSplitPage() {
       if (resp?.data) {
         const ctx = resp.data;
         setSplitContext(ctx);
+        if (ctx.currentMasterBill?.carrierId) {
+          setCarrierOptions([
+            {
+              label:
+                ctx.currentMasterBill.carrierName ||
+                ctx.currentMasterBill.carrierId,
+              value: ctx.currentMasterBill.carrierId,
+            },
+          ]);
+        }
 
         // 初始化结果
         const initialResults: ResultConfig[] = [
@@ -291,27 +338,8 @@ export default function SeaOrderSplitPage() {
   // 构造母单目标
   const buildTargets = (
     currentResults = results,
-  ): API.SeaOrderSplitTargetInput[] => {
-    return currentResults.map((r) => ({
-      clientTargetKey: r.key,
-      targetType: r.targetType,
-      candidateId: r.targetType === 'CANDIDATE' ? r.candidateId : undefined,
-      candidateVersion:
-        r.targetType === 'CANDIDATE' ? r.candidateVersion : undefined,
-      candidateTeId: r.targetType === 'CANDIDATE' ? r.candidateTeId : undefined,
-      candidateTeVersion:
-        r.targetType === 'CANDIDATE' ? r.candidateTeVersion : undefined,
-      masterNo: r.masterNo,
-      issuerPartnerId: r.issuerPartnerId,
-      carrierId: r.carrierId,
-      vesselName: r.vesselName,
-      voyageNo: r.voyageNo,
-      originLocationId: r.originLocationId,
-      dischargeLocationId: r.dischargeLocationId,
-      etd: r.etd,
-      eta: r.eta,
-    }));
-  };
+  ): API.SeaOrderSplitTargetInput[] =>
+    buildSeaOrderSplitTargets(currentResults);
 
   // 构造拆票结果明细
   const buildSplitResults = (
@@ -951,6 +979,11 @@ export default function SeaOrderSplitPage() {
                             updated[index] = {
                               ...res,
                               targetType: val,
+                              carrierId:
+                                val === 'CURRENT'
+                                  ? undefined
+                                  : res.carrierId ||
+                                    splitContext?.currentMasterBill?.carrierId,
                               allocationNotes: newAllocNotes,
                               candidateId: undefined,
                               candidateVersion: undefined,
@@ -1050,6 +1083,33 @@ export default function SeaOrderSplitPage() {
                         }}
                       >
                         <Space style={{ width: '100%' }}>
+                          <Select
+                            showSearch
+                            placeholder="选择船公司"
+                            style={{ width: 220 }}
+                            value={res.carrierId}
+                            options={carrierOptions}
+                            filterOption={false}
+                            onSearch={async (keyword) => {
+                              const options = await searchPartnersByRole(
+                                PARTNER_ROLES.CARRIER,
+                                keyword,
+                              );
+                              setCarrierOptions(options);
+                            }}
+                            onChange={(value) => {
+                              const updated = [...results];
+                              updated[index] = {
+                                ...res,
+                                carrierId: value,
+                                candidateId: undefined,
+                                candidateVersion: undefined,
+                                candidateTeId: undefined,
+                                candidateTeVersion: undefined,
+                              };
+                              setResults(updated);
+                            }}
+                          />
                           <Input
                             placeholder="输入已有草稿提单号 (MBL No)"
                             style={{ width: 260 }}
@@ -1079,8 +1139,8 @@ export default function SeaOrderSplitPage() {
                                 );
                                 return;
                               }
-                              if (!res.issuerPartnerId) {
-                                message.warning('请先选择签发方');
+                              if (!res.carrierId) {
+                                message.warning('请先选择船公司');
                                 return;
                               }
                               try {
@@ -1088,7 +1148,8 @@ export default function SeaOrderSplitPage() {
                                   await orderServiceMatchSeaMasterBillCandidate(
                                     {
                                       masterNo: res.masterNo,
-                                      issuerPartnerId: res.issuerPartnerId,
+                                      issuerPartnerId: res.carrierId,
+                                      carrierId: res.carrierId,
                                     },
                                   );
                                 if (resp?.matched && resp.candidate) {
@@ -1113,7 +1174,6 @@ export default function SeaOrderSplitPage() {
                                     candidateVersion: String(c.version),
                                     candidateTeId: te.id,
                                     candidateTeVersion: String(te.version),
-                                    issuerPartnerId: c.issuerPartnerId,
                                     carrierId: te?.carrierId,
                                     vesselName: te?.vesselName,
                                     voyageNo: te?.voyageNo,
@@ -1187,22 +1247,23 @@ export default function SeaOrderSplitPage() {
                           <Col span={6}>
                             <Select
                               showSearch
-                              placeholder="选择发单人 / 船代"
+                              placeholder="选择船公司"
                               style={{ width: '100%' }}
-                              value={res.issuerPartnerId}
-                              options={issuerOptions}
-                              onSearch={async (k) => {
+                              value={res.carrierId}
+                              options={carrierOptions}
+                              filterOption={false}
+                              onSearch={async (keyword) => {
                                 const opts = await searchPartnersByRole(
-                                  PARTNER_ROLES.SUPPLIER,
-                                  k,
+                                  PARTNER_ROLES.CARRIER,
+                                  keyword,
                                 );
-                                setIssuerOptions(opts);
+                                setCarrierOptions(opts);
                               }}
                               onChange={(val) => {
                                 const updated = [...results];
                                 updated[index] = {
                                   ...res,
-                                  issuerPartnerId: val,
+                                  carrierId: val,
                                 };
                                 setResults(updated);
                               }}

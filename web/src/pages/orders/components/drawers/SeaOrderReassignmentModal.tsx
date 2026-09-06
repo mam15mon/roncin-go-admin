@@ -48,8 +48,9 @@ interface SeaOrderReassignmentModalProps {
   onClose: () => void;
   onSuccess: () => void;
   searchCarriers?: (keyword?: string) => Promise<DefaultOptionType[]>;
-  searchIssuers?: (keyword?: string) => Promise<DefaultOptionType[]>;
   searchLocations?: (keyword?: string) => Promise<DefaultOptionType[]>;
+  initialCarrierId?: string;
+  initialCarrierName?: string;
 }
 
 export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps> = ({
@@ -61,8 +62,9 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
   onClose,
   onSuccess,
   searchCarriers,
-  searchIssuers,
   searchLocations,
+  initialCarrierId,
+  initialCarrierName,
 }) => {
   const [form] = Form.useForm();
   const { message, modal } = App.useApp();
@@ -82,7 +84,6 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
   // 选项缓存
   const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
-  const [issuerOptions, setIssuerOptions] = useState<DefaultOptionType[]>([]);
   const [originPortOptions, setOriginPortOptions] = useState<DefaultOptionType[]>([]);
   const [dischargePortOptions, setDischargePortOptions] = useState<DefaultOptionType[]>([]);
   const [transitPortOptions, setTransitPortOptions] = useState<DefaultOptionType[]>([]);
@@ -94,6 +95,17 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
     }
     if (open && orderId) {
       form.resetFields();
+      form.setFieldValue('carrierId', initialCarrierId);
+      setCarrierOptions(
+        initialCarrierId
+          ? [
+              {
+                label: initialCarrierName || initialCarrierId,
+                value: initialCarrierId,
+              },
+            ]
+          : [],
+      );
       setCandidateMatched(null);
       setPreviewData(null);
       setPreviewError(null);
@@ -101,7 +113,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
       triggerPreview();
     }
-  }, [disabled, open, orderId]);
+  }, [disabled, form, initialCarrierId, initialCarrierName, open, orderId]);
 
   // 实时触发比对预览
   const triggerPreview = async (customTarget?: API.SeaOrderReassignmentTargetInput) => {
@@ -120,7 +132,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
             ? String(candidateMatched.transportExecution.version)
             : undefined,
         masterNo: values.masterNo || '',
-        issuerPartnerId: values.issuerPartnerId,
+        issuerPartnerId: values.carrierId,
         carrierId: values.carrierId,
         vesselName: values.vesselName?.trim(),
         voyageNo: values.voyageNo?.trim(),
@@ -159,7 +171,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
       return;
     }
     const masterNo = form.getFieldValue('masterNo');
-    const issuerPartnerId = form.getFieldValue('issuerPartnerId');
+    const carrierId = form.getFieldValue('carrierId');
     if (!masterNo) {
       message.warning('请先输入提单号(MBL)');
       return;
@@ -168,14 +180,15 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
       message.warning('提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号');
       return;
     }
-    if (!issuerPartnerId) {
-      message.warning('请先选择签发方');
+    if (!carrierId) {
+      message.warning('请先选择船公司');
       return;
     }
     try {
       const resp = await orderServiceMatchSeaMasterBillCandidate({
         masterNo,
-        issuerPartnerId,
+        issuerPartnerId: carrierId,
+        carrierId,
       });
       if (resp?.matched && resp.candidate) {
         const c = resp.candidate;
@@ -189,7 +202,6 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         // 自动填充信息
         form.setFieldsValue({
           masterNo: c.masterNo,
-          issuerPartnerId: c.issuerPartnerId,
           carrierId: te?.carrierId,
           vesselName: te?.vesselName,
           voyageNo: te?.voyageNo,
@@ -207,7 +219,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           candidateTeId: te.id,
           candidateTeVersion: String(te.version),
           masterNo: c.masterNo,
-          issuerPartnerId: c.issuerPartnerId,
+          issuerPartnerId: te?.carrierId,
           carrierId: te?.carrierId,
           vesselName: te?.vesselName,
           voyageNo: te?.voyageNo,
@@ -226,7 +238,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         const nextTargetInput: API.SeaOrderReassignmentTargetInput = {
           targetType: 'NEW',
           masterNo: values.masterNo || '',
-          issuerPartnerId: values.issuerPartnerId,
+          issuerPartnerId: values.carrierId,
           carrierId: values.carrierId,
           vesselName: values.vesselName?.trim(),
           voyageNo: values.voyageNo?.trim(),
@@ -295,7 +307,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               candidateTeId: targetType === 'candidate' && candidateMatched?.transportExecution?.id ? candidateMatched.transportExecution.id : undefined,
               candidateTeVersion: targetType === 'candidate' && candidateMatched?.transportExecution?.version ? String(candidateMatched.transportExecution.version) : undefined,
               masterNo: values.masterNo || '',
-              issuerPartnerId: values.issuerPartnerId,
+              issuerPartnerId: values.carrierId,
               carrierId: values.carrierId,
               vesselName: values.vesselName?.trim(),
               voyageNo: values.voyageNo?.trim(),
@@ -464,7 +476,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               ]}
             >
               <Space.Compact style={{ width: '100%' }}>
-                <Input placeholder="请输入目标提单号" />
+                <Input
+                  placeholder="请输入目标提单号"
+                  onChange={() => setCandidateMatched(null)}
+                />
                 <Button type="primary" onClick={handleMatchCandidate}>
                   检查/匹配
                 </Button>
@@ -478,7 +493,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
             type="success"
             showIcon
             message={`已关联到现有共享母单：${candidateMatched.masterNo}`}
-            description={`发单人：${candidateMatched.issuerPartnerName || '无'}，当前已有 ${candidateMatched.memberCount} 票成员订单。`}
+            description={`船公司：${candidateMatched.transportExecution?.carrierName || '无'}，当前已有 ${candidateMatched.memberCount} 票成员订单。`}
             style={{ marginBottom: 16 }}
           />
         )}
@@ -486,32 +501,16 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
-              name="issuerPartnerId"
-              label="发单人 / 船代"
-              rules={[{ required: true, message: '请选择发单人' }]}
+              name="carrierId"
+              label="船公司"
+              rules={[{ required: true, message: '请选择船公司' }]}
             >
               <Select
                 showSearch
-                placeholder="搜索选择发单人"
-                filterOption={false}
-                options={issuerOptions}
-                onSearch={async (k) => {
-                  if (searchIssuers) {
-                    const opts = await searchIssuers(k);
-                    setIssuerOptions(opts);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="carrierId" label="承运人 / 船东">
-              <Select
-                showSearch
-                allowClear
-                placeholder="搜索选择船东"
+                placeholder="搜索选择船公司"
                 filterOption={false}
                 options={carrierOptions}
+                onChange={() => setCandidateMatched(null)}
                 onSearch={async (k) => {
                   if (searchCarriers) {
                     const opts = await searchCarriers(k);
@@ -521,12 +520,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               />
             </Form.Item>
           </Col>
-          <Col span={4}>
+          <Col span={8}>
             <Form.Item name="vesselName" label="船名">
               <Input placeholder="船名" />
             </Form.Item>
           </Col>
-          <Col span={4}>
+          <Col span={8}>
             <Form.Item name="voyageNo" label="航次">
               <Input placeholder="航次" />
             </Form.Item>

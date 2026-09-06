@@ -8,7 +8,24 @@ import (
 	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
+
+func TestSeaMasterBillCarrierConsistent(t *testing.T) {
+	carrierID := uuid.New()
+	otherCarrierID := uuid.New()
+	mbl := &ent.SeaMasterBill{IssuerPartnerID: carrierID}
+
+	if !seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{CarrierID: &carrierID}) {
+		t.Fatal("相同的 MBL 签发方与运输执行船公司应满足一致性")
+	}
+	if seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{CarrierID: &otherCarrierID}) {
+		t.Fatal("不同的 MBL 签发方与运输执行船公司不应满足一致性")
+	}
+	if seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{}) {
+		t.Fatal("缺少运输执行船公司不应满足一致性")
+	}
+}
 
 func TestSortUUIDs(t *testing.T) {
 	u1 := uuid.MustParse("018f0000-0000-7000-8000-000000000001")

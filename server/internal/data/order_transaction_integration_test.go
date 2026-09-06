@@ -40,6 +40,7 @@ type orderPostgresFixture struct {
 	data           *Data
 	organizationID uuid.UUID
 	partnerID      uuid.UUID
+	carrierID      uuid.UUID
 	actorID        uuid.UUID
 	suffix         string
 }
@@ -82,6 +83,11 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 		if created.SeaDocumentSummary == nil || created.SeaDocumentSummary.DocumentStructure != biz.SeaDocumentStructureHouse || created.SeaDocumentSummary.HouseBillCount != 1 {
 			t.Fatalf("创建后的单证摘要异常: %#v", created.SeaDocumentSummary)
+		}
+		if created.CarrierID == nil || *created.CarrierID != fixture.carrierID ||
+			created.SeaMasterBill == nil || created.SeaMasterBill.IssuerPartnerID != fixture.carrierID ||
+			created.SeaMasterBill.CarrierID == nil || *created.SeaMasterBill.CarrierID != fixture.carrierID {
+			t.Fatalf("订单、运输执行与 MBL 船公司未保持一致: %#v", created)
 		}
 		audit, err := data.db.AuditLog.Query().Where(
 			auditlogent.OrganizationIDEQ(fixture.organizationID),
@@ -206,7 +212,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 3. 调用候选匹配查询
-		matchResult, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.partnerID, "cosco999901", nil)
+		matchResult, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.carrierID, "cosco999901", nil)
 		if err != nil {
 			t.Fatalf("匹配主单候选失败: %v", err)
 		}
@@ -234,6 +240,27 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		_, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, order1.ID, order1.Version, order1UpdateAttempt)
 		if !errors.Is(err, biz.ErrSeaMasterBillCorrectionBlocked) {
 			t.Fatalf("多成员主单修改主单号应被拒绝, 实际: %v", err)
+		}
+
+		otherCarrier := fixture.createCarrier(ctx, "SHARED-OTHER-CARRIER-"+fixture.suffix)
+		order1CarrierUpdateAttempt := fixture.validInput()
+		order1CarrierUpdateAttempt.CarrierID = &otherCarrier.ID
+		order1CarrierUpdateAttempt.SeaMasterBillInput.MasterNo = "COSCO999901"
+		order1CarrierUpdateAttempt.SeaMasterBillInput.CorrectionReason = "尝试修改共享主单船公司"
+		_, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, order1.ID, order1.Version, order1CarrierUpdateAttempt)
+		if !errors.Is(err, biz.ErrSeaMasterBillCorrectionBlocked) {
+			t.Fatalf("多成员主单修改船公司应被拒绝, 实际: %v", err)
+		}
+		storedSharedOrder, err := data.db.Order.Get(ctx, order1.ID)
+		if err != nil {
+			t.Fatalf("读取共享主单成员订单: %v", err)
+		}
+		storedSharedMBL, err := data.db.SeaMasterBill.Get(ctx, order1.SeaMasterBill.MasterBillID)
+		if err != nil {
+			t.Fatalf("读取共享主单: %v", err)
+		}
+		if storedSharedOrder.CarrierID == nil || *storedSharedOrder.CarrierID != fixture.carrierID || storedSharedMBL.IssuerPartnerID != fixture.carrierID {
+			t.Fatalf("共享主单换船公司被阻断后存在部分写入: order=%#v mbl=%#v", storedSharedOrder, storedSharedMBL)
 		}
 
 		// 6. 创建单票 MBL 的独立订单 3
@@ -265,6 +292,23 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 		if updatedOrder3.SeaMasterBill == nil || updatedOrder3.SeaMasterBill.MasterNo != "MSCU888802" {
 			t.Fatalf("更新后订单3主单号未变更: %#v", updatedOrder3.SeaMasterBill)
+		}
+
+		// 9. 单成员 MBL 更换船公司时，Order、TE、MBL 必须在同一事务内同步。
+		newCarrier := fixture.createCarrier(ctx, "SINGLE-NEW-CARRIER-"+fixture.suffix)
+		order3CarrierUpdate := fixture.validInput()
+		order3CarrierUpdate.CarrierID = &newCarrier.ID
+		order3CarrierUpdate.SeaMasterBillInput.MasterNo = "MSCU888802"
+		order3CarrierUpdate.SeaMasterBillInput.ExpectedCandidateVersion = &updatedOrder3.SeaMasterBill.Version
+		order3CarrierUpdate.SeaMasterBillInput.CorrectionReason = "更换船公司"
+		updatedOrder3, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, order3.ID, updatedOrder3.Version, order3CarrierUpdate)
+		if err != nil {
+			t.Fatalf("单成员主单更换船公司失败: %v", err)
+		}
+		if updatedOrder3.CarrierID == nil || *updatedOrder3.CarrierID != newCarrier.ID ||
+			updatedOrder3.SeaMasterBill == nil || updatedOrder3.SeaMasterBill.IssuerPartnerID != newCarrier.ID ||
+			updatedOrder3.SeaMasterBill.CarrierID == nil || *updatedOrder3.SeaMasterBill.CarrierID != newCarrier.ID {
+			t.Fatalf("单成员更换船公司后三方不一致: %#v", updatedOrder3)
 		}
 	})
 
@@ -311,10 +355,10 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("不同签发方允许使用相同主单号且一票只能有一个活动关系", func(t *testing.T) {
+	t.Run("不同船公司允许使用相同主单号且一票只能有一个活动关系", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		ctx := context.Background()
-		issuer := fixture.createSupplier(ctx, "ISSUER-"+fixture.suffix)
+		carrier := fixture.createCarrier(ctx, "OTHER-CARRIER-"+fixture.suffix)
 		usecase := fixture.newUsecase()
 		masterNo := "SAME" + strings.ToUpper(fixture.suffix)
 
@@ -326,20 +370,20 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 		second := fixture.validInput()
 		second.SeaMasterBillInput.MasterNo = masterNo
-		second.SeaMasterBillInput.IssuerPartnerID = issuer.ID
+		second.CarrierID = &carrier.ID
 		if _, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, second); err != nil {
-			t.Fatalf("不同签发方使用相同主单号: %v", err)
+			t.Fatalf("不同船公司使用相同主单号: %v", err)
 		}
 		if count := fixture.mustCountMasterBills(ctx); count != 2 {
-			t.Fatalf("不同签发方同号主单数 = %d，期望 2", count)
+			t.Fatalf("不同船公司同号主单数 = %d，期望 2", count)
 		}
 
 		masterBill, err := data.db.SeaMasterBill.Query().Where(
 			seamasterbill.OrganizationIDEQ(fixture.organizationID),
-			seamasterbill.IssuerPartnerIDEQ(issuer.ID),
+			seamasterbill.IssuerPartnerIDEQ(carrier.ID),
 		).Only(ctx)
 		if err != nil {
-			t.Fatalf("读取第二签发方主单: %v", err)
+			t.Fatalf("读取第二船公司主单: %v", err)
 		}
 		_, err = data.db.SeaMasterBillOrderLink.Create().
 			SetOrganizationID(fixture.organizationID).
@@ -569,22 +613,22 @@ func (f *orderPostgresFixture) mustCountActiveMasterBillLinks(ctx context.Contex
 	return count
 }
 
-func (f *orderPostgresFixture) createSupplier(ctx context.Context, code string) *ent.Partner {
+func (f *orderPostgresFixture) createCarrier(ctx context.Context, code string) *ent.Partner {
 	partner, err := f.data.db.Partner.Create().
 		SetOrganizationID(f.organizationID).
 		SetCode(code).
-		SetLegalName("订单事务测试签发方-" + f.suffix).
-		SetNormalizedName("订单事务测试签发方-" + f.suffix).
+		SetLegalName("订单事务测试船公司-" + code).
+		SetNormalizedName("订单事务测试船公司-" + code).
 		Save(ctx)
 	if err != nil {
-		f.t.Fatalf("创建测试签发方: %v", err)
+		f.t.Fatalf("创建测试船公司: %v", err)
 	}
 	if _, err := f.data.db.PartnerRole.Create().
 		SetPartnerID(partner.ID).
-		SetRoleType(partnerroleent.RoleTypeSupplier).
+		SetRoleType(partnerroleent.RoleTypeCarrier).
 		SetEnabled(true).
 		Save(ctx); err != nil {
-		f.t.Fatalf("创建测试签发方角色: %v", err)
+		f.t.Fatalf("创建测试船公司角色: %v", err)
 	}
 	return partner
 }
@@ -631,6 +675,23 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试供应商角色: %v", err)
 	}
+	carrier, err := data.db.Partner.Create().
+		SetOrganizationID(organization.ID).
+		SetCode("CARRIER-" + suffix).
+		SetLegalName("订单事务测试船公司-" + suffix).
+		SetNormalizedName("订单事务测试船公司-" + suffix).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试船公司: %v", err)
+	}
+	fixture.carrierID = carrier.ID
+	if _, err = data.db.PartnerRole.Create().
+		SetPartnerID(carrier.ID).
+		SetRoleType(partnerroleent.RoleTypeCarrier).
+		SetEnabled(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试船公司角色: %v", err)
+	}
 
 	actor, err := data.db.User.Create().
 		SetDisplayName("订单事务测试用户-" + suffix).
@@ -669,6 +730,7 @@ func (f *orderPostgresFixture) newUsecase() *biz.OrderUsecase {
 func (f *orderPostgresFixture) validInput() *biz.Order {
 	return &biz.Order{
 		CustomerID:     f.partnerID,
+		CarrierID:      &f.carrierID,
 		BusinessType:   biz.OrderBusinessSE,
 		TradeDirection: biz.OrderTradeExport,
 		TradeTerm:      biz.OrderTradeFOB,

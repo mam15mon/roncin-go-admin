@@ -49,6 +49,8 @@ describe('SeaOrderReassignmentModal', () => {
           open={true}
           orderId="order-123"
           orderNo="SE20260903001"
+          initialCarrierId="carrier-1"
+          initialCarrierName="中远海运"
           onClose={vi.fn()}
           onSuccess={vi.fn()}
         />
@@ -61,6 +63,9 @@ describe('SeaOrderReassignmentModal', () => {
       expect(screen.getByText('匹配已有共享母单')).toBeInTheDocument();
       expect(screen.getByText('改配原因说明')).toBeInTheDocument();
       expect(screen.getByText('责任归属类型')).toBeInTheDocument();
+      expect(screen.getByText('船公司')).toBeInTheDocument();
+      expect(screen.queryByText('发单人 / 船代')).not.toBeInTheDocument();
+      expect(screen.queryByText('承运人 / 船东')).not.toBeInTheDocument();
     });
   });
 });

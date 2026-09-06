@@ -54,7 +54,6 @@ export type CreateOrderFormValues = {
   shippingDocuments?: API.OrderShippingDocumentInput[];
   containerRequests?: API.OrderContainerRequestInput[];
   seaMasterBillMasterNo?: string;
-  seaMasterBillIssuerPartnerId?: string;
   seaMasterBillCandidateId?: string;
   seaMasterBillExpectedCandidateVersion?: number | string;
   seaMasterBillCorrectionReason?: string;
@@ -112,14 +111,16 @@ export function buildCreateOrderPayload(
 
   let seaMasterBill: API.SeaMasterBillInput | undefined;
   if (values.seaMasterBill) {
-    seaMasterBill = values.seaMasterBill;
-  } else if (
-    values.seaMasterBillMasterNo ||
-    values.seaMasterBillIssuerPartnerId
-  ) {
+    seaMasterBill = isSea
+      ? {
+          ...values.seaMasterBill,
+          issuerPartnerId: values.carrierId || '',
+        }
+      : values.seaMasterBill;
+  } else if (isSea && (values.seaMasterBillMasterNo || values.carrierId)) {
     seaMasterBill = {
       masterNo: values.seaMasterBillMasterNo || '',
-      issuerPartnerId: values.seaMasterBillIssuerPartnerId || '',
+      issuerPartnerId: values.carrierId || '',
       candidateId: values.seaMasterBillCandidateId || undefined,
       expectedCandidateVersion:
         values.seaMasterBillExpectedCandidateVersion !== undefined &&

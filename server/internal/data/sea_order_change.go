@@ -507,6 +507,11 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 				candidateTE.Version != *target.CandidateTEVersion {
 				return nil, biz.ErrSeaOrderSplitVersionConflict
 			}
+			if !seaMasterBillCarrierConsistent(candidate, candidateTE) {
+				return nil, biz.MetadataError(biz.ErrSeaOrderSplitBlocked, map[string]string{
+					"reason": "CANDIDATE_MBL_CARRIER_INCONSISTENT",
+				})
+			}
 			if candidate.IssuerPartnerID != *target.IssuerPartnerID {
 				return nil, biz.MetadataError(biz.ErrSeaOrderSplitBlocked, map[string]string{
 					"reason": "CANDIDATE_MBL_INPUT_MISMATCH",
@@ -1109,6 +1114,11 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				candTE := lockedTEs[candMBL.TransportExecutionID]
 				if candTE == nil {
 					return biz.ErrSeaTransportExecutionNotFound
+				}
+				if !seaMasterBillCarrierConsistent(candMBL, candTE) {
+					return biz.MetadataError(biz.ErrSeaOrderSplitBlocked, map[string]string{
+						"reason": "CANDIDATE_MBL_CARRIER_INCONSISTENT",
+					})
 				}
 				if t.CandidateTEVersion == nil || candTE.Version != *t.CandidateTEVersion {
 					return biz.ErrSeaOrderSplitVersionConflict
@@ -2823,6 +2833,11 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			candidateTE.Version != *input.Target.CandidateTEVersion {
 			return nil, biz.ErrSeaOrderReassignmentVersionConflict
 		}
+		if !seaMasterBillCarrierConsistent(candMBL, candidateTE) {
+			return nil, biz.MetadataError(biz.ErrSeaOrderReassignmentBlocked, map[string]string{
+				"reason": "CANDIDATE_MBL_CARRIER_INCONSISTENT",
+			})
+		}
 		if candMBL.IssuerPartnerID != *input.Target.IssuerPartnerID {
 			return nil, biz.MetadataError(biz.ErrSeaOrderReassignmentBlocked, map[string]string{
 				"reason": "CANDIDATE_MBL_INPUT_MISMATCH",
@@ -3162,6 +3177,11 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			targetTE = lockedTEs[targetTEID]
 			if targetTE == nil {
 				return biz.ErrSeaTransportExecutionNotFound
+			}
+			if !seaMasterBillCarrierConsistent(targetMBL, targetTE) {
+				return biz.MetadataError(biz.ErrSeaOrderReassignmentBlocked, map[string]string{
+					"reason": "CANDIDATE_MBL_CARRIER_INCONSISTENT",
+				})
 			}
 			if input.Target.CandidateTEVersion == nil || targetTE.Version != *input.Target.CandidateTEVersion {
 				return biz.ErrSeaOrderReassignmentVersionConflict
@@ -3831,35 +3851,22 @@ func validateNewMasterBillInput(ctx context.Context, client *ent.Client, organiz
 		return "", err
 	}
 
-	if target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+	if target.CarrierID == nil || *target.CarrierID == uuid.Nil {
 		return "", biz.ErrSeaMasterBillInvalidArgument
 	}
-	issuerExists, err := client.PartnerRole.Query().Where(
-		partnerroleent.PartnerIDEQ(*target.IssuerPartnerID),
-		partnerroleent.RoleTypeIn(partnerroleent.RoleTypeSupplier, partnerroleent.RoleTypeCarrier),
+	carrierID := *target.CarrierID
+	target.IssuerPartnerID = &carrierID
+	carrierExists, err := client.PartnerRole.Query().Where(
+		partnerroleent.PartnerIDEQ(carrierID),
+		partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeCarrier),
 		partnerroleent.EnabledEQ(true),
 		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)),
 	).Exist(ctx)
 	if err != nil {
 		return "", err
 	}
-	if !issuerExists {
+	if !carrierExists {
 		return "", biz.ErrSeaMasterBillInvalidArgument
-	}
-
-	if target.CarrierID != nil && *target.CarrierID != uuid.Nil {
-		carrierExists, err := client.PartnerRole.Query().Where(
-			partnerroleent.PartnerIDEQ(*target.CarrierID),
-			partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeCarrier),
-			partnerroleent.EnabledEQ(true),
-			partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)),
-		).Exist(ctx)
-		if err != nil {
-			return "", err
-		}
-		if !carrierExists {
-			return "", biz.ErrSeaMasterBillInvalidArgument
-		}
 	}
 
 	portIDs := make([]uuid.UUID, 0, 3)
@@ -3895,7 +3902,7 @@ func validateNewMasterBillInput(ctx context.Context, client *ent.Client, organiz
 
 	existingMBL, err := client.SeaMasterBill.Query().Where(
 		seamasterbillent.OrganizationIDEQ(organizationID),
-		seamasterbillent.IssuerPartnerIDEQ(*target.IssuerPartnerID),
+		seamasterbillent.IssuerPartnerIDEQ(carrierID),
 		seamasterbillent.NormalizedMasterNoEQ(normalizedMasterNo),
 	).Exist(ctx)
 	if err != nil {
@@ -3920,9 +3927,7 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 		SetVesselName(target.VesselName).
 		SetVoyageNo(target.VoyageNo).
 		SetVersion(1)
-	if target.CarrierID != nil && *target.CarrierID != uuid.Nil {
-		teBuilder.SetCarrierID(*target.CarrierID)
-	}
+	teBuilder.SetCarrierID(*target.CarrierID)
 	if target.OriginLocationID != nil && *target.OriginLocationID != uuid.Nil {
 		teBuilder.SetOriginLocationID(*target.OriginLocationID)
 	}
@@ -3947,7 +3952,7 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 	mbl, err := tx.SeaMasterBill.Create().
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
-		SetIssuerPartnerID(*target.IssuerPartnerID).
+		SetIssuerPartnerID(*target.CarrierID).
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(normalizedMasterNo).
 		SetNormalizedMasterNo(normalizedMasterNo).
@@ -3959,6 +3964,11 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 	}
 
 	return mbl, te, nil
+}
+
+func seaMasterBillCarrierConsistent(mbl *ent.SeaMasterBill, execution *ent.SeaTransportExecution) bool {
+	return mbl != nil && execution != nil && execution.CarrierID != nil &&
+		mbl.IssuerPartnerID == *execution.CarrierID
 }
 
 func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.UUID, mbl *ent.SeaMasterBill) (*biz.SeaMasterBillSummary, error) {

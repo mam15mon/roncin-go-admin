@@ -882,19 +882,15 @@ export function SeaDocumentSectionComponent({
         >
           {isDetail && mblDetail ? (
             <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
-              <Col xs={24} md={6}>
+              <Col xs={24} md={8}>
                 <Text type="secondary">主单号：</Text>
                 <Text strong>{mblDetail.masterNo}</Text>
               </Col>
-              <Col xs={24} md={6}>
-                <Text type="secondary">签发主体：</Text>
-                <Text strong>{mblDetail.issuerPartnerName || '-'}</Text>
-              </Col>
-              <Col xs={24} md={6}>
+              <Col xs={24} md={8}>
                 <Text type="secondary">共享订单数：</Text>
                 <Tag color="blue">{mblDetail.memberCount ?? 1} 票</Tag>
               </Col>
-              <Col xs={24} md={6}>
+              <Col xs={24} md={8}>
                 <Text type="secondary">主单版本：</Text>
                 <Tag>v{mblDetail.version}</Tag>
               </Col>

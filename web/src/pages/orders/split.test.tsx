@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,7 +6,10 @@ import { OrderBusinessType } from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import * as changeService from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
-import SeaOrderSplitPage, { calculateFeeCurrencySummaries } from './split';
+import SeaOrderSplitPage, {
+  buildSeaOrderSplitTargets,
+  calculateFeeCurrencySummaries,
+} from './split';
 
 // Mock umi hooks
 vi.mock('@umijs/max', () => ({
@@ -51,6 +54,12 @@ describe('SeaOrderSplitPage', () => {
       documentStructure: 'HOUSE',
       flowStatus: 'BOOKED',
       bookingNotes: '测试订舱备注',
+      currentMasterBill: {
+        id: 'mbl-current',
+        masterNo: 'COSCO123456',
+        carrierId: 'carrier-1',
+        carrierName: '中远海运',
+      },
       houseBills: [
         {
           id: 'hb-1',
@@ -199,6 +208,13 @@ describe('SeaOrderSplitPage', () => {
       expect(screen.getByText('海运费')).toBeInTheDocument();
       expect(screen.getByText('订舱单.pdf')).toBeInTheDocument();
       expect(screen.getByText('确认执行拆票')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByLabelText('录入新母单')[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText('中远海运')).toBeInTheDocument();
+      expect(screen.queryByText('选择发单人 / 船代')).not.toBeInTheDocument();
     });
   });
 
@@ -353,6 +369,55 @@ describe('SeaOrderSplitPage', () => {
     // 相同 payload 重复计算哈希绝对稳定
     const hash1Repeat = computeCanonicalSha256(payload1);
     expect(hash1).toBe(hash1Repeat);
+  });
+
+  it('新母单目标从船公司派生签发方，沿用当前母单不夹带目标字段', () => {
+    expect(
+      buildSeaOrderSplitTargets([
+        {
+          key: 'current',
+          role: 'ORIGINAL',
+          title: '原票',
+          targetType: 'CURRENT',
+          masterNo: 'SHOULDNOTSEND',
+          carrierId: 'SHOULDNOTSEND',
+        },
+        {
+          key: 'new',
+          role: 'CREATED',
+          title: '新票',
+          targetType: 'NEW',
+          masterNo: 'COSCO123456',
+          carrierId: 'carrier-1',
+        },
+      ]),
+    ).toEqual([
+      {
+        clientTargetKey: 'current',
+        targetType: 'CURRENT',
+        candidateId: undefined,
+        candidateVersion: undefined,
+        candidateTeId: undefined,
+        candidateTeVersion: undefined,
+        masterNo: undefined,
+        issuerPartnerId: undefined,
+        carrierId: undefined,
+        vesselName: undefined,
+        voyageNo: undefined,
+        originLocationId: undefined,
+        dischargeLocationId: undefined,
+        transitLocationId: undefined,
+        etd: undefined,
+        eta: undefined,
+      },
+      expect.objectContaining({
+        clientTargetKey: 'new',
+        targetType: 'NEW',
+        masterNo: 'COSCO123456',
+        carrierId: 'carrier-1',
+        issuerPartnerId: 'carrier-1',
+      }),
+    ]);
   });
 
   it('使用十进制精度汇总各币种费用，不把 0.1 + 0.2 计算成浮点误差', () => {

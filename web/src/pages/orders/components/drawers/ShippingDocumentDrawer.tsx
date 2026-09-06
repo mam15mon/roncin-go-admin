@@ -269,12 +269,6 @@ const ShippingDocumentDrawer = forwardRef<
               <span>
                 当前订单关联海运主单 (MBL)：
                 <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>
-                {order?.seaMasterBill?.issuerPartnerName && (
-                  <span>
-                    {' '}
-                    (实际签发主体: {order.seaMasterBill.issuerPartnerName})
-                  </span>
-                )}
               </span>
             }
             style={{ marginBottom: 16 }}

@@ -18,7 +18,6 @@ import React, { useEffect, useState } from 'react';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
-import { searchPartnerOptions } from '@/utils/options';
 import { containerOwnershipOptions } from '../../../common';
 import {
   OrderContainerRequestFields,
@@ -52,17 +51,17 @@ export function splitSeaVesselVoyage(value?: string) {
 export function SeaMasterBillFields({
   disabled = false,
   isDetail = false,
-  searchIssuers,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
-  searchIssuers?: (keyword?: string) => Promise<SelectOption[]>;
 }) {
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
-  const issuerPartnerId = Form.useWatch('seaMasterBillIssuerPartnerId', form);
   const candidateId = Form.useWatch('seaMasterBillCandidateId', form);
-  const existingMbl = Form.useWatch('seaMasterBill', form) as
+  const existingMbl = Form.useWatch('seaMasterBill', {
+    form,
+    preserve: true,
+  }) as
     | API.SeaMasterBillSummary
     | undefined;
 
@@ -90,11 +89,11 @@ export function SeaMasterBillFields({
     !!existingMbl &&
     (existingMbl.memberCount ?? 0) <= 1 &&
     ((masterNo && masterNo !== existingMbl.masterNo) ||
-      (issuerPartnerId && issuerPartnerId !== existingMbl.issuerPartnerId));
+      (carrierId && carrierId !== existingMbl.carrierId));
 
   useEffect(() => {
     const rawMasterNo = masterNo || '';
-    const partnerId = issuerPartnerId;
+    const partnerId = carrierId;
 
     if (!rawMasterNo || !partnerId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
       setCandidate(null);
@@ -105,12 +104,12 @@ export function SeaMasterBillFields({
       return;
     }
 
-    // 若详情页未变更主单号与签发方，无需展示候选关联
+    // 若详情页未变更主单号与船公司，无需展示候选关联
     if (
       isDetail &&
       existingMbl &&
       existingMbl.masterNo === rawMasterNo &&
-      existingMbl.issuerPartnerId === partnerId
+      existingMbl.carrierId === partnerId
     ) {
       setCandidate(null);
       setConflicts([]);
@@ -185,7 +184,6 @@ export function SeaMasterBillFields({
     };
   }, [
     masterNo,
-    issuerPartnerId,
     originLocationId,
     dischargeLocationId,
     transitLocationId,
@@ -217,7 +215,7 @@ export function SeaMasterBillFields({
           disabled={disabled || isMultiMemberLocked}
           tooltip={
             isMultiMemberLocked
-              ? '该主单已关联多票订单，禁止直接在此修改主单号或签发主体'
+              ? '该主单已关联多票订单，禁止直接在此修改主单号或船公司'
               : undefined
           }
           rules={[
@@ -257,37 +255,16 @@ export function SeaMasterBillFields({
         />
       </Col>
 
-      <Col className="col-5">
-        <ProFormSearchableSelect
-          name="seaMasterBillIssuerPartnerId"
-          label="实际签发/承运主体"
-          placeholder="请选择主单签发方"
-          disabled={disabled || isMultiMemberLocked}
-          tooltip={
-            isMultiMemberLocked
-              ? '该主单已关联多票订单，禁止直接在此修改主单号或签发主体'
-              : undefined
-          }
-          rules={[{ required: true, message: '请选择主单签发/承运主体' }]}
-          request={async ({ keyWords }) => {
-            if (searchIssuers) {
-              return searchIssuers(keyWords);
-            }
-            return searchPartnerOptions(keyWords);
-          }}
-        />
-      </Col>
-
       {isSingleMemberCorrection && (
         <Col className="col-5">
           <ProFormText
             name="seaMasterBillCorrectionReason"
             label="主单更正原因"
-            placeholder="请输入主单号/签发方更正原因"
+            placeholder="请输入主单号/船公司更正原因"
             rules={[
               {
                 required: true,
-                message: '单票修改主单号或签发方必须填写更正原因',
+                message: '单票修改主单号或船公司必须填写更正原因',
               },
             ]}
           />
@@ -316,9 +293,9 @@ export function SeaMasterBillFields({
                 }}
               >
                 <span style={{ fontWeight: 600, color: '#389e0d' }}>
-                  🔍 匹配到已有共享 MBL：{candidate.masterNo} (签发方:{' '}
-                  {candidate.issuerPartnerName} | 版本: v{candidate.version} |
-                  成员: {candidate.memberCount} 票)
+                  🔍 匹配到已有共享 MBL：{candidate.masterNo} (船公司:{' '}
+                  {candidate.transportExecution?.carrierName || '-'} | 版本: v
+                  {candidate.version} | 成员: {candidate.memberCount} 票)
                 </span>
                 <Checkbox
                   checked={isConfirmed}
@@ -609,7 +586,6 @@ export function buildSeaTransportSection(props: TemplateProps) {
     locationOptions,
     searchLocations,
     containerSpecOptions,
-    searchIssuers,
     isDetail,
   } = props;
 
@@ -618,11 +594,8 @@ export function buildSeaTransportSection(props: TemplateProps) {
     title: '配舱信息',
     content: (
       <>
-        {/* 第 1 行：海运出口共享 MBL 主单号与实际签发主体 */}
-        <SeaMasterBillFields
-          isDetail={isDetail}
-          searchIssuers={searchIssuers}
-        />
+        {/* 第 1 行：海运出口共享 MBL 主单号；签发方由船公司自动派生 */}
+        <SeaMasterBillFields isDetail={isDetail} />
 
         {/* 第 2 行：箱型箱量；HBL 只在独立“提单信息”区块维护 */}
         <SeaContainerPlanFields options={containerSpecOptions} />

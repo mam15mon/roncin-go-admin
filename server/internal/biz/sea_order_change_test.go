@@ -344,6 +344,7 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 			TargetType:      "NEW",
 			MasterNo:        "NEWMBL",
 			IssuerPartnerID: &partnerID,
+			CarrierID:       &partnerID,
 		},
 		Reason:               "客户要求改配",
 		ResponsibilityType:   "CUSTOMER",
@@ -560,18 +561,68 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 		},
 	}
 	reassignUC := NewSeaOrderChangeUsecase(reassignRepo, &mockTransactor{})
+	reassignCarrierID := uuid.New()
 	_, err = reassignUC.ExecuteReassignment(context.Background(), orgID, actorID, &SeaOrderReassignmentInput{
 		OrderID:              orderID,
 		IdempotencyKey:       "reassign-lookup-error",
 		RequestFingerprint:   "reassign-lookup-error-fingerprint",
 		Reason:               "船期调整",
 		ResponsibilityType:   ResponsibilityTypeCarrier,
-		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001"},
+		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001", CarrierID: &reassignCarrierID},
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("reassignment recovery must propagate lookup error, got %v", err)
+	}
+}
+
+func TestSeaOrderChangeUsecaseNormalizesMBLIssuerFromCarrier(t *testing.T) {
+	organizationID := uuid.New()
+	orderID := uuid.New()
+	carrierID := uuid.New()
+	otherIssuerID := uuid.New()
+	repo := &mockSeaOrderChangeRepo{
+		previewSplitFunc: func(_ context.Context, _ uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error) {
+			if input.Targets[0].IssuerPartnerID == nil || *input.Targets[0].IssuerPartnerID != carrierID {
+				t.Fatalf("拆票 MBL issuer 未从 carrier 规范化: %+v", input.Targets[0])
+			}
+			return &SeaOrderSplitPreview{IsValid: true, ConservationPassed: true}, nil
+		},
+		previewReasFunc: func(_ context.Context, _ uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error) {
+			if input.Target.IssuerPartnerID == nil || *input.Target.IssuerPartnerID != carrierID {
+				t.Fatalf("改配 MBL issuer 未从 carrier 规范化: %+v", input.Target)
+			}
+			return &SeaOrderReassignmentPreview{IsValid: true}, nil
+		},
+	}
+	usecase := NewSeaOrderChangeUsecase(repo, &mockTransactor{})
+
+	_, err := usecase.PreviewSplit(context.Background(), organizationID, &SeaOrderSplitInput{
+		OrderID: orderID,
+		Targets: []*SeaOrderSplitTargetInput{{
+			ClientTargetKey: "new-target", TargetType: SplitTargetTypeNew,
+			MasterNo: "NEWSPLITMBL001", IssuerPartnerID: &otherIssuerID, CarrierID: &carrierID,
+			VesselName: "TEST VESSEL", VoyageNo: "001E",
+		}},
+		Results: []*SeaOrderSplitResultInput{
+			{ClientResultKey: "original", ResultRole: ResultRoleOriginal, ClientTargetKey: "new-target"},
+			{ClientResultKey: "created", ResultRole: ResultRoleCreated, ClientTargetKey: "new-target"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("PreviewSplit error = %v", err)
+	}
+
+	_, err = usecase.PreviewReassignment(context.Background(), organizationID, &SeaOrderReassignmentInput{
+		OrderID: orderID,
+		Target: &SeaOrderReassignmentTargetInput{
+			TargetType: SplitTargetTypeNew, MasterNo: "NEWREASSIGNMBL001",
+			IssuerPartnerID: &otherIssuerID, CarrierID: &carrierID,
+		},
+	})
+	if err != nil {
+		t.Fatalf("PreviewReassignment error = %v", err)
 	}
 }
 
@@ -911,7 +962,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 			wantError:            true,
 		},
 		{
-			name: "CANDIDATE缺失IssuerPartnerID被阻断",
+			name: "CANDIDATE缺失CarrierID被阻断",
 			target: &SeaOrderReassignmentTargetInput{
 				TargetType:         SplitTargetTypeCandidate,
 				CandidateID:        &candMBLID,
@@ -942,6 +993,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				TargetType:      SplitTargetTypeNew,
 				MasterNo:        "NEWMBL001",
 				IssuerPartnerID: &issuerID,
+				CarrierID:       &issuerID,
 			},
 			wantError: false,
 		},
@@ -954,6 +1006,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
 				IssuerPartnerID:    &issuerID,
+				CarrierID:          &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),

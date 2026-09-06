@@ -493,7 +493,6 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			return ErrSeaOrderSplitInvalidArgument
 		}
 		seenTargetKeys[targetKey] = target
-
 		switch target.TargetType {
 		case SplitTargetTypeCurrent:
 			if target.CandidateID != nil ||
@@ -517,9 +516,11 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if target.CandidateID == nil || *target.CandidateID == uuid.Nil ||
 				target.CandidateVersion == nil || *target.CandidateVersion == 0 ||
 				target.CandidateTEID == nil || *target.CandidateTEID == uuid.Nil ||
-				target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 ||
-				target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+				target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 {
 				return ErrSeaOrderSplitInvalidArgument
+			}
+			if err := normalizeSplitTargetIssuerFromCarrier(target); err != nil {
+				return err
 			}
 			if expected != nil {
 				if expected.CandidateMBLVersions == nil ||
@@ -540,8 +541,8 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if _, err := ValidateAndNormalizeSeaMasterNo(target.MasterNo); err != nil {
 				return err
 			}
-			if target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
-				return ErrSeaOrderSplitInvalidArgument
+			if err := normalizeSplitTargetIssuerFromCarrier(target); err != nil {
+				return err
 			}
 			if strings.TrimSpace(target.VesselName) == "" || strings.TrimSpace(target.VoyageNo) == "" {
 				return ErrSeaOrderSplitInvalidArgument
@@ -573,6 +574,27 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 	return nil
 }
 
+func normalizeSplitTargetIssuerFromCarrier(target *SeaOrderSplitTargetInput) error {
+	if target == nil || target.TargetType == SplitTargetTypeCurrent {
+		return nil
+	}
+	if target.CarrierID == nil || *target.CarrierID == uuid.Nil {
+		return ErrSeaOrderSplitInvalidArgument
+	}
+	carrierID := *target.CarrierID
+	target.IssuerPartnerID = &carrierID
+	return nil
+}
+
+func normalizeReassignmentTargetIssuerFromCarrier(target *SeaOrderReassignmentTargetInput) error {
+	if target == nil || target.CarrierID == nil || *target.CarrierID == uuid.Nil {
+		return ErrSeaOrderReassignmentInvalidArgument
+	}
+	carrierID := *target.CarrierID
+	target.IssuerPartnerID = &carrierID
+	return nil
+}
+
 func validateReassignmentCandidateTarget(
 	target *SeaOrderReassignmentTargetInput,
 	expectedMBLVersion *uint64,
@@ -587,7 +609,7 @@ func validateReassignmentCandidateTarget(
 			target.CandidateVersion == nil || *target.CandidateVersion == 0 ||
 			target.CandidateTEID == nil || *target.CandidateTEID == uuid.Nil ||
 			target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 ||
-			target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+			target.CarrierID == nil || *target.CarrierID == uuid.Nil {
 			return ErrSeaOrderReassignmentInvalidArgument
 		}
 		if expectedMBLVersion != nil && (*expectedMBLVersion == 0 || *expectedMBLVersion != *target.CandidateVersion) {
@@ -732,6 +754,9 @@ func (uc *SeaOrderChangeUsecase) PreviewReassignment(ctx context.Context, organi
 	if organizationID == uuid.Nil || input == nil || input.OrderID == uuid.Nil || input.Target == nil {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
 	}
+	if err := normalizeReassignmentTargetIssuerFromCarrier(input.Target); err != nil {
+		return nil, err
+	}
 	if err := validateReassignmentCandidateTarget(input.Target, nil, nil); err != nil {
 		return nil, err
 	}
@@ -747,6 +772,9 @@ func (uc *SeaOrderChangeUsecase) ExecuteReassignment(ctx context.Context, organi
 	}
 	if input.ExpectedOrderVersion == 0 || input.ExpectedLinkVersion == 0 {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	if err := normalizeReassignmentTargetIssuerFromCarrier(input.Target); err != nil {
+		return nil, err
 	}
 	if input.Target.TargetType == SplitTargetTypeCandidate &&
 		(input.ExpectedCandidateMBLVersion == nil || input.ExpectedCandidateTEVersion == nil) {

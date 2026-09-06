@@ -143,7 +143,6 @@ export function buildInitialValues(
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
         ?.organizationId,
     seaMasterBillMasterNo: order.seaMasterBill?.masterNo,
-    seaMasterBillIssuerPartnerId: order.seaMasterBill?.issuerPartnerId,
     seaMasterBillCandidateId: undefined,
     seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,
     seaMasterBillCorrectionReason: undefined,
@@ -265,10 +264,10 @@ export function buildUpdatePayload(
         quantity: request.quantity as number,
       })),
     seaMasterBill:
-      values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId
+      isSea && (values.seaMasterBillMasterNo || values.carrierId)
         ? {
             masterNo: values.seaMasterBillMasterNo || '',
-            issuerPartnerId: values.seaMasterBillIssuerPartnerId || '',
+            issuerPartnerId: values.carrierId || '',
             candidateId: values.seaMasterBillCandidateId || undefined,
             expectedCandidateVersion:
               values.seaMasterBillExpectedCandidateVersion !== undefined &&

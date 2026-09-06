@@ -654,11 +654,19 @@ func parseOptionalTime(s string) *time.Time {
 }
 
 func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaMasterBillInput == nil {
+	if input.BusinessType != biz.OrderBusinessSE {
 		return nil
 	}
+	if input.SeaMasterBillInput == nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
 	mblInput := input.SeaMasterBillInput
-	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
+	if input.CarrierID == nil || *input.CarrierID == uuid.Nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
+	carrierID := *input.CarrierID
+	mblInput.IssuerPartnerID = carrierID
+	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, carrierID); err != nil {
 		return err
 	}
 
@@ -704,6 +712,9 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if targetTE.CarrierID == nil || *targetTE.CarrierID != targetMBL.IssuerPartnerID || *targetTE.CarrierID != carrierID {
+			return biz.ErrSeaMasterBillStatusConflict
 		}
 
 		candidateVoyage := &biz.SeaTransportExecution{
@@ -827,11 +838,23 @@ func syncOrderSeaMasterBillOnUpdate(
 	audit *biz.AuditEvent,
 	lockContext *seaMasterBillUpdateLockContext,
 ) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaMasterBillInput == nil {
+	if input.BusinessType != biz.OrderBusinessSE {
 		return nil
+	}
+	contentOnlyUpdate := input.SeaMasterBillInput == nil &&
+		input.SeaDocumentInput != nil && input.SeaDocumentInput.MasterBillContent != nil
+	if input.SeaMasterBillInput == nil && !contentOnlyUpdate {
+		return biz.ErrSeaMasterBillInvalidArgument
 	}
 	orderID := order.ID
 	mblInput := input.SeaMasterBillInput
+	if input.CarrierID == nil || *input.CarrierID == uuid.Nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
+	carrierID := *input.CarrierID
+	if mblInput != nil {
+		mblInput.IssuerPartnerID = carrierID
+	}
 
 	// Order 已由 UpdateDraft 首先加锁。这里先无锁读取活动关联用于定位 MBL，随后
 	// 严格按 MBL → Link → TransportExecution 加写锁，并在锁后重验关联未变化。
@@ -901,9 +924,18 @@ func syncOrderSeaMasterBillOnUpdate(
 	if err != nil {
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
+	if currentTE.CarrierID == nil || *currentTE.CarrierID != currentMBL.IssuerPartnerID {
+		return biz.ErrSeaMasterBillStatusConflict
+	}
 
-	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
+	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, carrierID); err != nil {
 		return err
+	}
+	if contentOnlyUpdate {
+		if carrierID != currentMBL.IssuerPartnerID || seaTransportExecutionDiffersFromOrder(currentTE, input) {
+			return biz.ErrSeaMasterBillInvalidArgument
+		}
+		return nil
 	}
 
 	activeCount := len(lockedMemberOrderIDs)

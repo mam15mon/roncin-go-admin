@@ -73,6 +73,44 @@ export function SeaServiceTypeFields({
   );
 }
 
+function SeaCarrierField({
+  isDetail,
+  readonly,
+  searchCarriers,
+}: {
+  isDetail?: boolean;
+  readonly?: boolean;
+  searchCarriers: (keyword?: string) => Promise<SelectOption[]>;
+}) {
+  const form = Form.useFormInstance();
+  const existingMbl = Form.useWatch('seaMasterBill', {
+    form,
+    preserve: true,
+  }) as
+    | API.SeaMasterBillSummary
+    | undefined;
+  const isMultiMemberLocked =
+    isDetail && !!existingMbl && (existingMbl.memberCount ?? 0) > 1;
+
+  return (
+    <ProFormSearchableSelect
+      name="carrierId"
+      label="船公司"
+      placeholder="请选择"
+      disabled={readonly || isMultiMemberLocked}
+      tooltip={
+        isMultiMemberLocked
+          ? '该主单已关联多票订单，禁止从单票页面修改船公司'
+          : undefined
+      }
+      rules={[{ required: true, message: '请选择船公司' }]}
+      request={async ({ keyWords }: { keyWords?: string }) =>
+        searchCarriers(keyWords)
+      }
+    />
+  );
+}
+
 export function buildSeaBaseInfoSection(props: TemplateProps) {
   const {
     serviceTypeOptions,
@@ -261,13 +299,10 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
-            name="carrierId"
-            label="船公司"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchCarriers(keyWords)
-            }
+          <SeaCarrierField
+            isDetail={props.isDetail}
+            readonly={props.readonly}
+            searchCarriers={searchCarriers}
           />
         </Col>
         <Col className="col-5">

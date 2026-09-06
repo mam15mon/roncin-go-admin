@@ -695,6 +695,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:          biz.SplitTargetTypeNew,
 					MasterNo:            "NEWMBL888999",
 					IssuerPartnerID:     &carrier.ID,
+					CarrierID:           &carrier.ID,
 					VesselName:          "COSCO SHIPPING GEMINI",
 					VoyageNo:            "088E",
 					OriginLocationID:    nil,
@@ -1009,6 +1010,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "NEWSPLITMBL9999",
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "EVER GIVEN",
 					VoyageNo:        "001W",
 				},
@@ -1055,6 +1057,23 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		}
 		if newLink.MasterBillID == mbl.ID {
 			t.Errorf("新票 Link.MasterBillID 不应指向旧 MBL")
+		}
+		createdOrder, err := data.db.Order.Get(ctx, createdOrderID)
+		if err != nil {
+			t.Fatalf("读取拆票新订单失败: %v", err)
+		}
+		createdMBL, err := data.db.SeaMasterBill.Get(ctx, newLink.MasterBillID)
+		if err != nil {
+			t.Fatalf("读取拆票新 MBL 失败: %v", err)
+		}
+		createdTE, err := data.db.SeaTransportExecution.Get(ctx, createdMBL.TransportExecutionID)
+		if err != nil {
+			t.Fatalf("读取拆票新运输执行失败: %v", err)
+		}
+		if createdOrder.CarrierID == nil || *createdOrder.CarrierID != carrier.ID ||
+			createdTE.CarrierID == nil || *createdTE.CarrierID != carrier.ID ||
+			createdMBL.IssuerPartnerID != carrier.ID {
+			t.Fatalf("拆票新目标的订单、运输执行与 MBL 船公司不一致: order=%#v te=%#v mbl=%#v", createdOrder, createdTE, createdMBL)
 		}
 
 		// 2. HBL2 的 MasterBillID 和 OrderID 必须真正迁移
@@ -1348,6 +1367,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "MBLEMBEDDEDREASSIGN009",
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "TEST SHIP",
 					VoyageNo:        "V100",
 				},
@@ -1755,6 +1775,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					CandidateTEID:      &candTe.ID,
 					CandidateTEVersion: &candTeVer,
 					IssuerPartnerID:    &carrier.ID,
+					CarrierID:          &carrier.ID,
 					VesselName:         "WRONG SHIP NAME", // 不一致
 					VoyageNo:           "2026E",
 				},
@@ -2036,6 +2057,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				TargetType:      biz.SplitTargetTypeNew,
 				MasterNo:        "NEWREASMBL017",
 				IssuerPartnerID: &carrier.ID,
+				CarrierID:       &carrier.ID,
 				VesselName:      "NEW SHIP",
 				VoyageNo:        "999S",
 			},
@@ -2062,6 +2084,23 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		hbl1Check, _ := data.db.SeaHouseBill.Get(ctx, fHouse.hbl1.ID)
 		if hbl1Check.MasterBillID != targetLink.MasterBillID {
 			t.Errorf("HBL1 MasterBillID 未更新至新 MBL: got %v, want %v", hbl1Check.MasterBillID, targetLink.MasterBillID)
+		}
+		orderAfter, err := data.db.Order.Get(ctx, fHouse.order.ID)
+		if err != nil {
+			t.Fatalf("读取改配后订单失败: %v", err)
+		}
+		targetMBL, err := data.db.SeaMasterBill.Get(ctx, targetLink.MasterBillID)
+		if err != nil {
+			t.Fatalf("读取改配目标 MBL 失败: %v", err)
+		}
+		targetTE, err := data.db.SeaTransportExecution.Get(ctx, targetMBL.TransportExecutionID)
+		if err != nil {
+			t.Fatalf("读取改配目标运输执行失败: %v", err)
+		}
+		if orderAfter.CarrierID == nil || *orderAfter.CarrierID != carrier.ID ||
+			targetTE.CarrierID == nil || *targetTE.CarrierID != carrier.ID ||
+			targetMBL.IssuerPartnerID != carrier.ID {
+			t.Fatalf("改配后订单、运输执行与 MBL 船公司不一致: order=%#v te=%#v mbl=%#v", orderAfter, targetTE, targetMBL)
 		}
 	})
 
@@ -2109,6 +2148,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				CandidateTEID:      &wrongTEID,
 				CandidateTEVersion: &candidateTEVersion,
 				IssuerPartnerID:    &carrier.ID,
+				CarrierID:          &carrier.ID,
 			},
 			ExpectedOrderVersion:        fixture.order.Version,
 			ExpectedLinkVersion:         fixture.link.Version,
@@ -2308,6 +2348,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "SHAREDMBL88888",
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "SHARED VESSEL ONE",
 					VoyageNo:        "SH001W",
 				},
@@ -2572,6 +2613,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "INVALID-HYPHEN-MBL",
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "TEST SHIP",
 					VoyageNo:        "V001",
 				},
@@ -2614,6 +2656,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				TargetType:      biz.SplitTargetTypeNew,
 				MasterNo:        "  SPACEPREFIXMBL99  ",
 				IssuerPartnerID: &carrier.ID,
+				CarrierID:       &carrier.ID,
 				VesselName:      "TEST SHIP",
 				VoyageNo:        "V002",
 			},
@@ -2655,6 +2698,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				TargetType:      biz.SplitTargetTypeNew,
 				MasterNo:        "cosu123456789",
 				IssuerPartnerID: &carrier.ID,
+				CarrierID:       &carrier.ID,
 				VesselName:      "COSCO STAR",
 				VoyageNo:        "CS001",
 			},
@@ -2724,6 +2768,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:       biz.SplitTargetTypeNew,
 					MasterNo:         "VALIDNEWPORT022",
 					IssuerPartnerID:  &carrier.ID,
+					CarrierID:        &carrier.ID,
 					OriginLocationID: &badPortID,
 					VesselName:       "SHIP01",
 					VoyageNo:         "V01",
@@ -2754,6 +2799,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "VALIDNEWROLE022",
 					IssuerPartnerID: &customer.ID, // customer 仅有 CLIENT 角色
+					CarrierID:       &customer.ID,
 					VesselName:      "SHIP01",
 					VoyageNo:        "V01",
 				},
@@ -2783,6 +2829,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        mbl.MasterNo, // 使用既有 MBL 号
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "SHIP01",
 					VoyageNo:        "V01",
 				},
@@ -2812,6 +2859,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 					TargetType:      biz.SplitTargetTypeNew,
 					MasterNo:        "VALIDNEWDATE022",
 					IssuerPartnerID: &carrier.ID,
+					CarrierID:       &carrier.ID,
 					VesselName:      "SHIP01",
 					VoyageNo:        "V01",
 					ETD:             "not-a-date",

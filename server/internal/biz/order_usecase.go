@@ -378,29 +378,23 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, err
 	}
 	if output.BusinessType == OrderBusinessSE {
-		if creating {
-			if output.SeaMasterBillInput == nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
-			}
+		if output.CarrierID == nil || *output.CarrierID == uuid.Nil {
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择船公司")
+		}
+		contentOnlyUpdate := !creating && output.SeaMasterBillInput == nil &&
+			output.SeaDocumentInput != nil && output.SeaDocumentInput.MasterBillContent != nil
+		if output.SeaMasterBillInput == nil && !contentOnlyUpdate {
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
+		}
+		if output.SeaMasterBillInput != nil {
+			masterBillInput := *output.SeaMasterBillInput
+			masterBillInput.IssuerPartnerID = *output.CarrierID
+			output.SeaMasterBillInput = &masterBillInput
 			normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
 			if err != nil {
 				return nil, err
 			}
-			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择主单签发方")
-			}
 			output.SeaMasterBillInput.MasterNo = normalizedMasterNo
-		} else if output.SeaMasterBillInput != nil {
-			if output.SeaMasterBillInput.MasterNo != "" {
-				normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
-				if err != nil {
-					return nil, err
-				}
-				output.SeaMasterBillInput.MasterNo = normalizedMasterNo
-			}
-			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "主单签发方不能为空")
-			}
 		}
 
 		if output.SeaDocumentInput != nil {

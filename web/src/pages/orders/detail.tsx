@@ -36,7 +36,6 @@ import {
 } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
-import { searchPartnerOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -263,7 +262,6 @@ export default function OrderDetailPage() {
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      searchIssuers: (keyword?: string) => searchPartnerOptions(keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: async () => {},
@@ -655,8 +653,9 @@ export default function OrderDetailPage() {
               await loadChangeActions();
             }}
             searchCarriers={templateProps.searchCarriers}
-            searchIssuers={templateProps.searchIssuers}
             searchLocations={templateProps.searchLocations}
+            initialCarrierId={order.carrierId}
+            initialCarrierName={order.seaMasterBill?.carrierName}
           />
           <SeaOrderChangeHistoryDrawer
             orderId={orderId}
