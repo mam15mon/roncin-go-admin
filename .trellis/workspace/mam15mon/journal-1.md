@@ -670,3 +670,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 26: 精简订单列表头部与快捷切签
+<!-- trellis-session: v=2 fp=4f274122b7d3933b -->
+
+**Date**: 2026-09-06
+**Task**: 精简订单列表头部与快捷切签
+**Branch**: `main`
+
+### Summary
+
+移除订单列表模板的面包屑与顶部12项状态快捷筛选切签卡片，使海运出口订单列表保持纯白高密度清爽视图，保证全部单测与全量质量门禁通过并完成端到端视觉验收
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `539df794` | refactor(web): 移除订单列表页面的冗余面包屑与快捷状态切签 |
+
+### Status
+
+[OK] **Completed**
