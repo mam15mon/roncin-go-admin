@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 29
+- **Total Sessions**: 30
 - **Last Active**: 2026-09-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~760 | Active |
+| `journal-1.md` | ~782 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 30 | 2026-09-06 | 简化海运出口主单签发方录入 | `047b3e79` | `main` |
 | 29 | 2026-09-06 | 修复订单缓存组织隔离 | `a70c39e0` | `fix/order-cache-org-isolation` |
 | 28 | 2026-09-06 | 取消海运共享费用分摊并收尾父任务 | `d96c400f` | `main` |
 | 27 | 2026-09-06 | 优化新建订单页面主数据加载体验 | `249d30d9` | `main` |

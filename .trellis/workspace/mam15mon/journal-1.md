@@ -758,3 +758,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 30: 简化海运出口主单签发方录入
+<!-- trellis-session: v=2 fp=3a047541b01dea31 -->
+
+**Date**: 2026-09-06
+**Task**: 简化海运出口主单签发方录入
+**Branch**: `main`
+
+### Summary
+
+海运出口业务只维护必填的船公司与 MBL 主单号，系统统一维护 Order、运输执行和 MBL 签发主体；同步简化拆票、改配与详情界面，保留共享主单保护和 HBL 独立签发规则，并通过完整前后端门禁。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `047b3e79` | feat: 简化海运出口主单签发方录入 |
+
+### Status
+
+[OK] **Completed**
