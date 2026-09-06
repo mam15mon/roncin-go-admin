@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 27
+- **Total Sessions**: 28
 - **Last Active**: 2026-09-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~716 | Active |
+| `journal-1.md` | ~738 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 28 | 2026-09-06 | 取消海运共享费用分摊并收尾父任务 | `d96c400f` | `main` |
 | 27 | 2026-09-06 | 优化新建订单页面主数据加载体验 | `249d30d9` | `main` |
 | 26 | 2026-09-06 | 精简订单列表头部与快捷切签 | `539df794` | `main` |
 | 25 | 2026-09-06 | 修复移动端页面布局与顶栏显示异常 | `3c3f4929`, `b2fe7897` | `main` |

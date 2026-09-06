@@ -714,3 +714,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 28: 取消海运共享费用分摊并收尾父任务
+<!-- trellis-session: v=2 fp=f4cff12426da0d76 -->
+
+**Date**: 2026-09-06
+**Task**: 取消海运共享费用分摊并收尾父任务
+**Branch**: `main`
+
+### Summary
+
+业务确认当前没有真实共享费用案例或现行分摊规则，取消共享费用分摊阶段；父任务调整为五个已完成阶段并完成归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d96c400f` | docs: 取消海运共享费用分摊阶段 |
+
+### Status
+
+[OK] **Completed**
