@@ -692,3 +692,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 27: 优化新建订单页面主数据加载体验
+<!-- trellis-session: v=2 fp=abd3fcc9fdb2041d -->
+
+**Date**: 2026-09-06
+**Task**: 优化新建订单页面主数据加载体验
+**Branch**: `main`
+
+### Summary
+
+实现组织隔离的会话级主数据与人员选项缓存，海空运按需模式加载，以及纯白高密度分节骨架屏占位与错误重试
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `249d30d9` | feat(web): 优化新建订单主数据加载体验、分节骨架占位与组织会话缓存 |
+
+### Status
+
+[OK] **Completed**
