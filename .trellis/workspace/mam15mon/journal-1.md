@@ -780,3 +780,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 31: 海运出口船公司切换为 ShippingLine
+<!-- trellis-session: v=2 fp=f0e62b7adc45db1b -->
+
+**Date**: 2026-09-06
+**Task**: 海运出口船公司切换为 ShippingLine
+**Branch**: `main`
+
+### Summary
+
+将 SE 订单、运输执行与共享 MBL 的船公司身份统一为 ShippingLine，移除 Partner carrier 角色和费用结算回退；补齐严格迁移、候选锁内校验、前端搜索与历史回显，并通过完整 Web/Server、构建及真实 PostgreSQL 验证。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `834ff883` | feat: 海运出口船公司改用航运公司主数据 |
+
+### Status
+
+[OK] **Completed**
