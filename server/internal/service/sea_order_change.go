@@ -153,10 +153,6 @@ func (s *SeaOrderChangeService) GetSeaOrderSplitContext(ctx context.Context, req
 
 	var mblSummary *v1.SeaOrderSplitMasterBillSummary
 	if mb := splitCtx.CurrentMasterBill; mb != nil {
-		cID := ""
-		if mb.CarrierID != nil {
-			cID = mb.CarrierID.String()
-		}
 		origLoc := ""
 		if mb.OriginLocationID != nil {
 			origLoc = mb.OriginLocationID.String()
@@ -172,10 +168,8 @@ func (s *SeaOrderChangeService) GetSeaOrderSplitContext(ctx context.Context, req
 		mblSummary = &v1.SeaOrderSplitMasterBillSummary{
 			Id:                        mb.MasterBillID.String(),
 			MasterNo:                  mb.MasterNo,
-			IssuerPartnerId:           mb.IssuerPartnerID.String(),
-			IssuerPartnerName:         mb.IssuerPartnerName,
-			CarrierId:                 cID,
-			CarrierName:               mb.CarrierName,
+			ShippingLineId:            mb.ShippingLineID.String(),
+			ShippingLineName:          mb.ShippingLineName,
 			VesselName:                mb.VesselName,
 			VoyageNo:                  mb.VoyageNo,
 			Etd:                       mb.ETD,
@@ -576,21 +570,13 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 			}
 			candID = &c
 		}
-		var issuerID *uuid.UUID
-		if t.IssuerPartnerId != nil && *t.IssuerPartnerId != "" {
-			c, err := uuid.Parse(*t.IssuerPartnerId)
+		var shippingLineID *uuid.UUID
+		if t.ShippingLineId != nil && *t.ShippingLineId != "" {
+			c, err := uuid.Parse(*t.ShippingLineId)
 			if err != nil || c == uuid.Nil {
 				return nil, biz.ErrSeaOrderSplitInvalidArgument
 			}
-			issuerID = &c
-		}
-		var carrierID *uuid.UUID
-		if t.CarrierId != nil && *t.CarrierId != "" {
-			c, err := uuid.Parse(*t.CarrierId)
-			if err != nil || c == uuid.Nil {
-				return nil, biz.ErrSeaOrderSplitInvalidArgument
-			}
-			carrierID = &c
+			shippingLineID = &c
 		}
 		var origLocID *uuid.UUID
 		if t.OriginLocationId != nil && *t.OriginLocationId != "" {
@@ -630,8 +616,7 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 			CandidateID:         candID,
 			CandidateVersion:    t.CandidateVersion,
 			MasterNo:            t.GetMasterNo(),
-			IssuerPartnerID:     issuerID,
-			CarrierID:           carrierID,
+			ShippingLineID:      shippingLineID,
 			VesselName:          t.GetVesselName(),
 			VoyageNo:            t.GetVoyageNo(),
 			ETD:                 t.GetEtd(),
@@ -845,21 +830,13 @@ func mapReassignTarget(t *v1.SeaOrderReassignmentTargetInput) (*biz.SeaOrderReas
 		}
 		candID = &c
 	}
-	var issuerID *uuid.UUID
-	if t.IssuerPartnerId != nil && *t.IssuerPartnerId != "" {
-		c, err := uuid.Parse(*t.IssuerPartnerId)
+	var shippingLineID *uuid.UUID
+	if t.ShippingLineId != nil && *t.ShippingLineId != "" {
+		c, err := uuid.Parse(*t.ShippingLineId)
 		if err != nil || c == uuid.Nil {
 			return nil, biz.ErrSeaOrderReassignmentInvalidArgument
 		}
-		issuerID = &c
-	}
-	var carrierID *uuid.UUID
-	if t.CarrierId != nil && *t.CarrierId != "" {
-		c, err := uuid.Parse(*t.CarrierId)
-		if err != nil || c == uuid.Nil {
-			return nil, biz.ErrSeaOrderReassignmentInvalidArgument
-		}
-		carrierID = &c
+		shippingLineID = &c
 	}
 	var origLocID *uuid.UUID
 	if t.OriginLocationId != nil && *t.OriginLocationId != "" {
@@ -900,8 +877,7 @@ func mapReassignTarget(t *v1.SeaOrderReassignmentTargetInput) (*biz.SeaOrderReas
 		CandidateTEID:       candTeID,
 		CandidateTEVersion:  t.CandidateTeVersion,
 		MasterNo:            t.GetMasterNo(),
-		IssuerPartnerID:     issuerID,
-		CarrierID:           carrierID,
+		ShippingLineID:      shippingLineID,
 		VesselName:          t.GetVesselName(),
 		VoyageNo:            t.GetVoyageNo(),
 		ETD:                 t.GetEtd(),
@@ -915,10 +891,6 @@ func mapReassignTarget(t *v1.SeaOrderReassignmentTargetInput) (*biz.SeaOrderReas
 func mapMblSummaryToAPI(mb *biz.SeaMasterBillSummary) *v1.SeaOrderSplitMasterBillSummary {
 	if mb == nil {
 		return nil
-	}
-	cID := ""
-	if mb.CarrierID != nil {
-		cID = mb.CarrierID.String()
 	}
 	origLoc := ""
 	if mb.OriginLocationID != nil {
@@ -935,10 +907,8 @@ func mapMblSummaryToAPI(mb *biz.SeaMasterBillSummary) *v1.SeaOrderSplitMasterBil
 	return &v1.SeaOrderSplitMasterBillSummary{
 		Id:                        mb.MasterBillID.String(),
 		MasterNo:                  mb.MasterNo,
-		IssuerPartnerId:           mb.IssuerPartnerID.String(),
-		IssuerPartnerName:         mb.IssuerPartnerName,
-		CarrierId:                 cID,
-		CarrierName:               mb.CarrierName,
+		ShippingLineId:            mb.ShippingLineID.String(),
+		ShippingLineName:          mb.ShippingLineName,
 		VesselName:                mb.VesselName,
 		VoyageNo:                  mb.VoyageNo,
 		Etd:                       mb.ETD,

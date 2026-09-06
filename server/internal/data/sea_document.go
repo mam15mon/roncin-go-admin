@@ -19,6 +19,7 @@ import (
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seamasterbillversion "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 type seaDocumentRepo struct {
@@ -63,7 +64,7 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 	var mblDetail *biz.SeaMasterBillDetail
 	if link.Edges.MasterBill != nil {
 		mbl := link.Edges.MasterBill
-		issuerName, err := r.getPartnerName(ctx, client, organizationID, mbl.IssuerPartnerID)
+		shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +83,7 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 		if err != nil {
 			return nil, err
 		}
-		mblDetail = seaMasterBillToDetail(mbl, issuerName, activeMemberCount, versionCount)
+		mblDetail = seaMasterBillToDetail(mbl, shippingLineName, activeMemberCount, versionCount)
 	}
 
 	hbs, err := client.SeaHouseBill.Query().
@@ -1052,7 +1053,7 @@ func (r *seaDocumentRepo) getSeaMasterBillDetailByID(ctx context.Context, organi
 		return nil, err
 	}
 
-	issuerName, err := r.getPartnerName(ctx, client, organizationID, mbl.IssuerPartnerID)
+	shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
 	if err != nil {
 		return nil, err
 	}
@@ -1073,7 +1074,7 @@ func (r *seaDocumentRepo) getSeaMasterBillDetailByID(ctx context.Context, organi
 		return nil, err
 	}
 
-	return seaMasterBillToDetail(mbl, issuerName, memberCount, versionCount), nil
+	return seaMasterBillToDetail(mbl, shippingLineName, memberCount, versionCount), nil
 }
 
 func seaDocumentLinkMatches(link *ent.SeaMasterBillOrderLink, organizationID, orderID, masterBillID uuid.UUID) bool {
@@ -1126,6 +1127,17 @@ func (r *seaDocumentRepo) getPartnerName(ctx context.Context, client *ent.Client
 		return "", mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
 	return partner.LegalName, nil
+}
+
+func (r *seaDocumentRepo) getShippingLineName(ctx context.Context, client *ent.Client, organizationID, shippingLineID uuid.UUID) (string, error) {
+	line, err := client.ShippingLine.Query().Where(
+		shippinglineent.IDEQ(shippingLineID),
+		shippinglineent.OrganizationIDEQ(organizationID),
+	).Only(ctx)
+	if err != nil {
+		return "", mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+	return formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode), nil
 }
 
 func (r *seaDocumentRepo) getOrganizationName(ctx context.Context, client *ent.Client, orgID uuid.UUID) (string, error) {
@@ -1389,7 +1401,7 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string, vers
 	}
 }
 
-func seaMasterBillToDetail(item *ent.SeaMasterBill, issuerName string, memberCount int, versionCount ...int) *biz.SeaMasterBillDetail {
+func seaMasterBillToDetail(item *ent.SeaMasterBill, shippingLineName string, memberCount int, versionCount ...int) *biz.SeaMasterBillDetail {
 	if item == nil {
 		return nil
 	}
@@ -1422,8 +1434,8 @@ func seaMasterBillToDetail(item *ent.SeaMasterBill, issuerName string, memberCou
 	return &biz.SeaMasterBillDetail{
 		ID:                    item.ID,
 		MasterNo:              item.MasterNo,
-		IssuerPartnerID:       item.IssuerPartnerID,
-		IssuerPartnerName:     issuerName,
+		ShippingLineID:        item.ShippingLineID,
+		ShippingLineName:      shippingLineName,
 		Status:                string(item.Status),
 		Version:               item.Version,
 		CurrentVersionID:      item.CurrentVersionID,

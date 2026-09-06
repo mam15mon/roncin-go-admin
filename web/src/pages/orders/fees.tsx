@@ -288,7 +288,7 @@ export default function OrderFeesPage() {
       const defaultParty =
         direction === RECEIVABLE
           ? order?.customerId
-          : order?.bookingAgentId || order?.carrierId;
+          : order?.bookingAgentId;
       setTimeout(() => {
         if (
           populationId !== feeFormPopulationIdRef.current ||

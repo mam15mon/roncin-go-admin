@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -37,6 +38,10 @@ func (ShippingLine) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("shipping_lines").Field("organization_id").Unique().Required(),
 		edge.To("container_prefixes", ShippingLineContainerPrefix.Type),
+		edge.To("orders", Order.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_transport_executions", SeaTransportExecution.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_master_bills", SeaMasterBill.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

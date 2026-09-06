@@ -42,11 +42,11 @@ describe('buildInitialValues', () => {
     const result = buildInitialValues(
       {
         id: 'order-1',
-        carrierId: 'carrier-1',
+        shippingLineId: 'carrier-1',
         seaMasterBill: {
           masterBillId: 'mbl-1',
           masterNo: 'COSCO123456',
-          issuerPartnerId: 'issuer-1',
+          shippingLineId: 'carrier-1',
           transportExecutionId: 'transport-1',
           vesselName: '',
           voyageNo: '',
@@ -62,26 +62,28 @@ describe('buildInitialValues', () => {
     expect(result).toEqual(
       expect.objectContaining({
         seaMasterBillMasterNo: 'COSCO123456',
-        carrierId: 'carrier-1',
+        shippingLineId: 'carrier-1',
         seaMasterBillExpectedCandidateVersion: '7',
       }),
     );
     expect(result).not.toHaveProperty('seaMasterBillIssuerPartnerId');
   });
 
-  it('更新海运订单时从船公司派生 MBL 签发方', () => {
+  it('更新海运订单时由订单 shippingLineId 统一表达 MBL 船公司', () => {
     const result = buildUpdatePayload('order-1', '7', {
       customerId: 'customer-1',
       tradeTerm: 3,
       paymentTerm: 1,
-      carrierId: 'carrier-2',
+      shippingLineId: 'carrier-2',
       seaMasterBillMasterNo: 'COSCO123457',
       seaDocumentStructure: 1,
     });
 
     expect(result.seaMasterBill).toEqual({
       masterNo: 'COSCO123457',
-      issuerPartnerId: 'carrier-2',
+      candidateId: undefined,
+      expectedCandidateVersion: undefined,
+      correctionReason: undefined,
     });
   });
 });

@@ -157,8 +157,7 @@ type SeaOrderSplitTargetInput struct {
 	CandidateID         *uuid.UUID
 	CandidateVersion    *uint64
 	MasterNo            string
-	IssuerPartnerID     *uuid.UUID
-	CarrierID           *uuid.UUID
+	ShippingLineID      *uuid.UUID
 	VesselName          string
 	VoyageNo            string
 	ETD                 string
@@ -297,8 +296,7 @@ type SeaOrderReassignmentTargetInput struct {
 	CandidateID         *uuid.UUID
 	CandidateVersion    *uint64
 	MasterNo            string
-	IssuerPartnerID     *uuid.UUID
-	CarrierID           *uuid.UUID
+	ShippingLineID      *uuid.UUID
 	VesselName          string
 	VoyageNo            string
 	ETD                 string
@@ -500,8 +498,7 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 				target.CandidateTEID != nil ||
 				target.CandidateTEVersion != nil ||
 				target.MasterNo != "" ||
-				target.IssuerPartnerID != nil ||
-				target.CarrierID != nil ||
+				target.ShippingLineID != nil ||
 				target.VesselName != "" ||
 				target.VoyageNo != "" ||
 				target.ETD != "" ||
@@ -519,8 +516,8 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 				target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 {
 				return ErrSeaOrderSplitInvalidArgument
 			}
-			if err := normalizeSplitTargetIssuerFromCarrier(target); err != nil {
-				return err
+			if target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
+				return ErrSeaOrderSplitInvalidArgument
 			}
 			if expected != nil {
 				if expected.CandidateMBLVersions == nil ||
@@ -541,8 +538,8 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if _, err := ValidateAndNormalizeSeaMasterNo(target.MasterNo); err != nil {
 				return err
 			}
-			if err := normalizeSplitTargetIssuerFromCarrier(target); err != nil {
-				return err
+			if target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
+				return ErrSeaOrderSplitInvalidArgument
 			}
 			if strings.TrimSpace(target.VesselName) == "" || strings.TrimSpace(target.VoyageNo) == "" {
 				return ErrSeaOrderSplitInvalidArgument
@@ -574,24 +571,10 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 	return nil
 }
 
-func normalizeSplitTargetIssuerFromCarrier(target *SeaOrderSplitTargetInput) error {
-	if target == nil || target.TargetType == SplitTargetTypeCurrent {
-		return nil
-	}
-	if target.CarrierID == nil || *target.CarrierID == uuid.Nil {
-		return ErrSeaOrderSplitInvalidArgument
-	}
-	carrierID := *target.CarrierID
-	target.IssuerPartnerID = &carrierID
-	return nil
-}
-
-func normalizeReassignmentTargetIssuerFromCarrier(target *SeaOrderReassignmentTargetInput) error {
-	if target == nil || target.CarrierID == nil || *target.CarrierID == uuid.Nil {
+func validateReassignmentTargetShippingLine(target *SeaOrderReassignmentTargetInput) error {
+	if target == nil || target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
 		return ErrSeaOrderReassignmentInvalidArgument
 	}
-	carrierID := *target.CarrierID
-	target.IssuerPartnerID = &carrierID
 	return nil
 }
 
@@ -609,7 +592,7 @@ func validateReassignmentCandidateTarget(
 			target.CandidateVersion == nil || *target.CandidateVersion == 0 ||
 			target.CandidateTEID == nil || *target.CandidateTEID == uuid.Nil ||
 			target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 ||
-			target.CarrierID == nil || *target.CarrierID == uuid.Nil {
+			target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
 			return ErrSeaOrderReassignmentInvalidArgument
 		}
 		if expectedMBLVersion != nil && (*expectedMBLVersion == 0 || *expectedMBLVersion != *target.CandidateVersion) {
@@ -754,7 +737,7 @@ func (uc *SeaOrderChangeUsecase) PreviewReassignment(ctx context.Context, organi
 	if organizationID == uuid.Nil || input == nil || input.OrderID == uuid.Nil || input.Target == nil {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
 	}
-	if err := normalizeReassignmentTargetIssuerFromCarrier(input.Target); err != nil {
+	if err := validateReassignmentTargetShippingLine(input.Target); err != nil {
 		return nil, err
 	}
 	if err := validateReassignmentCandidateTarget(input.Target, nil, nil); err != nil {
@@ -773,7 +756,7 @@ func (uc *SeaOrderChangeUsecase) ExecuteReassignment(ctx context.Context, organi
 	if input.ExpectedOrderVersion == 0 || input.ExpectedLinkVersion == 0 {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
 	}
-	if err := normalizeReassignmentTargetIssuerFromCarrier(input.Target); err != nil {
+	if err := validateReassignmentTargetShippingLine(input.Target); err != nil {
 		return nil, err
 	}
 	if input.Target.TargetType == SplitTargetTypeCandidate &&

@@ -30,7 +30,6 @@ const (
 	PartnerRoleType_PARTNER_ROLE_TYPE_CUSTOMER      PartnerRoleType = 1
 	PartnerRoleType_PARTNER_ROLE_TYPE_SUPPLIER      PartnerRoleType = 2
 	PartnerRoleType_PARTNER_ROLE_TYPE_FOREIGN_AGENT PartnerRoleType = 3
-	PartnerRoleType_PARTNER_ROLE_TYPE_CARRIER       PartnerRoleType = 4
 )
 
 // Enum value maps for PartnerRoleType.
@@ -40,14 +39,12 @@ var (
 		1: "PARTNER_ROLE_TYPE_CUSTOMER",
 		2: "PARTNER_ROLE_TYPE_SUPPLIER",
 		3: "PARTNER_ROLE_TYPE_FOREIGN_AGENT",
-		4: "PARTNER_ROLE_TYPE_CARRIER",
 	}
 	PartnerRoleType_value = map[string]int32{
 		"PARTNER_ROLE_TYPE_UNSPECIFIED":   0,
 		"PARTNER_ROLE_TYPE_CUSTOMER":      1,
 		"PARTNER_ROLE_TYPE_SUPPLIER":      2,
 		"PARTNER_ROLE_TYPE_FOREIGN_AGENT": 3,
-		"PARTNER_ROLE_TYPE_CARRIER":       4,
 	}
 )
 
@@ -8012,13 +8009,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
 	"\x04data\x18\x04 \x01(\v2!.partner.v1.PartnerInvoiceProfileR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xb8\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xba\x01\n" +
 	"\x0fPartnerRoleType\x12!\n" +
 	"\x1dPARTNER_ROLE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aPARTNER_ROLE_TYPE_CUSTOMER\x10\x01\x12\x1e\n" +
 	"\x1aPARTNER_ROLE_TYPE_SUPPLIER\x10\x02\x12#\n" +
-	"\x1fPARTNER_ROLE_TYPE_FOREIGN_AGENT\x10\x03\x12\x1d\n" +
-	"\x19PARTNER_ROLE_TYPE_CARRIER\x10\x04*~\n" +
+	"\x1fPARTNER_ROLE_TYPE_FOREIGN_AGENT\x10\x03\"\x04\b\x04\x10\x04*\x19PARTNER_ROLE_TYPE_CARRIER*~\n" +
 	"\x13PartnerCustomerType\x12%\n" +
 	"!PARTNER_CUSTOMER_TYPE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cPARTNER_CUSTOMER_TYPE_DIRECT\x10\x01\x12\x1e\n" +

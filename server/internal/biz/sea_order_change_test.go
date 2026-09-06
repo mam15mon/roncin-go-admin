@@ -343,8 +343,7 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 		Target: &SeaOrderReassignmentTargetInput{
 			TargetType:      "NEW",
 			MasterNo:        "NEWMBL",
-			IssuerPartnerID: &partnerID,
-			CarrierID:       &partnerID,
+			ShippingLineID: &partnerID,
 		},
 		Reason:               "客户要求改配",
 		ResponsibilityType:   "CUSTOMER",
@@ -441,7 +440,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 	candidateVersion := uint64(1)
 	candidateTEID := uuid.New()
 	candidateTEVersion := uint64(2)
-	issuerID := uuid.New()
 
 	splitInput := &SeaOrderSplitInput{
 		OrderID:            orderID,
@@ -456,7 +454,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 				CandidateVersion:   &candidateVersion,
 				CandidateTEID:      &candidateTEID,
 				CandidateTEVersion: &candidateTEVersion,
-				IssuerPartnerID:    &issuerID,
 			},
 		},
 		Results: []*SeaOrderSplitResultInput{
@@ -484,7 +481,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 			CandidateVersion:   &candidateVersion,
 			CandidateTEID:      &candidateTEID,
 			CandidateTEVersion: &candidateTEVersion,
-			IssuerPartnerID:    &issuerID,
 		},
 		Reason:                      "改配测试",
 		ResponsibilityType:          ResponsibilityTypeOwnCompany,
@@ -561,14 +557,14 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 		},
 	}
 	reassignUC := NewSeaOrderChangeUsecase(reassignRepo, &mockTransactor{})
-	reassignCarrierID := uuid.New()
+	reassignShippingLineID := uuid.New()
 	_, err = reassignUC.ExecuteReassignment(context.Background(), orgID, actorID, &SeaOrderReassignmentInput{
 		OrderID:              orderID,
 		IdempotencyKey:       "reassign-lookup-error",
 		RequestFingerprint:   "reassign-lookup-error-fingerprint",
 		Reason:               "船期调整",
 		ResponsibilityType:   ResponsibilityTypeCarrier,
-		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001", CarrierID: &reassignCarrierID},
+		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001", ShippingLineID: &reassignShippingLineID},
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
 	})
@@ -577,61 +573,11 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 	}
 }
 
-func TestSeaOrderChangeUsecaseNormalizesMBLIssuerFromCarrier(t *testing.T) {
-	organizationID := uuid.New()
-	orderID := uuid.New()
-	carrierID := uuid.New()
-	otherIssuerID := uuid.New()
-	repo := &mockSeaOrderChangeRepo{
-		previewSplitFunc: func(_ context.Context, _ uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error) {
-			if input.Targets[0].IssuerPartnerID == nil || *input.Targets[0].IssuerPartnerID != carrierID {
-				t.Fatalf("拆票 MBL issuer 未从 carrier 规范化: %+v", input.Targets[0])
-			}
-			return &SeaOrderSplitPreview{IsValid: true, ConservationPassed: true}, nil
-		},
-		previewReasFunc: func(_ context.Context, _ uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error) {
-			if input.Target.IssuerPartnerID == nil || *input.Target.IssuerPartnerID != carrierID {
-				t.Fatalf("改配 MBL issuer 未从 carrier 规范化: %+v", input.Target)
-			}
-			return &SeaOrderReassignmentPreview{IsValid: true}, nil
-		},
-	}
-	usecase := NewSeaOrderChangeUsecase(repo, &mockTransactor{})
-
-	_, err := usecase.PreviewSplit(context.Background(), organizationID, &SeaOrderSplitInput{
-		OrderID: orderID,
-		Targets: []*SeaOrderSplitTargetInput{{
-			ClientTargetKey: "new-target", TargetType: SplitTargetTypeNew,
-			MasterNo: "NEWSPLITMBL001", IssuerPartnerID: &otherIssuerID, CarrierID: &carrierID,
-			VesselName: "TEST VESSEL", VoyageNo: "001E",
-		}},
-		Results: []*SeaOrderSplitResultInput{
-			{ClientResultKey: "original", ResultRole: ResultRoleOriginal, ClientTargetKey: "new-target"},
-			{ClientResultKey: "created", ResultRole: ResultRoleCreated, ClientTargetKey: "new-target"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("PreviewSplit error = %v", err)
-	}
-
-	_, err = usecase.PreviewReassignment(context.Background(), organizationID, &SeaOrderReassignmentInput{
-		OrderID: orderID,
-		Target: &SeaOrderReassignmentTargetInput{
-			TargetType: SplitTargetTypeNew, MasterNo: "NEWREASSIGNMBL001",
-			IssuerPartnerID: &otherIssuerID, CarrierID: &carrierID,
-		},
-	})
-	if err != nil {
-		t.Fatalf("PreviewReassignment error = %v", err)
-	}
-}
-
 func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New()
 	actorID := uuid.New()
 	orderID := uuid.New()
-	partnerID := uuid.New()
 	candMBLID := uuid.New()
 	candTEID := uuid.New()
 	u64 := func(v uint64) *uint64 { return &v }
@@ -747,7 +693,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					CandidateID:      &candMBLID,
 					CandidateVersion: u64(2),
 					CandidateTEID:    &candTEID,
-					IssuerPartnerID:  &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -766,7 +711,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					CandidateVersion:   u64(2),
 					CandidateTEID:      &candTEID,
 					CandidateTEVersion: u64(999),
-					IssuerPartnerID:    &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -784,7 +728,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					TargetType:      SplitTargetTypeNew,
 					CandidateID:     &candMBLID,
 					MasterNo:        "NEWSPLIT999",
-					IssuerPartnerID: &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -815,7 +758,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					ClientTargetKey: "t-new",
 					TargetType:      SplitTargetTypeNew,
 					MasterNo:        "NEW-MBL-INVALID",
-					IssuerPartnerID: &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -955,14 +897,13 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateVersion:   u64(candMBLVer),
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
-				IssuerPartnerID:    &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),
 			wantError:            true,
 		},
 		{
-			name: "CANDIDATE缺失CarrierID被阻断",
+			name: "CANDIDATE缺失ShippingLineID被阻断",
 			target: &SeaOrderReassignmentTargetInput{
 				TargetType:         SplitTargetTypeCandidate,
 				CandidateID:        &candMBLID,
@@ -981,7 +922,6 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateID:      &candMBLID,
 				CandidateVersion: u64(candMBLVer),
 				CandidateTEID:    &candTEID,
-				IssuerPartnerID:  &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),
@@ -992,8 +932,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 			target: &SeaOrderReassignmentTargetInput{
 				TargetType:      SplitTargetTypeNew,
 				MasterNo:        "NEWMBL001",
-				IssuerPartnerID: &issuerID,
-				CarrierID:       &issuerID,
+				ShippingLineID:       &issuerID,
 			},
 			wantError: false,
 		},
@@ -1005,8 +944,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateVersion:   u64(candMBLVer),
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
-				IssuerPartnerID:    &issuerID,
-				CarrierID:          &issuerID,
+				ShippingLineID:          &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),

@@ -138,7 +138,7 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 			SetMasterBillID(mbl.ID).
 			SetVersionNo(nextVersion).
 			SetSourceEntityVersion(mbl.Version).
-			SetIssuerPartnerID(mbl.IssuerPartnerID).
+			SetShippingLineID(mbl.ShippingLineID).
 			SetTransportExecutionID(mbl.TransportExecutionID).
 			SetMasterNo(mbl.MasterNo).
 			SetNormalizedMasterNo(mbl.NormalizedMasterNo).
@@ -166,7 +166,6 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 			SetNillableClauses(mbl.Clauses)
 		if execution != nil {
 			create.
-				SetNillableCarrierID(execution.CarrierID).
 				SetNillableOriginLocationID(execution.OriginLocationID).
 				SetNillableDischargeLocationID(execution.DischargeLocationID).
 				SetNillableTransitLocationID(execution.TransitLocationID).

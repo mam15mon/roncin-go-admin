@@ -127,8 +127,8 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	if options.DestinationLocationID != nil {
 		query.Where(orderent.DestinationLocationIDEQ(*options.DestinationLocationID))
 	}
-	if options.CarrierID != nil {
-		query.Where(orderent.CarrierIDEQ(*options.CarrierID))
+	if options.ShippingLineID != nil {
+		query.Where(orderent.ShippingLineIDEQ(*options.ShippingLineID))
 	}
 	if options.ConsigneeShortName != "" {
 		query.Where(orderent.ConsigneeShortNameContainsFold(options.ConsigneeShortName))

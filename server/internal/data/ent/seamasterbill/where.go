@@ -71,9 +71,9 @@ func OrganizationID(v uuid.UUID) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldOrganizationID, v))
 }
 
-// IssuerPartnerID applies equality check predicate on the "issuer_partner_id" field. It's identical to IssuerPartnerIDEQ.
-func IssuerPartnerID(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldEQ(FieldIssuerPartnerID, v))
+// ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
+func ShippingLineID(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldShippingLineID, v))
 }
 
 // TransportExecutionID applies equality check predicate on the "transport_execution_id" field. It's identical to TransportExecutionIDEQ.
@@ -276,44 +276,24 @@ func OrganizationIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
-// IssuerPartnerIDEQ applies the EQ predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDEQ(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldEQ(FieldIssuerPartnerID, v))
+// ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.
+func ShippingLineIDEQ(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// IssuerPartnerIDNEQ applies the NEQ predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDNEQ(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldNEQ(FieldIssuerPartnerID, v))
+// ShippingLineIDNEQ applies the NEQ predicate on the "shipping_line_id" field.
+func ShippingLineIDNEQ(v uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldShippingLineID, v))
 }
 
-// IssuerPartnerIDIn applies the In predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDIn(vs ...uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldIn(FieldIssuerPartnerID, vs...))
+// ShippingLineIDIn applies the In predicate on the "shipping_line_id" field.
+func ShippingLineIDIn(vs ...uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldShippingLineID, vs...))
 }
 
-// IssuerPartnerIDNotIn applies the NotIn predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldNotIn(FieldIssuerPartnerID, vs...))
-}
-
-// IssuerPartnerIDGT applies the GT predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDGT(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldGT(FieldIssuerPartnerID, v))
-}
-
-// IssuerPartnerIDGTE applies the GTE predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDGTE(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldGTE(FieldIssuerPartnerID, v))
-}
-
-// IssuerPartnerIDLT applies the LT predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDLT(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldLT(FieldIssuerPartnerID, v))
-}
-
-// IssuerPartnerIDLTE applies the LTE predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDLTE(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldLTE(FieldIssuerPartnerID, v))
+// ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
+func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
 // TransportExecutionIDEQ applies the EQ predicate on the "transport_execution_id" field.
@@ -1621,6 +1601,29 @@ func HasOrganization() predicate.SeaMasterBill {
 func HasOrganizationWith(preds ...predicate.Organization) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
 		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingLine applies the HasEdge predicate on the "shipping_line" edge.
+func HasShippingLine() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingLineWith applies the HasEdge predicate on the "shipping_line" edge with a given conditions (other predicates).
+func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newShippingLineStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -845,8 +845,8 @@ type SeaMasterBillDetail struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	MasterNo              string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	IssuerPartnerId       string                 `protobuf:"bytes,3,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
-	IssuerPartnerName     *string                `protobuf:"bytes,4,opt,name=issuer_partner_name,json=issuerPartnerName,proto3,oneof" json:"issuer_partner_name,omitempty"`
+	ShippingLineId        string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName      *string                `protobuf:"bytes,4,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
 	Status                string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 	Version               uint64                 `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
 	Content               *SeaBillContent        `protobuf:"bytes,7,opt,name=content,proto3" json:"content,omitempty"`
@@ -901,16 +901,16 @@ func (x *SeaMasterBillDetail) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaMasterBillDetail) GetIssuerPartnerId() string {
+func (x *SeaMasterBillDetail) GetShippingLineId() string {
 	if x != nil {
-		return x.IssuerPartnerId
+		return x.ShippingLineId
 	}
 	return ""
 }
 
-func (x *SeaMasterBillDetail) GetIssuerPartnerName() string {
-	if x != nil && x.IssuerPartnerName != nil {
-		return *x.IssuerPartnerName
+func (x *SeaMasterBillDetail) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -2181,6 +2181,8 @@ type SeaDocumentVersion struct {
 	Content              *SeaBillContent          `protobuf:"bytes,22,opt,name=content,proto3" json:"content,omitempty"`
 	CreatedBy            *string                  `protobuf:"bytes,23,opt,name=created_by,json=createdBy,proto3,oneof" json:"created_by,omitempty"`
 	CreatedAt            string                   `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ShippingLineId       *string                  `protobuf:"bytes,25,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
+	ShippingLineName     *string                  `protobuf:"bytes,26,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -2379,6 +2381,20 @@ func (x *SeaDocumentVersion) GetCreatedBy() string {
 func (x *SeaDocumentVersion) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *SeaDocumentVersion) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
+	}
+	return ""
+}
+
+func (x *SeaDocumentVersion) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -4694,20 +4710,20 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x05_noteB\n" +
 	"\n" +
 	"\b_contentB\x13\n" +
-	"\x11_expected_version\"\xc6\x03\n" +
+	"\x11_expected_version\"\xc1\x03\n" +
 	"\x13SeaMasterBillDetail\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12*\n" +
-	"\x11issuer_partner_id\x18\x03 \x01(\tR\x0fissuerPartnerId\x123\n" +
-	"\x13issuer_partner_name\x18\x04 \x01(\tH\x00R\x11issuerPartnerName\x88\x01\x01\x12\x16\n" +
+	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
+	"\x10shipping_line_id\x18\x03 \x01(\tR\x0eshippingLineId\x121\n" +
+	"\x12shipping_line_name\x18\x04 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\x18\n" +
 	"\aversion\x18\x06 \x01(\x04R\aversion\x122\n" +
 	"\acontent\x18\a \x01(\v2\x18.order.v1.SeaBillContentR\acontent\x12!\n" +
 	"\fmember_count\x18\b \x01(\x05R\vmemberCount\x121\n" +
 	"\x12current_version_id\x18\t \x01(\tH\x01R\x10currentVersionId\x88\x01\x01\x126\n" +
 	"\x17immutable_version_count\x18\n" +
-	" \x01(\x04R\x15immutableVersionCountB\x16\n" +
-	"\x14_issuer_partner_nameB\x15\n" +
+	" \x01(\x04R\x15immutableVersionCountB\x15\n" +
+	"\x13_shipping_line_nameB\x15\n" +
 	"\x13_current_version_id\"\xd2\x01\n" +
 	"\x17SeaOrderDocumentSummary\x12M\n" +
 	"\x12document_structure\x18\x01 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructure\x12!\n" +
@@ -4808,7 +4824,8 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x01(\v2\x1d.order.v1.SeaMasterBillDetailR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf4\b\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x82\n" +
+	"\n" +
 	"\x12SeaDocumentVersion\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12>\n" +
 	"\rdocument_type\x18\x02 \x01(\x0e2\x19.order.v1.SeaDocumentTypeR\fdocumentType\x12\x1f\n" +
@@ -4840,7 +4857,10 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\x17 \x01(\tH\tR\tcreatedBy\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x18 \x01(\tR\tcreatedAtB\t\n" +
+	"created_at\x18\x18 \x01(\tR\tcreatedAt\x12-\n" +
+	"\x10shipping_line_id\x18\x19 \x01(\tH\n" +
+	"R\x0eshippingLineId\x88\x01\x01\x121\n" +
+	"\x12shipping_line_name\x18\x1a \x01(\tH\vR\x10shippingLineName\x88\x01\x01B\t\n" +
 	"\a_reasonB\x14\n" +
 	"\x12_issuer_partner_idB\x19\n" +
 	"\x17_issuer_organization_idB\x19\n" +
@@ -4851,7 +4871,9 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x04_etdB\x06\n" +
 	"\x04_etaB\a\n" +
 	"\x05_noteB\r\n" +
-	"\v_created_by\"\x8c\x01\n" +
+	"\v_created_byB\x13\n" +
+	"\x11_shipping_line_idB\x15\n" +
+	"\x13_shipping_line_name\"\x8c\x01\n" +
 	"\x1aSeaDocumentFieldDifference\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12!\n" +

@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -33,8 +33,8 @@ type SeaMasterBillVersion struct {
 	VersionNo uint64 `json:"version_no,omitempty"`
 	// SourceEntityVersion holds the value of the "source_entity_version" field.
 	SourceEntityVersion uint64 `json:"source_entity_version,omitempty"`
-	// IssuerPartnerID holds the value of the "issuer_partner_id" field.
-	IssuerPartnerID uuid.UUID `json:"issuer_partner_id,omitempty"`
+	// ShippingLineID holds the value of the "shipping_line_id" field.
+	ShippingLineID uuid.UUID `json:"shipping_line_id,omitempty"`
 	// TransportExecutionID holds the value of the "transport_execution_id" field.
 	TransportExecutionID uuid.UUID `json:"transport_execution_id,omitempty"`
 	// MasterNo holds the value of the "master_no" field.
@@ -49,8 +49,6 @@ type SeaMasterBillVersion struct {
 	EtdSnapshot *string `json:"etd_snapshot,omitempty"`
 	// EtaSnapshot holds the value of the "eta_snapshot" field.
 	EtaSnapshot *string `json:"eta_snapshot,omitempty"`
-	// CarrierID holds the value of the "carrier_id" field.
-	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
 	// OriginLocationID holds the value of the "origin_location_id" field.
 	OriginLocationID *uuid.UUID `json:"origin_location_id,omitempty"`
 	// DischargeLocationID holds the value of the "discharge_location_id" field.
@@ -119,8 +117,8 @@ type SeaMasterBillVersionEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// MasterBill holds the value of the master_bill edge.
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
-	// IssuerPartner holds the value of the issuer_partner edge.
-	IssuerPartner *Partner `json:"issuer_partner,omitempty"`
+	// ShippingLine holds the value of the shipping_line edge.
+	ShippingLine *ShippingLine `json:"shipping_line,omitempty"`
 	// TransportExecution holds the value of the transport_execution edge.
 	TransportExecution *SeaTransportExecution `json:"transport_execution,omitempty"`
 	// Creator holds the value of the creator edge.
@@ -158,15 +156,15 @@ func (e SeaMasterBillVersionEdges) MasterBillOrErr() (*SeaMasterBill, error) {
 	return nil, &NotLoadedError{edge: "master_bill"}
 }
 
-// IssuerPartnerOrErr returns the IssuerPartner value or an error if the edge
+// ShippingLineOrErr returns the ShippingLine value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SeaMasterBillVersionEdges) IssuerPartnerOrErr() (*Partner, error) {
-	if e.IssuerPartner != nil {
-		return e.IssuerPartner, nil
+func (e SeaMasterBillVersionEdges) ShippingLineOrErr() (*ShippingLine, error) {
+	if e.ShippingLine != nil {
+		return e.ShippingLine, nil
 	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: partner.Label}
+		return nil, &NotFoundError{label: shippingline.Label}
 	}
-	return nil, &NotLoadedError{edge: "issuer_partner"}
+	return nil, &NotLoadedError{edge: "shipping_line"}
 }
 
 // TransportExecutionOrErr returns the TransportExecution value or an error if the edge
@@ -223,7 +221,7 @@ func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seamasterbillversion.FieldCarrierID, seamasterbillversion.FieldOriginLocationID, seamasterbillversion.FieldDischargeLocationID, seamasterbillversion.FieldTransitLocationID, seamasterbillversion.FieldCreatedBy:
+		case seamasterbillversion.FieldOriginLocationID, seamasterbillversion.FieldDischargeLocationID, seamasterbillversion.FieldTransitLocationID, seamasterbillversion.FieldCreatedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seamasterbillversion.FieldGrossWeightKg, seamasterbillversion.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
@@ -233,7 +231,7 @@ func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case seamasterbillversion.FieldCreatedAt, seamasterbillversion.FieldEtd, seamasterbillversion.FieldEta:
 			values[i] = new(sql.NullTime)
-		case seamasterbillversion.FieldID, seamasterbillversion.FieldOrganizationID, seamasterbillversion.FieldMasterBillID, seamasterbillversion.FieldIssuerPartnerID, seamasterbillversion.FieldTransportExecutionID:
+		case seamasterbillversion.FieldID, seamasterbillversion.FieldOrganizationID, seamasterbillversion.FieldMasterBillID, seamasterbillversion.FieldShippingLineID, seamasterbillversion.FieldTransportExecutionID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -286,11 +284,11 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.SourceEntityVersion = uint64(value.Int64)
 			}
-		case seamasterbillversion.FieldIssuerPartnerID:
+		case seamasterbillversion.FieldShippingLineID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field issuer_partner_id", values[i])
+				return fmt.Errorf("unexpected type %T for field shipping_line_id", values[i])
 			} else if value != nil {
-				_m.IssuerPartnerID = *value
+				_m.ShippingLineID = *value
 			}
 		case seamasterbillversion.FieldTransportExecutionID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -336,13 +334,6 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.EtaSnapshot = new(string)
 				*_m.EtaSnapshot = value.String
-			}
-		case seamasterbillversion.FieldCarrierID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field carrier_id", values[i])
-			} else if value.Valid {
-				_m.CarrierID = new(uuid.UUID)
-				*_m.CarrierID = *value.S.(*uuid.UUID)
 			}
 		case seamasterbillversion.FieldOriginLocationID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -559,9 +550,9 @@ func (_m *SeaMasterBillVersion) QueryMasterBill() *SeaMasterBillQuery {
 	return NewSeaMasterBillVersionClient(_m.config).QueryMasterBill(_m)
 }
 
-// QueryIssuerPartner queries the "issuer_partner" edge of the SeaMasterBillVersion entity.
-func (_m *SeaMasterBillVersion) QueryIssuerPartner() *PartnerQuery {
-	return NewSeaMasterBillVersionClient(_m.config).QueryIssuerPartner(_m)
+// QueryShippingLine queries the "shipping_line" edge of the SeaMasterBillVersion entity.
+func (_m *SeaMasterBillVersion) QueryShippingLine() *ShippingLineQuery {
+	return NewSeaMasterBillVersionClient(_m.config).QueryShippingLine(_m)
 }
 
 // QueryTransportExecution queries the "transport_execution" edge of the SeaMasterBillVersion entity.
@@ -627,8 +618,8 @@ func (_m *SeaMasterBillVersion) String() string {
 	builder.WriteString("source_entity_version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SourceEntityVersion))
 	builder.WriteString(", ")
-	builder.WriteString("issuer_partner_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IssuerPartnerID))
+	builder.WriteString("shipping_line_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShippingLineID))
 	builder.WriteString(", ")
 	builder.WriteString("transport_execution_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TransportExecutionID))
@@ -655,11 +646,6 @@ func (_m *SeaMasterBillVersion) String() string {
 	if v := _m.EtaSnapshot; v != nil {
 		builder.WriteString("eta_snapshot=")
 		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.CarrierID; v != nil {
-		builder.WriteString("carrier_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	if v := _m.OriginLocationID; v != nil {

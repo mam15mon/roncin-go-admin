@@ -34,8 +34,8 @@ const (
 	FieldShipperShortName = "shipper_short_name"
 	// FieldConsigneeShortName holds the string denoting the consignee_short_name field in the database.
 	FieldConsigneeShortName = "consignee_short_name"
-	// FieldCarrierID holds the string denoting the carrier_id field in the database.
-	FieldCarrierID = "carrier_id"
+	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
+	FieldShippingLineID = "shipping_line_id"
 	// FieldBookingAgentID holds the string denoting the booking_agent_id field in the database.
 	FieldBookingAgentID = "booking_agent_id"
 	// FieldForeignAgentID holds the string denoting the foreign_agent_id field in the database.
@@ -158,6 +158,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeCustomer holds the string denoting the customer edge name in mutations.
 	EdgeCustomer = "customer"
+	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
+	EdgeShippingLine = "shipping_line"
 	// EdgeLifecycleEvents holds the string denoting the lifecycle_events edge name in mutations.
 	EdgeLifecycleEvents = "lifecycle_events"
 	// EdgeServiceTypes holds the string denoting the service_types edge name in mutations.
@@ -234,6 +236,13 @@ const (
 	CustomerInverseTable = "partners"
 	// CustomerColumn is the table column denoting the customer relation/edge.
 	CustomerColumn = "customer_id"
+	// ShippingLineTable is the table that holds the shipping_line relation/edge.
+	ShippingLineTable = "orders"
+	// ShippingLineInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLineInverseTable = "shipping_lines"
+	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
+	ShippingLineColumn = "shipping_line_id"
 	// LifecycleEventsTable is the table that holds the lifecycle_events relation/edge.
 	LifecycleEventsTable = "order_lifecycle_events"
 	// LifecycleEventsInverseTable is the table name for the OrderLifecycleEvent entity.
@@ -458,7 +467,7 @@ var Columns = []string{
 	FieldInternalReferenceNo,
 	FieldShipperShortName,
 	FieldConsigneeShortName,
-	FieldCarrierID,
+	FieldShippingLineID,
 	FieldBookingAgentID,
 	FieldForeignAgentID,
 	FieldShippingAgentID,
@@ -962,9 +971,9 @@ func ByConsigneeShortName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldConsigneeShortName, opts...).ToFunc()
 }
 
-// ByCarrierID orders the results by the carrier_id field.
-func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
+// ByShippingLineID orders the results by the shipping_line_id field.
+func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
 // ByBookingAgentID orders the results by the booking_agent_id field.
@@ -1273,6 +1282,13 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 func ByCustomerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCustomerStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByShippingLineField orders the results by shipping_line field.
+func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -1700,6 +1716,13 @@ func newCustomerStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CustomerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CustomerTable, CustomerColumn),
+	)
+}
+func newShippingLineStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingLineInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 	)
 }
 func newLifecycleEventsStep() *sqlgraph.Step {

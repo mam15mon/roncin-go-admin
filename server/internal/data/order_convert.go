@@ -40,7 +40,7 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
 		ID: item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
-		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
+		ShippingLineID: item.ShippingLineID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		ShipperShortName: item.ShipperShortName, ConsigneeShortName: item.ConsigneeShortName, LockedAt: item.LockedAt, IsShared: item.IsShared,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
@@ -97,17 +97,16 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		if activeLink.Edges.MasterBill != nil {
 			mbl := activeLink.Edges.MasterBill
 			summary := &biz.SeaMasterBillSummary{
-				MasterBillID:    mbl.ID,
-				MasterNo:        mbl.MasterNo,
-				IssuerPartnerID: mbl.IssuerPartnerID,
-				Status:          string(mbl.Status),
-				Version:         mbl.Version,
-				MemberCount:     len(mbl.Edges.OrderLinks),
+				MasterBillID:   mbl.ID,
+				MasterNo:       mbl.MasterNo,
+				ShippingLineID: mbl.ShippingLineID,
+				Status:         string(mbl.Status),
+				Version:        mbl.Version,
+				MemberCount:    len(mbl.Edges.OrderLinks),
 			}
 			if mbl.Edges.TransportExecution != nil {
 				te := mbl.Edges.TransportExecution
 				summary.TransportExecutionID = te.ID
-				summary.CarrierID = te.CarrierID
 				summary.OriginLocationID = te.OriginLocationID
 				summary.DischargeLocationID = te.DischargeLocationID
 				summary.TransitLocationID = te.TransitLocationID
@@ -152,10 +151,10 @@ func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 }
 
 func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
-	if input.CarrierID == nil {
-		update.ClearCarrierID()
+	if input.ShippingLineID == nil {
+		update.ClearShippingLineID()
 	} else {
-		update.SetCarrierID(*input.CarrierID)
+		update.SetShippingLineID(*input.ShippingLineID)
 	}
 	if input.BookingAgentID == nil {
 		update.ClearBookingAgentID()
@@ -277,6 +276,7 @@ func seaTransportExecutionToBiz(te *ent.SeaTransportExecution) *biz.SeaTransport
 	res := &biz.SeaTransportExecution{
 		ID:                te.ID,
 		OrganizationID:    te.OrganizationID,
+		ShippingLineID:    te.ShippingLineID,
 		TransitLocationID: te.TransitLocationID,
 		VesselName:        te.VesselName,
 		VoyageNo:          te.VoyageNo,
@@ -285,9 +285,6 @@ func seaTransportExecutionToBiz(te *ent.SeaTransportExecution) *biz.SeaTransport
 		Version:           te.Version,
 		CreatedAt:         te.CreatedAt,
 		UpdatedAt:         te.UpdatedAt,
-	}
-	if te.CarrierID != nil {
-		res.CarrierID = *te.CarrierID
 	}
 	if te.OriginLocationID != nil {
 		res.OriginLocationID = *te.OriginLocationID

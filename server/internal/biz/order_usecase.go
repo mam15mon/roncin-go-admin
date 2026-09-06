@@ -186,15 +186,15 @@ func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organiza
 	return uc.repo.ListConsolidationSummaries(ctx, organizationID, orderID)
 }
 
-func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
-	if organizationID == uuid.Nil || issuerPartnerID == uuid.Nil {
+func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
+	if organizationID == uuid.Nil || shippingLineID == uuid.Nil {
 		return nil, ErrSeaMasterBillInvalidArgument
 	}
 	normalizedNo, err := ValidateAndNormalizeSeaMasterNo(masterNo)
 	if err != nil {
 		return nil, err
 	}
-	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, issuerPartnerID, normalizedNo, voyage)
+	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, shippingLineID, normalizedNo, voyage)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
@@ -378,7 +378,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, err
 	}
 	if output.BusinessType == OrderBusinessSE {
-		if output.CarrierID == nil || *output.CarrierID == uuid.Nil {
+		if output.ShippingLineID == nil || *output.ShippingLineID == uuid.Nil {
 			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择船公司")
 		}
 		contentOnlyUpdate := !creating && output.SeaMasterBillInput == nil &&
@@ -388,7 +388,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		}
 		if output.SeaMasterBillInput != nil {
 			masterBillInput := *output.SeaMasterBillInput
-			masterBillInput.IssuerPartnerID = *output.CarrierID
 			output.SeaMasterBillInput = &masterBillInput
 			normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
 			if err != nil {

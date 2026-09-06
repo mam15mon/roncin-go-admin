@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -16,13 +18,19 @@ func (PartnerRole) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin
 func (PartnerRole) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("partner_id", uuid.Nil),
-		field.Enum("role_type").Values("customer", "supplier", "foreign_agent", "carrier"),
+		field.Enum("role_type").Values("customer", "supplier", "foreign_agent"),
 		field.Bool("enabled").Default(true),
 		field.Bool("blacklisted").Default(false),
 		field.String("blacklist_reason").Optional().MaxLen(500),
 		field.Time("blacklisted_at").Optional().Nillable(),
 		field.UUID("blacklisted_by", uuid.Nil).Optional().Nillable(),
 	}
+}
+
+func (PartnerRole) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"partner_roles_role_type_check": "role_type IN ('customer', 'supplier', 'foreign_agent')",
+	})}
 }
 
 func (PartnerRole) Edges() []ent.Edge {

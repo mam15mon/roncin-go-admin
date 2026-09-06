@@ -47,6 +47,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -59,6 +60,7 @@ type OrderQuery struct {
 	predicates                       []predicate.Order
 	withOrganization                 *OrganizationQuery
 	withCustomer                     *PartnerQuery
+	withShippingLine                 *ShippingLineQuery
 	withLifecycleEvents              *OrderLifecycleEventQuery
 	withServiceTypes                 *OrderServiceTypeQuery
 	withCargoCategories              *OrderCargoCategoryQuery
@@ -163,6 +165,28 @@ func (_q *OrderQuery) QueryCustomer() *PartnerQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, order.CustomerTable, order.CustomerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShippingLine chains the current query on the "shipping_line" edge.
+func (_q *OrderQuery) QueryShippingLine() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.ShippingLineTable, order.ShippingLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1024,6 +1048,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		predicates:                       append([]predicate.Order{}, _q.predicates...),
 		withOrganization:                 _q.withOrganization.Clone(),
 		withCustomer:                     _q.withCustomer.Clone(),
+		withShippingLine:                 _q.withShippingLine.Clone(),
 		withLifecycleEvents:              _q.withLifecycleEvents.Clone(),
 		withServiceTypes:                 _q.withServiceTypes.Clone(),
 		withCargoCategories:              _q.withCargoCategories.Clone(),
@@ -1079,6 +1104,17 @@ func (_q *OrderQuery) WithCustomer(opts ...func(*PartnerQuery)) *OrderQuery {
 		opt(query)
 	}
 	_q.withCustomer = query
+	return _q
+}
+
+// WithShippingLine tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithShippingLine(opts ...func(*ShippingLineQuery)) *OrderQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withShippingLine = query
 	return _q
 }
 
@@ -1490,9 +1526,10 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [32]bool{
+		loadedTypes = [33]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
+			_q.withShippingLine != nil,
 			_q.withLifecycleEvents != nil,
 			_q.withServiceTypes != nil,
 			_q.withCargoCategories != nil,
@@ -1555,6 +1592,12 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	if query := _q.withCustomer; query != nil {
 		if err := _q.loadCustomer(ctx, query, nodes, nil,
 			func(n *Order, e *Partner) { n.Edges.Customer = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withShippingLine; query != nil {
+		if err := _q.loadShippingLine(ctx, query, nodes, nil,
+			func(n *Order, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1849,6 +1892,38 @@ func (_q *OrderQuery) loadCustomer(ctx context.Context, query *PartnerQuery, nod
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "customer_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderQuery) loadShippingLine(ctx context.Context, query *ShippingLineQuery, nodes []*Order, init func(*Order), assign func(*Order, *ShippingLine)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Order)
+	for i := range nodes {
+		if nodes[i].ShippingLineID == nil {
+			continue
+		}
+		fk := *nodes[i].ShippingLineID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(shippingline.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -2792,6 +2867,9 @@ func (_q *OrderQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCustomer != nil {
 			_spec.Node.AddColumnOnce(order.FieldCustomerID)
+		}
+		if _q.withShippingLine != nil {
+			_spec.Node.AddColumnOnce(order.FieldShippingLineID)
 		}
 		if _q.withLockedByUser != nil {
 			_spec.Node.AddColumnOnce(order.FieldLockedBy)

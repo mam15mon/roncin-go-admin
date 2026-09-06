@@ -278,7 +278,7 @@ func derefUUID(u *uuid.UUID) string {
 
 func computeMBLContentHash(mbl *ent.SeaMasterBill, exec *ent.SeaTransportExecution) string {
 	h := sha256.New()
-	fmt.Fprintf(h, "no:%s|norm:%s|issuer:%s|trans:%s|", mbl.MasterNo, mbl.NormalizedMasterNo, mbl.IssuerPartnerID, mbl.TransportExecutionID)
+	fmt.Fprintf(h, "no:%s|norm:%s|shipping_line:%s|trans:%s|", mbl.MasterNo, mbl.NormalizedMasterNo, mbl.ShippingLineID, mbl.TransportExecutionID)
 	if exec != nil {
 		var etdStr, etaStr string
 		if exec.Etd != nil {
@@ -287,9 +287,9 @@ func computeMBLContentHash(mbl *ent.SeaMasterBill, exec *ent.SeaTransportExecuti
 		if exec.Eta != nil {
 			etaStr = exec.Eta.Format(time.RFC3339)
 		}
-		fmt.Fprintf(h, "vessel:%s|voyage:%s|etd:%s|eta:%s|carrier:%s|origin:%s|discharge:%s|transit:%s|",
+		fmt.Fprintf(h, "vessel:%s|voyage:%s|etd:%s|eta:%s|origin:%s|discharge:%s|transit:%s|",
 			exec.VesselName, exec.VoyageNo, etdStr, etaStr,
-			derefUUID(exec.CarrierID), derefUUID(exec.OriginLocationID), derefUUID(exec.DischargeLocationID), derefUUID(exec.TransitLocationID))
+			derefUUID(exec.OriginLocationID), derefUUID(exec.DischargeLocationID), derefUUID(exec.TransitLocationID))
 	}
 	fmt.Fprintf(h, "shipper:%s|consignee:%s|notify:%s|notify2:%s|marks:%s|goods:%s|",
 		derefStr(mbl.ShipperText), derefStr(mbl.ConsigneeText), derefStr(mbl.NotifyPartyText),

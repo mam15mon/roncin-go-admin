@@ -10,7 +10,7 @@ import (
 )
 
 func TestComputeMBLContentHashIncludesAllAuthoritativeRouteFields(t *testing.T) {
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	originID := uuid.New()
 	dischargeID := uuid.New()
 	transitID := uuid.New()
@@ -19,11 +19,11 @@ func TestComputeMBLContentHashIncludesAllAuthoritativeRouteFields(t *testing.T) 
 	mbl := &ent.SeaMasterBill{
 		MasterNo:             "MBL-ROUTE-HASH",
 		NormalizedMasterNo:   "MBL-ROUTE-HASH",
-		IssuerPartnerID:      uuid.New(),
+		ShippingLineID:       shippingLineID,
 		TransportExecutionID: uuid.New(),
 	}
 	base := ent.SeaTransportExecution{
-		CarrierID:           &carrierID,
+		ShippingLineID:      shippingLineID,
 		OriginLocationID:    &originID,
 		DischargeLocationID: &dischargeID,
 		TransitLocationID:   &transitID,
@@ -43,7 +43,6 @@ func TestComputeMBLContentHashIncludesAllAuthoritativeRouteFields(t *testing.T) 
 		}
 	}
 
-	assertChangesHash("carrier_id", func(v *ent.SeaTransportExecution) { id := uuid.New(); v.CarrierID = &id })
 	assertChangesHash("origin_location_id", func(v *ent.SeaTransportExecution) { id := uuid.New(); v.OriginLocationID = &id })
 	assertChangesHash("discharge_location_id", func(v *ent.SeaTransportExecution) { id := uuid.New(); v.DischargeLocationID = &id })
 	assertChangesHash("transit_location_id", func(v *ent.SeaTransportExecution) { id := uuid.New(); v.TransitLocationID = &id })

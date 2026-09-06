@@ -178,8 +178,8 @@ func (_u *SeaMasterBillVersionUpdate) check() error {
 	if _u.mutation.MasterBillCleared() && len(_u.mutation.MasterBillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.master_bill"`)
 	}
-	if _u.mutation.IssuerPartnerCleared() && len(_u.mutation.IssuerPartnerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.issuer_partner"`)
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.shipping_line"`)
 	}
 	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.transport_execution"`)
@@ -207,9 +207,6 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if _u.mutation.EtaSnapshotCleared() {
 		_spec.ClearField(seamasterbillversion.FieldEtaSnapshot, field.TypeString)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldCarrierID, field.TypeUUID)
 	}
 	if _u.mutation.OriginLocationIDCleared() {
 		_spec.ClearField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID)
@@ -596,8 +593,8 @@ func (_u *SeaMasterBillVersionUpdateOne) check() error {
 	if _u.mutation.MasterBillCleared() && len(_u.mutation.MasterBillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.master_bill"`)
 	}
-	if _u.mutation.IssuerPartnerCleared() && len(_u.mutation.IssuerPartnerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.issuer_partner"`)
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.shipping_line"`)
 	}
 	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.transport_execution"`)
@@ -642,9 +639,6 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 	}
 	if _u.mutation.EtaSnapshotCleared() {
 		_spec.ClearField(seamasterbillversion.FieldEtaSnapshot, field.TypeString)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldCarrierID, field.TypeUUID)
 	}
 	if _u.mutation.OriginLocationIDCleared() {
 		_spec.ClearField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID)

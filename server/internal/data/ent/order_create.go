@@ -43,6 +43,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -155,16 +156,16 @@ func (_c *OrderCreate) SetNillableConsigneeShortName(v *string) *OrderCreate {
 	return _c
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_c *OrderCreate) SetCarrierID(v uuid.UUID) *OrderCreate {
-	_c.mutation.SetCarrierID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_c *OrderCreate) SetShippingLineID(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetShippingLineID(v)
 	return _c
 }
 
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_c *OrderCreate) SetNillableCarrierID(v *uuid.UUID) *OrderCreate {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableShippingLineID(v *uuid.UUID) *OrderCreate {
 	if v != nil {
-		_c.SetCarrierID(*v)
+		_c.SetShippingLineID(*v)
 	}
 	return _c
 }
@@ -985,6 +986,11 @@ func (_c *OrderCreate) SetOrganization(v *Organization) *OrderCreate {
 // SetCustomer sets the "customer" edge to the Partner entity.
 func (_c *OrderCreate) SetCustomer(v *Partner) *OrderCreate {
 	return _c.SetCustomerID(v.ID)
+}
+
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_c *OrderCreate) SetShippingLine(v *ShippingLine) *OrderCreate {
+	return _c.SetShippingLineID(v.ID)
 }
 
 // AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
@@ -1879,10 +1885,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
 		_node.ConsigneeShortName = value
 	}
-	if value, ok := _c.mutation.CarrierID(); ok {
-		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
-		_node.CarrierID = &value
-	}
 	if value, ok := _c.mutation.BookingAgentID(); ok {
 		_spec.SetField(order.FieldBookingAgentID, field.TypeUUID, value)
 		_node.BookingAgentID = &value
@@ -2147,6 +2149,23 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CustomerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.ShippingLineTable,
+			Columns: []string{order.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ShippingLineID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.LifecycleEventsIDs(); len(nodes) > 0 {

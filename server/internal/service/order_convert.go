@@ -19,7 +19,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		ClosureStatus: orderClosureStatusToAPI(item.ClosureStatus), ClosureReason: stringPtrIfNotEmpty(item.ClosureReason), ClosedAt: timePtrToString(item.ClosedAt), ClosedBy: uuidStringPtr(item.ClosedBy),
 		Version: item.Version, HasActiveException: item.HasActiveException, ActiveExceptionCount: int32(item.ActiveExceptionCount), AllowedActions: orderAllowedActionsToAPI(item.AllowedActions), AllowedTargetFlowStatuses: orderFlowStatusesToAPI(item.AllowedTargetFlowStatuses()),
 		ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
-		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
+		ShippingLineId: uuidStringPtr(item.ShippingLineID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
 		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
 		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt), LoadingTerms: stringPtrIfNotEmpty(item.LoadingTerms),
 		DeclarationCutoffAt: stringPtrIfNotEmpty(item.DeclarationCutoffAt), ReceivedAt: stringPtrIfNotEmpty(item.ReceivedAt),
@@ -224,11 +224,9 @@ func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBill
 	res := &v1.SeaMasterBillSummary{
 		MasterBillId:          item.MasterBillID.String(),
 		MasterNo:              item.MasterNo,
-		IssuerPartnerId:       item.IssuerPartnerID.String(),
-		IssuerPartnerName:     stringPtrIfNotEmpty(item.IssuerPartnerName),
+		ShippingLineId:        item.ShippingLineID.String(),
+		ShippingLineName:      stringPtrIfNotEmpty(item.ShippingLineName),
 		TransportExecutionId:  item.TransportExecutionID.String(),
-		CarrierId:             uuidStringPtr(item.CarrierID),
-		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
 		OriginLocationId:      uuidStringPtr(item.OriginLocationID),
 		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
 		DischargeLocationId:   uuidStringPtr(item.DischargeLocationID),
@@ -252,8 +250,8 @@ func seaTransportExecutionToAPI(item *biz.SeaTransportExecution) *v1.SeaTranspor
 	}
 	res := &v1.SeaTransportExecution{
 		Id:                    item.ID.String(),
-		CarrierId:             uuidStringPtr(&item.CarrierID),
-		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
+		ShippingLineId:        item.ShippingLineID.String(),
+		ShippingLineName:      stringPtrIfNotEmpty(item.ShippingLineName),
 		OriginLocationId:      uuidStringPtr(&item.OriginLocationID),
 		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
 		DischargeLocationId:   uuidStringPtr(&item.DischargeLocationID),
@@ -281,8 +279,8 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 		Id:                 item.ID.String(),
 		Version:            item.Version,
 		MasterNo:           item.MasterNo,
-		IssuerPartnerId:    item.IssuerPartnerID.String(),
-		IssuerPartnerName:  stringPtrIfNotEmpty(item.IssuerPartnerName),
+		ShippingLineId:     item.ShippingLineID.String(),
+		ShippingLineName:   stringPtrIfNotEmpty(item.ShippingLineName),
 		TransportExecution: seaTransportExecutionToAPI(item.TransportExecution),
 		MemberCount:        int32(item.MemberCount),
 	}
@@ -300,13 +298,8 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 	if input == nil {
 		return nil, nil
 	}
-	issuerPartnerID, err := uuid.Parse(input.GetIssuerPartnerId())
-	if err != nil {
-		return nil, biz.ErrSeaMasterBillInvalidArgument
-	}
 	res := &biz.SeaMasterBillInput{
 		MasterNo:                 input.GetMasterNo(),
-		IssuerPartnerID:          issuerPartnerID,
 		CorrectionReason:         input.GetCorrectionReason(),
 		ExpectedCandidateVersion: input.ExpectedCandidateVersion,
 	}

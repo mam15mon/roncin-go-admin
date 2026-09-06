@@ -141,10 +141,10 @@ message SeaOrderSplitContextData {
 message SeaOrderSplitMasterBillSummary {
   string id = 1;
   string master_no = 2;
-  string issuer_partner_id = 3;
-  string issuer_partner_name = 4;
-  string carrier_id = 5;
-  string carrier_name = 6;
+  string shipping_line_id = 3;
+  string shipping_line_name = 4;
+  reserved 5, 6;
+  reserved "carrier_id", "carrier_name";
   string vessel_name = 7;
   string voyage_no = 8;
   string etd = 9;
@@ -236,8 +236,9 @@ message SeaOrderSplitTargetInput {
   optional string candidate_id = 3;
   optional uint64 candidate_version = 4;
   optional string master_no = 5;
-  optional string issuer_partner_id = 6;
-  optional string carrier_id = 7;
+  optional string shipping_line_id = 6;
+  reserved 7;
+  reserved "carrier_id";
   optional string vessel_name = 8;
   optional string voyage_no = 9;
   optional string etd = 10;
@@ -388,8 +389,9 @@ message SeaOrderReassignmentTargetInput {
   optional string candidate_id = 2;
   optional uint64 candidate_version = 3;
   optional string master_no = 4;
-  optional string issuer_partner_id = 5;
-  optional string carrier_id = 6;
+  optional string shipping_line_id = 5;
+  reserved 6;
+  reserved "carrier_id";
   optional string vessel_name = 7;
   optional string voyage_no = 8;
   optional string etd = 9;

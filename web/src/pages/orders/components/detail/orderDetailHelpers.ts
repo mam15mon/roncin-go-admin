@@ -50,7 +50,7 @@ export function buildInitialValues(
     internalReferenceNo: order.internalReferenceNo,
     tradeTerm: order.tradeTerm,
     paymentTerm: order.paymentTerm,
-    carrierId: order.carrierId,
+    shippingLineId: order.shippingLineId,
     bookingAgentId: order.bookingAgentId,
     foreignAgentId: order.foreignAgentId,
     shippingAgentId: order.shippingAgentId,
@@ -180,7 +180,7 @@ export function buildUpdatePayload(
       values.paymentTerm !== undefined
         ? Number(values.paymentTerm)
         : undefined,
-    carrierId: values.carrierId || undefined,
+    shippingLineId: values.shippingLineId || undefined,
     bookingAgentId: values.bookingAgentId || undefined,
     foreignAgentId: values.foreignAgentId || undefined,
     shippingAgentId: values.shippingAgentId || undefined,
@@ -264,10 +264,9 @@ export function buildUpdatePayload(
         quantity: request.quantity as number,
       })),
     seaMasterBill:
-      isSea && (values.seaMasterBillMasterNo || values.carrierId)
+      isSea && (values.seaMasterBillMasterNo || values.shippingLineId)
         ? {
             masterNo: values.seaMasterBillMasterNo || '',
-            issuerPartnerId: values.carrierId || '',
             candidateId: values.seaMasterBillCandidateId || undefined,
             expectedCandidateVersion:
               values.seaMasterBillExpectedCandidateVersion !== undefined &&

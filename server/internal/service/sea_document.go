@@ -436,9 +436,9 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 	if m == nil {
 		return nil
 	}
-	var partnerName *string
-	if m.IssuerPartnerName != "" {
-		partnerName = &m.IssuerPartnerName
+	var shippingLineName *string
+	if m.ShippingLineName != "" {
+		shippingLineName = &m.ShippingLineName
 	}
 	var currentVersionID *string
 	if m.CurrentVersionID != nil {
@@ -448,8 +448,8 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 	return &v1.SeaMasterBillDetail{
 		Id:                    m.ID.String(),
 		MasterNo:              m.MasterNo,
-		IssuerPartnerId:       m.IssuerPartnerID.String(),
-		IssuerPartnerName:     partnerName,
+		ShippingLineId:        m.ShippingLineID.String(),
+		ShippingLineName:      shippingLineName,
 		Status:                m.Status,
 		Version:               m.Version,
 		Content:               seaBillContentToAPI(m.Content),

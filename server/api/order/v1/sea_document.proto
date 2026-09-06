@@ -263,8 +263,8 @@ message SeaHouseBillInput {
 message SeaMasterBillDetail {
   string id = 1;
   string master_no = 2;
-  string issuer_partner_id = 3;
-  optional string issuer_partner_name = 4;
+  string shipping_line_id = 3;
+  optional string shipping_line_name = 4;
   string status = 5;
   uint64 version = 6;
   SeaBillContent content = 7;
@@ -438,6 +438,8 @@ message SeaDocumentVersion {
   SeaBillContent content = 22;
   optional string created_by = 23;
   string created_at = 24;
+  optional string shipping_line_id = 25;
+  optional string shipping_line_name = 26;
 }
 
 message SeaDocumentFieldDifference {

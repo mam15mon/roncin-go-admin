@@ -472,6 +472,12 @@ export default function SeaDocumentHistoryActions({
                 <Descriptions.Item label="实体版本">
                   v{row.sourceEntityVersion}
                 </Descriptions.Item>
+                {row.documentType ===
+                  SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL && (
+                  <Descriptions.Item label="船公司" span={2}>
+                    {row.shippingLineName || row.shippingLineId || '-'}
+                  </Descriptions.Item>
+                )}
                 <Descriptions.Item label="船名">
                   {row.vesselName || '-'}
                 </Descriptions.Item>

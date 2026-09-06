@@ -71,9 +71,9 @@ func OrganizationID(v uuid.UUID) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldEQ(FieldOrganizationID, v))
 }
 
-// CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
-func CarrierID(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
+func ShippingLineID(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldEQ(FieldShippingLineID, v))
 }
 
 // OriginLocationID applies equality check predicate on the "origin_location_id" field. It's identical to OriginLocationIDEQ.
@@ -216,54 +216,24 @@ func OrganizationIDNotIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
-// CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
-func CarrierIDEQ(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.
+func ShippingLineIDEQ(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDNEQ applies the NEQ predicate on the "carrier_id" field.
-func CarrierIDNEQ(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldNEQ(FieldCarrierID, v))
+// ShippingLineIDNEQ applies the NEQ predicate on the "shipping_line_id" field.
+func ShippingLineIDNEQ(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldNEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDIn applies the In predicate on the "carrier_id" field.
-func CarrierIDIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldIn(FieldCarrierID, vs...))
+// ShippingLineIDIn applies the In predicate on the "shipping_line_id" field.
+func ShippingLineIDIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldIn(FieldShippingLineID, vs...))
 }
 
-// CarrierIDNotIn applies the NotIn predicate on the "carrier_id" field.
-func CarrierIDNotIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldNotIn(FieldCarrierID, vs...))
-}
-
-// CarrierIDGT applies the GT predicate on the "carrier_id" field.
-func CarrierIDGT(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldGT(FieldCarrierID, v))
-}
-
-// CarrierIDGTE applies the GTE predicate on the "carrier_id" field.
-func CarrierIDGTE(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldGTE(FieldCarrierID, v))
-}
-
-// CarrierIDLT applies the LT predicate on the "carrier_id" field.
-func CarrierIDLT(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldLT(FieldCarrierID, v))
-}
-
-// CarrierIDLTE applies the LTE predicate on the "carrier_id" field.
-func CarrierIDLTE(v uuid.UUID) predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldLTE(FieldCarrierID, v))
-}
-
-// CarrierIDIsNil applies the IsNil predicate on the "carrier_id" field.
-func CarrierIDIsNil() predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldIsNull(FieldCarrierID))
-}
-
-// CarrierIDNotNil applies the NotNil predicate on the "carrier_id" field.
-func CarrierIDNotNil() predicate.SeaTransportExecution {
-	return predicate.SeaTransportExecution(sql.FieldNotNull(FieldCarrierID))
+// ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
+func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
 // OriginLocationIDEQ applies the EQ predicate on the "origin_location_id" field.
@@ -701,6 +671,29 @@ func HasOrganization() predicate.SeaTransportExecution {
 func HasOrganizationWith(preds ...predicate.Organization) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(func(s *sql.Selector) {
 		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingLine applies the HasEdge predicate on the "shipping_line" edge.
+func HasShippingLine() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingLineWith applies the HasEdge predicate on the "shipping_line" edge with a given conditions (other predicates).
+func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := newShippingLineStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

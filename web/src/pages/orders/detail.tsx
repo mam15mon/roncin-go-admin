@@ -61,6 +61,7 @@ import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
+import { searchShippingLineOptions } from '@/utils/options';
 import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
@@ -254,8 +255,7 @@ export default function OrderDetailPage() {
       isDetail: true,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
-      searchCarriers: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
+      searchShippingLines: searchShippingLineOptions,
       searchBookingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       searchForeignAgents: (keyword?: string) =>
@@ -652,10 +652,10 @@ export default function OrderDetailPage() {
               await Promise.all([loadData(), refreshLockState()]);
               await loadChangeActions();
             }}
-            searchCarriers={templateProps.searchCarriers}
+            searchShippingLines={templateProps.searchShippingLines}
             searchLocations={templateProps.searchLocations}
-            initialCarrierId={order.carrierId}
-            initialCarrierName={order.seaMasterBill?.carrierName}
+            initialShippingLineId={order.shippingLineId}
+            initialShippingLineName={order.seaMasterBill?.shippingLineName}
           />
           <SeaOrderChangeHistoryDrawer
             orderId={orderId}

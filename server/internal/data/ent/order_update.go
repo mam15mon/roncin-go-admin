@@ -45,6 +45,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -163,23 +164,23 @@ func (_u *OrderUpdate) SetNillableConsigneeShortName(v *string) *OrderUpdate {
 	return _u
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_u *OrderUpdate) SetCarrierID(v uuid.UUID) *OrderUpdate {
-	_u.mutation.SetCarrierID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *OrderUpdate) SetShippingLineID(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableCarrierID(v *uuid.UUID) *OrderUpdate {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableShippingLineID(v *uuid.UUID) *OrderUpdate {
 	if v != nil {
-		_u.SetCarrierID(*v)
+		_u.SetShippingLineID(*v)
 	}
 	return _u
 }
 
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (_u *OrderUpdate) ClearCarrierID() *OrderUpdate {
-	_u.mutation.ClearCarrierID()
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (_u *OrderUpdate) ClearShippingLineID() *OrderUpdate {
+	_u.mutation.ClearShippingLineID()
 	return _u
 }
 
@@ -1348,6 +1349,11 @@ func (_u *OrderUpdate) SetCustomer(v *Partner) *OrderUpdate {
 	return _u.SetCustomerID(v.ID)
 }
 
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *OrderUpdate) SetShippingLine(v *ShippingLine) *OrderUpdate {
+	return _u.SetShippingLineID(v.ID)
+}
+
 // AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
 func (_u *OrderUpdate) AddLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddLifecycleEventIDs(ids...)
@@ -1816,6 +1822,12 @@ func (_u *OrderUpdate) ClearOrganization() *OrderUpdate {
 // ClearCustomer clears the "customer" edge to the Partner entity.
 func (_u *OrderUpdate) ClearCustomer() *OrderUpdate {
 	_u.mutation.ClearCustomer()
+	return _u
+}
+
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *OrderUpdate) ClearShippingLine() *OrderUpdate {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -2744,12 +2756,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ConsigneeShortName(); ok {
 		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.CarrierID(); ok {
-		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(order.FieldCarrierID, field.TypeUUID)
-	}
 	if value, ok := _u.mutation.BookingAgentID(); ok {
 		_spec.SetField(order.FieldBookingAgentID, field.TypeUUID, value)
 	}
@@ -3134,6 +3140,35 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.ShippingLineTable,
+			Columns: []string{order.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.ShippingLineTable,
+			Columns: []string{order.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -4597,23 +4632,23 @@ func (_u *OrderUpdateOne) SetNillableConsigneeShortName(v *string) *OrderUpdateO
 	return _u
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_u *OrderUpdateOne) SetCarrierID(v uuid.UUID) *OrderUpdateOne {
-	_u.mutation.SetCarrierID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *OrderUpdateOne) SetShippingLineID(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableCarrierID(v *uuid.UUID) *OrderUpdateOne {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableShippingLineID(v *uuid.UUID) *OrderUpdateOne {
 	if v != nil {
-		_u.SetCarrierID(*v)
+		_u.SetShippingLineID(*v)
 	}
 	return _u
 }
 
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (_u *OrderUpdateOne) ClearCarrierID() *OrderUpdateOne {
-	_u.mutation.ClearCarrierID()
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (_u *OrderUpdateOne) ClearShippingLineID() *OrderUpdateOne {
+	_u.mutation.ClearShippingLineID()
 	return _u
 }
 
@@ -5782,6 +5817,11 @@ func (_u *OrderUpdateOne) SetCustomer(v *Partner) *OrderUpdateOne {
 	return _u.SetCustomerID(v.ID)
 }
 
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *OrderUpdateOne) SetShippingLine(v *ShippingLine) *OrderUpdateOne {
+	return _u.SetShippingLineID(v.ID)
+}
+
 // AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
 func (_u *OrderUpdateOne) AddLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddLifecycleEventIDs(ids...)
@@ -6250,6 +6290,12 @@ func (_u *OrderUpdateOne) ClearOrganization() *OrderUpdateOne {
 // ClearCustomer clears the "customer" edge to the Partner entity.
 func (_u *OrderUpdateOne) ClearCustomer() *OrderUpdateOne {
 	_u.mutation.ClearCustomer()
+	return _u
+}
+
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *OrderUpdateOne) ClearShippingLine() *OrderUpdateOne {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -7208,12 +7254,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if value, ok := _u.mutation.ConsigneeShortName(); ok {
 		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.CarrierID(); ok {
-		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(order.FieldCarrierID, field.TypeUUID)
-	}
 	if value, ok := _u.mutation.BookingAgentID(); ok {
 		_spec.SetField(order.FieldBookingAgentID, field.TypeUUID, value)
 	}
@@ -7598,6 +7638,35 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.ShippingLineTable,
+			Columns: []string{order.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.ShippingLineTable,
+			Columns: []string{order.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

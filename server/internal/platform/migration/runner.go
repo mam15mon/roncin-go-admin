@@ -29,6 +29,9 @@ var compatibleChecksums = map[string]map[string]struct{}{
 	"20260829003000_dingtalk_user_authorized_notification": {
 		"ae50fc1578484e1ba96f67fcaee9b088fc2e0d1e579f4fe2088c35ff8aedbd1c": {},
 	},
+	"20260906120000_sea_shipping_line_identity": {
+		"ead5c151ed263cb4915215a8094eedad4df5077d362c40622029111ed94867fd": {},
+	},
 }
 
 type file struct {

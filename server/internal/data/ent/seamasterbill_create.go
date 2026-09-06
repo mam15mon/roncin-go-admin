@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaMasterBillCreate is the builder for creating a SeaMasterBill entity.
@@ -67,9 +68,9 @@ func (_c *SeaMasterBillCreate) SetOrganizationID(v uuid.UUID) *SeaMasterBillCrea
 	return _c
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (_c *SeaMasterBillCreate) SetIssuerPartnerID(v uuid.UUID) *SeaMasterBillCreate {
-	_c.mutation.SetIssuerPartnerID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_c *SeaMasterBillCreate) SetShippingLineID(v uuid.UUID) *SeaMasterBillCreate {
+	_c.mutation.SetShippingLineID(v)
 	return _c
 }
 
@@ -362,6 +363,11 @@ func (_c *SeaMasterBillCreate) SetOrganization(v *Organization) *SeaMasterBillCr
 	return _c.SetOrganizationID(v.ID)
 }
 
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_c *SeaMasterBillCreate) SetShippingLine(v *ShippingLine) *SeaMasterBillCreate {
+	return _c.SetShippingLineID(v.ID)
+}
+
 // SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
 func (_c *SeaMasterBillCreate) SetTransportExecution(v *SeaTransportExecution) *SeaMasterBillCreate {
 	return _c.SetTransportExecutionID(v.ID)
@@ -620,8 +626,8 @@ func (_c *SeaMasterBillCreate) check() error {
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "SeaMasterBill.organization_id"`)}
 	}
-	if _, ok := _c.mutation.IssuerPartnerID(); !ok {
-		return &ValidationError{Name: "issuer_partner_id", err: errors.New(`ent: missing required field "SeaMasterBill.issuer_partner_id"`)}
+	if _, ok := _c.mutation.ShippingLineID(); !ok {
+		return &ValidationError{Name: "shipping_line_id", err: errors.New(`ent: missing required field "SeaMasterBill.shipping_line_id"`)}
 	}
 	if _, ok := _c.mutation.TransportExecutionID(); !ok {
 		return &ValidationError{Name: "transport_execution_id", err: errors.New(`ent: missing required field "SeaMasterBill.transport_execution_id"`)}
@@ -696,6 +702,9 @@ func (_c *SeaMasterBillCreate) check() error {
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "SeaMasterBill.organization"`)}
 	}
+	if len(_c.mutation.ShippingLineIDs()) == 0 {
+		return &ValidationError{Name: "shipping_line", err: errors.New(`ent: missing required edge "SeaMasterBill.shipping_line"`)}
+	}
 	if len(_c.mutation.TransportExecutionIDs()) == 0 {
 		return &ValidationError{Name: "transport_execution", err: errors.New(`ent: missing required edge "SeaMasterBill.transport_execution"`)}
 	}
@@ -741,10 +750,6 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(seamasterbill.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := _c.mutation.IssuerPartnerID(); ok {
-		_spec.SetField(seamasterbill.FieldIssuerPartnerID, field.TypeUUID, value)
-		_node.IssuerPartnerID = value
 	}
 	if value, ok := _c.mutation.MasterNo(); ok {
 		_spec.SetField(seamasterbill.FieldMasterNo, field.TypeString, value)
@@ -837,6 +842,23 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbill.ShippingLineTable,
+			Columns: []string{seamasterbill.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ShippingLineID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.TransportExecutionIDs(); len(nodes) > 0 {

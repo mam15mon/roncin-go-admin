@@ -17,7 +17,7 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	issuerPartnerID, err := uuid.Parse(request.GetIssuerPartnerId())
+	shippingLineID, err := uuid.Parse(request.GetShippingLineId())
 	if err != nil {
 		return nil, biz.ErrSeaMasterBillInvalidArgument
 	}
@@ -31,17 +31,11 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 		return nil, err
 	}
 	orderVoyage := &biz.SeaTransportExecution{
+		ShippingLineID: shippingLineID,
 		VesselName: strings.TrimSpace(request.GetVesselName()),
 		VoyageNo:   strings.TrimSpace(request.GetVoyageNo()),
 		ETD:        etd,
 		ETA:        eta,
-	}
-	carrierID, err := parseOptionalUUIDPointer(request.CarrierId)
-	if err != nil {
-		return nil, biz.ErrSeaMasterBillInvalidArgument
-	}
-	if carrierID != nil {
-		orderVoyage.CarrierID = *carrierID
 	}
 	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
 	if err != nil {
@@ -65,7 +59,7 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 		orderVoyage.TransitLocationID = transitLocationID
 	}
 
-	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, issuerPartnerID, request.GetMasterNo(), orderVoyage)
+	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, shippingLineID, request.GetMasterNo(), orderVoyage)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +180,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if options.DestinationLocationID, err = listOptionalUUID(request.GetDestinationLocationId()); err != nil {
 		return nil, err
 	}
-	if options.CarrierID, err = listOptionalUUID(request.GetCarrierId()); err != nil {
+	if options.ShippingLineID, err = listOptionalUUID(request.GetShippingLineId()); err != nil {
 		return nil, err
 	}
 	options.ConsigneeShortName = request.GetConsigneeShortName()

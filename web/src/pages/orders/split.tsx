@@ -40,7 +40,7 @@ import {
   seaOrderChangeServicePreviewSeaOrderSplit,
 } from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
-import { PARTNER_ROLES, searchPartnersByRole } from './common';
+import { searchShippingLineOptions } from '@/utils/options';
 import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
@@ -68,7 +68,7 @@ export interface ResultConfig {
   candidateTeId?: string;
   candidateTeVersion?: string;
   masterNo?: string;
-  carrierId?: string;
+  shippingLineId?: string;
   vesselName?: string;
   voyageNo?: string;
   originLocationId?: string;
@@ -110,8 +110,7 @@ export function buildSeaOrderSplitTargets(
           ? result.candidateTeVersion
           : undefined,
       masterNo: usesCurrentMasterBill ? undefined : result.masterNo,
-      issuerPartnerId: usesCurrentMasterBill ? undefined : result.carrierId,
-      carrierId: usesCurrentMasterBill ? undefined : result.carrierId,
+      shippingLineId: usesCurrentMasterBill ? undefined : result.shippingLineId,
       vesselName: usesCurrentMasterBill ? undefined : result.vesselName,
       voyageNo: usesCurrentMasterBill ? undefined : result.voyageNo,
       originLocationId: usesCurrentMasterBill
@@ -259,13 +258,13 @@ export default function SeaOrderSplitPage() {
       if (resp?.data) {
         const ctx = resp.data;
         setSplitContext(ctx);
-        if (ctx.currentMasterBill?.carrierId) {
+        if (ctx.currentMasterBill?.shippingLineId) {
           setCarrierOptions([
             {
               label:
-                ctx.currentMasterBill.carrierName ||
-                ctx.currentMasterBill.carrierId,
-              value: ctx.currentMasterBill.carrierId,
+                ctx.currentMasterBill.shippingLineName ||
+                ctx.currentMasterBill.shippingLineId,
+              value: ctx.currentMasterBill.shippingLineId,
             },
           ]);
         }
@@ -979,11 +978,11 @@ export default function SeaOrderSplitPage() {
                             updated[index] = {
                               ...res,
                               targetType: val,
-                              carrierId:
+                              shippingLineId:
                                 val === 'CURRENT'
                                   ? undefined
-                                  : res.carrierId ||
-                                    splitContext?.currentMasterBill?.carrierId,
+                                  : res.shippingLineId ||
+                                    splitContext?.currentMasterBill?.shippingLineId,
                               allocationNotes: newAllocNotes,
                               candidateId: undefined,
                               candidateVersion: undefined,
@@ -1087,21 +1086,18 @@ export default function SeaOrderSplitPage() {
                             showSearch
                             placeholder="选择船公司"
                             style={{ width: 220 }}
-                            value={res.carrierId}
+                            value={res.shippingLineId}
                             options={carrierOptions}
                             filterOption={false}
                             onSearch={async (keyword) => {
-                              const options = await searchPartnersByRole(
-                                PARTNER_ROLES.CARRIER,
-                                keyword,
-                              );
+                              const options = await searchShippingLineOptions(keyword);
                               setCarrierOptions(options);
                             }}
                             onChange={(value) => {
                               const updated = [...results];
                               updated[index] = {
                                 ...res,
-                                carrierId: value,
+                                shippingLineId: value,
                                 candidateId: undefined,
                                 candidateVersion: undefined,
                                 candidateTeId: undefined,
@@ -1139,7 +1135,7 @@ export default function SeaOrderSplitPage() {
                                 );
                                 return;
                               }
-                              if (!res.carrierId) {
+                              if (!res.shippingLineId) {
                                 message.warning('请先选择船公司');
                                 return;
                               }
@@ -1148,8 +1144,7 @@ export default function SeaOrderSplitPage() {
                                   await orderServiceMatchSeaMasterBillCandidate(
                                     {
                                       masterNo: res.masterNo,
-                                      issuerPartnerId: res.carrierId,
-                                      carrierId: res.carrierId,
+                                      shippingLineId: res.shippingLineId,
                                     },
                                   );
                                 if (resp?.matched && resp.candidate) {
@@ -1174,7 +1169,7 @@ export default function SeaOrderSplitPage() {
                                     candidateVersion: String(c.version),
                                     candidateTeId: te.id,
                                     candidateTeVersion: String(te.version),
-                                    carrierId: te?.carrierId,
+                                    shippingLineId: te?.shippingLineId,
                                     vesselName: te?.vesselName,
                                     voyageNo: te?.voyageNo,
                                     originLocationId: te?.originLocationId,
@@ -1249,21 +1244,18 @@ export default function SeaOrderSplitPage() {
                               showSearch
                               placeholder="选择船公司"
                               style={{ width: '100%' }}
-                              value={res.carrierId}
+                              value={res.shippingLineId}
                               options={carrierOptions}
                               filterOption={false}
                               onSearch={async (keyword) => {
-                                const opts = await searchPartnersByRole(
-                                  PARTNER_ROLES.CARRIER,
-                                  keyword,
-                                );
+                                const opts = await searchShippingLineOptions(keyword);
                                 setCarrierOptions(opts);
                               }}
                               onChange={(val) => {
                                 const updated = [...results];
                                 updated[index] = {
                                   ...res,
-                                  carrierId: val,
+                                  shippingLineId: val,
                                 };
                                 setResults(updated);
                               }}

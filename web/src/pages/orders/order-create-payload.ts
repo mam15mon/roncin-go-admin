@@ -8,7 +8,7 @@ export type CreateOrderFormValues = {
   customerCode?: string;
   tradeTerm: number;
   paymentTerm: number;
-  carrierId?: string;
+  shippingLineId?: string;
   bookingAgentId?: string;
   foreignAgentId?: string;
   shippingAgentId?: string;
@@ -114,13 +114,11 @@ export function buildCreateOrderPayload(
     seaMasterBill = isSea
       ? {
           ...values.seaMasterBill,
-          issuerPartnerId: values.carrierId || '',
         }
       : values.seaMasterBill;
-  } else if (isSea && (values.seaMasterBillMasterNo || values.carrierId)) {
+  } else if (isSea && (values.seaMasterBillMasterNo || values.shippingLineId)) {
     seaMasterBill = {
       masterNo: values.seaMasterBillMasterNo || '',
-      issuerPartnerId: values.carrierId || '',
       candidateId: values.seaMasterBillCandidateId || undefined,
       expectedCandidateVersion:
         values.seaMasterBillExpectedCandidateVersion !== undefined &&
@@ -164,7 +162,7 @@ export function buildCreateOrderPayload(
     tradeDirection: config.tradeDirection,
     tradeTerm: Number(values.tradeTerm),
     paymentTerm: Number(values.paymentTerm),
-    carrierId: values.carrierId || undefined,
+    shippingLineId: values.shippingLineId || undefined,
     bookingAgentId: values.bookingAgentId || undefined,
     foreignAgentId: values.foreignAgentId || undefined,
     shippingAgentId: values.shippingAgentId || undefined,

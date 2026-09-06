@@ -539,7 +539,6 @@ export const PartnerRoleType = {
   PARTNER_ROLE_TYPE_CUSTOMER: 1,
   PARTNER_ROLE_TYPE_SUPPLIER: 2,
   PARTNER_ROLE_TYPE_FOREIGN_AGENT: 3,
-  PARTNER_ROLE_TYPE_CARRIER: 4,
 } as const;
 
 export type PartnerRoleType = (typeof PartnerRoleType)[keyof typeof PartnerRoleType];

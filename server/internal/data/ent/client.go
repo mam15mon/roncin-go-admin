@@ -9737,6 +9737,22 @@ func (c *OrderClient) QueryCustomer(_m *Order) *PartnerQuery {
 	return query
 }
 
+// QueryShippingLine queries the shipping_line edge of a Order.
+func (c *OrderClient) QueryShippingLine(_m *Order) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.ShippingLineTable, order.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryLifecycleEvents queries the lifecycle_events edge of a Order.
 func (c *OrderClient) QueryLifecycleEvents(_m *Order) *OrderLifecycleEventQuery {
 	query := (&OrderLifecycleEventClient{config: c.config}).Query()
@@ -15661,22 +15677,6 @@ func (c *PartnerClient) QuerySeaOrderReassignments(_m *Partner) *SeaOrderReassig
 	return query
 }
 
-// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a Partner.
-func (c *PartnerClient) QuerySeaMasterBillVersions(_m *Partner) *SeaMasterBillVersionQuery {
-	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partner.Table, partner.FieldID, id),
-			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaMasterBillVersionsTable, partner.SeaMasterBillVersionsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QuerySeaHouseBillVersions queries the sea_house_bill_versions edge of a Partner.
 func (c *PartnerClient) QuerySeaHouseBillVersions(_m *Partner) *SeaHouseBillVersionQuery {
 	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
@@ -19705,6 +19705,22 @@ func (c *SeaMasterBillClient) QueryOrganization(_m *SeaMasterBill) *Organization
 	return query
 }
 
+// QueryShippingLine queries the shipping_line edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryShippingLine(_m *SeaMasterBill) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.ShippingLineTable, seamasterbill.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryTransportExecution queries the transport_execution edge of a SeaMasterBill.
 func (c *SeaMasterBillClient) QueryTransportExecution(_m *SeaMasterBill) *SeaTransportExecutionQuery {
 	query := (&SeaTransportExecutionClient{config: c.config}).Query()
@@ -20307,15 +20323,15 @@ func (c *SeaMasterBillVersionClient) QueryMasterBill(_m *SeaMasterBillVersion) *
 	return query
 }
 
-// QueryIssuerPartner queries the issuer_partner edge of a SeaMasterBillVersion.
-func (c *SeaMasterBillVersionClient) QueryIssuerPartner(_m *SeaMasterBillVersion) *PartnerQuery {
-	query := (&PartnerClient{config: c.config}).Query()
+// QueryShippingLine queries the shipping_line edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryShippingLine(_m *SeaMasterBillVersion) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
-			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.IssuerPartnerTable, seamasterbillversion.IssuerPartnerColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ShippingLineTable, seamasterbillversion.ShippingLineColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -21255,6 +21271,22 @@ func (c *SeaTransportExecutionClient) QueryOrganization(_m *SeaTransportExecutio
 	return query
 }
 
+// QueryShippingLine queries the shipping_line edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryShippingLine(_m *SeaTransportExecution) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.ShippingLineTable, seatransportexecution.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryMasterBills queries the master_bills edge of a SeaTransportExecution.
 func (c *SeaTransportExecutionClient) QueryMasterBills(_m *SeaTransportExecution) *SeaMasterBillQuery {
 	query := (&SeaMasterBillClient{config: c.config}).Query()
@@ -21610,6 +21642,70 @@ func (c *ShippingLineClient) QueryContainerPrefixes(_m *ShippingLine) *ShippingL
 			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
 			sqlgraph.To(shippinglinecontainerprefix.Table, shippinglinecontainerprefix.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.ContainerPrefixesTable, shippingline.ContainerPrefixesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrders queries the orders edge of a ShippingLine.
+func (c *ShippingLineClient) QueryOrders(_m *ShippingLine) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.OrdersTable, shippingline.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutions queries the sea_transport_executions edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaTransportExecutions(_m *ShippingLine) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaTransportExecutionsTable, shippingline.SeaTransportExecutionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBills queries the sea_master_bills edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaMasterBills(_m *ShippingLine) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaMasterBillsTable, shippingline.SeaMasterBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaMasterBillVersions(_m *ShippingLine) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaMasterBillVersionsTable, shippingline.SeaMasterBillVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

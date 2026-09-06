@@ -111,7 +111,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
-	carrierID, err := parseOptionalUUIDPointer(request.CarrierId)
+	shippingLineID, err := parseOptionalUUIDPointer(request.ShippingLineId)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	}
 	return &biz.Order{
 		CustomerID: customerID,
-		CarrierID:  carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
+		ShippingLineID:  shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
@@ -209,8 +209,8 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.PaymentTerm != nil {
 		output.PaymentTerm = orderPaymentTermFromAPI(request.GetPaymentTerm())
 	}
-	if request.CarrierId != nil {
-		output.CarrierID, err = parseOptionalUUID(request.GetCarrierId())
+	if request.ShippingLineId != nil {
+		output.ShippingLineID, err = parseOptionalUUID(request.GetShippingLineId())
 		if err != nil {
 			return nil, err
 		}

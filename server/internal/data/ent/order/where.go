@@ -101,9 +101,9 @@ func ConsigneeShortName(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldConsigneeShortName, v))
 }
 
-// CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
-func CarrierID(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
+func ShippingLineID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingLineID, v))
 }
 
 // BookingAgentID applies equality check predicate on the "booking_agent_id" field. It's identical to BookingAgentIDEQ.
@@ -811,54 +811,34 @@ func ConsigneeShortNameContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldConsigneeShortName, v))
 }
 
-// CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
-func CarrierIDEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.
+func ShippingLineIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDNEQ applies the NEQ predicate on the "carrier_id" field.
-func CarrierIDNEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldCarrierID, v))
+// ShippingLineIDNEQ applies the NEQ predicate on the "shipping_line_id" field.
+func ShippingLineIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDIn applies the In predicate on the "carrier_id" field.
-func CarrierIDIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldCarrierID, vs...))
+// ShippingLineIDIn applies the In predicate on the "shipping_line_id" field.
+func ShippingLineIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldShippingLineID, vs...))
 }
 
-// CarrierIDNotIn applies the NotIn predicate on the "carrier_id" field.
-func CarrierIDNotIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldCarrierID, vs...))
+// ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
+func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
-// CarrierIDGT applies the GT predicate on the "carrier_id" field.
-func CarrierIDGT(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldCarrierID, v))
+// ShippingLineIDIsNil applies the IsNil predicate on the "shipping_line_id" field.
+func ShippingLineIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldShippingLineID))
 }
 
-// CarrierIDGTE applies the GTE predicate on the "carrier_id" field.
-func CarrierIDGTE(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldCarrierID, v))
-}
-
-// CarrierIDLT applies the LT predicate on the "carrier_id" field.
-func CarrierIDLT(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldCarrierID, v))
-}
-
-// CarrierIDLTE applies the LTE predicate on the "carrier_id" field.
-func CarrierIDLTE(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldCarrierID, v))
-}
-
-// CarrierIDIsNil applies the IsNil predicate on the "carrier_id" field.
-func CarrierIDIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldCarrierID))
-}
-
-// CarrierIDNotNil applies the NotNil predicate on the "carrier_id" field.
-func CarrierIDNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldCarrierID))
+// ShippingLineIDNotNil applies the NotNil predicate on the "shipping_line_id" field.
+func ShippingLineIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldShippingLineID))
 }
 
 // BookingAgentIDEQ applies the EQ predicate on the "booking_agent_id" field.
@@ -4204,6 +4184,29 @@ func HasCustomer() predicate.Order {
 func HasCustomerWith(preds ...predicate.Partner) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newCustomerStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingLine applies the HasEdge predicate on the "shipping_line" edge.
+func HasShippingLine() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingLineWith applies the HasEdge predicate on the "shipping_line" edge with a given conditions (other predicates).
+func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newShippingLineStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

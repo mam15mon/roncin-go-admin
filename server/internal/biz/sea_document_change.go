@@ -51,6 +51,8 @@ type SeaDocumentVersion struct {
 	Status               string
 	Source               string
 	Reason               *string
+	ShippingLineID       *uuid.UUID
+	ShippingLineName     string
 	IssuerPartnerID      *uuid.UUID
 	IssuerOrganizationID *uuid.UUID
 	IssuerSource         SeaHouseBillIssuerSource

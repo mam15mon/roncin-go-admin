@@ -123,7 +123,7 @@ describe('buildCreateOrderPayload', () => {
         customerId: 'customer-1',
         tradeTerm: 3,
         paymentTerm: 1,
-        carrierId: 'carrier-1',
+        shippingLineId: 'carrier-1',
         seaMasterBillMasterNo: 'COSCO999901',
         seaMasterBillCandidateId: 'candidate-mbl-1',
         seaMasterBillExpectedCandidateVersion: 3,
@@ -134,23 +134,21 @@ describe('buildCreateOrderPayload', () => {
 
     expect(result.seaMasterBill).toEqual({
       masterNo: 'COSCO999901',
-      issuerPartnerId: 'carrier-1',
       candidateId: 'candidate-mbl-1',
       expectedCandidateVersion: '3',
       correctionReason: '更正主单号',
     });
   });
 
-  it('覆盖调用方传入的 MBL 签发方并始终从船公司派生', () => {
+  it('MBL 只提交主单字段，船公司由订单 shippingLineId 统一表达', () => {
     const result = buildCreateOrderPayload(
       {
         customerId: 'customer-1',
         tradeTerm: 3,
         paymentTerm: 1,
-        carrierId: 'carrier-authoritative',
+        shippingLineId: 'carrier-authoritative',
         seaMasterBill: {
           masterNo: 'COSCO999902',
-          issuerPartnerId: 'stale-issuer',
         },
       },
       ORDER_KIND_CONFIGS['sea-export'],
@@ -158,7 +156,6 @@ describe('buildCreateOrderPayload', () => {
 
     expect(result.seaMasterBill).toEqual({
       masterNo: 'COSCO999902',
-      issuerPartnerId: 'carrier-authoritative',
     });
   });
 });

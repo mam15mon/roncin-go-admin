@@ -37,11 +37,7 @@ export function TooltipInput(props: any) {
   );
 }
 
-export function SeaServiceTypeFields({
-  options,
-}: {
-  options: SelectOption[];
-}) {
+export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
   const shipmentMode = Form.useWatch('shipmentMode');
   const policy = resolveSeaOrderFormPolicy({ shipmentMode });
   const recommendedCodes = new Set(policy.recommendedServiceCodes);
@@ -53,7 +49,9 @@ export function SeaServiceTypeFields({
         label="服务类型"
         options={options.map((option) => ({
           label: (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
               <span>{option.label}</span>
               {option.code && recommendedCodes.has(option.code) && (
                 <Tag
@@ -76,27 +74,32 @@ export function SeaServiceTypeFields({
 function SeaCarrierField({
   isDetail,
   readonly,
-  searchCarriers,
+  searchShippingLines,
 }: {
   isDetail?: boolean;
   readonly?: boolean;
-  searchCarriers: (keyword?: string) => Promise<SelectOption[]>;
+  searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
 }) {
   const form = Form.useFormInstance();
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
     preserve: true,
-  }) as
-    | API.SeaMasterBillSummary
-    | undefined;
+  }) as API.SeaMasterBillSummary | undefined;
   const isMultiMemberLocked =
     isDetail && !!existingMbl && (existingMbl.memberCount ?? 0) > 1;
+  const currentShippingLineOption = existingMbl?.shippingLineId
+    ? {
+        label: existingMbl.shippingLineName || existingMbl.shippingLineId,
+        value: existingMbl.shippingLineId,
+      }
+    : undefined;
 
   return (
     <ProFormSearchableSelect
-      name="carrierId"
+      name="shippingLineId"
       label="船公司"
       placeholder="请选择"
+      options={currentShippingLineOption ? [currentShippingLineOption] : []}
       disabled={readonly || isMultiMemberLocked}
       tooltip={
         isMultiMemberLocked
@@ -104,8 +107,21 @@ function SeaCarrierField({
           : undefined
       }
       rules={[{ required: true, message: '请选择船公司' }]}
-      request={async ({ keyWords }: { keyWords?: string }) =>
-        searchCarriers(keyWords)
+      request={
+        readonly || isMultiMemberLocked
+          ? undefined
+          : async ({ keyWords }: { keyWords?: string }) => {
+              const options = await searchShippingLines(keyWords);
+              if (
+                !currentShippingLineOption ||
+                options.some(
+                  (option) => option.value === currentShippingLineOption.value,
+                )
+              ) {
+                return options;
+              }
+              return [currentShippingLineOption, ...options];
+            }
       }
     />
   );
@@ -117,7 +133,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
     cargoCategoryOptions,
     currencyOptions,
     searchCustomers,
-    searchCarriers,
+    searchShippingLines,
     searchBookingAgents,
     searchForeignAgents,
     searchShippingAgents,
@@ -179,9 +195,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                 fieldProps={{
                   placeholder: '请选择',
                   onChange: (_: any, option: any) =>
-                    setCustomerCode(
-                      (option as SelectOption | undefined)?.code,
-                    ),
+                    setCustomerCode((option as SelectOption | undefined)?.code),
                 }}
                 request={async ({ keyWords }: { keyWords?: string }) =>
                   searchCustomers(keyWords)
@@ -302,7 +316,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           <SeaCarrierField
             isDetail={props.isDetail}
             readonly={props.readonly}
-            searchCarriers={searchCarriers}
+            searchShippingLines={searchShippingLines}
           />
         </Col>
         <Col className="col-5">

@@ -18,7 +18,6 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
     locationOptions,
     searchLocations,
     searchCustomers,
-    searchCarriers,
     searchBookingAgents,
   } = props;
 
@@ -38,13 +37,6 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             rules={[{ required: true, message: '请选择客户单位' }]}
             placeholder="搜索客户单位"
             request={async ({ keyWords }) => searchCustomers(keyWords)}
-          />
-          <ProFormSearchableSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
-            name="carrierId"
-            label="承运人 (航司)"
-            placeholder="搜索承运人/航空公司"
-            request={async ({ keyWords }) => searchCarriers(keyWords)}
           />
           <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}

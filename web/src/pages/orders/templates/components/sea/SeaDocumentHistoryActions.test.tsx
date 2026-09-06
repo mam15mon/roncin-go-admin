@@ -18,9 +18,30 @@ vi.mock('@umijs/max', async (importOriginal) => {
   };
 });
 
+const historyServiceMocks = vi.hoisted(() => ({
+  listMasterBillVersions: vi.fn(),
+  listDocumentEvents: vi.fn(),
+}));
+
+vi.mock('@/services/roncin/seaDocumentService', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/roncin/seaDocumentService')
+    >();
+  return {
+    ...actual,
+    seaDocumentServiceListSeaMasterBillVersions:
+      historyServiceMocks.listMasterBillVersions,
+    seaDocumentServiceListSeaDocumentEvents:
+      historyServiceMocks.listDocumentEvents,
+  };
+});
+
 describe('SeaDocumentHistoryActions', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    historyServiceMocks.listMasterBillVersions.mockReset();
+    historyServiceMocks.listDocumentEvents.mockReset();
   });
 
   it('只有 Preview 成功并展示最终差异后才允许 Execute', async () => {
@@ -144,5 +165,55 @@ describe('SeaDocumentHistoryActions', () => {
     expect(screen.getByRole('button', { name: /单\s*改/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /作废/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Switch B\/L/ })).toBeDisabled();
+  });
+
+  it('MBL 不可变版本展开后显示船公司名称', async () => {
+    historyServiceMocks.listMasterBillVersions.mockResolvedValue({
+      data: [
+        {
+          id: 'version-1',
+          documentType: SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+          documentNo: 'COSU123456',
+          versionNo: '1',
+          sourceEntityVersion: '1',
+          shippingLineId: 'line-1',
+          shippingLineName: '中远海运 / COSCO SHIPPING (COSU)',
+          content: {},
+        },
+      ],
+    });
+    historyServiceMocks.listDocumentEvents.mockResolvedValue({
+      data: [],
+    });
+
+    render(
+      <App>
+        <SeaDocumentHistoryActions
+          orderId="00000000-0000-0000-0000-000000000001"
+          orderVersion="5"
+          documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
+          documentId="00000000-0000-0000-0000-000000000002"
+          documentNo="COSU123456"
+          documentVersion="1"
+          currentVersionId="00000000-0000-0000-0000-000000000003"
+          getAmendmentInput={() => ({ masterBillContent: {} })}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
+    await waitFor(() => {
+      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith({
+        orderId: '00000000-0000-0000-0000-000000000001',
+        page: 1,
+        pageSize: 200,
+      });
+      expect(screen.getByText('v1')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Expand row/i }));
+    expect(
+      screen.getByText('中远海运 / COSCO SHIPPING (COSU)'),
+    ).toBeInTheDocument();
   });
 });

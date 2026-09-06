@@ -57,8 +57,8 @@ describe('SeaOrderSplitPage', () => {
       currentMasterBill: {
         id: 'mbl-current',
         masterNo: 'COSCO123456',
-        carrierId: 'carrier-1',
-        carrierName: '中远海运',
+        shippingLineId: 'carrier-1',
+        shippingLineName: '中远海运',
       },
       houseBills: [
         {
@@ -371,7 +371,7 @@ describe('SeaOrderSplitPage', () => {
     expect(hash1).toBe(hash1Repeat);
   });
 
-  it('新母单目标从船公司派生签发方，沿用当前母单不夹带目标字段', () => {
+  it('新母单目标提交船公司，沿用当前母单不夹带目标字段', () => {
     expect(
       buildSeaOrderSplitTargets([
         {
@@ -380,7 +380,7 @@ describe('SeaOrderSplitPage', () => {
           title: '原票',
           targetType: 'CURRENT',
           masterNo: 'SHOULDNOTSEND',
-          carrierId: 'SHOULDNOTSEND',
+          shippingLineId: 'SHOULDNOTSEND',
         },
         {
           key: 'new',
@@ -388,7 +388,7 @@ describe('SeaOrderSplitPage', () => {
           title: '新票',
           targetType: 'NEW',
           masterNo: 'COSCO123456',
-          carrierId: 'carrier-1',
+          shippingLineId: 'carrier-1',
         },
       ]),
     ).toEqual([
@@ -400,8 +400,7 @@ describe('SeaOrderSplitPage', () => {
         candidateTeId: undefined,
         candidateTeVersion: undefined,
         masterNo: undefined,
-        issuerPartnerId: undefined,
-        carrierId: undefined,
+        shippingLineId: undefined,
         vesselName: undefined,
         voyageNo: undefined,
         originLocationId: undefined,
@@ -414,8 +413,7 @@ describe('SeaOrderSplitPage', () => {
         clientTargetKey: 'new',
         targetType: 'NEW',
         masterNo: 'COSCO123456',
-        carrierId: 'carrier-1',
-        issuerPartnerId: 'carrier-1',
+        shippingLineId: 'carrier-1',
       }),
     ]);
   });

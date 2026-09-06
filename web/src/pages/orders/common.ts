@@ -194,7 +194,6 @@ export const PARTNER_ROLES = {
   CUSTOMER: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
   SUPPLIER: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
   FOREIGN_AGENT: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
-  CARRIER: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
 } as const;
 
 export type OrderKind = 'sea-export';

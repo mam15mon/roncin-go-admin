@@ -80,7 +80,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 	feeID := uuid.New()
 	eventID := uuid.New()
 	transportExecutionID := uuid.New()
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actorID, Organization: biz.Organization{ID: orgID}})
 
 	mockRepo := &mockSeaOrderChangeRepoForService{
@@ -97,8 +97,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 			CurrentMasterBill: &biz.SeaMasterBillSummary{
 				MasterBillID:              uuid.New(),
 				MasterNo:                  "MBL001",
-				IssuerPartnerID:           carrierID,
-				CarrierID:                 &carrierID,
+				ShippingLineID:            shippingLineID,
 				TransportExecutionID:      transportExecutionID,
 				TransportExecutionVersion: 7,
 			},
@@ -282,7 +281,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
-			CarrierId:  strPtr(carrierID.String()),
+			ShippingLineId:  strPtr(shippingLineID.String()),
 		},
 	})
 	if err != nil {
@@ -304,7 +303,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
-			CarrierId:  strPtr(carrierID.String()),
+			ShippingLineId:  strPtr(shippingLineID.String()),
 		},
 	})
 	if err == nil {
@@ -323,7 +322,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		Target: &v1.SeaOrderReassignmentTargetInput{
 			TargetType: "NEW",
 			MasterNo:   strPtr("MBL888"),
-			CarrierId:  strPtr(carrierID.String()),
+			ShippingLineId:  strPtr(shippingLineID.String()),
 		},
 	})
 	if err != nil {
@@ -436,7 +435,7 @@ func TestSeaOrderChangeService_CandidateTargetMappingKeepsAllIdentifiersAndVersi
 				CandidateVersion:   &candidateVersion,
 				CandidateTeId:      strPtr(candidateTEID.String()),
 				CandidateTeVersion: &candidateTEVersion,
-				IssuerPartnerId:    strPtr(issuerID.String()),
+				ShippingLineId:    strPtr(issuerID.String()),
 			},
 		},
 		nil,
@@ -472,7 +471,7 @@ func TestSeaOrderChangeService_CandidateTargetMappingKeepsAllIdentifiersAndVersi
 		CandidateVersion:   &candidateVersion,
 		CandidateTeId:      strPtr(candidateTEID.String()),
 		CandidateTeVersion: &candidateTEVersion,
-		IssuerPartnerId:    strPtr(issuerID.String()),
+		ShippingLineId:    strPtr(issuerID.String()),
 	})
 	if err != nil {
 		t.Fatalf("mapReassignTarget error: %v", err)
@@ -693,13 +692,13 @@ func TestSeaOrderChangeService_ReassignmentTargetTypeAndFieldValidation(t *testi
 				CandidateVersion:   u64(2),
 				CandidateTeId:      &candTEID,
 				CandidateTeVersion: u64(3),
-				IssuerPartnerId:    &issuerID,
+				ShippingLineId:    &issuerID,
 			},
 			expectedCandidateMBL: u64(2),
 			expectedCandidateTE:  u64(3),
 		},
 		{
-			name: "CANDIDATE缺失IssuerPartnerId被阻断",
+			name: "CANDIDATE缺失ShippingLineId被阻断",
 			target: &v1.SeaOrderReassignmentTargetInput{
 				TargetType:         "CANDIDATE",
 				CandidateId:        &candMBLID,
@@ -717,7 +716,7 @@ func TestSeaOrderChangeService_ReassignmentTargetTypeAndFieldValidation(t *testi
 				CandidateId:      &candMBLID,
 				CandidateVersion: u64(2),
 				CandidateTeId:    &candTEID,
-				IssuerPartnerId:  &issuerID,
+				ShippingLineId:  &issuerID,
 			},
 			expectedCandidateMBL: u64(2),
 			expectedCandidateTE:  u64(3),

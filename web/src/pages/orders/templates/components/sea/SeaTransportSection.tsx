@@ -68,7 +68,7 @@ export function SeaMasterBillFields({
   const originLocationId = Form.useWatch('originLocationId', form);
   const dischargeLocationId = Form.useWatch('dischargeLocationId', form);
   const transitLocationId = Form.useWatch('transitLocationId', form);
-  const carrierId = Form.useWatch('carrierId', form);
+  const shippingLineId = Form.useWatch('shippingLineId', form);
   const vesselVoyage = Form.useWatch('vesselVoyage', form);
   const etd = Form.useWatch('etd', form);
   const eta = Form.useWatch('eta', form);
@@ -89,13 +89,13 @@ export function SeaMasterBillFields({
     !!existingMbl &&
     (existingMbl.memberCount ?? 0) <= 1 &&
     ((masterNo && masterNo !== existingMbl.masterNo) ||
-      (carrierId && carrierId !== existingMbl.carrierId));
+      (shippingLineId && shippingLineId !== existingMbl.shippingLineId));
 
   useEffect(() => {
     const rawMasterNo = masterNo || '';
-    const partnerId = carrierId;
+    const selectedShippingLineId = shippingLineId;
 
-    if (!rawMasterNo || !partnerId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
+    if (!rawMasterNo || !selectedShippingLineId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
       setCandidate(null);
       setConflicts([]);
       setCandidateMatched(false);
@@ -109,7 +109,7 @@ export function SeaMasterBillFields({
       isDetail &&
       existingMbl &&
       existingMbl.masterNo === rawMasterNo &&
-      existingMbl.carrierId === partnerId
+      existingMbl.shippingLineId === selectedShippingLineId
     ) {
       setCandidate(null);
       setConflicts([]);
@@ -139,11 +139,10 @@ export function SeaMasterBillFields({
         const { vesselName, voyageNo } = splitSeaVesselVoyage(vesselVoyage);
         const resp = await orderServiceMatchSeaMasterBillCandidate({
           masterNo: rawMasterNo,
-          issuerPartnerId: partnerId,
+          shippingLineId: selectedShippingLineId,
           originLocationId: originLocationId || undefined,
           dischargeLocationId: dischargeLocationId || undefined,
           transitLocationId: transitLocationId || undefined,
-          carrierId: carrierId || undefined,
           vesselName,
           voyageNo,
           etd: etdStr,
@@ -187,7 +186,7 @@ export function SeaMasterBillFields({
     originLocationId,
     dischargeLocationId,
     transitLocationId,
-    carrierId,
+    shippingLineId,
     vesselVoyage,
     etd,
     eta,
@@ -294,7 +293,7 @@ export function SeaMasterBillFields({
               >
                 <span style={{ fontWeight: 600, color: '#389e0d' }}>
                   🔍 匹配到已有共享 MBL：{candidate.masterNo} (船公司:{' '}
-                  {candidate.transportExecution?.carrierName || '-'} | 版本: v
+                  {candidate.transportExecution?.shippingLineName || '-'} | 版本: v
                   {candidate.version} | 成员: {candidate.memberCount} 票)
                 </span>
                 <Checkbox

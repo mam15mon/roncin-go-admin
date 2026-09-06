@@ -144,25 +144,26 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建测试客户角色失败: %v", err)
 	}
 
-	// 3. 创建主单签发方 Partner
-	issuerPartner, err := data.db.Partner.Create().
+	// 3. 创建船公司主数据
+	shippingLine, err := data.db.ShippingLine.Create().
 		SetOrganizationID(deptOrg.ID).
-		SetCode("CARR-" + uuid.New().String()[:8]).
-		SetLegalName("测试船公司").
-		SetNormalizedName("测试船公司").
+		SetScacCode("TSTL").
+		SetNameZh("测试船公司").
+		SetNameEn("Test Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试船公司失败: %v", err)
 	}
-	defer func() {
-		_ = data.db.Partner.DeleteOne(issuerPartner).Exec(ctx)
-	}()
+	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
 
 	// 4. 创建测试订单（所属 deptOrg）
 	testOrder, err := data.db.Order.Create().
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-TEST-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetBusinessType("SE").
 		SetTradeDirection("export").
 		SetTradeTerm("FOB").
@@ -178,6 +179,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// 4.5. 创建运输执行实体
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(deptOrg.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER GIVEN").
 		SetVoyageNo("001W").
 		Save(ctx)
@@ -195,7 +197,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
-		SetIssuerPartnerID(issuerPartner.ID).
+		SetShippingLineID(shippingLine.ID).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试主单失败: %v", err)
@@ -519,10 +521,15 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	orderRepo := NewOrderRepo(data)
 	_, err = orderRepo.UpdateDraft(ctx, deptOrg.ID, testOrder.ID, testOrder.Version, &biz.Order{
 		CustomerID:     otherCustomer.ID,
+		ShippingLineID: &shippingLine.ID,
 		BusinessType:   biz.OrderBusinessSE,
 		TradeDirection: "export",
 		TradeTerm:      "FOB",
 		PaymentTerm:    "PREPAID",
+		VesselVoyage:   "EVER GIVEN / 001W",
+		SeaMasterBillInput: &biz.SeaMasterBillInput{
+			MasterNo: masterNo,
+		},
 	}, &biz.AuditEvent{OrganizationID: &deptOrg.ID, UserID: &actorID, Result: "success"})
 	if err != biz.ErrOrderCustomerChangeWithHouseBillBlocked {
 		t.Fatalf("expected ErrOrderCustomerChangeWithHouseBillBlocked when Customer HBL exists, got %v", err)
@@ -593,16 +600,18 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 		t.Fatalf("create customer role failed: %v", err)
 	}
 
-	carr, err := data.db.Partner.Create().
+	shippingLine, err := data.db.ShippingLine.Create().
 		SetOrganizationID(org.ID).
-		SetCode("CARR-CONC-" + uuid.New().String()[:8]).
-		SetLegalName("并发船公司").
-		SetNormalizedName("并发船公司").
+		SetScacCode("CNCL").
+		SetNameZh("并发船公司").
+		SetNameEn("Concurrent Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("create carrier failed: %v", err)
+		t.Fatalf("create shipping line failed: %v", err)
 	}
-	defer func() { _ = data.db.Partner.DeleteOne(carr).Exec(ctx) }()
+	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
 
 	order, err := data.db.Order.Create().
 		SetOrganizationID(org.ID).
@@ -620,6 +629,7 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("CONC SHIP").
 		SetVoyageNo("888").
 		Save(ctx)
@@ -634,7 +644,7 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
-		SetIssuerPartnerID(carr.ID).
+		SetShippingLineID(shippingLine.ID).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("create mbl failed: %v", err)
@@ -717,16 +727,18 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		t.Fatalf("create customer role failed: %v", err)
 	}
 
-	carr, err := data.db.Partner.Create().
+	shippingLine, err := data.db.ShippingLine.Create().
 		SetOrganizationID(org.ID).
-		SetCode("CARR-UO-" + uuid.New().String()[:8]).
-		SetLegalName("UO船公司").
-		SetNormalizedName("UO船公司").
+		SetScacCode("UOTL").
+		SetNameZh("UO船公司").
+		SetNameEn("Update Order Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("create carrier failed: %v", err)
+		t.Fatalf("create shipping line failed: %v", err)
 	}
-	defer func() { _ = data.db.Partner.DeleteOne(carr).Exec(ctx) }()
+	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
 
 	order, err := data.db.Order.Create().
 		SetOrganizationID(org.ID).
@@ -744,6 +756,7 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("UO SHIP").
 		SetVoyageNo("101").
 		Save(ctx)
@@ -758,7 +771,7 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
-		SetIssuerPartnerID(carr.ID).
+		SetShippingLineID(shippingLine.ID).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("create mbl failed: %v", err)

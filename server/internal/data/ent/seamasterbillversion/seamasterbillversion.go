@@ -26,8 +26,8 @@ const (
 	FieldVersionNo = "version_no"
 	// FieldSourceEntityVersion holds the string denoting the source_entity_version field in the database.
 	FieldSourceEntityVersion = "source_entity_version"
-	// FieldIssuerPartnerID holds the string denoting the issuer_partner_id field in the database.
-	FieldIssuerPartnerID = "issuer_partner_id"
+	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
+	FieldShippingLineID = "shipping_line_id"
 	// FieldTransportExecutionID holds the string denoting the transport_execution_id field in the database.
 	FieldTransportExecutionID = "transport_execution_id"
 	// FieldMasterNo holds the string denoting the master_no field in the database.
@@ -42,8 +42,6 @@ const (
 	FieldEtdSnapshot = "etd_snapshot"
 	// FieldEtaSnapshot holds the string denoting the eta_snapshot field in the database.
 	FieldEtaSnapshot = "eta_snapshot"
-	// FieldCarrierID holds the string denoting the carrier_id field in the database.
-	FieldCarrierID = "carrier_id"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
 	FieldOriginLocationID = "origin_location_id"
 	// FieldDischargeLocationID holds the string denoting the discharge_location_id field in the database.
@@ -104,8 +102,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeMasterBill holds the string denoting the master_bill edge name in mutations.
 	EdgeMasterBill = "master_bill"
-	// EdgeIssuerPartner holds the string denoting the issuer_partner edge name in mutations.
-	EdgeIssuerPartner = "issuer_partner"
+	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
+	EdgeShippingLine = "shipping_line"
 	// EdgeTransportExecution holds the string denoting the transport_execution edge name in mutations.
 	EdgeTransportExecution = "transport_execution"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
@@ -132,13 +130,13 @@ const (
 	MasterBillInverseTable = "sea_master_bills"
 	// MasterBillColumn is the table column denoting the master_bill relation/edge.
 	MasterBillColumn = "master_bill_id"
-	// IssuerPartnerTable is the table that holds the issuer_partner relation/edge.
-	IssuerPartnerTable = "sea_master_bill_versions"
-	// IssuerPartnerInverseTable is the table name for the Partner entity.
-	// It exists in this package in order to avoid circular dependency with the "partner" package.
-	IssuerPartnerInverseTable = "partners"
-	// IssuerPartnerColumn is the table column denoting the issuer_partner relation/edge.
-	IssuerPartnerColumn = "issuer_partner_id"
+	// ShippingLineTable is the table that holds the shipping_line relation/edge.
+	ShippingLineTable = "sea_master_bill_versions"
+	// ShippingLineInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLineInverseTable = "shipping_lines"
+	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
+	ShippingLineColumn = "shipping_line_id"
 	// TransportExecutionTable is the table that holds the transport_execution relation/edge.
 	TransportExecutionTable = "sea_master_bill_versions"
 	// TransportExecutionInverseTable is the table name for the SeaTransportExecution entity.
@@ -184,7 +182,7 @@ var Columns = []string{
 	FieldMasterBillID,
 	FieldVersionNo,
 	FieldSourceEntityVersion,
-	FieldIssuerPartnerID,
+	FieldShippingLineID,
 	FieldTransportExecutionID,
 	FieldMasterNo,
 	FieldNormalizedMasterNo,
@@ -192,7 +190,6 @@ var Columns = []string{
 	FieldVesselVoyageSnapshot,
 	FieldEtdSnapshot,
 	FieldEtaSnapshot,
-	FieldCarrierID,
 	FieldOriginLocationID,
 	FieldDischargeLocationID,
 	FieldTransitLocationID,
@@ -365,9 +362,9 @@ func BySourceEntityVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceEntityVersion, opts...).ToFunc()
 }
 
-// ByIssuerPartnerID orders the results by the issuer_partner_id field.
-func ByIssuerPartnerID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIssuerPartnerID, opts...).ToFunc()
+// ByShippingLineID orders the results by the shipping_line_id field.
+func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
 // ByTransportExecutionID orders the results by the transport_execution_id field.
@@ -403,11 +400,6 @@ func ByEtdSnapshot(opts ...sql.OrderTermOption) OrderOption {
 // ByEtaSnapshot orders the results by the eta_snapshot field.
 func ByEtaSnapshot(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEtaSnapshot, opts...).ToFunc()
-}
-
-// ByCarrierID orders the results by the carrier_id field.
-func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
 }
 
 // ByOriginLocationID orders the results by the origin_location_id field.
@@ -564,10 +556,10 @@ func ByMasterBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByIssuerPartnerField orders the results by issuer_partner field.
-func ByIssuerPartnerField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByShippingLineField orders the results by shipping_line field.
+func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newIssuerPartnerStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -640,11 +632,11 @@ func newMasterBillStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, MasterBillTable, MasterBillColumn),
 	)
 }
-func newIssuerPartnerStep() *sqlgraph.Step {
+func newShippingLineStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(IssuerPartnerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, IssuerPartnerTable, IssuerPartnerColumn),
+		sqlgraph.To(ShippingLineInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 	)
 }
 func newTransportExecutionStep() *sqlgraph.Step {

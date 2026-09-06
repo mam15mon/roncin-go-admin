@@ -21,8 +21,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
-	// FieldCarrierID holds the string denoting the carrier_id field in the database.
-	FieldCarrierID = "carrier_id"
+	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
+	FieldShippingLineID = "shipping_line_id"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
 	FieldOriginLocationID = "origin_location_id"
 	// FieldDischargeLocationID holds the string denoting the discharge_location_id field in the database.
@@ -41,6 +41,8 @@ const (
 	FieldVersion = "version"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
+	EdgeShippingLine = "shipping_line"
 	// EdgeMasterBills holds the string denoting the master_bills edge name in mutations.
 	EdgeMasterBills = "master_bills"
 	// EdgeMasterBillVersions holds the string denoting the master_bill_versions edge name in mutations.
@@ -54,6 +56,13 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// ShippingLineTable is the table that holds the shipping_line relation/edge.
+	ShippingLineTable = "sea_transport_executions"
+	// ShippingLineInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLineInverseTable = "shipping_lines"
+	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
+	ShippingLineColumn = "shipping_line_id"
 	// MasterBillsTable is the table that holds the master_bills relation/edge.
 	MasterBillsTable = "sea_master_bills"
 	// MasterBillsInverseTable is the table name for the SeaMasterBill entity.
@@ -76,7 +85,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrganizationID,
-	FieldCarrierID,
+	FieldShippingLineID,
 	FieldOriginLocationID,
 	FieldDischargeLocationID,
 	FieldTransitLocationID,
@@ -141,9 +150,9 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
 }
 
-// ByCarrierID orders the results by the carrier_id field.
-func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
+// ByShippingLineID orders the results by the shipping_line_id field.
+func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
 // ByOriginLocationID orders the results by the origin_location_id field.
@@ -193,6 +202,13 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
+// ByShippingLineField orders the results by shipping_line field.
+func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByMasterBillsCount orders the results by master_bills count.
 func ByMasterBillsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -225,6 +241,13 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newShippingLineStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingLineInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 	)
 }
 func newMasterBillsStep() *sqlgraph.Step {

@@ -58,7 +58,7 @@ export async function queryOrderList(
     lockedAtTo: params.lockedAtRange?.[1],
     originLocationId: params.originLocationId,
     destinationLocationId: params.destinationLocationId,
-    carrierId: params.carrierId,
+    shippingLineId: params.shippingLineId,
     consigneeShortName: params.consignee,
     shipperShortName: params.shipper,
     operatorId: params.operatorId,

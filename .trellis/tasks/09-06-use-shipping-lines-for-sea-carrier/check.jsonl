@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"复核 ShippingLine 三方不变量、共享 MBL、HBL 隔离和固定锁序"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核生成物、分层边界、测试和提交质量门禁"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核前端生成客户端、测试、Lint、类型检查和依赖命令"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"逐入口核对字段改名和多消费者数据流，防止只修下拉"}
+{"file":".trellis/tasks/09-06-use-shipping-lines-for-sea-carrier/research/current-model-audit.md","reason":"对照已确认代码与数据事实，检查无旧兼容分支及费用 Partner 泄漏"}

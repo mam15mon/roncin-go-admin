@@ -60802,7 +60802,6 @@ type OrderMutation struct {
 	internal_reference_no                 *string
 	shipper_short_name                    *string
 	consignee_short_name                  *string
-	carrier_id                            *uuid.UUID
 	booking_agent_id                      *uuid.UUID
 	foreign_agent_id                      *uuid.UUID
 	shipping_agent_id                     *uuid.UUID
@@ -60871,6 +60870,8 @@ type OrderMutation struct {
 	clearedorganization                   bool
 	customer                              *uuid.UUID
 	clearedcustomer                       bool
+	shipping_line                         *uuid.UUID
+	clearedshipping_line                  bool
 	lifecycle_events                      map[uuid.UUID]struct{}
 	removedlifecycle_events               map[uuid.UUID]struct{}
 	clearedlifecycle_events               bool
@@ -61419,53 +61420,53 @@ func (m *OrderMutation) ResetConsigneeShortName() {
 	m.consignee_short_name = nil
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (m *OrderMutation) SetCarrierID(u uuid.UUID) {
-	m.carrier_id = &u
+// SetShippingLineID sets the "shipping_line_id" field.
+func (m *OrderMutation) SetShippingLineID(u uuid.UUID) {
+	m.shipping_line = &u
 }
 
-// CarrierID returns the value of the "carrier_id" field in the mutation.
-func (m *OrderMutation) CarrierID() (r uuid.UUID, exists bool) {
-	v := m.carrier_id
+// ShippingLineID returns the value of the "shipping_line_id" field in the mutation.
+func (m *OrderMutation) ShippingLineID() (r uuid.UUID, exists bool) {
+	v := m.shipping_line
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCarrierID returns the old "carrier_id" field's value of the Order entity.
+// OldShippingLineID returns the old "shipping_line_id" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldCarrierID(ctx context.Context) (v *uuid.UUID, err error) {
+func (m *OrderMutation) OldShippingLineID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCarrierID is only allowed on UpdateOne operations")
+		return v, errors.New("OldShippingLineID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCarrierID requires an ID field in the mutation")
+		return v, errors.New("OldShippingLineID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCarrierID: %w", err)
+		return v, fmt.Errorf("querying old value for OldShippingLineID: %w", err)
 	}
-	return oldValue.CarrierID, nil
+	return oldValue.ShippingLineID, nil
 }
 
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (m *OrderMutation) ClearCarrierID() {
-	m.carrier_id = nil
-	m.clearedFields[order.FieldCarrierID] = struct{}{}
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (m *OrderMutation) ClearShippingLineID() {
+	m.shipping_line = nil
+	m.clearedFields[order.FieldShippingLineID] = struct{}{}
 }
 
-// CarrierIDCleared returns if the "carrier_id" field was cleared in this mutation.
-func (m *OrderMutation) CarrierIDCleared() bool {
-	_, ok := m.clearedFields[order.FieldCarrierID]
+// ShippingLineIDCleared returns if the "shipping_line_id" field was cleared in this mutation.
+func (m *OrderMutation) ShippingLineIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldShippingLineID]
 	return ok
 }
 
-// ResetCarrierID resets all changes to the "carrier_id" field.
-func (m *OrderMutation) ResetCarrierID() {
-	m.carrier_id = nil
-	delete(m.clearedFields, order.FieldCarrierID)
+// ResetShippingLineID resets all changes to the "shipping_line_id" field.
+func (m *OrderMutation) ResetShippingLineID() {
+	m.shipping_line = nil
+	delete(m.clearedFields, order.FieldShippingLineID)
 }
 
 // SetBookingAgentID sets the "booking_agent_id" field.
@@ -64386,6 +64387,33 @@ func (m *OrderMutation) ResetCustomer() {
 	m.clearedcustomer = false
 }
 
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (m *OrderMutation) ClearShippingLine() {
+	m.clearedshipping_line = true
+	m.clearedFields[order.FieldShippingLineID] = struct{}{}
+}
+
+// ShippingLineCleared reports if the "shipping_line" edge to the ShippingLine entity was cleared.
+func (m *OrderMutation) ShippingLineCleared() bool {
+	return m.ShippingLineIDCleared() || m.clearedshipping_line
+}
+
+// ShippingLineIDs returns the "shipping_line" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingLineID instead. It exists only for internal usage by the builders.
+func (m *OrderMutation) ShippingLineIDs() (ids []uuid.UUID) {
+	if id := m.shipping_line; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingLine resets all changes to the "shipping_line" edge.
+func (m *OrderMutation) ResetShippingLine() {
+	m.shipping_line = nil
+	m.clearedshipping_line = false
+}
+
 // AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by ids.
 func (m *OrderMutation) AddLifecycleEventIDs(ids ...uuid.UUID) {
 	if m.lifecycle_events == nil {
@@ -66054,8 +66082,8 @@ func (m *OrderMutation) Fields() []string {
 	if m.consignee_short_name != nil {
 		fields = append(fields, order.FieldConsigneeShortName)
 	}
-	if m.carrier_id != nil {
-		fields = append(fields, order.FieldCarrierID)
+	if m.shipping_line != nil {
+		fields = append(fields, order.FieldShippingLineID)
 	}
 	if m.booking_agent_id != nil {
 		fields = append(fields, order.FieldBookingAgentID)
@@ -66260,8 +66288,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.ShipperShortName()
 	case order.FieldConsigneeShortName:
 		return m.ConsigneeShortName()
-	case order.FieldCarrierID:
-		return m.CarrierID()
+	case order.FieldShippingLineID:
+		return m.ShippingLineID()
 	case order.FieldBookingAgentID:
 		return m.BookingAgentID()
 	case order.FieldForeignAgentID:
@@ -66407,8 +66435,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldShipperShortName(ctx)
 	case order.FieldConsigneeShortName:
 		return m.OldConsigneeShortName(ctx)
-	case order.FieldCarrierID:
-		return m.OldCarrierID(ctx)
+	case order.FieldShippingLineID:
+		return m.OldShippingLineID(ctx)
 	case order.FieldBookingAgentID:
 		return m.OldBookingAgentID(ctx)
 	case order.FieldForeignAgentID:
@@ -66599,12 +66627,12 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetConsigneeShortName(v)
 		return nil
-	case order.FieldCarrierID:
+	case order.FieldShippingLineID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCarrierID(v)
+		m.SetShippingLineID(v)
 		return nil
 	case order.FieldBookingAgentID:
 		v, ok := value.(uuid.UUID)
@@ -67118,8 +67146,8 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldInternalReferenceNo) {
 		fields = append(fields, order.FieldInternalReferenceNo)
 	}
-	if m.FieldCleared(order.FieldCarrierID) {
-		fields = append(fields, order.FieldCarrierID)
+	if m.FieldCleared(order.FieldShippingLineID) {
+		fields = append(fields, order.FieldShippingLineID)
 	}
 	if m.FieldCleared(order.FieldBookingAgentID) {
 		fields = append(fields, order.FieldBookingAgentID)
@@ -67288,8 +67316,8 @@ func (m *OrderMutation) ClearField(name string) error {
 	case order.FieldInternalReferenceNo:
 		m.ClearInternalReferenceNo()
 		return nil
-	case order.FieldCarrierID:
-		m.ClearCarrierID()
+	case order.FieldShippingLineID:
+		m.ClearShippingLineID()
 		return nil
 	case order.FieldBookingAgentID:
 		m.ClearBookingAgentID()
@@ -67473,8 +67501,8 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldConsigneeShortName:
 		m.ResetConsigneeShortName()
 		return nil
-	case order.FieldCarrierID:
-		m.ResetCarrierID()
+	case order.FieldShippingLineID:
+		m.ResetShippingLineID()
 		return nil
 	case order.FieldBookingAgentID:
 		m.ResetBookingAgentID()
@@ -67659,12 +67687,15 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 33)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
 	if m.customer != nil {
 		edges = append(edges, order.EdgeCustomer)
+	}
+	if m.shipping_line != nil {
+		edges = append(edges, order.EdgeShippingLine)
 	}
 	if m.lifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
@@ -67769,6 +67800,10 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 		}
 	case order.EdgeCustomer:
 		if id := m.customer; id != nil {
+			return []ent.Value{*id}
+		}
+	case order.EdgeShippingLine:
+		if id := m.shipping_line; id != nil {
 			return []ent.Value{*id}
 		}
 	case order.EdgeLifecycleEvents:
@@ -67955,7 +67990,7 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 33)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -68230,12 +68265,15 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 32)
+	edges := make([]string, 0, 33)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
 	if m.clearedcustomer {
 		edges = append(edges, order.EdgeCustomer)
+	}
+	if m.clearedshipping_line {
+		edges = append(edges, order.EdgeShippingLine)
 	}
 	if m.clearedlifecycle_events {
 		edges = append(edges, order.EdgeLifecycleEvents)
@@ -68338,6 +68376,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case order.EdgeCustomer:
 		return m.clearedcustomer
+	case order.EdgeShippingLine:
+		return m.clearedshipping_line
 	case order.EdgeLifecycleEvents:
 		return m.clearedlifecycle_events
 	case order.EdgeServiceTypes:
@@ -68412,6 +68452,9 @@ func (m *OrderMutation) ClearEdge(name string) error {
 	case order.EdgeCustomer:
 		m.ClearCustomer()
 		return nil
+	case order.EdgeShippingLine:
+		m.ClearShippingLine()
+		return nil
 	case order.EdgeLockedByUser:
 		m.ClearLockedByUser()
 		return nil
@@ -68428,6 +68471,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeCustomer:
 		m.ResetCustomer()
+		return nil
+	case order.EdgeShippingLine:
+		m.ResetShippingLine()
 		return nil
 	case order.EdgeLifecycleEvents:
 		m.ResetLifecycleEvents()
@@ -97566,9 +97612,6 @@ type PartnerMutation struct {
 	sea_order_reassignments              map[uuid.UUID]struct{}
 	removedsea_order_reassignments       map[uuid.UUID]struct{}
 	clearedsea_order_reassignments       bool
-	sea_master_bill_versions             map[uuid.UUID]struct{}
-	removedsea_master_bill_versions      map[uuid.UUID]struct{}
-	clearedsea_master_bill_versions      bool
 	sea_house_bill_versions              map[uuid.UUID]struct{}
 	removedsea_house_bill_versions       map[uuid.UUID]struct{}
 	clearedsea_house_bill_versions       bool
@@ -99051,60 +99094,6 @@ func (m *PartnerMutation) ResetSeaOrderReassignments() {
 	m.removedsea_order_reassignments = nil
 }
 
-// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by ids.
-func (m *PartnerMutation) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) {
-	if m.sea_master_bill_versions == nil {
-		m.sea_master_bill_versions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.sea_master_bill_versions[ids[i]] = struct{}{}
-	}
-}
-
-// ClearSeaMasterBillVersions clears the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity.
-func (m *PartnerMutation) ClearSeaMasterBillVersions() {
-	m.clearedsea_master_bill_versions = true
-}
-
-// SeaMasterBillVersionsCleared reports if the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity was cleared.
-func (m *PartnerMutation) SeaMasterBillVersionsCleared() bool {
-	return m.clearedsea_master_bill_versions
-}
-
-// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (m *PartnerMutation) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) {
-	if m.removedsea_master_bill_versions == nil {
-		m.removedsea_master_bill_versions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.sea_master_bill_versions, ids[i])
-		m.removedsea_master_bill_versions[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedSeaMasterBillVersions returns the removed IDs of the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity.
-func (m *PartnerMutation) RemovedSeaMasterBillVersionsIDs() (ids []uuid.UUID) {
-	for id := range m.removedsea_master_bill_versions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// SeaMasterBillVersionsIDs returns the "sea_master_bill_versions" edge IDs in the mutation.
-func (m *PartnerMutation) SeaMasterBillVersionsIDs() (ids []uuid.UUID) {
-	for id := range m.sea_master_bill_versions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetSeaMasterBillVersions resets all changes to the "sea_master_bill_versions" edge.
-func (m *PartnerMutation) ResetSeaMasterBillVersions() {
-	m.sea_master_bill_versions = nil
-	m.clearedsea_master_bill_versions = false
-	m.removedsea_master_bill_versions = nil
-}
-
 // AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by ids.
 func (m *PartnerMutation) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) {
 	if m.sea_house_bill_versions == nil {
@@ -99460,7 +99449,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 20)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -99517,9 +99506,6 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.sea_order_reassignments != nil {
 		edges = append(edges, partner.EdgeSeaOrderReassignments)
-	}
-	if m.sea_master_bill_versions != nil {
-		edges = append(edges, partner.EdgeSeaMasterBillVersions)
 	}
 	if m.sea_house_bill_versions != nil {
 		edges = append(edges, partner.EdgeSeaHouseBillVersions)
@@ -99641,12 +99627,6 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case partner.EdgeSeaMasterBillVersions:
-		ids := make([]ent.Value, 0, len(m.sea_master_bill_versions))
-		for id := range m.sea_master_bill_versions {
-			ids = append(ids, id)
-		}
-		return ids
 	case partner.EdgeSeaHouseBillVersions:
 		ids := make([]ent.Value, 0, len(m.sea_house_bill_versions))
 		for id := range m.sea_house_bill_versions {
@@ -99659,7 +99639,7 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 20)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -99710,9 +99690,6 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_order_reassignments != nil {
 		edges = append(edges, partner.EdgeSeaOrderReassignments)
-	}
-	if m.removedsea_master_bill_versions != nil {
-		edges = append(edges, partner.EdgeSeaMasterBillVersions)
 	}
 	if m.removedsea_house_bill_versions != nil {
 		edges = append(edges, partner.EdgeSeaHouseBillVersions)
@@ -99826,12 +99803,6 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case partner.EdgeSeaMasterBillVersions:
-		ids := make([]ent.Value, 0, len(m.removedsea_master_bill_versions))
-		for id := range m.removedsea_master_bill_versions {
-			ids = append(ids, id)
-		}
-		return ids
 	case partner.EdgeSeaHouseBillVersions:
 		ids := make([]ent.Value, 0, len(m.removedsea_house_bill_versions))
 		for id := range m.removedsea_house_bill_versions {
@@ -99844,7 +99815,7 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 20)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -99902,9 +99873,6 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedsea_order_reassignments {
 		edges = append(edges, partner.EdgeSeaOrderReassignments)
 	}
-	if m.clearedsea_master_bill_versions {
-		edges = append(edges, partner.EdgeSeaMasterBillVersions)
-	}
 	if m.clearedsea_house_bill_versions {
 		edges = append(edges, partner.EdgeSeaHouseBillVersions)
 	}
@@ -99953,8 +99921,6 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedissued_sea_house_bills
 	case partner.EdgeSeaOrderReassignments:
 		return m.clearedsea_order_reassignments
-	case partner.EdgeSeaMasterBillVersions:
-		return m.clearedsea_master_bill_versions
 	case partner.EdgeSeaHouseBillVersions:
 		return m.clearedsea_house_bill_versions
 	}
@@ -100035,9 +100001,6 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeSeaOrderReassignments:
 		m.ResetSeaOrderReassignments()
-		return nil
-	case partner.EdgeSeaMasterBillVersions:
-		m.ResetSeaMasterBillVersions()
 		return nil
 	case partner.EdgeSeaHouseBillVersions:
 		m.ResetSeaHouseBillVersions()
@@ -125891,7 +125854,6 @@ type SeaMasterBillMutation struct {
 	id                                      *uuid.UUID
 	created_at                              *time.Time
 	updated_at                              *time.Time
-	issuer_partner_id                       *uuid.UUID
 	master_no                               *string
 	normalized_master_no                    *string
 	status                                  *seamasterbill.Status
@@ -125918,6 +125880,8 @@ type SeaMasterBillMutation struct {
 	clearedFields                           map[string]struct{}
 	organization                            *uuid.UUID
 	clearedorganization                     bool
+	shipping_line                           *uuid.UUID
+	clearedshipping_line                    bool
 	transport_execution                     *uuid.UUID
 	clearedtransport_execution              bool
 	order_links                             map[uuid.UUID]struct{}
@@ -126175,40 +126139,40 @@ func (m *SeaMasterBillMutation) ResetOrganizationID() {
 	m.organization = nil
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (m *SeaMasterBillMutation) SetIssuerPartnerID(u uuid.UUID) {
-	m.issuer_partner_id = &u
+// SetShippingLineID sets the "shipping_line_id" field.
+func (m *SeaMasterBillMutation) SetShippingLineID(u uuid.UUID) {
+	m.shipping_line = &u
 }
 
-// IssuerPartnerID returns the value of the "issuer_partner_id" field in the mutation.
-func (m *SeaMasterBillMutation) IssuerPartnerID() (r uuid.UUID, exists bool) {
-	v := m.issuer_partner_id
+// ShippingLineID returns the value of the "shipping_line_id" field in the mutation.
+func (m *SeaMasterBillMutation) ShippingLineID() (r uuid.UUID, exists bool) {
+	v := m.shipping_line
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIssuerPartnerID returns the old "issuer_partner_id" field's value of the SeaMasterBill entity.
+// OldShippingLineID returns the old "shipping_line_id" field's value of the SeaMasterBill entity.
 // If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaMasterBillMutation) OldIssuerPartnerID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *SeaMasterBillMutation) OldShippingLineID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIssuerPartnerID is only allowed on UpdateOne operations")
+		return v, errors.New("OldShippingLineID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIssuerPartnerID requires an ID field in the mutation")
+		return v, errors.New("OldShippingLineID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIssuerPartnerID: %w", err)
+		return v, fmt.Errorf("querying old value for OldShippingLineID: %w", err)
 	}
-	return oldValue.IssuerPartnerID, nil
+	return oldValue.ShippingLineID, nil
 }
 
-// ResetIssuerPartnerID resets all changes to the "issuer_partner_id" field.
-func (m *SeaMasterBillMutation) ResetIssuerPartnerID() {
-	m.issuer_partner_id = nil
+// ResetShippingLineID resets all changes to the "shipping_line_id" field.
+func (m *SeaMasterBillMutation) ResetShippingLineID() {
+	m.shipping_line = nil
 }
 
 // SetTransportExecutionID sets the "transport_execution_id" field.
@@ -127285,6 +127249,33 @@ func (m *SeaMasterBillMutation) ResetOrganization() {
 	m.clearedorganization = false
 }
 
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (m *SeaMasterBillMutation) ClearShippingLine() {
+	m.clearedshipping_line = true
+	m.clearedFields[seamasterbill.FieldShippingLineID] = struct{}{}
+}
+
+// ShippingLineCleared reports if the "shipping_line" edge to the ShippingLine entity was cleared.
+func (m *SeaMasterBillMutation) ShippingLineCleared() bool {
+	return m.clearedshipping_line
+}
+
+// ShippingLineIDs returns the "shipping_line" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingLineID instead. It exists only for internal usage by the builders.
+func (m *SeaMasterBillMutation) ShippingLineIDs() (ids []uuid.UUID) {
+	if id := m.shipping_line; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingLine resets all changes to the "shipping_line" edge.
+func (m *SeaMasterBillMutation) ResetShippingLine() {
+	m.shipping_line = nil
+	m.clearedshipping_line = false
+}
+
 // ClearTransportExecution clears the "transport_execution" edge to the SeaTransportExecution entity.
 func (m *SeaMasterBillMutation) ClearTransportExecution() {
 	m.clearedtransport_execution = true
@@ -128031,8 +128022,8 @@ func (m *SeaMasterBillMutation) Fields() []string {
 	if m.organization != nil {
 		fields = append(fields, seamasterbill.FieldOrganizationID)
 	}
-	if m.issuer_partner_id != nil {
-		fields = append(fields, seamasterbill.FieldIssuerPartnerID)
+	if m.shipping_line != nil {
+		fields = append(fields, seamasterbill.FieldShippingLineID)
 	}
 	if m.transport_execution != nil {
 		fields = append(fields, seamasterbill.FieldTransportExecutionID)
@@ -128111,8 +128102,8 @@ func (m *SeaMasterBillMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case seamasterbill.FieldOrganizationID:
 		return m.OrganizationID()
-	case seamasterbill.FieldIssuerPartnerID:
-		return m.IssuerPartnerID()
+	case seamasterbill.FieldShippingLineID:
+		return m.ShippingLineID()
 	case seamasterbill.FieldTransportExecutionID:
 		return m.TransportExecutionID()
 	case seamasterbill.FieldMasterNo:
@@ -128170,8 +128161,8 @@ func (m *SeaMasterBillMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldUpdatedAt(ctx)
 	case seamasterbill.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
-	case seamasterbill.FieldIssuerPartnerID:
-		return m.OldIssuerPartnerID(ctx)
+	case seamasterbill.FieldShippingLineID:
+		return m.OldShippingLineID(ctx)
 	case seamasterbill.FieldTransportExecutionID:
 		return m.OldTransportExecutionID(ctx)
 	case seamasterbill.FieldMasterNo:
@@ -128244,12 +128235,12 @@ func (m *SeaMasterBillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOrganizationID(v)
 		return nil
-	case seamasterbill.FieldIssuerPartnerID:
+	case seamasterbill.FieldShippingLineID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIssuerPartnerID(v)
+		m.SetShippingLineID(v)
 		return nil
 	case seamasterbill.FieldTransportExecutionID:
 		v, ok := value.(uuid.UUID)
@@ -128606,8 +128597,8 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 	case seamasterbill.FieldOrganizationID:
 		m.ResetOrganizationID()
 		return nil
-	case seamasterbill.FieldIssuerPartnerID:
-		m.ResetIssuerPartnerID()
+	case seamasterbill.FieldShippingLineID:
+		m.ResetShippingLineID()
 		return nil
 	case seamasterbill.FieldTransportExecutionID:
 		m.ResetTransportExecutionID()
@@ -128678,9 +128669,12 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 16)
 	if m.organization != nil {
 		edges = append(edges, seamasterbill.EdgeOrganization)
+	}
+	if m.shipping_line != nil {
+		edges = append(edges, seamasterbill.EdgeShippingLine)
 	}
 	if m.transport_execution != nil {
 		edges = append(edges, seamasterbill.EdgeTransportExecution)
@@ -128733,6 +128727,10 @@ func (m *SeaMasterBillMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case seamasterbill.EdgeOrganization:
 		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seamasterbill.EdgeShippingLine:
+		if id := m.shipping_line; id != nil {
 			return []ent.Value{*id}
 		}
 	case seamasterbill.EdgeTransportExecution:
@@ -128821,7 +128819,7 @@ func (m *SeaMasterBillMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 16)
 	if m.removedorder_links != nil {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
 	}
@@ -128943,9 +128941,12 @@ func (m *SeaMasterBillMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 16)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbill.EdgeOrganization)
+	}
+	if m.clearedshipping_line {
+		edges = append(edges, seamasterbill.EdgeShippingLine)
 	}
 	if m.clearedtransport_execution {
 		edges = append(edges, seamasterbill.EdgeTransportExecution)
@@ -128998,6 +128999,8 @@ func (m *SeaMasterBillMutation) EdgeCleared(name string) bool {
 	switch name {
 	case seamasterbill.EdgeOrganization:
 		return m.clearedorganization
+	case seamasterbill.EdgeShippingLine:
+		return m.clearedshipping_line
 	case seamasterbill.EdgeTransportExecution:
 		return m.clearedtransport_execution
 	case seamasterbill.EdgeOrderLinks:
@@ -129037,6 +129040,9 @@ func (m *SeaMasterBillMutation) ClearEdge(name string) error {
 	case seamasterbill.EdgeOrganization:
 		m.ClearOrganization()
 		return nil
+	case seamasterbill.EdgeShippingLine:
+		m.ClearShippingLine()
+		return nil
 	case seamasterbill.EdgeTransportExecution:
 		m.ClearTransportExecution()
 		return nil
@@ -129053,6 +129059,9 @@ func (m *SeaMasterBillMutation) ResetEdge(name string) error {
 	switch name {
 	case seamasterbill.EdgeOrganization:
 		m.ResetOrganization()
+		return nil
+	case seamasterbill.EdgeShippingLine:
+		m.ResetShippingLine()
 		return nil
 	case seamasterbill.EdgeTransportExecution:
 		m.ResetTransportExecution()
@@ -130643,7 +130652,6 @@ type SeaMasterBillVersionMutation struct {
 	vessel_voyage_snapshot      *string
 	etd_snapshot                *string
 	eta_snapshot                *string
-	carrier_id                  *uuid.UUID
 	origin_location_id          *uuid.UUID
 	discharge_location_id       *uuid.UUID
 	transit_location_id         *uuid.UUID
@@ -130679,8 +130687,8 @@ type SeaMasterBillVersionMutation struct {
 	clearedorganization         bool
 	master_bill                 *uuid.UUID
 	clearedmaster_bill          bool
-	issuer_partner              *uuid.UUID
-	clearedissuer_partner       bool
+	shipping_line               *uuid.UUID
+	clearedshipping_line        bool
 	transport_execution         *uuid.UUID
 	clearedtransport_execution  bool
 	creator                     *uuid.UUID
@@ -131023,40 +131031,40 @@ func (m *SeaMasterBillVersionMutation) ResetSourceEntityVersion() {
 	m.addsource_entity_version = nil
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (m *SeaMasterBillVersionMutation) SetIssuerPartnerID(u uuid.UUID) {
-	m.issuer_partner = &u
+// SetShippingLineID sets the "shipping_line_id" field.
+func (m *SeaMasterBillVersionMutation) SetShippingLineID(u uuid.UUID) {
+	m.shipping_line = &u
 }
 
-// IssuerPartnerID returns the value of the "issuer_partner_id" field in the mutation.
-func (m *SeaMasterBillVersionMutation) IssuerPartnerID() (r uuid.UUID, exists bool) {
-	v := m.issuer_partner
+// ShippingLineID returns the value of the "shipping_line_id" field in the mutation.
+func (m *SeaMasterBillVersionMutation) ShippingLineID() (r uuid.UUID, exists bool) {
+	v := m.shipping_line
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIssuerPartnerID returns the old "issuer_partner_id" field's value of the SeaMasterBillVersion entity.
+// OldShippingLineID returns the old "shipping_line_id" field's value of the SeaMasterBillVersion entity.
 // If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaMasterBillVersionMutation) OldIssuerPartnerID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *SeaMasterBillVersionMutation) OldShippingLineID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIssuerPartnerID is only allowed on UpdateOne operations")
+		return v, errors.New("OldShippingLineID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIssuerPartnerID requires an ID field in the mutation")
+		return v, errors.New("OldShippingLineID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIssuerPartnerID: %w", err)
+		return v, fmt.Errorf("querying old value for OldShippingLineID: %w", err)
 	}
-	return oldValue.IssuerPartnerID, nil
+	return oldValue.ShippingLineID, nil
 }
 
-// ResetIssuerPartnerID resets all changes to the "issuer_partner_id" field.
-func (m *SeaMasterBillVersionMutation) ResetIssuerPartnerID() {
-	m.issuer_partner = nil
+// ResetShippingLineID resets all changes to the "shipping_line_id" field.
+func (m *SeaMasterBillVersionMutation) ResetShippingLineID() {
+	m.shipping_line = nil
 }
 
 // SetTransportExecutionID sets the "transport_execution_id" field.
@@ -131348,55 +131356,6 @@ func (m *SeaMasterBillVersionMutation) EtaSnapshotCleared() bool {
 func (m *SeaMasterBillVersionMutation) ResetEtaSnapshot() {
 	m.eta_snapshot = nil
 	delete(m.clearedFields, seamasterbillversion.FieldEtaSnapshot)
-}
-
-// SetCarrierID sets the "carrier_id" field.
-func (m *SeaMasterBillVersionMutation) SetCarrierID(u uuid.UUID) {
-	m.carrier_id = &u
-}
-
-// CarrierID returns the value of the "carrier_id" field in the mutation.
-func (m *SeaMasterBillVersionMutation) CarrierID() (r uuid.UUID, exists bool) {
-	v := m.carrier_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCarrierID returns the old "carrier_id" field's value of the SeaMasterBillVersion entity.
-// If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaMasterBillVersionMutation) OldCarrierID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCarrierID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCarrierID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCarrierID: %w", err)
-	}
-	return oldValue.CarrierID, nil
-}
-
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (m *SeaMasterBillVersionMutation) ClearCarrierID() {
-	m.carrier_id = nil
-	m.clearedFields[seamasterbillversion.FieldCarrierID] = struct{}{}
-}
-
-// CarrierIDCleared returns if the "carrier_id" field was cleared in this mutation.
-func (m *SeaMasterBillVersionMutation) CarrierIDCleared() bool {
-	_, ok := m.clearedFields[seamasterbillversion.FieldCarrierID]
-	return ok
-}
-
-// ResetCarrierID resets all changes to the "carrier_id" field.
-func (m *SeaMasterBillVersionMutation) ResetCarrierID() {
-	m.carrier_id = nil
-	delete(m.clearedFields, seamasterbillversion.FieldCarrierID)
 }
 
 // SetOriginLocationID sets the "origin_location_id" field.
@@ -132836,31 +132795,31 @@ func (m *SeaMasterBillVersionMutation) ResetMasterBill() {
 	m.clearedmaster_bill = false
 }
 
-// ClearIssuerPartner clears the "issuer_partner" edge to the Partner entity.
-func (m *SeaMasterBillVersionMutation) ClearIssuerPartner() {
-	m.clearedissuer_partner = true
-	m.clearedFields[seamasterbillversion.FieldIssuerPartnerID] = struct{}{}
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (m *SeaMasterBillVersionMutation) ClearShippingLine() {
+	m.clearedshipping_line = true
+	m.clearedFields[seamasterbillversion.FieldShippingLineID] = struct{}{}
 }
 
-// IssuerPartnerCleared reports if the "issuer_partner" edge to the Partner entity was cleared.
-func (m *SeaMasterBillVersionMutation) IssuerPartnerCleared() bool {
-	return m.clearedissuer_partner
+// ShippingLineCleared reports if the "shipping_line" edge to the ShippingLine entity was cleared.
+func (m *SeaMasterBillVersionMutation) ShippingLineCleared() bool {
+	return m.clearedshipping_line
 }
 
-// IssuerPartnerIDs returns the "issuer_partner" edge IDs in the mutation.
+// ShippingLineIDs returns the "shipping_line" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// IssuerPartnerID instead. It exists only for internal usage by the builders.
-func (m *SeaMasterBillVersionMutation) IssuerPartnerIDs() (ids []uuid.UUID) {
-	if id := m.issuer_partner; id != nil {
+// ShippingLineID instead. It exists only for internal usage by the builders.
+func (m *SeaMasterBillVersionMutation) ShippingLineIDs() (ids []uuid.UUID) {
+	if id := m.shipping_line; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetIssuerPartner resets all changes to the "issuer_partner" edge.
-func (m *SeaMasterBillVersionMutation) ResetIssuerPartner() {
-	m.issuer_partner = nil
-	m.clearedissuer_partner = false
+// ResetShippingLine resets all changes to the "shipping_line" edge.
+func (m *SeaMasterBillVersionMutation) ResetShippingLine() {
+	m.shipping_line = nil
+	m.clearedshipping_line = false
 }
 
 // ClearTransportExecution clears the "transport_execution" edge to the SeaTransportExecution entity.
@@ -133126,7 +133085,7 @@ func (m *SeaMasterBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 42)
+	fields := make([]string, 0, 41)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillversion.FieldCreatedAt)
 	}
@@ -133142,8 +133101,8 @@ func (m *SeaMasterBillVersionMutation) Fields() []string {
 	if m.source_entity_version != nil {
 		fields = append(fields, seamasterbillversion.FieldSourceEntityVersion)
 	}
-	if m.issuer_partner != nil {
-		fields = append(fields, seamasterbillversion.FieldIssuerPartnerID)
+	if m.shipping_line != nil {
+		fields = append(fields, seamasterbillversion.FieldShippingLineID)
 	}
 	if m.transport_execution != nil {
 		fields = append(fields, seamasterbillversion.FieldTransportExecutionID)
@@ -133165,9 +133124,6 @@ func (m *SeaMasterBillVersionMutation) Fields() []string {
 	}
 	if m.eta_snapshot != nil {
 		fields = append(fields, seamasterbillversion.FieldEtaSnapshot)
-	}
-	if m.carrier_id != nil {
-		fields = append(fields, seamasterbillversion.FieldCarrierID)
 	}
 	if m.origin_location_id != nil {
 		fields = append(fields, seamasterbillversion.FieldOriginLocationID)
@@ -133271,8 +133227,8 @@ func (m *SeaMasterBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.VersionNo()
 	case seamasterbillversion.FieldSourceEntityVersion:
 		return m.SourceEntityVersion()
-	case seamasterbillversion.FieldIssuerPartnerID:
-		return m.IssuerPartnerID()
+	case seamasterbillversion.FieldShippingLineID:
+		return m.ShippingLineID()
 	case seamasterbillversion.FieldTransportExecutionID:
 		return m.TransportExecutionID()
 	case seamasterbillversion.FieldMasterNo:
@@ -133287,8 +133243,6 @@ func (m *SeaMasterBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.EtdSnapshot()
 	case seamasterbillversion.FieldEtaSnapshot:
 		return m.EtaSnapshot()
-	case seamasterbillversion.FieldCarrierID:
-		return m.CarrierID()
 	case seamasterbillversion.FieldOriginLocationID:
 		return m.OriginLocationID()
 	case seamasterbillversion.FieldDischargeLocationID:
@@ -133364,8 +133318,8 @@ func (m *SeaMasterBillVersionMutation) OldField(ctx context.Context, name string
 		return m.OldVersionNo(ctx)
 	case seamasterbillversion.FieldSourceEntityVersion:
 		return m.OldSourceEntityVersion(ctx)
-	case seamasterbillversion.FieldIssuerPartnerID:
-		return m.OldIssuerPartnerID(ctx)
+	case seamasterbillversion.FieldShippingLineID:
+		return m.OldShippingLineID(ctx)
 	case seamasterbillversion.FieldTransportExecutionID:
 		return m.OldTransportExecutionID(ctx)
 	case seamasterbillversion.FieldMasterNo:
@@ -133380,8 +133334,6 @@ func (m *SeaMasterBillVersionMutation) OldField(ctx context.Context, name string
 		return m.OldEtdSnapshot(ctx)
 	case seamasterbillversion.FieldEtaSnapshot:
 		return m.OldEtaSnapshot(ctx)
-	case seamasterbillversion.FieldCarrierID:
-		return m.OldCarrierID(ctx)
 	case seamasterbillversion.FieldOriginLocationID:
 		return m.OldOriginLocationID(ctx)
 	case seamasterbillversion.FieldDischargeLocationID:
@@ -133482,12 +133434,12 @@ func (m *SeaMasterBillVersionMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetSourceEntityVersion(v)
 		return nil
-	case seamasterbillversion.FieldIssuerPartnerID:
+	case seamasterbillversion.FieldShippingLineID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIssuerPartnerID(v)
+		m.SetShippingLineID(v)
 		return nil
 	case seamasterbillversion.FieldTransportExecutionID:
 		v, ok := value.(uuid.UUID)
@@ -133537,13 +133489,6 @@ func (m *SeaMasterBillVersionMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEtaSnapshot(v)
-		return nil
-	case seamasterbillversion.FieldCarrierID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCarrierID(v)
 		return nil
 	case seamasterbillversion.FieldOriginLocationID:
 		v, ok := value.(uuid.UUID)
@@ -133843,9 +133788,6 @@ func (m *SeaMasterBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seamasterbillversion.FieldEtaSnapshot) {
 		fields = append(fields, seamasterbillversion.FieldEtaSnapshot)
 	}
-	if m.FieldCleared(seamasterbillversion.FieldCarrierID) {
-		fields = append(fields, seamasterbillversion.FieldCarrierID)
-	}
 	if m.FieldCleared(seamasterbillversion.FieldOriginLocationID) {
 		fields = append(fields, seamasterbillversion.FieldOriginLocationID)
 	}
@@ -133940,9 +133882,6 @@ func (m *SeaMasterBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seamasterbillversion.FieldEtaSnapshot:
 		m.ClearEtaSnapshot()
-		return nil
-	case seamasterbillversion.FieldCarrierID:
-		m.ClearCarrierID()
 		return nil
 	case seamasterbillversion.FieldOriginLocationID:
 		m.ClearOriginLocationID()
@@ -134039,8 +133978,8 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 	case seamasterbillversion.FieldSourceEntityVersion:
 		m.ResetSourceEntityVersion()
 		return nil
-	case seamasterbillversion.FieldIssuerPartnerID:
-		m.ResetIssuerPartnerID()
+	case seamasterbillversion.FieldShippingLineID:
+		m.ResetShippingLineID()
 		return nil
 	case seamasterbillversion.FieldTransportExecutionID:
 		m.ResetTransportExecutionID()
@@ -134062,9 +134001,6 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 		return nil
 	case seamasterbillversion.FieldEtaSnapshot:
 		m.ResetEtaSnapshot()
-		return nil
-	case seamasterbillversion.FieldCarrierID:
-		m.ResetCarrierID()
 		return nil
 	case seamasterbillversion.FieldOriginLocationID:
 		m.ResetOriginLocationID()
@@ -134163,8 +134099,8 @@ func (m *SeaMasterBillVersionMutation) AddedEdges() []string {
 	if m.master_bill != nil {
 		edges = append(edges, seamasterbillversion.EdgeMasterBill)
 	}
-	if m.issuer_partner != nil {
-		edges = append(edges, seamasterbillversion.EdgeIssuerPartner)
+	if m.shipping_line != nil {
+		edges = append(edges, seamasterbillversion.EdgeShippingLine)
 	}
 	if m.transport_execution != nil {
 		edges = append(edges, seamasterbillversion.EdgeTransportExecution)
@@ -134196,8 +134132,8 @@ func (m *SeaMasterBillVersionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.master_bill; id != nil {
 			return []ent.Value{*id}
 		}
-	case seamasterbillversion.EdgeIssuerPartner:
-		if id := m.issuer_partner; id != nil {
+	case seamasterbillversion.EdgeShippingLine:
+		if id := m.shipping_line; id != nil {
 			return []ent.Value{*id}
 		}
 	case seamasterbillversion.EdgeTransportExecution:
@@ -134280,8 +134216,8 @@ func (m *SeaMasterBillVersionMutation) ClearedEdges() []string {
 	if m.clearedmaster_bill {
 		edges = append(edges, seamasterbillversion.EdgeMasterBill)
 	}
-	if m.clearedissuer_partner {
-		edges = append(edges, seamasterbillversion.EdgeIssuerPartner)
+	if m.clearedshipping_line {
+		edges = append(edges, seamasterbillversion.EdgeShippingLine)
 	}
 	if m.clearedtransport_execution {
 		edges = append(edges, seamasterbillversion.EdgeTransportExecution)
@@ -134309,8 +134245,8 @@ func (m *SeaMasterBillVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case seamasterbillversion.EdgeMasterBill:
 		return m.clearedmaster_bill
-	case seamasterbillversion.EdgeIssuerPartner:
-		return m.clearedissuer_partner
+	case seamasterbillversion.EdgeShippingLine:
+		return m.clearedshipping_line
 	case seamasterbillversion.EdgeTransportExecution:
 		return m.clearedtransport_execution
 	case seamasterbillversion.EdgeCreator:
@@ -134335,8 +134271,8 @@ func (m *SeaMasterBillVersionMutation) ClearEdge(name string) error {
 	case seamasterbillversion.EdgeMasterBill:
 		m.ClearMasterBill()
 		return nil
-	case seamasterbillversion.EdgeIssuerPartner:
-		m.ClearIssuerPartner()
+	case seamasterbillversion.EdgeShippingLine:
+		m.ClearShippingLine()
 		return nil
 	case seamasterbillversion.EdgeTransportExecution:
 		m.ClearTransportExecution()
@@ -134358,8 +134294,8 @@ func (m *SeaMasterBillVersionMutation) ResetEdge(name string) error {
 	case seamasterbillversion.EdgeMasterBill:
 		m.ResetMasterBill()
 		return nil
-	case seamasterbillversion.EdgeIssuerPartner:
-		m.ResetIssuerPartner()
+	case seamasterbillversion.EdgeShippingLine:
+		m.ResetShippingLine()
 		return nil
 	case seamasterbillversion.EdgeTransportExecution:
 		m.ResetTransportExecution()
@@ -139279,7 +139215,6 @@ type SeaTransportExecutionMutation struct {
 	id                          *uuid.UUID
 	created_at                  *time.Time
 	updated_at                  *time.Time
-	carrier_id                  *uuid.UUID
 	origin_location_id          *uuid.UUID
 	discharge_location_id       *uuid.UUID
 	transit_location_id         *uuid.UUID
@@ -139292,6 +139227,8 @@ type SeaTransportExecutionMutation struct {
 	clearedFields               map[string]struct{}
 	organization                *uuid.UUID
 	clearedorganization         bool
+	shipping_line               *uuid.UUID
+	clearedshipping_line        bool
 	master_bills                map[uuid.UUID]struct{}
 	removedmaster_bills         map[uuid.UUID]struct{}
 	clearedmaster_bills         bool
@@ -139515,53 +139452,40 @@ func (m *SeaTransportExecutionMutation) ResetOrganizationID() {
 	m.organization = nil
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (m *SeaTransportExecutionMutation) SetCarrierID(u uuid.UUID) {
-	m.carrier_id = &u
+// SetShippingLineID sets the "shipping_line_id" field.
+func (m *SeaTransportExecutionMutation) SetShippingLineID(u uuid.UUID) {
+	m.shipping_line = &u
 }
 
-// CarrierID returns the value of the "carrier_id" field in the mutation.
-func (m *SeaTransportExecutionMutation) CarrierID() (r uuid.UUID, exists bool) {
-	v := m.carrier_id
+// ShippingLineID returns the value of the "shipping_line_id" field in the mutation.
+func (m *SeaTransportExecutionMutation) ShippingLineID() (r uuid.UUID, exists bool) {
+	v := m.shipping_line
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCarrierID returns the old "carrier_id" field's value of the SeaTransportExecution entity.
+// OldShippingLineID returns the old "shipping_line_id" field's value of the SeaTransportExecution entity.
 // If the SeaTransportExecution object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaTransportExecutionMutation) OldCarrierID(ctx context.Context) (v *uuid.UUID, err error) {
+func (m *SeaTransportExecutionMutation) OldShippingLineID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCarrierID is only allowed on UpdateOne operations")
+		return v, errors.New("OldShippingLineID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCarrierID requires an ID field in the mutation")
+		return v, errors.New("OldShippingLineID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCarrierID: %w", err)
+		return v, fmt.Errorf("querying old value for OldShippingLineID: %w", err)
 	}
-	return oldValue.CarrierID, nil
+	return oldValue.ShippingLineID, nil
 }
 
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (m *SeaTransportExecutionMutation) ClearCarrierID() {
-	m.carrier_id = nil
-	m.clearedFields[seatransportexecution.FieldCarrierID] = struct{}{}
-}
-
-// CarrierIDCleared returns if the "carrier_id" field was cleared in this mutation.
-func (m *SeaTransportExecutionMutation) CarrierIDCleared() bool {
-	_, ok := m.clearedFields[seatransportexecution.FieldCarrierID]
-	return ok
-}
-
-// ResetCarrierID resets all changes to the "carrier_id" field.
-func (m *SeaTransportExecutionMutation) ResetCarrierID() {
-	m.carrier_id = nil
-	delete(m.clearedFields, seatransportexecution.FieldCarrierID)
+// ResetShippingLineID resets all changes to the "shipping_line_id" field.
+func (m *SeaTransportExecutionMutation) ResetShippingLineID() {
+	m.shipping_line = nil
 }
 
 // SetOriginLocationID sets the "origin_location_id" field.
@@ -139964,6 +139888,33 @@ func (m *SeaTransportExecutionMutation) ResetOrganization() {
 	m.clearedorganization = false
 }
 
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (m *SeaTransportExecutionMutation) ClearShippingLine() {
+	m.clearedshipping_line = true
+	m.clearedFields[seatransportexecution.FieldShippingLineID] = struct{}{}
+}
+
+// ShippingLineCleared reports if the "shipping_line" edge to the ShippingLine entity was cleared.
+func (m *SeaTransportExecutionMutation) ShippingLineCleared() bool {
+	return m.clearedshipping_line
+}
+
+// ShippingLineIDs returns the "shipping_line" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingLineID instead. It exists only for internal usage by the builders.
+func (m *SeaTransportExecutionMutation) ShippingLineIDs() (ids []uuid.UUID) {
+	if id := m.shipping_line; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingLine resets all changes to the "shipping_line" edge.
+func (m *SeaTransportExecutionMutation) ResetShippingLine() {
+	m.shipping_line = nil
+	m.clearedshipping_line = false
+}
+
 // AddMasterBillIDs adds the "master_bills" edge to the SeaMasterBill entity by ids.
 func (m *SeaTransportExecutionMutation) AddMasterBillIDs(ids ...uuid.UUID) {
 	if m.master_bills == nil {
@@ -140116,8 +140067,8 @@ func (m *SeaTransportExecutionMutation) Fields() []string {
 	if m.organization != nil {
 		fields = append(fields, seatransportexecution.FieldOrganizationID)
 	}
-	if m.carrier_id != nil {
-		fields = append(fields, seatransportexecution.FieldCarrierID)
+	if m.shipping_line != nil {
+		fields = append(fields, seatransportexecution.FieldShippingLineID)
 	}
 	if m.origin_location_id != nil {
 		fields = append(fields, seatransportexecution.FieldOriginLocationID)
@@ -140157,8 +140108,8 @@ func (m *SeaTransportExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case seatransportexecution.FieldOrganizationID:
 		return m.OrganizationID()
-	case seatransportexecution.FieldCarrierID:
-		return m.CarrierID()
+	case seatransportexecution.FieldShippingLineID:
+		return m.ShippingLineID()
 	case seatransportexecution.FieldOriginLocationID:
 		return m.OriginLocationID()
 	case seatransportexecution.FieldDischargeLocationID:
@@ -140190,8 +140141,8 @@ func (m *SeaTransportExecutionMutation) OldField(ctx context.Context, name strin
 		return m.OldUpdatedAt(ctx)
 	case seatransportexecution.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
-	case seatransportexecution.FieldCarrierID:
-		return m.OldCarrierID(ctx)
+	case seatransportexecution.FieldShippingLineID:
+		return m.OldShippingLineID(ctx)
 	case seatransportexecution.FieldOriginLocationID:
 		return m.OldOriginLocationID(ctx)
 	case seatransportexecution.FieldDischargeLocationID:
@@ -140238,12 +140189,12 @@ func (m *SeaTransportExecutionMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetOrganizationID(v)
 		return nil
-	case seatransportexecution.FieldCarrierID:
+	case seatransportexecution.FieldShippingLineID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCarrierID(v)
+		m.SetShippingLineID(v)
 		return nil
 	case seatransportexecution.FieldOriginLocationID:
 		v, ok := value.(uuid.UUID)
@@ -140346,9 +140297,6 @@ func (m *SeaTransportExecutionMutation) AddField(name string, value ent.Value) e
 // mutation.
 func (m *SeaTransportExecutionMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(seatransportexecution.FieldCarrierID) {
-		fields = append(fields, seatransportexecution.FieldCarrierID)
-	}
 	if m.FieldCleared(seatransportexecution.FieldOriginLocationID) {
 		fields = append(fields, seatransportexecution.FieldOriginLocationID)
 	}
@@ -140378,9 +140326,6 @@ func (m *SeaTransportExecutionMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *SeaTransportExecutionMutation) ClearField(name string) error {
 	switch name {
-	case seatransportexecution.FieldCarrierID:
-		m.ClearCarrierID()
-		return nil
 	case seatransportexecution.FieldOriginLocationID:
 		m.ClearOriginLocationID()
 		return nil
@@ -140413,8 +140358,8 @@ func (m *SeaTransportExecutionMutation) ResetField(name string) error {
 	case seatransportexecution.FieldOrganizationID:
 		m.ResetOrganizationID()
 		return nil
-	case seatransportexecution.FieldCarrierID:
-		m.ResetCarrierID()
+	case seatransportexecution.FieldShippingLineID:
+		m.ResetShippingLineID()
 		return nil
 	case seatransportexecution.FieldOriginLocationID:
 		m.ResetOriginLocationID()
@@ -140446,9 +140391,12 @@ func (m *SeaTransportExecutionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaTransportExecutionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.organization != nil {
 		edges = append(edges, seatransportexecution.EdgeOrganization)
+	}
+	if m.shipping_line != nil {
+		edges = append(edges, seatransportexecution.EdgeShippingLine)
 	}
 	if m.master_bills != nil {
 		edges = append(edges, seatransportexecution.EdgeMasterBills)
@@ -140465,6 +140413,10 @@ func (m *SeaTransportExecutionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case seatransportexecution.EdgeOrganization:
 		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seatransportexecution.EdgeShippingLine:
+		if id := m.shipping_line; id != nil {
 			return []ent.Value{*id}
 		}
 	case seatransportexecution.EdgeMasterBills:
@@ -140485,7 +140437,7 @@ func (m *SeaTransportExecutionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaTransportExecutionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedmaster_bills != nil {
 		edges = append(edges, seatransportexecution.EdgeMasterBills)
 	}
@@ -140517,9 +140469,12 @@ func (m *SeaTransportExecutionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaTransportExecutionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedorganization {
 		edges = append(edges, seatransportexecution.EdgeOrganization)
+	}
+	if m.clearedshipping_line {
+		edges = append(edges, seatransportexecution.EdgeShippingLine)
 	}
 	if m.clearedmaster_bills {
 		edges = append(edges, seatransportexecution.EdgeMasterBills)
@@ -140536,6 +140491,8 @@ func (m *SeaTransportExecutionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case seatransportexecution.EdgeOrganization:
 		return m.clearedorganization
+	case seatransportexecution.EdgeShippingLine:
+		return m.clearedshipping_line
 	case seatransportexecution.EdgeMasterBills:
 		return m.clearedmaster_bills
 	case seatransportexecution.EdgeMasterBillVersions:
@@ -140551,6 +140508,9 @@ func (m *SeaTransportExecutionMutation) ClearEdge(name string) error {
 	case seatransportexecution.EdgeOrganization:
 		m.ClearOrganization()
 		return nil
+	case seatransportexecution.EdgeShippingLine:
+		m.ClearShippingLine()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaTransportExecution unique edge %s", name)
 }
@@ -140561,6 +140521,9 @@ func (m *SeaTransportExecutionMutation) ResetEdge(name string) error {
 	switch name {
 	case seatransportexecution.EdgeOrganization:
 		m.ResetOrganization()
+		return nil
+	case seatransportexecution.EdgeShippingLine:
+		m.ResetShippingLine()
 		return nil
 	case seatransportexecution.EdgeMasterBills:
 		m.ResetMasterBills()
@@ -141553,31 +141516,43 @@ func (m *SessionMutation) ResetEdge(name string) error {
 // ShippingLineMutation represents an operation that mutates the ShippingLine nodes in the graph.
 type ShippingLineMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	created_at                *time.Time
-	updated_at                *time.Time
-	scac_code                 *string
-	name_zh                   *string
-	name_en                   *string
-	country_code              *string
-	tracking_url              *string
-	alliance                  *string
-	source                    *string
-	sort_order                *int
-	addsort_order             *int
-	enabled                   *bool
-	search_keywords           *string
-	clearedFields             map[string]struct{}
-	organization              *uuid.UUID
-	clearedorganization       bool
-	container_prefixes        map[uuid.UUID]struct{}
-	removedcontainer_prefixes map[uuid.UUID]struct{}
-	clearedcontainer_prefixes bool
-	done                      bool
-	oldValue                  func(context.Context) (*ShippingLine, error)
-	predicates                []predicate.ShippingLine
+	op                              Op
+	typ                             string
+	id                              *uuid.UUID
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	scac_code                       *string
+	name_zh                         *string
+	name_en                         *string
+	country_code                    *string
+	tracking_url                    *string
+	alliance                        *string
+	source                          *string
+	sort_order                      *int
+	addsort_order                   *int
+	enabled                         *bool
+	search_keywords                 *string
+	clearedFields                   map[string]struct{}
+	organization                    *uuid.UUID
+	clearedorganization             bool
+	container_prefixes              map[uuid.UUID]struct{}
+	removedcontainer_prefixes       map[uuid.UUID]struct{}
+	clearedcontainer_prefixes       bool
+	orders                          map[uuid.UUID]struct{}
+	removedorders                   map[uuid.UUID]struct{}
+	clearedorders                   bool
+	sea_transport_executions        map[uuid.UUID]struct{}
+	removedsea_transport_executions map[uuid.UUID]struct{}
+	clearedsea_transport_executions bool
+	sea_master_bills                map[uuid.UUID]struct{}
+	removedsea_master_bills         map[uuid.UUID]struct{}
+	clearedsea_master_bills         bool
+	sea_master_bill_versions        map[uuid.UUID]struct{}
+	removedsea_master_bill_versions map[uuid.UUID]struct{}
+	clearedsea_master_bill_versions bool
+	done                            bool
+	oldValue                        func(context.Context) (*ShippingLine, error)
+	predicates                      []predicate.ShippingLine
 }
 
 var _ ent.Mutation = (*ShippingLineMutation)(nil)
@@ -142279,6 +142254,222 @@ func (m *ShippingLineMutation) ResetContainerPrefixes() {
 	m.removedcontainer_prefixes = nil
 }
 
+// AddOrderIDs adds the "orders" edge to the Order entity by ids.
+func (m *ShippingLineMutation) AddOrderIDs(ids ...uuid.UUID) {
+	if m.orders == nil {
+		m.orders = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.orders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrders clears the "orders" edge to the Order entity.
+func (m *ShippingLineMutation) ClearOrders() {
+	m.clearedorders = true
+}
+
+// OrdersCleared reports if the "orders" edge to the Order entity was cleared.
+func (m *ShippingLineMutation) OrdersCleared() bool {
+	return m.clearedorders
+}
+
+// RemoveOrderIDs removes the "orders" edge to the Order entity by IDs.
+func (m *ShippingLineMutation) RemoveOrderIDs(ids ...uuid.UUID) {
+	if m.removedorders == nil {
+		m.removedorders = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.orders, ids[i])
+		m.removedorders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrders returns the removed IDs of the "orders" edge to the Order entity.
+func (m *ShippingLineMutation) RemovedOrdersIDs() (ids []uuid.UUID) {
+	for id := range m.removedorders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrdersIDs returns the "orders" edge IDs in the mutation.
+func (m *ShippingLineMutation) OrdersIDs() (ids []uuid.UUID) {
+	for id := range m.orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrders resets all changes to the "orders" edge.
+func (m *ShippingLineMutation) ResetOrders() {
+	m.orders = nil
+	m.clearedorders = false
+	m.removedorders = nil
+}
+
+// AddSeaTransportExecutionIDs adds the "sea_transport_executions" edge to the SeaTransportExecution entity by ids.
+func (m *ShippingLineMutation) AddSeaTransportExecutionIDs(ids ...uuid.UUID) {
+	if m.sea_transport_executions == nil {
+		m.sea_transport_executions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_transport_executions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaTransportExecutions clears the "sea_transport_executions" edge to the SeaTransportExecution entity.
+func (m *ShippingLineMutation) ClearSeaTransportExecutions() {
+	m.clearedsea_transport_executions = true
+}
+
+// SeaTransportExecutionsCleared reports if the "sea_transport_executions" edge to the SeaTransportExecution entity was cleared.
+func (m *ShippingLineMutation) SeaTransportExecutionsCleared() bool {
+	return m.clearedsea_transport_executions
+}
+
+// RemoveSeaTransportExecutionIDs removes the "sea_transport_executions" edge to the SeaTransportExecution entity by IDs.
+func (m *ShippingLineMutation) RemoveSeaTransportExecutionIDs(ids ...uuid.UUID) {
+	if m.removedsea_transport_executions == nil {
+		m.removedsea_transport_executions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_transport_executions, ids[i])
+		m.removedsea_transport_executions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaTransportExecutions returns the removed IDs of the "sea_transport_executions" edge to the SeaTransportExecution entity.
+func (m *ShippingLineMutation) RemovedSeaTransportExecutionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_transport_executions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaTransportExecutionsIDs returns the "sea_transport_executions" edge IDs in the mutation.
+func (m *ShippingLineMutation) SeaTransportExecutionsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_transport_executions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaTransportExecutions resets all changes to the "sea_transport_executions" edge.
+func (m *ShippingLineMutation) ResetSeaTransportExecutions() {
+	m.sea_transport_executions = nil
+	m.clearedsea_transport_executions = false
+	m.removedsea_transport_executions = nil
+}
+
+// AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by ids.
+func (m *ShippingLineMutation) AddSeaMasterBillIDs(ids ...uuid.UUID) {
+	if m.sea_master_bills == nil {
+		m.sea_master_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_master_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaMasterBills clears the "sea_master_bills" edge to the SeaMasterBill entity.
+func (m *ShippingLineMutation) ClearSeaMasterBills() {
+	m.clearedsea_master_bills = true
+}
+
+// SeaMasterBillsCleared reports if the "sea_master_bills" edge to the SeaMasterBill entity was cleared.
+func (m *ShippingLineMutation) SeaMasterBillsCleared() bool {
+	return m.clearedsea_master_bills
+}
+
+// RemoveSeaMasterBillIDs removes the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
+func (m *ShippingLineMutation) RemoveSeaMasterBillIDs(ids ...uuid.UUID) {
+	if m.removedsea_master_bills == nil {
+		m.removedsea_master_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_master_bills, ids[i])
+		m.removedsea_master_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaMasterBills returns the removed IDs of the "sea_master_bills" edge to the SeaMasterBill entity.
+func (m *ShippingLineMutation) RemovedSeaMasterBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_master_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaMasterBillsIDs returns the "sea_master_bills" edge IDs in the mutation.
+func (m *ShippingLineMutation) SeaMasterBillsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_master_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaMasterBills resets all changes to the "sea_master_bills" edge.
+func (m *ShippingLineMutation) ResetSeaMasterBills() {
+	m.sea_master_bills = nil
+	m.clearedsea_master_bills = false
+	m.removedsea_master_bills = nil
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by ids.
+func (m *ShippingLineMutation) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) {
+	if m.sea_master_bill_versions == nil {
+		m.sea_master_bill_versions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_master_bill_versions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaMasterBillVersions clears the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity.
+func (m *ShippingLineMutation) ClearSeaMasterBillVersions() {
+	m.clearedsea_master_bill_versions = true
+}
+
+// SeaMasterBillVersionsCleared reports if the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity was cleared.
+func (m *ShippingLineMutation) SeaMasterBillVersionsCleared() bool {
+	return m.clearedsea_master_bill_versions
+}
+
+// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (m *ShippingLineMutation) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) {
+	if m.removedsea_master_bill_versions == nil {
+		m.removedsea_master_bill_versions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_master_bill_versions, ids[i])
+		m.removedsea_master_bill_versions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaMasterBillVersions returns the removed IDs of the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity.
+func (m *ShippingLineMutation) RemovedSeaMasterBillVersionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_master_bill_versions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaMasterBillVersionsIDs returns the "sea_master_bill_versions" edge IDs in the mutation.
+func (m *ShippingLineMutation) SeaMasterBillVersionsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_master_bill_versions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaMasterBillVersions resets all changes to the "sea_master_bill_versions" edge.
+func (m *ShippingLineMutation) ResetSeaMasterBillVersions() {
+	m.sea_master_bill_versions = nil
+	m.clearedsea_master_bill_versions = false
+	m.removedsea_master_bill_versions = nil
+}
+
 // Where appends a list predicates to the ShippingLineMutation builder.
 func (m *ShippingLineMutation) Where(ps ...predicate.ShippingLine) {
 	m.predicates = append(m.predicates, ps...)
@@ -142646,12 +142837,24 @@ func (m *ShippingLineMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ShippingLineMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 6)
 	if m.organization != nil {
 		edges = append(edges, shippingline.EdgeOrganization)
 	}
 	if m.container_prefixes != nil {
 		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	if m.orders != nil {
+		edges = append(edges, shippingline.EdgeOrders)
+	}
+	if m.sea_transport_executions != nil {
+		edges = append(edges, shippingline.EdgeSeaTransportExecutions)
+	}
+	if m.sea_master_bills != nil {
+		edges = append(edges, shippingline.EdgeSeaMasterBills)
+	}
+	if m.sea_master_bill_versions != nil {
+		edges = append(edges, shippingline.EdgeSeaMasterBillVersions)
 	}
 	return edges
 }
@@ -142670,15 +142873,51 @@ func (m *ShippingLineMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case shippingline.EdgeOrders:
+		ids := make([]ent.Value, 0, len(m.orders))
+		for id := range m.orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaTransportExecutions:
+		ids := make([]ent.Value, 0, len(m.sea_transport_executions))
+		for id := range m.sea_transport_executions {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaMasterBills:
+		ids := make([]ent.Value, 0, len(m.sea_master_bills))
+		for id := range m.sea_master_bills {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaMasterBillVersions:
+		ids := make([]ent.Value, 0, len(m.sea_master_bill_versions))
+		for id := range m.sea_master_bill_versions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ShippingLineMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 6)
 	if m.removedcontainer_prefixes != nil {
 		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	if m.removedorders != nil {
+		edges = append(edges, shippingline.EdgeOrders)
+	}
+	if m.removedsea_transport_executions != nil {
+		edges = append(edges, shippingline.EdgeSeaTransportExecutions)
+	}
+	if m.removedsea_master_bills != nil {
+		edges = append(edges, shippingline.EdgeSeaMasterBills)
+	}
+	if m.removedsea_master_bill_versions != nil {
+		edges = append(edges, shippingline.EdgeSeaMasterBillVersions)
 	}
 	return edges
 }
@@ -142693,18 +142932,54 @@ func (m *ShippingLineMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case shippingline.EdgeOrders:
+		ids := make([]ent.Value, 0, len(m.removedorders))
+		for id := range m.removedorders {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaTransportExecutions:
+		ids := make([]ent.Value, 0, len(m.removedsea_transport_executions))
+		for id := range m.removedsea_transport_executions {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaMasterBills:
+		ids := make([]ent.Value, 0, len(m.removedsea_master_bills))
+		for id := range m.removedsea_master_bills {
+			ids = append(ids, id)
+		}
+		return ids
+	case shippingline.EdgeSeaMasterBillVersions:
+		ids := make([]ent.Value, 0, len(m.removedsea_master_bill_versions))
+		for id := range m.removedsea_master_bill_versions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ShippingLineMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 6)
 	if m.clearedorganization {
 		edges = append(edges, shippingline.EdgeOrganization)
 	}
 	if m.clearedcontainer_prefixes {
 		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	if m.clearedorders {
+		edges = append(edges, shippingline.EdgeOrders)
+	}
+	if m.clearedsea_transport_executions {
+		edges = append(edges, shippingline.EdgeSeaTransportExecutions)
+	}
+	if m.clearedsea_master_bills {
+		edges = append(edges, shippingline.EdgeSeaMasterBills)
+	}
+	if m.clearedsea_master_bill_versions {
+		edges = append(edges, shippingline.EdgeSeaMasterBillVersions)
 	}
 	return edges
 }
@@ -142717,6 +142992,14 @@ func (m *ShippingLineMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case shippingline.EdgeContainerPrefixes:
 		return m.clearedcontainer_prefixes
+	case shippingline.EdgeOrders:
+		return m.clearedorders
+	case shippingline.EdgeSeaTransportExecutions:
+		return m.clearedsea_transport_executions
+	case shippingline.EdgeSeaMasterBills:
+		return m.clearedsea_master_bills
+	case shippingline.EdgeSeaMasterBillVersions:
+		return m.clearedsea_master_bill_versions
 	}
 	return false
 }
@@ -142741,6 +143024,18 @@ func (m *ShippingLineMutation) ResetEdge(name string) error {
 		return nil
 	case shippingline.EdgeContainerPrefixes:
 		m.ResetContainerPrefixes()
+		return nil
+	case shippingline.EdgeOrders:
+		m.ResetOrders()
+		return nil
+	case shippingline.EdgeSeaTransportExecutions:
+		m.ResetSeaTransportExecutions()
+		return nil
+	case shippingline.EdgeSeaMasterBills:
+		m.ResetSeaMasterBills()
+		return nil
+	case shippingline.EdgeSeaMasterBillVersions:
+		m.ResetSeaMasterBillVersions()
 		return nil
 	}
 	return fmt.Errorf("unknown ShippingLine edge %s", name)

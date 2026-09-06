@@ -7290,19 +7290,19 @@ func init() {
 	// seamasterbillversion.EtaSnapshotValidator is a validator for the "eta_snapshot" field. It is called by the builders before save.
 	seamasterbillversion.EtaSnapshotValidator = seamasterbillversionDescEtaSnapshot.Validators[0].(func(string) error)
 	// seamasterbillversionDescVesselName is the schema descriptor for vessel_name field.
-	seamasterbillversionDescVesselName := seamasterbillversionFields[17].Descriptor()
+	seamasterbillversionDescVesselName := seamasterbillversionFields[16].Descriptor()
 	// seamasterbillversion.DefaultVesselName holds the default value on creation for the vessel_name field.
 	seamasterbillversion.DefaultVesselName = seamasterbillversionDescVesselName.Default.(string)
 	// seamasterbillversion.VesselNameValidator is a validator for the "vessel_name" field. It is called by the builders before save.
 	seamasterbillversion.VesselNameValidator = seamasterbillversionDescVesselName.Validators[0].(func(string) error)
 	// seamasterbillversionDescVoyageNo is the schema descriptor for voyage_no field.
-	seamasterbillversionDescVoyageNo := seamasterbillversionFields[18].Descriptor()
+	seamasterbillversionDescVoyageNo := seamasterbillversionFields[17].Descriptor()
 	// seamasterbillversion.DefaultVoyageNo holds the default value on creation for the voyage_no field.
 	seamasterbillversion.DefaultVoyageNo = seamasterbillversionDescVoyageNo.Default.(string)
 	// seamasterbillversion.VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
 	seamasterbillversion.VoyageNoValidator = seamasterbillversionDescVoyageNo.Validators[0].(func(string) error)
 	// seamasterbillversionDescContentHash is the schema descriptor for content_hash field.
-	seamasterbillversionDescContentHash := seamasterbillversionFields[21].Descriptor()
+	seamasterbillversionDescContentHash := seamasterbillversionFields[20].Descriptor()
 	// seamasterbillversion.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
 	seamasterbillversion.ContentHashValidator = func() func(string) error {
 		validators := seamasterbillversionDescContentHash.Validators
@@ -7320,47 +7320,47 @@ func init() {
 		}
 	}()
 	// seamasterbillversionDescReason is the schema descriptor for reason field.
-	seamasterbillversionDescReason := seamasterbillversionFields[23].Descriptor()
+	seamasterbillversionDescReason := seamasterbillversionFields[22].Descriptor()
 	// seamasterbillversion.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	seamasterbillversion.ReasonValidator = seamasterbillversionDescReason.Validators[0].(func(string) error)
 	// seamasterbillversionDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	seamasterbillversionDescIdempotencyKey := seamasterbillversionFields[25].Descriptor()
+	seamasterbillversionDescIdempotencyKey := seamasterbillversionFields[24].Descriptor()
 	// seamasterbillversion.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	seamasterbillversion.IdempotencyKeyValidator = seamasterbillversionDescIdempotencyKey.Validators[0].(func(string) error)
 	// seamasterbillversionDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	seamasterbillversionDescRequestFingerprint := seamasterbillversionFields[26].Descriptor()
+	seamasterbillversionDescRequestFingerprint := seamasterbillversionFields[25].Descriptor()
 	// seamasterbillversion.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	seamasterbillversion.RequestFingerprintValidator = seamasterbillversionDescRequestFingerprint.Validators[0].(func(string) error)
 	// seamasterbillversionDescPackageCount is the schema descriptor for package_count field.
-	seamasterbillversionDescPackageCount := seamasterbillversionFields[33].Descriptor()
+	seamasterbillversionDescPackageCount := seamasterbillversionFields[32].Descriptor()
 	// seamasterbillversion.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seamasterbillversion.PackageCountValidator = seamasterbillversionDescPackageCount.Validators[0].(func(int) error)
 	// seamasterbillversionDescPackageUnit is the schema descriptor for package_unit field.
-	seamasterbillversionDescPackageUnit := seamasterbillversionFields[34].Descriptor()
+	seamasterbillversionDescPackageUnit := seamasterbillversionFields[33].Descriptor()
 	// seamasterbillversion.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seamasterbillversion.PackageUnitValidator = seamasterbillversionDescPackageUnit.Validators[0].(func(string) error)
 	// seamasterbillversionDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seamasterbillversionDescGrossWeightKg := seamasterbillversionFields[35].Descriptor()
+	seamasterbillversionDescGrossWeightKg := seamasterbillversionFields[34].Descriptor()
 	// seamasterbillversion.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seamasterbillversion.GrossWeightKgValidator = seamasterbillversionDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seamasterbillversionDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seamasterbillversionDescVolumeCbm := seamasterbillversionFields[36].Descriptor()
+	seamasterbillversionDescVolumeCbm := seamasterbillversionFields[35].Descriptor()
 	// seamasterbillversion.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seamasterbillversion.VolumeCbmValidator = seamasterbillversionDescVolumeCbm.Validators[0].(func(float64) error)
 	// seamasterbillversionDescFreightTerms is the schema descriptor for freight_terms field.
-	seamasterbillversionDescFreightTerms := seamasterbillversionFields[37].Descriptor()
+	seamasterbillversionDescFreightTerms := seamasterbillversionFields[36].Descriptor()
 	// seamasterbillversion.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seamasterbillversion.FreightTermsValidator = seamasterbillversionDescFreightTerms.Validators[0].(func(string) error)
 	// seamasterbillversionDescTransportTerms is the schema descriptor for transport_terms field.
-	seamasterbillversionDescTransportTerms := seamasterbillversionFields[38].Descriptor()
+	seamasterbillversionDescTransportTerms := seamasterbillversionFields[37].Descriptor()
 	// seamasterbillversion.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seamasterbillversion.TransportTermsValidator = seamasterbillversionDescTransportTerms.Validators[0].(func(string) error)
 	// seamasterbillversionDescBillForm is the schema descriptor for bill_form field.
-	seamasterbillversionDescBillForm := seamasterbillversionFields[39].Descriptor()
+	seamasterbillversionDescBillForm := seamasterbillversionFields[38].Descriptor()
 	// seamasterbillversion.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seamasterbillversion.BillFormValidator = seamasterbillversionDescBillForm.Validators[0].(func(string) error)
 	// seamasterbillversionDescReleaseType is the schema descriptor for release_type field.
-	seamasterbillversionDescReleaseType := seamasterbillversionFields[40].Descriptor()
+	seamasterbillversionDescReleaseType := seamasterbillversionFields[39].Descriptor()
 	// seamasterbillversion.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seamasterbillversion.ReleaseTypeValidator = seamasterbillversionDescReleaseType.Validators[0].(func(string) error)
 	// seamasterbillversionDescID is the schema descriptor for id field.

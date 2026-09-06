@@ -16,7 +16,7 @@ func (SeaTransportExecution) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{},
 func (SeaTransportExecution) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.UUID("carrier_id", uuid.Nil).Optional().Nillable(),
+		field.UUID("shipping_line_id", uuid.Nil),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("discharge_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("transit_location_id", uuid.Nil).Optional().Nillable(),
@@ -31,6 +31,7 @@ func (SeaTransportExecution) Fields() []ent.Field {
 func (SeaTransportExecution) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("sea_transport_executions").Field("organization_id").Unique().Required(),
+		edge.From("shipping_line", ShippingLine.Type).Ref("sea_transport_executions").Field("shipping_line_id").Unique().Required(),
 		edge.To("master_bills", SeaMasterBill.Type),
 		edge.To("master_bill_versions", SeaMasterBillVersion.Type),
 	}
@@ -38,7 +39,7 @@ func (SeaTransportExecution) Edges() []ent.Edge {
 
 func (SeaTransportExecution) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "carrier_id"),
+		index.Fields("organization_id", "shipping_line_id"),
 		index.Fields("organization_id", "origin_location_id", "discharge_location_id"),
 	}
 }

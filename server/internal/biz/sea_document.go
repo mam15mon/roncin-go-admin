@@ -389,8 +389,8 @@ type SeaHouseBillInput struct {
 type SeaMasterBillDetail struct {
 	ID                    uuid.UUID
 	MasterNo              string
-	IssuerPartnerID       uuid.UUID
-	IssuerPartnerName     string
+	ShippingLineID        uuid.UUID
+	ShippingLineName      string
 	Status                string
 	Version               uint64
 	CurrentVersionID      *uuid.UUID

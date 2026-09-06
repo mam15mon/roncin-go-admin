@@ -27,6 +27,7 @@ import {
 import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
 import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderCreateOptions } from './use-order-create-options';
+import { searchShippingLineOptions } from '@/utils/options';
 
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
@@ -105,8 +106,7 @@ export default function NewOrderPage() {
       containerSpecOptions,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
-      searchCarriers: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
+      searchShippingLines: searchShippingLineOptions,
       searchBookingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       searchForeignAgents: (keyword?: string) =>

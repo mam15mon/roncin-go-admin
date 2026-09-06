@@ -74,8 +74,6 @@ const (
 	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
 	// EdgeSeaOrderReassignments holds the string denoting the sea_order_reassignments edge name in mutations.
 	EdgeSeaOrderReassignments = "sea_order_reassignments"
-	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
-	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
 	// EdgeSeaHouseBillVersions holds the string denoting the sea_house_bill_versions edge name in mutations.
 	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
 	// Table holds the table name of the partner in the database.
@@ -213,13 +211,6 @@ const (
 	SeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
 	// SeaOrderReassignmentsColumn is the table column denoting the sea_order_reassignments relation/edge.
 	SeaOrderReassignmentsColumn = "responsible_partner_id"
-	// SeaMasterBillVersionsTable is the table that holds the sea_master_bill_versions relation/edge.
-	SeaMasterBillVersionsTable = "sea_master_bill_versions"
-	// SeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
-	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
-	SeaMasterBillVersionsInverseTable = "sea_master_bill_versions"
-	// SeaMasterBillVersionsColumn is the table column denoting the sea_master_bill_versions relation/edge.
-	SeaMasterBillVersionsColumn = "issuer_partner_id"
 	// SeaHouseBillVersionsTable is the table that holds the sea_house_bill_versions relation/edge.
 	SeaHouseBillVersionsTable = "sea_house_bill_versions"
 	// SeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
@@ -595,20 +586,6 @@ func BySeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
-// BySeaMasterBillVersionsCount orders the results by sea_master_bill_versions count.
-func BySeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillVersionsStep(), opts...)
-	}
-}
-
-// BySeaMasterBillVersions orders the results by sea_master_bill_versions terms.
-func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // BySeaHouseBillVersionsCount orders the results by sea_house_bill_versions count.
 func BySeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -753,13 +730,6 @@ func newSeaOrderReassignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaOrderReassignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentsTable, SeaOrderReassignmentsColumn),
-	)
-}
-func newSeaMasterBillVersionsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaMasterBillVersionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
 	)
 }
 func newSeaHouseBillVersionsStep() *sqlgraph.Step {

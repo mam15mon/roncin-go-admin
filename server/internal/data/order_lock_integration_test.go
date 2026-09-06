@@ -217,27 +217,21 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		t.Fatalf("创建客户角色失败: %v", err)
 	}
 
-	carrier, err := data.db.Partner.Create().
+	carrier, err := data.db.ShippingLine.Create().
 		SetOrganizationID(org.ID).
-		SetCode("CARR-" + suffix).
-		SetLegalName("马士基航运-" + suffix).
-		SetNormalizedName("马士基航运-" + suffix).
+		SetScacCode("MSKZ").
+		SetNameZh("马士基航运-" + suffix).
+		SetNameEn("Maersk-" + suffix).
+		SetCountryCode("DK").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建船东失败: %v", err)
 	}
-	if _, err = data.db.PartnerRole.Create().
-		SetPartnerID(carrier.ID).
-		SetRoleType(partnerroleent.RoleTypeCarrier).
-		SetEnabled(true).
-		Save(ctx); err != nil {
-		t.Fatalf("创建船东角色失败: %v", err)
-	}
-
 	// 7. 创建海运运输执行与主单 MBL
 	etd := time.Now().Add(24 * time.Hour).UTC().Truncate(time.Microsecond)
 	eta := time.Now().Add(7 * 24 * time.Hour).UTC().Truncate(time.Microsecond)
-	routeCarrierID := carrier.ID
+	routeShippingLineID := carrier.ID
 	routeOriginID := uuid.New()
 	routeDischargeID := uuid.New()
 	routeTransitID := uuid.New()
@@ -267,7 +261,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 	exec, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
-		SetCarrierID(routeCarrierID).
+		SetShippingLineID(routeShippingLineID).
 		SetOriginLocationID(routeOriginID).
 		SetDischargeLocationID(routeDischargeID).
 		SetTransitLocationID(routeTransitID).
@@ -287,7 +281,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).
-		SetIssuerPartnerID(carrier.ID).
+		SetShippingLineID(carrier.ID).
 		SetTransportExecutionID(exec.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetPackageCount(pkgCount).
@@ -304,7 +298,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-" + suffix + "-A").
 		SetCustomerID(customer.ID).
-		SetCarrierID(routeCarrierID).
+		SetShippingLineID(routeShippingLineID).
 		SetOriginLocationID(routeOriginID).
 		SetDischargeLocationID(routeDischargeID).
 		SetTransitLocationID(routeTransitID).
@@ -401,7 +395,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			SetOrganizationID(org.ID).
 			SetOrderNo(orderNo).
 			SetCustomerID(customer.ID).
-			SetCarrierID(routeCarrierID).
+			SetShippingLineID(routeShippingLineID).
 			SetOriginLocationID(routeOriginID).
 			SetDischargeLocationID(routeDischargeID).
 			SetTransitLocationID(routeTransitID).
@@ -692,7 +686,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if mblVer.VesselVoyageSnapshot == nil || *mblVer.VesselVoyageSnapshot != "MAERSK MC-KINNEY MOLLER 2609W" {
 			t.Errorf("MBL 船名航次快照异常: %v", mblVer.VesselVoyageSnapshot)
 		}
-		if mblVer.CarrierID == nil || *mblVer.CarrierID != routeCarrierID ||
+		if mblVer.ShippingLineID != routeShippingLineID ||
 			mblVer.OriginLocationID == nil || *mblVer.OriginLocationID != routeOriginID ||
 			mblVer.DischargeLocationID == nil || *mblVer.DischargeLocationID != routeDischargeID ||
 			mblVer.TransitLocationID == nil || *mblVer.TransitLocationID != routeTransitID ||
@@ -890,7 +884,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipmentType,
-				CarrierID:           &routeCarrierID,
+				ShippingLineID:           &routeShippingLineID,
 				OriginLocationID:    &routeOriginID,
 				DischargeLocationID: &routeDischargeID,
 				TransitLocationID:   &routeTransitID,
@@ -899,7 +893,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				ETA:                 eta.Format(time.RFC3339Nano),
 				SeaMasterBillInput: &biz.SeaMasterBillInput{
 					MasterNo:                 mbl.MasterNo,
-					IssuerPartnerID:          carrier.ID,
 					ExpectedCandidateVersion: &expectedMBLVersion,
 				},
 			}
@@ -1107,7 +1100,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			TradeTerm:           biz.OrderTradeFOB,
 			PaymentTerm:         biz.OrderPaymentPrepaid,
 			ShipmentType:        &shipType,
-			CarrierID:           &routeCarrierID,
+			ShippingLineID:           &routeShippingLineID,
 			OriginLocationID:    &routeOriginID,
 			DischargeLocationID: &routeDischargeID,
 			TransitLocationID:   &routeTransitID,
@@ -1310,6 +1303,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 		execD, err := data.db.SeaTransportExecution.Create().
 			SetOrganizationID(org.ID).
+			SetShippingLineID(routeShippingLineID).
 			SetVesselName("VESSEL D").
 			SetVoyageNo("VOY D").
 			Save(ctx)
@@ -1318,7 +1312,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		mblD, err := data.db.SeaMasterBill.Create().
 			SetOrganizationID(org.ID).
-			SetIssuerPartnerID(carrier.ID).
+			SetShippingLineID(routeShippingLineID).
 			SetTransportExecutionID(execD.ID).
 			SetMasterNo("MBL-D-" + suffix).
 			SetNormalizedMasterNo("MBL-D-" + suffix).
@@ -1427,7 +1421,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipType,
-				CarrierID:           &routeCarrierID,
+				ShippingLineID:           &routeShippingLineID,
 				OriginLocationID:    &routeOriginID,
 				DischargeLocationID: &routeDischargeID,
 				TransitLocationID:   &routeTransitID,

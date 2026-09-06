@@ -4,7 +4,10 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { searchPartnerOptions } from '@/utils/options';
+import {
+  searchPartnerOptions,
+  searchShippingLineOptions,
+} from '@/utils/options';
 import {
   getCachedAirports,
   getCachedPorts,
@@ -41,6 +44,7 @@ vi.mock('@/utils/order-options-cache', () => ({
 
 vi.mock('@/utils/options', () => ({
   searchPartnerOptions: vi.fn().mockResolvedValue([]),
+  searchShippingLineOptions: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/services/roncin/masterDataService', () => ({
@@ -63,6 +67,7 @@ const mockGetMasterData = vi.mocked(getMasterDataOptions);
 const mockGetPorts = vi.mocked(getCachedPorts);
 const mockGetAirports = vi.mocked(getCachedAirports);
 const mockSearchPartners = vi.mocked(searchPartnerOptions);
+const mockSearchShippingLines = vi.mocked(searchShippingLineOptions);
 const mockSearchPorts = vi.mocked(masterDataServiceListPorts);
 const mockSearchLocations = vi.mocked(searchOrderLocations);
 const mockSearchPersonnel = vi.mocked(orderServiceListPersonnelOptions);
@@ -114,6 +119,9 @@ describe('useOrderListResources', () => {
     mockSearchPartners.mockResolvedValue([
       { label: '阿里巴巴', value: 'cust-1' },
     ]);
+    mockSearchShippingLines.mockResolvedValue([
+      { label: '中远海运 / COSCO SHIPPING (COSU)', value: 'line-1' },
+    ]);
     mockSearchPorts.mockResolvedValue({ data: [] });
     mockSearchLocations.mockResolvedValue([]);
     mockSearchPersonnel.mockResolvedValue({ data: [] });
@@ -134,13 +142,14 @@ describe('useOrderListResources', () => {
     await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
     await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
     await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
-    await expect(result.current.searchOrderCarriers('承运人')).resolves.toEqual(
+    await expect(result.current.searchOrderCarriers('船公司')).resolves.toEqual(
       [],
     );
     await expect(result.current.searchOrderPersonnel('人员')).resolves.toEqual(
       [],
     );
     expect(mockSearchPartners).not.toHaveBeenCalled();
+    expect(mockSearchShippingLines).not.toHaveBeenCalled();
     expect(mockSearchPorts).not.toHaveBeenCalled();
     expect(mockSearchLocations).not.toHaveBeenCalled();
     expect(mockSearchPersonnel).not.toHaveBeenCalled();
@@ -304,13 +313,14 @@ describe('useOrderListResources', () => {
     await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
 
     const customerSearch = deferred<{ label: string; value: string }[]>();
-    const carrierSearch = deferred<{ label: string; value: string }[]>();
+    const shippingLineSearch = deferred<{ label: string; value: string }[]>();
     const portSearch = deferred<any>();
     const locationSearch = deferred<{ label: string; value: string }[]>();
     const personnelSearch = deferred<any>();
-    mockSearchPartners
-      .mockImplementationOnce(() => customerSearch.promise)
-      .mockImplementationOnce(() => carrierSearch.promise);
+    mockSearchPartners.mockImplementationOnce(() => customerSearch.promise);
+    mockSearchShippingLines.mockImplementationOnce(
+      () => shippingLineSearch.promise,
+    );
     mockSearchPorts.mockImplementationOnce(() => portSearch.promise);
     mockSearchLocations.mockImplementationOnce(() => locationSearch.promise);
     mockSearchPersonnel.mockImplementationOnce(() => personnelSearch.promise);
@@ -319,7 +329,7 @@ describe('useOrderListResources', () => {
       result.current.searchCustomers('慢速客户'),
       result.current.searchOrderPorts('慢速港口'),
       result.current.searchLocations('慢速地点'),
-      result.current.searchOrderCarriers('慢速承运人'),
+      result.current.searchOrderCarriers('慢速船公司'),
       result.current.searchOrderPersonnel('慢速人员'),
     ];
 
@@ -332,7 +342,9 @@ describe('useOrderListResources', () => {
     let searchResults: unknown[] = [];
     await act(async () => {
       customerSearch.resolve([{ label: '旧组织客户', value: 'old-customer' }]);
-      carrierSearch.resolve([{ label: '旧组织承运人', value: 'old-carrier' }]);
+      shippingLineSearch.resolve([
+        { label: '旧组织船公司', value: 'old-shipping-line' },
+      ]);
       portSearch.resolve({
         data: [
           {

@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaTransportExecutionQuery is the builder for querying SeaTransportExecution entities.
@@ -29,6 +30,7 @@ type SeaTransportExecutionQuery struct {
 	inters                 []Interceptor
 	predicates             []predicate.SeaTransportExecution
 	withOrganization       *OrganizationQuery
+	withShippingLine       *ShippingLineQuery
 	withMasterBills        *SeaMasterBillQuery
 	withMasterBillVersions *SeaMasterBillVersionQuery
 	modifiers              []func(*sql.Selector)
@@ -83,6 +85,28 @@ func (_q *SeaTransportExecutionQuery) QueryOrganization() *OrganizationQuery {
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
 			sqlgraph.To(organization.Table, organization.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.OrganizationTable, seatransportexecution.OrganizationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShippingLine chains the current query on the "shipping_line" edge.
+func (_q *SeaTransportExecutionQuery) QueryShippingLine() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.ShippingLineTable, seatransportexecution.ShippingLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -327,6 +351,7 @@ func (_q *SeaTransportExecutionQuery) Clone() *SeaTransportExecutionQuery {
 		inters:                 append([]Interceptor{}, _q.inters...),
 		predicates:             append([]predicate.SeaTransportExecution{}, _q.predicates...),
 		withOrganization:       _q.withOrganization.Clone(),
+		withShippingLine:       _q.withShippingLine.Clone(),
 		withMasterBills:        _q.withMasterBills.Clone(),
 		withMasterBillVersions: _q.withMasterBillVersions.Clone(),
 		// clone intermediate query.
@@ -343,6 +368,17 @@ func (_q *SeaTransportExecutionQuery) WithOrganization(opts ...func(*Organizatio
 		opt(query)
 	}
 	_q.withOrganization = query
+	return _q
+}
+
+// WithShippingLine tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithShippingLine(opts ...func(*ShippingLineQuery)) *SeaTransportExecutionQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withShippingLine = query
 	return _q
 }
 
@@ -446,8 +482,9 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*SeaTransportExecution{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withOrganization != nil,
+			_q.withShippingLine != nil,
 			_q.withMasterBills != nil,
 			_q.withMasterBillVersions != nil,
 		}
@@ -476,6 +513,12 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
 			func(n *SeaTransportExecution, e *Organization) { n.Edges.Organization = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withShippingLine; query != nil {
+		if err := _q.loadShippingLine(ctx, query, nodes, nil,
+			func(n *SeaTransportExecution, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -520,6 +563,35 @@ func (_q *SeaTransportExecutionQuery) loadOrganization(ctx context.Context, quer
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *SeaTransportExecutionQuery) loadShippingLine(ctx context.Context, query *ShippingLineQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *ShippingLine)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaTransportExecution)
+	for i := range nodes {
+		fk := nodes[i].ShippingLineID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(shippingline.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -618,6 +690,9 @@ func (_q *SeaTransportExecutionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withOrganization != nil {
 			_spec.Node.AddColumnOnce(seatransportexecution.FieldOrganizationID)
+		}
+		if _q.withShippingLine != nil {
+			_spec.Node.AddColumnOnce(seatransportexecution.FieldShippingLineID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

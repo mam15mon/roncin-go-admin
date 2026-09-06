@@ -36,11 +36,10 @@ const (
 	PartnerRoleCustomer     PartnerRoleType = "customer"
 	PartnerRoleSupplier     PartnerRoleType = "supplier"
 	PartnerRoleForeignAgent PartnerRoleType = "foreign_agent"
-	PartnerRoleCarrier      PartnerRoleType = "carrier"
 )
 
 func (t PartnerRoleType) Valid() bool {
-	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleForeignAgent || t == PartnerRoleCarrier
+	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleForeignAgent
 }
 
 type PartnerRole struct {

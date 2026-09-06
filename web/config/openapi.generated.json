@@ -5914,7 +5914,7 @@
             }
           },
           {
-            "name": "carrierId",
+            "name": "shippingLineId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -6065,7 +6065,7 @@
         "operationId": "OrderService_MatchSeaMasterBillCandidate",
         "parameters": [
           {
-            "name": "issuerPartnerId",
+            "name": "shippingLineId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -6073,13 +6073,6 @@
           },
           {
             "name": "masterNo",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "carrierId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -20581,7 +20574,7 @@
             "type": "integer",
             "format": "enum"
           },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
           "bookingAgentId": {
@@ -22081,7 +22074,7 @@
           "customerId": {
             "type": "string"
           },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
           "bookingAgentId": {
@@ -24622,6 +24615,12 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "shippingLineId": {
+            "type": "string"
+          },
+          "shippingLineName": {
+            "type": "string"
           }
         },
         "description": "SeaDocumentVersion 完整、不可变的主单或分单内容版本。"
@@ -24778,10 +24777,10 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
+          "shippingLineId": {
             "type": "string"
           },
-          "issuerPartnerName": {
+          "shippingLineName": {
             "type": "string"
           },
           "transportExecution": {
@@ -24809,10 +24808,10 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
+          "shippingLineId": {
             "type": "string"
           },
-          "issuerPartnerName": {
+          "shippingLineName": {
             "type": "string"
           },
           "status": {
@@ -24839,15 +24838,11 @@
       },
       "order.v1.SeaMasterBillInput": {
         "required": [
-          "masterNo",
-          "issuerPartnerId"
+          "masterNo"
         ],
         "type": "object",
         "properties": {
           "masterNo": {
-            "type": "string"
-          },
-          "issuerPartnerId": {
             "type": "string"
           },
           "candidateId": {
@@ -24886,19 +24881,13 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
+          "shippingLineId": {
             "type": "string"
           },
-          "issuerPartnerName": {
+          "shippingLineName": {
             "type": "string"
           },
           "transportExecutionId": {
-            "type": "string"
-          },
-          "carrierId": {
-            "type": "string"
-          },
-          "carrierName": {
             "type": "string"
           },
           "originLocationId": {
@@ -25194,10 +25183,7 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
-            "type": "string"
-          },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
           "vesselName": {
@@ -25601,16 +25587,10 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
+          "shippingLineId": {
             "type": "string"
           },
-          "issuerPartnerName": {
-            "type": "string"
-          },
-          "carrierId": {
-            "type": "string"
-          },
-          "carrierName": {
+          "shippingLineName": {
             "type": "string"
           },
           "vesselName": {
@@ -25880,10 +25860,7 @@
           "masterNo": {
             "type": "string"
           },
-          "issuerPartnerId": {
-            "type": "string"
-          },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
           "vesselName": {
@@ -25959,10 +25936,10 @@
           "id": {
             "type": "string"
           },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
-          "carrierName": {
+          "shippingLineName": {
             "type": "string"
           },
           "originLocationId": {
@@ -26562,7 +26539,7 @@
             "type": "integer",
             "format": "enum"
           },
-          "carrierId": {
+          "shippingLineId": {
             "type": "string"
           },
           "bookingAgentId": {

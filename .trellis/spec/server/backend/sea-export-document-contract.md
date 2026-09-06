@@ -46,7 +46,7 @@
   - HBL 更新/删除同时携带 `expected_version`。
   - MBL 内容修改携带 `expected_mbl_version`。
 - 数据库唯一键：
-  - `sea_master_bills(organization_id, issuer_partner_id, normalized_master_no)`。
+  - `sea_master_bills(organization_id, shipping_line_id, normalized_master_no)`。
   - `sea_master_bill_order_links(order_id) WHERE status = 'ACTIVE'`。
   - 本公司 HBL：`(organization_id, issuer_organization_id, normalized_house_no)`，
     条件为 `issuer_source = 'SELF_ORGANIZATION'`。
@@ -58,17 +58,26 @@
 
 ### 3. Contracts
 
-- SE 首次保存必须选择 `Order.carrier_id`（页面名称“船公司”）并提交 MBL
+- SE 首次保存必须选择 `Order.shipping_line_id`（页面名称“船公司”）并提交 MBL
   `master_no`；HBL 可为空。新建时无 HBL 且未明确直单，结构为 `UNDETERMINED`。
-- MBL 签发主体不再由业务人员独立维护。所有 SE 创建、普通整单更新、拆票 NEW
-  目标和整票改配 NEW 目标必须满足
-  `Order.carrier_id = SeaTransportExecution.carrier_id = SeaMasterBill.issuer_partner_id`；
-  前端可为兼容现有 DTO 从 carrier 派生 `issuer_partner_id`，Biz 与 Data 仍必须以
-  carrier 规范化或锁内复验，禁止信任调用方提交的不同 issuer。
+- 海运船公司是 `ShippingLine` 行业参考数据，不是 Partner 商业往来方。所有 SE 创建、
+  普通整单更新、拆票 NEW 目标和整票改配 NEW 目标必须满足
+  `Order.shipping_line_id = SeaTransportExecution.shipping_line_id = SeaMasterBill.shipping_line_id`；
+  前端和服务端只传递、保存一份船公司身份，不再从 Partner carrier 或 MBL issuer
+  派生船公司。
+- 新建或更换船公司时，必须选择同组织且启用的 `ShippingLine`；历史引用后来被停用时，
+  未更换船公司的其他字段修改仍可保存。拆票和改配的 CANDIDATE 在 Preview 与 Execute
+  都必须复验同组织且启用，Execute 在共享事务中用 `FOR SHARE` 稳定该引用。
 - 普通 SE 整单更新仍必须提交 MBL 输入；独立的 MBL 内容更新可以不重复提交 MBL
-  身份，但必须保持当前 carrier 不变，并验证 Order、运输执行和 MBL 的三方身份一致。
-- MBL `issuer_partner_id`、唯一索引、版本、锁定快照和响应字段继续保留；这是系统
-  内部身份，不是人工录入项。HBL 签发主体是独立业务事实，不适用该派生规则。
+  身份，但必须保持当前 shipping line 不变，并验证 Order、运输执行和 MBL 的三方身份一致。
+- MBL 的唯一索引、不可变版本、锁定快照和响应都保存 `shipping_line_id`；不得同时保留
+  carrier/issuer 两套身份。HBL 的 `issuer_partner_id` 是独立业务事实，继续引用 Partner，
+  不适用船公司三方一致规则。
+- Partner 角色只允许 `customer | supplier | foreign_agent`，不得恢复 `carrier`；Proto
+  中已删除的 carrier 枚举编号和名称必须保留为 `reserved`，禁止复用。
+- `ShippingLine` 只参与航线、船名航次、箱号和提单前缀等海运操作事实，绝不能写入
+  `settlement_party_id`。应付费用的默认结算方只能使用订舱代理 Partner；没有订舱代理时
+  留空，不得回退到 ShippingLine。
 - MBL 号码只允许 ASCII 字母和数字，规范化只把 ASCII 小写转大写；不得
   `TrimSpace`、删除标点或根据号码猜测船公司。
 - HBL 原号必须无损保存。`normalized_house_no` 只执行 Unicode NFC、去首尾
@@ -120,7 +129,9 @@
 | 条件 | 行为 |
 |------|------|
 | SE 创建或普通整单更新缺船公司、MBL 输入或 MBL 号 | 400 对应订单/MBL InvalidArgument，零写入 |
-| MBL 内容独立更新改变 carrier，或现有 Order/TE/MBL 身份不一致 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT`，零写入 |
+| MBL 内容独立更新改变 shipping line，或现有 Order/TE/MBL 身份不一致 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT`，零写入 |
+| 新选/更换的 ShippingLine 不属于当前组织或已停用 | 400 对应订单/MBL InvalidArgument，零写入 |
+| 拆票/改配 CANDIDATE 的 ShippingLine 被停用 | Preview 明确拒绝；Execute 锁内复验并回滚 |
 | MBL 含空格、标点、非 ASCII 字母或数字 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT` |
 | 同组织、同船公司、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
 | 候选身份、版本或共享航程变化 | 409 对应 MBL 冲突错误，事务回滚 |
@@ -142,9 +153,11 @@
 
 ### 5. Good / Base / Bad Cases
 
-- Good：新建 SE 订单选择船公司并填写 MBL 号，不填写 HBL；系统以船公司维护
-  MBL issuer，三方身份一致并保存为 `UNDETERMINED`。用户明确点击“标记为直单”
+- Good：新建 SE 订单选择 ShippingLine 并填写 MBL 号，不填写 HBL；系统将同一个
+  `shipping_line_id` 写入 Order、运输执行和 MBL，保存为 `UNDETERMINED`。用户明确点击“标记为直单”
   后才进入 `DIRECT`。
+- Good：历史订单引用的 ShippingLine 后来被停用，用户不更换船公司而修改其他字段；
+  系统保留历史引用，不把停用误判为身份变更。
 - Good：用户取消 DIRECT，再新增 `  hbl/001  `；原号按输入保存，唯一检索键为
   `HBL/001`，结构在同一事务变为 `HOUSE`。
 - Good：HBL 选择“本公司”，订单属于部门，系统保存其最近公司/总部的 Organization
@@ -160,16 +173,20 @@
 - Bad：查询故障被伪装成“未命中”或“无活动 Link”；必须原样返回错误，禁止创建
   新 MBL 或合成默认结构。
 - Bad：删除 HBL 时用数据库 FK 自动置空、只删 HBL，或已回单后仍允许级联删除。
+- Bad：把 ShippingLine 当成 Partner carrier，或在没有订舱代理时把船公司 UUID 写入
+  应付费用的 `settlement_party_id`。
 
 ### 6. Tests Required
 
-- Biz：SE 船公司与 MBL 必填、issuer 从 carrier 派生及字符规则；HBL 原号无损和
+- Biz：SE ShippingLine 与 MBL 必填、三方身份一致及字符规则；HBL 原号无损和
   规范化边界；SELF/CUSTOMER/OTHER 互斥；DIRECT 三态转换；内容长度、NaN/Inf、负数。
 - Service/HTTP：请求 UUID、枚举和必填对象转换；可空 UUID 不输出全零 UUID；静态
   路由不能被 `/orders/{id}` 吞掉；错误 reason 可供前端稳定识别。
-- Data/PostgreSQL：创建/单成员更正后 Order、TE、MBL 三方一致；共享 MBL 的 carrier
+- Data/PostgreSQL：创建/单成员更正后 Order、TE、MBL 的 ShippingLine 三方一致；共享 MBL 的 shipping line
   修改被原子阻断；同船公司同号并发唯一、不同船公司同号可并存；一票第二条 ACTIVE
   被部分唯一索引拒绝。
+- Data/PostgreSQL：新选/更换 ShippingLine 校验组织和启用状态；未更换的停用历史引用
+  可保留；拆票/改配 CANDIDATE 在 Preview 与 Execute 均拒绝停用引用。
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
   死锁；批量摘要必须按 `(order_id, active_master_bill_id)` 过滤历史 HBL。
 - Data/PostgreSQL：ReleasePod 的 MBL/HBL 当前归属、跨组织/跨订单拒绝、三引用
@@ -177,15 +194,19 @@
   以及操作日志失败后 HBL/记录/Link 全部回滚。
 - Data/PostgreSQL：从完整订单创建入口验证初始 HOUSE、HBL 数量和 `order.create`
   操作日志详情。
-- Frontend：SE 船公司和 MBL 号必填且无 MBL 签发方输入；创建、详情和候选 payload
-  从 carrier 派生 issuer；共享 MBL 同时禁用 carrier 与 MBL 号；候选请求失败阻止
+- Frontend：SE 船公司和 MBL 号必填且无 MBL 签发方输入；创建、详情、候选、拆票和
+  改配都只传 ShippingLine；共享 MBL 同时禁用船公司与 MBL 号；候选请求失败阻止
   保存；DIRECT 无添加入口；取消后可添加；最后 HBL 删除确认；原号不 trim；不静默
   过滤；加载失败清空旧订单状态；区块默认展开。
+- Frontend：船公司选择器调用 ShippingLine 服务端关键字查询；详情即使历史船公司已停用，
+  也能回显当前名称；应付结算方只默认订舱代理，不回退到船公司。
 - Frontend：无 `release_pod.read` 权限时零请求；有权限时 MBL/HBL 分组、空态和
   错误态；有关联记录时合并最后一张 HBL 与级联确认；取消时零删除请求；已回单
   展示阻断记录。
-- Migration：独立 Schema 从阶段 1 真实迁移到阶段 2 并核对表、列、约束、索引和
-  revision；存在 SE 数据时迁移原子拒绝且不留下部分 DDL。
+- Migration：独立 Schema 从阶段 1 真实迁移到阶段 2，并核对四个 ShippingLine 外键、
+  `NO ACTION`、TE 非空、MBL 唯一索引、Partner role CHECK 和 revision；保留已有
+  ShippingLine。存在旧 SE/TE/MBL/MBL Version 数据或非法 Partner role 时，迁移必须
+  在任何 DDL 前原子拒绝且不留下部分变更，不猜测旧引用的映射关系。
 - Generation：连续运行 API、Ent/Wire、Proto 常量和 Web Client 生成命令，
   tracked/untracked 内容指纹保持一致。
 
@@ -202,6 +223,11 @@ mbl := tx.SeaMasterBill.Query().Where(seamasterbill.ID(link.MasterBillID)).ForUp
 ```typescript
 // 丢弃用户已填写但不完整的 HBL，界面看似保存成功却发生数据丢失。
 const houseBills = values.seaHouseBills.filter((item) => item.houseNo?.trim());
+```
+
+```typescript
+// ShippingLine 不是结算 Partner，禁止把船公司作为应付结算方兜底。
+const settlementPartyId = values.bookingAgentId || values.shippingLineId;
 ```
 
 #### Correct
@@ -222,6 +248,11 @@ if link.Status != seamasterbillorderlink.StatusACTIVE || link.MasterBillID != mb
 ```typescript
 // 不静默改写或丢弃；所有表单行进入 payload，再由明确校验给出错误。
 const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
+```
+
+```typescript
+// 应付结算方只默认订舱代理；没有商业往来方时保持未选择。
+const settlementPartyId = values.bookingAgentId;
 ```
 
 ```go
@@ -259,9 +290,9 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
   覆盖。
 - 每个结果键必须命中已定义目标；缺失目标不得按 `CURRENT` 处理。
 - `CURRENT` 不得夹带候选或新建字段；`CANDIDATE` 必须提供完整候选身份与版本，并在
-  锁内验证候选 MBL issuer 与候选运输执行 carrier 一致；`NEW` 不得夹带候选字段，
-  必须提供船公司并满足新 MBL 的号码、港口和日期规则。NEW 的运输执行 carrier 与
-  MBL issuer 均由同一船公司维护。
+  锁内验证候选 MBL 与候选运输执行引用同一个 ShippingLine；`NEW` 不得夹带候选字段，
+  必须提供同组织且启用的 ShippingLine，并满足新 MBL 的号码、港口和日期规则。NEW
+  目标的 Order、运输执行和 MBL 均由同一个 `shipping_line_id` 维护。
 - Preview 与 Execute 必须复用同一个 biz 输入校验；Execute 仍在事务锁内重验候选身份、
   版本、唯一性和共享航程。
 - Execute 事务前只允许校验不依赖数据库当前状态的结构规则、幂等键和必填预期版本；
@@ -283,14 +314,15 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 | CURRENT/NEW 夹带其他类型字段 | 对应 400 InvalidArgument |
 | 候选身份字段缺失或版本与 expected map 不一致 | 对应 400/409，Preview 与 Execute 一致 |
 | NEW 缺船公司，或船公司、港口、日期、MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
-| CANDIDATE 的 MBL issuer 与运输执行 carrier 不一致 | 409 对应候选冲突错误，事务回滚 |
+| CANDIDATE 的 MBL 与运输执行 ShippingLine 不一致 | 409 对应候选冲突错误，事务回滚 |
+| CANDIDATE 的 ShippingLine 不属于当前组织或已停用 | Preview 拒绝；Execute 在事务内 `FOR SHARE` 复验并回滚 |
 | 两个不同幂等键以同一 Order 版本并发执行合法拆票 | 一个成功，另一个 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT` |
 | Execute 的 Order/Link/Allocation/HBL/箱货/费用版本过期 | 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT`，不得先返回可变业务状态 400 |
 
 ### 5. Good / Base / Bad Cases
 
 - Good：两张结果票都引用同一个已定义 `NEW_A`，船公司默认沿用来源但允许用户修改；
-  服务端只创建一个目标 MBL，以该船公司同时维护目标 Order、运输执行和 MBL issuer，
+  服务端只创建一个目标 MBL，以该 ShippingLine 同时维护目标 Order、运输执行和 MBL，
   再分别建立显式关系。
 - Base：结果引用 `CURRENT` 目标，顶层仍显式声明该键和类型，不靠空字符串表达沿用。
 - Bad：结果传入 `MISSING`，data 查询不到后自动沿用当前 MBL。
@@ -304,8 +336,9 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
   expected version 不一致；Preview/Execute 断言相同错误。
 - Service：畸形 DTO 转换后仍被领域校验拒绝，错误 reason 不变化。
 - Data/PostgreSQL：未知键不写入；共享 NEW 键只建一个 MBL 且目标 Order、TE、MBL
-  三方身份一致；候选版本锁后变化或候选 MBL/TE 身份不一致返回 409；Preview/Execute
-  对缺少/非法船公司、港口、日期和重复 MBL 一致。
+  的 ShippingLine 三方身份一致；候选版本锁后变化、候选 MBL/TE 身份不一致或候选
+  ShippingLine 停用时拒绝；Preview/Execute 对缺少/非法船公司、港口、日期和重复
+  MBL 一致。
 - Data/PostgreSQL：完整拆票父测试至少 `-count=3`；每轮断言同版本并发一成功一
   `SEA_ORDER_SPLIT_VERSION_CONFLICT`，且无双成功、孤儿行或重复事件。
 

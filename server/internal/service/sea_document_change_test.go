@@ -25,6 +25,16 @@ func TestSeaDocumentChangeDTOConversions(t *testing.T) {
 	if version.GetId() != versionID.String() || version.GetDocumentType() != v1.SeaDocumentType_SEA_DOCUMENT_TYPE_HOUSE_BILL || version.GetSource() != v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT || version.GetContent().GetShipperText() != value {
 		t.Fatalf("不可变版本 DTO 映射错误: %+v", version)
 	}
+	shippingLineID := uuid.New()
+	masterVersion := seaDocumentVersionToAPI(&biz.SeaDocumentVersion{
+		ID: versionID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: documentID,
+		OrderID: orderID, MasterBillID: documentID, VersionNo: 1, SourceEntityVersion: 1,
+		DocumentNo: "MBL001", Status: "DRAFT", Source: biz.VersionSourceOrderLock,
+		ShippingLineID: &shippingLineID, ShippingLineName: "中远海运 / COSCO SHIPPING (COSU)", CreatedAt: now,
+	})
+	if masterVersion.GetShippingLineId() != shippingLineID.String() || masterVersion.GetShippingLineName() != "中远海运 / COSCO SHIPPING (COSU)" {
+		t.Fatalf("MBL 不可变版本船公司 DTO 映射错误: %+v", masterVersion)
+	}
 
 	oldID, newID, chainID := uuid.New(), uuid.New(), uuid.New()
 	sequence := 2

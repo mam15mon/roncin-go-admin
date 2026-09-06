@@ -81,9 +81,9 @@ func SourceEntityVersion(v uint64) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldSourceEntityVersion, v))
 }
 
-// IssuerPartnerID applies equality check predicate on the "issuer_partner_id" field. It's identical to IssuerPartnerIDEQ.
-func IssuerPartnerID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldIssuerPartnerID, v))
+// ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
+func ShippingLineID(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldShippingLineID, v))
 }
 
 // TransportExecutionID applies equality check predicate on the "transport_execution_id" field. It's identical to TransportExecutionIDEQ.
@@ -114,11 +114,6 @@ func EtdSnapshot(v string) predicate.SeaMasterBillVersion {
 // EtaSnapshot applies equality check predicate on the "eta_snapshot" field. It's identical to EtaSnapshotEQ.
 func EtaSnapshot(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtaSnapshot, v))
-}
-
-// CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
-func CarrierID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldCarrierID, v))
 }
 
 // OriginLocationID applies equality check predicate on the "origin_location_id" field. It's identical to OriginLocationIDEQ.
@@ -416,24 +411,24 @@ func SourceEntityVersionLTE(v uint64) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldSourceEntityVersion, v))
 }
 
-// IssuerPartnerIDEQ applies the EQ predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldIssuerPartnerID, v))
+// ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.
+func ShippingLineIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// IssuerPartnerIDNEQ applies the NEQ predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldIssuerPartnerID, v))
+// ShippingLineIDNEQ applies the NEQ predicate on the "shipping_line_id" field.
+func ShippingLineIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldShippingLineID, v))
 }
 
-// IssuerPartnerIDIn applies the In predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldIssuerPartnerID, vs...))
+// ShippingLineIDIn applies the In predicate on the "shipping_line_id" field.
+func ShippingLineIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldShippingLineID, vs...))
 }
 
-// IssuerPartnerIDNotIn applies the NotIn predicate on the "issuer_partner_id" field.
-func IssuerPartnerIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldIssuerPartnerID, vs...))
+// ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
+func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
 // TransportExecutionIDEQ applies the EQ predicate on the "transport_execution_id" field.
@@ -829,56 +824,6 @@ func EtaSnapshotEqualFold(v string) predicate.SeaMasterBillVersion {
 // EtaSnapshotContainsFold applies the ContainsFold predicate on the "eta_snapshot" field.
 func EtaSnapshotContainsFold(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldEtaSnapshot, v))
-}
-
-// CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
-func CarrierIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldCarrierID, v))
-}
-
-// CarrierIDNEQ applies the NEQ predicate on the "carrier_id" field.
-func CarrierIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldCarrierID, v))
-}
-
-// CarrierIDIn applies the In predicate on the "carrier_id" field.
-func CarrierIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldCarrierID, vs...))
-}
-
-// CarrierIDNotIn applies the NotIn predicate on the "carrier_id" field.
-func CarrierIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldCarrierID, vs...))
-}
-
-// CarrierIDGT applies the GT predicate on the "carrier_id" field.
-func CarrierIDGT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldCarrierID, v))
-}
-
-// CarrierIDGTE applies the GTE predicate on the "carrier_id" field.
-func CarrierIDGTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldCarrierID, v))
-}
-
-// CarrierIDLT applies the LT predicate on the "carrier_id" field.
-func CarrierIDLT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldCarrierID, v))
-}
-
-// CarrierIDLTE applies the LTE predicate on the "carrier_id" field.
-func CarrierIDLTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldCarrierID, v))
-}
-
-// CarrierIDIsNil applies the IsNil predicate on the "carrier_id" field.
-func CarrierIDIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldCarrierID))
-}
-
-// CarrierIDNotNil applies the NotNil predicate on the "carrier_id" field.
-func CarrierIDNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldCarrierID))
 }
 
 // OriginLocationIDEQ applies the EQ predicate on the "origin_location_id" field.
@@ -2697,21 +2642,21 @@ func HasMasterBillWith(preds ...predicate.SeaMasterBill) predicate.SeaMasterBill
 	})
 }
 
-// HasIssuerPartner applies the HasEdge predicate on the "issuer_partner" edge.
-func HasIssuerPartner() predicate.SeaMasterBillVersion {
+// HasShippingLine applies the HasEdge predicate on the "shipping_line" edge.
+func HasShippingLine() predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, IssuerPartnerTable, IssuerPartnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasIssuerPartnerWith applies the HasEdge predicate on the "issuer_partner" edge with a given conditions (other predicates).
-func HasIssuerPartnerWith(preds ...predicate.Partner) predicate.SeaMasterBillVersion {
+// HasShippingLineWith applies the HasEdge predicate on the "shipping_line" edge with a given conditions (other predicates).
+func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
-		step := newIssuerPartnerStep()
+		step := newShippingLineStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

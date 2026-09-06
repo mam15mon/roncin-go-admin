@@ -53,6 +53,17 @@ func TestSeaCargoAllocationDataIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试客户失败: %v", err)
 	}
+	shippingLine, err := data.db.ShippingLine.Create().
+		SetOrganizationID(org.ID).
+		SetScacCode("ALOC").
+		SetNameZh("分配测试船公司").
+		SetNameEn("Allocation Test Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试船公司失败: %v", err)
+	}
 
 	spec, err := data.db.MasterDataItem.Create().
 		SetOrganizationID(org.ID).
@@ -68,6 +79,7 @@ func TestSeaCargoAllocationDataIntegration(t *testing.T) {
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER GIVEN").
 		SetVoyageNo("001W").
 		Save(ctx)
@@ -100,7 +112,7 @@ func TestSeaCargoAllocationDataIntegration(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(mblNo).
 		SetNormalizedMasterNo(mblNo).
-		SetIssuerPartnerID(partner.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetVersion(1).
 		Save(ctx)
@@ -336,7 +348,7 @@ func TestSeaCargoAllocationDataIntegration(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(directMblNo).
 		SetNormalizedMasterNo(directMblNo).
-		SetIssuerPartnerID(partner.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetVersion(1).
 		Save(ctx)
@@ -423,9 +435,21 @@ func TestSeaCargoAllocationConcurrentSaveDraft(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建客户失败: %v", err)
 	}
+	shippingLine, err := data.db.ShippingLine.Create().
+		SetOrganizationID(org.ID).
+		SetScacCode("RACE").
+		SetNameZh("并发测试船公司").
+		SetNameEn("Concurrent Test Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建船公司失败: %v", err)
+	}
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("CONCURRENT SHIP").
 		SetVoyageNo("999W").
 		Save(ctx)
@@ -457,7 +481,7 @@ func TestSeaCargoAllocationConcurrentSaveDraft(t *testing.T) {
 		SetTransportExecutionID(te.ID).
 		SetMasterNo(mblNo).
 		SetNormalizedMasterNo(mblNo).
-		SetIssuerPartnerID(partner.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetVersion(1).
 		Save(ctx)

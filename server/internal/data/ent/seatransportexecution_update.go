@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaTransportExecutionUpdate is the builder for updating SeaTransportExecution entities.
@@ -52,23 +53,17 @@ func (_u *SeaTransportExecutionUpdate) SetNillableOrganizationID(v *uuid.UUID) *
 	return _u
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_u *SeaTransportExecutionUpdate) SetCarrierID(v uuid.UUID) *SeaTransportExecutionUpdate {
-	_u.mutation.SetCarrierID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *SeaTransportExecutionUpdate) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionUpdate {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_u *SeaTransportExecutionUpdate) SetNillableCarrierID(v *uuid.UUID) *SeaTransportExecutionUpdate {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *SeaTransportExecutionUpdate) SetNillableShippingLineID(v *uuid.UUID) *SeaTransportExecutionUpdate {
 	if v != nil {
-		_u.SetCarrierID(*v)
+		_u.SetShippingLineID(*v)
 	}
-	return _u
-}
-
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (_u *SeaTransportExecutionUpdate) ClearCarrierID() *SeaTransportExecutionUpdate {
-	_u.mutation.ClearCarrierID()
 	return _u
 }
 
@@ -226,6 +221,11 @@ func (_u *SeaTransportExecutionUpdate) SetOrganization(v *Organization) *SeaTran
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaTransportExecutionUpdate) SetShippingLine(v *ShippingLine) *SeaTransportExecutionUpdate {
+	return _u.SetShippingLineID(v.ID)
+}
+
 // AddMasterBillIDs adds the "master_bills" edge to the SeaMasterBill entity by IDs.
 func (_u *SeaTransportExecutionUpdate) AddMasterBillIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdate {
 	_u.mutation.AddMasterBillIDs(ids...)
@@ -264,6 +264,12 @@ func (_u *SeaTransportExecutionUpdate) Mutation() *SeaTransportExecutionMutation
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *SeaTransportExecutionUpdate) ClearOrganization() *SeaTransportExecutionUpdate {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaTransportExecutionUpdate) ClearShippingLine() *SeaTransportExecutionUpdate {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -360,6 +366,9 @@ func (_u *SeaTransportExecutionUpdate) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaTransportExecution.organization"`)
 	}
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaTransportExecution.shipping_line"`)
+	}
 	return nil
 }
 
@@ -377,12 +386,6 @@ func (_u *SeaTransportExecutionUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(seatransportexecution.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.CarrierID(); ok {
-		_spec.SetField(seatransportexecution.FieldCarrierID, field.TypeUUID, value)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(seatransportexecution.FieldCarrierID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(seatransportexecution.FieldOriginLocationID, field.TypeUUID, value)
@@ -448,6 +451,35 @@ func (_u *SeaTransportExecutionUpdate) sqlSave(ctx context.Context) (_node int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatransportexecution.ShippingLineTable,
+			Columns: []string{seatransportexecution.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatransportexecution.ShippingLineTable,
+			Columns: []string{seatransportexecution.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -585,23 +617,17 @@ func (_u *SeaTransportExecutionUpdateOne) SetNillableOrganizationID(v *uuid.UUID
 	return _u
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_u *SeaTransportExecutionUpdateOne) SetCarrierID(v uuid.UUID) *SeaTransportExecutionUpdateOne {
-	_u.mutation.SetCarrierID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *SeaTransportExecutionUpdateOne) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionUpdateOne {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_u *SeaTransportExecutionUpdateOne) SetNillableCarrierID(v *uuid.UUID) *SeaTransportExecutionUpdateOne {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *SeaTransportExecutionUpdateOne) SetNillableShippingLineID(v *uuid.UUID) *SeaTransportExecutionUpdateOne {
 	if v != nil {
-		_u.SetCarrierID(*v)
+		_u.SetShippingLineID(*v)
 	}
-	return _u
-}
-
-// ClearCarrierID clears the value of the "carrier_id" field.
-func (_u *SeaTransportExecutionUpdateOne) ClearCarrierID() *SeaTransportExecutionUpdateOne {
-	_u.mutation.ClearCarrierID()
 	return _u
 }
 
@@ -759,6 +785,11 @@ func (_u *SeaTransportExecutionUpdateOne) SetOrganization(v *Organization) *SeaT
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaTransportExecutionUpdateOne) SetShippingLine(v *ShippingLine) *SeaTransportExecutionUpdateOne {
+	return _u.SetShippingLineID(v.ID)
+}
+
 // AddMasterBillIDs adds the "master_bills" edge to the SeaMasterBill entity by IDs.
 func (_u *SeaTransportExecutionUpdateOne) AddMasterBillIDs(ids ...uuid.UUID) *SeaTransportExecutionUpdateOne {
 	_u.mutation.AddMasterBillIDs(ids...)
@@ -797,6 +828,12 @@ func (_u *SeaTransportExecutionUpdateOne) Mutation() *SeaTransportExecutionMutat
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *SeaTransportExecutionUpdateOne) ClearOrganization() *SeaTransportExecutionUpdateOne {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaTransportExecutionUpdateOne) ClearShippingLine() *SeaTransportExecutionUpdateOne {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -906,6 +943,9 @@ func (_u *SeaTransportExecutionUpdateOne) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaTransportExecution.organization"`)
 	}
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaTransportExecution.shipping_line"`)
+	}
 	return nil
 }
 
@@ -940,12 +980,6 @@ func (_u *SeaTransportExecutionUpdateOne) sqlSave(ctx context.Context) (_node *S
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(seatransportexecution.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.CarrierID(); ok {
-		_spec.SetField(seatransportexecution.FieldCarrierID, field.TypeUUID, value)
-	}
-	if _u.mutation.CarrierIDCleared() {
-		_spec.ClearField(seatransportexecution.FieldCarrierID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(seatransportexecution.FieldOriginLocationID, field.TypeUUID, value)
@@ -1011,6 +1045,35 @@ func (_u *SeaTransportExecutionUpdateOne) sqlSave(ctx context.Context) (_node *S
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatransportexecution.ShippingLineTable,
+			Columns: []string{seatransportexecution.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatransportexecution.ShippingLineTable,
+			Columns: []string{seatransportexecution.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

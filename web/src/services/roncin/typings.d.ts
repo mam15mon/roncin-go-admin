@@ -1251,7 +1251,7 @@ declare namespace API {
     tradeDirection: number;
     tradeTerm: number;
     paymentTerm: number;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;
@@ -3585,7 +3585,7 @@ declare namespace API {
     organizationId?: string;
     orderNo?: string;
     customerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     businessType?: number;
     tradeDirection?: number;
@@ -4186,7 +4186,7 @@ declare namespace API {
     lockedAtTo?: string;
     originLocationId?: string;
     destinationLocationId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     consigneeShortName?: string;
     shipperShortName?: string;
     operatorId?: string;
@@ -4210,9 +4210,8 @@ declare namespace API {
   };
 
   type OrderServiceMatchSeaMasterBillCandidateParams = {
-    issuerPartnerId?: string;
+    shippingLineId?: string;
     masterNo?: string;
-    carrierId?: string;
     originLocationId?: string;
     dischargeLocationId?: string;
     transitLocationId?: string;
@@ -5456,6 +5455,8 @@ declare namespace API {
     content?: SeaBillContent;
     createdBy?: string;
     createdAt?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
   };
 
   type SeaDocumentVoidPreview = {
@@ -5507,8 +5508,8 @@ declare namespace API {
     id?: string;
     version?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     transportExecution?: SeaTransportExecution;
     memberCount?: number;
     members?: SeaMasterBillMemberSummary[];
@@ -5517,8 +5518,8 @@ declare namespace API {
   type SeaMasterBillDetail = {
     id?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     status?: string;
     version?: string;
     content?: SeaBillContent;
@@ -5529,7 +5530,6 @@ declare namespace API {
 
   type SeaMasterBillInput = {
     masterNo: string;
-    issuerPartnerId: string;
     candidateId?: string;
     expectedCandidateVersion?: string;
     correctionReason?: string;
@@ -5544,11 +5544,9 @@ declare namespace API {
   type SeaMasterBillSummary = {
     masterBillId?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     transportExecutionId?: string;
-    carrierId?: string;
-    carrierName?: string;
     originLocationId?: string;
     originLocationName?: string;
     dischargeLocationId?: string;
@@ -5682,8 +5680,7 @@ declare namespace API {
     candidateId?: string;
     candidateVersion?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -5818,10 +5815,8 @@ declare namespace API {
   type SeaOrderSplitMasterBillSummary = {
     id?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
-    carrierId?: string;
-    carrierName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -5908,8 +5903,7 @@ declare namespace API {
     candidateId?: string;
     candidateVersion?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -6014,8 +6008,8 @@ declare namespace API {
 
   type SeaTransportExecution = {
     id?: string;
-    carrierId?: string;
-    carrierName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     originLocationId?: string;
     originLocationName?: string;
     dischargeLocationId?: string;
@@ -6721,7 +6715,7 @@ declare namespace API {
     tradeDirection?: number;
     tradeTerm?: number;
     paymentTerm?: number;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;

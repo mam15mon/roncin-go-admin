@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -66,9 +66,9 @@ func (_c *SeaMasterBillVersionCreate) SetSourceEntityVersion(v uint64) *SeaMaste
 	return _c
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (_c *SeaMasterBillVersionCreate) SetIssuerPartnerID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetIssuerPartnerID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_c *SeaMasterBillVersionCreate) SetShippingLineID(v uuid.UUID) *SeaMasterBillVersionCreate {
+	_c.mutation.SetShippingLineID(v)
 	return _c
 }
 
@@ -134,20 +134,6 @@ func (_c *SeaMasterBillVersionCreate) SetEtaSnapshot(v string) *SeaMasterBillVer
 func (_c *SeaMasterBillVersionCreate) SetNillableEtaSnapshot(v *string) *SeaMasterBillVersionCreate {
 	if v != nil {
 		_c.SetEtaSnapshot(*v)
-	}
-	return _c
-}
-
-// SetCarrierID sets the "carrier_id" field.
-func (_c *SeaMasterBillVersionCreate) SetCarrierID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetCarrierID(v)
-	return _c
-}
-
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableCarrierID(v *uuid.UUID) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetCarrierID(*v)
 	}
 	return _c
 }
@@ -552,9 +538,9 @@ func (_c *SeaMasterBillVersionCreate) SetMasterBill(v *SeaMasterBill) *SeaMaster
 	return _c.SetMasterBillID(v.ID)
 }
 
-// SetIssuerPartner sets the "issuer_partner" edge to the Partner entity.
-func (_c *SeaMasterBillVersionCreate) SetIssuerPartner(v *Partner) *SeaMasterBillVersionCreate {
-	return _c.SetIssuerPartnerID(v.ID)
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_c *SeaMasterBillVersionCreate) SetShippingLine(v *ShippingLine) *SeaMasterBillVersionCreate {
+	return _c.SetShippingLineID(v.ID)
 }
 
 // SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
@@ -696,8 +682,8 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if _, ok := _c.mutation.SourceEntityVersion(); !ok {
 		return &ValidationError{Name: "source_entity_version", err: errors.New(`ent: missing required field "SeaMasterBillVersion.source_entity_version"`)}
 	}
-	if _, ok := _c.mutation.IssuerPartnerID(); !ok {
-		return &ValidationError{Name: "issuer_partner_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.issuer_partner_id"`)}
+	if _, ok := _c.mutation.ShippingLineID(); !ok {
+		return &ValidationError{Name: "shipping_line_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.shipping_line_id"`)}
 	}
 	if _, ok := _c.mutation.TransportExecutionID(); !ok {
 		return &ValidationError{Name: "transport_execution_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.transport_execution_id"`)}
@@ -834,8 +820,8 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if len(_c.mutation.MasterBillIDs()) == 0 {
 		return &ValidationError{Name: "master_bill", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.master_bill"`)}
 	}
-	if len(_c.mutation.IssuerPartnerIDs()) == 0 {
-		return &ValidationError{Name: "issuer_partner", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.issuer_partner"`)}
+	if len(_c.mutation.ShippingLineIDs()) == 0 {
+		return &ValidationError{Name: "shipping_line", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.shipping_line"`)}
 	}
 	if len(_c.mutation.TransportExecutionIDs()) == 0 {
 		return &ValidationError{Name: "transport_execution", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.transport_execution"`)}
@@ -910,10 +896,6 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 	if value, ok := _c.mutation.EtaSnapshot(); ok {
 		_spec.SetField(seamasterbillversion.FieldEtaSnapshot, field.TypeString, value)
 		_node.EtaSnapshot = &value
-	}
-	if value, ok := _c.mutation.CarrierID(); ok {
-		_spec.SetField(seamasterbillversion.FieldCarrierID, field.TypeUUID, value)
-		_node.CarrierID = &value
 	}
 	if value, ok := _c.mutation.OriginLocationID(); ok {
 		_spec.SetField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID, value)
@@ -1057,21 +1039,21 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_node.MasterBillID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.IssuerPartnerIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ShippingLineIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbillversion.IssuerPartnerTable,
-			Columns: []string{seamasterbillversion.IssuerPartnerColumn},
+			Table:   seamasterbillversion.ShippingLineTable,
+			Columns: []string{seamasterbillversion.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.IssuerPartnerID = nodes[0]
+		_node.ShippingLineID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.TransportExecutionIDs(); len(nodes) > 0 {

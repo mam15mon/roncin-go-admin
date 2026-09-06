@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaTransportExecution is the model entity for the SeaTransportExecution schema.
@@ -25,8 +26,8 @@ type SeaTransportExecution struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
-	// CarrierID holds the value of the "carrier_id" field.
-	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
+	// ShippingLineID holds the value of the "shipping_line_id" field.
+	ShippingLineID uuid.UUID `json:"shipping_line_id,omitempty"`
 	// OriginLocationID holds the value of the "origin_location_id" field.
 	OriginLocationID *uuid.UUID `json:"origin_location_id,omitempty"`
 	// DischargeLocationID holds the value of the "discharge_location_id" field.
@@ -53,13 +54,15 @@ type SeaTransportExecution struct {
 type SeaTransportExecutionEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// ShippingLine holds the value of the shipping_line edge.
+	ShippingLine *ShippingLine `json:"shipping_line,omitempty"`
 	// MasterBills holds the value of the master_bills edge.
 	MasterBills []*SeaMasterBill `json:"master_bills,omitempty"`
 	// MasterBillVersions holds the value of the master_bill_versions edge.
 	MasterBillVersions []*SeaMasterBillVersion `json:"master_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -73,10 +76,21 @@ func (e SeaTransportExecutionEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
+// ShippingLineOrErr returns the ShippingLine value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaTransportExecutionEdges) ShippingLineOrErr() (*ShippingLine, error) {
+	if e.ShippingLine != nil {
+		return e.ShippingLine, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: shippingline.Label}
+	}
+	return nil, &NotLoadedError{edge: "shipping_line"}
+}
+
 // MasterBillsOrErr returns the MasterBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaTransportExecutionEdges) MasterBillsOrErr() ([]*SeaMasterBill, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.MasterBills, nil
 	}
 	return nil, &NotLoadedError{edge: "master_bills"}
@@ -85,7 +99,7 @@ func (e SeaTransportExecutionEdges) MasterBillsOrErr() ([]*SeaMasterBill, error)
 // MasterBillVersionsOrErr returns the MasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaTransportExecutionEdges) MasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.MasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "master_bill_versions"}
@@ -96,7 +110,7 @@ func (*SeaTransportExecution) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seatransportexecution.FieldCarrierID, seatransportexecution.FieldOriginLocationID, seatransportexecution.FieldDischargeLocationID, seatransportexecution.FieldTransitLocationID:
+		case seatransportexecution.FieldOriginLocationID, seatransportexecution.FieldDischargeLocationID, seatransportexecution.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seatransportexecution.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -104,7 +118,7 @@ func (*SeaTransportExecution) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case seatransportexecution.FieldCreatedAt, seatransportexecution.FieldUpdatedAt, seatransportexecution.FieldEtd, seatransportexecution.FieldEta:
 			values[i] = new(sql.NullTime)
-		case seatransportexecution.FieldID, seatransportexecution.FieldOrganizationID:
+		case seatransportexecution.FieldID, seatransportexecution.FieldOrganizationID, seatransportexecution.FieldShippingLineID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -145,12 +159,11 @@ func (_m *SeaTransportExecution) assignValues(columns []string, values []any) er
 			} else if value != nil {
 				_m.OrganizationID = *value
 			}
-		case seatransportexecution.FieldCarrierID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field carrier_id", values[i])
-			} else if value.Valid {
-				_m.CarrierID = new(uuid.UUID)
-				*_m.CarrierID = *value.S.(*uuid.UUID)
+		case seatransportexecution.FieldShippingLineID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field shipping_line_id", values[i])
+			} else if value != nil {
+				_m.ShippingLineID = *value
 			}
 		case seatransportexecution.FieldOriginLocationID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -223,6 +236,11 @@ func (_m *SeaTransportExecution) QueryOrganization() *OrganizationQuery {
 	return NewSeaTransportExecutionClient(_m.config).QueryOrganization(_m)
 }
 
+// QueryShippingLine queries the "shipping_line" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryShippingLine() *ShippingLineQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryShippingLine(_m)
+}
+
 // QueryMasterBills queries the "master_bills" edge of the SeaTransportExecution entity.
 func (_m *SeaTransportExecution) QueryMasterBills() *SeaMasterBillQuery {
 	return NewSeaTransportExecutionClient(_m.config).QueryMasterBills(_m)
@@ -265,10 +283,8 @@ func (_m *SeaTransportExecution) String() string {
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
-	if v := _m.CarrierID; v != nil {
-		builder.WriteString("carrier_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("shipping_line_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShippingLineID))
 	builder.WriteString(", ")
 	if v := _m.OriginLocationID; v != nil {
 		builder.WriteString("origin_location_id=")

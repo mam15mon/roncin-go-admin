@@ -158,18 +158,18 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 }
 
 func TestSeaTransportExecutionToAPIOmitsUnsetUUIDs(t *testing.T) {
-	item := &biz.SeaTransportExecution{ID: uuid.New()}
+	shippingLineID := uuid.New()
+	item := &biz.SeaTransportExecution{ID: uuid.New(), ShippingLineID: shippingLineID}
 	output := seaTransportExecutionToAPI(item)
-	if output.CarrierId != nil || output.OriginLocationId != nil || output.DischargeLocationId != nil {
+	if output.GetShippingLineId() != shippingLineID.String() || output.OriginLocationId != nil || output.DischargeLocationId != nil {
 		t.Fatalf("未设置的运输执行 UUID 不应输出全零值: %#v", output)
 	}
 
-	carrierID, originID, dischargeID := uuid.New(), uuid.New(), uuid.New()
-	item.CarrierID = carrierID
+	originID, dischargeID := uuid.New(), uuid.New()
 	item.OriginLocationID = originID
 	item.DischargeLocationID = dischargeID
 	output = seaTransportExecutionToAPI(item)
-	if output.GetCarrierId() != carrierID.String() || output.GetOriginLocationId() != originID.String() || output.GetDischargeLocationId() != dischargeID.String() {
+	if output.GetShippingLineId() != shippingLineID.String() || output.GetOriginLocationId() != originID.String() || output.GetDischargeLocationId() != dischargeID.String() {
 		t.Fatalf("已设置的运输执行 UUID 转换错误: %#v", output)
 	}
 }

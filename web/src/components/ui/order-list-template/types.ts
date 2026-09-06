@@ -48,7 +48,7 @@ export interface OrderListFilterParams {
   // 单号与业务实体类
   numberType?: 'order' | 'master' | 'consolidated_master';
   numberKeyword?: string;
-  carrierId?: string; // 船公司/航司
+  shippingLineId?: string; // 船公司
   originLocationId?: string; // 起运港
   destinationLocationId?: string; // 目的港
   customerId?: string; // 委托单位

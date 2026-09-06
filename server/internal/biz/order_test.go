@@ -154,15 +154,15 @@ func TestOrderCreateAudits(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	customerID := uuid.New()
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	personnelUserID := uuid.New()
 	created, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: customerID, BusinessType: OrderBusinessSE,
-		CarrierID:      &carrierID,
+		ShippingLineID:      &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
 		PersonnelAssignments: []*OrderPersonnel{{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator}},
-		SeaMasterBillInput:   &SeaMasterBillInput{MasterNo: "COSCO123456", IssuerPartnerID: uuid.New()},
+		SeaMasterBillInput:   &SeaMasterBillInput{MasterNo: "COSCO123456"},
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
@@ -176,9 +176,6 @@ func TestOrderCreateAudits(t *testing.T) {
 	if len(repo.created.PersonnelAssignments) != 1 || repo.created.PersonnelAssignments[0].Notification == nil || repo.created.PersonnelAssignments[0].Notification.RecipientUserID != personnelUserID {
 		t.Fatalf("personnel notification = %#v", repo.created.PersonnelAssignments)
 	}
-	if repo.created.SeaMasterBillInput.IssuerPartnerID != carrierID {
-		t.Fatalf("主单签发方 = %s, want carrier %s", repo.created.SeaMasterBillInput.IssuerPartnerID, carrierID)
-	}
 }
 
 func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
@@ -191,7 +188,7 @@ func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		CargoCategoryIDs:   []uuid.UUID{duplicateID, duplicateID},
-		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456", IssuerPartnerID: uuid.New()},
+		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 	})
 	if err != ErrOrderInvalidArgument {
 		t.Fatalf("duplicate cargo categories error = %v, want ErrOrderInvalidArgument", err)
@@ -220,10 +217,10 @@ func TestOrderRejectsNegativeEntrustedCargoMeasurement(t *testing.T) {
 }
 
 func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T) {
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		CarrierID:          &carrierID,
+		ShippingLineID:          &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		CustomerReferenceNo: "  CUST-001  ", InternalReferenceNo: "  INTERNAL-001  ", ContractNo: "  CONTRACT-001  ",
@@ -270,13 +267,13 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 }
 
 func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testing.T) {
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	container20GP := uuid.New()
 	container40HQ := uuid.New()
 	releaseType := "ORIGINAL"
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		CarrierID:          &carrierID,
+		ShippingLineID:          &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShippingDocuments: []*OrderShippingDocument{
@@ -321,10 +318,10 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 
 func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 	breakBulk := OrderShipmentBreakBulk
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	base := Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		CarrierID:          &carrierID,
+		ShippingLineID:          &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShipmentType: &breakBulk,
@@ -351,10 +348,10 @@ func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 	repo := &orderRepoStub{hasContainers: true}
 	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil)
 	breakBulk := OrderShipmentBreakBulk
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		CarrierID:          &carrierID,
+		ShippingLineID:          &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShipmentType: &breakBulk,
@@ -558,7 +555,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	t2 := time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC)
 
 	candidate := &SeaTransportExecution{
-		CarrierID:           carrier1,
+		ShippingLineID:           carrier1,
 		OriginLocationID:    pol1,
 		DischargeLocationID: pod1,
 		VesselName:          "EVER GIVEN",
@@ -568,7 +565,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	}
 
 	order := &SeaTransportExecution{
-		CarrierID:           carrier1,
+		ShippingLineID:           carrier1,
 		OriginLocationID:    pol1,
 		DischargeLocationID: pod1,
 		VesselName:          "ever given",
@@ -588,7 +585,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	}
 
 	orderConflicting := &SeaTransportExecution{
-		CarrierID:           carrier2,
+		ShippingLineID:           carrier2,
 		OriginLocationID:    pol2,
 		DischargeLocationID: pod2,
 		VesselName:          "CMA CGM MARCO POLO",
@@ -603,7 +600,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 }
 
 func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
-	carrierID := uuid.New()
+	shippingLineID := uuid.New()
 	input := &Order{
 		CustomerID:     uuid.New(),
 		BusinessType:   OrderBusinessSE,
@@ -614,7 +611,7 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 	if _, err := normalizeOrder(input, true); errors.Reason(err) != "SEA_MASTER_BILL_INVALID_ARGUMENT" {
 		t.Fatalf("缺少船公司 error = %v, want SEA_MASTER_BILL_INVALID_ARGUMENT", err)
 	}
-	input.CarrierID = &carrierID
+	input.ShippingLineID = &shippingLineID
 	if _, err := normalizeOrder(input, true); err == nil {
 		t.Fatalf("expected error for missing SeaMasterBillInput on create, got nil")
 	}
@@ -626,14 +623,8 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 	if err != nil {
 		t.Fatalf("签发方省略时 normalizeOrder error = %v", err)
 	}
-	if normalized.SeaMasterBillInput.IssuerPartnerID != carrierID {
-		t.Fatalf("省略签发方时 issuer = %s, want carrier %s", normalized.SeaMasterBillInput.IssuerPartnerID, carrierID)
-	}
-
-	otherIssuerID := uuid.New()
 	input.SeaMasterBillInput = &SeaMasterBillInput{
-		MasterNo:        "cosco123456",
-		IssuerPartnerID: otherIssuerID,
+		MasterNo: "cosco123456",
 	}
 	normalized, err = normalizeOrder(input, true)
 	if err != nil {
@@ -641,9 +632,6 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 	}
 	if normalized.SeaMasterBillInput.MasterNo != "COSCO123456" {
 		t.Fatalf("expected normalized uppercase masterNo COSCO123456, got %s", normalized.SeaMasterBillInput.MasterNo)
-	}
-	if normalized.SeaMasterBillInput.IssuerPartnerID != carrierID {
-		t.Fatalf("不一致签发方未被船公司规范化: got %s, want %s", normalized.SeaMasterBillInput.IssuerPartnerID, carrierID)
 	}
 
 	contentOnly := *input

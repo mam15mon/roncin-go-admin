@@ -49,8 +49,8 @@ describe('SeaOrderReassignmentModal', () => {
           open={true}
           orderId="order-123"
           orderNo="SE20260903001"
-          initialCarrierId="carrier-1"
-          initialCarrierName="中远海运"
+          initialShippingLineId="carrier-1"
+          initialShippingLineName="中远海运"
           onClose={vi.fn()}
           onSuccess={vi.fn()}
         />

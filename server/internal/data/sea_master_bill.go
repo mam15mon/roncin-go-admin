@@ -2,16 +2,17 @@ package data
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 type seaMasterBillRepo struct {
@@ -22,11 +23,11 @@ func NewSeaMasterBillRepo(data *Data) biz.SeaMasterBillRepo {
 	return &seaMasterBillRepo{data: data}
 }
 
-func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
-	return r.matchCandidateInternal(ctx, organizationID, issuerPartnerID, normalizedMasterNo, voyage)
+func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
+	return r.matchCandidateInternal(ctx, organizationID, shippingLineID, normalizedMasterNo, voyage)
 }
 
-func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
+func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -35,7 +36,7 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 	mbl, err := client.SeaMasterBill.Query().
 		Where(
 			seamasterbill.OrganizationIDEQ(organizationID),
-			seamasterbill.IssuerPartnerIDEQ(issuerPartnerID),
+			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(normalizedMasterNo),
 		).
 		WithTransportExecution().
@@ -71,9 +72,7 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		CreatedAt:         te.CreatedAt,
 		UpdatedAt:         te.UpdatedAt,
 	}
-	if te.CarrierID != nil {
-		candidateTE.CarrierID = *te.CarrierID
-	}
+	candidateTE.ShippingLineID = te.ShippingLineID
 	if te.OriginLocationID != nil {
 		candidateTE.OriginLocationID = *te.OriginLocationID
 	}
@@ -81,8 +80,8 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		candidateTE.DischargeLocationID = *te.DischargeLocationID
 	}
 
-	// 填补港口名称与承运人名称
-	if err := r.populateLocationAndPartnerNames(ctx, client, organizationID, candidateTE); err != nil {
+	// 填补港口名称与船公司名称。
+	if err := r.populateLocationAndShippingLineNames(ctx, client, organizationID, candidateTE); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +96,7 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		}
 	}
 
-	issuerName, err := r.getPartnerName(ctx, client, organizationID, mbl.IssuerPartnerID)
+	shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +105,8 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		ID:                 mbl.ID,
 		Version:            mbl.Version,
 		MasterNo:           mbl.MasterNo,
-		IssuerPartnerID:    mbl.IssuerPartnerID,
-		IssuerPartnerName:  issuerName,
+		ShippingLineID:     mbl.ShippingLineID,
+		ShippingLineName:   shippingLineName,
 		TransportExecution: candidateTE,
 		MemberCount:        len(members),
 		Members:            members,
@@ -195,28 +194,25 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			continue
 		}
 		te := mbl.Edges.TransportExecution
-		issuerName, err := r.getPartnerName(ctx, client, organizationID, mbl.IssuerPartnerID)
+		shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
 		if err != nil {
 			return nil, err
 		}
 		summary := &biz.SeaMasterBillSummary{
 			MasterBillID:      mbl.ID,
 			MasterNo:          mbl.MasterNo,
-			IssuerPartnerID:   mbl.IssuerPartnerID,
-			IssuerPartnerName: issuerName,
+			ShippingLineID:    mbl.ShippingLineID,
+			ShippingLineName:  shippingLineName,
 			Status:            string(mbl.Status),
 			Version:           mbl.Version,
 			MemberCount:       memberCountMap[mbl.ID],
 		}
 		if te != nil {
 			transportExecution := &biz.SeaTransportExecution{
-				CarrierID:           uuid.Nil,
+				ShippingLineID:      te.ShippingLineID,
 				OriginLocationID:    uuid.Nil,
 				DischargeLocationID: uuid.Nil,
 				TransitLocationID:   te.TransitLocationID,
-			}
-			if te.CarrierID != nil {
-				transportExecution.CarrierID = *te.CarrierID
 			}
 			if te.OriginLocationID != nil {
 				transportExecution.OriginLocationID = *te.OriginLocationID
@@ -224,12 +220,10 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			if te.DischargeLocationID != nil {
 				transportExecution.DischargeLocationID = *te.DischargeLocationID
 			}
-			if err := r.populateLocationAndPartnerNames(ctx, client, organizationID, transportExecution); err != nil {
+			if err := r.populateLocationAndShippingLineNames(ctx, client, organizationID, transportExecution); err != nil {
 				return nil, err
 			}
 			summary.TransportExecutionID = te.ID
-			summary.CarrierID = te.CarrierID
-			summary.CarrierName = transportExecution.CarrierName
 			summary.OriginLocationID = te.OriginLocationID
 			summary.OriginLocationName = transportExecution.OriginLocationName
 			summary.DischargeLocationID = te.DischargeLocationID
@@ -251,30 +245,34 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 	return result, nil
 }
 
-func (r *seaMasterBillRepo) getPartnerName(ctx context.Context, client *ent.Client, organizationID, partnerID uuid.UUID) (string, error) {
-	if partnerID == uuid.Nil {
+func (r *seaMasterBillRepo) getShippingLineName(ctx context.Context, client *ent.Client, organizationID, shippingLineID uuid.UUID) (string, error) {
+	if shippingLineID == uuid.Nil {
 		return "", nil
 	}
-	partner, err := client.Partner.Query().Where(
-		partnerent.IDEQ(partnerID),
-		partnerent.OrganizationIDEQ(organizationID),
+	line, err := client.ShippingLine.Query().Where(
+		shippinglineent.IDEQ(shippingLineID),
+		shippinglineent.OrganizationIDEQ(organizationID),
 	).Only(ctx)
 	if err != nil {
 		return "", mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
-	return partner.LegalName, nil
+	return formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode), nil
 }
 
-func (r *seaMasterBillRepo) populateLocationAndPartnerNames(ctx context.Context, client *ent.Client, organizationID uuid.UUID, te *biz.SeaTransportExecution) error {
+func formatShippingLineName(nameZH, nameEN, scacCode string) string {
+	return fmt.Sprintf("%s / %s (%s)", nameZH, nameEN, scacCode)
+}
+
+func (r *seaMasterBillRepo) populateLocationAndShippingLineNames(ctx context.Context, client *ent.Client, organizationID uuid.UUID, te *biz.SeaTransportExecution) error {
 	if te == nil {
 		return nil
 	}
-	if te.CarrierID != uuid.Nil {
-		carrierName, err := r.getPartnerName(ctx, client, organizationID, te.CarrierID)
+	if te.ShippingLineID != uuid.Nil {
+		shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, te.ShippingLineID)
 		if err != nil {
 			return err
 		}
-		te.CarrierName = carrierName
+		te.ShippingLineName = shippingLineName
 	}
 	locIDs := make([]uuid.UUID, 0, 3)
 	seenLocationIDs := make(map[uuid.UUID]struct{}, 3)

@@ -238,7 +238,7 @@ export function OrderListSearchFilter({
       numberType: numberKeyword ? rawValues.numberType || 'order' : undefined,
       numberKeyword,
       customerId: rawValues.customerId || undefined,
-      carrierId: rawValues.carrierId || undefined,
+      shippingLineId: rawValues.shippingLineId || undefined,
       originLocationId: rawValues.originLocationId || undefined,
       destinationLocationId: rawValues.destinationLocationId || undefined,
       consignee: rawValues.consignee?.trim() || undefined,
@@ -370,7 +370,7 @@ export function OrderListSearchFilter({
 
             <Row gutter={[12, 0]}>
               <Col xs={24} sm={12} lg={6}>
-                <Form.Item name="carrierId" label="船公司">
+                <Form.Item name="shippingLineId" label="船公司">
                   <RemoteSelect
                     placeholder="输入船公司代码或名称"
                     options={options.shippingLines}

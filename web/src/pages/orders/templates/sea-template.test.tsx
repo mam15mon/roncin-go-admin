@@ -31,7 +31,7 @@ describe('海运订单新增模板', () => {
     });
   });
 
-  it('候选匹配使用船公司作为内部签发方与承运主体', async () => {
+  it('候选匹配使用 ShippingLine 作为唯一船公司身份', async () => {
     const matchCandidate = vi
       .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')
       .mockResolvedValue({ matched: false });
@@ -40,11 +40,11 @@ describe('海运订单新增模板', () => {
       <ProForm
         submitter={false}
         initialValues={{
-          carrierId: 'carrier-1',
+          shippingLineId: 'carrier-1',
           seaMasterBillMasterNo: 'COSCO123456',
         }}
       >
-        <ProFormText name="carrierId" hidden />
+        <ProFormText name="shippingLineId" hidden />
         <SeaMasterBillFields />
       </ProForm>,
     );
@@ -54,8 +54,7 @@ describe('海运订单新增模板', () => {
         expect(matchCandidate).toHaveBeenCalledWith(
           expect.objectContaining({
             masterNo: 'COSCO123456',
-            issuerPartnerId: 'carrier-1',
-            carrierId: 'carrier-1',
+            shippingLineId: 'carrier-1',
           }),
         );
       },
@@ -63,7 +62,7 @@ describe('海运订单新增模板', () => {
     );
   });
 
-  it('共享主单关联多票时同时禁止修改船公司和 MBL 主单号', () => {
+  it('共享主单关联多票时回填当前船公司名称并同时禁止修改船公司和 MBL 主单号', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -72,7 +71,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -87,11 +86,12 @@ describe('海运订单新增模板', () => {
       <ProForm
         submitter={false}
         initialValues={{
-          carrierId: 'carrier-1',
+          shippingLineId: 'carrier-1',
           seaMasterBillMasterNo: 'COSCO123456',
           seaMasterBill: {
             masterNo: 'COSCO123456',
-            carrierId: 'carrier-1',
+            shippingLineId: 'carrier-1',
+            shippingLineName: '中远海运 / COSCO SHIPPING (COSU)',
             memberCount: 2,
           },
         }}
@@ -104,6 +104,11 @@ describe('海运订单新增模板', () => {
 
     const carrierItem = screen.getByText('船公司').closest('.ant-form-item');
     expect(carrierItem?.querySelector('input')).toBeDisabled();
+    await waitFor(() => {
+      expect(
+        screen.getByText('中远海运 / COSCO SHIPPING (COSU)'),
+      ).toBeInTheDocument();
+    });
     expect(
       screen.getByPlaceholderText('请输入主单号 (仅大写字母与数字)'),
     ).toBeDisabled();
@@ -118,7 +123,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [{ label: '20GP', value: 'spec-20gp' }],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -174,7 +179,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -225,7 +230,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [{ label: '40HQ', value: 'spec-40hq' }],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -271,7 +276,7 @@ describe('海运订单新增模板', () => {
       ],
       containerSpecOptions: [],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -284,9 +289,7 @@ describe('海运订单新增模板', () => {
     const basicInfo = sections.find((s) => s.key === 'basicInfo');
     render(
       <ProForm submitter={false}>
-        <div data-testid="section-basicInfo">
-          {basicInfo?.content}
-        </div>
+        <div data-testid="section-basicInfo">{basicInfo?.content}</div>
       </ProForm>,
     );
 

@@ -905,7 +905,7 @@ type Order struct {
 	OrganizationId            string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrderNo                   string                   `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
 	CustomerId                string                   `protobuf:"bytes,4,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	CarrierId                 *string                  `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	ShippingLineId            *string                  `protobuf:"bytes,5,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	BookingAgentId            *string                  `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
 	BusinessType              BusinessType             `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	TradeDirection            TradeDirection           `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
@@ -1046,9 +1046,9 @@ func (x *Order) GetCustomerId() string {
 	return ""
 }
 
-func (x *Order) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *Order) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
 	}
 	return ""
 }
@@ -2483,7 +2483,7 @@ type ListOrdersRequest struct {
 	LockedAtTo                    string                  `protobuf:"bytes,21,opt,name=locked_at_to,json=lockedAtTo,proto3" json:"locked_at_to,omitempty"`
 	OriginLocationId              string                  `protobuf:"bytes,22,opt,name=origin_location_id,json=originLocationId,proto3" json:"origin_location_id,omitempty"`
 	DestinationLocationId         string                  `protobuf:"bytes,23,opt,name=destination_location_id,json=destinationLocationId,proto3" json:"destination_location_id,omitempty"`
-	CarrierId                     string                  `protobuf:"bytes,24,opt,name=carrier_id,json=carrierId,proto3" json:"carrier_id,omitempty"`
+	ShippingLineId                string                  `protobuf:"bytes,24,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
 	ConsigneeShortName            string                  `protobuf:"bytes,25,opt,name=consignee_short_name,json=consigneeShortName,proto3" json:"consignee_short_name,omitempty"`
 	ShipperShortName              string                  `protobuf:"bytes,26,opt,name=shipper_short_name,json=shipperShortName,proto3" json:"shipper_short_name,omitempty"`
 	OperatorId                    string                  `protobuf:"bytes,27,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
@@ -2692,9 +2692,9 @@ func (x *ListOrdersRequest) GetDestinationLocationId() string {
 	return ""
 }
 
-func (x *ListOrdersRequest) GetCarrierId() string {
+func (x *ListOrdersRequest) GetShippingLineId() string {
 	if x != nil {
-		return x.CarrierId
+		return x.ShippingLineId
 	}
 	return ""
 }
@@ -3040,7 +3040,7 @@ type CreateOrderRequest struct {
 	TradeDirection        TradeDirection                   `protobuf:"varint,3,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
 	TradeTerm             TradeTerm                        `protobuf:"varint,4,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
 	PaymentTerm           PaymentTerm                      `protobuf:"varint,5,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
-	CarrierId             *string                          `protobuf:"bytes,7,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	ShippingLineId        *string                          `protobuf:"bytes,7,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	BookingAgentId        *string                          `protobuf:"bytes,8,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
 	ShipmentType          *ShipmentType                    `protobuf:"varint,9,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
 	ContainerOwnership    *ContainerOwnership              `protobuf:"varint,10,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
@@ -3161,9 +3161,9 @@ func (x *CreateOrderRequest) GetPaymentTerm() PaymentTerm {
 	return PaymentTerm_PAYMENT_TERM_UNSPECIFIED
 }
 
-func (x *CreateOrderRequest) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *CreateOrderRequest) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
 	}
 	return ""
 }
@@ -3535,7 +3535,7 @@ type UpdateOrderRequest struct {
 	TradeDirection        *TradeDirection               `protobuf:"varint,5,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection,oneof" json:"trade_direction,omitempty"`
 	TradeTerm             *TradeTerm                    `protobuf:"varint,6,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm,oneof" json:"trade_term,omitempty"`
 	PaymentTerm           *PaymentTerm                  `protobuf:"varint,7,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm,oneof" json:"payment_term,omitempty"`
-	CarrierId             *string                       `protobuf:"bytes,8,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	ShippingLineId        *string                       `protobuf:"bytes,8,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	BookingAgentId        *string                       `protobuf:"bytes,9,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
 	ShipmentType          *ShipmentType                 `protobuf:"varint,10,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
 	ContainerOwnership    *ContainerOwnership           `protobuf:"varint,11,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
@@ -3669,9 +3669,9 @@ func (x *UpdateOrderRequest) GetPaymentTerm() PaymentTerm {
 	return PaymentTerm_PAYMENT_TERM_UNSPECIFIED
 }
 
-func (x *UpdateOrderRequest) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *UpdateOrderRequest) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
 	}
 	return ""
 }
@@ -5054,8 +5054,8 @@ func (x *ListPersonnelOptionsResponse) GetPageSize() int32 {
 type SeaTransportExecution struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CarrierId             *string                `protobuf:"bytes,2,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
-	CarrierName           *string                `protobuf:"bytes,3,opt,name=carrier_name,json=carrierName,proto3,oneof" json:"carrier_name,omitempty"`
+	ShippingLineId        string                 `protobuf:"bytes,2,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName      *string                `protobuf:"bytes,3,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
 	OriginLocationId      *string                `protobuf:"bytes,4,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	OriginLocationName    *string                `protobuf:"bytes,5,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
 	DischargeLocationId   *string                `protobuf:"bytes,6,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
@@ -5108,16 +5108,16 @@ func (x *SeaTransportExecution) GetId() string {
 	return ""
 }
 
-func (x *SeaTransportExecution) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *SeaTransportExecution) GetShippingLineId() string {
+	if x != nil {
+		return x.ShippingLineId
 	}
 	return ""
 }
 
-func (x *SeaTransportExecution) GetCarrierName() string {
-	if x != nil && x.CarrierName != nil {
-		return *x.CarrierName
+func (x *SeaTransportExecution) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -5204,11 +5204,9 @@ type SeaMasterBillSummary struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	MasterBillId          string                 `protobuf:"bytes,1,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
 	MasterNo              string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	IssuerPartnerId       string                 `protobuf:"bytes,3,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
-	IssuerPartnerName     *string                `protobuf:"bytes,4,opt,name=issuer_partner_name,json=issuerPartnerName,proto3,oneof" json:"issuer_partner_name,omitempty"`
+	ShippingLineId        string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName      *string                `protobuf:"bytes,4,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
 	TransportExecutionId  string                 `protobuf:"bytes,5,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
-	CarrierId             *string                `protobuf:"bytes,6,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
-	CarrierName           *string                `protobuf:"bytes,7,opt,name=carrier_name,json=carrierName,proto3,oneof" json:"carrier_name,omitempty"`
 	OriginLocationId      *string                `protobuf:"bytes,8,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	OriginLocationName    *string                `protobuf:"bytes,9,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
 	DischargeLocationId   *string                `protobuf:"bytes,10,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
@@ -5270,16 +5268,16 @@ func (x *SeaMasterBillSummary) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaMasterBillSummary) GetIssuerPartnerId() string {
+func (x *SeaMasterBillSummary) GetShippingLineId() string {
 	if x != nil {
-		return x.IssuerPartnerId
+		return x.ShippingLineId
 	}
 	return ""
 }
 
-func (x *SeaMasterBillSummary) GetIssuerPartnerName() string {
-	if x != nil && x.IssuerPartnerName != nil {
-		return *x.IssuerPartnerName
+func (x *SeaMasterBillSummary) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -5287,20 +5285,6 @@ func (x *SeaMasterBillSummary) GetIssuerPartnerName() string {
 func (x *SeaMasterBillSummary) GetTransportExecutionId() string {
 	if x != nil {
 		return x.TransportExecutionId
-	}
-	return ""
-}
-
-func (x *SeaMasterBillSummary) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
-	}
-	return ""
-}
-
-func (x *SeaMasterBillSummary) GetCarrierName() string {
-	if x != nil && x.CarrierName != nil {
-		return *x.CarrierName
 	}
 	return ""
 }
@@ -5400,7 +5384,6 @@ func (x *SeaMasterBillSummary) GetMemberCount() int32 {
 type SeaMasterBillInput struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	MasterNo                 string                 `protobuf:"bytes,1,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	IssuerPartnerId          string                 `protobuf:"bytes,2,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
 	CandidateId              *string                `protobuf:"bytes,3,opt,name=candidate_id,json=candidateId,proto3,oneof" json:"candidate_id,omitempty"`
 	ExpectedCandidateVersion *uint64                `protobuf:"varint,4,opt,name=expected_candidate_version,json=expectedCandidateVersion,proto3,oneof" json:"expected_candidate_version,omitempty"`
 	CorrectionReason         *string                `protobuf:"bytes,5,opt,name=correction_reason,json=correctionReason,proto3,oneof" json:"correction_reason,omitempty"`
@@ -5441,13 +5424,6 @@ func (*SeaMasterBillInput) Descriptor() ([]byte, []int) {
 func (x *SeaMasterBillInput) GetMasterNo() string {
 	if x != nil {
 		return x.MasterNo
-	}
-	return ""
-}
-
-func (x *SeaMasterBillInput) GetIssuerPartnerId() string {
-	if x != nil {
-		return x.IssuerPartnerId
 	}
 	return ""
 }
@@ -5609,8 +5585,8 @@ type SeaMasterBillCandidate struct {
 	Id                 string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Version            uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
 	MasterNo           string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	IssuerPartnerId    string                        `protobuf:"bytes,4,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
-	IssuerPartnerName  *string                       `protobuf:"bytes,5,opt,name=issuer_partner_name,json=issuerPartnerName,proto3,oneof" json:"issuer_partner_name,omitempty"`
+	ShippingLineId     string                        `protobuf:"bytes,4,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName   *string                       `protobuf:"bytes,5,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
 	TransportExecution *SeaTransportExecution        `protobuf:"bytes,6,opt,name=transport_execution,json=transportExecution,proto3" json:"transport_execution,omitempty"`
 	MemberCount        int32                         `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
 	Members            []*SeaMasterBillMemberSummary `protobuf:"bytes,8,rep,name=members,proto3" json:"members,omitempty"`
@@ -5669,16 +5645,16 @@ func (x *SeaMasterBillCandidate) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaMasterBillCandidate) GetIssuerPartnerId() string {
+func (x *SeaMasterBillCandidate) GetShippingLineId() string {
 	if x != nil {
-		return x.IssuerPartnerId
+		return x.ShippingLineId
 	}
 	return ""
 }
 
-func (x *SeaMasterBillCandidate) GetIssuerPartnerName() string {
-	if x != nil && x.IssuerPartnerName != nil {
-		return *x.IssuerPartnerName
+func (x *SeaMasterBillCandidate) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -5707,9 +5683,8 @@ func (x *SeaMasterBillCandidate) GetMembers() []*SeaMasterBillMemberSummary {
 // MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。
 type MatchSeaMasterBillCandidateRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
-	IssuerPartnerId     string                 `protobuf:"bytes,1,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
+	ShippingLineId      string                 `protobuf:"bytes,1,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
 	MasterNo            string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	CarrierId           *string                `protobuf:"bytes,3,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
 	OriginLocationId    *string                `protobuf:"bytes,4,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	DischargeLocationId *string                `protobuf:"bytes,5,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
 	TransitLocationId   *string                `protobuf:"bytes,6,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
@@ -5751,9 +5726,9 @@ func (*MatchSeaMasterBillCandidateRequest) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{40}
 }
 
-func (x *MatchSeaMasterBillCandidateRequest) GetIssuerPartnerId() string {
+func (x *MatchSeaMasterBillCandidateRequest) GetShippingLineId() string {
 	if x != nil {
-		return x.IssuerPartnerId
+		return x.ShippingLineId
 	}
 	return ""
 }
@@ -5761,13 +5736,6 @@ func (x *MatchSeaMasterBillCandidateRequest) GetIssuerPartnerId() string {
 func (x *MatchSeaMasterBillCandidateRequest) GetMasterNo() string {
 	if x != nil {
 		return x.MasterNo
-	}
-	return ""
-}
-
-func (x *MatchSeaMasterBillCandidateRequest) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
 	}
 	return ""
 }
@@ -5927,15 +5895,14 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x89)\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x9a)\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
 	"\border_no\x18\x03 \x01(\tR\aorderNo\x12\x1f\n" +
 	"\vcustomer_id\x18\x04 \x01(\tR\n" +
-	"customerId\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\x05 \x01(\tH\x00R\tcarrierId\x88\x01\x01\x12-\n" +
+	"customerId\x12-\n" +
+	"\x10shipping_line_id\x18\x05 \x01(\tH\x00R\x0eshippingLineId\x88\x01\x01\x12-\n" +
 	"\x10booking_agent_id\x18\x06 \x01(\tH\x01R\x0ebookingAgentId\x88\x01\x01\x12;\n" +
 	"\rbusiness_type\x18\a \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessType\x12A\n" +
 	"\x0ftrade_direction\x18\b \x01(\x0e2\x18.order.v1.TradeDirectionR\x0etradeDirection\x122\n" +
@@ -6026,8 +5993,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH5R\rseaMasterBill\x88\x01\x01\x12Y\n" +
 	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH6R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
 	"\x19sea_document_link_version\x18S \x01(\x04H7R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
-	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01B\r\n" +
-	"\v_carrier_idB\x13\n" +
+	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01B\x13\n" +
+	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
 	"\x14_container_ownershipB\x10\n" +
@@ -6168,7 +6135,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\a_reasonB\x0e\n" +
 	"\f_operator_id\"&\n" +
 	"\x0fGetOrderRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xdc\r\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xe7\r\n" +
 	"\x11ListOrdersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
@@ -6197,9 +6164,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\flocked_at_to\x18\x15 \x01(\tR\n" +
 	"lockedAtTo\x12,\n" +
 	"\x12origin_location_id\x18\x16 \x01(\tR\x10originLocationId\x126\n" +
-	"\x17destination_location_id\x18\x17 \x01(\tR\x15destinationLocationId\x12\x1d\n" +
-	"\n" +
-	"carrier_id\x18\x18 \x01(\tR\tcarrierId\x120\n" +
+	"\x17destination_location_id\x18\x17 \x01(\tR\x15destinationLocationId\x12(\n" +
+	"\x10shipping_line_id\x18\x18 \x01(\tR\x0eshippingLineId\x120\n" +
 	"\x14consignee_short_name\x18\x19 \x01(\tR\x12consigneeShortName\x12,\n" +
 	"\x12shipper_short_name\x18\x1a \x01(\tR\x10shipperShortName\x12\x1f\n" +
 	"\voperator_id\x18\x1b \x01(\tR\n" +
@@ -6245,7 +6211,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\x8d\x1e\n" +
+	"\t_order_no\"\x9e\x1e\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -6253,9 +6219,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0ftrade_direction\x18\x03 \x01(\x0e2\x18.order.v1.TradeDirectionB\x03\xe0A\x02R\x0etradeDirection\x127\n" +
 	"\n" +
 	"trade_term\x18\x04 \x01(\x0e2\x13.order.v1.TradeTermB\x03\xe0A\x02R\ttradeTerm\x12=\n" +
-	"\fpayment_term\x18\x05 \x01(\x0e2\x15.order.v1.PaymentTermB\x03\xe0A\x02R\vpaymentTerm\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\a \x01(\tH\x00R\tcarrierId\x88\x01\x01\x12-\n" +
+	"\fpayment_term\x18\x05 \x01(\x0e2\x15.order.v1.PaymentTermB\x03\xe0A\x02R\vpaymentTerm\x12-\n" +
+	"\x10shipping_line_id\x18\a \x01(\tH\x00R\x0eshippingLineId\x88\x01\x01\x12-\n" +
 	"\x10booking_agent_id\x18\b \x01(\tH\x01R\x0ebookingAgentId\x88\x01\x01\x12@\n" +
 	"\rshipment_type\x18\t \x01(\x0e2\x16.order.v1.ShipmentTypeH\x02R\fshipmentType\x88\x01\x01\x12R\n" +
 	"\x13container_ownership\x18\n" +
@@ -6314,8 +6279,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12shipper_short_name\x187 \x01(\tH+R\x10shipperShortName\x88\x01\x01\x125\n" +
 	"\x14consignee_short_name\x188 \x01(\tH,R\x12consigneeShortName\x88\x01\x01\x12I\n" +
 	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01\x12G\n" +
-	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01B\r\n" +
-	"\v_carrier_idB\x13\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01B\x13\n" +
+	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
 	"\x14_container_ownershipB\x10\n" +
@@ -6363,7 +6328,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13_shipper_short_nameB\x17\n" +
 	"\x15_consignee_short_nameB\x12\n" +
 	"\x10_sea_master_billB\x0f\n" +
-	"\r_sea_documentJ\x04\b\x06\x10\aR\x12status_template_id\"\xb0\x1e\n" +
+	"\r_sea_documentJ\x04\b\x06\x10\aR\x12status_template_id\"\xc1\x1e\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12$\n" +
@@ -6373,9 +6338,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0ftrade_direction\x18\x05 \x01(\x0e2\x18.order.v1.TradeDirectionH\x02R\x0etradeDirection\x88\x01\x01\x127\n" +
 	"\n" +
 	"trade_term\x18\x06 \x01(\x0e2\x13.order.v1.TradeTermH\x03R\ttradeTerm\x88\x01\x01\x12=\n" +
-	"\fpayment_term\x18\a \x01(\x0e2\x15.order.v1.PaymentTermH\x04R\vpaymentTerm\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\b \x01(\tH\x05R\tcarrierId\x88\x01\x01\x12-\n" +
+	"\fpayment_term\x18\a \x01(\x0e2\x15.order.v1.PaymentTermH\x04R\vpaymentTerm\x88\x01\x01\x12-\n" +
+	"\x10shipping_line_id\x18\b \x01(\tH\x05R\x0eshippingLineId\x88\x01\x01\x12-\n" +
 	"\x10booking_agent_id\x18\t \x01(\tH\x06R\x0ebookingAgentId\x88\x01\x01\x12@\n" +
 	"\rshipment_type\x18\n" +
 	" \x01(\x0e2\x16.order.v1.ShipmentTypeH\aR\fshipmentType\x88\x01\x01\x12R\n" +
@@ -6438,8 +6402,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
 	"\v_trade_termB\x0f\n" +
-	"\r_payment_termB\r\n" +
-	"\v_carrier_idB\x13\n" +
+	"\r_payment_termB\x13\n" +
+	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
 	"\x14_container_ownershipB\x10\n" +
@@ -6571,27 +6535,25 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
 	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x8f\x06\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x97\x06\n" +
 	"\x15SeaTransportExecution\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\x02 \x01(\tH\x00R\tcarrierId\x88\x01\x01\x12&\n" +
-	"\fcarrier_name\x18\x03 \x01(\tH\x01R\vcarrierName\x88\x01\x01\x121\n" +
-	"\x12origin_location_id\x18\x04 \x01(\tH\x02R\x10originLocationId\x88\x01\x01\x125\n" +
-	"\x14origin_location_name\x18\x05 \x01(\tH\x03R\x12originLocationName\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\x06 \x01(\tH\x04R\x13dischargeLocationId\x88\x01\x01\x12;\n" +
-	"\x17discharge_location_name\x18\a \x01(\tH\x05R\x15dischargeLocationName\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\b \x01(\tH\x06R\x11transitLocationId\x88\x01\x01\x127\n" +
-	"\x15transit_location_name\x18\t \x01(\tH\aR\x13transitLocationName\x88\x01\x01\x12\x1f\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\x10shipping_line_id\x18\x02 \x01(\tR\x0eshippingLineId\x121\n" +
+	"\x12shipping_line_name\x18\x03 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x121\n" +
+	"\x12origin_location_id\x18\x04 \x01(\tH\x01R\x10originLocationId\x88\x01\x01\x125\n" +
+	"\x14origin_location_name\x18\x05 \x01(\tH\x02R\x12originLocationName\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\x06 \x01(\tH\x03R\x13dischargeLocationId\x88\x01\x01\x12;\n" +
+	"\x17discharge_location_name\x18\a \x01(\tH\x04R\x15dischargeLocationName\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\b \x01(\tH\x05R\x11transitLocationId\x88\x01\x01\x127\n" +
+	"\x15transit_location_name\x18\t \x01(\tH\x06R\x13transitLocationName\x88\x01\x01\x12\x1f\n" +
 	"\vvessel_name\x18\n" +
 	" \x01(\tR\n" +
 	"vesselName\x12\x1b\n" +
 	"\tvoyage_no\x18\v \x01(\tR\bvoyageNo\x12\x15\n" +
-	"\x03etd\x18\f \x01(\tH\bR\x03etd\x88\x01\x01\x12\x15\n" +
-	"\x03eta\x18\r \x01(\tH\tR\x03eta\x88\x01\x01\x12\x18\n" +
-	"\aversion\x18\x0e \x01(\x04R\aversionB\r\n" +
-	"\v_carrier_idB\x0f\n" +
-	"\r_carrier_nameB\x15\n" +
+	"\x03etd\x18\f \x01(\tH\aR\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\r \x01(\tH\bR\x03eta\x88\x01\x01\x12\x18\n" +
+	"\aversion\x18\x0e \x01(\x04R\aversionB\x15\n" +
+	"\x13_shipping_line_nameB\x15\n" +
 	"\x13_origin_location_idB\x17\n" +
 	"\x15_origin_location_nameB\x18\n" +
 	"\x16_discharge_location_idB\x1a\n" +
@@ -6599,35 +6561,29 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14_transit_location_idB\x18\n" +
 	"\x16_transit_location_nameB\x06\n" +
 	"\x04_etdB\x06\n" +
-	"\x04_eta\"\xab\b\n" +
+	"\x04_eta\"\xe0\a\n" +
 	"\x14SeaMasterBillSummary\x12$\n" +
 	"\x0emaster_bill_id\x18\x01 \x01(\tR\fmasterBillId\x12\x1b\n" +
-	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12*\n" +
-	"\x11issuer_partner_id\x18\x03 \x01(\tR\x0fissuerPartnerId\x123\n" +
-	"\x13issuer_partner_name\x18\x04 \x01(\tH\x00R\x11issuerPartnerName\x88\x01\x01\x124\n" +
-	"\x16transport_execution_id\x18\x05 \x01(\tR\x14transportExecutionId\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\x06 \x01(\tH\x01R\tcarrierId\x88\x01\x01\x12&\n" +
-	"\fcarrier_name\x18\a \x01(\tH\x02R\vcarrierName\x88\x01\x01\x121\n" +
-	"\x12origin_location_id\x18\b \x01(\tH\x03R\x10originLocationId\x88\x01\x01\x125\n" +
-	"\x14origin_location_name\x18\t \x01(\tH\x04R\x12originLocationName\x88\x01\x01\x127\n" +
+	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
+	"\x10shipping_line_id\x18\x03 \x01(\tR\x0eshippingLineId\x121\n" +
+	"\x12shipping_line_name\x18\x04 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x124\n" +
+	"\x16transport_execution_id\x18\x05 \x01(\tR\x14transportExecutionId\x121\n" +
+	"\x12origin_location_id\x18\b \x01(\tH\x01R\x10originLocationId\x88\x01\x01\x125\n" +
+	"\x14origin_location_name\x18\t \x01(\tH\x02R\x12originLocationName\x88\x01\x01\x127\n" +
 	"\x15discharge_location_id\x18\n" +
-	" \x01(\tH\x05R\x13dischargeLocationId\x88\x01\x01\x12;\n" +
-	"\x17discharge_location_name\x18\v \x01(\tH\x06R\x15dischargeLocationName\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\f \x01(\tH\aR\x11transitLocationId\x88\x01\x01\x127\n" +
-	"\x15transit_location_name\x18\r \x01(\tH\bR\x13transitLocationName\x88\x01\x01\x12\x1f\n" +
+	" \x01(\tH\x03R\x13dischargeLocationId\x88\x01\x01\x12;\n" +
+	"\x17discharge_location_name\x18\v \x01(\tH\x04R\x15dischargeLocationName\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\f \x01(\tH\x05R\x11transitLocationId\x88\x01\x01\x127\n" +
+	"\x15transit_location_name\x18\r \x01(\tH\x06R\x13transitLocationName\x88\x01\x01\x12\x1f\n" +
 	"\vvessel_name\x18\x0e \x01(\tR\n" +
 	"vesselName\x12\x1b\n" +
 	"\tvoyage_no\x18\x0f \x01(\tR\bvoyageNo\x12\x15\n" +
-	"\x03etd\x18\x10 \x01(\tH\tR\x03etd\x88\x01\x01\x12\x15\n" +
-	"\x03eta\x18\x11 \x01(\tH\n" +
-	"R\x03eta\x88\x01\x01\x12\x16\n" +
+	"\x03etd\x18\x10 \x01(\tH\aR\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\x11 \x01(\tH\bR\x03eta\x88\x01\x01\x12\x16\n" +
 	"\x06status\x18\x12 \x01(\tR\x06status\x12\x18\n" +
 	"\aversion\x18\x13 \x01(\x04R\aversion\x12!\n" +
-	"\fmember_count\x18\x14 \x01(\x05R\vmemberCountB\x16\n" +
-	"\x14_issuer_partner_nameB\r\n" +
-	"\v_carrier_idB\x0f\n" +
-	"\r_carrier_nameB\x15\n" +
+	"\fmember_count\x18\x14 \x01(\x05R\vmemberCountB\x15\n" +
+	"\x13_shipping_line_nameB\x15\n" +
 	"\x13_origin_location_idB\x17\n" +
 	"\x15_origin_location_nameB\x18\n" +
 	"\x16_discharge_location_idB\x1a\n" +
@@ -6635,16 +6591,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14_transit_location_idB\x18\n" +
 	"\x16_transit_location_nameB\x06\n" +
 	"\x04_etdB\x06\n" +
-	"\x04_eta\"\xca\x02\n" +
+	"\x04_etaJ\x04\b\x06\x10\aJ\x04\b\a\x10\bR\n" +
+	"carrier_idR\fcarrier_name\"\xb2\x02\n" +
 	"\x12SeaMasterBillInput\x12 \n" +
-	"\tmaster_no\x18\x01 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12/\n" +
-	"\x11issuer_partner_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0fissuerPartnerId\x12&\n" +
+	"\tmaster_no\x18\x01 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12&\n" +
 	"\fcandidate_id\x18\x03 \x01(\tH\x00R\vcandidateId\x88\x01\x01\x12A\n" +
 	"\x1aexpected_candidate_version\x18\x04 \x01(\x04H\x01R\x18expectedCandidateVersion\x88\x01\x01\x120\n" +
 	"\x11correction_reason\x18\x05 \x01(\tH\x02R\x10correctionReason\x88\x01\x01B\x0f\n" +
 	"\r_candidate_idB\x1d\n" +
 	"\x1b_expected_candidate_versionB\x14\n" +
-	"\x12_correction_reason\"\x87\x01\n" +
+	"\x12_correction_reasonJ\x04\b\x02\x10\x03R\x11issuer_partner_id\"\x87\x01\n" +
 	"\x11SeaVoyageConflict\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12!\n" +
 	"\fmaster_value\x18\x02 \x01(\tR\vmasterValue\x12\x1f\n" +
@@ -6655,32 +6611,29 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x127\n" +
 	"\x15customer_reference_no\x18\x03 \x01(\tH\x00R\x13customerReferenceNo\x88\x01\x01B\x18\n" +
-	"\x16_customer_reference_no\"\x8d\x03\n" +
+	"\x16_customer_reference_no\"\x88\x03\n" +
 	"\x16SeaMasterBillCandidate\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x1b\n" +
-	"\tmaster_no\x18\x03 \x01(\tR\bmasterNo\x12*\n" +
-	"\x11issuer_partner_id\x18\x04 \x01(\tR\x0fissuerPartnerId\x123\n" +
-	"\x13issuer_partner_name\x18\x05 \x01(\tH\x00R\x11issuerPartnerName\x88\x01\x01\x12P\n" +
+	"\tmaster_no\x18\x03 \x01(\tR\bmasterNo\x12(\n" +
+	"\x10shipping_line_id\x18\x04 \x01(\tR\x0eshippingLineId\x121\n" +
+	"\x12shipping_line_name\x18\x05 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x12P\n" +
 	"\x13transport_execution\x18\x06 \x01(\v2\x1f.order.v1.SeaTransportExecutionR\x12transportExecution\x12!\n" +
 	"\fmember_count\x18\a \x01(\x05R\vmemberCount\x12>\n" +
-	"\amembers\x18\b \x03(\v2$.order.v1.SeaMasterBillMemberSummaryR\amembersB\x16\n" +
-	"\x14_issuer_partner_name\"\xb8\x04\n" +
-	"\"MatchSeaMasterBillCandidateRequest\x12/\n" +
-	"\x11issuer_partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0fissuerPartnerId\x12 \n" +
-	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\x03 \x01(\tH\x00R\tcarrierId\x88\x01\x01\x121\n" +
-	"\x12origin_location_id\x18\x04 \x01(\tH\x01R\x10originLocationId\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\x05 \x01(\tH\x02R\x13dischargeLocationId\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\x06 \x01(\tH\x03R\x11transitLocationId\x88\x01\x01\x12$\n" +
-	"\vvessel_name\x18\a \x01(\tH\x04R\n" +
+	"\amembers\x18\b \x03(\v2$.order.v1.SeaMasterBillMemberSummaryR\amembersB\x15\n" +
+	"\x13_shipping_line_name\"\x95\x04\n" +
+	"\"MatchSeaMasterBillCandidateRequest\x12-\n" +
+	"\x10shipping_line_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eshippingLineId\x12 \n" +
+	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x121\n" +
+	"\x12origin_location_id\x18\x04 \x01(\tH\x00R\x10originLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\x05 \x01(\tH\x01R\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\x06 \x01(\tH\x02R\x11transitLocationId\x88\x01\x01\x12$\n" +
+	"\vvessel_name\x18\a \x01(\tH\x03R\n" +
 	"vesselName\x88\x01\x01\x12 \n" +
-	"\tvoyage_no\x18\b \x01(\tH\x05R\bvoyageNo\x88\x01\x01\x12\x15\n" +
-	"\x03etd\x18\t \x01(\tH\x06R\x03etd\x88\x01\x01\x12\x15\n" +
+	"\tvoyage_no\x18\b \x01(\tH\x04R\bvoyageNo\x88\x01\x01\x12\x15\n" +
+	"\x03etd\x18\t \x01(\tH\x05R\x03etd\x88\x01\x01\x12\x15\n" +
 	"\x03eta\x18\n" +
-	" \x01(\tH\aR\x03eta\x88\x01\x01B\r\n" +
-	"\v_carrier_idB\x15\n" +
+	" \x01(\tH\x06R\x03eta\x88\x01\x01B\x15\n" +
 	"\x13_origin_location_idB\x18\n" +
 	"\x16_discharge_location_idB\x16\n" +
 	"\x14_transit_location_idB\x0e\n" +
@@ -6688,7 +6641,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"_voyage_noB\x06\n" +
 	"\x04_etdB\x06\n" +
-	"\x04_eta\"\xb0\x02\n" +
+	"\x04_etaJ\x04\b\x03\x10\x04R\n" +
+	"carrier_id\"\xb0\x02\n" +
 	"#MatchSeaMasterBillCandidateResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"海运出口共享 MBL、运输执行、锁序、HBL 边界与测试契约"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"Ent、迁移、事务、组织过滤和并发写入规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"Proto/OpenAPI 生成物与前端类型安全边界"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"字段语义跨数据库、API、服务端与前端的完整数据流检查"}
+{"file":".trellis/tasks/09-06-use-shipping-lines-for-sea-carrier/research/current-model-audit.md","reason":"当前错误数据源、字段/FK 语义、费用风险和开发数据库审计证据"}

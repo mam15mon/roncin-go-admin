@@ -59,7 +59,7 @@ func (r *seaDocumentChangeRepo) ListMasterBillVersions(ctx context.Context, orgI
 	query := client.SeaMasterBillVersion.Query().Where(
 		seamasterbillversionent.OrganizationIDEQ(orgID),
 		seamasterbillversionent.MasterBillIDEQ(link.MasterBillID),
-	)
+	).WithShippingLine()
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -114,7 +114,7 @@ func (r *seaDocumentChangeRepo) GetDocumentVersion(ctx context.Context, orgID, o
 	}
 	switch documentType {
 	case biz.SeaDocumentTypeMasterBill:
-		row, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(versionID), seamasterbillversionent.OrganizationIDEQ(orgID)).Only(ctx)
+		row, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(versionID), seamasterbillversionent.OrganizationIDEQ(orgID)).WithShippingLine().Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrSeaDocumentVersionNotFound, nil)
 		}
@@ -152,7 +152,7 @@ func (r *seaDocumentChangeRepo) ListDocumentEvents(ctx context.Context, orgID, o
 	}
 	events := make([]*biz.SeaDocumentEvent, 0)
 	if len(mblIDs) > 0 {
-		versions, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.OrganizationIDEQ(orgID), seamasterbillversionent.MasterBillIDIn(mblIDs...), seamasterbillversionent.SourceEQ(seamasterbillversionent.SourceAMENDMENT)).All(ctx)
+		versions, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.OrganizationIDEQ(orgID), seamasterbillversionent.MasterBillIDIn(mblIDs...), seamasterbillversionent.SourceEQ(seamasterbillversionent.SourceAMENDMENT)).WithShippingLine().All(ctx)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -315,7 +315,7 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 		if mbl.Version != expectedDocumentVersion || mbl.CurrentVersionID == nil || *mbl.CurrentVersionID != expectedCurrentVersionID {
 			return nil, nil, biz.ErrSeaDocumentVersionConflict
 		}
-		version, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(expectedCurrentVersionID), seamasterbillversionent.MasterBillIDEQ(mbl.ID), seamasterbillversionent.OrganizationIDEQ(orgID)).Only(ctx)
+		version, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(expectedCurrentVersionID), seamasterbillversionent.MasterBillIDEQ(mbl.ID), seamasterbillversionent.OrganizationIDEQ(orgID)).WithShippingLine().Only(ctx)
 		if err != nil {
 			return nil, nil, mapEntError(err, biz.ErrSeaDocumentVersionNotFound, nil)
 		}
@@ -1083,9 +1083,9 @@ func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill
 	} else if !ent.IsNotFound(err) {
 		return nil, err
 	}
-	b := tx.SeaMasterBillVersion.Create().SetOrganizationID(mbl.OrganizationID).SetMasterBillID(mbl.ID).SetVersionNo(next).SetSourceEntityVersion(mbl.Version).SetIssuerPartnerID(mbl.IssuerPartnerID).SetTransportExecutionID(mbl.TransportExecutionID).SetMasterNo(mbl.MasterNo).SetNormalizedMasterNo(mbl.NormalizedMasterNo).SetStatus(seamasterbillversionent.Status(mbl.Status)).SetContentHash(computeMBLContentHash(mbl, exec)).SetSource(seamasterbillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(mbl.ShipperText).SetNillableConsigneeText(mbl.ConsigneeText).SetNillableNotifyPartyText(mbl.NotifyPartyText).SetNillableSecondNotifyPartyText(mbl.SecondNotifyPartyText).SetNillableMarksText(mbl.MarksText).SetNillableGoodsDescriptionText(mbl.GoodsDescriptionText).SetNillablePackageCount(mbl.PackageCount).SetNillablePackageUnit(mbl.PackageUnit).SetNillableGrossWeightKg(mbl.GrossWeightKg).SetNillableVolumeCbm(mbl.VolumeCbm).SetNillableFreightTerms(mbl.FreightTerms).SetNillableTransportTerms(mbl.TransportTerms).SetNillableBillForm(mbl.BillForm).SetNillableReleaseType(mbl.ReleaseType).SetNillableClauses(mbl.Clauses)
+	b := tx.SeaMasterBillVersion.Create().SetOrganizationID(mbl.OrganizationID).SetMasterBillID(mbl.ID).SetVersionNo(next).SetSourceEntityVersion(mbl.Version).SetShippingLineID(mbl.ShippingLineID).SetTransportExecutionID(mbl.TransportExecutionID).SetMasterNo(mbl.MasterNo).SetNormalizedMasterNo(mbl.NormalizedMasterNo).SetStatus(seamasterbillversionent.Status(mbl.Status)).SetContentHash(computeMBLContentHash(mbl, exec)).SetSource(seamasterbillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(mbl.ShipperText).SetNillableConsigneeText(mbl.ConsigneeText).SetNillableNotifyPartyText(mbl.NotifyPartyText).SetNillableSecondNotifyPartyText(mbl.SecondNotifyPartyText).SetNillableMarksText(mbl.MarksText).SetNillableGoodsDescriptionText(mbl.GoodsDescriptionText).SetNillablePackageCount(mbl.PackageCount).SetNillablePackageUnit(mbl.PackageUnit).SetNillableGrossWeightKg(mbl.GrossWeightKg).SetNillableVolumeCbm(mbl.VolumeCbm).SetNillableFreightTerms(mbl.FreightTerms).SetNillableTransportTerms(mbl.TransportTerms).SetNillableBillForm(mbl.BillForm).SetNillableReleaseType(mbl.ReleaseType).SetNillableClauses(mbl.Clauses)
 	if exec != nil {
-		b.SetNillableCarrierID(exec.CarrierID).SetNillableOriginLocationID(exec.OriginLocationID).SetNillableDischargeLocationID(exec.DischargeLocationID).SetNillableTransitLocationID(exec.TransitLocationID).SetVesselName(exec.VesselName).SetVoyageNo(exec.VoyageNo).SetNillableEtd(exec.Etd).SetNillableEta(exec.Eta)
+		b.SetNillableOriginLocationID(exec.OriginLocationID).SetNillableDischargeLocationID(exec.DischargeLocationID).SetNillableTransitLocationID(exec.TransitLocationID).SetVesselName(exec.VesselName).SetVoyageNo(exec.VoyageNo).SetNillableEtd(exec.Etd).SetNillableEta(exec.Eta)
 		vv := strings.TrimSpace(exec.VesselName + " " + exec.VoyageNo)
 		if vv != "" {
 			b.SetVesselVoyageSnapshot(vv)
@@ -1115,7 +1115,11 @@ func masterVersionToBiz(v *ent.SeaMasterBillVersion, orderID uuid.UUID) *biz.Sea
 	if v == nil {
 		return nil
 	}
-	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: v.MasterBillID, OrderID: orderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.MasterNo, NormalizedDocumentNo: v.NormalizedMasterNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: &v.IssuerPartnerID, TransportExecutionID: &v.TransportExecutionID, VesselName: documentStringPointer(v.VesselName), VoyageNo: documentStringPointer(v.VoyageNo), ETD: v.Etd, ETA: v.Eta, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt}
+	result := &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: v.MasterBillID, OrderID: orderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.MasterNo, NormalizedDocumentNo: v.NormalizedMasterNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, ShippingLineID: &v.ShippingLineID, TransportExecutionID: &v.TransportExecutionID, VesselName: documentStringPointer(v.VesselName), VoyageNo: documentStringPointer(v.VoyageNo), ETD: v.Etd, ETA: v.Eta, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt}
+	if line := v.Edges.ShippingLine; line != nil {
+		result.ShippingLineName = formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode)
+	}
+	return result
 }
 func houseVersionToBiz(v *ent.SeaHouseBillVersion) *biz.SeaDocumentVersion {
 	if v == nil {

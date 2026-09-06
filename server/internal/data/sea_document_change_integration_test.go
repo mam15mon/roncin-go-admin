@@ -54,6 +54,14 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetLegalName("单证变更测试合作伙伴").
 		SetNormalizedName("单证变更测试合作伙伴").
 		SaveX(ctx)
+	shippingLine := data.db.ShippingLine.Create().
+		SetOrganizationID(org.ID).
+		SetScacCode("DCTL").
+		SetNameZh("单证变更测试船公司").
+		SetNameEn("Document Change Test Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
+		SaveX(ctx)
 	order := data.db.Order.Create().
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-DOC-" + suffix).
@@ -65,12 +73,13 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SaveX(ctx)
 	exec := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER TEST").
 		SetVoyageNo("V001").
 		SaveX(ctx)
 	mbl := data.db.SeaMasterBill.Create().
 		SetOrganizationID(org.ID).
-		SetIssuerPartnerID(partner.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetTransportExecutionID(exec.ID).
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).

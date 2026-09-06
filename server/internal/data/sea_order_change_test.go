@@ -11,18 +11,18 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
 
-func TestSeaMasterBillCarrierConsistent(t *testing.T) {
-	carrierID := uuid.New()
-	otherCarrierID := uuid.New()
-	mbl := &ent.SeaMasterBill{IssuerPartnerID: carrierID}
+func TestSeaMasterBillShippingLineConsistent(t *testing.T) {
+	shippingLineID := uuid.New()
+	otherShippingLineID := uuid.New()
+	mbl := &ent.SeaMasterBill{ShippingLineID: shippingLineID}
 
-	if !seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{CarrierID: &carrierID}) {
-		t.Fatal("相同的 MBL 签发方与运输执行船公司应满足一致性")
+	if !seaMasterBillShippingLineConsistent(mbl, &ent.SeaTransportExecution{ShippingLineID: shippingLineID}) {
+		t.Fatal("相同的 MBL 与运输执行船公司应满足一致性")
 	}
-	if seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{CarrierID: &otherCarrierID}) {
-		t.Fatal("不同的 MBL 签发方与运输执行船公司不应满足一致性")
+	if seaMasterBillShippingLineConsistent(mbl, &ent.SeaTransportExecution{ShippingLineID: otherShippingLineID}) {
+		t.Fatal("不同的 MBL 与运输执行船公司不应满足一致性")
 	}
-	if seaMasterBillCarrierConsistent(mbl, &ent.SeaTransportExecution{}) {
+	if seaMasterBillShippingLineConsistent(mbl, &ent.SeaTransportExecution{}) {
 		t.Fatal("缺少运输执行船公司不应满足一致性")
 	}
 }

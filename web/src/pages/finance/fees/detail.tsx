@@ -409,7 +409,7 @@ export default function FinanceFeeDetailPage() {
               {order?.destinationLocationId || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="航空/船公司">
-              {order?.carrierId || '-'}
+              {order?.seaMasterBill?.shippingLineName || '-'}
             </Descriptions.Item>
 
             <Descriptions.Item label="ETD/班期">

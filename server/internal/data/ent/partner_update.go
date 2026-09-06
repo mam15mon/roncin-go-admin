@@ -33,7 +33,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
@@ -445,21 +444,6 @@ func (_u *PartnerUpdate) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEven
 	return _u.AddSeaOrderReassignmentIDs(ids...)
 }
 
-// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (_u *PartnerUpdate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdate {
-	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSeaMasterBillVersionIDs(ids...)
-}
-
 // AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
 func (_u *PartnerUpdate) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *PartnerUpdate {
 	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
@@ -847,27 +831,6 @@ func (_u *PartnerUpdate) RemoveSeaOrderReassignments(v ...*SeaOrderReassignmentE
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentIDs(ids...)
-}
-
-// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdate) ClearSeaMasterBillVersions() *PartnerUpdate {
-	_u.mutation.ClearSeaMasterBillVersions()
-	return _u
-}
-
-// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
-func (_u *PartnerUpdate) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdate {
-	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
-func (_u *PartnerUpdate) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSeaMasterBillVersionIDs(ids...)
 }
 
 // ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
@@ -1823,51 +1786,6 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.SeaHouseBillVersionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2328,21 +2246,6 @@ func (_u *PartnerUpdateOne) AddSeaOrderReassignments(v ...*SeaOrderReassignmentE
 	return _u.AddSeaOrderReassignmentIDs(ids...)
 }
 
-// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (_u *PartnerUpdateOne) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
-	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdateOne) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSeaMasterBillVersionIDs(ids...)
-}
-
 // AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
 func (_u *PartnerUpdateOne) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
@@ -2730,27 +2633,6 @@ func (_u *PartnerUpdateOne) RemoveSeaOrderReassignments(v ...*SeaOrderReassignme
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentIDs(ids...)
-}
-
-// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdateOne) ClearSeaMasterBillVersions() *PartnerUpdateOne {
-	_u.mutation.ClearSeaMasterBillVersions()
-	return _u
-}
-
-// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
-func (_u *PartnerUpdateOne) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
-	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
-func (_u *PartnerUpdateOne) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSeaMasterBillVersionIDs(ids...)
 }
 
 // ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
@@ -3729,51 +3611,6 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -110,8 +110,8 @@ export default function OrderFeeHeader({
           <Descriptions.Item label="目的港 (POD)">
             {order.destinationLocationId || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="承运人 (船司)">
-            {order.carrierId || '-'}
+          <Descriptions.Item label="船公司">
+            {order.seaMasterBill?.shippingLineName || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="订舱代理">
             {order.bookingAgentId || '-'}

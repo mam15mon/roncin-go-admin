@@ -5,7 +5,7 @@ import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { unwrapList } from '@/utils/api';
-import { searchPartnerOptions } from '@/utils/options';
+import { searchPartnerOptions, searchShippingLineOptions } from '@/utils/options';
 import {
   getCachedAirports,
   getCachedPorts,
@@ -248,10 +248,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
     if (!requestOrgId) {
       return [];
     }
-    const options = await searchPartnerOptions(keyword, {
-      role: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
-      enabled: true,
-    });
+    const options = await searchShippingLineOptions(keyword);
     return activeOrgIdRef.current === requestOrgId ? options : [];
   };
 

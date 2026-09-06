@@ -16,12 +16,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -34,7 +34,7 @@ type SeaMasterBillVersionQuery struct {
 	predicates             []predicate.SeaMasterBillVersion
 	withOrganization       *OrganizationQuery
 	withMasterBill         *SeaMasterBillQuery
-	withIssuerPartner      *PartnerQuery
+	withShippingLine       *ShippingLineQuery
 	withTransportExecution *SeaTransportExecutionQuery
 	withCreator            *UserQuery
 	withLockRecords        *OrderLockRecordQuery
@@ -121,9 +121,9 @@ func (_q *SeaMasterBillVersionQuery) QueryMasterBill() *SeaMasterBillQuery {
 	return query
 }
 
-// QueryIssuerPartner chains the current query on the "issuer_partner" edge.
-func (_q *SeaMasterBillVersionQuery) QueryIssuerPartner() *PartnerQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// QueryShippingLine chains the current query on the "shipping_line" edge.
+func (_q *SeaMasterBillVersionQuery) QueryShippingLine() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -134,8 +134,8 @@ func (_q *SeaMasterBillVersionQuery) QueryIssuerPartner() *PartnerQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
-			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.IssuerPartnerTable, seamasterbillversion.IssuerPartnerColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ShippingLineTable, seamasterbillversion.ShippingLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -447,7 +447,7 @@ func (_q *SeaMasterBillVersionQuery) Clone() *SeaMasterBillVersionQuery {
 		predicates:             append([]predicate.SeaMasterBillVersion{}, _q.predicates...),
 		withOrganization:       _q.withOrganization.Clone(),
 		withMasterBill:         _q.withMasterBill.Clone(),
-		withIssuerPartner:      _q.withIssuerPartner.Clone(),
+		withShippingLine:       _q.withShippingLine.Clone(),
 		withTransportExecution: _q.withTransportExecution.Clone(),
 		withCreator:            _q.withCreator.Clone(),
 		withLockRecords:        _q.withLockRecords.Clone(),
@@ -481,14 +481,14 @@ func (_q *SeaMasterBillVersionQuery) WithMasterBill(opts ...func(*SeaMasterBillQ
 	return _q
 }
 
-// WithIssuerPartner tells the query-builder to eager-load the nodes that are connected to
-// the "issuer_partner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaMasterBillVersionQuery) WithIssuerPartner(opts ...func(*PartnerQuery)) *SeaMasterBillVersionQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// WithShippingLine tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillVersionQuery) WithShippingLine(opts ...func(*ShippingLineQuery)) *SeaMasterBillVersionQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withIssuerPartner = query
+	_q.withShippingLine = query
 	return _q
 }
 
@@ -628,7 +628,7 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withMasterBill != nil,
-			_q.withIssuerPartner != nil,
+			_q.withShippingLine != nil,
 			_q.withTransportExecution != nil,
 			_q.withCreator != nil,
 			_q.withLockRecords != nil,
@@ -669,9 +669,9 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 			return nil, err
 		}
 	}
-	if query := _q.withIssuerPartner; query != nil {
-		if err := _q.loadIssuerPartner(ctx, query, nodes, nil,
-			func(n *SeaMasterBillVersion, e *Partner) { n.Edges.IssuerPartner = e }); err != nil {
+	if query := _q.withShippingLine; query != nil {
+		if err := _q.loadShippingLine(ctx, query, nodes, nil,
+			func(n *SeaMasterBillVersion, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -775,11 +775,11 @@ func (_q *SeaMasterBillVersionQuery) loadMasterBill(ctx context.Context, query *
 	}
 	return nil
 }
-func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, query *PartnerQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *Partner)) error {
+func (_q *SeaMasterBillVersionQuery) loadShippingLine(ctx context.Context, query *ShippingLineQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *ShippingLine)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*SeaMasterBillVersion)
 	for i := range nodes {
-		fk := nodes[i].IssuerPartnerID
+		fk := nodes[i].ShippingLineID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -788,7 +788,7 @@ func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, quer
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(partner.IDIn(ids...))
+	query.Where(shippingline.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -796,7 +796,7 @@ func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, quer
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "issuer_partner_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -999,8 +999,8 @@ func (_q *SeaMasterBillVersionQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withMasterBill != nil {
 			_spec.Node.AddColumnOnce(seamasterbillversion.FieldMasterBillID)
 		}
-		if _q.withIssuerPartner != nil {
-			_spec.Node.AddColumnOnce(seamasterbillversion.FieldIssuerPartnerID)
+		if _q.withShippingLine != nil {
+			_spec.Node.AddColumnOnce(seamasterbillversion.FieldShippingLineID)
 		}
 		if _q.withTransportExecution != nil {
 			_spec.Node.AddColumnOnce(seamasterbillversion.FieldTransportExecutionID)

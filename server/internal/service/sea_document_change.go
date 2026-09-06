@@ -314,6 +314,13 @@ func seaDocumentVersionToAPI(v *biz.SeaDocumentVersion) *v1.SeaDocumentVersion {
 		s := v.IssuerPartnerID.String()
 		result.IssuerPartnerId = &s
 	}
+	if v.ShippingLineID != nil {
+		s := v.ShippingLineID.String()
+		result.ShippingLineId = &s
+	}
+	if v.ShippingLineName != "" {
+		result.ShippingLineName = &v.ShippingLineName
+	}
 	if v.IssuerOrganizationID != nil {
 		s := v.IssuerOrganizationID.String()
 		result.IssuerOrganizationId = &s
