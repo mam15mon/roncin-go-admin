@@ -15,7 +15,6 @@ import {
   tradeDirectionOptions,
   tradeTermOptions,
 } from './common';
-import { orderStatusTabs } from './list-constants';
 import { queryOrderList } from './list-query';
 import {
   orderTagServiceBatchAssignOrderTags,
@@ -139,7 +138,6 @@ export default function OrderListPage() {
         orderKind={config.kind as any}
         title={config.title}
         subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
-        statusTabs={orderStatusTabs}
         options={{
           loadPorts: searchOrderPorts,
           loadPartners: searchCustomers,

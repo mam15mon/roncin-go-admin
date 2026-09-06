@@ -35,7 +35,7 @@ describe('OrderListTemplate', () => {
     cleanup();
   });
 
-  it('正确渲染标题、状态切签与工具栏', async () => {
+  it('默认无状态切签与面包屑时，正确渲染标题、工具栏与数据表格', async () => {
     const mockQuery = vi.fn().mockResolvedValue({
       data: [
         {
@@ -71,8 +71,8 @@ describe('OrderListTemplate', () => {
     );
 
     expect(screen.getByText('海运出口订单')).toBeInTheDocument();
-    expect(screen.getByText('全部订单')).toBeInTheDocument();
-    expect(screen.getByText('待订舱')).toBeInTheDocument();
+    expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
+    expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
     expect(screen.getByText('批量操作')).toBeInTheDocument();
 
@@ -84,21 +84,29 @@ describe('OrderListTemplate', () => {
     });
   });
 
-  it('支持切换状态切签并触发重新查询', async () => {
+  it('支持显式传入状态切签并触发重新查询', async () => {
     const mockQuery = vi.fn().mockResolvedValue({
       data: [],
       total: 0,
       success: true,
     });
     const onStatusTabChange = vi.fn();
+    const testTabs = [
+      { key: 'all', label: '全部订单' },
+      { key: 'booking', label: '待订舱', count: 2 },
+    ];
 
     render(
       <OrderListTemplate
         orderKind="sea-export"
+        statusTabs={testTabs}
         queryOrders={mockQuery}
         onStatusTabChange={onStatusTabChange}
       />,
     );
+
+    expect(screen.getByText('全部订单')).toBeInTheDocument();
+    expect(screen.getByText('待订舱')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('待订舱'));
     expect(onStatusTabChange).toHaveBeenCalledWith('booking');

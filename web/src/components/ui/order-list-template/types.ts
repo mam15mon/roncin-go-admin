@@ -181,7 +181,9 @@ export interface OrderListTemplateProps {
   actionRef?: React.MutableRefObject<ActionType | undefined> | React.RefObject<ActionType | undefined>;
   /** 页面副标题 */
   subTitle?: string;
-  /** 状态切签列表（如 全部、待订舱、已配载、在途、已放行、已完成、异常等） */
+  /** 是否在页头渲染面包屑导航，默认为 false（保持纯白高密度清爽无冗余导航） */
+  showBreadcrumb?: boolean;
+  /** 状态切签列表（如 全部、待订舱、已配载、在途、已放行、已完成、异常等），未传入时默认不展示快捷切签卡片 */
   statusTabs?: OrderStatusTabItem[];
   /** 当前激活的状态切签 key */
   activeStatusTab?: string;

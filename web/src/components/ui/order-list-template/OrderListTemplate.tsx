@@ -24,26 +24,15 @@ import type {
   OrderListFilterParams,
   OrderListItem,
   OrderListTemplateProps,
-  OrderStatusTabItem,
 } from './types';
-
-const defaultStatusTabs: OrderStatusTabItem[] = [
-  { key: 'all', label: '全部订单' },
-  { key: 'draft', label: '草稿待提交', count: 0 },
-  { key: 'booking', label: '待订舱', count: 0, badgeColor: '#faad14' },
-  { key: 'loaded', label: '已配载/订舱确认', count: 0 },
-  { key: 'in_transit', label: '在途运输', count: 0, badgeColor: '#1677ff' },
-  { key: 'released', label: '已放货/放行', count: 0 },
-  { key: 'completed', label: '已完结', count: 0, badgeColor: '#52c41a' },
-  { key: 'abnormal', label: '异常预警', count: 0, badgeColor: '#ff4d4f' },
-];
 
 export function OrderListTemplate({
   actionRef: externalActionRef,
   orderKind,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
-  statusTabs = defaultStatusTabs,
+  showBreadcrumb = false,
+  statusTabs,
   activeStatusTab = 'all',
   onStatusTabChange,
   customColumns,
@@ -607,9 +596,11 @@ export function OrderListTemplate({
 
   return (
     <PageContainer
+      breadcrumbRender={showBreadcrumb ? undefined : false}
       header={{
         title,
         subTitle,
+        breadcrumb: showBreadcrumb ? undefined : undefined,
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
