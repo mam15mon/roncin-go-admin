@@ -23,11 +23,12 @@
     "09-02-sea-export-document-content",
     "09-02-sea-export-cargo-allocation",
     "09-02-sea-export-split-reassignment",
-    "09-02-sea-export-finance-allocation",
     "09-02-sea-export-document-versioning"
   ],
   "parent": null,
   "relatedFiles": [],
   "notes": "",
-  "meta": {}
+  "meta": {
+    "scope_revision": "2026-09-06 用户确认取消共享费用分摊，父任务按五个已完成阶段收尾"
+  }
 }

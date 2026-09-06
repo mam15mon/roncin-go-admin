@@ -2,7 +2,7 @@
 
 ## 设计目标
 
-父任务只维护完整领域边界、阶段依赖和最终集成验收，不直接修改产品代码。六个子任务依次把现有订单平铺模型替换为操作票、运输执行、MBL、HBL、箱货分配、变更流程和费用分摊协作的模型。
+父任务只维护完整领域边界、阶段依赖和最终集成验收，不直接修改产品代码。五个子任务依次把现有订单平铺模型替换为操作票、运输执行、MBL、HBL、箱货分配和变更流程协作的模型。
 
 ## 领域关系
 
@@ -20,16 +20,13 @@ Order 1 ── N CargoItem
 Order 1 ── N Container
 CargoItem/Container N ── N HouseBill（带件重尺数量的分配关系）
 
-Order/TransportExecution/MasterBill/HouseBill/Container 1 ── N Charge
-Charge 1 ── N ChargeAllocation N ── 1 Order/HouseBill
-
 Order 1 ── N SplitEvent
 Order 1 ── N ReassignmentEvent
 MasterBill/HouseBill 1 ── N DocumentVersion
 Document 1 ── N Amendment/SwitchRelation
 ```
 
-`Order` 继续表示操作票，不新增“客户委托单”。活动中的海运出口操作票必须恰有一个当前 MBL 关联；历史关联通过成员关系的起止状态保留。MBL 与运输执行分离，HBL 与操作票货物分离，费用通过明确计费对象和分摊记录连接。
+`Order` 继续表示操作票，不新增“客户委托单”。活动中的海运出口操作票必须恰有一个当前 MBL 关联；历史关联通过成员关系的起止状态保留。MBL 与运输执行分离，HBL 与操作票货物分离；费用继续按订单直接录入，不从共享单证或箱货关系自动派生。
 
 ## 核心实体职责
 
@@ -43,7 +40,6 @@ Document 1 ── N Amendment/SwitchRelation
 | CargoAllocation | 货物/箱到 HBL 的定量分配 | 不修改原始货物总量 |
 | Split/Reassignment | 部分拆票和整票改配的事实、原因和谱系 | 不覆盖历史关系 |
 | DocumentVersion | 订单锁定及改单形成的不可变快照 | 不作为可编辑工作内容 |
-| Charge/Allocation | 计费对象、共享成本和落票结果 | 不复制已确认账单行 |
 
 ## 共享数据流
 
@@ -59,7 +55,6 @@ Document 1 ── N Amendment/SwitchRelation
   → 阶段 3 分配货物和集装箱
   → 阶段 4 拆票或整体改配
   → 阶段 5 锁定封存、钉钉解锁、改单、Switch 并固定版本引用
-  → 阶段 6 建立共享费用及账单/核销/提成影响链
 ```
 
 ## 锁定与版本原则
@@ -87,16 +82,15 @@ Document 1 ── N Amendment/SwitchRelation
 - 共享 MBL 只显示一份真实内容；从任一关联操作票进入都读取同一版本。
 - 多张 HBL 以标签/列表切换，每张独立内容，可显式复制但不自动联动。
 
-## 六阶段边界
+## 五阶段边界
 
 | 阶段 | 交付物 | 依赖 | 明确不做 |
 | --- | --- | --- | --- |
 | 1 | 运输执行、共享 MBL、当前成员关系、必填与人工关联 | 无 | 完整提单内容、分配、拆票、版本、费用 |
 | 2 | DIRECT/HOUSE、MBL/HBL 完整内容和页面 | 阶段 1 | 箱货分配、外部状态、Switch |
-| 3 | 货物/集装箱/HBL 定量分配和守恒 | 阶段 2 | 拆票和财务重分摊 |
+| 3 | 货物/集装箱/HBL 定量分配和守恒 | 阶段 2 | 拆票和后置财务调整 |
 | 4 | 部分拆票、整票改配、谱系和门禁 | 阶段 3 | 后置拆票的全部外部更正自动化 |
 | 5 | 不可变版本、唯一订单锁、钉钉解锁、改单与 Switch | 阶段 4 | 船司/海关真实外部接口、SI/VGM/舱单人工状态 |
-| 6 | 多计费对象、共享成本分摊和财务集成 | 阶段 5 | 未批准的自动会计口径 |
 
 ## 迁移与回滚
 
