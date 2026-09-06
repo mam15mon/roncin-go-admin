@@ -634,3 +634,39 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 25: 修复移动端页面布局与顶栏显示异常
+<!-- trellis-session: v=2 fp=3a1d1827ed2afac9 -->
+
+**Date**: 2026-09-06
+**Task**: 修复移动端页面布局与顶栏显示异常
+**Branch**: `main`
+
+### Summary
+
+排查并修复手机等移动窄屏下顶栏 180px 错位留白、标题单字折行溢出遮挡及桌面下拉菜单挤压问题，完善多视口响应式体验。
+
+### Main Changes
+
+- 在 web/src/global.less 中重置移动窄屏（<= 768px）下顶栏定位为 left: 0 与 width: 100%，消除左侧 180px 空白
+- 为 .roncin-header-title-text 添加单行截断与省略号规则，防止标题字数较多时单字竖排溢出
+- 移动端隐藏顶栏冗余的 HeaderMenus 快捷下拉，并在极窄屏（<= 480px）下收起用户文字名仅保留头像徽标
+- 将 PageHeaderShell 行内 height: 52 调整为 minHeight: 52，保证手机换行时高度自适应不溢出
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3c3f4929` | fix(web): 修复移动窄屏视口下顶栏错位留白与标题竖排溢出 |
+| `b2fe7897` | chore(task): archive 09-06-fix-mobile-layout-display |
+
+### Testing
+
+- [OK] 运行 Playwright 多视口自动化验证脚本，覆盖 iPhone 13、iPhone SE、Pixel 7 与 Desktop 1280，断言移动与桌面端无样式回归
+- [OK] 运行 web 端全量 74 个测试套件，276 个用例全部通过
+- [OK] 通过 tsc --noEmit、biome lint 与 git diff --check 质量门禁
+
+### Status
+
+[OK] **Completed**

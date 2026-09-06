@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 24
-- **Last Active**: 2026-09-05
+- **Total Sessions**: 25
+- **Last Active**: 2026-09-06
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~636 | Active |
+| `journal-1.md` | ~672 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 25 | 2026-09-06 | 修复移动端页面布局与顶栏显示异常 | `3c3f4929`, `b2fe7897` | `main` |
 | 24 | 2026-09-05 | 修复订单切换跨单状态污染 | `52ccb139` | `main` |
 | 23 | 2026-09-05 | 统一订单页面面包屑导航与页签复用收紧 | `9f2d6bd7` | `main` |
 | 22 | 2026-09-05 | 统一全站 TagsView 页面复用规则 | `fc22bc91` | `main` |
