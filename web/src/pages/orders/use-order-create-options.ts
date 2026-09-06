@@ -1,7 +1,10 @@
+import { useModel } from '@umijs/max';
 import { App } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
-import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { unwrapList } from '@/utils/api';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  clearOrderMasterDataCache,
+  getOrderPersonnelOptions,
+} from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
@@ -15,7 +18,14 @@ import type { SelectOption } from './templates';
 /** 新建订单页的主数据与人员候选项加载。 */
 export function useOrderCreateOptions(config?: OrderKindConfig) {
   const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const isUserLoaded = Boolean(initialState?.currentUser);
+
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
     [],
   );
@@ -31,24 +41,54 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
     API.OrderPersonnelOption[]
   >([]);
 
+  const activeOrgIdRef = useRef(organizationId);
+  activeOrgIdRef.current = organizationId;
+  const requestIdRef = useRef(0);
+
+  const retry = useCallback(() => {
+    if (organizationId) {
+      clearOrderMasterDataCache(organizationId);
+    }
+    setReloadKey((k) => k + 1);
+  }, [organizationId]);
+
   useEffect(() => {
     if (!config) {
       setLoading(false);
+      setError(null);
       return;
     }
 
+    if (isUserLoaded && !organizationId) {
+      setLoading(false);
+      setError(new Error('缺少当前组织，无法加载订单主数据'));
+      return;
+    }
+
+    if (!organizationId) {
+      setLoading(true);
+      return;
+    }
+
+    const currentRequestId = ++requestIdRef.current;
+    const currentOrgId = organizationId;
     setLoading(true);
+    setError(null);
+
     Promise.all([
-      fetchOrderMasterData(),
+      fetchOrderMasterData(organizationId, config.category),
       config.category === 'sea'
-        ? orderServiceListPersonnelOptions({
-            businessType: config.businessType,
-            page: 1,
-            pageSize: 200,
-          })
-        : Promise.resolve({ data: [] }),
+        ? getOrderPersonnelOptions(organizationId, config.businessType)
+        : Promise.resolve([]),
     ])
       .then(([masterData, personnelResponse]) => {
+        if (
+          currentRequestId !== requestIdRef.current ||
+          currentOrgId !== activeOrgIdRef.current
+        ) {
+          return;
+        }
+
         const nextServiceTypeOptions =
           config.category === 'sea'
             ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
@@ -77,15 +117,34 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
             }))
             .filter((item) => item.value !== ''),
         );
-        setPersonnelOptions(unwrapList(personnelResponse));
+        setPersonnelOptions(personnelResponse);
+        setError(null);
       })
-      .catch((error: Error) => {
-        message.error(error.message || '加载订单主数据失败');
+      .catch((err: Error) => {
+        if (
+          currentRequestId !== requestIdRef.current ||
+          currentOrgId !== activeOrgIdRef.current
+        ) {
+          return;
+        }
+        setError(err);
+        message.error(err.message || '加载订单主数据失败');
       })
       .finally(() => {
-        setLoading(false);
+        if (
+          currentRequestId === requestIdRef.current &&
+          currentOrgId === activeOrgIdRef.current
+        ) {
+          setLoading(false);
+        }
       });
-  }, [config, message]);
+  }, [
+    config,
+    isUserLoaded,
+    message,
+    organizationId,
+    reloadKey,
+  ]);
 
   const searchLocations = useCallback(
     (keyword?: string) =>
@@ -95,6 +154,8 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
 
   return {
     loading,
+    error,
+    retry,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,

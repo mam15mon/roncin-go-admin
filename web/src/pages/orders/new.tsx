@@ -1,7 +1,7 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useModel, useParams } from '@umijs/max';
-import { App, Button, Result } from 'antd';
+import { App, Button, Card, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
 import {
@@ -40,6 +40,8 @@ export default function NewOrderPage() {
 
   const {
     loading,
+    error,
+    retry,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
@@ -185,6 +187,50 @@ export default function NewOrderPage() {
     return <Result status="403" title="无权新建此类订单" />;
   }
 
+  if (error && !loading) {
+    return (
+      <PageContainer
+        title={false}
+        breadcrumbRender={false}
+        header={{
+          title: false,
+          breadcrumb: undefined,
+          style: { padding: 0 },
+        }}
+        style={{ marginTop: 0 }}
+      >
+        <OrderPageHeader
+          page="create"
+          orderKind={config.kind}
+          subTitle="填写业务委托与配舱信息"
+        />
+        <Card
+          variant="borderless"
+          style={{
+            marginTop: 12,
+            borderRadius: 8,
+            border: '1px solid #f0f0f0',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <Result
+            status="warning"
+            title="主数据加载失败"
+            subTitle={
+              error.message ||
+              '无法获取创建订单所需的主数据，请检查网络或重试。'
+            }
+            extra={
+              <Button type="primary" onClick={retry}>
+                重新加载
+              </Button>
+            }
+          />
+        </Card>
+      </PageContainer>
+    );
+  }
+
   const handleFinish = async (values: CreateOrderFormValues) => {
     try {
       await orderServiceCreateOrder(buildCreateOrderPayload(values, config));
@@ -198,9 +244,9 @@ export default function NewOrderPage() {
     }
   };
 
-  const defaultCargoCategoryId = cargoCategoryOptions.find(
-    (item) => item.label === '普货',
-  )?.value;
+  const defaultCargoCategoryId =
+    cargoCategoryOptions.find((item) => item.code === 'GENERAL')?.value ??
+    cargoCategoryOptions.find((item) => item.label === '普货')?.value;
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>

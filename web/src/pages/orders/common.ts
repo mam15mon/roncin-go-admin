@@ -1,9 +1,13 @@
 import {
   masterDataServiceListAirports,
   masterDataServiceListItems,
-  masterDataServiceListOptions,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
+import {
+  getCachedAirports,
+  getCachedPorts,
+  getMasterDataOptions,
+} from '@/utils/order-options-cache';
 import {
   businessTypeMeta,
   makeValueEnum,
@@ -269,18 +273,21 @@ export async function searchOrderLocations(
   return [...regions, ...transportLocations].filter((item) => item.value !== '');
 }
 
-export async function fetchOrderMasterData() {
-  const [optionsResponse, portsResponse, airportsResponse, currencies] =
-    await Promise.all([
-      masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
-      masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
-      getCurrencies(),
-    ]);
+export async function fetchOrderMasterData(
+  organizationId: string,
+  category?: 'sea' | 'air',
+) {
+  const shouldLoadPorts = !category || category === 'sea';
+  const shouldLoadAirports = !category || category === 'air';
 
-  const masterOptions = unwrapList(optionsResponse);
-  const ports = unwrapList(portsResponse);
-  const airports = unwrapList(airportsResponse);
+  const [masterOptions, ports, airports, currencies] = await Promise.all([
+    getMasterDataOptions(organizationId),
+    shouldLoadPorts ? getCachedPorts(organizationId) : Promise.resolve([]),
+    shouldLoadAirports
+      ? getCachedAirports(organizationId)
+      : Promise.resolve([]),
+    getCurrencies(),
+  ]);
   const serviceTypeOptions = masterOptions
     .filter(
       (item) =>

@@ -1,3 +1,4 @@
+import { useModel } from '@umijs/max';
 import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { OrderBusinessType } from '@/enums.generated';
@@ -5,12 +6,10 @@ import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCarg
 import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
 import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
-import {
-  orderServiceGetOrder,
-  orderServiceListPersonnelOptions,
-} from '@/services/roncin/orderService';
+import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { unwrapList } from '@/utils/api';
+import { getOrderPersonnelOptions } from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
@@ -27,6 +26,10 @@ export function useOrderDetailData(
   config?: OrderKindConfig,
 ) {
   const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const activeOrgIdRef = useRef(organizationId);
+  activeOrgIdRef.current = organizationId;
   const businessType =
     config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
   const category = config?.category;
@@ -61,7 +64,7 @@ export function useOrderDetailData(
   >([]);
 
   const loadData = useCallback(async () => {
-    if (!orderId || !config) {
+    if (!orderId || !config || !organizationId) {
       setOrder(undefined);
       setLoadedOrderId(undefined);
       setFailedOrderId(undefined);
@@ -75,6 +78,7 @@ export function useOrderDetailData(
     }
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
+    const currentOrgId = organizationId;
     setLoading(true);
     setFailedOrderId(undefined);
     try {
@@ -88,14 +92,10 @@ export function useOrderDetailData(
         milestonesRes,
         personnelRes,
       ] = await Promise.all([
-        fetchOrderMasterData(),
+        fetchOrderMasterData(organizationId, category),
         category === 'sea'
-          ? orderServiceListPersonnelOptions({
-              businessType,
-              page: 1,
-              pageSize: 200,
-            })
-          : Promise.resolve({ data: [] }),
+          ? getOrderPersonnelOptions(organizationId, businessType)
+          : Promise.resolve([]),
         orderServiceGetOrder({ id: orderId }),
         orderShippingDocumentServiceListShippingDocuments({ orderId }),
         orderContainerServiceListContainers({ orderId }),
@@ -106,7 +106,8 @@ export function useOrderDetailData(
 
       if (
         currentRequestId !== requestIdRef.current ||
-        currentOrderId !== activeOrderIdRef.current
+        currentOrderId !== activeOrderIdRef.current ||
+        currentOrgId !== activeOrgIdRef.current
       ) {
         return;
       }
@@ -139,7 +140,7 @@ export function useOrderDetailData(
           }))
           .filter((item) => item.value !== ''),
       );
-      setPersonnelOptions(unwrapList(personnelOptRes));
+      setPersonnelOptions(personnelOptRes);
 
       setOrder(orderRes.data);
       setLoadedOrderId(currentOrderId);
@@ -151,7 +152,8 @@ export function useOrderDetailData(
     } catch (error: any) {
       if (
         currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
+        currentOrderId === activeOrderIdRef.current &&
+        currentOrgId === activeOrgIdRef.current
       ) {
         setOrder(undefined);
         setLoadedOrderId(undefined);
@@ -166,12 +168,13 @@ export function useOrderDetailData(
     } finally {
       if (
         currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
+        currentOrderId === activeOrderIdRef.current &&
+        currentOrgId === activeOrgIdRef.current
       ) {
         setLoading(false);
       }
     }
-  }, [businessType, category, message, orderId, config]);
+  }, [businessType, category, message, orderId, config, organizationId]);
 
   useEffect(() => {
     void loadData();

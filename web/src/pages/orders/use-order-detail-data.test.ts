@@ -6,6 +6,30 @@ import { parseOrderKind } from './common';
 import { useOrderDetailData } from './use-order-detail-data';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 
+let mockOrgId: string | undefined = 'org-1';
+
+vi.mock('@umijs/max', () => ({
+  useModel: (model: string) => {
+    if (model === '@@initialState') {
+      return {
+        initialState: {
+          currentUser: mockOrgId
+            ? {
+                id: 'user-1',
+                currentOrganization: { id: mockOrgId, name: '测试组织' },
+              }
+            : undefined,
+        },
+      };
+    }
+    return {};
+  },
+}));
+
+vi.mock('@/utils/order-options-cache', () => ({
+  getOrderPersonnelOptions: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),
@@ -72,6 +96,7 @@ function deferred<T>() {
 describe('useOrderDetailData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockOrgId = 'org-1';
   });
 
   it('成功加载指定订单的数据', async () => {
@@ -188,5 +213,40 @@ describe('useOrderDetailData', () => {
     // 依然保持为 B，A 的旧响应被成功丢弃
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
     expect(result.current.order?.orderNo).toBe('ORDER-B');
+  });
+
+  it('组织切换时，旧组织的延迟响应不得写入当前详情状态', async () => {
+    const deferOrgA = deferred<any>();
+    const deferOrgB = deferred<any>();
+
+    mockGetOrder
+      .mockImplementationOnce(() => deferOrgA.promise)
+      .mockImplementationOnce(() => deferOrgB.promise);
+
+    mockOrgId = 'org-A';
+    const { result, rerender } = renderHook(
+      () => useOrderDetailData('ord-1', config),
+      { wrapper },
+    );
+
+    expect(result.current.loading).toBe(true);
+
+    // 切换到组织 B
+    mockOrgId = 'org-B';
+    rerender();
+
+    // 组织 B 先返回
+    deferOrgB.resolve({
+      data: { id: 'ord-1', orderNo: 'SE-B', version: '1' },
+    });
+    await waitFor(() => expect(result.current.order?.orderNo).toBe('SE-B'));
+
+    // 随后组织 A 迟到的响应到达
+    deferOrgA.resolve({
+      data: { id: 'ord-1', orderNo: 'SE-A', version: '1' },
+    });
+
+    // 依然保持 B，A 被成功丢弃
+    await waitFor(() => expect(result.current.order?.orderNo).toBe('SE-B'));
   });
 });

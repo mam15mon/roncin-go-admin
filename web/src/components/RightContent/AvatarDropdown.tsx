@@ -6,6 +6,7 @@ import { history, useModel } from '@umijs/max';
 import { Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition } from 'react';
 import { authServiceLogout } from '@/services/roncin/authService';
+import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import HeaderDropdown from '../HeaderDropdown';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -26,11 +27,16 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   if (!initialState?.currentUser) return <Spin size="small" />;
 
   const handleLogout = async () => {
-    await authServiceLogout({});
-    startTransition(() => {
-      setInitialState((state) => ({ ...state, currentUser: undefined }));
-    });
-    history.replace('/user/login');
+    try {
+      await authServiceLogout({});
+      clearOrderMasterDataCache();
+      startTransition(() => {
+        setInitialState((state) => ({ ...state, currentUser: undefined }));
+      });
+      history.replace('/user/login');
+    } catch {
+      // 登出失败时保持当前会话缓存与登录态不变
+    }
   };
 
   const displayName =

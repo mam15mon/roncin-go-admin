@@ -1,14 +1,16 @@
+import { useModel } from '@umijs/max';
 import { App } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
-import {
-  masterDataServiceListAirports,
-  masterDataServiceListOptions,
-  masterDataServiceListPorts,
-} from '@/services/roncin/masterDataService';
+import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { unwrapList } from '@/utils/api';
 import { searchPartnerOptions } from '@/utils/options';
+import {
+  getCachedAirports,
+  getCachedPorts,
+  getMasterDataOptions,
+} from '@/utils/order-options-cache';
 import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
@@ -19,16 +21,36 @@ import {
 /** 订单列表页共用的主数据加载、候选项派生与联想搜索逻辑。 */
 export function useOrderListResources(config?: OrderKindConfig) {
   const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const activeOrgIdRef = useRef(organizationId);
+  activeOrgIdRef.current = organizationId;
+  const requestIdRef = useRef(0);
+
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
   const [ports, setPorts] = useState<API.Port[]>([]);
   const [airports, setAirports] = useState<API.Airport[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (!organizationId) {
+      setMasterOptions([]);
+      setPorts([]);
+      setAirports([]);
+      return;
+    }
+
+    const currentRequestId = ++requestIdRef.current;
+    const currentOrgId = organizationId;
+    const shouldLoadPorts = !config?.category || config.category === 'sea';
+    const shouldLoadAirports = !config?.category || config.category === 'air';
+
     void Promise.all([
-      masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
-      masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
+      getMasterDataOptions(organizationId),
+      shouldLoadPorts ? getCachedPorts(organizationId) : Promise.resolve([]),
+      shouldLoadAirports
+        ? getCachedAirports(organizationId)
+        : Promise.resolve([]),
       searchPartnerOptions(undefined, {
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
         enabled: true,
@@ -36,14 +58,20 @@ export function useOrderListResources(config?: OrderKindConfig) {
     ])
       .then(
         ([
-          optionsResponse,
-          portsResponse,
-          airportsResponse,
+          options,
+          portsList,
+          airportsList,
           partnerOptions,
         ]) => {
-          setMasterOptions(unwrapList(optionsResponse));
-          setPorts(unwrapList(portsResponse));
-          setAirports(unwrapList(airportsResponse));
+          if (
+            currentRequestId !== requestIdRef.current ||
+            currentOrgId !== activeOrgIdRef.current
+          ) {
+            return;
+          }
+          setMasterOptions(options);
+          setPorts(portsList);
+          setAirports(airportsList);
           setCustomerMap((prev) => {
             const next = { ...prev };
             for (const option of partnerOptions) {
@@ -53,10 +81,16 @@ export function useOrderListResources(config?: OrderKindConfig) {
           });
         },
       )
-      .catch((error: Error) =>
-        message.error(error.message || '订单主数据加载失败'),
-      );
-  }, [message]);
+      .catch((error: Error) => {
+        if (
+          currentRequestId !== requestIdRef.current ||
+          currentOrgId !== activeOrgIdRef.current
+        ) {
+          return;
+        }
+        message.error(error.message || '订单主数据加载失败');
+      });
+  }, [config?.category, message, organizationId]);
 
   const containerSpecOptions = masterOptions
     .filter(

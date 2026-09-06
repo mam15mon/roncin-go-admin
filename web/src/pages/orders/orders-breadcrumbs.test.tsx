@@ -21,12 +21,17 @@ vi.mock('@umijs/max', () => ({
   }),
   useModel: () => ({
     initialState: {
-      currentUser: { id: 'user-1' },
+      currentUser: {
+        id: 'user-1',
+        displayName: '测试用户',
+        currentOrganization: { id: 'org-1', name: '总公司' },
+      },
     },
   }),
   history: {
     push: (path: string) => mockPush(path),
   },
+  request: vi.fn(),
   Link: ({ to, children, ...rest }: any) => (
     <a href={to} {...rest}>
       {children}

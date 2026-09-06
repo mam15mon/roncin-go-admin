@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataKind } from '@/enums.generated';
+import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import {
   MASTER_DATA_KINDS,
   ORDER_KIND_CONFIGS,
@@ -66,6 +67,7 @@ const numericMasterData = [
 describe('orders common and config', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearOrderMasterDataCache();
     listOptions.mockResolvedValue({ data: numericMasterData });
     listPorts.mockResolvedValue({ data: [] });
     listAirports.mockResolvedValue({ data: [] });
@@ -171,7 +173,7 @@ describe('orders common and config', () => {
   });
 
   it('使用真实数字枚举构建完整订单主数据候选', async () => {
-    const result = await fetchOrderMasterData();
+    const result = await fetchOrderMasterData('org-1');
 
     expect(result.serviceTypeOptions).toHaveLength(19);
     expect(requireSeaServiceTypeOptions(result.serviceTypeOptions)[0]).toEqual({
@@ -199,10 +201,28 @@ describe('orders common and config', () => {
       data: numericMasterData.filter((item) => item.code !== 'BOOKING'),
     });
 
-    const result = await fetchOrderMasterData();
+    const result = await fetchOrderMasterData('org-1');
 
     expect(() =>
       requireSeaServiceTypeOptions(result.serviceTypeOptions),
     ).toThrow('缺少海运服务类型主数据：订舱（BOOKING）');
+  });
+
+  it('按需加载：sea 模式仅请求港口，不请求机场', async () => {
+    await fetchOrderMasterData('org-1', 'sea');
+    expect(listPorts).toHaveBeenCalledTimes(1);
+    expect(listAirports).not.toHaveBeenCalled();
+  });
+
+  it('按需加载：air 模式仅请求机场，不请求港口', async () => {
+    await fetchOrderMasterData('org-1', 'air');
+    expect(listAirports).toHaveBeenCalledTimes(1);
+    expect(listPorts).not.toHaveBeenCalled();
+  });
+
+  it('按需加载：未指定 category 时同时请求港口与机场', async () => {
+    await fetchOrderMasterData('org-1');
+    expect(listPorts).toHaveBeenCalledTimes(1);
+    expect(listAirports).toHaveBeenCalledTimes(1);
   });
 });

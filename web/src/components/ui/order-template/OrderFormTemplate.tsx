@@ -1,6 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
-import { Card, Row, Space, Spin, Typography } from 'antd';
+import { Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { SectionCard } from '../page-shell/SectionCard';
 import './OrderFormTemplate.less';
@@ -74,15 +74,33 @@ export function OrderFormTemplate<T>({
       {header}
 
       {loading ? (
-        <Card
-          variant="borderless"
-          style={{ textAlign: 'center', padding: '60px 0', marginTop: 12 }}
-        >
-          <Space vertical size="middle">
-            <Spin size="large" />
-            {loadingTip && <Text type="secondary">{loadingTip}</Text>}
-          </Space>
-        </Card>
+        <div className="roncin-order-form-skeleton" style={{ marginTop: 12 }}>
+          {loadingTip && (
+            <Card
+              variant="borderless"
+              style={{
+                marginBottom: 12,
+                borderRadius: 8,
+                border: '1px solid #f0f0f0',
+                backgroundColor: '#ffffff',
+              }}
+              styles={{ body: { padding: '10px 16px' } }}
+            >
+              <Space size="small" align="center">
+                <Spin size="small" />
+                <Text type="secondary" style={{ fontSize: 13 }}>
+                  {loadingTip}
+                </Text>
+              </Space>
+            </Card>
+          )}
+          <SectionCard title="业务基本信息">
+            <Skeleton active paragraph={{ rows: 3 }} />
+          </SectionCard>
+          <SectionCard title="运输与订舱信息">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </SectionCard>
+        </div>
       ) : (
         <ProForm<T>
           className="roncin-order-form"
