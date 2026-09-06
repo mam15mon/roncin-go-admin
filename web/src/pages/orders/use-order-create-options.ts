@@ -15,6 +15,16 @@ import {
 } from './common';
 import type { SelectOption } from './templates';
 
+type CreateOptionsRequestIdentity = {
+  organizationId: string;
+  category: OrderKindConfig['category'];
+  businessType: OrderKindConfig['businessType'];
+};
+
+type CreateOptionsErrorState = CreateOptionsRequestIdentity & {
+  error: Error;
+};
+
 /** 新建订单页的主数据与人员候选项加载。 */
 export function useOrderCreateOptions(config?: OrderKindConfig) {
   const { message } = App.useApp();
@@ -23,11 +33,12 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
   const isUserLoaded = Boolean(initialState?.currentUser);
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [errorState, setErrorState] = useState<CreateOptionsErrorState | null>(
+    null,
+  );
   const [reloadKey, setReloadKey] = useState(0);
-  const [loadedOrganizationId, setLoadedOrganizationId] = useState<
-    string | null
-  >(null);
+  const [loadedIdentity, setLoadedIdentity] =
+    useState<CreateOptionsRequestIdentity | null>(null);
 
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
     [],
@@ -46,41 +57,52 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
 
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
+  const activeCategoryRef = useRef(config?.category);
+  activeCategoryRef.current = config?.category;
+  const activeBusinessTypeRef = useRef(config?.businessType);
+  activeBusinessTypeRef.current = config?.businessType;
   const requestIdRef = useRef(0);
 
   const retry = useCallback(() => {
     if (organizationId) {
       clearOrderMasterDataCache(organizationId);
     }
-    setLoadedOrganizationId(null);
+    setLoadedIdentity(null);
+    setErrorState(null);
     setReloadKey((k) => k + 1);
   }, [organizationId]);
 
   useEffect(() => {
     if (!config) {
-      setLoadedOrganizationId(null);
+      requestIdRef.current += 1;
+      setLoadedIdentity(null);
       setLoading(false);
-      setError(null);
+      setErrorState(null);
       return;
     }
 
     if (isUserLoaded && !organizationId) {
-      setLoadedOrganizationId(null);
+      requestIdRef.current += 1;
+      setLoadedIdentity(null);
       setLoading(false);
-      setError(new Error('缺少当前组织，无法加载订单主数据'));
+      setErrorState(null);
       return;
     }
 
     if (!organizationId) {
-      setLoadedOrganizationId(null);
+      requestIdRef.current += 1;
+      setLoadedIdentity(null);
       setLoading(true);
+      setErrorState(null);
       return;
     }
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrgId = organizationId;
+    const currentCategory = config.category;
+    const currentBusinessType = config.businessType;
     setLoading(true);
-    setError(null);
+    setErrorState(null);
 
     Promise.all([
       fetchOrderMasterData(organizationId, config.category),
@@ -91,7 +113,9 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
       .then(([masterData, personnelResponse]) => {
         if (
           currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current
+          currentOrgId !== activeOrgIdRef.current ||
+          currentCategory !== activeCategoryRef.current ||
+          currentBusinessType !== activeBusinessTypeRef.current
         ) {
           return;
         }
@@ -125,63 +149,122 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
             .filter((item) => item.value !== ''),
         );
         setPersonnelOptions(personnelResponse);
-        setLoadedOrganizationId(currentOrgId);
-        setError(null);
+        setLoadedIdentity({
+          organizationId: currentOrgId,
+          category: currentCategory,
+          businessType: currentBusinessType,
+        });
+        setErrorState(null);
       })
       .catch((err: Error) => {
         if (
           currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current
+          currentOrgId !== activeOrgIdRef.current ||
+          currentCategory !== activeCategoryRef.current ||
+          currentBusinessType !== activeBusinessTypeRef.current
         ) {
           return;
         }
-        setLoadedOrganizationId(null);
-        setError(err);
+        setLoadedIdentity(null);
+        setErrorState({
+          organizationId: currentOrgId,
+          category: currentCategory,
+          businessType: currentBusinessType,
+          error: err,
+        });
         message.error(err.message || '加载订单主数据失败');
       })
       .finally(() => {
         if (
           currentRequestId === requestIdRef.current &&
-          currentOrgId === activeOrgIdRef.current
+          currentOrgId === activeOrgIdRef.current &&
+          currentCategory === activeCategoryRef.current &&
+          currentBusinessType === activeBusinessTypeRef.current
         ) {
           setLoading(false);
         }
       });
-  }, [
-    config,
-    isUserLoaded,
-    message,
-    organizationId,
-    reloadKey,
-  ]);
+  }, [config, isUserLoaded, message, organizationId, reloadKey]);
+
+  const isIdentityMatched = Boolean(
+    organizationId &&
+      config &&
+      loadedIdentity?.organizationId === organizationId &&
+      loadedIdentity.category === config.category &&
+      loadedIdentity.businessType === config.businessType,
+  );
+  const effectiveLocationOptions = isIdentityMatched ? locationOptions : [];
 
   const searchLocations = useCallback(
-    (keyword?: string) =>
-      searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword),
-    [config?.category],
+    async (keyword?: string) => {
+      const requestOrgId = organizationId;
+      const requestCategory = config?.category;
+      const requestBusinessType = config?.businessType;
+      if (!requestOrgId || !requestCategory || requestBusinessType == null) {
+        return [];
+      }
+
+      if (!keyword?.trim()) {
+        return activeOrgIdRef.current === requestOrgId &&
+          activeCategoryRef.current === requestCategory &&
+          activeBusinessTypeRef.current === requestBusinessType &&
+          loadedIdentity?.organizationId === requestOrgId &&
+          loadedIdentity.category === requestCategory &&
+          loadedIdentity.businessType === requestBusinessType
+          ? locationOptions
+          : [];
+      }
+
+      const options = await searchOrderLocations(requestCategory, keyword);
+      if (
+        activeOrgIdRef.current !== requestOrgId ||
+        activeCategoryRef.current !== requestCategory ||
+        activeBusinessTypeRef.current !== requestBusinessType
+      ) {
+        return [];
+      }
+      return options;
+    },
+    [
+      config?.businessType,
+      config?.category,
+      loadedIdentity,
+      locationOptions,
+      organizationId,
+    ],
   );
 
-  const isOrgMatched = Boolean(
-    organizationId && loadedOrganizationId === organizationId,
-  );
+  const missingOrgError =
+    isUserLoaded && !organizationId
+      ? new Error('缺少当前组织，无法加载订单主数据')
+      : null;
+  const effectiveError =
+    missingOrgError ||
+    (organizationId &&
+    config &&
+    errorState?.organizationId === organizationId &&
+    errorState.category === config.category &&
+    errorState.businessType === config.businessType
+      ? errorState.error
+      : null);
   const effectiveLoading = !config
     ? false
     : isUserLoaded && !organizationId
       ? false
-      : error
+      : effectiveError
         ? false
-        : !isOrgMatched || loading;
+        : !isIdentityMatched || loading;
 
   return {
     loading: effectiveLoading,
-    error,
+    error: effectiveError,
     retry,
-    serviceTypeOptions: isOrgMatched ? serviceTypeOptions : [],
-    cargoCategoryOptions: isOrgMatched ? cargoCategoryOptions : [],
-    locationOptions: isOrgMatched ? locationOptions : [],
+    serviceTypeOptions: isIdentityMatched ? serviceTypeOptions : [],
+    cargoCategoryOptions: isIdentityMatched ? cargoCategoryOptions : [],
+    locationOptions: effectiveLocationOptions,
     searchLocations,
-    currencyOptions: isOrgMatched ? currencyOptions : [],
-    containerSpecOptions: isOrgMatched ? containerSpecOptions : [],
-    personnelOptions: isOrgMatched ? personnelOptions : [],
+    currencyOptions: isIdentityMatched ? currencyOptions : [],
+    containerSpecOptions: isIdentityMatched ? containerSpecOptions : [],
+    personnelOptions: isIdentityMatched ? personnelOptions : [],
   };
 }

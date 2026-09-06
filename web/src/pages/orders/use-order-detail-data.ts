@@ -20,6 +20,14 @@ import {
 } from './common';
 import type { SelectOption } from './templates';
 
+type DetailErrorState = {
+  organizationId: string;
+  orderId: string;
+  category: OrderKindConfig['category'];
+  businessType: number;
+  error: Error;
+};
+
 /** 订单详情页的订单档案与主数据候选项加载。 */
 export function useOrderDetailData(
   orderId: string | undefined,
@@ -34,14 +42,19 @@ export function useOrderDetailData(
   const businessType =
     config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
   const category = config?.category;
+  const activeCategoryRef = useRef(category);
+  activeCategoryRef.current = category;
+  const activeBusinessTypeRef = useRef(businessType);
+  activeBusinessTypeRef.current = businessType;
   const [loading, setLoading] = useState(Boolean(config && orderId));
   const [order, setOrder] = useState<API.Order>();
   const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
   const [loadedOrganizationId, setLoadedOrganizationId] = useState<
     string | undefined
   >();
-  const [failedOrderId, setFailedOrderId] = useState<string | undefined>();
-  const [error, setError] = useState<Error | null>(null);
+  const [loadedCategory, setLoadedCategory] = useState<typeof category>();
+  const [loadedBusinessType, setLoadedBusinessType] = useState<number>();
+  const [errorState, setErrorState] = useState<DetailErrorState | null>(null);
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
   const requestIdRef = useRef(0);
@@ -70,11 +83,13 @@ export function useOrderDetailData(
 
   const loadData = useCallback(async () => {
     if (!orderId || !config) {
+      requestIdRef.current += 1;
       setOrder(undefined);
       setLoadedOrderId(undefined);
       setLoadedOrganizationId(undefined);
-      setFailedOrderId(undefined);
-      setError(null);
+      setLoadedCategory(undefined);
+      setLoadedBusinessType(undefined);
+      setErrorState(null);
       setShippingDocs([]);
       setContainers([]);
       setCargoItems([]);
@@ -85,11 +100,13 @@ export function useOrderDetailData(
     }
 
     if (isUserLoaded && !organizationId) {
+      requestIdRef.current += 1;
       setOrder(undefined);
       setLoadedOrderId(undefined);
       setLoadedOrganizationId(undefined);
-      setFailedOrderId(undefined);
-      setError(new Error('缺少当前组织，无法加载订单详情'));
+      setLoadedCategory(undefined);
+      setLoadedBusinessType(undefined);
+      setErrorState(null);
       setShippingDocs([]);
       setContainers([]);
       setCargoItems([]);
@@ -100,16 +117,19 @@ export function useOrderDetailData(
     }
 
     if (!organizationId) {
+      requestIdRef.current += 1;
       setLoading(true);
+      setErrorState(null);
       return;
     }
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
     const currentOrgId = organizationId;
+    const currentCategory = config.category;
+    const currentBusinessType = businessType;
     setLoading(true);
-    setFailedOrderId(undefined);
-    setError(null);
+    setErrorState(null);
     try {
       const [
         masterData,
@@ -136,7 +156,9 @@ export function useOrderDetailData(
       if (
         currentRequestId !== requestIdRef.current ||
         currentOrderId !== activeOrderIdRef.current ||
-        currentOrgId !== activeOrgIdRef.current
+        currentOrgId !== activeOrgIdRef.current ||
+        currentCategory !== activeCategoryRef.current ||
+        currentBusinessType !== activeBusinessTypeRef.current
       ) {
         return;
       }
@@ -174,7 +196,9 @@ export function useOrderDetailData(
       setOrder(orderRes.data);
       setLoadedOrderId(currentOrderId);
       setLoadedOrganizationId(currentOrgId);
-      setError(null);
+      setLoadedCategory(currentCategory);
+      setLoadedBusinessType(currentBusinessType);
+      setErrorState(null);
       setShippingDocs(unwrapList(docsRes));
       setContainers(unwrapList(cntrsRes));
       setCargoItems(unwrapList(cargoRes));
@@ -184,13 +208,22 @@ export function useOrderDetailData(
       if (
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current &&
-        currentOrgId === activeOrgIdRef.current
+        currentOrgId === activeOrgIdRef.current &&
+        currentCategory === activeCategoryRef.current &&
+        currentBusinessType === activeBusinessTypeRef.current
       ) {
         setOrder(undefined);
         setLoadedOrderId(undefined);
         setLoadedOrganizationId(undefined);
-        setFailedOrderId(currentOrderId);
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setLoadedCategory(undefined);
+        setLoadedBusinessType(undefined);
+        setErrorState({
+          organizationId: currentOrgId,
+          orderId: currentOrderId,
+          category: currentCategory,
+          businessType: currentBusinessType,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
         setShippingDocs([]);
         setContainers([]);
         setCargoItems([]);
@@ -202,7 +235,9 @@ export function useOrderDetailData(
       if (
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current &&
-        currentOrgId === activeOrgIdRef.current
+        currentOrgId === activeOrgIdRef.current &&
+        currentCategory === activeCategoryRef.current &&
+        currentBusinessType === activeBusinessTypeRef.current
       ) {
         setLoading(false);
       }
@@ -221,32 +256,83 @@ export function useOrderDetailData(
     void loadData();
   }, [loadData]);
 
-  const searchLocations = useCallback(
-    (keyword?: string) =>
-      category ? searchOrderLocations(category, keyword) : Promise.resolve([]),
-    [category],
-  );
-
   const isOrderMatched = Boolean(
     orderId &&
-    organizationId &&
-    loadedOrderId === orderId &&
-    loadedOrganizationId === organizationId,
+      organizationId &&
+      loadedOrderId === orderId &&
+      loadedOrganizationId === organizationId &&
+      loadedCategory === category &&
+      loadedBusinessType === businessType,
   );
   const effectiveOrder = isOrderMatched ? order : undefined;
   const effectiveShippingDocs = isOrderMatched ? shippingDocs : [];
   const effectivePersonnel = isOrderMatched ? personnel : [];
-  const isPending =
-    Boolean(config && orderId && organizationId) &&
-    !isOrderMatched &&
-    failedOrderId !== orderId;
+  const effectiveLocationOptions = isOrderMatched ? locationOptions : [];
+
+  const searchLocations = useCallback(
+    async (keyword?: string) => {
+      const requestOrgId = organizationId;
+      const requestCategory = category;
+      const requestBusinessType = businessType;
+      if (!requestOrgId || !requestCategory) {
+        return [];
+      }
+
+      if (!keyword?.trim()) {
+        return activeOrgIdRef.current === requestOrgId &&
+          activeCategoryRef.current === requestCategory &&
+          activeBusinessTypeRef.current === requestBusinessType &&
+          activeOrderIdRef.current === orderId &&
+          loadedOrderId === orderId &&
+          loadedOrganizationId === requestOrgId &&
+          loadedCategory === requestCategory &&
+          loadedBusinessType === requestBusinessType
+          ? locationOptions
+          : [];
+      }
+
+      const options = await searchOrderLocations(requestCategory, keyword);
+      if (
+        activeOrgIdRef.current !== requestOrgId ||
+        activeCategoryRef.current !== requestCategory ||
+        activeBusinessTypeRef.current !== requestBusinessType ||
+        activeOrderIdRef.current !== orderId
+      ) {
+        return [];
+      }
+      return options;
+    },
+    [
+      category,
+      businessType,
+      loadedCategory,
+      loadedBusinessType,
+      loadedOrderId,
+      loadedOrganizationId,
+      locationOptions,
+      orderId,
+      organizationId,
+    ],
+  );
 
   const missingOrgError =
     isUserLoaded && !organizationId
       ? new Error('缺少当前组织，无法加载订单详情')
       : null;
   const effectiveError =
-    missingOrgError || (failedOrderId === orderId ? error : null);
+    missingOrgError ||
+    (organizationId &&
+    orderId &&
+    errorState?.organizationId === organizationId &&
+    errorState.orderId === orderId &&
+    errorState.category === category &&
+    errorState.businessType === businessType
+      ? errorState.error
+      : null);
+  const isPending =
+    Boolean(config && orderId && organizationId) &&
+    !isOrderMatched &&
+    !effectiveError;
 
   const effectiveLoading = !config
     ? false
@@ -266,7 +352,7 @@ export function useOrderDetailData(
     personnel: effectivePersonnel,
     serviceTypeOptions: isOrderMatched ? serviceTypeOptions : [],
     cargoCategoryOptions: isOrderMatched ? cargoCategoryOptions : [],
-    locationOptions: isOrderMatched ? locationOptions : [],
+    locationOptions: effectiveLocationOptions,
     searchLocations,
     currencyOptions: isOrderMatched ? currencyOptions : [],
     containerSpecOptions: isOrderMatched ? containerSpecOptions : [],

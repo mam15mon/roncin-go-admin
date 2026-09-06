@@ -12,9 +12,9 @@ import {
   getMasterDataOptions,
 } from '@/utils/order-options-cache';
 import {
+  isMasterDataKind,
   MASTER_DATA_KINDS,
   type OrderKindConfig,
-  isMasterDataKind,
   searchOrderLocations,
 } from './common';
 
@@ -25,6 +25,13 @@ export function useOrderListResources(config?: OrderKindConfig) {
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
+  const locationCategory = config?.category === 'air' ? 'air' : 'sea';
+  const activeCategoryRef = useRef(locationCategory);
+  activeCategoryRef.current = locationCategory;
+  const personnelBusinessType =
+    config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE;
+  const activeBusinessTypeRef = useRef(personnelBusinessType);
+  activeBusinessTypeRef.current = personnelBusinessType;
   const requestIdRef = useRef(0);
 
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
@@ -61,30 +68,23 @@ export function useOrderListResources(config?: OrderKindConfig) {
         enabled: true,
       }),
     ])
-      .then(
-        ([
-          options,
-          portsList,
-          airportsList,
-          partnerOptions,
-        ]) => {
-          if (
-            currentRequestId !== requestIdRef.current ||
-            currentOrgId !== activeOrgIdRef.current
-          ) {
-            return;
-          }
-          setLoadedOrganizationId(currentOrgId);
-          setMasterOptions(options);
-          setPorts(portsList);
-          setAirports(airportsList);
-          const nextCustomerMap: Record<string, string> = {};
-          for (const option of partnerOptions) {
-            nextCustomerMap[option.value] = option.label;
-          }
-          setCustomerMap(nextCustomerMap);
-        },
-      )
+      .then(([options, portsList, airportsList, partnerOptions]) => {
+        if (
+          currentRequestId !== requestIdRef.current ||
+          currentOrgId !== activeOrgIdRef.current
+        ) {
+          return;
+        }
+        setLoadedOrganizationId(currentOrgId);
+        setMasterOptions(options);
+        setPorts(portsList);
+        setAirports(airportsList);
+        const nextCustomerMap: Record<string, string> = {};
+        for (const option of partnerOptions) {
+          nextCustomerMap[option.value] = option.label;
+        }
+        setCustomerMap(nextCustomerMap);
+      })
       .catch((error: Error) => {
         if (
           currentRequestId !== requestIdRef.current ||
@@ -180,24 +180,31 @@ export function useOrderListResources(config?: OrderKindConfig) {
 
   const searchCustomers = async (keyword?: string) => {
     const requestOrgId = organizationId;
+    if (!requestOrgId) {
+      return [];
+    }
     const options = await searchPartnerOptions(keyword, {
       role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
       enabled: true,
     });
-    if (requestOrgId && activeOrgIdRef.current === requestOrgId) {
-      setCustomerMap((prev) => {
-        const next = { ...prev };
-        for (const option of options) {
-          next[option.value] = option.label;
-        }
-        return next;
-      });
+    if (activeOrgIdRef.current !== requestOrgId) {
+      return [];
     }
+    setCustomerMap((prev) => {
+      const next = { ...prev };
+      for (const option of options) {
+        next[option.value] = option.label;
+      }
+      return next;
+    });
     return options;
   };
 
   const searchOrderPorts = async (keyword?: string) => {
     const requestOrgId = organizationId;
+    if (!requestOrgId) {
+      return [];
+    }
     const response = await masterDataServiceListPorts({
       page: 1,
       pageSize: 50,
@@ -205,42 +212,65 @@ export function useOrderListResources(config?: OrderKindConfig) {
       enabled: true,
     });
     const result = unwrapList(response);
-    if (requestOrgId && activeOrgIdRef.current === requestOrgId) {
-      setPorts((current) => {
-        const merged = new Map(
-          current.filter((item) => item.id).map((item) => [item.id, item]),
-        );
-        for (const item of result) {
-          if (item.id) merged.set(item.id, item);
-        }
-        return [...merged.values()];
-      });
+    if (activeOrgIdRef.current !== requestOrgId) {
+      return [];
     }
+    setPorts((current) => {
+      const merged = new Map(
+        current.filter((item) => item.id).map((item) => [item.id, item]),
+      );
+      for (const item of result) {
+        if (item.id) merged.set(item.id, item);
+      }
+      return [...merged.values()];
+    });
     return result.map((item) => ({
       label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
       value: item.id ?? '',
     }));
   };
 
-  const searchLocations = (keyword?: string) =>
-    searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword);
+  const searchLocations = async (keyword?: string) => {
+    const requestOrgId = organizationId;
+    const requestCategory = locationCategory;
+    if (!requestOrgId) {
+      return [];
+    }
+    const options = await searchOrderLocations(requestCategory, keyword);
+    return activeOrgIdRef.current === requestOrgId &&
+      activeCategoryRef.current === requestCategory
+      ? options
+      : [];
+  };
 
   const searchOrderCarriers = async (keyword?: string) => {
-    return searchPartnerOptions(keyword, {
+    const requestOrgId = organizationId;
+    if (!requestOrgId) {
+      return [];
+    }
+    const options = await searchPartnerOptions(keyword, {
       role: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
       enabled: true,
     });
+    return activeOrgIdRef.current === requestOrgId ? options : [];
   };
 
   const searchOrderPersonnel = async (keyword?: string) => {
     const requestOrgId = organizationId;
+    const requestBusinessType = personnelBusinessType;
+    if (!requestOrgId) {
+      return [];
+    }
     const response = await orderServiceListPersonnelOptions({
-      businessType: config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE,
+      businessType: requestBusinessType,
       keyword,
       page: 1,
       pageSize: 50,
     });
-    if (requestOrgId && activeOrgIdRef.current !== requestOrgId) {
+    if (
+      activeOrgIdRef.current !== requestOrgId ||
+      activeBusinessTypeRef.current !== requestBusinessType
+    ) {
       return [];
     }
     return unwrapList(response)

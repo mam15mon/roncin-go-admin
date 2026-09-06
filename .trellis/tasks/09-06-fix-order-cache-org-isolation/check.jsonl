@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "复核前端边界与检查清单"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "复核远程联想和 Hook 行为"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "复核组织隔离和请求状态"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "执行最终质量门禁"}

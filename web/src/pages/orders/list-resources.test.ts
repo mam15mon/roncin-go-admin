@@ -1,14 +1,20 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import React from 'react';
 import { App } from 'antd';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
+import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
+import { searchPartnerOptions } from '@/utils/options';
 import {
   getCachedAirports,
   getCachedPorts,
   getMasterDataOptions,
 } from '@/utils/order-options-cache';
-import { searchPartnerOptions } from '@/utils/options';
-import { type OrderKindConfig, parseOrderKind } from './common';
+import {
+  type OrderKindConfig,
+  parseOrderKind,
+  searchOrderLocations,
+} from './common';
 import { useOrderListResources } from './list-resources';
 
 let mockCurrentUser: any = {
@@ -45,10 +51,21 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
+vi.mock('./common', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./common')>();
+  return {
+    ...actual,
+    searchOrderLocations: vi.fn(),
+  };
+});
+
 const mockGetMasterData = vi.mocked(getMasterDataOptions);
 const mockGetPorts = vi.mocked(getCachedPorts);
 const mockGetAirports = vi.mocked(getCachedAirports);
 const mockSearchPartners = vi.mocked(searchPartnerOptions);
+const mockSearchPorts = vi.mocked(masterDataServiceListPorts);
+const mockSearchLocations = vi.mocked(searchOrderLocations);
+const mockSearchPersonnel = vi.mocked(orderServiceListPersonnelOptions);
 
 const seaConfig = parseOrderKind('sea-export') as OrderKindConfig;
 
@@ -77,14 +94,29 @@ describe('useOrderListResources', () => {
       { id: 'item-1', name: '上海', code: 'SHA', kind: 1, enabled: true },
     ] as any);
     mockGetPorts.mockResolvedValue([
-      { id: 'port-1', nameZh: '洋山', nameEn: 'Yangshan', unLocode: 'CNYAS', enabled: true } as any,
+      {
+        id: 'port-1',
+        nameZh: '洋山',
+        nameEn: 'Yangshan',
+        unLocode: 'CNYAS',
+        enabled: true,
+      } as any,
     ]);
     mockGetAirports.mockResolvedValue([
-      { id: 'air-1', nameZh: '浦东', nameEn: 'Pudong', iataCode: 'PVG', enabled: true } as any,
+      {
+        id: 'air-1',
+        nameZh: '浦东',
+        nameEn: 'Pudong',
+        iataCode: 'PVG',
+        enabled: true,
+      } as any,
     ]);
     mockSearchPartners.mockResolvedValue([
       { label: '阿里巴巴', value: 'cust-1' },
     ]);
+    mockSearchPorts.mockResolvedValue({ data: [] });
+    mockSearchLocations.mockResolvedValue([]);
+    mockSearchPersonnel.mockResolvedValue({ data: [] });
   });
 
   it('缺少当前组织时，不触发主数据请求，候选项置空', async () => {
@@ -98,6 +130,20 @@ describe('useOrderListResources', () => {
     expect(result.current.ports).toEqual([]);
     expect(result.current.airports).toEqual([]);
     expect(mockGetMasterData).not.toHaveBeenCalled();
+
+    await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
+    await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
+    await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
+    await expect(result.current.searchOrderCarriers('承运人')).resolves.toEqual(
+      [],
+    );
+    await expect(result.current.searchOrderPersonnel('人员')).resolves.toEqual(
+      [],
+    );
+    expect(mockSearchPartners).not.toHaveBeenCalled();
+    expect(mockSearchPorts).not.toHaveBeenCalled();
+    expect(mockSearchLocations).not.toHaveBeenCalled();
+    expect(mockSearchPersonnel).not.toHaveBeenCalled();
   });
 
   it('sea 模式按需拉取：仅拉取港口，不拉取机场', async () => {
@@ -245,7 +291,7 @@ describe('useOrderListResources', () => {
     );
   });
 
-  it('在旧组织下触发的搜索若迟到返回，不得写入新组织的 customerMap 或 ports', async () => {
+  it('组织切换后，五类迟到搜索均向调用方返回空数组且不得写入新组织状态', async () => {
     mockCurrentUser = {
       id: 'user-1',
       currentOrganization: { id: 'org-A', name: '组织A' },
@@ -257,30 +303,108 @@ describe('useOrderListResources', () => {
 
     await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
 
-    // 在组织 A 下触发 searchCustomers
-    let resolveCustomer!: (val: any) => void;
-    mockSearchPartners.mockImplementationOnce(
-      () =>
-        new Promise((res) => {
-          resolveCustomer = res;
-        }),
-    );
-    const searchPromise = result.current.searchCustomers('慢速客户');
+    const customerSearch = deferred<{ label: string; value: string }[]>();
+    const carrierSearch = deferred<{ label: string; value: string }[]>();
+    const portSearch = deferred<any>();
+    const locationSearch = deferred<{ label: string; value: string }[]>();
+    const personnelSearch = deferred<any>();
+    mockSearchPartners
+      .mockImplementationOnce(() => customerSearch.promise)
+      .mockImplementationOnce(() => carrierSearch.promise);
+    mockSearchPorts.mockImplementationOnce(() => portSearch.promise);
+    mockSearchLocations.mockImplementationOnce(() => locationSearch.promise);
+    mockSearchPersonnel.mockImplementationOnce(() => personnelSearch.promise);
 
-    // 切换到组织 B
+    const searchPromises = [
+      result.current.searchCustomers('慢速客户'),
+      result.current.searchOrderPorts('慢速港口'),
+      result.current.searchLocations('慢速地点'),
+      result.current.searchOrderCarriers('慢速承运人'),
+      result.current.searchOrderPersonnel('慢速人员'),
+    ];
+
     mockCurrentUser = {
       id: 'user-1',
       currentOrganization: { id: 'org-B', name: '组织B' },
     };
     rerender();
 
-    // 组织 A 的搜索完成返回
+    let searchResults: unknown[] = [];
     await act(async () => {
-      resolveCustomer([{ label: '旧组织客户', value: 'old-cust' }]);
-      await searchPromise;
+      customerSearch.resolve([{ label: '旧组织客户', value: 'old-customer' }]);
+      carrierSearch.resolve([{ label: '旧组织承运人', value: 'old-carrier' }]);
+      portSearch.resolve({
+        data: [
+          {
+            id: 'old-port',
+            nameZh: '旧港口',
+            nameEn: 'Old Port',
+            unLocode: 'CNOLD',
+          },
+        ],
+      });
+      locationSearch.resolve([{ label: '旧组织地点', value: 'old-location' }]);
+      personnelSearch.resolve({
+        data: [
+          {
+            userId: 'old-user',
+            displayName: '旧组织人员',
+            organizationId: 'org-A',
+            organizationName: '组织A',
+          },
+        ],
+      });
+      searchResults = await Promise.all(searchPromises);
     });
 
-    // customerMap 不得写入 old-cust
-    expect(result.current.customerMap['old-cust']).toBeUndefined();
+    expect(searchResults).toEqual([[], [], [], [], []]);
+    expect(result.current.customerMap['old-customer']).toBeUndefined();
+    expect(result.current.ports).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'old-port' })]),
+    );
+  });
+
+  it('同组织切换业务配置时，地点和人员搜索拒绝旧类别的迟到结果', async () => {
+    let currentConfig = seaConfig;
+    const { result, rerender } = renderHook(
+      () => useOrderListResources(currentConfig),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
+
+    const locationSearch = deferred<{ label: string; value: string }[]>();
+    const personnelSearch = deferred<any>();
+    mockSearchLocations.mockImplementationOnce(() => locationSearch.promise);
+    mockSearchPersonnel.mockImplementationOnce(() => personnelSearch.promise);
+    const locationPromise = result.current.searchLocations('旧海运地点');
+    const personnelPromise = result.current.searchOrderPersonnel('旧海运人员');
+    expect(mockSearchLocations).toHaveBeenLastCalledWith('sea', '旧海运地点');
+    expect(mockSearchPersonnel).toHaveBeenLastCalledWith(
+      expect.objectContaining({ businessType: seaConfig.businessType }),
+    );
+
+    currentConfig = {
+      ...seaConfig,
+      category: 'air',
+      businessType: seaConfig.businessType + 1,
+    };
+    rerender();
+
+    locationSearch.resolve([
+      { label: '旧海运地点', value: 'old-sea-location' },
+    ]);
+    personnelSearch.resolve({
+      data: [
+        {
+          userId: 'old-sea-user',
+          displayName: '旧海运人员',
+          organizationId: 'org-1',
+          organizationName: '测试组织1',
+        },
+      ],
+    });
+
+    await expect(locationPromise).resolves.toEqual([]);
+    await expect(personnelPromise).resolves.toEqual([]);
   });
 });

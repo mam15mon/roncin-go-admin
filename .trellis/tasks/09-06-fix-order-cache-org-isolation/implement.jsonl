@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端任务边界与预开发清单"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "订单 Hook 与服务端关键字联想约定"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "请求结果与本地状态边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "分阶段测试与前端验证命令"}

@@ -1,15 +1,16 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import React from 'react';
 import { App } from 'antd';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearOrderMasterDataCache,
   getOrderPersonnelOptions,
 } from '@/utils/order-options-cache';
 import {
-  type OrderKindConfig,
   fetchOrderMasterData,
+  type OrderKindConfig,
   parseOrderKind,
+  searchOrderLocations,
 } from './common';
 import { useOrderCreateOptions } from './use-order-create-options';
 
@@ -39,10 +40,12 @@ vi.mock('./common', async (importOriginal) => {
   return {
     ...actual,
     fetchOrderMasterData: vi.fn(),
+    searchOrderLocations: vi.fn(),
   };
 });
 
 const mockFetchMasterData = vi.mocked(fetchOrderMasterData);
+const mockSearchLocations = vi.mocked(searchOrderLocations);
 const mockGetPersonnel = vi.mocked(getOrderPersonnelOptions);
 const mockClearCache = vi.mocked(clearOrderMasterDataCache);
 
@@ -104,6 +107,7 @@ describe('useOrderCreateOptions', () => {
       currentOrganization: { id: 'org-1', name: '组织1' },
     };
     mockFetchMasterData.mockResolvedValue(mockMasterDataSuccess);
+    mockSearchLocations.mockResolvedValue([]);
     mockGetPersonnel.mockResolvedValue([
       { userId: 'u-1', displayName: '张三', organizationId: 'org-1' } as any,
     ]);
@@ -149,7 +153,10 @@ describe('useOrderCreateOptions', () => {
       expect.objectContaining({ userId: 'u-1', displayName: '张三' }),
     ]);
     expect(mockFetchMasterData).toHaveBeenCalledWith('org-1', 'sea');
-    expect(mockGetPersonnel).toHaveBeenCalledWith('org-1', seaConfig.businessType);
+    expect(mockGetPersonnel).toHaveBeenCalledWith(
+      'org-1',
+      seaConfig.businessType,
+    );
   });
 
   it('接口加载失败时设置 error 状态', async () => {
@@ -283,5 +290,138 @@ describe('useOrderCreateOptions', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.cargoCategoryOptions[0].value).toBe('cargo-B');
+  });
+
+  it('地点搜索为空或仅含空白时复用当前组织首批候选项，不发起远程请求', async () => {
+    const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await expect(result.current.searchLocations()).resolves.toEqual(
+      mockMasterDataSuccess.seaLocationOptions,
+    );
+    await expect(result.current.searchLocations('   ')).resolves.toEqual(
+      mockMasterDataSuccess.seaLocationOptions,
+    );
+    expect(mockSearchLocations).not.toHaveBeenCalled();
+  });
+
+  it('地点搜索有真实关键字时继续调用服务端联想', async () => {
+    mockSearchLocations.mockResolvedValueOnce([
+      { label: '上海港远程结果', value: 'remote-port' },
+    ]);
+    const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await expect(result.current.searchLocations(' shang ')).resolves.toEqual([
+      { label: '上海港远程结果', value: 'remote-port' },
+    ]);
+    expect(mockSearchLocations).toHaveBeenCalledWith('sea', ' shang ');
+  });
+
+  it('组织切换后，旧组织迟到的地点搜索结果对调用方返回空数组', async () => {
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    const { result, rerender } = renderHook(
+      () => useOrderCreateOptions(seaConfig),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const delayedSearch = deferred<{ label: string; value: string }[]>();
+    mockSearchLocations.mockImplementationOnce(() => delayedSearch.promise);
+    const searchPromise = result.current.searchLocations('旧组织港口');
+
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    delayedSearch.resolve([{ label: '旧组织港口', value: 'old-port' }]);
+    await expect(searchPromise).resolves.toEqual([]);
+  });
+
+  it('同组织切换业务配置时，空查询和旧配置迟到搜索均不得返回旧候选项', async () => {
+    let currentConfig = seaConfig;
+    const { result, rerender } = renderHook(
+      () => useOrderCreateOptions(currentConfig),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const delayedSearch = deferred<{ label: string; value: string }[]>();
+    mockSearchLocations.mockImplementationOnce(() => delayedSearch.promise);
+    const searchPromise = result.current.searchLocations('旧业务地点');
+
+    const nextLoad = deferred<any>();
+    mockFetchMasterData.mockImplementationOnce(() => nextLoad.promise);
+    currentConfig = {
+      ...seaConfig,
+      businessType: seaConfig.businessType + 1,
+    };
+    rerender();
+
+    await expect(result.current.searchLocations('   ')).resolves.toEqual([]);
+    delayedSearch.resolve([{ label: '旧业务地点', value: 'old-location' }]);
+    await expect(searchPromise).resolves.toEqual([]);
+
+    nextLoad.resolve(mockMasterDataSuccess);
+    await waitFor(() => expect(result.current.loading).toBe(false));
+  });
+
+  it('组织 A 加载失败后切到 B，B 首次渲染立即隐藏 A 的错误并进入加载态', async () => {
+    const orgBRequest = deferred<any>();
+    mockFetchMasterData
+      .mockRejectedValueOnce(new Error('组织 A 主数据失败'))
+      .mockImplementationOnce(() => orgBRequest.promise);
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-A', name: '组织A' },
+    };
+    const renderSnapshots: Array<{
+      organizationId?: string;
+      loading: boolean;
+      error: Error | null;
+    }> = [];
+    const { result, rerender } = renderHook(
+      () => {
+        const state = useOrderCreateOptions(seaConfig);
+        renderSnapshots.push({
+          organizationId: mockCurrentUser.currentOrganization?.id,
+          loading: state.loading,
+          error: state.error,
+        });
+        return state;
+      },
+      { wrapper },
+    );
+
+    await waitFor(() =>
+      expect(result.current.error?.message).toBe('组织 A 主数据失败'),
+    );
+
+    mockCurrentUser = {
+      id: 'user-1',
+      currentOrganization: { id: 'org-B', name: '组织B' },
+    };
+    rerender();
+
+    const firstOrgBSnapshot = renderSnapshots.find(
+      (snapshot) => snapshot.organizationId === 'org-B',
+    );
+    expect(firstOrgBSnapshot).toEqual(
+      expect.objectContaining({ loading: true, error: null }),
+    );
+
+    orgBRequest.resolve(mockMasterDataSuccess);
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 });
