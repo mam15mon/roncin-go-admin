@@ -856,3 +856,45 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 34: 海运分单模型简化：重构拆票链路并实现共享箱工作台
+<!-- trellis-session: v=2 fp=a0d616136996746a -->
+
+**Date**: 2026-09-07
+**Task**: 海运分单模型简化：重构拆票链路并实现共享箱工作台
+**Branch**: `main`
+
+### Summary
+
+重构拆票 Proto 与领域契约，彻底移除旧箱货分配入参并支持货物件重尺切分与新 HBL 录入；完成拆票 Preview 与 Execute 逻辑及守恒校验；实现跨订单共享箱工作台并补齐前后端定向测试与数据库集成验证。
+
+### Main Changes
+
+- 契约重构：更新 sea_order_change.proto，移除旧 cargo_allocation_version 与 house_bill_ids，引入货物件重尺分配与新 HBL
+- 业务与仓储：重写 ExecuteSplit/PreviewSplit，支持独占箱移动、件重尺切分、共享箱分配跨票迁移与残余删除
+- 前端拆票：重构 orders/split.tsx，支持逐行货物件重尺输入、独占箱归属与实时守恒校验
+- 前端工作台：新建 SeaSharedContainerDrawer.tsx 支持跨订单共享箱货物分配、快捷填满、保存草稿、确认生效与撤回
+- 测试与迁移：修复 20260907140000 迁移脚本；修复 sea_document_test 集成测试；补齐前端单测
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e0dabf6` | feat: 重构海运拆票闭环并实现跨订单共享箱工作台 |
+
+### Testing
+
+- [OK] go -C server test ./internal/biz/... ./internal/service/...
+- [OK] RONCIN_INTEGRATION_DATABASE_SOURCE=... go -C server test -v -count=1 -run TestSeaDocumentPostgresIntegration ./internal/data/...
+- [OK] pnpm --dir web tsc --noEmit
+- [OK] pnpm --dir web exec vitest run src/pages/orders/components/drawers/SeaSharedContainerDrawer.test.tsx src/pages/orders/split.test.tsx
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 重写并恢复 3 份被 //go:build ignore 排除的 Data 集成测试 (sea_cargo_allocation_test, sea_document_change_integration_test, sea_order_change_integration_test)
+- 运行全套代码门禁 (check:server, check:web) 并归档任务

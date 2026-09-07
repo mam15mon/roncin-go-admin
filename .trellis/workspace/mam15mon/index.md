@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 33
+- **Total Sessions**: 34
 - **Last Active**: 2026-09-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~858 | Active |
+| `journal-1.md` | ~900 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 34 | 2026-09-07 | 海运分单模型简化：重构拆票链路并实现共享箱工作台 | `3e0dabf6` | `main` |
 | 33 | 2026-09-07 | 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过 | `372966b0`, `020dfe43`, `09c01592`, `871650c8`, `0fc306ea`, `5ae8e62b`, `c7c63a10`, `092fdef8`, `0eda90d9`, `dc5cfa27`, `c8409caa` | `main` |
 | 32 | 2026-09-07 | 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛 | `66389349` | `main` |
 | 31 | 2026-09-06 | 海运出口船公司切换为 ShippingLine | `834ff883` | `main` |
