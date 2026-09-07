@@ -42,6 +42,7 @@ import AbnormalCasePanel, {
 import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
+import SameBatchOrdersSection from './components/detail/SameBatchOrdersSection';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import {
   buildInitialValues,
@@ -301,6 +302,16 @@ export default function OrderDetailPage() {
     () => [
       ...(config?.category === 'sea' && orderId
         ? [
+            {
+              key: 'same-batch-orders',
+              title: '同批订单',
+              content: (
+                <SameBatchOrdersSection
+                  orderId={orderId}
+                  orderKind={config.kind}
+                />
+              ),
+            },
             {
               key: 'sea-order-change-history',
               title: '拆票与改配记录',
