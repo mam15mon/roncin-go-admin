@@ -84,6 +84,20 @@ func (r *seaSharedContainerRepo) Get(ctx context.Context, organizationID, anchor
 	return r.getByEntity(ctx, client, row)
 }
 
+// reload 供写事务提交后按组织与 ID 重读响应；锚点校验已在事务锁内完成，
+// 重读不再重复可能失败的授权锚点检查，避免“提交成功、响应失败”。
+func (r *seaSharedContainerRepo) reload(ctx context.Context, organizationID, id uuid.UUID) (*biz.SeaSharedContainer, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	row, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+	}
+	return r.getByEntity(ctx, client, row)
+}
+
 func (r *seaSharedContainerRepo) ListCandidates(ctx context.Context, organizationID, anchorOrderID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*biz.SeaSharedContainerCandidateOrder, int, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -186,7 +200,7 @@ func (r *seaSharedContainerRepo) Create(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, anchorOrderID, input.ID)
+	return r.reload(ctx, organizationID, input.ID)
 }
 
 func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, input *biz.SeaSharedContainer, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
@@ -195,30 +209,16 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if err != nil {
 			return err
 		}
-		located, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).Only(txCtx)
-		if err != nil {
-			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
-		}
-		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, located.TransportExecutionID); err != nil {
-			return err
-		}
-		executionIDs := sortedUUIDs([]uuid.UUID{located.TransportExecutionID, input.TransportExecutionID})
-		executions, err := client.SeaTransportExecution.Query().Where(seatransportexecutionent.IDIn(executionIDs...), seatransportexecutionent.OrganizationIDEQ(organizationID)).Order(seatransportexecutionent.ByID()).ForUpdate().All(txCtx)
-		if err != nil {
-			return err
-		}
-		if len(executions) != len(executionIDs) {
-			return biz.ErrSeaSharedContainerInvalidReference
-		}
-		if err := validateExecutionHasHouseOrders(txCtx, client, organizationID, input.TransportExecutionID); err != nil {
-			return err
-		}
 		if err := validateSharedContainerSpec(txCtx, client, organizationID, input.ContainerSpecID); err != nil {
 			return err
 		}
+		// 锁定目标箱后，以锁内实体校验锚点归属，消除定位与锁定之间的 TOCTOU 窗口
 		container, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+		}
+		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, container.TransportExecutionID); err != nil {
+			return err
 		}
 		if container.Version != expectedVersion {
 			return biz.ErrSeaSharedContainerConflict
@@ -226,12 +226,16 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if container.Status != seasharedcontainerent.StatusDRAFT {
 			return biz.ErrSeaSharedContainerStatusConflict
 		}
+		// 运输执行对共享箱不可变：普通编辑不得更换航次；确需移动时另行设计显式命令
+		if container.TransportExecutionID != input.TransportExecutionID {
+			return biz.ErrSeaSharedContainerInvalidReference
+		}
+		if _, err = client.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(container.TransportExecutionID), seatransportexecutionent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx); err != nil {
+			return mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
+		}
 		allocations, err := client.SeaSharedContainerAllocation.Query().Where(seasharedcontainerallocationent.SharedContainerIDEQ(id), seasharedcontainerallocationent.OrganizationIDEQ(organizationID)).Order(seasharedcontainerallocationent.ByID()).ForUpdate().All(txCtx)
 		if err != nil {
 			return err
-		}
-		if len(allocations) > 0 && container.TransportExecutionID != input.TransportExecutionID {
-			return biz.ErrSeaSharedContainerInvalidReference
 		}
 		allocated := biz.SeaSharedQuantity{}
 		for _, allocation := range allocations {
@@ -248,8 +252,19 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if allocated.Exceeds(biz.SeaSharedQuantity{PackageCount: input.PackageCount, GrossWeightKg: input.GrossWeightKg, VolumeCbm: input.VolumeCbm}) {
 			return biz.ErrSeaSharedContainerExceeded
 		}
-		_, err = client.SeaSharedContainer.UpdateOne(container).SetTransportExecutionID(input.TransportExecutionID).SetContainerNo(input.ContainerNo).SetContainerSpecID(input.ContainerSpecID).ClearSealNo().SetNillableSealNo(input.SealNo).SetPackageCount(int(input.PackageCount)).SetGrossWeightKg(input.GrossWeightKg.StringFixed(3)).SetVolumeCbm(input.VolumeCbm.StringFixed(6)).ClearNote().SetNillableNote(input.Note).SetVersion(container.Version + 1).Save(txCtx)
-		if err != nil {
+		updateBuilder := client.SeaSharedContainer.UpdateOne(container).SetContainerNo(input.ContainerNo).SetContainerSpecID(input.ContainerSpecID).SetPackageCount(int(input.PackageCount)).SetGrossWeightKg(input.GrossWeightKg.StringFixed(3)).SetVolumeCbm(input.VolumeCbm.StringFixed(6)).SetVersion(container.Version + 1)
+		// Clear+Set 同列会触发 multiple assignments，可选字段按输入二选一
+		if input.SealNo != nil {
+			updateBuilder.SetSealNo(*input.SealNo)
+		} else {
+			updateBuilder.ClearSealNo()
+		}
+		if input.Note != nil {
+			updateBuilder.SetNote(*input.Note)
+		} else {
+			updateBuilder.ClearNote()
+		}
+		if _, err = updateBuilder.Save(txCtx); err != nil {
 			return mapEntConstraint(err, "sea_shared_container_execution_no", biz.ErrSeaSharedContainerExists)
 		}
 		addVersionAudit(audit, container.Version, container.Version+1)
@@ -258,7 +273,7 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, anchorOrderID, id)
+	return r.reload(ctx, organizationID, id)
 }
 
 func (r *seaSharedContainerRepo) Delete(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) error {
@@ -300,14 +315,14 @@ func (r *seaSharedContainerRepo) SaveDraft(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, anchorOrderID, id)
+	return r.reload(ctx, organizationID, id)
 }
 
 // Confirm 确认共享箱：inputs 非 nil 时按该输入在同一事务内保存并严格守恒确认，
 // 为 nil 时按当前已保存分配合成输入，并携带各实体实际版本进入同一套乐观锁校验。
 func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	if inputs == nil {
-		current, err := r.Get(ctx, organizationID, anchorOrderID, id)
+		current, err := r.reload(ctx, organizationID, id)
 		if err != nil {
 			return nil, err
 		}
@@ -328,7 +343,7 @@ func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, ac
 	if err := r.mutateAllocations(ctx, organizationID, anchorOrderID, id, expectedVersion, inputs, true, actorID, audit); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, anchorOrderID, id)
+	return r.reload(ctx, organizationID, id)
 }
 
 func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
@@ -360,7 +375,7 @@ func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, a
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, anchorOrderID, id)
+	return r.reload(ctx, organizationID, id)
 }
 
 func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organizationID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, confirm bool, actorID uuid.UUID, audit *biz.AuditEvent) error {
@@ -701,7 +716,9 @@ func ensureSharedAnchorExecution(ctx context.Context, client *ent.Client, organi
 		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 	).Only(ctx)
 	if err != nil {
-		return biz.ErrSeaSharedContainerInvalidReference
+		// 仅“无活动 Link / 多条活动 Link”映射为业务引用错误；
+		// 连接中断、超时等数据库故障原样上抛，不伪装成客户端参数问题。
+		return mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
 	}
 	if link.TransportExecutionID != executionID {
 		return biz.ErrSeaSharedContainerInvalidReference

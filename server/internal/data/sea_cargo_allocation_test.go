@@ -427,6 +427,22 @@ func TestSeaSharedContainerAnchorExecutionBinding(t *testing.T) {
 		t.Fatalf("锚点订单不在目标执行上时创建共享箱应拒绝, 实际: %v", err)
 	}
 
+	// 2b. Update / Withdraw 同样必须拒绝错误锚点
+	_, err = f.uc.Update(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version, &biz.SeaSharedContainer{
+		TransportExecutionID: f.teID,
+		ContainerNo:          "ANCHORUPD" + uuid.New().String()[:6],
+		ContainerSpecID:      f.specID,
+		PackageCount:         10,
+		GrossWeightKg:        decimal.NewFromInt(100),
+		VolumeCbm:            decimal.NewFromInt(1),
+	})
+	if err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时更新应拒绝, 实际: %v", err)
+	}
+	if _, err = f.uc.Withdraw(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时撤回应拒绝, 实际: %v", err)
+	}
+
 	// 4. 正确锚点（order1 → teID）操作不受影响（order2 已切到其他执行，仅保留其自身分配）
 	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, []*biz.SeaSharedContainerAllocationInput{f.fullAllocationInputs()[0]})
 	if err != nil {
@@ -434,6 +450,74 @@ func TestSeaSharedContainerAnchorExecutionBinding(t *testing.T) {
 	}
 	if draft.Version != container.Version+1 {
 		t.Fatalf("锚点一致时保存草稿版本应递增: %d", draft.Version)
+	}
+}
+
+// TestSeaSharedContainerUpdateImmutableExecution 验证普通编辑不得更换运输执行：
+// 空共享箱携带其他 TE 的更新必须拒绝且零写入；同 TE 的正常编辑成功。
+func TestSeaSharedContainerUpdateImmutableExecution(t *testing.T) {
+	f := newSharedContainerFixture(t)
+	ctx := context.Background()
+	container := f.createContainer(t, "05")
+
+	otherTE, err := f.data.db.SeaTransportExecution.Create().
+		SetOrganizationID(f.orgID).
+		SetShippingLineID(f.mblShippingLineID(t)).
+		SetVesselName("IMMUTABLE OTHER VESSEL").
+		SetVoyageNo("004E").
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建其他运输执行失败: %v", err)
+	}
+
+	auditCountBefore, err := f.data.db.AuditLog.Query().Where().Count(ctx)
+	if err != nil {
+		t.Fatalf("统计审计失败: %v", err)
+	}
+
+	// 空共享箱尝试把 TE 从 teID 改到 otherTE：必须拒绝且零写入
+	_, err = f.uc.Update(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, &biz.SeaSharedContainer{
+		TransportExecutionID: otherTE.ID,
+		ContainerNo:          container.ContainerNo,
+		ContainerSpecID:      f.specID,
+		PackageCount:         10,
+		GrossWeightKg:        decimal.NewFromInt(100),
+		VolumeCbm:            decimal.NewFromInt(1),
+	})
+	if err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("空共享箱更换运输执行应返回 ErrSeaSharedContainerInvalidReference, 实际: %v", err)
+	}
+	after, err := f.data.db.SeaSharedContainer.Get(ctx, container.ID)
+	if err != nil {
+		t.Fatalf("读取共享箱失败: %v", err)
+	}
+	if after.TransportExecutionID != f.teID || after.Version != container.Version || after.ContainerNo != container.ContainerNo {
+		t.Fatalf("被拒绝的更新不得产生任何写入: te=%v version=%d no=%s", after.TransportExecutionID, after.Version, after.ContainerNo)
+	}
+	auditCountAfter, err := f.data.db.AuditLog.Query().Where().Count(ctx)
+	if err != nil || auditCountAfter != auditCountBefore {
+		t.Fatalf("被拒绝的更新不得写入审计: before=%d after=%d err=%v", auditCountBefore, auditCountAfter, err)
+	}
+
+	// 同 TE 的普通编辑成功，且响应重读不再制造锚点失败
+	updated, err := f.uc.Update(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, &biz.SeaSharedContainer{
+		TransportExecutionID: f.teID,
+		ContainerNo:          "IMMUTABLEOK1",
+		ContainerSpecID:      f.specID,
+		SealNo:               stringPtr("SL-909"),
+		PackageCount:         200,
+		GrossWeightKg:        decimal.NewFromInt(2000),
+		VolumeCbm:            decimal.NewFromInt(20),
+	})
+	if err != nil {
+		t.Fatalf("同运输执行普通编辑应成功: %v", err)
+	}
+	if updated.Version != container.Version+1 || updated.ContainerNo != "IMMUTABLEOK1" || updated.TransportExecutionID != f.teID {
+		t.Fatalf("普通编辑结果异常: %+v", updated)
+	}
+	if updated.SealNo == nil || *updated.SealNo != "SL-909" {
+		t.Fatalf("铅封号未更新: %+v", updated.SealNo)
 	}
 }
 
@@ -449,6 +533,17 @@ func TestSeaSharedContainerConfirmStaleEntityVersions(t *testing.T) {
 		t.Fatalf("保存完整草稿失败: %v", err)
 	}
 
+	auditCountBefore, err := f.data.db.AuditLog.Query().Count(ctx)
+	if err != nil {
+		t.Fatalf("统计审计失败: %v", err)
+	}
+	allocSnapshotBefore, err := f.data.db.SeaSharedContainerAllocation.Query().
+		Where(seasharedcontainerallocationent.SharedContainerIDEQ(container.ID)).
+		Order(seasharedcontainerallocationent.ByID()).All(ctx)
+	if err != nil || len(allocSnapshotBefore) != 2 {
+		t.Fatalf("读取分配快照失败: len=%d err=%v", len(allocSnapshotBefore), err)
+	}
+
 	assertConflictAndZeroWrite := func(label string, mutate func(), restore func()) {
 		t.Helper()
 		mutate()
@@ -461,9 +556,22 @@ func TestSeaSharedContainerConfirmStaleEntityVersions(t *testing.T) {
 		if getErr != nil || scAfter.Status != seasharedcontainerent.StatusDRAFT || scAfter.Version != draft.Version {
 			t.Fatalf("%s 冲突后共享箱不应被改写: status=%v version=%d err=%v", label, scAfter.Status, scAfter.Version, getErr)
 		}
-		allocCount, _ := f.data.db.SeaSharedContainerAllocation.Query().Where(seasharedcontainerallocationent.SharedContainerIDEQ(container.ID)).Count(ctx)
-		if allocCount != 2 {
-			t.Fatalf("%s 冲突后分配不应被改写: %d", label, allocCount)
+		allocAfter, allocErr := f.data.db.SeaSharedContainerAllocation.Query().
+			Where(seasharedcontainerallocationent.SharedContainerIDEQ(container.ID)).
+			Order(seasharedcontainerallocationent.ByID()).All(ctx)
+		if allocErr != nil || len(allocAfter) != len(allocSnapshotBefore) {
+			t.Fatalf("%s 冲突后分配不应被改写: len=%d err=%v", label, len(allocAfter), allocErr)
+		}
+		for i, alloc := range allocAfter {
+			before := allocSnapshotBefore[i]
+			if alloc.ID != before.ID || alloc.PackageCount != before.PackageCount ||
+				alloc.GrossWeightKg != before.GrossWeightKg || alloc.VolumeCbm != before.VolumeCbm || alloc.Version != before.Version {
+				t.Fatalf("%s 冲突后分配内容被改写: before=%+v after=%+v", label, before, alloc)
+			}
+		}
+		auditCount, auditErr := f.data.db.AuditLog.Query().Count(ctx)
+		if auditErr != nil || auditCount != auditCountBefore {
+			t.Fatalf("%s 冲突后不得写入审计: before=%d after=%d err=%v", label, auditCountBefore, auditCount, auditErr)
 		}
 	}
 

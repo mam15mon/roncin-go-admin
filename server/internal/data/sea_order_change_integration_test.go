@@ -1212,7 +1212,8 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		}
 	})
 
-	// N. 拆票与共享箱删除并发：固定 SharedContainer→Allocation 锁序，不出现数据库死锁
+	// N. 拆票与共享箱删除并发（冒烟）：barrier 起跑最大化锁交错；断言无数据库死锁，
+	// 且删除在任何交错下都不得成功（状态冲突或版本冲突），拆票成功时共享箱版本恰好递增一次
 	t.Run("拆票与共享箱删除并发无死锁", func(t *testing.T) {
 		sharedUC := biz.NewSeaSharedContainerUsecase(NewSeaSharedContainerRepo(env.data))
 		for round := 0; round < 3; round++ {
@@ -1224,19 +1225,24 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				label string
 				err   error
 			}
+			// barrier：两个事务在同一时刻起跑，最大化共享箱/分配锁的交错窗口
+			start := make(chan struct{})
 			resultsChan := make(chan outcome, 2)
 			var wg sync.WaitGroup
 			wg.Add(2)
 			go func() {
 				defer wg.Done()
+				<-start
 				_, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, input)
 				resultsChan <- outcome{label: "split", err: err}
 			}()
 			go func() {
 				defer wg.Done()
+				<-start
 				err := sharedUC.Delete(ctx, env.orgID, env.userID, f.order.ID, f.sharedContainerID, f.sharedContainerVer)
 				resultsChan <- outcome{label: "delete", err: err}
 			}()
+			close(start)
 			wg.Wait()
 			close(resultsChan)
 
@@ -1248,11 +1254,16 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 				}
 			}
 			splitErr, deleteErr := byLabel["split"], byLabel["delete"]
-			// 拆票结果只能是成功或稳定业务冲突；删除在存在分配时只能是状态冲突
+			// 拆票结果只能是成功或稳定业务冲突
 			if splitErr != nil && kratoserrors.Reason(splitErr) != "SEA_ORDER_SPLIT_VERSION_CONFLICT" {
 				t.Fatalf("第 %d 轮拆票返回非预期错误: %v", round, splitErr)
 			}
-			if deleteErr != nil && deleteErr != biz.ErrSeaSharedContainerStatusConflict && deleteErr != biz.ErrSeaSharedContainerConflict {
+			// 删除在任一交错下都不允许成功：先拿锁则因存在分配返回状态冲突，
+			// 后拿锁则因拆票递增共享箱版本返回版本冲突
+			if deleteErr == nil {
+				t.Fatalf("第 %d 轮删除不应成功（共享箱始终存在分配或版本被拆票递增）", round)
+			}
+			if deleteErr != biz.ErrSeaSharedContainerStatusConflict && deleteErr != biz.ErrSeaSharedContainerConflict {
 				t.Fatalf("第 %d 轮删除返回非预期错误: %v", round, deleteErr)
 			}
 			// 拆票成功时受影响共享箱版本恰好递增一次，物理箱未被删除

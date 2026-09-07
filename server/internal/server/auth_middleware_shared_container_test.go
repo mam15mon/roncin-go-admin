@@ -174,8 +174,11 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			{"ListSeaSharedContainerCandidates", &orderv1.ListSeaSharedContainerCandidatesRequest{TransportExecutionId: uuid.New().String()}},
 			{"CreateSeaSharedContainer", &orderv1.CreateSeaSharedContainerRequest{}},
 			{"GetSeaSharedContainer", &orderv1.GetSeaSharedContainerRequest{Id: containerID.String()}},
+			{"UpdateSeaSharedContainer", &orderv1.UpdateSeaSharedContainerRequest{Id: containerID.String(), ExpectedVersion: 1}},
 			{"DeleteSeaSharedContainer", &orderv1.DeleteSeaSharedContainerRequest{Id: containerID.String(), ExpectedVersion: 1}},
+			{"SaveSeaSharedContainerAllocationsDraft", &orderv1.SaveSeaSharedContainerAllocationsDraftRequest{Id: containerID.String(), ExpectedVersion: 1}},
 			{"ConfirmSeaSharedContainer", &orderv1.ConfirmSeaSharedContainerRequest{Id: containerID.String(), ExpectedVersion: 1}},
+			{"WithdrawSeaSharedContainer", &orderv1.WithdrawSeaSharedContainerRequest{Id: containerID.String(), ExpectedVersion: 1}},
 		}
 		for _, tc := range requests {
 			principal := principalWith(access.OrderContainerRead, true)
@@ -183,6 +186,60 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			if state.called {
 				t.Fatalf("%s 缺少 order_id 时不应进入 handler", tc.operation)
 			}
+		}
+	})
+
+	t.Run("跨组织主体经真实中间件切换到锚点订单组织", func(t *testing.T) {
+		orgA := uuid.New()
+		orgB := uuid.New()
+		anchorOrderB := &biz.Order{ID: uuid.New(), OrganizationID: orgB, BusinessType: biz.OrderBusinessSE}
+		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)
+		principal := &biz.Principal{
+			// 当前主体组织是 A，通过组织访问授权操作锚点订单所在组织 B
+			Organization: biz.Organization{ID: orgA},
+			Permissions:  []string{permission},
+			RoleScopes: []biz.RoleScope{
+				{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
+			},
+			RolePermissions: map[string]map[string]struct{}{
+				"operator": {permission: {}},
+			},
+			OrderOrganizationAccesses: []biz.OrderOrganizationAccess{
+				{OrganizationID: orgB, Writable: true},
+			},
+		}
+
+		request := &orderv1.ListSeaSharedContainersRequest{
+			OrderId:              anchorOrderB.ID.String(),
+			TransportExecutionId: uuid.New().String(),
+		}
+		state := runSharedContainerMiddleware(
+			t,
+			"/order.v1.SeaSharedContainerService/ListSeaSharedContainers",
+			"sid=valid-token",
+			principal,
+			anchorOrderB,
+			request,
+		)
+		if !state.called {
+			t.Fatal("跨组织主体持有锚点组织访问与对应权限时应进入 handler")
+		}
+		if state.orgID != orgB {
+			t.Fatalf("handler 内有效组织应为锚点订单组织 %s, 实际 %s", orgB, state.orgID)
+		}
+
+		// 无锚点组织访问权限时拒绝且不进入 handler
+		principal.OrderOrganizationAccesses = nil
+		denied := runSharedContainerMiddleware(
+			t,
+			"/order.v1.SeaSharedContainerService/ListSeaSharedContainers",
+			"sid=valid-token",
+			principal,
+			anchorOrderB,
+			request,
+		)
+		if denied.called {
+			t.Fatal("对锚点组织无访问权限时不应进入 handler")
 		}
 	})
 

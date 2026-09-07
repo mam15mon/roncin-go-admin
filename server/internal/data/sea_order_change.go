@@ -1566,7 +1566,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		// 再锁定 Allocation，并在锁内重验分配集合未漂移；与共享箱工作台/删除路径的
 		// SharedContainer → Allocation 顺序保持一致，避免跨操作死锁。
 		preReadAllocIDs, err := tx.SeaSharedContainerAllocation.Query().
-			Where(seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID)).
+			Where(
+				seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+				seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID),
+			).
 			Order(seasharedcontainerallocationent.ByID()).
 			IDs(ctx)
 		if err != nil {
@@ -1579,7 +1582,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 		if len(preReadAllocIDs) > 0 {
 			scIDRows, err := tx.SeaSharedContainerAllocation.Query().
-				Where(seasharedcontainerallocationent.IDIn(preReadAllocIDs...)).
+				Where(
+					seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+					seasharedcontainerallocationent.IDIn(preReadAllocIDs...),
+				).
 				Select(seasharedcontainerallocationent.FieldSharedContainerID).
 				All(ctx)
 			if err != nil {
@@ -1593,7 +1599,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		lockedSharedContainers := make(map[uuid.UUID]*ent.SeaSharedContainer, len(sharedContainerIDs))
 		for _, scID := range sharedContainerIDs {
 			sc, err := tx.SeaSharedContainer.Query().
-				Where(seasharedcontainerent.IDEQ(scID)).
+				Where(
+					seasharedcontainerent.IDEQ(scID),
+					seasharedcontainerent.OrganizationIDEQ(organizationID),
+				).
 				ForUpdate().
 				Only(ctx)
 			if err != nil {
@@ -1602,7 +1611,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			lockedSharedContainers[scID] = sc
 		}
 		sharedAllocs, err := tx.SeaSharedContainerAllocation.Query().
-			Where(seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID)).
+			Where(
+				seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+				seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID),
+			).
 			Order(seasharedcontainerallocationent.ByID()).
 			ForUpdate().
 			All(ctx)
