@@ -115,7 +115,9 @@ describe('OrderListSearchFilter', () => {
   it('提供客户业务号与 Booking No 筛选类型', () => {
     render(<OrderListSearchFilter onSearch={vi.fn()} onReset={vi.fn()} />);
 
-    fireEvent.mouseDown(document.querySelector('#numberType')!);
+    const numberTypeSelect = document.querySelector('#numberType');
+    expect(numberTypeSelect).not.toBeNull();
+    fireEvent.mouseDown(numberTypeSelect as HTMLElement);
 
     expect(screen.getByText('客户业务号')).toBeInTheDocument();
     expect(screen.getByText('Booking No')).toBeInTheDocument();
