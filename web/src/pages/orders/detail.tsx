@@ -53,6 +53,7 @@ import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
 } from './components/drawers/SeaOrderChangeHistoryDrawer';
 import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
+import SeaTransportExecutionUpdateModal from './components/drawers/SeaTransportExecutionUpdateModal';
 import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
@@ -121,6 +122,7 @@ export default function OrderDetailPage() {
       ? changeActionsState.data
       : null;
   const [reassignModalOpen, setReassignModalOpen] = useState(false);
+  const [voyageUpdateModalOpen, setVoyageUpdateModalOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
   const loadChangeActions = useCallback(async () => {
@@ -487,6 +489,17 @@ export default function OrderDetailPage() {
   };
 
   const moreMenuItems: MenuProps['items'] = [
+    ...(config.category === 'sea' &&
+    access.canOrder(config.businessType, 'reassign')
+      ? [
+          {
+            key: 'shared-voyage-update',
+            icon: <ReloadOutlined />,
+            label: '共享航次调整',
+            onClick: () => setVoyageUpdateModalOpen(true),
+          },
+        ]
+      : []),
     {
       key: 'fees-drawer',
       icon: <DollarOutlined />,
@@ -665,6 +678,16 @@ export default function OrderDetailPage() {
             searchLocations={templateProps.searchLocations}
             initialShippingLineId={order.shippingLineId}
             initialShippingLineName={order.seaMasterBill?.shippingLineName}
+          />
+          <SeaTransportExecutionUpdateModal
+            order={order}
+            open={voyageUpdateModalOpen}
+            onClose={() => setVoyageUpdateModalOpen(false)}
+            onSuccess={async () => {
+              await Promise.all([loadData(), refreshLockState()]);
+              await loadChangeActions();
+            }}
+            searchLocations={templateProps.searchLocations}
           />
           <SeaOrderChangeHistoryDrawer
             orderId={orderId}
