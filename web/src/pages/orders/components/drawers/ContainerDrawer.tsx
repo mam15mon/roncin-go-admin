@@ -8,6 +8,7 @@ import {
 import { ProFormSearchableSelect } from '@/components/ui';
 import { Button, message, Typography } from 'antd';
 import React, { forwardRef, useState } from 'react';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
@@ -255,7 +256,9 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
           </>
         )}
         extraToolbar={(order) => {
-          if (order?.businessType !== 1) return []; // 1: BUSINESS_TYPE_SE
+          if (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE) {
+            return [];
+          }
           return [
             <Button
               key="shared-container"

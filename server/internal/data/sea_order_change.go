@@ -1535,9 +1535,28 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		for _, c := range containers {
 			lockedContainerMap[c.ID] = c
 		}
-		if input.ExpectedVersions.ContainerVersions != nil {
+		// 独占箱将被移动并递增版本，期望版本 Map 必须完整覆盖且非零；
+		// 缺 Map、缺 key 或版本为 0 属于参数错误，版本不一致返回 409。
+		if len(containers) > 0 {
+			if input.ExpectedVersions.ContainerVersions == nil {
+				return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+					"reason": "CONTAINER_VERSION_REQUIRED",
+				})
+			}
+			if len(input.ExpectedVersions.ContainerVersions) != len(containers) {
+				return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+					"reason": "CONTAINER_VERSION_REQUIRED",
+				})
+			}
 			for _, c := range containers {
-				if expV, ok := input.ExpectedVersions.ContainerVersions[c.ID]; ok && expV != 0 && c.Version != expV {
+				expV, ok := input.ExpectedVersions.ContainerVersions[c.ID]
+				if !ok || expV == 0 {
+					return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+						"reason":       "CONTAINER_VERSION_REQUIRED",
+						"container_id": c.ID.String(),
+					})
+				}
+				if c.Version != expV {
 					return biz.ErrSeaOrderSplitVersionConflict
 				}
 			}

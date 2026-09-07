@@ -984,8 +984,57 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		}
 	})
 
-	// M. 候选 MBL 目标输入不符阻断、一致则成功
-	t.Run("候选母单目标一致允许与输入不符阻断", func(t *testing.T) {
+		// L2. 独占箱版本 Map 必须完整且非零，过期版本返回 409
+		t.Run("独占箱版本缺失或过期拒绝", func(t *testing.T) {
+			f := createTestSplitFixture(t, env, "016", splitFixtureOptions{})
+
+			// 缺 Map
+			noMapInput := f.standardSplitInput("split-cntr-nomap-016", "fp-cntr-nomap-016", splitFixtureOptions{})
+			noMapInput.ExpectedVersions.ContainerVersions = nil
+			if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, noMapInput); kratoserrors.Reason(err) != "SEA_ORDER_SPLIT_INVALID_ARGUMENT" {
+				t.Fatalf("缺少独占箱版本 Map 应返回参数错误，实际: %v", err)
+			}
+			// 缺 key
+			missingKeyInput := f.standardSplitInput("split-cntr-missing-016", "fp-cntr-missing-016", splitFixtureOptions{})
+			missingKeyInput.ExpectedVersions.ContainerVersions = map[uuid.UUID]uint64{f.cntr1.ID: f.cntr1.Version}
+			if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, missingKeyInput); kratoserrors.Reason(err) != "SEA_ORDER_SPLIT_INVALID_ARGUMENT" {
+				t.Fatalf("缺少独占箱版本 key 应返回参数错误，实际: %v", err)
+			}
+			// 版本 0
+			zeroInput := f.standardSplitInput("split-cntr-zero-016", "fp-cntr-zero-016", splitFixtureOptions{})
+			zeroInput.ExpectedVersions.ContainerVersions = map[uuid.UUID]uint64{f.cntr1.ID: 0, f.cntr2.ID: f.cntr2.Version}
+			if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, zeroInput); kratoserrors.Reason(err) != "SEA_ORDER_SPLIT_INVALID_ARGUMENT" {
+				t.Fatalf("独占箱版本为 0 应返回参数错误，实际: %v", err)
+			}
+			// 携带过期版本（模拟读取拆票上下文后其他用户修改了独占箱）
+			staleInput := f.standardSplitInput("split-cntr-stale-016", "fp-cntr-stale-016", splitFixtureOptions{})
+			modifiedCntr, err := env.data.db.OrderContainer.UpdateOneID(f.cntr2.ID).
+				SetContainerNo("MSKU200-CHANGED").
+				SetVersion(f.cntr2.Version + 1).
+				Save(ctx)
+			if err != nil {
+				t.Fatalf("并发修改独占箱失败: %v", err)
+			}
+			if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, staleInput); kratoserrors.Reason(err) != "SEA_ORDER_SPLIT_VERSION_CONFLICT" {
+				t.Fatalf("独占箱版本过期应返回 409，实际: %v", err)
+			}
+			// 失败零写入：订单未新增、HBL 未变、被并发修改的箱保持修改后的状态
+			orderCount, _ := env.data.db.Order.Query().Where(orderent.IDEQ(f.order.ID)).Count(ctx)
+			if orderCount != 1 {
+				t.Fatalf("失败事务不应产生新订单: %d", orderCount)
+			}
+			cntrCheck, _ := env.data.db.OrderContainer.Get(ctx, f.cntr2.ID)
+			if cntrCheck.ContainerNo != modifiedCntr.ContainerNo || cntrCheck.OrderID != f.order.ID {
+				t.Fatalf("失败事务不应改写并发修改后的独占箱: %+v", cntrCheck)
+			}
+			eventExists, _ := env.data.db.SeaOrderSplitEvent.Query().Where(seaorderspliteventent.IdempotencyKeyEQ("split-cntr-stale-016")).Exist(ctx)
+			if eventExists {
+				t.Fatal("失败事务不应残留拆票事件")
+			}
+		})
+
+		// M. 候选 MBL 目标输入不符阻断、一致则成功
+		t.Run("候选母单目标一致允许与输入不符阻断", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "012", splitFixtureOptions{})
 
 		candidateTE, err := env.data.db.SeaTransportExecution.Create().

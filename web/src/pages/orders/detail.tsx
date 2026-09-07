@@ -723,6 +723,7 @@ export default function OrderDetailPage() {
             onClose={() => setHistoryDrawerOpen(false)}
           />
           <SeaSharedContainerDrawer
+            key={`shared-container:${orderId}:${sharedContainerTEId ?? ''}`}
             open={sharedContainerDrawerOpen}
             onClose={() => setSharedContainerDrawerOpen(false)}
             transportExecutionId={sharedContainerTEId}

@@ -3712,6 +3712,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: orderId
+                  in: query
+                  description: 授权锚点：中间件按该订单确定业务类型与组织上下文
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -3741,6 +3746,11 @@ paths:
                     format: int32
                 - name: keyword
                   in: query
+                  schema:
+                    type: string
+                - name: orderId
+                  in: query
+                  description: 授权锚点：中间件按该订单确定业务类型与组织上下文
                   schema:
                     type: string
             responses:
@@ -3776,6 +3786,11 @@ paths:
                 - name: id
                   in: path
                   required: true
+                  schema:
+                    type: string
+                - name: orderId
+                  in: query
+                  description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
                   schema:
                     type: string
             responses:
@@ -3820,6 +3835,11 @@ paths:
                     type: string
                 - name: expectedVersion
                   in: query
+                  schema:
+                    type: string
+                - name: orderId
+                  in: query
+                  description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
                   schema:
                     type: string
             responses:
@@ -13007,12 +13027,21 @@ components:
             required:
                 - id
                 - expectedVersion
+                - orderId
             type: object
             properties:
                 id:
                     type: string
                 expectedVersion:
                     type: string
+                allocations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaSharedContainerAllocationInput'
+                    description: 携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功
+                orderId:
+                    type: string
+                    description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
         order.v1.ConfirmSeaSharedContainerResponse:
             type: object
             properties:
@@ -13190,10 +13219,14 @@ components:
         order.v1.CreateSeaSharedContainerRequest:
             required:
                 - input
+                - orderId
             type: object
             properties:
                 input:
                     $ref: '#/components/schemas/order.v1.SeaSharedContainerInput'
+                orderId:
+                    type: string
+                    description: 授权锚点：中间件按该订单确定业务类型与组织上下文
         order.v1.CreateSeaSharedContainerResponse:
             type: object
             properties:
@@ -15556,6 +15589,7 @@ components:
             required:
                 - id
                 - expectedVersion
+                - orderId
             type: object
             properties:
                 id:
@@ -15566,6 +15600,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.SeaSharedContainerAllocationInput'
+                orderId:
+                    type: string
+                    description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
         order.v1.SaveSeaSharedContainerAllocationsDraftResponse:
             type: object
             properties:
@@ -17638,6 +17675,7 @@ components:
                 - id
                 - expectedVersion
                 - input
+                - orderId
             type: object
             properties:
                 id:
@@ -17646,6 +17684,9 @@ components:
                     type: string
                 input:
                     $ref: '#/components/schemas/order.v1.SeaSharedContainerInput'
+                orderId:
+                    type: string
+                    description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
         order.v1.UpdateSeaSharedContainerResponse:
             type: object
             properties:
@@ -17709,12 +17750,16 @@ components:
             required:
                 - id
                 - expectedVersion
+                - orderId
             type: object
             properties:
                 id:
                     type: string
                 expectedVersion:
                     type: string
+                orderId:
+                    type: string
+                    description: 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
         order.v1.WithdrawSeaSharedContainerResponse:
             type: object
             properties:

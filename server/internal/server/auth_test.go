@@ -149,3 +149,151 @@ func principalWithOrderPermission(businessType access.OrderBusinessType, operati
 		RolePermissions: map[string]map[string]struct{}{"operator": {permission: {}}},
 	}
 }
+
+type anchorAwareOrderRepoStub struct {
+	biz.OrderRepo
+	order *biz.Order
+}
+
+func (s *anchorAwareOrderRepoStub) Find(_ context.Context, id uuid.UUID) (*biz.Order, error) {
+	// 仅锚点订单 ID 能命中；共享箱 ID 等其他 ID 一律查不到
+	if s.order != nil && id == s.order.ID {
+		return s.order, nil
+	}
+	return nil, biz.ErrOrderNotFound
+}
+
+func (s *anchorAwareOrderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*biz.Order, error) {
+	return nil, biz.ErrOrderNotFound
+}
+
+// sharedContainerAuthRequests 返回全部共享箱请求及其所需权限操作
+func sharedContainerAuthRequests(anchorOrderID uuid.UUID) []struct {
+	name      string
+	request   any
+	operation access.OrderOperation
+} {
+	containerID := uuid.New()
+	return []struct {
+		name      string
+		request   any
+		operation access.OrderOperation
+	}{
+		{"ListSeaSharedContainers", &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrderID.String(), TransportExecutionId: uuid.New().String()}, access.OrderContainerRead},
+		{"GetSeaSharedContainer", &orderv1.GetSeaSharedContainerRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerRead},
+		{"ListSeaSharedContainerCandidates", &orderv1.ListSeaSharedContainerCandidatesRequest{OrderId: anchorOrderID.String(), TransportExecutionId: uuid.New().String()}, access.OrderContainerRead},
+		{"CreateSeaSharedContainer", &orderv1.CreateSeaSharedContainerRequest{OrderId: anchorOrderID.String()}, access.OrderContainerCreate},
+		{"UpdateSeaSharedContainer", &orderv1.UpdateSeaSharedContainerRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerUpdate},
+		{"DeleteSeaSharedContainer", &orderv1.DeleteSeaSharedContainerRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerDelete},
+		{"SaveSeaSharedContainerAllocationsDraft", &orderv1.SaveSeaSharedContainerAllocationsDraftRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerUpdate},
+		{"ConfirmSeaSharedContainer", &orderv1.ConfirmSeaSharedContainerRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerUpdate},
+		{"WithdrawSeaSharedContainer", &orderv1.WithdrawSeaSharedContainerRequest{OrderId: anchorOrderID.String(), Id: containerID.String()}, access.OrderContainerUpdate},
+	}
+}
+
+func TestSharedContainerRequestsAuthorizeThroughAnchorOrder(t *testing.T) {
+	organizationID := uuid.New()
+	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: organizationID, BusinessType: biz.OrderBusinessSE}
+	repo := &anchorAwareOrderRepoStub{order: anchorOrder}
+	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil)
+
+	for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
+		principal := principalWithOrderPermission(access.OrderBusinessSE, tc.operation)
+		principal.Organization = biz.Organization{ID: organizationID}
+		rule := accessRule{orderOperation: tc.operation, scope: biz.DataScopeOrganization}
+
+		order, direct := requestOrder(t.Context(), tc.request, orderUsecase)
+		if !direct || order == nil || order.ID != anchorOrder.ID {
+			t.Fatalf("%s 应通过 order_id 锚点定位 SE 订单，实际 order=%v direct=%v", tc.name, order, direct)
+		}
+		if !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(tc.operation)) {
+			t.Fatalf("%s 锚点订单组织应可访问", tc.name)
+		}
+		if !hasPermission(t.Context(), tc.request, principal, rule, orderUsecase) {
+			t.Fatalf("持有 SE %s 权限时 %s 应放行", tc.operation, tc.name)
+		}
+	}
+}
+
+func TestSharedContainerRequestsDeniedWithoutMatchingPermission(t *testing.T) {
+	organizationID := uuid.New()
+	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: organizationID, BusinessType: biz.OrderBusinessSE}
+	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil)
+
+	for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
+		// 持有其他业务线的同名细粒度权限不得授权 SE 共享箱
+		otherLine := principalWithOrderPermission(access.OrderBusinessSI, tc.operation)
+		rule := accessRule{orderOperation: tc.operation, scope: biz.DataScopeOrganization}
+		if hasPermission(t.Context(), tc.request, otherLine, rule, orderUsecase) {
+			t.Fatalf("SI %s 权限不应授权 SE 共享箱 %s", tc.operation, tc.name)
+		}
+		// 完全没有对应权限时拒绝
+		none := principalWithOrderPermission(access.OrderBusinessSE, access.OrderMilestoneRead)
+		if hasPermission(t.Context(), tc.request, none, rule, orderUsecase) {
+			t.Fatalf("无 SE %s 权限时 %s 应拒绝", tc.operation, tc.name)
+		}
+	}
+}
+
+func TestSharedContainerIdIsNotTreatedAsOrderID(t *testing.T) {
+	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: uuid.New(), BusinessType: biz.OrderBusinessSE}
+	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil)
+
+	// 缺少 order_id 时，GetId()（共享箱 ID）会被当成订单 ID 查询并失败，授权必须拒绝
+	legacyRequest := &orderv1.GetSeaSharedContainerRequest{Id: uuid.New().String()}
+	order, direct := requestOrder(t.Context(), legacyRequest, orderUsecase)
+	if !direct || order != nil {
+		t.Fatalf("缺少 order_id 的共享箱请求应无法定位订单并拒绝，实际 order=%v direct=%v", order, direct)
+	}
+	if _, ok := requestOrderBusinessType(t.Context(), legacyRequest, anchorOrder.OrganizationID, orderUsecase); ok {
+		t.Fatal("缺少 order_id 的共享箱请求不应解析出业务类型")
+	}
+
+	// 携带 order_id 时，中间件优先 GetOrderId()，共享箱 id 不参与订单定位
+	anchoredRequest := &orderv1.DeleteSeaSharedContainerRequest{OrderId: anchorOrder.ID.String(), Id: uuid.New().String()}
+	businessType, ok := requestOrderBusinessType(t.Context(), anchoredRequest, anchorOrder.OrganizationID, orderUsecase)
+	if !ok || businessType != access.OrderBusinessSE {
+		t.Fatalf("携带 order_id 的共享箱请求应按锚点解析 SE 业务类型，实际 %q %v", businessType, ok)
+	}
+}
+
+func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
+	// 多组织场景：锚点订单所在组织成为有效组织上下文
+	anchorOrg := uuid.New()
+	principalOrg := uuid.New()
+	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: anchorOrg, BusinessType: biz.OrderBusinessSE}
+	repo := &anchorAwareOrderRepoStub{order: anchorOrder}
+	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil)
+
+	principal := &biz.Principal{
+		Organization: biz.Organization{ID: principalOrg},
+		Permissions:  []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)},
+		RoleScopes:   []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeOrganization}},
+		RolePermissions: map[string]map[string]struct{}{
+			"operator": {access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead): {}},
+		},
+		OrderOrganizationAccesses: []biz.OrderOrganizationAccess{{OrganizationID: anchorOrg, Writable: true}},
+	}
+
+	request := &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrder.ID.String(), TransportExecutionId: uuid.New().String()}
+	order, direct := requestOrder(t.Context(), request, orderUsecase)
+	if !direct || order == nil {
+		t.Fatal("锚点订单应可定位")
+	}
+	if !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(access.OrderContainerRead)) {
+		t.Fatal("多组织用户应可访问锚点订单组织")
+	}
+	// 锚点组织上下文下权限检查放行
+	rule := accessRule{orderOperation: access.OrderContainerRead, scope: biz.DataScopeOrganization}
+	effective := *principal
+	effective.Organization = biz.Organization{ID: anchorOrg}
+	if !hasPermission(t.Context(), request, &effective, rule, orderUsecase) {
+		t.Fatal("以锚点订单组织为上下文时应放行 container.read")
+	}
+
+	// 无锚点组织访问权限时拒绝
+	noAccess := &biz.Principal{Organization: biz.Organization{ID: principalOrg}}
+	if noAccess.CanAccessOrderOrganization(anchorOrg, false) {
+		t.Fatal("无锚点组织访问权限时应拒绝")
+	}
+}

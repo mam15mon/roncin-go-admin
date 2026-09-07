@@ -158,6 +158,8 @@ message ListSeaSharedContainersRequest {
   int32 page = 2;
   int32 page_size = 3;
   string keyword = 4;
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文
+  string order_id = 5 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ListSeaSharedContainersResponse {
@@ -173,6 +175,8 @@ message ListSeaSharedContainersResponse {
 
 message GetSeaSharedContainerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message GetSeaSharedContainerResponse {
@@ -188,6 +192,8 @@ message ListSeaSharedContainerCandidatesRequest {
   int32 page = 2;
   int32 page_size = 3;
   string keyword = 4;
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文
+  string order_id = 5 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ListSeaSharedContainerCandidatesResponse {
@@ -203,6 +209,8 @@ message ListSeaSharedContainerCandidatesResponse {
 
 message CreateSeaSharedContainerRequest {
   SeaSharedContainerInput input = 1 [(google.api.field_behavior) = REQUIRED];
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文
+  string order_id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message CreateSeaSharedContainerResponse {
@@ -217,6 +225,8 @@ message UpdateSeaSharedContainerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
   SeaSharedContainerInput input = 3 [(google.api.field_behavior) = REQUIRED];
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateSeaSharedContainerResponse {
@@ -230,6 +240,8 @@ message UpdateSeaSharedContainerResponse {
 message DeleteSeaSharedContainerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DeleteSeaSharedContainerResponse {
@@ -243,6 +255,8 @@ message SaveSeaSharedContainerAllocationsDraftRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
   repeated SeaSharedContainerAllocationInput allocations = 3;
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message SaveSeaSharedContainerAllocationsDraftResponse {
@@ -256,6 +270,10 @@ message SaveSeaSharedContainerAllocationsDraftResponse {
 message ConfirmSeaSharedContainerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // 携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功
+  repeated SeaSharedContainerAllocationInput allocations = 3;
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ConfirmSeaSharedContainerResponse {
@@ -269,6 +287,8 @@ message ConfirmSeaSharedContainerResponse {
 message WithdrawSeaSharedContainerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+  string order_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message WithdrawSeaSharedContainerResponse {

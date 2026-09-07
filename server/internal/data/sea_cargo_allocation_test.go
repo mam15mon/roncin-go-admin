@@ -277,21 +277,24 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("部分草稿保存失败: %v", err)
 	}
-	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, partialDraft.Version); err != biz.ErrSeaSharedContainerIncomplete {
+	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, partialDraft.Version, nil); err != biz.ErrSeaSharedContainerIncomplete {
 		t.Fatalf("未完整分配确认应返回 ErrSeaSharedContainerIncomplete, 实际: %v", err)
 	}
 
-	// 8. 恢复完整分配并确认
-	restored, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, partialDraft.Version, f.fullAllocationInputs())
+	// 8. 恢复完整分配并确认：携带 allocations 输入在单事务内保存并严格确认
+	restored, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, partialDraft.Version, partial)
 	if err != nil {
-		t.Fatalf("恢复完整分配失败: %v", err)
+		t.Fatalf("恢复部分分配失败: %v", err)
 	}
-	confirmed, err := f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, restored.Version)
+	confirmed, err := f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, restored.Version, f.fullAllocationInputs())
 	if err != nil {
 		t.Fatalf("确认共享箱失败: %v", err)
 	}
 	if confirmed.Status != biz.SeaSharedContainerStatusConfirmed || confirmed.ConfirmedBy == nil || *confirmed.ConfirmedBy != f.userID {
 		t.Fatalf("确认后状态或确认人异常: %+v", confirmed)
+	}
+	if len(confirmed.Allocations) != 2 || confirmed.Version != restored.Version+1 {
+		t.Fatalf("单事务确认应写入两行分配并递增一次版本: allocs=%d version=%d", len(confirmed.Allocations), confirmed.Version)
 	}
 
 	// 9. 确认态禁止保存草稿；撤回后回到草稿态

@@ -6178,6 +6178,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6227,6 +6235,14 @@
           {
             "name": "keyword",
             "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文",
             "schema": {
               "type": "string"
             }
@@ -6285,6 +6301,14 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）",
             "schema": {
               "type": "string"
             }
@@ -6358,6 +6382,14 @@
           {
             "name": "expectedVersion",
             "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）",
             "schema": {
               "type": "string"
             }
@@ -20383,7 +20415,8 @@
       "order.v1.ConfirmSeaSharedContainerRequest": {
         "required": [
           "id",
-          "expectedVersion"
+          "expectedVersion",
+          "orderId"
         ],
         "type": "object",
         "properties": {
@@ -20392,6 +20425,17 @@
           },
           "expectedVersion": {
             "type": "string"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaSharedContainerAllocationInput"
+            },
+            "description": "携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功"
+          },
+          "orderId": {
+            "type": "string",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）"
           }
         }
       },
@@ -20651,12 +20695,17 @@
       },
       "order.v1.CreateSeaSharedContainerRequest": {
         "required": [
-          "input"
+          "input",
+          "orderId"
         ],
         "type": "object",
         "properties": {
           "input": {
             "$ref": "#/components/schemas/order.v1.SeaSharedContainerInput"
+          },
+          "orderId": {
+            "type": "string",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文"
           }
         }
       },
@@ -24127,7 +24176,8 @@
       "order.v1.SaveSeaSharedContainerAllocationsDraftRequest": {
         "required": [
           "id",
-          "expectedVersion"
+          "expectedVersion",
+          "orderId"
         ],
         "type": "object",
         "properties": {
@@ -24142,6 +24192,10 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.SeaSharedContainerAllocationInput"
             }
+          },
+          "orderId": {
+            "type": "string",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）"
           }
         }
       },
@@ -27199,7 +27253,8 @@
         "required": [
           "id",
           "expectedVersion",
-          "input"
+          "input",
+          "orderId"
         ],
         "type": "object",
         "properties": {
@@ -27211,6 +27266,10 @@
           },
           "input": {
             "$ref": "#/components/schemas/order.v1.SeaSharedContainerInput"
+          },
+          "orderId": {
+            "type": "string",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）"
           }
         }
       },
@@ -27305,7 +27364,8 @@
       "order.v1.WithdrawSeaSharedContainerRequest": {
         "required": [
           "id",
-          "expectedVersion"
+          "expectedVersion",
+          "orderId"
         ],
         "type": "object",
         "properties": {
@@ -27314,6 +27374,10 @@
           },
           "expectedVersion": {
             "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "description": "授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）"
           }
         }
       },

@@ -898,6 +898,10 @@ declare namespace API {
   type ConfirmSeaSharedContainerRequest = {
     id: string;
     expectedVersion: string;
+    /** 携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功 */
+    allocations?: SeaSharedContainerAllocationInput[];
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
   };
 
   type ConfirmSeaSharedContainerResponse = {
@@ -1416,6 +1420,8 @@ declare namespace API {
 
   type CreateSeaSharedContainerRequest = {
     input: SeaSharedContainerInput;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId: string;
   };
 
   type CreateSeaSharedContainerResponse = {
@@ -5184,6 +5190,8 @@ declare namespace API {
     id: string;
     expectedVersion: string;
     allocations?: SeaSharedContainerAllocationInput[];
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
   };
 
   type SaveSeaSharedContainerAllocationsDraftResponse = {
@@ -6056,10 +6064,14 @@ declare namespace API {
   type SeaSharedContainerServiceDeleteSeaSharedContainerParams = {
     id: string;
     expectedVersion?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId?: string;
   };
 
   type SeaSharedContainerServiceGetSeaSharedContainerParams = {
     id: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId?: string;
   };
 
   type SeaSharedContainerServiceListSeaSharedContainerCandidatesParams = {
@@ -6067,6 +6079,8 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId?: string;
   };
 
   type SeaSharedContainerServiceListSeaSharedContainersParams = {
@@ -6074,6 +6088,8 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId?: string;
   };
 
   type SeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraftParams = {
@@ -7092,6 +7108,8 @@ declare namespace API {
     id: string;
     expectedVersion: string;
     input: SeaSharedContainerInput;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
   };
 
   type UpdateSeaSharedContainerResponse = {
@@ -7223,6 +7241,8 @@ declare namespace API {
   type WithdrawSeaSharedContainerRequest = {
     id: string;
     expectedVersion: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
   };
 
   type WithdrawSeaSharedContainerResponse = {

@@ -26,6 +26,9 @@ func (s *SeaSharedContainerService) ListSeaSharedContainers(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	executionID, err := uuid.Parse(request.GetTransportExecutionId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
@@ -50,6 +53,9 @@ func (s *SeaSharedContainerService) GetSeaSharedContainer(ctx context.Context, r
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
@@ -64,6 +70,9 @@ func (s *SeaSharedContainerService) GetSeaSharedContainer(ctx context.Context, r
 func (s *SeaSharedContainerService) ListSeaSharedContainerCandidates(ctx context.Context, request *v1.ListSeaSharedContainerCandidatesRequest) (*v1.ListSeaSharedContainerCandidatesResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
 		return nil, err
 	}
 	executionID, err := uuid.Parse(request.GetTransportExecutionId())
@@ -90,6 +99,9 @@ func (s *SeaSharedContainerService) CreateSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	input, err := seaSharedContainerInputFromAPI(request.GetInput())
 	if err != nil {
 		return nil, err
@@ -104,6 +116,9 @@ func (s *SeaSharedContainerService) CreateSeaSharedContainer(ctx context.Context
 func (s *SeaSharedContainerService) UpdateSeaSharedContainer(ctx context.Context, request *v1.UpdateSeaSharedContainerRequest) (*v1.UpdateSeaSharedContainerResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
@@ -126,6 +141,9 @@ func (s *SeaSharedContainerService) DeleteSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
@@ -139,6 +157,9 @@ func (s *SeaSharedContainerService) DeleteSeaSharedContainer(ctx context.Context
 func (s *SeaSharedContainerService) SaveSeaSharedContainerAllocationsDraft(ctx context.Context, request *v1.SaveSeaSharedContainerAllocationsDraftRequest) (*v1.SaveSeaSharedContainerAllocationsDraftResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
@@ -161,11 +182,21 @@ func (s *SeaSharedContainerService) ConfirmSeaSharedContainer(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
 	}
-	item, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion())
+	var allocations []*biz.SeaSharedContainerAllocationInput
+	if request.GetAllocations() != nil {
+		allocations, err = seaSharedAllocationInputsFromAPI(request.GetAllocations())
+		if err != nil {
+			return nil, err
+		}
+	}
+	item, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), allocations)
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +208,9 @@ func (s *SeaSharedContainerService) WithdrawSeaSharedContainer(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
+	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+		return nil, err
+	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
@@ -186,6 +220,15 @@ func (s *SeaSharedContainerService) WithdrawSeaSharedContainer(ctx context.Conte
 		return nil, err
 	}
 	return ok(ctx, &v1.WithdrawSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+// anchorOrderID 校验授权锚点订单：中间件按该订单确定业务类型与组织上下文
+func anchorOrderID(raw string) (uuid.UUID, error) {
+	id, err := uuid.Parse(raw)
+	if err != nil || id == uuid.Nil {
+		return uuid.Nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	return id, nil
 }
 
 func seaSharedContainerInputFromAPI(input *v1.SeaSharedContainerInput) (*biz.SeaSharedContainer, error) {

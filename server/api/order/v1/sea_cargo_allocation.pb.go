@@ -954,8 +954,10 @@ type ListSeaSharedContainersRequest struct {
 	Page                 int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize             int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword              string                 `protobuf:"bytes,4,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文
+	OrderId       string `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListSeaSharedContainersRequest) Reset() {
@@ -1012,6 +1014,13 @@ func (x *ListSeaSharedContainersRequest) GetPageSize() int32 {
 func (x *ListSeaSharedContainersRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainersRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
 	}
 	return ""
 }
@@ -1117,8 +1126,10 @@ func (x *ListSeaSharedContainersResponse) GetPageSize() int32 {
 }
 
 type GetSeaSharedContainerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1156,6 +1167,13 @@ func (*GetSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
 func (x *GetSeaSharedContainerRequest) GetId() string {
 	if x != nil {
 		return x.Id
+	}
+	return ""
+}
+
+func (x *GetSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
 	}
 	return ""
 }
@@ -1242,8 +1260,10 @@ type ListSeaSharedContainerCandidatesRequest struct {
 	Page                 int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize             int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword              string                 `protobuf:"bytes,4,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文
+	OrderId       string `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListSeaSharedContainerCandidatesRequest) Reset() {
@@ -1300,6 +1320,13 @@ func (x *ListSeaSharedContainerCandidatesRequest) GetPageSize() int32 {
 func (x *ListSeaSharedContainerCandidatesRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
 	}
 	return ""
 }
@@ -1405,8 +1432,10 @@ func (x *ListSeaSharedContainerCandidatesResponse) GetPageSize() int32 {
 }
 
 type CreateSeaSharedContainerRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Input         *SeaSharedContainerInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
+	state protoimpl.MessageState   `protogen:"open.v1"`
+	Input *SeaSharedContainerInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文
+	OrderId       string `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1446,6 +1475,13 @@ func (x *CreateSeaSharedContainerRequest) GetInput() *SeaSharedContainerInput {
 		return x.Input
 	}
 	return nil
+}
+
+func (x *CreateSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type CreateSeaSharedContainerResponse struct {
@@ -1529,8 +1565,10 @@ type UpdateSeaSharedContainerRequest struct {
 	Id              string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                   `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	Input           *SeaSharedContainerInput `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,4,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateSeaSharedContainerRequest) Reset() {
@@ -1582,6 +1620,13 @@ func (x *UpdateSeaSharedContainerRequest) GetInput() *SeaSharedContainerInput {
 		return x.Input
 	}
 	return nil
+}
+
+func (x *UpdateSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type UpdateSeaSharedContainerResponse struct {
@@ -1664,8 +1709,10 @@ type DeleteSeaSharedContainerRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteSeaSharedContainerRequest) Reset() {
@@ -1710,6 +1757,13 @@ func (x *DeleteSeaSharedContainerRequest) GetExpectedVersion() uint64 {
 		return x.ExpectedVersion
 	}
 	return 0
+}
+
+func (x *DeleteSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type DeleteSeaSharedContainerResponse struct {
@@ -1785,8 +1839,10 @@ type SaveSeaSharedContainerAllocationsDraftRequest struct {
 	Id              string                               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                               `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	Allocations     []*SeaSharedContainerAllocationInput `protobuf:"bytes,3,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,4,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SaveSeaSharedContainerAllocationsDraftRequest) Reset() {
@@ -1838,6 +1894,13 @@ func (x *SaveSeaSharedContainerAllocationsDraftRequest) GetAllocations() []*SeaS
 		return x.Allocations
 	}
 	return nil
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type SaveSeaSharedContainerAllocationsDraftResponse struct {
@@ -1920,8 +1983,12 @@ type ConfirmSeaSharedContainerRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功
+	Allocations []*SeaSharedContainerAllocationInput `protobuf:"bytes,3,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,4,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConfirmSeaSharedContainerRequest) Reset() {
@@ -1966,6 +2033,20 @@ func (x *ConfirmSeaSharedContainerRequest) GetExpectedVersion() uint64 {
 		return x.ExpectedVersion
 	}
 	return 0
+}
+
+func (x *ConfirmSeaSharedContainerRequest) GetAllocations() []*SeaSharedContainerAllocationInput {
+	if x != nil {
+		return x.Allocations
+	}
+	return nil
+}
+
+func (x *ConfirmSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type ConfirmSeaSharedContainerResponse struct {
@@ -2048,8 +2129,10 @@ type WithdrawSeaSharedContainerRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID）
+	OrderId       string `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WithdrawSeaSharedContainerRequest) Reset() {
@@ -2094,6 +2177,13 @@ func (x *WithdrawSeaSharedContainerRequest) GetExpectedVersion() uint64 {
 		return x.ExpectedVersion
 	}
 	return 0
+}
+
+func (x *WithdrawSeaSharedContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
 }
 
 type WithdrawSeaSharedContainerResponse struct {
@@ -2285,12 +2375,13 @@ const file_order_v1_sea_cargo_allocation_proto_rawDesc = "" +
 	"\flink_version\x18\x06 \x01(\x04R\vlinkVersion\x12,\n" +
 	"\x12house_bill_version\x18\a \x01(\x04R\x10houseBillVersion\x12O\n" +
 	"\vcargo_items\x18\b \x03(\v2..order.v1.SeaSharedContainerCandidateCargoItemR\n" +
-	"cargoItems\"\xa6\x01\n" +
+	"cargoItems\"\xc6\x01\n" +
 	"\x1eListSeaSharedContainersRequest\x129\n" +
 	"\x16transport_execution_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x14transportExecutionId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x18\n" +
-	"\akeyword\x18\x04 \x01(\tR\akeyword\"\xfd\x01\n" +
+	"\akeyword\x18\x04 \x01(\tR\akeyword\x12\x1e\n" +
+	"\border_id\x18\x05 \x01(\tB\x03\xe0A\x02R\aorderId\"\xfd\x01\n" +
 	"\x1fListSeaSharedContainersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2299,20 +2390,22 @@ const file_order_v1_sea_cargo_allocation_proto_rawDesc = "" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
 	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"3\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"S\n" +
 	"\x1cGetSeaSharedContainerRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xb4\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1e\n" +
+	"\border_id\x18\x02 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb4\x01\n" +
 	"\x1dGetSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaf\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcf\x01\n" +
 	"'ListSeaSharedContainerCandidatesRequest\x129\n" +
 	"\x16transport_execution_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x14transportExecutionId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x18\n" +
-	"\akeyword\x18\x04 \x01(\tR\akeyword\"\x94\x02\n" +
+	"\akeyword\x18\x04 \x01(\tR\akeyword\x12\x1e\n" +
+	"\border_id\x18\x05 \x01(\tB\x03\xe0A\x02R\aorderId\"\x94\x02\n" +
 	"(ListSeaSharedContainerCandidatesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2321,55 +2414,62 @@ const file_order_v1_sea_cargo_allocation_proto_rawDesc = "" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
 	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"_\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x7f\n" +
 	"\x1fCreateSeaSharedContainerRequest\x12<\n" +
-	"\x05input\x18\x01 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\"\xb7\x01\n" +
+	"\x05input\x18\x01 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\x12\x1e\n" +
+	"\border_id\x18\x02 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb7\x01\n" +
 	" CreateSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa4\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc4\x01\n" +
 	"\x1fUpdateSeaSharedContainerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12<\n" +
-	"\x05input\x18\x03 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\"\xb7\x01\n" +
+	"\x05input\x18\x03 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\x12\x1e\n" +
+	"\border_id\x18\x04 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb7\x01\n" +
 	" UpdateSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"f\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x86\x01\n" +
 	"\x1fDeleteSeaSharedContainerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\x85\x01\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1e\n" +
+	"\border_id\x18\x03 \x01(\tB\x03\xe0A\x02R\aorderId\"\x85\x01\n" +
 	" DeleteSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xc3\x01\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xe3\x01\n" +
 	"-SaveSeaSharedContainerAllocationsDraftRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12M\n" +
-	"\vallocations\x18\x03 \x03(\v2+.order.v1.SeaSharedContainerAllocationInputR\vallocations\"\xc5\x01\n" +
+	"\vallocations\x18\x03 \x03(\v2+.order.v1.SeaSharedContainerAllocationInputR\vallocations\x12\x1e\n" +
+	"\border_id\x18\x04 \x01(\tB\x03\xe0A\x02R\aorderId\"\xc5\x01\n" +
 	".SaveSeaSharedContainerAllocationsDraftResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"g\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xd6\x01\n" +
 	" ConfirmSeaSharedContainerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xb8\x01\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12M\n" +
+	"\vallocations\x18\x03 \x03(\v2+.order.v1.SeaSharedContainerAllocationInputR\vallocations\x12\x1e\n" +
+	"\border_id\x18\x04 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb8\x01\n" +
 	"!ConfirmSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"h\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
 	"!WithdrawSeaSharedContainerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xb9\x01\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1e\n" +
+	"\border_id\x18\x03 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb9\x01\n" +
 	"\"WithdrawSeaSharedContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2447,31 +2547,32 @@ var file_order_v1_sea_cargo_allocation_proto_depIdxs = []int32{
 	5,  // 10: order.v1.UpdateSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
 	2,  // 11: order.v1.SaveSeaSharedContainerAllocationsDraftRequest.allocations:type_name -> order.v1.SeaSharedContainerAllocationInput
 	5,  // 12: order.v1.SaveSeaSharedContainerAllocationsDraftResponse.data:type_name -> order.v1.SeaSharedContainer
-	5,  // 13: order.v1.ConfirmSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
-	5,  // 14: order.v1.WithdrawSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
-	8,  // 15: order.v1.SeaSharedContainerService.ListSeaSharedContainers:input_type -> order.v1.ListSeaSharedContainersRequest
-	10, // 16: order.v1.SeaSharedContainerService.GetSeaSharedContainer:input_type -> order.v1.GetSeaSharedContainerRequest
-	12, // 17: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:input_type -> order.v1.ListSeaSharedContainerCandidatesRequest
-	14, // 18: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:input_type -> order.v1.CreateSeaSharedContainerRequest
-	16, // 19: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:input_type -> order.v1.UpdateSeaSharedContainerRequest
-	18, // 20: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:input_type -> order.v1.DeleteSeaSharedContainerRequest
-	20, // 21: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:input_type -> order.v1.SaveSeaSharedContainerAllocationsDraftRequest
-	22, // 22: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:input_type -> order.v1.ConfirmSeaSharedContainerRequest
-	24, // 23: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:input_type -> order.v1.WithdrawSeaSharedContainerRequest
-	9,  // 24: order.v1.SeaSharedContainerService.ListSeaSharedContainers:output_type -> order.v1.ListSeaSharedContainersResponse
-	11, // 25: order.v1.SeaSharedContainerService.GetSeaSharedContainer:output_type -> order.v1.GetSeaSharedContainerResponse
-	13, // 26: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:output_type -> order.v1.ListSeaSharedContainerCandidatesResponse
-	15, // 27: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:output_type -> order.v1.CreateSeaSharedContainerResponse
-	17, // 28: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:output_type -> order.v1.UpdateSeaSharedContainerResponse
-	19, // 29: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:output_type -> order.v1.DeleteSeaSharedContainerResponse
-	21, // 30: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:output_type -> order.v1.SaveSeaSharedContainerAllocationsDraftResponse
-	23, // 31: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:output_type -> order.v1.ConfirmSeaSharedContainerResponse
-	25, // 32: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:output_type -> order.v1.WithdrawSeaSharedContainerResponse
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	2,  // 13: order.v1.ConfirmSeaSharedContainerRequest.allocations:type_name -> order.v1.SeaSharedContainerAllocationInput
+	5,  // 14: order.v1.ConfirmSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	5,  // 15: order.v1.WithdrawSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	8,  // 16: order.v1.SeaSharedContainerService.ListSeaSharedContainers:input_type -> order.v1.ListSeaSharedContainersRequest
+	10, // 17: order.v1.SeaSharedContainerService.GetSeaSharedContainer:input_type -> order.v1.GetSeaSharedContainerRequest
+	12, // 18: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:input_type -> order.v1.ListSeaSharedContainerCandidatesRequest
+	14, // 19: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:input_type -> order.v1.CreateSeaSharedContainerRequest
+	16, // 20: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:input_type -> order.v1.UpdateSeaSharedContainerRequest
+	18, // 21: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:input_type -> order.v1.DeleteSeaSharedContainerRequest
+	20, // 22: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:input_type -> order.v1.SaveSeaSharedContainerAllocationsDraftRequest
+	22, // 23: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:input_type -> order.v1.ConfirmSeaSharedContainerRequest
+	24, // 24: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:input_type -> order.v1.WithdrawSeaSharedContainerRequest
+	9,  // 25: order.v1.SeaSharedContainerService.ListSeaSharedContainers:output_type -> order.v1.ListSeaSharedContainersResponse
+	11, // 26: order.v1.SeaSharedContainerService.GetSeaSharedContainer:output_type -> order.v1.GetSeaSharedContainerResponse
+	13, // 27: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:output_type -> order.v1.ListSeaSharedContainerCandidatesResponse
+	15, // 28: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:output_type -> order.v1.CreateSeaSharedContainerResponse
+	17, // 29: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:output_type -> order.v1.UpdateSeaSharedContainerResponse
+	19, // 30: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:output_type -> order.v1.DeleteSeaSharedContainerResponse
+	21, // 31: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:output_type -> order.v1.SaveSeaSharedContainerAllocationsDraftResponse
+	23, // 32: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:output_type -> order.v1.ConfirmSeaSharedContainerResponse
+	25, // 33: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:output_type -> order.v1.WithdrawSeaSharedContainerResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_sea_cargo_allocation_proto_init() }

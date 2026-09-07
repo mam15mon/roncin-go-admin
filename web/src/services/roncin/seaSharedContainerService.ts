@@ -67,7 +67,9 @@ export async function seaSharedContainerServiceGetSeaSharedContainer(
     `/api/v1/orders/sea-shared-containers/${param0}`,
     {
       method: "GET",
-      params: { ...queryParams },
+      params: {
+        ...queryParams,
+      },
       ...(options || {}),
     }
   );

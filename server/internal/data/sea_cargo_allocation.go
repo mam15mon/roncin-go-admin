@@ -285,15 +285,19 @@ func (r *seaSharedContainerRepo) SaveDraft(ctx context.Context, organizationID, 
 	return r.Get(ctx, organizationID, id)
 }
 
-func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
-	current, err := r.Get(ctx, organizationID, id)
-	if err != nil {
-		return nil, err
-	}
-	inputs := make([]*biz.SeaSharedContainerAllocationInput, 0, len(current.Allocations))
-	for _, allocation := range current.Allocations {
-		// Confirm 会在事务内重新读取并锁定真实版本；零值表示不信任外部缓存，只接受当前值。
-		inputs = append(inputs, &biz.SeaSharedContainerAllocationInput{OrderID: allocation.OrderID, HouseBillID: allocation.HouseBillID, CargoItemID: allocation.CargoItemID, PackageCount: allocation.PackageCount, GrossWeightKg: allocation.GrossWeightKg, VolumeCbm: allocation.VolumeCbm})
+// Confirm 确认共享箱：inputs 非 nil 时按该输入在同一事务内保存并严格守恒确认，
+// 为 nil 时按当前已保存分配确认。
+func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+	if inputs == nil {
+		current, err := r.Get(ctx, organizationID, id)
+		if err != nil {
+			return nil, err
+		}
+		inputs = make([]*biz.SeaSharedContainerAllocationInput, 0, len(current.Allocations))
+		for _, allocation := range current.Allocations {
+			// Confirm 会在事务内重新读取并锁定真实版本；零值表示不信任外部缓存，只接受当前值。
+			inputs = append(inputs, &biz.SeaSharedContainerAllocationInput{OrderID: allocation.OrderID, HouseBillID: allocation.HouseBillID, CargoItemID: allocation.CargoItemID, PackageCount: allocation.PackageCount, GrossWeightKg: allocation.GrossWeightKg, VolumeCbm: allocation.VolumeCbm})
+		}
 	}
 	if err := r.mutateAllocations(ctx, organizationID, id, expectedVersion, inputs, true, actorID, audit); err != nil {
 		return nil, err

@@ -264,7 +264,7 @@ type SeaSharedContainerRepo interface {
 	Update(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *SeaSharedContainer, audit *AuditEvent) (*SeaSharedContainer, error)
 	Delete(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) error
 	SaveDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
-	Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*SeaSharedContainer, error)
+	Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
 	Withdraw(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*SeaSharedContainer, error)
 }
 
@@ -339,11 +339,20 @@ func (uc *SeaSharedContainerUsecase) SaveDraft(ctx context.Context, organization
 	return uc.repo.SaveDraft(ctx, organizationID, id, expectedVersion, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.save_draft", id))
 }
 
-func (uc *SeaSharedContainerUsecase) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64) (*SeaSharedContainer, error) {
+// Confirm 确认共享箱分配。allocations 非 nil 时在同一事务内按该输入保存并严格守恒确认，
+// 避免客户端两步请求出现“草稿已保存、确认失败”的部分成功；allocations 为 nil 时按当前分配确认。
+func (uc *SeaSharedContainerUsecase) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput) (*SeaSharedContainer, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.Confirm(ctx, organizationID, actorID, id, expectedVersion, sharedContainerAudit(organizationID, actorID, "sea_shared_container.confirm", id))
+	if allocations != nil {
+		normalized, err := NormalizeSeaSharedAllocations(allocations)
+		if err != nil {
+			return nil, err
+		}
+		allocations = normalized
+	}
+	return uc.repo.Confirm(ctx, organizationID, actorID, id, expectedVersion, allocations, sharedContainerAudit(organizationID, actorID, "sea_shared_container.confirm", id))
 }
 
 func (uc *SeaSharedContainerUsecase) Withdraw(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64) (*SeaSharedContainer, error) {
