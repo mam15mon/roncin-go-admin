@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"现有 MBL、运输执行、HBL、ReleasePod、锁序与 ShippingLine 业务契约；实施时按本任务最终设计收敛旧多 HBL/三态内容"}
+{"file":".trellis/spec/server/backend/sea-document-change-history.md","reason":"不可变版本、改单、作废、Switch、下游事实与 Preview/Execute 契约；本任务删除 Switch 并改造外部确认和非硬阻断规则"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"订单锁、共享 MBL 成员锁序和锁定快照；MBL/TE 解耦后需增加 TransportExecution Version 快照"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"Ent Schema、不可变迁移、共享事务、ForUpdate、组织过滤和唯一冲突映射规范"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"400/409 稳定领域错误与 service/data 错误边界"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"订单创建、详情、共享箱工作台应复用统一页面分节和企业级 UI 模板"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"Proto/OpenAPI/枚举生成物和前端类型边界，禁止手工修改生成客户端"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Booking No.、单值 HBL、Link→TE 投影和删除 Switch 的跨层消费者核对"}
+{"file":".trellis/tasks/09-07-simplify-sea-order-house-bill-model/research/current-model-audit.md","reason":"当前错误关系、旧 API、版本引用、空数据迁移前提和用户工作区隔离证据"}
