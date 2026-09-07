@@ -47,16 +47,12 @@ import PersonnelDrawer, {
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
-import SeaCargoAllocationDrawer, {
-  type SeaCargoAllocationDrawerRef,
-} from './components/drawers/SeaCargoAllocationDrawer';
 import EditOrderModal, {
   type EditOrderModalRef,
 } from './components/modals/EditOrderModal';
 import TransitionModal, {
   type TransitionModalRef,
 } from './components/modals/TransitionModal';
-import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import {
   getDocumentsActionLabel,
   openOrderDocuments,
@@ -77,8 +73,6 @@ export default function OrderListPage() {
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
   const shippingDocumentDrawerRef =
     useRef<ShippingDocumentDrawerRef | null>(null);
-  const seaCargoAllocationDrawerRef =
-    useRef<SeaCargoAllocationDrawerRef | null>(null);
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
@@ -189,22 +183,6 @@ export default function OrderListPage() {
         onOpenCargo={(item) =>
           item.rawRecord && cargoItemDrawerRef.current?.open(item.rawRecord)
         }
-        onOpenCargoAllocation={
-          config.businessType === OrderBusinessType.BUSINESS_TYPE_SE
-            ? (item) => {
-                if (
-                  item.rawRecord?.seaDocumentStructure ===
-                  SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-                ) {
-                  seaCargoAllocationDrawerRef.current?.open(item.rawRecord);
-                }
-              }
-            : undefined
-        }
-        canOpenCargoAllocation={(item) =>
-          item.rawRecord?.seaDocumentStructure ===
-          SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-        }
         onOpenAttachments={(item) =>
           item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord)
         }
@@ -310,11 +288,6 @@ export default function OrderListPage() {
         ref={shippingDocumentDrawerRef}
         canManage={access.canOrder(config.businessType, 'update')}
         category={config.category}
-      />
-      <SeaCargoAllocationDrawer
-        ref={seaCargoAllocationDrawerRef}
-        canManage={access.canOrder(config.businessType, 'update')}
-        onSuccess={() => actionRef.current?.reload()}
       />
       <ReleasePodPanel
         ref={releasePodPanelRef}

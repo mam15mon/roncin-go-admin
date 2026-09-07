@@ -1,6 +1,5 @@
 import {
   AlertOutlined,
-  AppstoreOutlined,
   DollarOutlined,
   DownOutlined,
   EditOutlined,
@@ -46,8 +45,6 @@ export function OrderListTemplate({
   documentsActionLabel = '主分单据管理',
   onOpenContainers,
   onOpenCargo,
-  onOpenCargoAllocation,
-  canOpenCargoAllocation,
   onOpenAttachments,
   onOpenPersonnel,
   onOpenConsolidations,
@@ -492,16 +489,6 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenCargoAllocation && (canOpenCargoAllocation?.(record) ?? true)
-                    ? [
-                        {
-                          key: 'cargo_allocation',
-                          icon: <AppstoreOutlined />,
-                          label: '箱货分配',
-                          onClick: () => onOpenCargoAllocation(record),
-                        },
-                      ]
-                    : []),
                   ...(onOpenAttachments
                     ? [
                         {
@@ -569,8 +556,6 @@ export function OrderListTemplate({
       documentsActionLabel,
       onOpenContainers,
       onOpenCargo,
-      onOpenCargoAllocation,
-      canOpenCargoAllocation,
       onOpenAttachments,
       onOpenPersonnel,
       onOpenConsolidations,
