@@ -18,4 +18,13 @@ describe('buildSeaExternalConfirmation', () => {
       confirmationAttachmentId: 'attachment-1',
     });
   });
+
+  it('拒绝缺少必填事实，不能静默把确认时间补成当前时间', () => {
+    expect(() =>
+      buildSeaExternalConfirmation({
+        confirmedByParty: '测试船代',
+        confirmationNote: '已确认',
+      }),
+    ).toThrow('外部确认方、确认时间和确认说明不能为空');
+  });
 });

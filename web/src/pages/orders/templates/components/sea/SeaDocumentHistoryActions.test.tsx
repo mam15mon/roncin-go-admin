@@ -10,6 +10,10 @@ import {
 import * as service from '@/services/roncin/seaDocumentService';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 
+vi.mock('@/services/roncin/orderAttachmentService', () => ({
+  orderAttachmentServiceListAttachments: vi.fn().mockResolvedValue({ data: [] }),
+}));
+
 vi.mock('@umijs/max', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@umijs/max')>();
   return {
@@ -113,6 +117,12 @@ describe('SeaDocumentHistoryActions', () => {
     fireEvent.change(screen.getByLabelText('原因'), {
       target: { value: '客户书面更正' },
     });
+    fireEvent.change(screen.getByLabelText('外部确认方'), {
+      target: { value: '测试船代' },
+    });
+    fireEvent.change(screen.getByLabelText('确认说明'), {
+      target: { value: '船代已邮件确认可改' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /重新预览最终差异/ }));
 
     await waitFor(() => {
@@ -128,6 +138,10 @@ describe('SeaDocumentHistoryActions', () => {
     expect(
       execute.mock.calls[0][1].input?.houseBill?.content?.shipperText,
     ).toBe('新发货人');
+    expect(execute.mock.calls[0][1].confirmation).toMatchObject({
+      confirmedByParty: '测试船代',
+      confirmationNote: '船代已邮件确认可改',
+    });
     expect(preview.mock.invocationCallOrder[0]).toBeLessThan(
       execute.mock.invocationCallOrder[0],
     );

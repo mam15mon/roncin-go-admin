@@ -15,9 +15,11 @@ import {
   Typography,
 } from 'antd';
 import React, { useCallback, useState } from 'react';
+import dayjs from 'dayjs';
 import {
   OrderBusinessType,
   SeaDocumentEventType,
+  SeaDocumentStructure,
   SeaDocumentType,
   SeaDocumentVersionSource,
   SeaHouseBillStatus,
@@ -32,6 +34,10 @@ import {
   seaDocumentServicePreviewSeaDocumentVoid,
 } from '@/services/roncin/seaDocumentService';
 import { generateUUID } from '@/utils/uuid';
+import SeaExternalConfirmationFields, {
+  buildSeaExternalConfirmation,
+  type SeaExternalConfirmationFormValues,
+} from './SeaExternalConfirmationFields';
 
 type ActionMode = 'amendment' | 'void';
 type ChangePreview =
@@ -53,7 +59,7 @@ interface SeaDocumentHistoryActionsProps {
   disabled?: boolean;
 }
 
-interface ActionFormValues {
+interface ActionFormValues extends SeaExternalConfirmationFormValues {
   reason: string;
 }
 
@@ -78,6 +84,12 @@ const eventText: Record<number, string> = {
 
 function createIdempotencyKey() {
   return `sea-document-${generateUUID()}`;
+}
+
+function documentModeText(mode?: number) {
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) return 'HOUSE';
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) return 'DIRECT';
+  return '-';
 }
 
 function PreviewResult({ preview }: { preview: ChangePreview }) {
@@ -197,8 +209,8 @@ export default function SeaDocumentHistoryActions({
         (eventResult.data ?? []).filter(
           (event) =>
             event.documentId === documentId ||
-            event.oldHouseBillId === documentId ||
-            event.newHouseBillId === documentId,
+            event.eventType ===
+              SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE,
         ),
       );
     } catch (error: unknown) {
@@ -222,6 +234,10 @@ export default function SeaDocumentHistoryActions({
     setIdempotencyKey(createIdempotencyKey());
     form.setFieldsValue({
       reason: undefined,
+      confirmedByParty: undefined,
+      confirmedAt: dayjs(),
+      confirmationNote: undefined,
+      confirmationAttachmentId: undefined,
     });
   };
 
@@ -240,7 +256,7 @@ export default function SeaDocumentHistoryActions({
     expectedOrderVersion: orderVersion,
     expectedDocumentVersion: documentVersion,
     expectedCurrentVersionId: currentVersionId as string,
-    reason,
+    reason: reason.trim(),
   });
 
   const handlePreview = async () => {
@@ -286,12 +302,17 @@ export default function SeaDocumentHistoryActions({
             ...buildCommon(values.reason),
             idempotencyKey,
             input: amendmentInput,
+            confirmation: buildSeaExternalConfirmation(values),
           },
         );
       } else {
         await seaDocumentServiceExecuteSeaDocumentVoid(
           { orderId },
-          { ...buildCommon(values.reason), idempotencyKey },
+          {
+            ...buildCommon(values.reason),
+            idempotencyKey,
+            confirmation: buildSeaExternalConfirmation(values),
+          },
         );
       }
       message.success(mode === 'amendment' ? '改单版本已发布' : '单证已作废');
@@ -420,11 +441,11 @@ export default function SeaDocumentHistoryActions({
             },
             { title: '单证', dataIndex: 'documentNo', width: 150 },
             {
-              title: '替代链',
+              title: '模式变化',
               width: 200,
               render: (_, row) =>
-                row.oldHouseNo && row.newHouseNo
-                  ? `${row.oldHouseNo} → ${row.newHouseNo}`
+                row.previousMode !== undefined && row.targetMode !== undefined
+                  ? `${documentModeText(row.previousMode)} → ${documentModeText(row.targetMode)}`
                   : '-',
             },
             { title: '原因', dataIndex: 'reason' },
@@ -491,6 +512,7 @@ export default function SeaDocumentHistoryActions({
           >
             <Input.TextArea maxLength={500} showCount rows={3} />
           </Form.Item>
+          <SeaExternalConfirmationFields orderId={orderId} />
         </Form>
         {preview ? <PreviewResult preview={preview} /> : null}
       </Modal>

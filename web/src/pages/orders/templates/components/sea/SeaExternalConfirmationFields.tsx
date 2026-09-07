@@ -13,10 +13,20 @@ export type SeaExternalConfirmationFormValues = {
 export function buildSeaExternalConfirmation(
   values: SeaExternalConfirmationFormValues,
 ): API.SeaExternalConfirmationInput {
+  const confirmedByParty = values.confirmedByParty?.trim();
+  const confirmationNote = values.confirmationNote?.trim();
+  const confirmedAt = values.confirmedAt ? dayjs(values.confirmedAt) : null;
+  if (
+    !confirmedByParty ||
+    !confirmationNote ||
+    !confirmedAt?.isValid()
+  ) {
+    throw new Error('外部确认方、确认时间和确认说明不能为空');
+  }
   return {
-    confirmedByParty: values.confirmedByParty?.trim() || '',
-    confirmedAt: dayjs(values.confirmedAt).toISOString(),
-    confirmationNote: values.confirmationNote?.trim() || '',
+    confirmedByParty,
+    confirmedAt: confirmedAt.toISOString(),
+    confirmationNote,
     confirmationAttachmentId: values.confirmationAttachmentId || undefined,
   };
 }
