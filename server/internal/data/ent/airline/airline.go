@@ -38,6 +38,10 @@ const (
 	FieldCargoOnly = "cargo_only"
 	// FieldSource holds the string denoting the source field in the database.
 	FieldSource = "source"
+	// FieldSourceVersion holds the string denoting the source_version field in the database.
+	FieldSourceVersion = "source_version"
+	// FieldSourceHash holds the string denoting the source_hash field in the database.
+	FieldSourceHash = "source_hash"
 	// FieldSortOrder holds the string denoting the sort_order field in the database.
 	FieldSortOrder = "sort_order"
 	// FieldEnabled holds the string denoting the enabled field in the database.
@@ -71,6 +75,8 @@ var Columns = []string{
 	FieldCountryCode,
 	FieldCargoOnly,
 	FieldSource,
+	FieldSourceVersion,
+	FieldSourceHash,
 	FieldSortOrder,
 	FieldEnabled,
 	FieldSearchKeywords,
@@ -117,6 +123,10 @@ var (
 	DefaultSource string
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	SourceValidator func(string) error
+	// SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
+	SourceVersionValidator func(string) error
+	// SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
+	SourceHashValidator func(string) error
 	// DefaultSortOrder holds the default value on creation for the "sort_order" field.
 	DefaultSortOrder int
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
@@ -188,6 +198,16 @@ func ByCargoOnly(opts ...sql.OrderTermOption) OrderOption {
 // BySource orders the results by the source field.
 func BySource(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSource, opts...).ToFunc()
+}
+
+// BySourceVersion orders the results by the source_version field.
+func BySourceVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceVersion, opts...).ToFunc()
+}
+
+// BySourceHash orders the results by the source_hash field.
+func BySourceHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceHash, opts...).ToFunc()
 }
 
 // BySortOrder orders the results by the sort_order field.

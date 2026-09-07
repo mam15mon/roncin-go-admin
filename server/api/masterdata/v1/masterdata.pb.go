@@ -3000,8 +3000,8 @@ type Airline struct {
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	IataCode       string                 `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
 	IcaoCode       *string                `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	AwbPrefix      string                 `protobuf:"bytes,5,opt,name=awb_prefix,json=awbPrefix,proto3" json:"awb_prefix,omitempty"`
-	NameZh         string                 `protobuf:"bytes,6,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	AwbPrefix      *string                `protobuf:"bytes,5,opt,name=awb_prefix,json=awbPrefix,proto3,oneof" json:"awb_prefix,omitempty"`
+	NameZh         *string                `protobuf:"bytes,6,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
 	NameEn         string                 `protobuf:"bytes,7,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode    string                 `protobuf:"bytes,8,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	CargoOnly      bool                   `protobuf:"varint,9,opt,name=cargo_only,json=cargoOnly,proto3" json:"cargo_only,omitempty"`
@@ -3010,6 +3010,8 @@ type Airline struct {
 	Enabled        bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion  *string                `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash     *string                `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -3073,15 +3075,15 @@ func (x *Airline) GetIcaoCode() string {
 }
 
 func (x *Airline) GetAwbPrefix() string {
-	if x != nil {
-		return x.AwbPrefix
+	if x != nil && x.AwbPrefix != nil {
+		return *x.AwbPrefix
 	}
 	return ""
 }
 
 func (x *Airline) GetNameZh() string {
-	if x != nil {
-		return x.NameZh
+	if x != nil && x.NameZh != nil {
+		return *x.NameZh
 	}
 	return ""
 }
@@ -3142,12 +3144,26 @@ func (x *Airline) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *Airline) GetSourceVersion() string {
+	if x != nil && x.SourceVersion != nil {
+		return *x.SourceVersion
+	}
+	return ""
+}
+
+func (x *Airline) GetSourceHash() string {
+	if x != nil && x.SourceHash != nil {
+		return *x.SourceHash
+	}
+	return ""
+}
+
 type CreateAirlineRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IataCode      string                 `protobuf:"bytes,1,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
 	IcaoCode      *string                `protobuf:"bytes,2,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	AwbPrefix     string                 `protobuf:"bytes,3,opt,name=awb_prefix,json=awbPrefix,proto3" json:"awb_prefix,omitempty"`
-	NameZh        string                 `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	AwbPrefix     *string                `protobuf:"bytes,3,opt,name=awb_prefix,json=awbPrefix,proto3,oneof" json:"awb_prefix,omitempty"`
+	NameZh        *string                `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
 	NameEn        string                 `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode   string                 `protobuf:"bytes,6,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	CargoOnly     bool                   `protobuf:"varint,7,opt,name=cargo_only,json=cargoOnly,proto3" json:"cargo_only,omitempty"`
@@ -3202,15 +3218,15 @@ func (x *CreateAirlineRequest) GetIcaoCode() string {
 }
 
 func (x *CreateAirlineRequest) GetAwbPrefix() string {
-	if x != nil {
-		return x.AwbPrefix
+	if x != nil && x.AwbPrefix != nil {
+		return *x.AwbPrefix
 	}
 	return ""
 }
 
 func (x *CreateAirlineRequest) GetNameZh() string {
-	if x != nil {
-		return x.NameZh
+	if x != nil && x.NameZh != nil {
+		return *x.NameZh
 	}
 	return ""
 }
@@ -3254,8 +3270,8 @@ type UpdateAirlineRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	IcaoCode      *string                `protobuf:"bytes,2,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	AwbPrefix     string                 `protobuf:"bytes,3,opt,name=awb_prefix,json=awbPrefix,proto3" json:"awb_prefix,omitempty"`
-	NameZh        string                 `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	AwbPrefix     *string                `protobuf:"bytes,3,opt,name=awb_prefix,json=awbPrefix,proto3,oneof" json:"awb_prefix,omitempty"`
+	NameZh        *string                `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
 	NameEn        string                 `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode   string                 `protobuf:"bytes,6,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	CargoOnly     bool                   `protobuf:"varint,7,opt,name=cargo_only,json=cargoOnly,proto3" json:"cargo_only,omitempty"`
@@ -3311,15 +3327,15 @@ func (x *UpdateAirlineRequest) GetIcaoCode() string {
 }
 
 func (x *UpdateAirlineRequest) GetAwbPrefix() string {
-	if x != nil {
-		return x.AwbPrefix
+	if x != nil && x.AwbPrefix != nil {
+		return *x.AwbPrefix
 	}
 	return ""
 }
 
 func (x *UpdateAirlineRequest) GetNameZh() string {
-	if x != nil {
-		return x.NameZh
+	if x != nil && x.NameZh != nil {
+		return *x.NameZh
 	}
 	return ""
 }
@@ -5802,15 +5818,15 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
 	"\x04data\x18\x04 \x01(\v2\x16.masterdata.v1.AirportR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb1\x03\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcb\x04\n" +
 	"\aAirline\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
 	"\tiata_code\x18\x03 \x01(\tR\biataCode\x12 \n" +
-	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x1d\n" +
+	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"awb_prefix\x18\x05 \x01(\tR\tawbPrefix\x12\x17\n" +
-	"\aname_zh\x18\x06 \x01(\tR\x06nameZh\x12\x17\n" +
+	"awb_prefix\x18\x05 \x01(\tH\x01R\tawbPrefix\x88\x01\x01\x12\x1c\n" +
+	"\aname_zh\x18\x06 \x01(\tH\x02R\x06nameZh\x88\x01\x01\x12\x17\n" +
 	"\aname_en\x18\a \x01(\tR\x06nameEn\x12!\n" +
 	"\fcountry_code\x18\b \x01(\tR\vcountryCode\x12\x1d\n" +
 	"\n" +
@@ -5823,15 +5839,23 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\tR\tupdatedAtB\f\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt\x12*\n" +
+	"\x0esource_version\x18\x0f \x01(\tH\x03R\rsourceVersion\x88\x01\x01\x12$\n" +
+	"\vsource_hash\x18\x10 \x01(\tH\x04R\n" +
+	"sourceHash\x88\x01\x01B\f\n" +
 	"\n" +
-	"_icao_code\"\xc6\x02\n" +
+	"_icao_codeB\r\n" +
+	"\v_awb_prefixB\n" +
+	"\n" +
+	"\b_name_zhB\x11\n" +
+	"\x0f_source_versionB\x0e\n" +
+	"\f_source_hash\"\xe1\x02\n" +
 	"\x14CreateAirlineRequest\x12 \n" +
 	"\tiata_code\x18\x01 \x01(\tB\x03\xe0A\x02R\biataCode\x12 \n" +
 	"\ticao_code\x18\x02 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"awb_prefix\x18\x03 \x01(\tB\x03\xe0A\x02R\tawbPrefix\x12\x1c\n" +
-	"\aname_zh\x18\x04 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
+	"awb_prefix\x18\x03 \x01(\tH\x01R\tawbPrefix\x88\x01\x01\x12\x1c\n" +
+	"\aname_zh\x18\x04 \x01(\tH\x02R\x06nameZh\x88\x01\x01\x12\x1c\n" +
 	"\aname_en\x18\x05 \x01(\tB\x03\xe0A\x02R\x06nameEn\x12&\n" +
 	"\fcountry_code\x18\x06 \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x1d\n" +
 	"\n" +
@@ -5840,13 +5864,16 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\t \x01(\x05R\tsortOrderB\f\n" +
 	"\n" +
-	"_icao_code\"\xd3\x02\n" +
+	"_icao_codeB\r\n" +
+	"\v_awb_prefixB\n" +
+	"\n" +
+	"\b_name_zh\"\xee\x02\n" +
 	"\x14UpdateAirlineRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\ticao_code\x18\x02 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"awb_prefix\x18\x03 \x01(\tB\x03\xe0A\x02R\tawbPrefix\x12\x1c\n" +
-	"\aname_zh\x18\x04 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
+	"awb_prefix\x18\x03 \x01(\tH\x01R\tawbPrefix\x88\x01\x01\x12\x1c\n" +
+	"\aname_zh\x18\x04 \x01(\tH\x02R\x06nameZh\x88\x01\x01\x12\x1c\n" +
 	"\aname_en\x18\x05 \x01(\tB\x03\xe0A\x02R\x06nameEn\x12&\n" +
 	"\fcountry_code\x18\x06 \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x1d\n" +
 	"\n" +
@@ -5857,7 +5884,10 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\aenabled\x18\n" +
 	" \x01(\bR\aenabledB\f\n" +
 	"\n" +
-	"_icao_code\"\xec\x01\n" +
+	"_icao_codeB\r\n" +
+	"\v_awb_prefixB\n" +
+	"\n" +
+	"\b_name_zh\"\xec\x01\n" +
 	"\x14ListAirlinesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

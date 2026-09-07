@@ -547,7 +547,24 @@ func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
 }
 
 func airlineToAPI(item *biz.Airline) *v1.Airline {
-	return &v1.Airline{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, AwbPrefix: item.AWBPrefix, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, CargoOnly: item.CargoOnly, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.Airline{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		IataCode:       item.IATACode,
+		IcaoCode:       item.ICAOCode,
+		AwbPrefix:      optionalString(item.AWBPrefix, item.AWBPrefix != ""),
+		NameZh:         optionalString(item.NameZH, item.NameZH != ""),
+		NameEn:         item.NameEN,
+		CountryCode:    item.CountryCode,
+		CargoOnly:      item.CargoOnly,
+		Source:         item.Source,
+		SortOrder:      int32(item.SortOrder),
+		Enabled:        item.Enabled,
+		CreatedAt:      item.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.UTC().Format(time.RFC3339),
+		SourceVersion:  item.SourceVersion,
+		SourceHash:     item.SourceHash,
+	}
 }
 
 func shippingLinesToAPI(items []*biz.ShippingLine) []*v1.ShippingLine {

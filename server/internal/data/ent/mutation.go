@@ -1220,6 +1220,8 @@ type AirlineMutation struct {
 	country_code        *string
 	cargo_only          *bool
 	source              *string
+	source_version      *string
+	source_hash         *string
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
@@ -1546,7 +1548,7 @@ func (m *AirlineMutation) AwbPrefix() (r string, exists bool) {
 // OldAwbPrefix returns the old "awb_prefix" field's value of the Airline entity.
 // If the Airline object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirlineMutation) OldAwbPrefix(ctx context.Context) (v string, err error) {
+func (m *AirlineMutation) OldAwbPrefix(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAwbPrefix is only allowed on UpdateOne operations")
 	}
@@ -1560,9 +1562,22 @@ func (m *AirlineMutation) OldAwbPrefix(ctx context.Context) (v string, err error
 	return oldValue.AwbPrefix, nil
 }
 
+// ClearAwbPrefix clears the value of the "awb_prefix" field.
+func (m *AirlineMutation) ClearAwbPrefix() {
+	m.awb_prefix = nil
+	m.clearedFields[airline.FieldAwbPrefix] = struct{}{}
+}
+
+// AwbPrefixCleared returns if the "awb_prefix" field was cleared in this mutation.
+func (m *AirlineMutation) AwbPrefixCleared() bool {
+	_, ok := m.clearedFields[airline.FieldAwbPrefix]
+	return ok
+}
+
 // ResetAwbPrefix resets all changes to the "awb_prefix" field.
 func (m *AirlineMutation) ResetAwbPrefix() {
 	m.awb_prefix = nil
+	delete(m.clearedFields, airline.FieldAwbPrefix)
 }
 
 // SetNameZh sets the "name_zh" field.
@@ -1582,7 +1597,7 @@ func (m *AirlineMutation) NameZh() (r string, exists bool) {
 // OldNameZh returns the old "name_zh" field's value of the Airline entity.
 // If the Airline object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirlineMutation) OldNameZh(ctx context.Context) (v string, err error) {
+func (m *AirlineMutation) OldNameZh(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
 	}
@@ -1596,9 +1611,22 @@ func (m *AirlineMutation) OldNameZh(ctx context.Context) (v string, err error) {
 	return oldValue.NameZh, nil
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (m *AirlineMutation) ClearNameZh() {
+	m.name_zh = nil
+	m.clearedFields[airline.FieldNameZh] = struct{}{}
+}
+
+// NameZhCleared returns if the "name_zh" field was cleared in this mutation.
+func (m *AirlineMutation) NameZhCleared() bool {
+	_, ok := m.clearedFields[airline.FieldNameZh]
+	return ok
+}
+
 // ResetNameZh resets all changes to the "name_zh" field.
 func (m *AirlineMutation) ResetNameZh() {
 	m.name_zh = nil
+	delete(m.clearedFields, airline.FieldNameZh)
 }
 
 // SetNameEn sets the "name_en" field.
@@ -1743,6 +1771,104 @@ func (m *AirlineMutation) OldSource(ctx context.Context) (v string, err error) {
 // ResetSource resets all changes to the "source" field.
 func (m *AirlineMutation) ResetSource() {
 	m.source = nil
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (m *AirlineMutation) SetSourceVersion(s string) {
+	m.source_version = &s
+}
+
+// SourceVersion returns the value of the "source_version" field in the mutation.
+func (m *AirlineMutation) SourceVersion() (r string, exists bool) {
+	v := m.source_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceVersion returns the old "source_version" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldSourceVersion(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceVersion: %w", err)
+	}
+	return oldValue.SourceVersion, nil
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (m *AirlineMutation) ClearSourceVersion() {
+	m.source_version = nil
+	m.clearedFields[airline.FieldSourceVersion] = struct{}{}
+}
+
+// SourceVersionCleared returns if the "source_version" field was cleared in this mutation.
+func (m *AirlineMutation) SourceVersionCleared() bool {
+	_, ok := m.clearedFields[airline.FieldSourceVersion]
+	return ok
+}
+
+// ResetSourceVersion resets all changes to the "source_version" field.
+func (m *AirlineMutation) ResetSourceVersion() {
+	m.source_version = nil
+	delete(m.clearedFields, airline.FieldSourceVersion)
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (m *AirlineMutation) SetSourceHash(s string) {
+	m.source_hash = &s
+}
+
+// SourceHash returns the value of the "source_hash" field in the mutation.
+func (m *AirlineMutation) SourceHash() (r string, exists bool) {
+	v := m.source_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceHash returns the old "source_hash" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldSourceHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceHash: %w", err)
+	}
+	return oldValue.SourceHash, nil
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (m *AirlineMutation) ClearSourceHash() {
+	m.source_hash = nil
+	m.clearedFields[airline.FieldSourceHash] = struct{}{}
+}
+
+// SourceHashCleared returns if the "source_hash" field was cleared in this mutation.
+func (m *AirlineMutation) SourceHashCleared() bool {
+	_, ok := m.clearedFields[airline.FieldSourceHash]
+	return ok
+}
+
+// ResetSourceHash resets all changes to the "source_hash" field.
+func (m *AirlineMutation) ResetSourceHash() {
+	m.source_hash = nil
+	delete(m.clearedFields, airline.FieldSourceHash)
 }
 
 // SetSortOrder sets the "sort_order" field.
@@ -1934,7 +2060,7 @@ func (m *AirlineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirlineMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, airline.FieldCreatedAt)
 	}
@@ -1967,6 +2093,12 @@ func (m *AirlineMutation) Fields() []string {
 	}
 	if m.source != nil {
 		fields = append(fields, airline.FieldSource)
+	}
+	if m.source_version != nil {
+		fields = append(fields, airline.FieldSourceVersion)
+	}
+	if m.source_hash != nil {
+		fields = append(fields, airline.FieldSourceHash)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, airline.FieldSortOrder)
@@ -2007,6 +2139,10 @@ func (m *AirlineMutation) Field(name string) (ent.Value, bool) {
 		return m.CargoOnly()
 	case airline.FieldSource:
 		return m.Source()
+	case airline.FieldSourceVersion:
+		return m.SourceVersion()
+	case airline.FieldSourceHash:
+		return m.SourceHash()
 	case airline.FieldSortOrder:
 		return m.SortOrder()
 	case airline.FieldEnabled:
@@ -2044,6 +2180,10 @@ func (m *AirlineMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCargoOnly(ctx)
 	case airline.FieldSource:
 		return m.OldSource(ctx)
+	case airline.FieldSourceVersion:
+		return m.OldSourceVersion(ctx)
+	case airline.FieldSourceHash:
+		return m.OldSourceHash(ctx)
 	case airline.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	case airline.FieldEnabled:
@@ -2136,6 +2276,20 @@ func (m *AirlineMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSource(v)
 		return nil
+	case airline.FieldSourceVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceVersion(v)
+		return nil
+	case airline.FieldSourceHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceHash(v)
+		return nil
 	case airline.FieldSortOrder:
 		v, ok := value.(int)
 		if !ok {
@@ -2205,6 +2359,18 @@ func (m *AirlineMutation) ClearedFields() []string {
 	if m.FieldCleared(airline.FieldIcaoCode) {
 		fields = append(fields, airline.FieldIcaoCode)
 	}
+	if m.FieldCleared(airline.FieldAwbPrefix) {
+		fields = append(fields, airline.FieldAwbPrefix)
+	}
+	if m.FieldCleared(airline.FieldNameZh) {
+		fields = append(fields, airline.FieldNameZh)
+	}
+	if m.FieldCleared(airline.FieldSourceVersion) {
+		fields = append(fields, airline.FieldSourceVersion)
+	}
+	if m.FieldCleared(airline.FieldSourceHash) {
+		fields = append(fields, airline.FieldSourceHash)
+	}
 	return fields
 }
 
@@ -2221,6 +2387,18 @@ func (m *AirlineMutation) ClearField(name string) error {
 	switch name {
 	case airline.FieldIcaoCode:
 		m.ClearIcaoCode()
+		return nil
+	case airline.FieldAwbPrefix:
+		m.ClearAwbPrefix()
+		return nil
+	case airline.FieldNameZh:
+		m.ClearNameZh()
+		return nil
+	case airline.FieldSourceVersion:
+		m.ClearSourceVersion()
+		return nil
+	case airline.FieldSourceHash:
+		m.ClearSourceHash()
 		return nil
 	}
 	return fmt.Errorf("unknown Airline nullable field %s", name)
@@ -2262,6 +2440,12 @@ func (m *AirlineMutation) ResetField(name string) error {
 		return nil
 	case airline.FieldSource:
 		m.ResetSource()
+		return nil
+	case airline.FieldSourceVersion:
+		m.ResetSourceVersion()
+		return nil
+	case airline.FieldSourceHash:
+		m.ResetSourceHash()
 		return nil
 	case airline.FieldSortOrder:
 		m.ResetSortOrder()

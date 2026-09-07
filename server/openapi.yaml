@@ -11600,6 +11600,10 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                sourceVersion:
+                    type: string
+                sourceHash:
+                    type: string
         masterdata.v1.Airport:
             type: object
             properties:
@@ -11639,8 +11643,6 @@ components:
         masterdata.v1.CreateAirlineRequest:
             required:
                 - iataCode
-                - awbPrefix
-                - nameZh
                 - nameEn
                 - countryCode
             type: object
@@ -12334,8 +12336,6 @@ components:
         masterdata.v1.UpdateAirlineRequest:
             required:
                 - id
-                - awbPrefix
-                - nameZh
                 - nameEn
                 - countryCode
             type: object

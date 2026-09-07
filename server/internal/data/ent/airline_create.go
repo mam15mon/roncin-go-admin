@@ -82,9 +82,25 @@ func (_c *AirlineCreate) SetAwbPrefix(v string) *AirlineCreate {
 	return _c
 }
 
+// SetNillableAwbPrefix sets the "awb_prefix" field if the given value is not nil.
+func (_c *AirlineCreate) SetNillableAwbPrefix(v *string) *AirlineCreate {
+	if v != nil {
+		_c.SetAwbPrefix(*v)
+	}
+	return _c
+}
+
 // SetNameZh sets the "name_zh" field.
 func (_c *AirlineCreate) SetNameZh(v string) *AirlineCreate {
 	_c.mutation.SetNameZh(v)
+	return _c
+}
+
+// SetNillableNameZh sets the "name_zh" field if the given value is not nil.
+func (_c *AirlineCreate) SetNillableNameZh(v *string) *AirlineCreate {
+	if v != nil {
+		_c.SetNameZh(*v)
+	}
 	return _c
 }
 
@@ -124,6 +140,34 @@ func (_c *AirlineCreate) SetSource(v string) *AirlineCreate {
 func (_c *AirlineCreate) SetNillableSource(v *string) *AirlineCreate {
 	if v != nil {
 		_c.SetSource(*v)
+	}
+	return _c
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_c *AirlineCreate) SetSourceVersion(v string) *AirlineCreate {
+	_c.mutation.SetSourceVersion(v)
+	return _c
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_c *AirlineCreate) SetNillableSourceVersion(v *string) *AirlineCreate {
+	if v != nil {
+		_c.SetSourceVersion(*v)
+	}
+	return _c
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_c *AirlineCreate) SetSourceHash(v string) *AirlineCreate {
+	_c.mutation.SetSourceHash(v)
+	return _c
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_c *AirlineCreate) SetNillableSourceHash(v *string) *AirlineCreate {
+	if v != nil {
+		_c.SetSourceHash(*v)
 	}
 	return _c
 }
@@ -294,16 +338,10 @@ func (_c *AirlineCreate) check() error {
 			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airline.icao_code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.AwbPrefix(); !ok {
-		return &ValidationError{Name: "awb_prefix", err: errors.New(`ent: missing required field "Airline.awb_prefix"`)}
-	}
 	if v, ok := _c.mutation.AwbPrefix(); ok {
 		if err := airline.AwbPrefixValidator(v); err != nil {
 			return &ValidationError{Name: "awb_prefix", err: fmt.Errorf(`ent: validator failed for field "Airline.awb_prefix": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.NameZh(); !ok {
-		return &ValidationError{Name: "name_zh", err: errors.New(`ent: missing required field "Airline.name_zh"`)}
 	}
 	if v, ok := _c.mutation.NameZh(); ok {
 		if err := airline.NameZhValidator(v); err != nil {
@@ -335,6 +373,16 @@ func (_c *AirlineCreate) check() error {
 	if v, ok := _c.mutation.Source(); ok {
 		if err := airline.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Airline.source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceVersion(); ok {
+		if err := airline.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Airline.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceHash(); ok {
+		if err := airline.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airline.source_hash": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
@@ -402,11 +450,11 @@ func (_c *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.AwbPrefix(); ok {
 		_spec.SetField(airline.FieldAwbPrefix, field.TypeString, value)
-		_node.AwbPrefix = value
+		_node.AwbPrefix = &value
 	}
 	if value, ok := _c.mutation.NameZh(); ok {
 		_spec.SetField(airline.FieldNameZh, field.TypeString, value)
-		_node.NameZh = value
+		_node.NameZh = &value
 	}
 	if value, ok := _c.mutation.NameEn(); ok {
 		_spec.SetField(airline.FieldNameEn, field.TypeString, value)
@@ -423,6 +471,14 @@ func (_c *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Source(); ok {
 		_spec.SetField(airline.FieldSource, field.TypeString, value)
 		_node.Source = value
+	}
+	if value, ok := _c.mutation.SourceVersion(); ok {
+		_spec.SetField(airline.FieldSourceVersion, field.TypeString, value)
+		_node.SourceVersion = &value
+	}
+	if value, ok := _c.mutation.SourceHash(); ok {
+		_spec.SetField(airline.FieldSourceHash, field.TypeString, value)
+		_node.SourceHash = &value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(airline.FieldSortOrder, field.TypeInt, value)

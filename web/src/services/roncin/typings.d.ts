@@ -289,6 +289,8 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    sourceVersion?: string;
+    sourceHash?: string;
   };
 
   type Airport = {
@@ -964,8 +966,8 @@ declare namespace API {
   type CreateAirlineRequest = {
     iataCode: string;
     icaoCode?: string;
-    awbPrefix: string;
-    nameZh: string;
+    awbPrefix?: string;
+    nameZh?: string;
     nameEn: string;
     countryCode: string;
     cargoOnly?: boolean;
@@ -6386,8 +6388,8 @@ declare namespace API {
   type UpdateAirlineRequest = {
     id: string;
     icaoCode?: string;
-    awbPrefix: string;
-    nameZh: string;
+    awbPrefix?: string;
+    nameZh?: string;
     nameEn: string;
     countryCode: string;
     cargoOnly?: boolean;

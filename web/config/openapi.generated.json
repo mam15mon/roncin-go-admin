@@ -18328,6 +18328,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "sourceVersion": {
+            "type": "string"
+          },
+          "sourceHash": {
+            "type": "string"
           }
         }
       },
@@ -18388,8 +18394,6 @@
       "masterdata.v1.CreateAirlineRequest": {
         "required": [
           "iataCode",
-          "awbPrefix",
-          "nameZh",
           "nameEn",
           "countryCode"
         ],
@@ -19401,8 +19405,6 @@
       "masterdata.v1.UpdateAirlineRequest": {
         "required": [
           "id",
-          "awbPrefix",
-          "nameZh",
           "nameEn",
           "countryCode"
         ],

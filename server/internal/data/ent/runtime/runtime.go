@@ -293,39 +293,11 @@ func init() {
 	// airlineDescAwbPrefix is the schema descriptor for awb_prefix field.
 	airlineDescAwbPrefix := airlineFields[3].Descriptor()
 	// airline.AwbPrefixValidator is a validator for the "awb_prefix" field. It is called by the builders before save.
-	airline.AwbPrefixValidator = func() func(string) error {
-		validators := airlineDescAwbPrefix.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(awb_prefix string) error {
-			for _, fn := range fns {
-				if err := fn(awb_prefix); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airline.AwbPrefixValidator = airlineDescAwbPrefix.Validators[0].(func(string) error)
 	// airlineDescNameZh is the schema descriptor for name_zh field.
 	airlineDescNameZh := airlineFields[4].Descriptor()
 	// airline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
-	airline.NameZhValidator = func() func(string) error {
-		validators := airlineDescNameZh.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name_zh string) error {
-			for _, fn := range fns {
-				if err := fn(name_zh); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airline.NameZhValidator = airlineDescNameZh.Validators[0].(func(string) error)
 	// airlineDescNameEn is the schema descriptor for name_en field.
 	airlineDescNameEn := airlineFields[5].Descriptor()
 	// airline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
@@ -372,16 +344,24 @@ func init() {
 	airline.DefaultSource = airlineDescSource.Default.(string)
 	// airline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	airline.SourceValidator = airlineDescSource.Validators[0].(func(string) error)
+	// airlineDescSourceVersion is the schema descriptor for source_version field.
+	airlineDescSourceVersion := airlineFields[9].Descriptor()
+	// airline.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
+	airline.SourceVersionValidator = airlineDescSourceVersion.Validators[0].(func(string) error)
+	// airlineDescSourceHash is the schema descriptor for source_hash field.
+	airlineDescSourceHash := airlineFields[10].Descriptor()
+	// airline.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
+	airline.SourceHashValidator = airlineDescSourceHash.Validators[0].(func(string) error)
 	// airlineDescSortOrder is the schema descriptor for sort_order field.
-	airlineDescSortOrder := airlineFields[9].Descriptor()
+	airlineDescSortOrder := airlineFields[11].Descriptor()
 	// airline.DefaultSortOrder holds the default value on creation for the sort_order field.
 	airline.DefaultSortOrder = airlineDescSortOrder.Default.(int)
 	// airlineDescEnabled is the schema descriptor for enabled field.
-	airlineDescEnabled := airlineFields[10].Descriptor()
+	airlineDescEnabled := airlineFields[12].Descriptor()
 	// airline.DefaultEnabled holds the default value on creation for the enabled field.
 	airline.DefaultEnabled = airlineDescEnabled.Default.(bool)
 	// airlineDescSearchKeywords is the schema descriptor for search_keywords field.
-	airlineDescSearchKeywords := airlineFields[11].Descriptor()
+	airlineDescSearchKeywords := airlineFields[13].Descriptor()
 	// airline.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	airline.DefaultSearchKeywords = airlineDescSearchKeywords.Default.(string)
 	// airlineDescID is the schema descriptor for id field.

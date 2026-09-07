@@ -64,12 +64,14 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "iata_code", Type: field.TypeString, Size: 2},
 		{Name: "icao_code", Type: field.TypeString, Nullable: true, Size: 3},
-		{Name: "awb_prefix", Type: field.TypeString, Size: 3},
-		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "awb_prefix", Type: field.TypeString, Nullable: true, Size: 3},
+		{Name: "name_zh", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Size: 200},
 		{Name: "country_code", Type: field.TypeString, Size: 2},
 		{Name: "cargo_only", Type: field.TypeBool, Default: false},
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "source_version", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "source_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -83,7 +85,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "airlines_organizations_airlines",
-				Columns:    []*schema.Column{AirlinesColumns[14]},
+				Columns:    []*schema.Column{AirlinesColumns[16]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -97,22 +99,22 @@ var (
 			{
 				Name:    "airline_organization_id_iata_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[3]},
+				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[3]},
 			},
 			{
 				Name:    "airline_organization_id_icao_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[4]},
+				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[4]},
 			},
 			{
 				Name:    "airline_organization_id_awb_prefix",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[5]},
+				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[5]},
 			},
 			{
 				Name:    "airline_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[12], AirlinesColumns[11]},
+				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[14], AirlinesColumns[13]},
 			},
 		},
 	}
