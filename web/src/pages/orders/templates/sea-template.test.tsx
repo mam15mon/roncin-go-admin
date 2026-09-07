@@ -307,8 +307,7 @@ describe('海运订单新增模板', () => {
           submitter={false}
           initialValues={{
             seaDocumentStructure:
-              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-            seaHouseBills: [],
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
           }}
         >
           <SeaAssociatedHouseBillsField />
@@ -338,18 +337,14 @@ describe('海运订单新增模板', () => {
       expect(screen.queryByRole('textbox')).toBeNull();
     });
 
-    it('录入多张分单时全部以标签形式展示且不可就地编辑', () => {
+    it('录入当前订单的唯一分单时以标签形式展示且不可就地编辑', () => {
       render(
         <ProForm
           submitter={false}
           initialValues={{
             seaDocumentStructure:
               SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-            seaHouseBills: [
-              { houseNo: 'HBL-001' },
-              { houseNo: 'HBL-002' },
-              { houseNo: 'HBL-003' },
-            ],
+            seaHouseBill: { houseNo: 'HBL-001' },
           }}
         >
           <SeaAssociatedHouseBillsField />
@@ -357,8 +352,6 @@ describe('海运订单新增模板', () => {
       );
 
       expect(screen.getByText('HBL-001')).toBeTruthy();
-      expect(screen.getByText('HBL-002')).toBeTruthy();
-      expect(screen.getByText('HBL-003')).toBeTruthy();
       expect(screen.queryByRole('textbox')).toBeNull();
     });
 
@@ -370,7 +363,7 @@ describe('海运订单新增模板', () => {
             seaDocumentSummary: {
               documentStructure:
                 SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-              houseNos: ['HBL-HIST-1', 'HBL-HIST-2'],
+              houseNo: 'HBL-HIST-1',
             },
           }}
         >
@@ -379,7 +372,6 @@ describe('海运订单新增模板', () => {
       );
 
       expect(screen.getByText('HBL-HIST-1')).toBeTruthy();
-      expect(screen.getByText('HBL-HIST-2')).toBeTruthy();
       expect(screen.queryByRole('textbox')).toBeNull();
     });
   });

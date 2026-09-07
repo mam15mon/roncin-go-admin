@@ -9,6 +9,7 @@ describe('buildCreateOrderPayload', () => {
       {
         customerId: 'customer-1',
         customerReferenceNo: '  CUST-001  ',
+        bookingNo: '  BOOKING-001  ',
         internalReferenceNo: '  INTERNAL-001  ',
         tradeTerm: 3,
         paymentTerm: 1,
@@ -29,7 +30,7 @@ describe('buildCreateOrderPayload', () => {
         associate2UserId: 'associate-2',
         associate2OrganizationId: 'org-7',
         seaDocumentStructure: 3,
-        seaHouseBills: [{ houseNo: '  HBL-001  ', issuerSource: 1 }],
+        seaHouseBill: { houseNo: '  HBL-001  ', issuerSource: 1 },
       },
       ORDER_KIND_CONFIGS['sea-export'],
     );
@@ -37,6 +38,7 @@ describe('buildCreateOrderPayload', () => {
     expect(result).toMatchObject({
       customerId: 'customer-1',
       customerReferenceNo: 'CUST-001',
+      bookingNo: 'BOOKING-001',
       internalReferenceNo: 'INTERNAL-001',
       businessType: 1,
       tradeDirection: 1,
@@ -56,7 +58,7 @@ describe('buildCreateOrderPayload', () => {
       shippingDocuments: undefined,
       seaDocument: {
         documentStructure: 3,
-        houseBills: [{ houseNo: '  HBL-001  ', issuerSource: 1 }],
+        houseBill: { houseNo: '  HBL-001  ', issuerSource: 1 },
       },
     });
   });
@@ -67,14 +69,15 @@ describe('buildCreateOrderPayload', () => {
         customerId: 'customer-1',
         tradeTerm: 3,
         paymentTerm: 1,
-        seaHouseBills: [{ houseNo: '   ', issuerSource: 1 }],
+        seaHouseBill: { houseNo: '   ', issuerSource: 1 },
       },
       ORDER_KIND_CONFIGS['sea-export'],
     );
 
-    expect(result.seaDocument?.houseBills).toEqual([
-      { houseNo: '   ', issuerSource: 1 },
-    ]);
+    expect(result.seaDocument?.houseBill).toEqual({
+      houseNo: '   ',
+      issuerSource: 1,
+    });
   });
 
   it('忽略空白可选字段和不完整的岗位人员', () => {

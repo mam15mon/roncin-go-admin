@@ -231,7 +231,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           />
         </Col>
 
-        {/* 第 5 行：一行 5 列（客户业务编号、企业内部编号、贸易条款、订舱代理、国外代理） */}
+        {/* 第 5 行：客户业务编号、Booking No、企业内部编号及业务属性 */}
         <Col className="col-5">
           <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
             <Form.Item noStyle name="customerReferenceNo">
@@ -251,6 +251,11 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                 }
               />
             </Form.Item>
+          </Form.Item>
+        </Col>
+        <Col className="col-5">
+          <Form.Item label="Booking No" name="bookingNo">
+            <TooltipInput placeholder="请输入" maxLength={100} />
           </Form.Item>
         </Col>
         <Col className="col-5">

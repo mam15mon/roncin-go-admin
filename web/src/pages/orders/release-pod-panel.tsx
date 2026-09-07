@@ -76,8 +76,8 @@ export function buildSeaReleasePodDocumentOptions(
       seaDocumentId: documents.masterBill.id,
     });
   }
-  for (const houseBill of documents?.houseBills ?? []) {
-    if (!houseBill.id) continue;
+  const houseBill = documents?.houseBill;
+  if (houseBill?.id) {
     options.push({
       label: `HBL: ${houseBill.houseNo || '-'}`,
       value: `hbl:${houseBill.id}`,

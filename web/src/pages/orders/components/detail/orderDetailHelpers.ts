@@ -47,6 +47,7 @@ export function buildInitialValues(
     orderNo: order.orderNo,
     customerId: order.customerId,
     customerReferenceNo: order.customerReferenceNo,
+    bookingNo: order.bookingNo,
     internalReferenceNo: order.internalReferenceNo,
     tradeTerm: order.tradeTerm,
     paymentTerm: order.paymentTerm,
@@ -173,6 +174,7 @@ export function buildUpdatePayload(
     expectedVersion: orderVersion || '0',
     customerId: values.customerId,
     customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
+    bookingNo: values.bookingNo?.trim() || undefined,
     internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
     tradeTerm:
       values.tradeTerm !== undefined ? Number(values.tradeTerm) : undefined,

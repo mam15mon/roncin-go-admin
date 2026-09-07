@@ -4,6 +4,7 @@ import type { OrderKindConfig } from './common';
 export type CreateOrderFormValues = {
   customerId: string;
   customerReferenceNo?: string;
+  bookingNo?: string;
   internalReferenceNo?: string;
   customerCode?: string;
   tradeTerm: number;
@@ -76,7 +77,7 @@ export type CreateOrderFormValues = {
   creatorOrganizationId?: string;
   seaDocumentStructure?: number;
   seaMasterBillContent?: API.SeaBillContent;
-  seaHouseBills?: API.SeaHouseBillInput[];
+  seaHouseBill?: API.SeaHouseBillInput;
   seaDocument?: API.SeaOrderDocumentInput;
 };
 
@@ -135,21 +136,21 @@ export function buildCreateOrderPayload(
     if (values.seaDocument) {
       seaDocument = values.seaDocument;
     } else {
-      const houseBills: API.SeaHouseBillInput[] = (
-        values.seaHouseBills || []
-      ).map((hb) => ({
-        id: hb.id,
-        houseNo: hb.houseNo ?? '',
-        issuerSource: hb.issuerSource,
-        issuerPartnerId: hb.issuerPartnerId || undefined,
-        note: hb.note?.trim() || undefined,
-        content: hb.content,
-      }));
+      const houseBill = values.seaHouseBill
+        ? {
+            id: values.seaHouseBill.id,
+            houseNo: values.seaHouseBill.houseNo ?? '',
+            issuerSource: values.seaHouseBill.issuerSource,
+            issuerPartnerId: values.seaHouseBill.issuerPartnerId || undefined,
+            note: values.seaHouseBill.note?.trim() || undefined,
+            content: values.seaHouseBill.content,
+          }
+        : undefined;
 
       seaDocument = {
         documentStructure: values.seaDocumentStructure,
         masterBillContent: values.seaMasterBillContent,
-        houseBills: houseBills.length > 0 ? houseBills : undefined,
+        houseBill,
       };
     }
   }
@@ -157,6 +158,7 @@ export function buildCreateOrderPayload(
   return {
     customerId: values.customerId,
     customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
+    bookingNo: values.bookingNo?.trim() || undefined,
     internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
     businessType: config.businessType,
     tradeDirection: config.tradeDirection,

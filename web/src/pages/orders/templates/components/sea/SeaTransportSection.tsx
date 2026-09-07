@@ -399,9 +399,9 @@ export function SeaMasterBillFields({
 
 export function SeaAssociatedHouseBillsField() {
   const form = Form.useFormInstance();
-  const watchedHouseBills = (Form.useWatch('seaHouseBills', form) ??
-    form?.getFieldValue('seaHouseBills')) as
-    | Array<{ houseNo?: string }>
+  const watchedHouseBill = (Form.useWatch('seaHouseBill', form) ??
+    form?.getFieldValue('seaHouseBill')) as
+    | { houseNo?: string }
     | undefined;
   const watchedStructure = (Form.useWatch('seaDocumentStructure', form) ??
     form?.getFieldValue('seaDocumentStructure')) as
@@ -412,23 +412,8 @@ export function SeaAssociatedHouseBillsField() {
     | API.SeaOrderDocumentSummary
     | undefined;
 
-  let houseNos: string[] = [];
-  if (
-    watchedHouseBills &&
-    Array.isArray(watchedHouseBills) &&
-    watchedHouseBills.length > 0
-  ) {
-    houseNos = watchedHouseBills
-      .map((hb) => hb?.houseNo?.trim())
-      .filter((no): no is string => !!no);
-  } else if (
-    watchedDocSummary?.houseNos &&
-    watchedDocSummary.houseNos.length > 0
-  ) {
-    houseNos = watchedDocSummary.houseNos
-      .map((no) => no?.trim())
-      .filter((no): no is string => !!no);
-  }
+  const houseNo =
+    watchedHouseBill?.houseNo?.trim() || watchedDocSummary?.houseNo?.trim();
 
   const structure = watchedStructure ?? watchedDocSummary?.documentStructure;
   const isDirect =
@@ -457,12 +442,10 @@ export function SeaAssociatedHouseBillsField() {
             <Tag color="success" style={{ margin: 0 }}>
               直单，无HBL
             </Tag>
-          ) : houseNos.length > 0 ? (
-            houseNos.map((hblNo) => (
-              <Tag key={hblNo} color="processing" style={{ margin: 0 }}>
-                {hblNo}
-              </Tag>
-            ))
+          ) : houseNo ? (
+            <Tag color="processing" style={{ margin: 0 }}>
+              {houseNo}
+            </Tag>
           ) : (
             <Typography.Text type="secondary" style={{ fontSize: 13 }}>
               暂未录入分单号
