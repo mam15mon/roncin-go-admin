@@ -29,9 +29,12 @@ func NewSeaSharedContainerRepo(data *Data) biz.SeaSharedContainerRepo {
 	return &seaSharedContainerRepo{data: data}
 }
 
-func (r *seaSharedContainerRepo) List(ctx context.Context, organizationID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*biz.SeaSharedContainer, int, error) {
+func (r *seaSharedContainerRepo) List(ctx context.Context, organizationID, anchorOrderID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*biz.SeaSharedContainer, int, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
+		return nil, 0, err
+	}
+	if err := ensureSharedAnchorExecution(ctx, client, organizationID, anchorOrderID, executionID); err != nil {
 		return nil, 0, err
 	}
 	if err := validateSharedExecution(ctx, client, organizationID, executionID, false); err != nil {
@@ -66,7 +69,7 @@ func (r *seaSharedContainerRepo) List(ctx context.Context, organizationID, execu
 	return items, total, nil
 }
 
-func (r *seaSharedContainerRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.SeaSharedContainer, error) {
+func (r *seaSharedContainerRepo) Get(ctx context.Context, organizationID, anchorOrderID, id uuid.UUID) (*biz.SeaSharedContainer, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -75,12 +78,18 @@ func (r *seaSharedContainerRepo) Get(ctx context.Context, organizationID, id uui
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
 	}
+	if err := ensureSharedAnchorExecution(ctx, client, organizationID, anchorOrderID, row.TransportExecutionID); err != nil {
+		return nil, err
+	}
 	return r.getByEntity(ctx, client, row)
 }
 
-func (r *seaSharedContainerRepo) ListCandidates(ctx context.Context, organizationID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*biz.SeaSharedContainerCandidateOrder, int, error) {
+func (r *seaSharedContainerRepo) ListCandidates(ctx context.Context, organizationID, anchorOrderID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*biz.SeaSharedContainerCandidateOrder, int, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
+		return nil, 0, err
+	}
+	if err := ensureSharedAnchorExecution(ctx, client, organizationID, anchorOrderID, executionID); err != nil {
 		return nil, 0, err
 	}
 	if err := validateSharedExecution(ctx, client, organizationID, executionID, false); err != nil {
@@ -150,10 +159,13 @@ func (r *seaSharedContainerRepo) ListCandidates(ctx context.Context, organizatio
 	return result, total, nil
 }
 
-func (r *seaSharedContainerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.SeaSharedContainer, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+func (r *seaSharedContainerRepo) Create(ctx context.Context, organizationID, actorID, anchorOrderID uuid.UUID, input *biz.SeaSharedContainer, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		client, err := r.data.client(txCtx)
 		if err != nil {
+			return err
+		}
+		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, input.TransportExecutionID); err != nil {
 			return err
 		}
 		if err := validateSharedExecution(txCtx, client, organizationID, input.TransportExecutionID, true); err != nil {
@@ -174,10 +186,10 @@ func (r *seaSharedContainerRepo) Create(ctx context.Context, organizationID uuid
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, input.ID)
+	return r.Get(ctx, organizationID, anchorOrderID, input.ID)
 }
 
-func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.SeaSharedContainer, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, input *biz.SeaSharedContainer, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		client, err := r.data.client(txCtx)
 		if err != nil {
@@ -186,6 +198,9 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, id 
 		located, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).Only(txCtx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+		}
+		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, located.TransportExecutionID); err != nil {
+			return err
 		}
 		executionIDs := sortedUUIDs([]uuid.UUID{located.TransportExecutionID, input.TransportExecutionID})
 		executions, err := client.SeaTransportExecution.Query().Where(seatransportexecutionent.IDIn(executionIDs...), seatransportexecutionent.OrganizationIDEQ(organizationID)).Order(seatransportexecutionent.ByID()).ForUpdate().All(txCtx)
@@ -243,10 +258,10 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, id 
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationID, anchorOrderID, id)
 }
 
-func (r *seaSharedContainerRepo) Delete(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) error {
+func (r *seaSharedContainerRepo) Delete(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) error {
 	return r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		client, err := r.data.client(txCtx)
 		if err != nil {
@@ -255,6 +270,9 @@ func (r *seaSharedContainerRepo) Delete(ctx context.Context, organizationID, id 
 		container, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+		}
+		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, container.TransportExecutionID); err != nil {
+			return err
 		}
 		if container.Version != expectedVersion {
 			return biz.ErrSeaSharedContainerConflict
@@ -277,35 +295,43 @@ func (r *seaSharedContainerRepo) Delete(ctx context.Context, organizationID, id 
 	})
 }
 
-func (r *seaSharedContainerRepo) SaveDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
-	err := r.mutateAllocations(ctx, organizationID, id, expectedVersion, inputs, false, uuid.Nil, audit)
+func (r *seaSharedContainerRepo) SaveDraft(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+	err := r.mutateAllocations(ctx, organizationID, anchorOrderID, id, expectedVersion, inputs, false, uuid.Nil, audit)
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationID, anchorOrderID, id)
 }
 
 // Confirm 确认共享箱：inputs 非 nil 时按该输入在同一事务内保存并严格守恒确认，
-// 为 nil 时按当前已保存分配确认。
-func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+// 为 nil 时按当前已保存分配合成输入，并携带各实体实际版本进入同一套乐观锁校验。
+func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	if inputs == nil {
-		current, err := r.Get(ctx, organizationID, id)
+		current, err := r.Get(ctx, organizationID, anchorOrderID, id)
 		if err != nil {
 			return nil, err
 		}
 		inputs = make([]*biz.SeaSharedContainerAllocationInput, 0, len(current.Allocations))
 		for _, allocation := range current.Allocations {
-			// Confirm 会在事务内重新读取并锁定真实版本；零值表示不信任外部缓存，只接受当前值。
-			inputs = append(inputs, &biz.SeaSharedContainerAllocationInput{OrderID: allocation.OrderID, HouseBillID: allocation.HouseBillID, CargoItemID: allocation.CargoItemID, PackageCount: allocation.PackageCount, GrossWeightKg: allocation.GrossWeightKg, VolumeCbm: allocation.VolumeCbm})
+			inputs = append(inputs, &biz.SeaSharedContainerAllocationInput{
+				OrderID: allocation.OrderID, HouseBillID: allocation.HouseBillID, CargoItemID: allocation.CargoItemID,
+				PackageCount: allocation.PackageCount, GrossWeightKg: allocation.GrossWeightKg, VolumeCbm: allocation.VolumeCbm,
+				// 以读取到的实际版本作为期望版本；合成后进入事务锁内统一乐观锁校验，
+				// 读取与加锁之间发生漂移时返回 409 而不是绕过校验。
+				ExpectedOrderVersion:     allocation.OrderVersion,
+				ExpectedLinkVersion:      allocation.LinkVersion,
+				ExpectedHouseBillVersion: allocation.HouseBillVersion,
+				ExpectedCargoItemVersion: allocation.CargoItemVersion,
+			})
 		}
 	}
-	if err := r.mutateAllocations(ctx, organizationID, id, expectedVersion, inputs, true, actorID, audit); err != nil {
+	if err := r.mutateAllocations(ctx, organizationID, anchorOrderID, id, expectedVersion, inputs, true, actorID, audit); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationID, anchorOrderID, id)
 }
 
-func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
+func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		client, err := r.data.client(txCtx)
 		if err != nil {
@@ -314,6 +340,9 @@ func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, i
 		container, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+		}
+		if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, container.TransportExecutionID); err != nil {
+			return err
 		}
 		if container.Version != expectedVersion {
 			return biz.ErrSeaSharedContainerConflict
@@ -331,10 +360,10 @@ func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, i
 	if err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationID, anchorOrderID, id)
 }
 
-func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, confirm bool, actorID uuid.UUID, audit *biz.AuditEvent) error {
+func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organizationID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, confirm bool, actorID uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		return r.data.WithTx(txCtx, func(tx *ent.Tx) error {
 			client := tx.Client()
@@ -459,6 +488,9 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 			if target == nil {
 				return biz.ErrSeaSharedContainerNotFound
 			}
+			if err := ensureSharedAnchorExecution(txCtx, client, organizationID, anchorOrderID, target.TransportExecutionID); err != nil {
+				return err
+			}
 			if target.Version != expectedVersion {
 				return biz.ErrSeaSharedContainerConflict
 			}
@@ -503,7 +535,8 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 				if order == nil || link == nil || houseBill == nil || cargo == nil || order.BusinessType != orderent.BusinessTypeSE || link.Status != seamasterbillorderlinkent.StatusACTIVE || link.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE || link.TransportExecutionID != target.TransportExecutionID || houseBill.OrderID != order.ID || houseBill.MasterBillID != link.MasterBillID || houseBill.Status == seahousebillent.StatusVOIDED || cargo.OrderID != order.ID {
 					return biz.ErrSeaSharedContainerInvalidReference
 				}
-				if !confirm && (order.Version != input.ExpectedOrderVersion || link.Version != input.ExpectedLinkVersion || houseBill.Version != input.ExpectedHouseBillVersion || cargo.Version != input.ExpectedCargoItemVersion) {
+				// 保存草稿与确认共用同一套乐观锁契约：四个期望版本逐项比对，陈旧上下文一律 409。
+				if order.Version != input.ExpectedOrderVersion || link.Version != input.ExpectedLinkVersion || houseBill.Version != input.ExpectedHouseBillVersion || cargo.Version != input.ExpectedCargoItemVersion {
 					return biz.ErrSeaSharedContainerConflict
 				}
 				quantity := biz.SeaSharedQuantity{PackageCount: input.PackageCount, GrossWeightKg: input.GrossWeightKg, VolumeCbm: input.VolumeCbm}
@@ -657,6 +690,23 @@ func (r *seaSharedContainerRepo) getByEntity(ctx context.Context, client *ent.Cl
 	}
 	result.Progress = biz.CalculateSeaSharedContainerProgress(biz.SeaSharedQuantity{PackageCount: result.PackageCount, GrossWeightKg: result.GrossWeightKg, VolumeCbm: result.VolumeCbm}, allocations, cargoBalanced)
 	return result, nil
+}
+
+// ensureSharedAnchorExecution 绑定授权锚点与业务资源上下文：
+// 锚点订单的活动 Link 必须指向请求的运输执行，否则视为错误上下文。
+func ensureSharedAnchorExecution(ctx context.Context, client *ent.Client, organizationID, anchorOrderID, executionID uuid.UUID) error {
+	link, err := client.SeaMasterBillOrderLink.Query().Where(
+		seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
+		seamasterbillorderlinkent.OrderIDEQ(anchorOrderID),
+		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+	).Only(ctx)
+	if err != nil {
+		return biz.ErrSeaSharedContainerInvalidReference
+	}
+	if link.TransportExecutionID != executionID {
+		return biz.ErrSeaSharedContainerInvalidReference
+	}
+	return nil
 }
 
 func validateSharedExecution(ctx context.Context, client *ent.Client, organizationID, executionID uuid.UUID, lock bool) error {

@@ -131,6 +131,17 @@ export default function OrderDetailPage() {
   const [sharedContainerTEId, setSharedContainerTEId] = useState<
     string | undefined
   >(undefined);
+  const [sharedContainerOrderId, setSharedContainerOrderId] = useState<
+    string | undefined
+  >(undefined);
+
+  // 路由切换到其他订单时立即关闭共享箱工作台并清空旧运输执行，
+  // 防止“新订单 + 旧运输执行”形成错误业务上下文
+  useEffect(() => {
+    setSharedContainerDrawerOpen(false);
+    setSharedContainerTEId(undefined);
+    setSharedContainerOrderId(undefined);
+  }, [orderId]);
 
   const loadChangeActions = useCallback(async () => {
     const requestOrderId = orderId;
@@ -523,6 +534,7 @@ export default function OrderDetailPage() {
                 return;
               }
               setSharedContainerTEId(teId);
+              setSharedContainerOrderId(orderId);
               setSharedContainerDrawerOpen(true);
             },
           },
@@ -724,7 +736,11 @@ export default function OrderDetailPage() {
           />
           <SeaSharedContainerDrawer
             key={`shared-container:${orderId}:${sharedContainerTEId ?? ''}`}
-            open={sharedContainerDrawerOpen}
+            open={
+              sharedContainerDrawerOpen &&
+              sharedContainerOrderId === orderId &&
+              !!sharedContainerTEId
+            }
             onClose={() => setSharedContainerDrawerOpen(false)}
             transportExecutionId={sharedContainerTEId}
             orderId={orderId}

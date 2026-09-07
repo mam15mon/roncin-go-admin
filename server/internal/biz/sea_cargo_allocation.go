@@ -257,15 +257,15 @@ func CalculateSeaSharedContainerProgress(container SeaSharedQuantity, allocation
 }
 
 type SeaSharedContainerRepo interface {
-	List(ctx context.Context, organizationID, transportExecutionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainer, int, error)
-	Get(ctx context.Context, organizationID, id uuid.UUID) (*SeaSharedContainer, error)
-	ListCandidates(ctx context.Context, organizationID, transportExecutionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainerCandidateOrder, int, error)
-	Create(ctx context.Context, organizationID uuid.UUID, input *SeaSharedContainer, audit *AuditEvent) (*SeaSharedContainer, error)
-	Update(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *SeaSharedContainer, audit *AuditEvent) (*SeaSharedContainer, error)
-	Delete(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) error
-	SaveDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
-	Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
-	Withdraw(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*SeaSharedContainer, error)
+	List(ctx context.Context, organizationID, anchorOrderID, transportExecutionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainer, int, error)
+	Get(ctx context.Context, organizationID, anchorOrderID, id uuid.UUID) (*SeaSharedContainer, error)
+	ListCandidates(ctx context.Context, organizationID, anchorOrderID, transportExecutionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainerCandidateOrder, int, error)
+	Create(ctx context.Context, organizationID, actorID, anchorOrderID uuid.UUID, input *SeaSharedContainer, audit *AuditEvent) (*SeaSharedContainer, error)
+	Update(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, input *SeaSharedContainer, audit *AuditEvent) (*SeaSharedContainer, error)
+	Delete(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) error
+	SaveDraft(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
+	Confirm(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput, audit *AuditEvent) (*SeaSharedContainer, error)
+	Withdraw(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*SeaSharedContainer, error)
 }
 
 type SeaSharedContainerUsecase struct{ repo SeaSharedContainerRepo }
@@ -274,29 +274,29 @@ func NewSeaSharedContainerUsecase(repo SeaSharedContainerRepo) *SeaSharedContain
 	return &SeaSharedContainerUsecase{repo: repo}
 }
 
-func (uc *SeaSharedContainerUsecase) List(ctx context.Context, organizationID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainer, int, error) {
-	if organizationID == uuid.Nil || executionID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
+func (uc *SeaSharedContainerUsecase) List(ctx context.Context, organizationID, anchorOrderID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainer, int, error) {
+	if organizationID == uuid.Nil || anchorOrderID == uuid.Nil || executionID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
 		return nil, 0, ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationID, executionID, strings.TrimSpace(keyword), page, pageSize)
+	return uc.repo.List(ctx, organizationID, anchorOrderID, executionID, strings.TrimSpace(keyword), page, pageSize)
 }
 
-func (uc *SeaSharedContainerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || id == uuid.Nil {
+func (uc *SeaSharedContainerUsecase) Get(ctx context.Context, organizationID, anchorOrderID, id uuid.UUID) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.Get(ctx, organizationID, id)
+	return uc.repo.Get(ctx, organizationID, anchorOrderID, id)
 }
 
-func (uc *SeaSharedContainerUsecase) ListCandidates(ctx context.Context, organizationID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainerCandidateOrder, int, error) {
-	if organizationID == uuid.Nil || executionID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
+func (uc *SeaSharedContainerUsecase) ListCandidates(ctx context.Context, organizationID, anchorOrderID, executionID uuid.UUID, keyword string, page, pageSize int) ([]*SeaSharedContainerCandidateOrder, int, error) {
+	if organizationID == uuid.Nil || anchorOrderID == uuid.Nil || executionID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
 		return nil, 0, ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.ListCandidates(ctx, organizationID, executionID, strings.TrimSpace(keyword), page, pageSize)
+	return uc.repo.ListCandidates(ctx, organizationID, anchorOrderID, executionID, strings.TrimSpace(keyword), page, pageSize)
 }
 
-func (uc *SeaSharedContainerUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaSharedContainer) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil {
+func (uc *SeaSharedContainerUsecase) Create(ctx context.Context, organizationID, actorID, anchorOrderID uuid.UUID, input *SeaSharedContainer) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
 	normalized, err := NormalizeSeaSharedContainer(input)
@@ -307,42 +307,42 @@ func (uc *SeaSharedContainerUsecase) Create(ctx context.Context, organizationID,
 	normalized.OrganizationID = organizationID
 	normalized.Status = SeaSharedContainerStatusDraft
 	normalized.Version = 1
-	return uc.repo.Create(ctx, organizationID, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.create", normalized.ID))
+	return uc.repo.Create(ctx, organizationID, actorID, anchorOrderID, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.create", normalized.ID))
 }
 
-func (uc *SeaSharedContainerUsecase) Update(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, input *SeaSharedContainer) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *SeaSharedContainerUsecase) Update(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, input *SeaSharedContainer) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
 	normalized, err := NormalizeSeaSharedContainer(input)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.Update(ctx, organizationID, id, expectedVersion, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.update", id))
+	return uc.repo.Update(ctx, organizationID, actorID, anchorOrderID, id, expectedVersion, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.update", id))
 }
 
-func (uc *SeaSharedContainerUsecase) Delete(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64) error {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *SeaSharedContainerUsecase) Delete(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64) error {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.Delete(ctx, organizationID, id, expectedVersion, sharedContainerAudit(organizationID, actorID, "sea_shared_container.delete", id))
+	return uc.repo.Delete(ctx, organizationID, actorID, anchorOrderID, id, expectedVersion, sharedContainerAudit(organizationID, actorID, "sea_shared_container.delete", id))
 }
 
-func (uc *SeaSharedContainerUsecase) SaveDraft(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *SeaSharedContainerUsecase) SaveDraft(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
 	normalized, err := NormalizeSeaSharedAllocations(allocations)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.SaveDraft(ctx, organizationID, id, expectedVersion, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.save_draft", id))
+	return uc.repo.SaveDraft(ctx, organizationID, actorID, anchorOrderID, id, expectedVersion, normalized, sharedContainerAudit(organizationID, actorID, "sea_shared_container.save_draft", id))
 }
 
 // Confirm 确认共享箱分配。allocations 非 nil 时在同一事务内按该输入保存并严格守恒确认，
 // 避免客户端两步请求出现“草稿已保存、确认失败”的部分成功；allocations 为 nil 时按当前分配确认。
-func (uc *SeaSharedContainerUsecase) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *SeaSharedContainerUsecase) Confirm(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, allocations []*SeaSharedContainerAllocationInput) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
 	if allocations != nil {
@@ -352,14 +352,14 @@ func (uc *SeaSharedContainerUsecase) Confirm(ctx context.Context, organizationID
 		}
 		allocations = normalized
 	}
-	return uc.repo.Confirm(ctx, organizationID, actorID, id, expectedVersion, allocations, sharedContainerAudit(organizationID, actorID, "sea_shared_container.confirm", id))
+	return uc.repo.Confirm(ctx, organizationID, actorID, anchorOrderID, id, expectedVersion, allocations, sharedContainerAudit(organizationID, actorID, "sea_shared_container.confirm", id))
 }
 
-func (uc *SeaSharedContainerUsecase) Withdraw(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64) (*SeaSharedContainer, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *SeaSharedContainerUsecase) Withdraw(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64) (*SeaSharedContainer, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || anchorOrderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrSeaSharedContainerInvalidArgument
 	}
-	return uc.repo.Withdraw(ctx, organizationID, id, expectedVersion, sharedContainerAudit(organizationID, actorID, "sea_shared_container.withdraw", id))
+	return uc.repo.Withdraw(ctx, organizationID, actorID, anchorOrderID, id, expectedVersion, sharedContainerAudit(organizationID, actorID, "sea_shared_container.withdraw", id))
 }
 
 func sharedContainerAudit(organizationID, actorID uuid.UUID, action string, id uuid.UUID) *AuditEvent {

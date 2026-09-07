@@ -26,7 +26,8 @@ func (s *SeaSharedContainerService) ListSeaSharedContainers(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	executionID, err := uuid.Parse(request.GetTransportExecutionId())
@@ -37,7 +38,7 @@ func (s *SeaSharedContainerService) ListSeaSharedContainers(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	items, total, err := s.usecase.List(ctx, principal.Organization.ID, executionID, request.GetKeyword(), page, pageSize)
+	items, total, err := s.usecase.List(ctx, principal.Organization.ID, anchorOrder, executionID, request.GetKeyword(), page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -53,14 +54,15 @@ func (s *SeaSharedContainerService) GetSeaSharedContainer(ctx context.Context, r
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
 	}
-	item, err := s.usecase.Get(ctx, principal.Organization.ID, id)
+	item, err := s.usecase.Get(ctx, principal.Organization.ID, anchorOrder, id)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,8 @@ func (s *SeaSharedContainerService) ListSeaSharedContainerCandidates(ctx context
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	executionID, err := uuid.Parse(request.GetTransportExecutionId())
@@ -83,7 +86,7 @@ func (s *SeaSharedContainerService) ListSeaSharedContainerCandidates(ctx context
 	if err != nil {
 		return nil, err
 	}
-	items, total, err := s.usecase.ListCandidates(ctx, principal.Organization.ID, executionID, request.GetKeyword(), page, pageSize)
+	items, total, err := s.usecase.ListCandidates(ctx, principal.Organization.ID, anchorOrder, executionID, request.GetKeyword(), page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -99,14 +102,15 @@ func (s *SeaSharedContainerService) CreateSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	input, err := seaSharedContainerInputFromAPI(request.GetInput())
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, input)
+	item, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, anchorOrder, input)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +122,8 @@ func (s *SeaSharedContainerService) UpdateSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
@@ -129,7 +134,7 @@ func (s *SeaSharedContainerService) UpdateSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), input)
+	item, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), input)
 	if err != nil {
 		return nil, err
 	}
@@ -141,14 +146,15 @@ func (s *SeaSharedContainerService) DeleteSeaSharedContainer(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
 	}
-	if err := s.usecase.Delete(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion()); err != nil {
+	if err := s.usecase.Delete(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion()); err != nil {
 		return nil, err
 	}
 	return ok(ctx, &v1.DeleteSeaSharedContainerResponse{}), nil
@@ -159,7 +165,8 @@ func (s *SeaSharedContainerService) SaveSeaSharedContainerAllocationsDraft(ctx c
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
@@ -170,7 +177,7 @@ func (s *SeaSharedContainerService) SaveSeaSharedContainerAllocationsDraft(ctx c
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.usecase.SaveDraft(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), allocations)
+	item, err := s.usecase.SaveDraft(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), allocations)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +189,8 @@ func (s *SeaSharedContainerService) ConfirmSeaSharedContainer(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
@@ -196,7 +204,7 @@ func (s *SeaSharedContainerService) ConfirmSeaSharedContainer(ctx context.Contex
 			return nil, err
 		}
 	}
-	item, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), allocations)
+	item, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), allocations)
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +216,15 @@ func (s *SeaSharedContainerService) WithdrawSeaSharedContainer(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	if _, err := anchorOrderID(request.GetOrderId()); err != nil {
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, biz.ErrSeaSharedContainerInvalidArgument
 	}
-	item, err := s.usecase.Withdraw(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion())
+	item, err := s.usecase.Withdraw(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}

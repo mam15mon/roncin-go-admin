@@ -334,6 +334,49 @@ describe('SeaSharedContainerDrawer', () => {
     });
   });
 
+  it('首次直接点击全部填入后保存，payload 携带完整身份与期望版本', async () => {
+    // 容器无既有分配，货物行的身份与版本只能来自候选行本身
+    const emptyContainer: API.SeaSharedContainer = {
+      ...balancedContainer,
+      allocations: undefined,
+      progress: undefined,
+    };
+    listContainersSpy.mockResolvedValue({ data: [emptyContainer], total: 1 } as any);
+    const saveSpy = vi
+      .spyOn(
+        service,
+        'seaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft',
+      )
+      .mockResolvedValue({ data: emptyContainer } as any);
+
+    renderDrawer();
+    await waitFor(() => {
+      expect(screen.getByText('机械零件')).toBeInTheDocument();
+    });
+
+    // 未编辑任何输入框，直接对首行点击“全部填入”
+    fireEvent.click(screen.getAllByText('全部填入')[0]);
+    fireEvent.click(screen.getByText('保存草稿'));
+
+    await waitFor(() => {
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+    });
+    const payload = saveSpy.mock.calls[0][1];
+    const filled = (payload.allocations || []).find(
+      (a: API.SeaSharedContainerAllocationInput) => a.cargoItemId === 'cargo-1',
+    );
+    expect(filled).toBeDefined();
+    expect(filled?.orderId).toBe('order-1');
+    expect(filled?.houseBillId).toBe('hb-1');
+    expect(filled?.packageCount).toBe(100);
+    expect(filled?.grossWeightKg).toBe('2000.000');
+    expect(filled?.volumeCbm).toBe('15.000000');
+    expect(filled?.expectedOrderVersion).toBe('1');
+    expect(filled?.expectedLinkVersion).toBe('1');
+    expect(filled?.expectedHouseBillVersion).toBe('1');
+    expect(filled?.expectedCargoItemVersion).toBe('1');
+  });
+
   it('上下文从 A 切换到 B 时迟到响应不得覆盖新上下文数据', async () => {
     const containerA: API.SeaSharedContainer = {
       ...balancedContainer,

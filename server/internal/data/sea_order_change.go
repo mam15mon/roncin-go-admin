@@ -1562,19 +1562,32 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		sharedAllocs, err := tx.SeaSharedContainerAllocation.Query().
+		// 共享箱固定锁序：先无锁定位本订单分配所属共享箱 ID，按序锁定 SharedContainer，
+		// 再锁定 Allocation，并在锁内重验分配集合未漂移；与共享箱工作台/删除路径的
+		// SharedContainer → Allocation 顺序保持一致，避免跨操作死锁。
+		preReadAllocIDs, err := tx.SeaSharedContainerAllocation.Query().
 			Where(seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID)).
 			Order(seasharedcontainerallocationent.ByID()).
-			ForUpdate().
-			All(ctx)
+			IDs(ctx)
 		if err != nil {
 			return err
 		}
-		lockedSharedAllocMap := make(map[uuid.UUID]*ent.SeaSharedContainerAllocation, len(sharedAllocs))
-		sharedContainerIDs := make([]uuid.UUID, 0, len(sharedAllocs))
-		for _, sa := range sharedAllocs {
-			lockedSharedAllocMap[sa.ID] = sa
-			sharedContainerIDs = append(sharedContainerIDs, sa.SharedContainerID)
+		preReadAllocIDSet := make(map[uuid.UUID]struct{}, len(preReadAllocIDs))
+		sharedContainerIDs := make([]uuid.UUID, 0, len(preReadAllocIDs))
+		for _, allocID := range preReadAllocIDs {
+			preReadAllocIDSet[allocID] = struct{}{}
+		}
+		if len(preReadAllocIDs) > 0 {
+			scIDRows, err := tx.SeaSharedContainerAllocation.Query().
+				Where(seasharedcontainerallocationent.IDIn(preReadAllocIDs...)).
+				Select(seasharedcontainerallocationent.FieldSharedContainerID).
+				All(ctx)
+			if err != nil {
+				return err
+			}
+			for _, row := range scIDRows {
+				sharedContainerIDs = append(sharedContainerIDs, row.SharedContainerID)
+			}
 		}
 		sharedContainerIDs = sortAndDeduplicateUUIDs(sharedContainerIDs)
 		lockedSharedContainers := make(map[uuid.UUID]*ent.SeaSharedContainer, len(sharedContainerIDs))
@@ -1587,6 +1600,24 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				return err
 			}
 			lockedSharedContainers[scID] = sc
+		}
+		sharedAllocs, err := tx.SeaSharedContainerAllocation.Query().
+			Where(seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID)).
+			Order(seasharedcontainerallocationent.ByID()).
+			ForUpdate().
+			All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(sharedAllocs) != len(preReadAllocIDs) {
+			return biz.ErrSeaOrderSplitVersionConflict
+		}
+		lockedSharedAllocMap := make(map[uuid.UUID]*ent.SeaSharedContainerAllocation, len(sharedAllocs))
+		for _, sa := range sharedAllocs {
+			if _, seen := preReadAllocIDSet[sa.ID]; !seen {
+				return biz.ErrSeaOrderSplitVersionConflict
+			}
+			lockedSharedAllocMap[sa.ID] = sa
 		}
 		// 拆票修改共享箱 Allocation 前，所有受影响共享箱必须携带完整且非零的期望版本；
 		// 缺 Map、缺 key 或版本为 0 属于参数错误，版本不一致返回 409。

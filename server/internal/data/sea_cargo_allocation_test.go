@@ -16,6 +16,8 @@ import (
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	seasharedcontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	seasharedcontainerallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 )
 
 // sharedContainerFixture 构造同一运输执行下两张 HOUSE 订单与共享箱所需的最小数据
@@ -190,7 +192,7 @@ func newSharedContainerFixture(t *testing.T) *sharedContainerFixture {
 
 func (f *sharedContainerFixture) createContainer(t *testing.T, suffix string) *biz.SeaSharedContainer {
 	t.Helper()
-	created, err := f.uc.Create(context.Background(), f.orgID, f.userID, &biz.SeaSharedContainer{
+	created, err := f.uc.Create(context.Background(), f.orgID, f.userID, f.order1.ID, &biz.SeaSharedContainer{
 		TransportExecutionID: f.teID,
 		ContainerNo:          "SHCU" + suffix + uuid.New().String()[:6],
 		ContainerSpecID:      f.specID,
@@ -223,7 +225,7 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	}
 
 	// 2. 同一执行下重复箱号被唯一索引兜底
-	_, err := f.uc.Create(ctx, f.orgID, f.userID, &biz.SeaSharedContainer{
+	_, err := f.uc.Create(ctx, f.orgID, f.userID, f.order1.ID, &biz.SeaSharedContainer{
 		TransportExecutionID: f.teID,
 		ContainerNo:          container.ContainerNo,
 		ContainerSpecID:      f.specID,
@@ -236,17 +238,17 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	}
 
 	// 3. 候选订单：仅同执行 HOUSE 订单可见，支持 keyword 过滤
-	candidates, total, err := f.uc.ListCandidates(ctx, f.orgID, f.teID, "", 1, 50)
+	candidates, total, err := f.uc.ListCandidates(ctx, f.orgID, f.order1.ID, f.teID, "", 1, 50)
 	if err != nil || total != 2 || len(candidates) != 2 {
 		t.Fatalf("候选订单期望 2 条, got total=%d len=%d err=%v", total, len(candidates), err)
 	}
-	keywordHit, keywordTotal, err := f.uc.ListCandidates(ctx, f.orgID, f.teID, f.hbl1.HouseNo, 1, 50)
+	keywordHit, keywordTotal, err := f.uc.ListCandidates(ctx, f.orgID, f.order1.ID, f.teID, f.hbl1.HouseNo, 1, 50)
 	if err != nil || keywordTotal != 1 || len(keywordHit) != 1 || keywordHit[0].HouseBillID != f.hbl1.ID {
 		t.Fatalf("候选订单 keyword 过滤异常: total=%d hit=%+v err=%v", keywordTotal, keywordHit, err)
 	}
 
 	// 4. 保存草稿：跨订单完整分配
-	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, container.Version, f.fullAllocationInputs())
+	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, f.fullAllocationInputs())
 	if err != nil {
 		t.Fatalf("保存草稿失败: %v", err)
 	}
@@ -258,7 +260,7 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	}
 
 	// 5. 旧版本保存草稿必须冲突
-	_, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, 1, f.fullAllocationInputs())
+	_, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, 1, f.fullAllocationInputs())
 	if err != biz.ErrSeaSharedContainerConflict {
 		t.Fatalf("旧版本保存应返回 ErrSeaSharedContainerConflict, 实际: %v", err)
 	}
@@ -267,26 +269,26 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	overInputs := []*biz.SeaSharedContainerAllocationInput{
 		{OrderID: f.order1.ID, HouseBillID: f.hbl1.ID, CargoItemID: f.cargo1ID, PackageCount: 150, GrossWeightKg: decimal.NewFromInt(1000), VolumeCbm: decimal.NewFromInt(10), ExpectedOrderVersion: 1, ExpectedLinkVersion: 1, ExpectedHouseBillVersion: 1, ExpectedCargoItemVersion: 1},
 	}
-	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, draft.Version, overInputs); err != biz.ErrSeaSharedContainerExceeded {
+	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, draft.Version, overInputs); err != biz.ErrSeaSharedContainerExceeded {
 		t.Fatalf("货物超分应返回 ErrSeaSharedContainerExceeded, 实际: %v", err)
 	}
 
 	// 7. 未完整分配时草稿允许、确认拒绝
 	partial := []*biz.SeaSharedContainerAllocationInput{f.fullAllocationInputs()[0]}
-	partialDraft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, draft.Version, partial)
+	partialDraft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, draft.Version, partial)
 	if err != nil {
 		t.Fatalf("部分草稿保存失败: %v", err)
 	}
-	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, partialDraft.Version, nil); err != biz.ErrSeaSharedContainerIncomplete {
+	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, f.order1.ID, container.ID, partialDraft.Version, nil); err != biz.ErrSeaSharedContainerIncomplete {
 		t.Fatalf("未完整分配确认应返回 ErrSeaSharedContainerIncomplete, 实际: %v", err)
 	}
 
 	// 8. 恢复完整分配并确认：携带 allocations 输入在单事务内保存并严格确认
-	restored, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, partialDraft.Version, partial)
+	restored, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, partialDraft.Version, partial)
 	if err != nil {
 		t.Fatalf("恢复部分分配失败: %v", err)
 	}
-	confirmed, err := f.uc.Confirm(ctx, f.orgID, f.userID, container.ID, restored.Version, f.fullAllocationInputs())
+	confirmed, err := f.uc.Confirm(ctx, f.orgID, f.userID, f.order1.ID, container.ID, restored.Version, f.fullAllocationInputs())
 	if err != nil {
 		t.Fatalf("确认共享箱失败: %v", err)
 	}
@@ -298,10 +300,10 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	}
 
 	// 9. 确认态禁止保存草稿；撤回后回到草稿态
-	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, confirmed.Version, f.fullAllocationInputs()); err != biz.ErrSeaSharedContainerStatusConflict {
+	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, confirmed.Version, f.fullAllocationInputs()); err != biz.ErrSeaSharedContainerStatusConflict {
 		t.Fatalf("确认态保存草稿应返回 ErrSeaSharedContainerStatusConflict, 实际: %v", err)
 	}
-	withdrawn, err := f.uc.Withdraw(ctx, f.orgID, f.userID, container.ID, confirmed.Version)
+	withdrawn, err := f.uc.Withdraw(ctx, f.orgID, f.userID, f.order1.ID, container.ID, confirmed.Version)
 	if err != nil || withdrawn.Status != biz.SeaSharedContainerStatusDraft {
 		t.Fatalf("撤回确认失败: status=%s err=%v", withdrawn.Status, err)
 	}
@@ -339,20 +341,155 @@ func TestSeaSharedContainerDataIntegration(t *testing.T) {
 	crossInputs := []*biz.SeaSharedContainerAllocationInput{
 		{OrderID: f.order2.ID, HouseBillID: f.hbl2.ID, CargoItemID: f.cargo2ID, PackageCount: 100, GrossWeightKg: decimal.NewFromInt(1000), VolumeCbm: decimal.NewFromInt(10), ExpectedOrderVersion: f.order2.Version, ExpectedLinkVersion: otherLink.Version, ExpectedHouseBillVersion: 1, ExpectedCargoItemVersion: 1},
 	}
-	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, withdrawn.Version, crossInputs); err != biz.ErrSeaSharedContainerInvalidReference {
+	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, withdrawn.Version, crossInputs); err != biz.ErrSeaSharedContainerInvalidReference {
 		t.Fatalf("活动 Link 指向其他运输执行的订单不得加入共享箱, 实际: %v", err)
 	}
 
 	// 11. 有分配的共享箱禁止删除；清空分配后可删除
-	if err = f.uc.Delete(ctx, f.orgID, f.userID, container.ID, withdrawn.Version); err != biz.ErrSeaSharedContainerStatusConflict {
+	if err = f.uc.Delete(ctx, f.orgID, f.userID, f.order1.ID, container.ID, withdrawn.Version); err != biz.ErrSeaSharedContainerStatusConflict {
 		t.Fatalf("存在分配时删除应返回 ErrSeaSharedContainerStatusConflict, 实际: %v", err)
 	}
-	emptied, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, withdrawn.Version, nil)
+	emptied, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, withdrawn.Version, nil)
 	if err != nil {
 		t.Fatalf("清空分配失败: %v", err)
 	}
-	if err = f.uc.Delete(ctx, f.orgID, f.userID, container.ID, emptied.Version); err != nil {
+	if err = f.uc.Delete(ctx, f.orgID, f.userID, f.order1.ID, container.ID, emptied.Version); err != nil {
 		t.Fatalf("清空后删除共享箱失败: %v", err)
+	}
+}
+
+// TestSeaSharedContainerAnchorExecutionBinding 验证授权锚点订单必须与
+// 请求的运输执行/共享箱处于同一实际航次，防止错误业务上下文操作。
+func TestSeaSharedContainerAnchorExecutionBinding(t *testing.T) {
+	f := newSharedContainerFixture(t)
+	ctx := context.Background()
+
+	container := f.createContainer(t, "04")
+
+	// 将 order2 的活动 Link 切到另一个运输执行，模拟“订单 B 处于不同航次”
+	otherTE, err := f.data.db.SeaTransportExecution.Create().
+		SetOrganizationID(f.orgID).
+		SetShippingLineID(f.mblShippingLineID(t)).
+		SetVesselName("ANCHOR OTHER VESSEL").
+		SetVoyageNo("003E").
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建其他运输执行失败: %v", err)
+	}
+	if err := f.data.db.SeaMasterBillOrderLink.DeleteOneID(f.link2.ID).Exec(ctx); err != nil {
+		t.Fatalf("移除 order2 原活动 Link 失败: %v", err)
+	}
+	if _, err := f.data.db.SeaMasterBillOrderLink.Create().
+		SetOrganizationID(f.orgID).
+		SetOrderID(f.order2.ID).
+		SetMasterBillID(f.mblID).
+		SetTransportExecutionID(otherTE.ID).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+		SetVersion(2).
+		Save(ctx); err != nil {
+		t.Fatalf("创建其他执行 Link 失败: %v", err)
+	}
+
+	// 1. 锚点指向其他航次时，列表与候选必须拒绝
+	if _, _, err = f.uc.List(ctx, f.orgID, f.order2.ID, f.teID, "", 1, 20); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单活动 Link 不在请求执行上时列表应拒绝, 实际: %v", err)
+	}
+	if _, _, err = f.uc.ListCandidates(ctx, f.orgID, f.order2.ID, f.teID, "", 1, 20); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单活动 Link 不在请求执行上时候选应拒绝, 实际: %v", err)
+	}
+
+	// 2. 按共享箱 ID 操作：锚点 TE 与共享箱 TE 不一致必须拒绝
+	if _, err = f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version, f.fullAllocationInputs()); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时保存草稿应拒绝, 实际: %v", err)
+	}
+	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version, f.fullAllocationInputs()); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时确认应拒绝, 实际: %v", err)
+	}
+	if err = f.uc.Delete(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时删除应拒绝, 实际: %v", err)
+	}
+	if _, err = f.uc.Get(ctx, f.orgID, f.order2.ID, container.ID); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单与共享箱不在同一执行上时查询应拒绝, 实际: %v", err)
+	}
+
+	// 3. 创建共享箱：锚点活动 Link 与目标执行不一致必须拒绝
+	_, err = f.uc.Create(ctx, f.orgID, f.userID, f.order2.ID, &biz.SeaSharedContainer{
+		TransportExecutionID: f.teID,
+		ContainerNo:          "ANCHORNO" + uuid.New().String()[:6],
+		ContainerSpecID:      f.specID,
+		PackageCount:         10,
+		GrossWeightKg:        decimal.NewFromInt(100),
+		VolumeCbm:            decimal.NewFromInt(1),
+	})
+	if err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("锚点订单不在目标执行上时创建共享箱应拒绝, 实际: %v", err)
+	}
+
+	// 4. 正确锚点（order1 → teID）操作不受影响（order2 已切到其他执行，仅保留其自身分配）
+	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, []*biz.SeaSharedContainerAllocationInput{f.fullAllocationInputs()[0]})
+	if err != nil {
+		t.Fatalf("锚点一致时保存草稿应成功: %v", err)
+	}
+	if draft.Version != container.Version+1 {
+		t.Fatalf("锚点一致时保存草稿版本应递增: %d", draft.Version)
+	}
+}
+
+// TestSeaSharedContainerConfirmStaleEntityVersions 验证确认路径不再绕过
+// Order/Link/HBL/CargoItem 乐观锁：任一实体版本过期都返回 409 且零写入。
+func TestSeaSharedContainerConfirmStaleEntityVersions(t *testing.T) {
+	f := newSharedContainerFixture(t)
+	ctx := context.Background()
+
+	container := f.createContainer(t, "03")
+	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, f.fullAllocationInputs())
+	if err != nil {
+		t.Fatalf("保存完整草稿失败: %v", err)
+	}
+
+	assertConflictAndZeroWrite := func(label string, mutate func(), restore func()) {
+		t.Helper()
+		mutate()
+		defer restore()
+		_, confirmErr := f.uc.Confirm(ctx, f.orgID, f.userID, f.order1.ID, container.ID, draft.Version, f.fullAllocationInputs())
+		if confirmErr != biz.ErrSeaSharedContainerConflict {
+			t.Fatalf("%s 版本过期时确认应返回 ErrSeaSharedContainerConflict, 实际: %v", label, confirmErr)
+		}
+		scAfter, getErr := f.data.db.SeaSharedContainer.Get(ctx, container.ID)
+		if getErr != nil || scAfter.Status != seasharedcontainerent.StatusDRAFT || scAfter.Version != draft.Version {
+			t.Fatalf("%s 冲突后共享箱不应被改写: status=%v version=%d err=%v", label, scAfter.Status, scAfter.Version, getErr)
+		}
+		allocCount, _ := f.data.db.SeaSharedContainerAllocation.Query().Where(seasharedcontainerallocationent.SharedContainerIDEQ(container.ID)).Count(ctx)
+		if allocCount != 2 {
+			t.Fatalf("%s 冲突后分配不应被改写: %d", label, allocCount)
+		}
+	}
+
+	assertConflictAndZeroWrite("Order",
+		func() { f.data.db.Order.UpdateOneID(f.order1.ID).SetVersion(99).SaveX(ctx) },
+		func() { f.data.db.Order.UpdateOneID(f.order1.ID).SetVersion(f.order1.Version).SaveX(ctx) },
+	)
+	assertConflictAndZeroWrite("Link",
+		func() { f.data.db.SeaMasterBillOrderLink.UpdateOneID(f.link1.ID).SetVersion(99).SaveX(ctx) },
+		func() {
+			f.data.db.SeaMasterBillOrderLink.UpdateOneID(f.link1.ID).SetVersion(f.link1.Version).SaveX(ctx)
+		},
+	)
+	assertConflictAndZeroWrite("HouseBill",
+		func() { f.data.db.SeaHouseBill.UpdateOneID(f.hbl1.ID).SetVersion(99).SaveX(ctx) },
+		func() { f.data.db.SeaHouseBill.UpdateOneID(f.hbl1.ID).SetVersion(f.hbl1.Version).SaveX(ctx) },
+	)
+	assertConflictAndZeroWrite("CargoItem",
+		func() { f.data.db.OrderCargoItem.UpdateOneID(f.cargo1ID).SetVersion(99).SaveX(ctx) },
+		func() { f.data.db.OrderCargoItem.UpdateOneID(f.cargo1ID).SetVersion(1).SaveX(ctx) },
+	)
+
+	// 全部恢复后，携带当前版本确认成功
+	confirmed, err := f.uc.Confirm(ctx, f.orgID, f.userID, f.order1.ID, container.ID, draft.Version, f.fullAllocationInputs())
+	if err != nil || confirmed.Status != biz.SeaSharedContainerStatusConfirmed {
+		t.Fatalf("版本一致时确认应成功: status=%v err=%v", confirmed.Status, err)
 	}
 }
 
@@ -377,7 +514,7 @@ func TestSeaSharedContainerConcurrentSaveDraft(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, saveErr := f.uc.SaveDraft(ctx, f.orgID, f.userID, container.ID, container.Version, inputs)
+			_, saveErr := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, inputs)
 			errCh <- saveErr
 		}()
 	}
@@ -399,7 +536,7 @@ func TestSeaSharedContainerConcurrentSaveDraft(t *testing.T) {
 	}
 
 	// 竞争后共享箱内只保留一份完整分配，且版本只推进一次
-	final, err := f.uc.Get(ctx, f.orgID, container.ID)
+	final, err := f.uc.Get(ctx, f.orgID, f.order1.ID, container.ID)
 	if err != nil {
 		t.Fatalf("读取最终共享箱失败: %v", err)
 	}

@@ -397,13 +397,14 @@ export default function SeaSharedContainerDrawer({
     [],
   );
 
-  // 快捷填入该货物的全部总件重尺
+  // 快捷填入该货物的全部总件重尺；首次操作（无既有草稿）时以行身份+版本兜底，
+  // 避免产出缺少 ID 与期望版本的孤儿数量项
   const handleFillAllCargo = useCallback((record: CargoAllocationItem) => {
     const key = `${record.draft.orderId}:${record.draft.cargoItemId}`;
     setDrafts((prev) => ({
       ...prev,
       [key]: {
-        ...prev[key],
+        ...(prev[key] ?? record.draft),
         packageCount: record.totalPackageCount,
         grossWeightKg: record.totalGrossWeightKg,
         volumeCbm: record.totalVolumeCbm,
