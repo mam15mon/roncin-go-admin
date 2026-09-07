@@ -227,8 +227,6 @@ ALTER TABLE "sea_house_bill_versions"
 ALTER TABLE "sea_master_bill_versions"
   DROP CONSTRAINT "sea_master_bill_versions_sea_transport_executions_master_bill_versions";
 
-DROP INDEX IF EXISTS "seamasterbillversion_organization_id_transport_execution_id";
-
 ALTER TABLE "sea_master_bill_versions"
   DROP COLUMN "transport_execution_id",
   DROP COLUMN "origin_location_id",

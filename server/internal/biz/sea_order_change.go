@@ -73,16 +73,29 @@ type SeaOrderSplitContext struct {
 	CurrentLinkID                  uuid.UUID
 	CurrentLinkVersion             uint64
 	DocumentStructure              string
-	CargoAllocationStatus          string
-	CargoAllocationVersion         uint64
 	HouseBills                     []*SeaOrderSplitHouseBillItem
+	CurrentHouseBill               *SeaOrderSplitHouseBillItem
 	CargoItems                     []*SeaOrderSplitCargoItem
 	Containers                     []*SeaOrderSplitContainerItem
-	Allocations                    []*SeaOrderSplitAllocationItem
 	DraftFees                      []*SeaOrderSplitDraftFeeItem
 	Attachments                    []*SeaOrderSplitAttachmentItem
 	ContainerPlans                 []*SeaOrderSplitContainerPlanItem
+	SharedContainerAllocations     []*SeaOrderSplitSharedContainerAllocationItem
 	AttachmentReferenceFingerprint string
+	BookingNo                      string
+}
+
+type SeaOrderSplitSharedContainerAllocationItem struct {
+	AllocationID           uuid.UUID
+	SharedContainerID      uuid.UUID
+	ContainerNo            string
+	ContainerSpecID        uuid.UUID
+	ContainerSpecName      string
+	CargoItemID            uuid.UUID
+	PackageCount           int32
+	GrossWeightKg          decimal.Decimal
+	VolumeCbm              decimal.Decimal
+	SharedContainerVersion uint64
 }
 
 type SeaOrderSplitHouseBillItem struct {
@@ -112,11 +125,22 @@ type SeaOrderSplitContainerItem struct {
 	Version           uint64
 }
 
-type SeaOrderSplitAllocationItem struct {
-	ID            uuid.UUID
+type SeaOrderSplitHouseBillInput struct {
+	HouseNo         string
+	IssuerSource    string
+	IssuerPartnerID *uuid.UUID
+	Note            *string
+}
+
+type SeaOrderSplitCargoAllocationInput struct {
 	CargoItemID   uuid.UUID
-	HouseBillID   uuid.UUID
-	ContainerID   *uuid.UUID
+	PackageCount  int32
+	GrossWeightKg decimal.Decimal
+	VolumeCbm     decimal.Decimal
+}
+
+type SeaOrderSplitSharedContainerAllocationInput struct {
+	AllocationID  uuid.UUID
 	PackageCount  int32
 	GrossWeightKg decimal.Decimal
 	VolumeCbm     decimal.Decimal
@@ -170,29 +194,32 @@ type SeaOrderSplitTargetInput struct {
 }
 
 type SeaOrderSplitResultInput struct {
-	ClientResultKey        string
-	ResultRole             string // ORIGINAL | CREATED
-	ClientTargetKey        string
-	HouseBillIDs           []uuid.UUID
-	DraftFeeIDs            []uuid.UUID
-	AttachmentReferenceIDs []uuid.UUID
-	InternalReferenceNo    *string
-	BookingNotes           *string
-	AllocationNotes        *string
-	OperationNotes         *string
+	ClientResultKey            string
+	ResultRole                 string // ORIGINAL | CREATED
+	ClientTargetKey            string
+	DraftFeeIDs                []uuid.UUID
+	AttachmentReferenceIDs     []uuid.UUID
+	InternalReferenceNo        *string
+	BookingNotes               *string
+	AllocationNotes            *string
+	OperationNotes             *string
+	HouseBill                  *SeaOrderSplitHouseBillInput
+	CargoAllocations           []*SeaOrderSplitCargoAllocationInput
+	ContainerIDs               []uuid.UUID
+	SharedContainerAllocations []*SeaOrderSplitSharedContainerAllocationInput
 }
 
 type SeaOrderSplitExpectedVersions struct {
 	OrderVersion                   uint64
 	LinkVersion                    uint64
-	AllocationVersion              uint64
-	HouseBillVersions              map[uuid.UUID]uint64
+	CurrentHBLVersion              *uint64
 	CargoItemVersions              map[uuid.UUID]uint64
 	ContainerVersions              map[uuid.UUID]uint64
 	FeeVersions                    map[uuid.UUID]uint64
 	CandidateMBLVersions           map[uuid.UUID]uint64
-	AttachmentReferenceFingerprint string
 	CandidateTEVersions            map[uuid.UUID]uint64
+	SharedContainerVersions        map[uuid.UUID]uint64
+	AttachmentReferenceFingerprint string
 }
 
 type SeaOrderSplitInput struct {
@@ -254,6 +281,7 @@ type SeaOrderSplitPreviewResultItem struct {
 	BookingNotes        string
 	AllocationNotes     string
 	OperationNotes      string
+	HouseNo             *string
 }
 
 type SeaOrderSplitEvent struct {
@@ -647,16 +675,47 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 		}
 	}
 
-	if len(results) == 0 {
+	if len(results) < 2 {
 		return ErrSeaOrderSplitInvalidArgument
 	}
+	originalCount := 0
+	createdCount := 0
+	seenHouseNos := make(map[string]struct{})
 	for _, res := range results {
 		if res == nil {
+			return ErrSeaOrderSplitInvalidArgument
+		}
+		if res.ResultRole == ResultRoleOriginal {
+			originalCount++
+		} else if res.ResultRole == ResultRoleCreated {
+			createdCount++
+		} else {
 			return ErrSeaOrderSplitInvalidArgument
 		}
 		if _, exists := seenTargetKeys[res.ClientTargetKey]; !exists {
 			return ErrSeaOrderSplitInvalidArgument
 		}
+		if res.HouseBill != nil {
+			normalizedHouseNo, err := NormalizeSeaHouseNo(res.HouseBill.HouseNo)
+			if err != nil {
+				return err
+			}
+			if _, seen := seenHouseNos[normalizedHouseNo]; seen {
+				return ErrSeaHouseBillExists
+			}
+			seenHouseNos[normalizedHouseNo] = struct{}{}
+			if res.HouseBill.IssuerSource == "" {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
+		for _, ca := range res.CargoAllocations {
+			if ca == nil || ca.CargoItemID == uuid.Nil || ca.PackageCount < 0 || ca.GrossWeightKg.IsNegative() || ca.VolumeCbm.IsNegative() {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
+	}
+	if originalCount != 1 || createdCount < 1 {
+		return ErrSeaOrderSplitInvalidArgument
 	}
 
 	return nil
@@ -733,8 +792,7 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 	}
 	if input.ExpectedVersions == nil ||
 		input.ExpectedVersions.OrderVersion == 0 ||
-		input.ExpectedVersions.LinkVersion == 0 ||
-		input.ExpectedVersions.AllocationVersion == 0 {
+		input.ExpectedVersions.LinkVersion == 0 {
 		return nil, ErrSeaOrderSplitInvalidArgument
 	}
 	if len(input.Results) < 2 {

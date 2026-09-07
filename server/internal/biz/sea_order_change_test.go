@@ -272,9 +272,8 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 			{ClientResultKey: "res-new-1", ResultRole: ResultRoleCreated, ClientTargetKey: targetKey},
 		},
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
-			OrderVersion:      1,
-			LinkVersion:       1,
-			AllocationVersion: 1,
+			OrderVersion: 1,
+			LinkVersion:  1,
 		},
 	}
 
@@ -299,7 +298,7 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 	zeroVerInput := *input
 	zeroVerInput.IdempotencyKey = "idemp-test-zero"
 	zeroVerInput.RequestFingerprint = "fp-zero"
-	zeroVerInput.ExpectedVersions = &SeaOrderSplitExpectedVersions{OrderVersion: 0, LinkVersion: 1, AllocationVersion: 1}
+	zeroVerInput.ExpectedVersions = &SeaOrderSplitExpectedVersions{OrderVersion: 0, LinkVersion: 1}
 	if _, err := uc.ExecuteSplit(ctx, orgID, actorID, &zeroVerInput); err != ErrSeaOrderSplitInvalidArgument {
 		t.Fatalf("expected ErrSeaOrderSplitInvalidArgument on version 0, got %v", err)
 	}
@@ -484,7 +483,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
 			OrderVersion:         1,
 			LinkVersion:          1,
-			AllocationVersion:    1,
 			CandidateMBLVersions: map[uuid.UUID]uint64{candidateID: candidateVersion},
 		},
 	}
@@ -555,7 +553,7 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 			{ClientResultKey: "original", ResultRole: ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: ResultRoleCreated, ClientTargetKey: "current"},
 		},
-		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("split recovery must propagate lookup error, got %v", err)
@@ -625,9 +623,8 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 	uc := NewSeaOrderChangeUsecase(repo, &mockTransactor{})
 
 	validExpected := &SeaOrderSplitExpectedVersions{
-		OrderVersion:      1,
-		LinkVersion:       1,
-		AllocationVersion: 1,
+		OrderVersion: 1,
+		LinkVersion:  1,
 		CandidateMBLVersions: map[uuid.UUID]uint64{
 			candMBLID: 2,
 		},

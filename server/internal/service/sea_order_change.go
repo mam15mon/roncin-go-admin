@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -97,20 +98,29 @@ func (s *SeaOrderChangeService) GetSeaOrderSplitContext(ctx context.Context, req
 		})
 	}
 
-	allocations := make([]*v1.SeaOrderSplitAllocationItem, 0, len(splitCtx.Allocations))
-	for _, a := range splitCtx.Allocations {
-		cID := ""
-		if a.ContainerID != nil {
-			cID = a.ContainerID.String()
+	var curHbl *v1.SeaOrderSplitHouseBillItem
+	if h := splitCtx.CurrentHouseBill; h != nil {
+		curHbl = &v1.SeaOrderSplitHouseBillItem{
+			Id:      h.ID.String(),
+			HouseNo: h.HouseNo,
+			Status:  h.Status,
+			Version: h.Version,
 		}
-		allocations = append(allocations, &v1.SeaOrderSplitAllocationItem{
-			Id:            a.ID.String(),
-			CargoItemId:   a.CargoItemID.String(),
-			HouseBillId:   a.HouseBillID.String(),
-			ContainerId:   cID,
-			PackageCount:  a.PackageCount,
-			GrossWeightKg: biz.FormatDecimal3(a.GrossWeightKg),
-			VolumeCbm:     biz.FormatDecimal6(a.VolumeCbm),
+	}
+
+	sharedAllocs := make([]*v1.SeaOrderSplitSharedContainerAllocationItem, 0, len(splitCtx.SharedContainerAllocations))
+	for _, sc := range splitCtx.SharedContainerAllocations {
+		sharedAllocs = append(sharedAllocs, &v1.SeaOrderSplitSharedContainerAllocationItem{
+			AllocationId:           sc.AllocationID.String(),
+			SharedContainerId:      sc.SharedContainerID.String(),
+			ContainerNo:            sc.ContainerNo,
+			ContainerSpecId:        sc.ContainerSpecID.String(),
+			ContainerSpecName:      sc.ContainerSpecName,
+			CargoItemId:            sc.CargoItemID.String(),
+			PackageCount:           sc.PackageCount,
+			GrossWeightKg:          biz.FormatDecimal3(sc.GrossWeightKg),
+			VolumeCbm:              biz.FormatDecimal6(sc.VolumeCbm),
+			SharedContainerVersion: sc.SharedContainerVersion,
 		})
 	}
 
@@ -188,6 +198,7 @@ func (s *SeaOrderChangeService) GetSeaOrderSplitContext(ctx context.Context, req
 	}
 
 	fp := splitCtx.AttachmentReferenceFingerprint
+	bookingNo := splitCtx.BookingNo
 	data := &v1.SeaOrderSplitContextData{
 		OrderId:                        splitCtx.OrderID.String(),
 		OrderNo:                        splitCtx.OrderNo,
@@ -204,16 +215,16 @@ func (s *SeaOrderChangeService) GetSeaOrderSplitContext(ctx context.Context, req
 		CurrentLinkId:                  splitCtx.CurrentLinkID.String(),
 		CurrentLinkVersion:             splitCtx.CurrentLinkVersion,
 		DocumentStructure:              splitCtx.DocumentStructure,
-		CargoAllocationStatus:          splitCtx.CargoAllocationStatus,
-		CargoAllocationVersion:         splitCtx.CargoAllocationVersion,
 		HouseBills:                     hbls,
+		CurrentHouseBill:               curHbl,
 		CargoItems:                     cargoItems,
 		Containers:                     containers,
-		Allocations:                    allocations,
+		SharedContainerAllocations:     sharedAllocs,
 		DraftFees:                      fees,
 		Attachments:                    attachments,
 		ContainerPlans:                 plans,
 		AttachmentReferenceFingerprint: &fp,
+		BookingNo:                      &bookingNo,
 	}
 
 	return ok(ctx, &v1.GetSeaOrderSplitContextResponse{
@@ -727,14 +738,77 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 
 	resultInputs := make([]*biz.SeaOrderSplitResultInput, 0, len(results))
 	for _, r := range results {
-		hblIDs := make([]uuid.UUID, 0, len(r.HouseBillIds))
-		for _, hid := range r.HouseBillIds {
-			u, err := uuid.Parse(hid)
+		var hbInput *biz.SeaOrderSplitHouseBillInput
+		if r.HouseBill != nil {
+			var pID *uuid.UUID
+			if r.HouseBill.IssuerPartnerId != nil && *r.HouseBill.IssuerPartnerId != "" {
+				u, err := uuid.Parse(*r.HouseBill.IssuerPartnerId)
+				if err != nil || u == uuid.Nil {
+					return nil, biz.ErrSeaOrderSplitInvalidArgument
+				}
+				pID = &u
+			}
+			hbInput = &biz.SeaOrderSplitHouseBillInput{
+				HouseNo:         r.HouseBill.HouseNo,
+				IssuerSource:    r.HouseBill.IssuerSource,
+				IssuerPartnerID: pID,
+				Note:            r.HouseBill.Note,
+			}
+		}
+
+		cargoAllocs := make([]*biz.SeaOrderSplitCargoAllocationInput, 0, len(r.CargoAllocations))
+		for _, ca := range r.CargoAllocations {
+			cid, err := uuid.Parse(ca.CargoItemId)
+			if err != nil || cid == uuid.Nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			gw, err := decimal.NewFromString(ca.GrossWeightKg)
+			if err != nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			vol, err := decimal.NewFromString(ca.VolumeCbm)
+			if err != nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			cargoAllocs = append(cargoAllocs, &biz.SeaOrderSplitCargoAllocationInput{
+				CargoItemID:   cid,
+				PackageCount:  ca.PackageCount,
+				GrossWeightKg: gw,
+				VolumeCbm:     vol,
+			})
+		}
+
+		containerIDs := make([]uuid.UUID, 0, len(r.ContainerIds))
+		for _, cid := range r.ContainerIds {
+			u, err := uuid.Parse(cid)
 			if err != nil || u == uuid.Nil {
 				return nil, biz.ErrSeaOrderSplitInvalidArgument
 			}
-			hblIDs = append(hblIDs, u)
+			containerIDs = append(containerIDs, u)
 		}
+
+		sharedAllocs := make([]*biz.SeaOrderSplitSharedContainerAllocationInput, 0, len(r.SharedContainerAllocations))
+		for _, sc := range r.SharedContainerAllocations {
+			aid, err := uuid.Parse(sc.AllocationId)
+			if err != nil || aid == uuid.Nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			gw, err := decimal.NewFromString(sc.GrossWeightKg)
+			if err != nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			vol, err := decimal.NewFromString(sc.VolumeCbm)
+			if err != nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			sharedAllocs = append(sharedAllocs, &biz.SeaOrderSplitSharedContainerAllocationInput{
+				AllocationID:  aid,
+				PackageCount:  sc.PackageCount,
+				GrossWeightKg: gw,
+				VolumeCbm:     vol,
+			})
+		}
+
 		feeIDs := make([]uuid.UUID, 0, len(r.DraftFeeIds))
 		for _, fid := range r.DraftFeeIds {
 			u, err := uuid.Parse(fid)
@@ -752,29 +826,24 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 			attIDs = append(attIDs, u)
 		}
 		resultInputs = append(resultInputs, &biz.SeaOrderSplitResultInput{
-			ClientResultKey:        r.ClientResultKey,
-			ResultRole:             r.ResultRole,
-			ClientTargetKey:        r.ClientTargetKey,
-			HouseBillIDs:           hblIDs,
-			DraftFeeIDs:            feeIDs,
-			AttachmentReferenceIDs: attIDs,
-			InternalReferenceNo:    r.InternalReferenceNo,
-			BookingNotes:           r.BookingNotes,
-			AllocationNotes:        r.AllocationNotes,
-			OperationNotes:         r.OperationNotes,
+			ClientResultKey:            r.ClientResultKey,
+			ResultRole:                 r.ResultRole,
+			ClientTargetKey:            r.ClientTargetKey,
+			DraftFeeIDs:                feeIDs,
+			AttachmentReferenceIDs:     attIDs,
+			InternalReferenceNo:        r.InternalReferenceNo,
+			BookingNotes:               r.BookingNotes,
+			AllocationNotes:            r.AllocationNotes,
+			OperationNotes:             r.OperationNotes,
+			HouseBill:                  hbInput,
+			CargoAllocations:           cargoAllocs,
+			ContainerIDs:               containerIDs,
+			SharedContainerAllocations: sharedAllocs,
 		})
 	}
 
 	var expectedVersions *biz.SeaOrderSplitExpectedVersions
 	if exp != nil {
-		hbVers := make(map[uuid.UUID]uint64, len(exp.HouseBillVersions))
-		for k, v := range exp.HouseBillVersions {
-			u, err := uuid.Parse(k)
-			if err != nil || u == uuid.Nil {
-				return nil, biz.ErrSeaOrderSplitInvalidArgument
-			}
-			hbVers[u] = v
-		}
 		ciVers := make(map[uuid.UUID]uint64, len(exp.CargoItemVersions))
 		for k, v := range exp.CargoItemVersions {
 			u, err := uuid.Parse(k)
@@ -817,6 +886,15 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 			candTeVers[u] = v
 		}
 
+		scVers := make(map[uuid.UUID]uint64, len(exp.SharedContainerVersions))
+		for k, v := range exp.SharedContainerVersions {
+			u, err := uuid.Parse(k)
+			if err != nil || u == uuid.Nil {
+				return nil, biz.ErrSeaOrderSplitInvalidArgument
+			}
+			scVers[u] = v
+		}
+
 		attFp := ""
 		if exp.AttachmentReferenceFingerprint != nil {
 			attFp = *exp.AttachmentReferenceFingerprint
@@ -825,14 +903,14 @@ func mapSplitInput(orderIDStr string, note *string, targets []*v1.SeaOrderSplitT
 		expectedVersions = &biz.SeaOrderSplitExpectedVersions{
 			OrderVersion:                   exp.OrderVersion,
 			LinkVersion:                    exp.LinkVersion,
-			AllocationVersion:              exp.AllocationVersion,
-			HouseBillVersions:              hbVers,
+			CurrentHBLVersion:              exp.CurrentHblVersion,
 			CargoItemVersions:              ciVers,
 			ContainerVersions:              cVers,
 			FeeVersions:                    fVers,
 			CandidateMBLVersions:           candVers,
 			AttachmentReferenceFingerprint: attFp,
 			CandidateTEVersions:            candTeVers,
+			SharedContainerVersions:        scVers,
 		}
 	}
 
@@ -889,6 +967,7 @@ func mapSplitPreviewToAPI(preview *biz.SeaOrderSplitPreview) *v1.SeaOrderSplitPr
 			BookingNotes:        r.BookingNotes,
 			AllocationNotes:     r.AllocationNotes,
 			OperationNotes:      r.OperationNotes,
+			HouseNo:             r.HouseNo,
 		})
 	}
 

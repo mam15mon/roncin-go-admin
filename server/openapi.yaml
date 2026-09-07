@@ -16186,24 +16186,6 @@ components:
                     type: string
                 candidateTeVersion:
                     type: string
-        order.v1.SeaOrderSplitAllocationItem:
-            type: object
-            properties:
-                id:
-                    type: string
-                cargoItemId:
-                    type: string
-                houseBillId:
-                    type: string
-                containerId:
-                    type: string
-                packageCount:
-                    type: integer
-                    format: int32
-                grossWeightKg:
-                    type: string
-                volumeCbm:
-                    type: string
         order.v1.SeaOrderSplitAttachmentItem:
             type: object
             properties:
@@ -16218,6 +16200,20 @@ components:
                 fileSize:
                     type: string
                 docType:
+                    type: string
+        order.v1.SeaOrderSplitCargoAllocationInput:
+            required:
+                - cargoItemId
+            type: object
+            properties:
+                cargoItemId:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: string
+                volumeCbm:
                     type: string
         order.v1.SeaOrderSplitCargoItem:
             type: object
@@ -16298,10 +16294,6 @@ components:
                     type: string
                 documentStructure:
                     type: string
-                cargoAllocationStatus:
-                    type: string
-                cargoAllocationVersion:
-                    type: string
                 houseBills:
                     type: array
                     items:
@@ -16314,10 +16306,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.SeaOrderSplitContainerItem'
-                allocations:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.SeaOrderSplitAllocationItem'
                 draftFees:
                     type: array
                     items:
@@ -16334,6 +16322,12 @@ components:
                     type: string
                 bookingNo:
                     type: string
+                currentHouseBill:
+                    $ref: '#/components/schemas/order.v1.SeaOrderSplitHouseBillItem'
+                sharedContainerAllocations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaOrderSplitSharedContainerAllocationItem'
         order.v1.SeaOrderSplitCreatedOrder:
             type: object
             properties:
@@ -16389,12 +16383,6 @@ components:
                     type: string
                 linkVersion:
                     type: string
-                allocationVersion:
-                    type: string
-                houseBillVersions:
-                    type: object
-                    additionalProperties:
-                        type: string
                 cargoItemVersions:
                     type: object
                     additionalProperties:
@@ -16417,6 +16405,26 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+                currentHblVersion:
+                    type: string
+                sharedContainerVersions:
+                    type: object
+                    additionalProperties:
+                        type: string
+        order.v1.SeaOrderSplitHouseBillInput:
+            required:
+                - houseNo
+                - issuerSource
+            type: object
+            properties:
+                houseNo:
+                    type: string
+                issuerSource:
+                    type: string
+                issuerPartnerId:
+                    type: string
+                note:
+                    type: string
         order.v1.SeaOrderSplitHouseBillItem:
             type: object
             properties:
@@ -16533,6 +16541,8 @@ components:
                     type: string
                 operationNotes:
                     type: string
+                houseNo:
+                    type: string
         order.v1.SeaOrderSplitQuantitySummary:
             type: object
             properties:
@@ -16565,10 +16575,6 @@ components:
                     type: string
                 clientTargetKey:
                     type: string
-                houseBillIds:
-                    type: array
-                    items:
-                        type: string
                 draftFeeIds:
                     type: array
                     items:
@@ -16585,6 +16591,20 @@ components:
                     type: string
                 operationNotes:
                     type: string
+                houseBill:
+                    $ref: '#/components/schemas/order.v1.SeaOrderSplitHouseBillInput'
+                cargoAllocations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaOrderSplitCargoAllocationInput'
+                containerIds:
+                    type: array
+                    items:
+                        type: string
+                sharedContainerAllocations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaOrderSplitSharedContainerAllocationInput'
         order.v1.SeaOrderSplitResultSummaryItem:
             type: object
             properties:
@@ -16602,6 +16622,44 @@ components:
                 grossWeightKg:
                     type: string
                 volumeCbm:
+                    type: string
+        order.v1.SeaOrderSplitSharedContainerAllocationInput:
+            required:
+                - allocationId
+            type: object
+            properties:
+                allocationId:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: string
+                volumeCbm:
+                    type: string
+        order.v1.SeaOrderSplitSharedContainerAllocationItem:
+            type: object
+            properties:
+                allocationId:
+                    type: string
+                sharedContainerId:
+                    type: string
+                containerNo:
+                    type: string
+                containerSpecId:
+                    type: string
+                containerSpecName:
+                    type: string
+                cargoItemId:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: string
+                volumeCbm:
+                    type: string
+                sharedContainerVersion:
                     type: string
         order.v1.SeaOrderSplitTargetInput:
             required:

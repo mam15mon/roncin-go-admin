@@ -273,7 +273,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 旧 HBL 版本更新必须触发冲突
-	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion+1, &biz.SeaHouseBillInput{
 		HouseNo:      "COSU 000123 / 2026.B",
 		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 	}, makeAudit())

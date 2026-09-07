@@ -1,4 +1,5 @@
 import { ProForm, ProFormText } from '@ant-design/pro-components';
+import { App } from 'antd';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -143,13 +144,15 @@ describe('海运订单新增模板', () => {
     ]);
 
     render(
-      <ProForm submitter={false}>
-        {sections.map((section) => (
-          <div key={section.key} data-testid={`section-${section.key}`}>
-            {section.content}
-          </div>
-        ))}
-      </ProForm>,
+      <App>
+        <ProForm submitter={false}>
+          {sections.map((section) => (
+            <div key={section.key} data-testid={`section-${section.key}`}>
+              {section.content}
+            </div>
+          ))}
+        </ProForm>
+      </App>,
     );
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('MBL 主单号');
@@ -157,7 +160,9 @@ describe('海运订单新增模板', () => {
     expect(transportSection).not.toHaveTextContent('主单签发方');
     expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
-    expect(screen.getByRole('button', { name: /添加首张分单/ })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /DIRECT（直接交付 MBL）/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
     expect(
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),
     ).toBeTruthy();
@@ -170,7 +175,7 @@ describe('海运订单新增模板', () => {
     expect(carrierLabel).toHaveClass('ant-form-item-required');
   });
 
-  it('从未确定状态添加首张及多张分单', async () => {
+  it('单证模式显式选择：HOUSE 只录入一张 HBL，DIRECT 不携带 HBL', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -190,34 +195,40 @@ describe('海运订单新增模板', () => {
     });
 
     render(
-      <ProForm submitter={false}>
-        {sections.map((section) => (
-          <div key={section.key} data-testid={`section-${section.key}`}>
-            {section.content}
-          </div>
-        ))}
-      </ProForm>,
+      <App>
+        <ProForm submitter={false}>
+          {sections.map((section) => (
+            <div key={section.key} data-testid={`section-${section.key}`}>
+              {section.content}
+            </div>
+          ))}
+        </ProForm>
+      </App>,
     );
 
     expect(screen.queryAllByPlaceholderText('请输入分单号')).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    const addFirstHouseBtn = screen.getByRole('button', {
-      name: /添加首张分单/,
-    });
-    fireEvent.click(addFirstHouseBtn);
+    // 切换为 HOUSE 模式，只录入一张当前 HBL
+    const houseRadio = screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ });
+    fireEvent.click(houseRadio);
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
       expect(screen.getAllByText('签发主体')).toHaveLength(1);
     });
+    // 不存在添加第二张 HBL 的入口
+    expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    const addHouseBtn = screen.getByRole('button', {
-      name: /添加分单 \(HBL\)/,
+    // 切换为 DIRECT 模式，不携带 HBL
+    const directRadio = screen.getByRole('radio', {
+      name: /DIRECT（直接交付 MBL）/,
     });
-    fireEvent.click(addHouseBtn);
+    fireEvent.click(directRadio);
 
     await waitFor(() => {
-      expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(2);
+      expect(screen.queryAllByPlaceholderText('请输入分单号')).toHaveLength(0);
     });
   }, 30_000);
 

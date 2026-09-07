@@ -34,6 +34,8 @@ import (
 	seaorderreassignmenteventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	seaorderspliteventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	seaordersplitresultent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	seasharedcontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	seasharedcontainerallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	seatransportexecutionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	seatransportexecutionversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -312,8 +314,50 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 		containerList = append(containerList, cItem)
 	}
 
-	// 查询 Allocations
-	allocList := make([]*biz.SeaOrderSplitAllocationItem, 0)
+	var currentHbl *biz.SeaOrderSplitHouseBillItem
+	for _, h := range hbls {
+		if h.Status != seahousebillent.StatusVOIDED {
+			currentHbl = &biz.SeaOrderSplitHouseBillItem{
+				ID:      h.ID,
+				HouseNo: h.HouseNo,
+				Status:  string(h.Status),
+				Version: h.Version,
+			}
+			break
+		}
+	}
+
+	// 查询共享箱分配
+	sharedAllocRows, err := client.SeaSharedContainerAllocation.Query().
+		Where(seasharedcontainerallocationent.OrderIDEQ(orderID)).
+		WithSharedContainer().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sharedAllocList := make([]*biz.SeaOrderSplitSharedContainerAllocationItem, 0, len(sharedAllocRows))
+	for _, sca := range sharedAllocRows {
+		gwDec, _ := decimal.NewFromString(sca.GrossWeightKg)
+		volDec, _ := decimal.NewFromString(sca.VolumeCbm)
+		item := &biz.SeaOrderSplitSharedContainerAllocationItem{
+			AllocationID:  sca.ID,
+			CargoItemID:   sca.CargoItemID,
+			PackageCount:  int32(sca.PackageCount),
+			GrossWeightKg: gwDec,
+			VolumeCbm:     volDec,
+		}
+		if sc := sca.Edges.SharedContainer; sc != nil {
+			item.SharedContainerID = sc.ID
+			item.ContainerNo = sc.ContainerNo
+			item.ContainerSpecID = sc.ContainerSpecID
+			item.SharedContainerVersion = sc.Version
+			spec, sErr := client.MasterDataItem.Get(ctx, sc.ContainerSpecID)
+			if sErr == nil && spec != nil {
+				item.ContainerSpecName = spec.Name
+			}
+		}
+		sharedAllocList = append(sharedAllocList, item)
+	}
 
 	// 查询草稿费用 (排除已作废)
 	fees, err := client.OrderFee.Query().
@@ -412,6 +456,7 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 	splitCtx := &biz.SeaOrderSplitContext{
 		OrderID:                        order.ID,
 		OrderNo:                        order.OrderNo,
+		BookingNo:                      order.BookingNo,
 		BusinessType:                   string(order.BusinessType),
 		ShipmentType:                   shipmentType,
 		FlowStatus:                     string(order.FlowStatus),
@@ -425,12 +470,11 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 		CurrentLinkID:                  activeLink.ID,
 		CurrentLinkVersion:             activeLink.Version,
 		DocumentStructure:              string(activeLink.DocumentStructure),
-		CargoAllocationStatus:          "",
-		CargoAllocationVersion:         0,
 		HouseBills:                     hblItems,
+		CurrentHouseBill:               currentHbl,
 		CargoItems:                     cargoItemList,
 		Containers:                     containerList,
-		Allocations:                    allocList,
+		SharedContainerAllocations:     sharedAllocList,
 		DraftFees:                      feeList,
 		Attachments:                    attachList,
 		ContainerPlans:                 planList,
@@ -576,99 +620,287 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		baselineWeight = baselineWeight.Add(ci.GrossWeightKg)
 		baselineVol = baselineVol.Add(ci.VolumeCbm)
 	}
+	hbCount := int32(0)
+	if splitCtx.CurrentHouseBill != nil {
+		hbCount = 1
+	}
 	preview.Baseline = biz.SeaOrderSplitQuantitySummary{
 		PackageCount:   baselinePkg,
 		GrossWeightKg:  baselineWeight,
 		VolumeCbm:      baselineVol,
 		ContainerCount: int32(len(splitCtx.Containers)),
-		HouseBillCount: int32(len(splitCtx.HouseBills)),
+		HouseBillCount: hbCount,
 		FeeCount:       int32(len(splitCtx.DraftFees)),
 	}
 
-	// 3. 校验 HBL 分配：每个 HBL 必须恰好分配到 1 个结果票
-	hblMap := make(map[uuid.UUID]*biz.SeaOrderSplitHouseBillItem)
-	for _, h := range splitCtx.HouseBills {
-		hblMap[h.ID] = h
+	// 3. 校验 HBL 分单号
+	seenHouseNos := make(map[string]string)
+	if splitCtx.CurrentHouseBill != nil {
+		normCurrent, err := biz.NormalizeSeaHouseNo(splitCtx.CurrentHouseBill.HouseNo)
+		if err == nil {
+			seenHouseNos[normCurrent] = "ORIGINAL"
+		}
 	}
-	hblToResultKey := make(map[uuid.UUID]string)
 	for _, res := range input.Results {
-		for _, hblID := range res.HouseBillIDs {
-			if _, exists := hblMap[hblID]; !exists {
+		if res.ResultRole == biz.ResultRoleCreated {
+			if splitCtx.DocumentStructure == string(seamasterbillorderlinkent.DocumentStructureHOUSE) {
+				if res.HouseBill == nil || strings.TrimSpace(res.HouseBill.HouseNo) == "" {
+					preview.IsValid = false
+					preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+						Reason:          "HOUSE_BILL_REQUIRED",
+						Message:         fmt.Sprintf("新票 %s 必须提供分单号", res.ClientResultKey),
+						ClientResultKey: res.ClientResultKey,
+					})
+				} else {
+					normNo, err := biz.NormalizeSeaHouseNo(res.HouseBill.HouseNo)
+					if err != nil {
+						preview.IsValid = false
+						preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+							Reason:          "HOUSE_BILL_INVALID",
+							Message:         fmt.Sprintf("新票 %s 分单号不合法: %v", res.ClientResultKey, err),
+							ClientResultKey: res.ClientResultKey,
+						})
+					} else {
+						if prevRes, seen := seenHouseNos[normNo]; seen {
+							preview.IsValid = false
+							preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+								Reason:          "HOUSE_BILL_DUPLICATE",
+								Message:         fmt.Sprintf("分单号 %s 重复 (与 %s 冲突)", res.HouseBill.HouseNo, prevRes),
+								ClientResultKey: res.ClientResultKey,
+							})
+						} else {
+							seenHouseNos[normNo] = res.ClientResultKey
+							exists, qErr := client.SeaHouseBill.Query().Where(
+								seahousebillent.OrganizationIDEQ(organizationID),
+								seahousebillent.NormalizedHouseNoEQ(normNo),
+								seahousebillent.StatusIn(seahousebillent.StatusDRAFT, seahousebillent.StatusCONFIRMED, seahousebillent.StatusRELEASED),
+							).Exist(ctx)
+							if qErr == nil && exists {
+								preview.IsValid = false
+								preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+									Reason:          "HOUSE_BILL_EXISTS",
+									Message:         fmt.Sprintf("分单号 %s 在系统中已存在", res.HouseBill.HouseNo),
+									ClientResultKey: res.ClientResultKey,
+								})
+							}
+						}
+					}
+					if res.HouseBill.IssuerSource == "" {
+						preview.IsValid = false
+						preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+							Reason:          "HOUSE_BILL_ISSUER_REQUIRED",
+							Message:         fmt.Sprintf("新票 %s 必须提供分单签发来源", res.ClientResultKey),
+							ClientResultKey: res.ClientResultKey,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	// 4. 校验货物项分配与总量守恒
+	cargoMap := make(map[uuid.UUID]*biz.SeaOrderSplitCargoItem, len(splitCtx.CargoItems))
+	for _, ci := range splitCtx.CargoItems {
+		cargoMap[ci.ID] = ci
+	}
+	allocatedPkgByItem := make(map[uuid.UUID]int32)
+	allocatedWeightByItem := make(map[uuid.UUID]decimal.Decimal)
+	allocatedVolByItem := make(map[uuid.UUID]decimal.Decimal)
+	for ciID := range cargoMap {
+		allocatedWeightByItem[ciID] = decimal.Zero
+		allocatedVolByItem[ciID] = decimal.Zero
+	}
+
+	resultPkgMap := make(map[string]int32)
+	resultWeightMap := make(map[string]decimal.Decimal)
+	resultVolMap := make(map[string]decimal.Decimal)
+	for _, res := range input.Results {
+		resultWeightMap[res.ClientResultKey] = decimal.Zero
+		resultVolMap[res.ClientResultKey] = decimal.Zero
+		for _, ca := range res.CargoAllocations {
+			ci, ok := cargoMap[ca.CargoItemID]
+			if !ok {
 				preview.IsValid = false
 				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-					Reason:          "HOUSE_BILL_NOT_FOUND",
-					Message:         fmt.Sprintf("分单 %s 不属于当前订单", hblID),
+					Reason:          "CARGO_ITEM_NOT_FOUND",
+					Message:         fmt.Sprintf("货物项 %s 不属于原订单", ca.CargoItemID),
 					ClientResultKey: res.ClientResultKey,
-					HouseBillID:     hblID.String(),
+					CargoItemID:     ca.CargoItemID.String(),
 				})
 				continue
 			}
-			if prevKey, exists := hblToResultKey[hblID]; exists {
-				houseNo := hblMap[hblID].HouseNo
+			if ca.PackageCount < 0 || ca.GrossWeightKg.IsNegative() || ca.VolumeCbm.IsNegative() {
 				preview.IsValid = false
 				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-					Reason:          "HOUSE_BILL_CROSSES_RESULTS",
-					Message:         fmt.Sprintf("分单 %s（%s）被同时分配到 %s 和 %s", houseNo, hblID, prevKey, res.ClientResultKey),
+					Reason:          "CARGO_ITEM_INVALID_QUANTITY",
+					Message:         fmt.Sprintf("货物项 %s 分配数量不能为负数", ci.CargoName),
 					ClientResultKey: res.ClientResultKey,
-					HouseBillID:     hblID.String(),
+					CargoItemID:     ca.CargoItemID.String(),
 				})
+				continue
 			}
-			hblToResultKey[hblID] = res.ClientResultKey
+			allocatedPkgByItem[ca.CargoItemID] += ca.PackageCount
+			allocatedWeightByItem[ca.CargoItemID] = allocatedWeightByItem[ca.CargoItemID].Add(ca.GrossWeightKg)
+			allocatedVolByItem[ca.CargoItemID] = allocatedVolByItem[ca.CargoItemID].Add(ca.VolumeCbm)
+
+			resultPkgMap[res.ClientResultKey] += ca.PackageCount
+			resultWeightMap[res.ClientResultKey] = resultWeightMap[res.ClientResultKey].Add(ca.GrossWeightKg)
+			resultVolMap[res.ClientResultKey] = resultVolMap[res.ClientResultKey].Add(ca.VolumeCbm)
 		}
 	}
-	for hblID := range hblMap {
-		if _, exists := hblToResultKey[hblID]; !exists {
-			houseNo := hblMap[hblID].HouseNo
+
+	totalAllocatedPkg := int32(0)
+	totalAllocatedWeight := decimal.Zero
+	totalAllocatedVol := decimal.Zero
+
+	for _, ci := range splitCtx.CargoItems {
+		allocPkg := allocatedPkgByItem[ci.ID]
+		allocWt := allocatedWeightByItem[ci.ID]
+		allocVol := allocatedVolByItem[ci.ID]
+
+		totalAllocatedPkg += allocPkg
+		totalAllocatedWeight = totalAllocatedWeight.Add(allocWt)
+		totalAllocatedVol = totalAllocatedVol.Add(allocVol)
+
+		diffPkg := ci.PackageCount - allocPkg
+		diffWt := ci.GrossWeightKg.Sub(allocWt)
+		diffVol := ci.VolumeCbm.Sub(allocVol)
+
+		if diffPkg != 0 || !diffWt.IsZero() || !diffVol.IsZero() {
+			preview.ConservationPassed = false
 			preview.IsValid = false
 			preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-				Reason:      "HOUSE_BILL_UNASSIGNED",
-				Message:     fmt.Sprintf("分单 %s（%s）未被分配到任何结果票", houseNo, hblID),
-				HouseBillID: hblID.String(),
+				Reason:         "QUANTITY_CONSERVATION_FAILED",
+				Message:        fmt.Sprintf("货物项 %s 拆票分配与原始总量不守恒", ci.CargoName),
+				CargoItemID:    ci.ID.String(),
+				BaselineValue:  fmt.Sprintf("pkg:%d, wt:%s, vol:%s", ci.PackageCount, ci.GrossWeightKg.String(), ci.VolumeCbm.String()),
+				AllocatedValue: fmt.Sprintf("pkg:%d, wt:%s, vol:%s", allocPkg, allocWt.String(), allocVol.String()),
+				DiffValue:      fmt.Sprintf("pkg:%d, wt:%s, vol:%s", diffPkg, diffWt.String(), diffVol.String()),
 			})
 		}
 	}
 
-	// 4. 校验集装箱跨票规则：同一实际箱的所有货物分配必须全部归属于同一个结果票！
-	containerToHbls := make(map[uuid.UUID]map[uuid.UUID]struct{})
-	for _, a := range splitCtx.Allocations {
-		if a.ContainerID != nil && *a.ContainerID != uuid.Nil {
-			if _, ok := containerToHbls[*a.ContainerID]; !ok {
-				containerToHbls[*a.ContainerID] = make(map[uuid.UUID]struct{})
+	// 5. 校验各结果票非空
+	for _, res := range input.Results {
+		resPkg := resultPkgMap[res.ClientResultKey]
+		resWt := resultWeightMap[res.ClientResultKey]
+		resVol := resultVolMap[res.ClientResultKey]
+		if resPkg <= 0 && resWt.IsZero() && resVol.IsZero() {
+			preview.IsValid = false
+			reason := "CREATED_ORDER_EMPTY"
+			msg := "新票必须分配非零货物"
+			if res.ResultRole == biz.ResultRoleOriginal {
+				reason = "ORIGINAL_ORDER_EMPTY"
+				msg = "原票必须保留非零货物，不可将全部货物拆出"
 			}
-			containerToHbls[*a.ContainerID][a.HouseBillID] = struct{}{}
+			preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+				Reason:          reason,
+				Message:         msg,
+				ClientResultKey: res.ClientResultKey,
+			})
 		}
 	}
 
-	containerToResultKey := make(map[uuid.UUID]string)
-	containerMap := make(map[uuid.UUID]*biz.SeaOrderSplitContainerItem)
+	// 6. 校验独占集装箱分配
+	containerMap := make(map[uuid.UUID]*biz.SeaOrderSplitContainerItem, len(splitCtx.Containers))
 	for _, c := range splitCtx.Containers {
 		containerMap[c.ID] = c
 	}
-
-	for cID, hbls := range containerToHbls {
-		var targetResultKey string
-		for hID := range hbls {
-			rKey := hblToResultKey[hID]
-			if targetResultKey == "" {
-				targetResultKey = rKey
-			} else if targetResultKey != rKey {
+	containerToResultKey := make(map[uuid.UUID]string)
+	for _, res := range input.Results {
+		for _, cid := range res.ContainerIDs {
+			c, ok := containerMap[cid]
+			if !ok {
 				preview.IsValid = false
-				preview.ConservationPassed = false
-				cNo := ""
-				if c, ok := containerMap[cID]; ok {
-					cNo = c.ContainerNo
-				}
 				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-					Reason:      "CONTAINER_CROSSES_RESULTS",
-					Message:     fmt.Sprintf("集装箱 %s(%s) 内货物跨结果票分配（%s vs %s），违反集装箱不可跨票规则", cNo, cID, targetResultKey, rKey),
-					ContainerID: cID.String(),
+					Reason:          "CONTAINER_NOT_FOUND",
+					Message:         fmt.Sprintf("集装箱 %s 不属于当前订单", cid),
+					ClientResultKey: res.ClientResultKey,
+					ContainerID:     cid.String(),
+				})
+				continue
+			}
+			if prevRes, seen := containerToResultKey[cid]; seen {
+				preview.IsValid = false
+				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+					Reason:          "CONTAINER_CROSSES_RESULTS",
+					Message:         fmt.Sprintf("集装箱 %s(%s) 被同时分配到 %s 和 %s", c.ContainerNo, cid, prevRes, res.ClientResultKey),
+					ClientResultKey: res.ClientResultKey,
+					ContainerID:     cid.String(),
+				})
+			}
+			containerToResultKey[cid] = res.ClientResultKey
+		}
+	}
+	for cid, c := range containerMap {
+		if _, seen := containerToResultKey[cid]; !seen {
+			preview.IsValid = false
+			preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+				Reason:      "CONTAINER_UNASSIGNED",
+				Message:     fmt.Sprintf("集装箱 %s(%s) 未被分配到任何结果票", c.ContainerNo, cid),
+				ContainerID: cid.String(),
+			})
+		}
+	}
+
+	// 7. 校验共享箱分配守恒
+	if len(splitCtx.SharedContainerAllocations) > 0 {
+		sharedMap := make(map[uuid.UUID]*biz.SeaOrderSplitSharedContainerAllocationItem, len(splitCtx.SharedContainerAllocations))
+		for _, sc := range splitCtx.SharedContainerAllocations {
+			sharedMap[sc.AllocationID] = sc
+		}
+		allocPkgByShared := make(map[uuid.UUID]int32)
+		allocWtByShared := make(map[uuid.UUID]decimal.Decimal)
+		allocVolByShared := make(map[uuid.UUID]decimal.Decimal)
+		for aid := range sharedMap {
+			allocWtByShared[aid] = decimal.Zero
+			allocVolByShared[aid] = decimal.Zero
+		}
+		for _, res := range input.Results {
+			for _, sca := range res.SharedContainerAllocations {
+				_, ok := sharedMap[sca.AllocationID]
+				if !ok {
+					preview.IsValid = false
+					preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+						Reason:          "SHARED_ALLOCATION_NOT_FOUND",
+						Message:         fmt.Sprintf("共享箱分配 %s 不属于当前订单", sca.AllocationID),
+						ClientResultKey: res.ClientResultKey,
+					})
+					continue
+				}
+				if sca.PackageCount < 0 || sca.GrossWeightKg.IsNegative() || sca.VolumeCbm.IsNegative() {
+					preview.IsValid = false
+					preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+						Reason:          "SHARED_ALLOCATION_INVALID_QUANTITY",
+						Message:         fmt.Sprintf("共享箱分配 %s 数量不能为负数", sca.AllocationID),
+						ClientResultKey: res.ClientResultKey,
+					})
+					continue
+				}
+				allocPkgByShared[sca.AllocationID] += sca.PackageCount
+				allocWtByShared[sca.AllocationID] = allocWtByShared[sca.AllocationID].Add(sca.GrossWeightKg)
+				allocVolByShared[sca.AllocationID] = allocVolByShared[sca.AllocationID].Add(sca.VolumeCbm)
+			}
+		}
+		for _, sc := range splitCtx.SharedContainerAllocations {
+			aPkg := allocPkgByShared[sc.AllocationID]
+			aWt := allocWtByShared[sc.AllocationID]
+			aVol := allocVolByShared[sc.AllocationID]
+			if aPkg != sc.PackageCount || !aWt.Equal(sc.GrossWeightKg) || !aVol.Equal(sc.VolumeCbm) {
+				preview.ConservationPassed = false
+				preview.IsValid = false
+				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+					Reason:         "SHARED_ALLOCATION_CONSERVATION_FAILED",
+					Message:        fmt.Sprintf("共享箱分配 %s(%s) 拆票后与原始总量不守恒", sc.ContainerNo, sc.AllocationID),
+					BaselineValue:  fmt.Sprintf("pkg:%d, wt:%s, vol:%s", sc.PackageCount, sc.GrossWeightKg.String(), sc.VolumeCbm.String()),
+					AllocatedValue: fmt.Sprintf("pkg:%d, wt:%s, vol:%s", aPkg, aWt.String(), aVol.String()),
+					DiffValue:      fmt.Sprintf("pkg:%d, wt:%s, vol:%s", sc.PackageCount-aPkg, sc.GrossWeightKg.Sub(aWt).String(), sc.VolumeCbm.Sub(aVol).String()),
 				})
 			}
 		}
-		containerToResultKey[cID] = targetResultKey
 	}
 
-	// 5. 校验草稿费用：每笔费用必须恰好分配到 1 个结果票
+	// 8. 校验草稿费用：每笔费用必须恰好分配到 1 个结果票
 	feeMap := make(map[uuid.UUID]*biz.SeaOrderSplitDraftFeeItem)
 	for _, f := range splitCtx.DraftFees {
 		feeMap[f.ID] = f
@@ -709,11 +941,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		}
 	}
 
-	// 6. 汇总每个结果票的件重尺与箱货
-	totalAllocatedPkg := int32(0)
-	totalAllocatedWeight := decimal.Zero
-	totalAllocatedVol := decimal.Zero
-
+	// 9. 汇总每个结果票
 	targetMap := make(map[string]*biz.SeaOrderSplitTargetInput, len(input.Targets))
 	for _, t := range input.Targets {
 		if t != nil {
@@ -728,26 +956,9 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			return nil, biz.ErrSeaOrderSplitInvalidArgument
 		}
 
-		hblSet := make(map[uuid.UUID]struct{}, len(res.HouseBillIDs))
-		for _, hID := range res.HouseBillIDs {
-			hblSet[hID] = struct{}{}
-		}
-
-		resPkg := int32(0)
-		resWeight := decimal.Zero
-		resVol := decimal.Zero
-
-		for _, a := range splitCtx.Allocations {
-			if _, ok := hblSet[a.HouseBillID]; ok {
-				resPkg += a.PackageCount
-				resWeight = resWeight.Add(a.GrossWeightKg)
-				resVol = resVol.Add(a.VolumeCbm)
-			}
-		}
-
-		totalAllocatedPkg += resPkg
-		totalAllocatedWeight = totalAllocatedWeight.Add(resWeight)
-		totalAllocatedVol = totalAllocatedVol.Add(resVol)
+		resPkg := resultPkgMap[res.ClientResultKey]
+		resWeight := resultWeightMap[res.ClientResultKey]
+		resVol := resultVolMap[res.ClientResultKey]
 
 		resContainersCount := int32(0)
 		resContainerSpecCounts := make(map[uuid.UUID]int32)
@@ -804,6 +1015,21 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			allocationNotes = splitCtx.AllocationNotes
 		}
 
+		var houseNo *string
+		hbCount := int32(0)
+		if splitCtx.DocumentStructure == string(seamasterbillorderlinkent.DocumentStructureHOUSE) {
+			hbCount = 1
+			if res.ResultRole == biz.ResultRoleOriginal {
+				if splitCtx.CurrentHouseBill != nil {
+					hNo := splitCtx.CurrentHouseBill.HouseNo
+					houseNo = &hNo
+				}
+			} else if res.HouseBill != nil {
+				hNo := res.HouseBill.HouseNo
+				houseNo = &hNo
+			}
+		}
+
 		resultPreviews = append(resultPreviews, &biz.SeaOrderSplitPreviewResultItem{
 			ClientResultKey:     res.ClientResultKey,
 			ResultRole:          res.ResultRole,
@@ -812,7 +1038,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			GrossWeightKg:       resWeight,
 			VolumeCbm:           resVol,
 			ContainerCount:      resContainersCount,
-			HouseBillCount:      int32(len(res.HouseBillIDs)),
+			HouseBillCount:      hbCount,
 			FeeCount:            int32(len(res.DraftFeeIDs)),
 			AttachmentCount:     int32(len(res.AttachmentReferenceIDs)),
 			ContainerPlans:      containerPlans,
@@ -820,6 +1046,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			BookingNotes:        bookingNotes,
 			AllocationNotes:     allocationNotes,
 			OperationNotes:      operationNotes,
+			HouseNo:             houseNo,
 		})
 	}
 
@@ -828,7 +1055,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		GrossWeightKg:  totalAllocatedWeight,
 		VolumeCbm:      totalAllocatedVol,
 		ContainerCount: preview.Baseline.ContainerCount,
-		HouseBillCount: preview.Baseline.HouseBillCount,
+		HouseBillCount: int32(len(input.Results)),
 		FeeCount:       preview.Baseline.FeeCount,
 	}
 
@@ -839,40 +1066,6 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		PackageCount:  remainingPkg,
 		GrossWeightKg: remainingWeight,
 		VolumeCbm:     remainingVol,
-	}
-
-	if remainingPkg != 0 || !remainingWeight.IsZero() || !remainingVol.IsZero() {
-		preview.ConservationPassed = false
-		preview.IsValid = false
-		preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-			Reason:         "QUANTITY_CONSERVATION_FAILED",
-			Message:        "拆票结果与原始订单总量不守恒",
-			BaselineValue:  fmt.Sprintf("pkg:%d, wt:%s, vol:%s", baselinePkg, baselineWeight.String(), baselineVol.String()),
-			AllocatedValue: fmt.Sprintf("pkg:%d, wt:%s, vol:%s", totalAllocatedPkg, totalAllocatedWeight.String(), totalAllocatedVol.String()),
-			DiffValue:      fmt.Sprintf("pkg:%d, wt:%s, vol:%s", remainingPkg, remainingWeight.String(), remainingVol.String()),
-		})
-	}
-
-	for _, rp := range resultPreviews {
-		if rp.ResultRole == biz.ResultRoleOriginal {
-			if rp.HouseBillCount == 0 || rp.PackageCount == 0 {
-				preview.IsValid = false
-				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-					Reason:          "ORIGINAL_ORDER_EMPTY",
-					Message:         "原票必须保留至少 1 个分单及非零货物，不可将全部货物拆出",
-					ClientResultKey: rp.ClientResultKey,
-				})
-			}
-		} else {
-			if rp.HouseBillCount == 0 || rp.PackageCount == 0 {
-				preview.IsValid = false
-				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-					Reason:          "CREATED_ORDER_EMPTY",
-					Message:         "新票必须分配至少 1 个分单及非零货物",
-					ClientResultKey: rp.ClientResultKey,
-				})
-			}
-		}
 	}
 
 	preview.Results = resultPreviews
@@ -1203,11 +1396,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		if input.ExpectedVersions.CargoItemVersions == nil || len(input.ExpectedVersions.CargoItemVersions) != len(cargoItems) {
 			return biz.ErrSeaOrderSplitVersionConflict
 		}
+		lockedCargoItemMap := make(map[uuid.UUID]*ent.OrderCargoItem, len(cargoItems))
 		for _, ci := range cargoItems {
 			expV, ok := input.ExpectedVersions.CargoItemVersions[ci.ID]
 			if !ok || expV == 0 || ci.Version != expV {
 				return biz.ErrSeaOrderSplitVersionConflict
 			}
+			lockedCargoItemMap[ci.ID] = ci
 		}
 
 		hbls, err := tx.SeaHouseBill.Query().
@@ -1220,17 +1415,24 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 		lockedHBLMap := make(map[uuid.UUID]*ent.SeaHouseBill, len(hbls))
 		for _, h := range hbls {
-			if h.Status != seahousebillent.StatusDRAFT {
-				return biz.ErrSeaOrderSplitBlocked
-			}
 			lockedHBLMap[h.ID] = h
 		}
-		if input.ExpectedVersions.HouseBillVersions == nil || len(input.ExpectedVersions.HouseBillVersions) != len(hbls) {
-			return biz.ErrSeaOrderSplitVersionConflict
-		}
+
+		var curHBL *ent.SeaHouseBill
 		for _, h := range hbls {
-			expV, ok := input.ExpectedVersions.HouseBillVersions[h.ID]
-			if !ok || expV == 0 || h.Version != expV {
+			if h.Status != seahousebillent.StatusVOIDED {
+				if h.Status != seahousebillent.StatusDRAFT {
+					return biz.ErrSeaOrderSplitBlocked
+				}
+				curHBL = h
+				break
+			}
+		}
+		if lockedActiveLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE && curHBL == nil {
+			return biz.ErrSeaHouseBillNotFound
+		}
+		if input.ExpectedVersions.CurrentHBLVersion != nil && *input.ExpectedVersions.CurrentHBLVersion != 0 {
+			if curHBL == nil || curHBL.Version != *input.ExpectedVersions.CurrentHBLVersion {
 				return biz.ErrSeaOrderSplitVersionConflict
 			}
 		}
@@ -1247,26 +1449,45 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		for _, c := range containers {
 			lockedContainerMap[c.ID] = c
 		}
-		if input.ExpectedVersions.ContainerVersions == nil || len(input.ExpectedVersions.ContainerVersions) != len(containers) {
-			return biz.ErrSeaOrderSplitVersionConflict
-		}
-		for _, c := range containers {
-			expV, ok := input.ExpectedVersions.ContainerVersions[c.ID]
-			if !ok || expV == 0 || c.Version != expV {
-				return biz.ErrSeaOrderSplitVersionConflict
+		if input.ExpectedVersions.ContainerVersions != nil {
+			for _, c := range containers {
+				if expV, ok := input.ExpectedVersions.ContainerVersions[c.ID]; ok && expV != 0 && c.Version != expV {
+					return biz.ErrSeaOrderSplitVersionConflict
+				}
 			}
 		}
 
-		type splitAlloc struct {
-			ID            uuid.UUID
-			CargoItemID   uuid.UUID
-			HouseBillID   uuid.UUID
-			ContainerID   *uuid.UUID
-			PackageCount  int
-			GrossWeightKg string
-			VolumeCbm     string
+		sharedAllocs, err := tx.SeaSharedContainerAllocation.Query().
+			Where(seasharedcontainerallocationent.OrderIDEQ(sourceOrder.ID)).
+			Order(seasharedcontainerallocationent.ByID()).
+			ForUpdate().
+			All(ctx)
+		if err != nil {
+			return err
 		}
-		var allocations []splitAlloc
+		lockedSharedAllocMap := make(map[uuid.UUID]*ent.SeaSharedContainerAllocation, len(sharedAllocs))
+		sharedContainerIDs := make([]uuid.UUID, 0, len(sharedAllocs))
+		for _, sa := range sharedAllocs {
+			lockedSharedAllocMap[sa.ID] = sa
+			sharedContainerIDs = append(sharedContainerIDs, sa.SharedContainerID)
+		}
+		sharedContainerIDs = sortAndDeduplicateUUIDs(sharedContainerIDs)
+		lockedSharedContainers := make(map[uuid.UUID]*ent.SeaSharedContainer, len(sharedContainerIDs))
+		for _, scID := range sharedContainerIDs {
+			sc, err := tx.SeaSharedContainer.Query().
+				Where(seasharedcontainerent.IDEQ(scID)).
+				ForUpdate().
+				Only(ctx)
+			if err != nil {
+				return err
+			}
+			lockedSharedContainers[scID] = sc
+			if input.ExpectedVersions.SharedContainerVersions != nil {
+				if expV, ok := input.ExpectedVersions.SharedContainerVersions[scID]; ok && expV != 0 && sc.Version != expV {
+					return biz.ErrSeaOrderSplitVersionConflict
+				}
+			}
+		}
 
 		fees, err := tx.OrderFee.Query().
 			Where(orderfeeent.OrderIDEQ(sourceOrder.ID)).
@@ -1346,53 +1567,84 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		// 锁后重算全部分配、守恒、结构、不跨箱与费用完整性
 		// -------------------------------------------------------------------
 
-		// 1. HBL 分配完整性与唯一性
-		assignedHBLs := make(map[uuid.UUID]string)
+		// 1. HBL 新票分单号唯一性重验
+		seenHouseNos := make(map[string]string)
+		if curHBL != nil {
+			normCurrent, err := biz.NormalizeSeaHouseNo(curHBL.HouseNo)
+			if err == nil {
+				seenHouseNos[normCurrent] = "ORIGINAL"
+			}
+		}
 		for _, res := range input.Results {
-			for _, hID := range res.HouseBillIDs {
-				if _, exists := lockedHBLMap[hID]; !exists {
+			if res.ResultRole == biz.ResultRoleCreated {
+				if lockedActiveLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+					if res.HouseBill == nil || strings.TrimSpace(res.HouseBill.HouseNo) == "" {
+						return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+							"reason":            "HOUSE_BILL_REQUIRED",
+							"client_result_key": res.ClientResultKey,
+						})
+					}
+					normNo, err := biz.NormalizeSeaHouseNo(res.HouseBill.HouseNo)
+					if err != nil {
+						return err
+					}
+					if prevRes, seen := seenHouseNos[normNo]; seen {
+						return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
+							"reason":            "HOUSE_BILL_DUPLICATE",
+							"house_no":          res.HouseBill.HouseNo,
+							"conflict_result":   prevRes,
+							"client_result_key": res.ClientResultKey,
+						})
+					}
+					seenHouseNos[normNo] = res.ClientResultKey
+					exists, qErr := tx.SeaHouseBill.Query().Where(
+						seahousebillent.OrganizationIDEQ(organizationID),
+						seahousebillent.NormalizedHouseNoEQ(normNo),
+						seahousebillent.StatusIn(seahousebillent.StatusDRAFT, seahousebillent.StatusCONFIRMED, seahousebillent.StatusRELEASED),
+					).Exist(ctx)
+					if qErr != nil {
+						return qErr
+					}
+					if exists {
+						return biz.ErrSeaHouseBillExists
+					}
+					if res.HouseBill.IssuerSource == "" {
+						return biz.ErrSeaOrderSplitInvalidArgument
+					}
+				}
+			}
+		}
+
+		// 2. 真实独占箱分配校验：每只箱恰好分配到 1 个结果
+		containerToResultKey := make(map[uuid.UUID]string)
+		for _, res := range input.Results {
+			for _, cID := range res.ContainerIDs {
+				if _, exists := lockedContainerMap[cID]; !exists {
 					return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
-						"reason":        "HOUSE_BILL_NOT_FOUND",
-						"house_bill_id": hID.String(),
+						"reason":            "CONTAINER_NOT_FOUND",
+						"container_id":      cID.String(),
+						"client_result_key": res.ClientResultKey,
 					})
 				}
-				if prevKey, seen := assignedHBLs[hID]; seen {
+				if prevKey, seen := containerToResultKey[cID]; seen {
 					return biz.MetadataError(biz.ErrSeaOrderSplitEntityCrossesResults, map[string]string{
-						"reason":        "HBL_CROSSES_RESULTS",
-						"house_bill_id": hID.String(),
+						"reason":        "CONTAINER_CROSSES_RESULTS",
+						"container_id":  cID.String(),
 						"first_result":  prevKey,
 						"second_result": res.ClientResultKey,
 					})
 				}
-				assignedHBLs[hID] = res.ClientResultKey
+				containerToResultKey[cID] = res.ClientResultKey
 			}
 		}
-		if len(assignedHBLs) != len(hbls) {
+		if len(containerToResultKey) != len(containers) {
 			return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
-				"reason":  "HOUSE_BILL_ALLOCATION_INCOMPLETE",
-				"message": "所有分单必须分配且只能属于一个结果",
+				"reason":  "CONTAINER_ALLOCATION_INCOMPLETE",
+				"message": "所有集装箱必须分配且只能属于一个结果",
 			})
 		}
 
-		// 2. 真实箱不可跨结果校验
-		containerToResultKey := make(map[uuid.UUID]string)
-		for _, a := range allocations {
-			if a.ContainerID != nil && *a.ContainerID != uuid.Nil {
-				cID := *a.ContainerID
-				resKey := assignedHBLs[a.HouseBillID]
-				if existingResKey, seen := containerToResultKey[cID]; seen && existingResKey != resKey {
-					return biz.MetadataError(biz.ErrSeaOrderSplitEntityCrossesResults, map[string]string{
-						"reason":        "CONTAINER_CROSSES_RESULTS",
-						"container_id":  cID.String(),
-						"first_result":  existingResKey,
-						"second_result": resKey,
-					})
-				}
-				containerToResultKey[cID] = resKey
-			}
-		}
-
-		// 3. 数量守恒重算
+		// 3. 货物数量与重量体积严格守恒重算
 		type resultCargoStat struct {
 			pkg    int
 			weight decimal.Decimal
@@ -1406,33 +1658,45 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
+		allocPkgByItem := make(map[uuid.UUID]int)
+		allocWtByItem := make(map[uuid.UUID]decimal.Decimal)
+		allocVolByItem := make(map[uuid.UUID]decimal.Decimal)
 		for _, ci := range cargoItems {
-			ciAllocPkg := 0
-			ciAllocWeight := decimal.Zero
-			ciAllocVol := decimal.Zero
+			allocWtByItem[ci.ID] = decimal.Zero
+			allocVolByItem[ci.ID] = decimal.Zero
+		}
 
-			for _, a := range allocations {
-				if a.CargoItemID == ci.ID {
-					gw, parseErr := decimal.NewFromString(a.GrossWeightKg)
-					if parseErr != nil {
-						return parseErr
-					}
-					v, parseErr := decimal.NewFromString(a.VolumeCbm)
-					if parseErr != nil {
-						return parseErr
-					}
-
-					resKey := assignedHBLs[a.HouseBillID]
-					rs := resCargoStats[resKey]
-					rs.pkg += a.PackageCount
-					rs.weight = rs.weight.Add(gw)
-					rs.vol = rs.vol.Add(v)
-
-					ciAllocPkg += a.PackageCount
-					ciAllocWeight = ciAllocWeight.Add(gw)
-					ciAllocVol = ciAllocVol.Add(v)
+		for _, res := range input.Results {
+			rs := resCargoStats[res.ClientResultKey]
+			for _, ca := range res.CargoAllocations {
+				ci, ok := allocWtByItem[ca.CargoItemID]
+				_ = ci
+				if !ok {
+					return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+						"reason":        "CARGO_ITEM_NOT_FOUND",
+						"cargo_item_id": ca.CargoItemID.String(),
+					})
 				}
+				if ca.PackageCount < 0 || ca.GrossWeightKg.IsNegative() || ca.VolumeCbm.IsNegative() {
+					return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+						"reason":        "CARGO_ITEM_INVALID_QUANTITY",
+						"cargo_item_id": ca.CargoItemID.String(),
+					})
+				}
+				allocPkgByItem[ca.CargoItemID] += int(ca.PackageCount)
+				allocWtByItem[ca.CargoItemID] = allocWtByItem[ca.CargoItemID].Add(ca.GrossWeightKg)
+				allocVolByItem[ca.CargoItemID] = allocVolByItem[ca.CargoItemID].Add(ca.VolumeCbm)
+
+				rs.pkg += int(ca.PackageCount)
+				rs.weight = rs.weight.Add(ca.GrossWeightKg)
+				rs.vol = rs.vol.Add(ca.VolumeCbm)
 			}
+		}
+
+		for _, ci := range cargoItems {
+			ciAllocPkg := allocPkgByItem[ci.ID]
+			ciAllocWeight := allocWtByItem[ci.ID]
+			ciAllocVol := allocVolByItem[ci.ID]
 
 			ciWeightDec := decimal.NewFromFloat(ci.GrossWeightKg)
 			ciVolDec := decimal.NewFromFloat(ci.VolumeCbm)
@@ -1451,6 +1715,49 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					"reason":            "EMPTY_RESULT_NOT_ALLOWED",
 					"client_result_key": resKey,
 				})
+			}
+		}
+
+		// 3.1 共享箱分配守恒校验 (如果存在)
+		if len(sharedAllocs) > 0 {
+			allocPkgByShared := make(map[uuid.UUID]int)
+			allocWtByShared := make(map[uuid.UUID]decimal.Decimal)
+			allocVolByShared := make(map[uuid.UUID]decimal.Decimal)
+			for _, sa := range sharedAllocs {
+				allocWtByShared[sa.ID] = decimal.Zero
+				allocVolByShared[sa.ID] = decimal.Zero
+			}
+			for _, res := range input.Results {
+				for _, sca := range res.SharedContainerAllocations {
+					if _, exists := lockedSharedAllocMap[sca.AllocationID]; !exists {
+						return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+							"reason":        "SHARED_ALLOCATION_NOT_FOUND",
+							"allocation_id": sca.AllocationID.String(),
+						})
+					}
+					if sca.PackageCount < 0 || sca.GrossWeightKg.IsNegative() || sca.VolumeCbm.IsNegative() {
+						return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+							"reason":        "SHARED_ALLOCATION_INVALID_QUANTITY",
+							"allocation_id": sca.AllocationID.String(),
+						})
+					}
+					allocPkgByShared[sca.AllocationID] += int(sca.PackageCount)
+					allocWtByShared[sca.AllocationID] = allocWtByShared[sca.AllocationID].Add(sca.GrossWeightKg)
+					allocVolByShared[sca.AllocationID] = allocVolByShared[sca.AllocationID].Add(sca.VolumeCbm)
+				}
+			}
+			for _, sa := range sharedAllocs {
+				sPkg := allocPkgByShared[sa.ID]
+				sWt := allocWtByShared[sa.ID]
+				sVol := allocVolByShared[sa.ID]
+				saWt, _ := decimal.NewFromString(sa.GrossWeightKg)
+				saVol, _ := decimal.NewFromString(sa.VolumeCbm)
+				if sPkg != sa.PackageCount || !sWt.Equal(saWt) || !sVol.Equal(saVol) {
+					return biz.MetadataError(biz.ErrSeaOrderSplitConservationFailed, map[string]string{
+						"reason":        "SHARED_ALLOCATION_CONSERVATION_FAILED",
+						"allocation_id": sa.ID.String(),
+					})
+				}
 			}
 		}
 
@@ -1534,14 +1841,15 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			})
 		}
 
-		beforeAllocData := make([]map[string]interface{}, 0, len(allocations))
-		for _, a := range allocations {
-			beforeAllocData = append(beforeAllocData, map[string]interface{}{
-				"id":            a.ID,
-				"cargo_item_id": a.CargoItemID,
-				"house_bill_id": a.HouseBillID,
-				"container_id":  a.ContainerID,
-				"package_count": a.PackageCount,
+		beforeSharedAllocData := make([]map[string]interface{}, 0, len(sharedAllocs))
+		for _, sa := range sharedAllocs {
+			beforeSharedAllocData = append(beforeSharedAllocData, map[string]interface{}{
+				"id":                  sa.ID,
+				"shared_container_id": sa.SharedContainerID,
+				"cargo_item_id":       sa.CargoItemID,
+				"package_count":       sa.PackageCount,
+				"gross_weight_kg":     sa.GrossWeightKg,
+				"volume_cbm":          sa.VolumeCbm,
 			})
 		}
 
@@ -1590,13 +1898,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				"version":   lockedMBLs[lockedActiveLink.MasterBillID].Version,
 				"status":    lockedMBLs[lockedActiveLink.MasterBillID].Status,
 			},
-			"house_bills":     beforeHblData,
-			"cargo_items":     beforeCargoData,
-			"containers":      beforeContainerData,
-			"allocations":     beforeAllocData,
-			"draft_fees":      beforeFeeData,
-			"attachments":     beforeAttData,
-			"container_plans": beforePlanData,
+			"house_bills":                  beforeHblData,
+			"cargo_items":                  beforeCargoData,
+			"containers":                   beforeContainerData,
+			"shared_container_allocations": beforeSharedAllocData,
+			"draft_fees":                   beforeFeeData,
+			"attachments":                  beforeAttData,
+			"container_plans":              beforePlanData,
 		}
 		beforeSnapshotBytes, err := json.Marshal(beforeSnapshotMap)
 		if err != nil {
@@ -1604,12 +1912,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 
 		conservationSnapshotMap := map[string]interface{}{
-			"schema_version":      1,
-			"conservation_passed": true,
-			"cargo_items_count":   len(cargoItems),
-			"house_bills_count":   len(hbls),
-			"containers_count":    len(containers),
-			"draft_fees_count":    draftFeeCount,
+			"schema_version":                     1,
+			"conservation_passed":                true,
+			"cargo_items_count":                  len(cargoItems),
+			"house_bills_count":                  len(hbls),
+			"containers_count":                   len(containers),
+			"shared_container_allocations_count": len(sharedAllocs),
+			"draft_fees_count":                   draftFeeCount,
 		}
 		conservationSnapshotBytes, err := json.Marshal(conservationSnapshotMap)
 		if err != nil {
@@ -2153,19 +2462,78 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 
 		// -------------------------------------------------------------------
-		// 迁移 HBL：真正迁移 master_bill_id 与 order_id
+		// 处理 HBL
 		// -------------------------------------------------------------------
+		resultHouseBillMap := make(map[string]*ent.SeaHouseBill)
 		for _, res := range input.Results {
 			targetOrderID := resultOrderMap[res.ClientResultKey]
 			finalMblID := resultFinalMblMap[res.ClientResultKey]
-			for _, hblID := range res.HouseBillIDs {
-				hbl := lockedHBLMap[hblID]
-				if _, err := tx.SeaHouseBill.UpdateOneID(hblID).
-					SetOrderID(targetOrderID).
-					SetMasterBillID(finalMblID).
-					SetVersion(hbl.Version + 1).
-					Save(ctx); err != nil {
-					return err
+
+			if res.ResultRole == biz.ResultRoleOriginal {
+				if curHBL != nil {
+					if curHBL.MasterBillID != finalMblID {
+						updatedHBL, err := tx.SeaHouseBill.UpdateOneID(curHBL.ID).
+							SetMasterBillID(finalMblID).
+							SetVersion(curHBL.Version + 1).
+							Save(ctx)
+						if err != nil {
+							return err
+						}
+						resultHouseBillMap[res.ClientResultKey] = updatedHBL
+					} else {
+						resultHouseBillMap[res.ClientResultKey] = curHBL
+					}
+				}
+			} else {
+				// CREATED 新票
+				if lockedActiveLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+					if res.HouseBill == nil {
+						return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+							"reason":            "HOUSE_BILL_REQUIRED",
+							"client_result_key": res.ClientResultKey,
+						})
+					}
+					normNo, err := biz.NormalizeSeaHouseNo(res.HouseBill.HouseNo)
+					if err != nil {
+						return err
+					}
+					hbInput := &biz.SeaHouseBillInput{
+						HouseNo:         res.HouseBill.HouseNo,
+						IssuerSource:    biz.SeaHouseBillIssuerSource(res.HouseBill.IssuerSource),
+						IssuerPartnerID: res.HouseBill.IssuerPartnerID,
+						Note:            res.HouseBill.Note,
+					}
+					issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, sourceOrder.OrganizationID, sourceOrder.CustomerID, hbInput)
+					if err != nil {
+						return err
+					}
+					b := tx.SeaHouseBill.Create().
+						SetID(uuid.Must(uuid.NewV7())).
+						SetOrganizationID(organizationID).
+						SetOrderID(targetOrderID).
+						SetMasterBillID(finalMblID).
+						SetHouseNo(res.HouseBill.HouseNo).
+						SetNormalizedHouseNo(normNo).
+						SetIssuerSource(seahousebillent.IssuerSource(res.HouseBill.IssuerSource)).
+						SetStatus(seahousebillent.StatusDRAFT).
+						SetVersion(1)
+					if issuerOrgID != nil {
+						b.SetIssuerOrganizationID(*issuerOrgID)
+					}
+					if issuerPartnerID != nil {
+						b.SetIssuerPartnerID(*issuerPartnerID)
+					}
+					if res.HouseBill.Note != nil {
+						b.SetNote(*res.HouseBill.Note)
+					}
+					createdHBL, err := b.Save(ctx)
+					if err != nil {
+						if ent.IsConstraintError(err) {
+							return biz.ErrSeaHouseBillExists
+						}
+						return err
+					}
+					resultHouseBillMap[res.ClientResultKey] = createdHBL
 				}
 			}
 		}
@@ -2176,20 +2544,18 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		for cID, rKey := range containerToResultKey {
 			targetOrderID := resultOrderMap[rKey]
 			lockedContainer := lockedContainerMap[cID]
-			curVer := uint64(1)
-			if lockedContainer != nil {
-				curVer = lockedContainer.Version + 1
-			}
-			if _, err := tx.OrderContainer.UpdateOneID(cID).
-				SetOrderID(targetOrderID).
-				SetVersion(curVer).
-				Save(ctx); err != nil {
-				return err
+			if lockedContainer != nil && lockedContainer.OrderID != targetOrderID {
+				if _, err := tx.OrderContainer.UpdateOneID(cID).
+					SetOrderID(targetOrderID).
+					SetVersion(lockedContainer.Version + 1).
+					Save(ctx); err != nil {
+					return err
+				}
 			}
 		}
 
 		// -------------------------------------------------------------------
-		// 货物重构与分配 Link 迁移
+		// 货物重构与分配迁移
 		// -------------------------------------------------------------------
 		resultCargoOldNewMap := make(map[string]map[string]string)
 		resultCargoRetainedIDs := make(map[string][]string)
@@ -2200,60 +2566,29 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			resultAllocOldNewMap[res.ClientResultKey] = make(map[string]string)
 		}
 
+		// 1. 处理货物 OrderCargoItem
 		var zeroRemainingCargoIDs []uuid.UUID
-
-		// A.3: 处理货物 OrderCargoItem
 		for _, res := range input.Results {
 			targetOrderID := resultOrderMap[res.ClientResultKey]
 
 			if res.ResultRole == biz.ResultRoleCreated {
-				itemAllocMap := make(map[uuid.UUID][]splitAlloc)
-				for _, hID := range res.HouseBillIDs {
-					for _, a := range allocations {
-						if a.HouseBillID == hID {
-							itemAllocMap[a.CargoItemID] = append(itemAllocMap[a.CargoItemID], a)
-						}
+				for _, ca := range res.CargoAllocations {
+					if ca.PackageCount <= 0 && ca.GrossWeightKg.IsZero() && ca.VolumeCbm.IsZero() {
+						continue
 					}
-				}
-
-				for origCargoItemID, allocList := range itemAllocMap {
-					var origCargoItem *ent.OrderCargoItem
-					for _, ci := range cargoItems {
-						if ci.ID == origCargoItemID {
-							origCargoItem = ci
-							break
-						}
-					}
+					origCargoItem := lockedCargoItemMap[ca.CargoItemID]
 					if origCargoItem == nil {
 						continue
 					}
-
-					newPkg := 0
-					newWeight := decimal.Zero
-					newVol := decimal.Zero
-					for _, a := range allocList {
-						gw, parseErr := decimal.NewFromString(a.GrossWeightKg)
-						if parseErr != nil {
-							return parseErr
-						}
-						vol, parseErr := decimal.NewFromString(a.VolumeCbm)
-						if parseErr != nil {
-							return parseErr
-						}
-						newPkg += a.PackageCount
-						newWeight = newWeight.Add(gw)
-						newVol = newVol.Add(vol)
-					}
-
-					fWeight, _ := newWeight.Float64()
-					fVol, _ := newVol.Float64()
+					fWeight, _ := ca.GrossWeightKg.Float64()
+					fVol, _ := ca.VolumeCbm.Float64()
 
 					createdItem, err := tx.OrderCargoItem.Create().
 						SetID(uuid.Must(uuid.NewV7())).
 						SetOrganizationID(organizationID).
 						SetOrderID(targetOrderID).
 						SetCargoName(origCargoItem.CargoName).
-						SetPackageCount(newPkg).
+						SetPackageCount(int(ca.PackageCount)).
 						SetGrossWeightKg(fWeight).
 						SetVolumeCbm(fVol).
 						SetVersion(1).
@@ -2264,36 +2599,19 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					resultCargoOldNewMap[res.ClientResultKey][origCargoItem.ID.String()] = createdItem.ID.String()
 				}
 			} else {
-				// 原票：有剩余则更新，零剩余必须删除!
+				// 原票：逐个原始货物比对分配剩余
+				caMap := make(map[uuid.UUID]*biz.SeaOrderSplitCargoAllocationInput)
+				for _, ca := range res.CargoAllocations {
+					caMap[ca.CargoItemID] = ca
+				}
 				for _, ci := range cargoItems {
-					origAllocPkg := 0
-					origAllocWeight := decimal.Zero
-					origAllocVol := decimal.Zero
-
-					for _, hID := range res.HouseBillIDs {
-						for _, a := range allocations {
-							if a.CargoItemID == ci.ID && a.HouseBillID == hID {
-								gw, parseErr := decimal.NewFromString(a.GrossWeightKg)
-								if parseErr != nil {
-									return parseErr
-								}
-								vol, parseErr := decimal.NewFromString(a.VolumeCbm)
-								if parseErr != nil {
-									return parseErr
-								}
-								origAllocPkg += a.PackageCount
-								origAllocWeight = origAllocWeight.Add(gw)
-								origAllocVol = origAllocVol.Add(vol)
-							}
-						}
-					}
-
-					if origAllocPkg > 0 {
-						fWeight, _ := origAllocWeight.Float64()
-						fVol, _ := origAllocVol.Float64()
+					ca := caMap[ci.ID]
+					if ca != nil && (ca.PackageCount > 0 || !ca.GrossWeightKg.IsZero() || !ca.VolumeCbm.IsZero()) {
+						fWeight, _ := ca.GrossWeightKg.Float64()
+						fVol, _ := ca.VolumeCbm.Float64()
 
 						if _, err := tx.OrderCargoItem.UpdateOneID(ci.ID).
-							SetPackageCount(origAllocPkg).
+							SetPackageCount(int(ca.PackageCount)).
 							SetGrossWeightKg(fWeight).
 							SetVolumeCbm(fVol).
 							SetVersion(ci.Version + 1).
@@ -2303,14 +2621,85 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						resultCargoRetainedIDs[res.ClientResultKey] = append(resultCargoRetainedIDs[res.ClientResultKey], ci.ID.String())
 						resultCargoOldNewMap[res.ClientResultKey][ci.ID.String()] = ci.ID.String()
 					} else {
-						// 零剩余货物行先记录，待删除旧 allocation 后统一从数据库删除以避免外键约束冲突
 						zeroRemainingCargoIDs = append(zeroRemainingCargoIDs, ci.ID)
 					}
 				}
 			}
 		}
 
-		// 零剩余货物行在旧分配删除后彻底物理删除
+		// 2. 处理共享箱分配 SeaSharedContainerAllocation
+		for _, res := range input.Results {
+			targetOrderID := resultOrderMap[res.ClientResultKey]
+			targetHBL := resultHouseBillMap[res.ClientResultKey]
+			var targetHBLID uuid.UUID
+			if targetHBL != nil {
+				targetHBLID = targetHBL.ID
+			}
+
+			if res.ResultRole == biz.ResultRoleCreated {
+				for _, sca := range res.SharedContainerAllocations {
+					if sca.PackageCount <= 0 && sca.GrossWeightKg.IsZero() && sca.VolumeCbm.IsZero() {
+						continue
+					}
+					origAlloc := lockedSharedAllocMap[sca.AllocationID]
+					if origAlloc == nil {
+						continue
+					}
+					newCargoItemIDStr, ok := resultCargoOldNewMap[res.ClientResultKey][origAlloc.CargoItemID.String()]
+					if !ok {
+						return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
+							"reason":        "CARGO_ITEM_MAPPING_NOT_FOUND",
+							"cargo_item_id": origAlloc.CargoItemID.String(),
+						})
+					}
+					newCargoItemID := uuid.MustParse(newCargoItemIDStr)
+
+					createdAlloc, err := tx.SeaSharedContainerAllocation.Create().
+						SetID(uuid.Must(uuid.NewV7())).
+						SetOrganizationID(organizationID).
+						SetSharedContainerID(origAlloc.SharedContainerID).
+						SetOrderID(targetOrderID).
+						SetHouseBillID(targetHBLID).
+						SetCargoItemID(newCargoItemID).
+						SetPackageCount(int(sca.PackageCount)).
+						SetGrossWeightKg(sca.GrossWeightKg.StringFixed(3)).
+						SetVolumeCbm(sca.VolumeCbm.StringFixed(6)).
+						SetVersion(1).
+						Save(ctx)
+					if err != nil {
+						return err
+					}
+					resultAllocOldNewMap[res.ClientResultKey][origAlloc.ID.String()] = createdAlloc.ID.String()
+				}
+			} else {
+				// 原票：更新剩余或删除零剩余分配
+				scaMap := make(map[uuid.UUID]*biz.SeaOrderSplitSharedContainerAllocationInput)
+				for _, sca := range res.SharedContainerAllocations {
+					scaMap[sca.AllocationID] = sca
+				}
+				for _, origAlloc := range sharedAllocs {
+					sca := scaMap[origAlloc.ID]
+					if sca != nil && (sca.PackageCount > 0 || !sca.GrossWeightKg.IsZero() || !sca.VolumeCbm.IsZero()) {
+						if _, err := tx.SeaSharedContainerAllocation.UpdateOneID(origAlloc.ID).
+							SetPackageCount(int(sca.PackageCount)).
+							SetGrossWeightKg(sca.GrossWeightKg.StringFixed(3)).
+							SetVolumeCbm(sca.VolumeCbm.StringFixed(6)).
+							SetVersion(origAlloc.Version + 1).
+							Save(ctx); err != nil {
+							return err
+						}
+						resultAllocOldNewMap[res.ClientResultKey][origAlloc.ID.String()] = origAlloc.ID.String()
+					} else {
+						// 零剩余共享箱分配先删除
+						if err := tx.SeaSharedContainerAllocation.DeleteOneID(origAlloc.ID).Exec(ctx); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+
+		// 3. 彻底删除零剩余货物项 (此时其共享箱分配已删除，外键安全)
 		for _, zID := range zeroRemainingCargoIDs {
 			if err := tx.OrderCargoItem.DeleteOneID(zID).Exec(ctx); err != nil {
 				return err
@@ -2560,6 +2949,15 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			finalMblID := resultFinalMblMap[res.ClientResultKey]
 			cStat := resCargoStats[res.ClientResultKey]
 
+			var hbSnapshot map[string]interface{}
+			if hb := resultHouseBillMap[res.ClientResultKey]; hb != nil {
+				hbSnapshot = map[string]interface{}{
+					"id":       hb.ID,
+					"house_no": hb.HouseNo,
+					"version":  hb.Version,
+				}
+			}
+
 			resultSnapshotData := map[string]interface{}{
 				"schema_version":            1,
 				"order_id":                  targetOrderID,
@@ -2570,7 +2968,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				"package_count":             cStat.pkg,
 				"gross_weight_kg":           biz.FormatDecimal3(cStat.weight),
 				"volume_cbm":                biz.FormatDecimal6(cStat.vol),
-				"house_bill_ids":            res.HouseBillIDs,
+				"house_bill":                hbSnapshot,
 				"draft_fee_ids":             res.DraftFeeIDs,
 				"attachment_reference_ids":  res.AttachmentReferenceIDs,
 				"container_plans":           resultContainerPlans[res.ClientResultKey],

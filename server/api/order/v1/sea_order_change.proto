@@ -146,17 +146,31 @@ message SeaOrderSplitContextData {
   string current_link_id = 13;
   uint64 current_link_version = 14;
   string document_structure = 15;
-  string cargo_allocation_status = 16;
-  uint64 cargo_allocation_version = 17;
+  reserved 16, 17, 21;
+  reserved "cargo_allocation_status", "cargo_allocation_version", "allocations";
   repeated SeaOrderSplitHouseBillItem house_bills = 18;
   repeated SeaOrderSplitCargoItem cargo_items = 19;
   repeated SeaOrderSplitContainerItem containers = 20;
-  repeated SeaOrderSplitAllocationItem allocations = 21;
   repeated SeaOrderSplitDraftFeeItem draft_fees = 22;
   repeated SeaOrderSplitAttachmentItem attachments = 23;
   repeated SeaOrderSplitContainerPlanItem container_plans = 24;
   optional string attachment_reference_fingerprint = 25;
   optional string booking_no = 26;
+  optional SeaOrderSplitHouseBillItem current_house_bill = 27;
+  repeated SeaOrderSplitSharedContainerAllocationItem shared_container_allocations = 28;
+}
+
+message SeaOrderSplitSharedContainerAllocationItem {
+  string allocation_id = 1;
+  string shared_container_id = 2;
+  string container_no = 3;
+  string container_spec_id = 4;
+  string container_spec_name = 5;
+  string cargo_item_id = 6;
+  int32 package_count = 7;
+  string gross_weight_kg = 8;
+  string volume_cbm = 9;
+  uint64 shared_container_version = 10;
 }
 
 message SeaOrderSplitMasterBillSummary {
@@ -206,16 +220,6 @@ message SeaOrderSplitContainerItem {
   string gross_weight_kg = 6;
   string volume_cbm = 7;
   uint64 version = 8;
-}
-
-message SeaOrderSplitAllocationItem {
-  string id = 1;
-  string cargo_item_id = 2;
-  string house_bill_id = 3;
-  string container_id = 4;
-  int32 package_count = 5;
-  string gross_weight_kg = 6;
-  string volume_cbm = 7;
 }
 
 message SeaOrderSplitDraftFeeItem {
@@ -271,30 +275,58 @@ message SeaOrderSplitTargetInput {
   optional uint64 candidate_te_version = 16;
 }
 
+message SeaOrderSplitHouseBillInput {
+  string house_no = 1 [(google.api.field_behavior) = REQUIRED];
+  string issuer_source = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string issuer_partner_id = 3;
+  optional string note = 4;
+}
+
+message SeaOrderSplitCargoAllocationInput {
+  string cargo_item_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 2;
+  string gross_weight_kg = 3;
+  string volume_cbm = 4;
+}
+
+message SeaOrderSplitSharedContainerAllocationInput {
+  string allocation_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 2;
+  string gross_weight_kg = 3;
+  string volume_cbm = 4;
+}
+
 message SeaOrderSplitResultInput {
   string client_result_key = 1 [(google.api.field_behavior) = REQUIRED];
   string result_role = 2 [(google.api.field_behavior) = REQUIRED]; // ORIGINAL | CREATED
   string client_target_key = 3 [(google.api.field_behavior) = REQUIRED];
-  repeated string house_bill_ids = 4;
+  reserved 4;
+  reserved "house_bill_ids";
   repeated string draft_fee_ids = 5;
   repeated string attachment_reference_ids = 6;
   optional string internal_reference_no = 7;
   optional string booking_notes = 8;
   optional string allocation_notes = 9;
   optional string operation_notes = 10;
+  optional SeaOrderSplitHouseBillInput house_bill = 11;
+  repeated SeaOrderSplitCargoAllocationInput cargo_allocations = 12;
+  repeated string container_ids = 13;
+  repeated SeaOrderSplitSharedContainerAllocationInput shared_container_allocations = 14;
 }
 
 message SeaOrderSplitExpectedVersions {
   uint64 order_version = 1;
   uint64 link_version = 2;
-  uint64 allocation_version = 3;
-  map<string, uint64> house_bill_versions = 4;
+  reserved 3, 4;
+  reserved "allocation_version", "house_bill_versions";
   map<string, uint64> cargo_item_versions = 5;
   map<string, uint64> container_versions = 6;
   map<string, uint64> fee_versions = 7;
   map<string, uint64> candidate_mbl_versions = 8;
   optional string attachment_reference_fingerprint = 9;
   map<string, uint64> candidate_te_versions = 10;
+  optional uint64 current_hbl_version = 11;
+  map<string, uint64> shared_container_versions = 12;
 }
 
 message PreviewSeaOrderSplitRequest {
@@ -362,6 +394,7 @@ message SeaOrderSplitPreviewResultItem {
   string booking_notes = 13;
   string allocation_notes = 14;
   string operation_notes = 15;
+  optional string house_no = 16;
 }
 
 message ExecuteSeaOrderSplitRequest {

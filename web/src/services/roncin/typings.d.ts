@@ -5606,16 +5606,6 @@ declare namespace API {
     candidateTeVersion?: string;
   };
 
-  type SeaOrderSplitAllocationItem = {
-    id?: string;
-    cargoItemId?: string;
-    houseBillId?: string;
-    containerId?: string;
-    packageCount?: number;
-    grossWeightKg?: string;
-    volumeCbm?: string;
-  };
-
   type SeaOrderSplitAttachmentItem = {
     id?: string;
     assetId?: string;
@@ -5623,6 +5613,13 @@ declare namespace API {
     mimeType?: string;
     fileSize?: string;
     docType?: string;
+  };
+
+  type SeaOrderSplitCargoAllocationInput = {
+    cargoItemId: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
   };
 
   type SeaOrderSplitCargoItem = {
@@ -5667,17 +5664,16 @@ declare namespace API {
     currentLinkId?: string;
     currentLinkVersion?: string;
     documentStructure?: string;
-    cargoAllocationStatus?: string;
-    cargoAllocationVersion?: string;
     houseBills?: SeaOrderSplitHouseBillItem[];
     cargoItems?: SeaOrderSplitCargoItem[];
     containers?: SeaOrderSplitContainerItem[];
-    allocations?: SeaOrderSplitAllocationItem[];
     draftFees?: SeaOrderSplitDraftFeeItem[];
     attachments?: SeaOrderSplitAttachmentItem[];
     containerPlans?: SeaOrderSplitContainerPlanItem[];
     attachmentReferenceFingerprint?: string;
     bookingNo?: string;
+    currentHouseBill?: SeaOrderSplitHouseBillItem;
+    sharedContainerAllocations?: SeaOrderSplitSharedContainerAllocationItem[];
   };
 
   type SeaOrderSplitCreatedOrder = {
@@ -5710,14 +5706,21 @@ declare namespace API {
   type SeaOrderSplitExpectedVersions = {
     orderVersion?: string;
     linkVersion?: string;
-    allocationVersion?: string;
-    houseBillVersions?: Record<string, any>;
     cargoItemVersions?: Record<string, any>;
     containerVersions?: Record<string, any>;
     feeVersions?: Record<string, any>;
     candidateMblVersions?: Record<string, any>;
     attachmentReferenceFingerprint?: string;
     candidateTeVersions?: Record<string, any>;
+    currentHblVersion?: string;
+    sharedContainerVersions?: Record<string, any>;
+  };
+
+  type SeaOrderSplitHouseBillInput = {
+    houseNo: string;
+    issuerSource: string;
+    issuerPartnerId?: string;
+    note?: string;
   };
 
   type SeaOrderSplitHouseBillItem = {
@@ -5778,6 +5781,7 @@ declare namespace API {
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    houseNo?: string;
   };
 
   type SeaOrderSplitQuantitySummary = {
@@ -5793,13 +5797,16 @@ declare namespace API {
     clientResultKey: string;
     resultRole: string;
     clientTargetKey: string;
-    houseBillIds?: string[];
     draftFeeIds?: string[];
     attachmentReferenceIds?: string[];
     internalReferenceNo?: string;
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    houseBill?: SeaOrderSplitHouseBillInput;
+    cargoAllocations?: SeaOrderSplitCargoAllocationInput[];
+    containerIds?: string[];
+    sharedContainerAllocations?: SeaOrderSplitSharedContainerAllocationInput[];
   };
 
   type SeaOrderSplitResultSummaryItem = {
@@ -5810,6 +5817,26 @@ declare namespace API {
     packageCount?: number;
     grossWeightKg?: string;
     volumeCbm?: string;
+  };
+
+  type SeaOrderSplitSharedContainerAllocationInput = {
+    allocationId: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+  };
+
+  type SeaOrderSplitSharedContainerAllocationItem = {
+    allocationId?: string;
+    sharedContainerId?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    containerSpecName?: string;
+    cargoItemId?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    sharedContainerVersion?: string;
   };
 
   type SeaOrderSplitTargetInput = {

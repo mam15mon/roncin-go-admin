@@ -4,6 +4,7 @@ import {
   DollarOutlined,
   HistoryOutlined,
   ReloadOutlined,
+  ShareAltOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -53,7 +54,9 @@ import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
 } from './components/drawers/SeaOrderChangeHistoryDrawer';
 import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
+import SeaSharedContainerDrawer from './components/drawers/SeaSharedContainerDrawer';
 import SeaTransportExecutionUpdateModal from './components/drawers/SeaTransportExecutionUpdateModal';
+import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
@@ -124,6 +127,11 @@ export default function OrderDetailPage() {
   const [reassignModalOpen, setReassignModalOpen] = useState(false);
   const [voyageUpdateModalOpen, setVoyageUpdateModalOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+  const [sharedContainerDrawerOpen, setSharedContainerDrawerOpen] =
+    useState(false);
+  const [sharedContainerTEId, setSharedContainerTEId] = useState<
+    string | undefined
+  >(undefined);
 
   const loadChangeActions = useCallback(async () => {
     const requestOrderId = orderId;
@@ -500,6 +508,27 @@ export default function OrderDetailPage() {
           },
         ]
       : []),
+    ...(config.category === 'sea'
+      ? [
+          {
+            key: 'shared-container-workbench',
+            icon: <ShareAltOutlined />,
+            label: '跨订单共享箱工作台',
+            disabled: !access.canOrder(config.businessType, 'container.read'),
+            onClick: () => {
+              const teId = order.seaMasterBill?.transportExecutionId;
+              if (!teId) {
+                message.warning(
+                  '当前订单尚未关联实际运输执行，无法开展跨订单拼箱',
+                );
+                return;
+              }
+              setSharedContainerTEId(teId);
+              setSharedContainerDrawerOpen(true);
+            },
+          },
+        ]
+      : []),
     {
       key: 'fees-drawer',
       icon: <DollarOutlined />,
@@ -693,6 +722,18 @@ export default function OrderDetailPage() {
             orderId={orderId}
             open={historyDrawerOpen}
             onClose={() => setHistoryDrawerOpen(false)}
+          />
+          <SeaSharedContainerDrawer
+            open={sharedContainerDrawerOpen}
+            onClose={() => setSharedContainerDrawerOpen(false)}
+            transportExecutionId={sharedContainerTEId}
+            orderId={orderId}
+            orderNo={order?.orderNo}
+            canManage={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'container.update')
+            }
+            containerSpecOptions={containerSpecOptions}
           />
         </>
       )}

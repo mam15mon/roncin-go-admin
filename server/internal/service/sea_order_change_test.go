@@ -227,6 +227,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		},
 		Results: []*v1.SeaOrderSplitResultInput{
 			{ClientResultKey: "res-origin", ResultRole: "ORIGINAL", ClientTargetKey: "res-origin"},
+			{ClientResultKey: "res-new-1", ResultRole: "CREATED", ClientTargetKey: "res-origin"},
 		},
 	})
 	if err != nil {
@@ -269,9 +270,8 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 			{ClientResultKey: "res-new-1", ResultRole: "CREATED", ClientTargetKey: "res-origin"},
 		},
 		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{
-			OrderVersion:      1,
-			LinkVersion:       1,
-			AllocationVersion: 1,
+			OrderVersion: 1,
+			LinkVersion:  1,
 		},
 	})
 	if err != nil {
@@ -392,7 +392,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 			{ClientResultKey: "original", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "new"},
 		},
-		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 	})
 	if err != biz.ErrPermissionDenied {
 		t.Fatalf("组合拆票缺少整体改配权限应被拒绝，实际错误: %v", err)
@@ -420,7 +420,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 			{ClientResultKey: "original", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "new"},
 		},
-		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 	})
 	if err != biz.ErrPermissionDenied {
 		t.Fatalf("组合拆票的整体改配权限必须具备组织范围，实际错误: %v", err)
@@ -453,7 +453,6 @@ func TestSeaOrderChangeService_CandidateTargetMappingKeepsAllIdentifiersAndVersi
 		&v1.SeaOrderSplitExpectedVersions{
 			OrderVersion:         1,
 			LinkVersion:          2,
-			AllocationVersion:    3,
 			CandidateMblVersions: map[string]uint64{candidateID.String(): candidateVersion},
 			CandidateTeVersions:  map[string]uint64{candidateTEID.String(): candidateTEVersion},
 		},
@@ -610,7 +609,7 @@ func TestSeaOrderChangeService_MalformedSplitRequestsBlocked(t *testing.T) {
 				RequestFingerprint: "fp-" + uuid.NewString(),
 				Targets:            tc.targets,
 				Results:            tc.results,
-				ExpectedVersions:   &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+				ExpectedVersions:   &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 			})
 			if eErr != biz.ErrSeaOrderSplitInvalidArgument {
 				t.Fatalf("ExecuteSeaOrderSplit expected ErrSeaOrderSplitInvalidArgument, got %v", eErr)

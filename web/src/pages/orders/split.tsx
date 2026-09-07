@@ -14,6 +14,7 @@ import {
   Checkbox,
   Col,
   Input,
+  InputNumber,
   Popconfirm,
   Radio,
   Row,
@@ -80,6 +81,10 @@ export interface ResultConfig {
   bookingNotes?: string;
   allocationNotes?: string;
   operationNotes?: string;
+  houseNo?: string;
+  issuerSource?: string;
+  issuerPartnerId?: string;
+  houseBillNote?: string;
 }
 
 interface FeeCurrencySummary {
@@ -215,9 +220,27 @@ export default function SeaOrderSplitPage() {
   const [results, setResults] = useState<ResultConfig[]>([]);
 
   // 分配状态
-  const [hblAssignments, setHblAssignments] = useState<Record<string, string>>(
-    {},
-  ); // hblId -> resultKey
+  const [containerAssignments, setContainerAssignments] = useState<
+    Record<string, string>
+  >({}); // containerId -> resultKey
+  const [cargoAllocations, setCargoAllocations] = useState<
+    Record<
+      string,
+      Record<
+        string,
+        { packageCount: number; grossWeightKg: string; volumeCbm: string }
+      >
+    >
+  >({}); // cargoItemId -> resultKey -> { packageCount, grossWeightKg, volumeCbm }
+  const [sharedAllocations, setSharedAllocations] = useState<
+    Record<
+      string,
+      Record<
+        string,
+        { packageCount: number; grossWeightKg: string; volumeCbm: string }
+      >
+    >
+  >({}); // allocationId -> resultKey -> { packageCount, grossWeightKg, volumeCbm }
   const [feeAssignments, setFeeAssignments] = useState<Record<string, string>>(
     {},
   ); // feeId -> resultKey
@@ -269,6 +292,10 @@ export default function SeaOrderSplitPage() {
           ]);
         }
 
+        const defaultHouseNo = ctx.currentHouseBill?.houseNo
+          ? `${ctx.currentHouseBill.houseNo}-1`
+          : 'HBL-1';
+
         // 初始化结果
         const initialResults: ResultConfig[] = [
           {
@@ -290,20 +317,74 @@ export default function SeaOrderSplitPage() {
             bookingNotes: ctx.bookingNotes,
             allocationNotes: ctx.allocationNotes || '',
             operationNotes: ctx.operationNotes,
+            houseNo: defaultHouseNo,
+            issuerSource: 'SELF_ORGANIZATION',
           },
         ];
         setResults(initialResults);
 
-        // 初始化分配：默认第 1 个 HBL 留原票，其余到新票 1
-        const initialHblMap: Record<string, string> = {};
-        ctx.houseBills?.forEach(
-          (h: API.SeaOrderSplitHouseBillItem, idx: number) => {
-            if (h.id) {
-              initialHblMap[h.id] = idx === 0 ? 'res-origin' : 'res-new-1';
+        // 初始化集装箱整箱归属：默认全在原票
+        const initialCntrMap: Record<string, string> = {};
+        ctx.containers?.forEach((c: API.SeaOrderSplitContainerItem) => {
+          if (c.id) {
+            initialCntrMap[c.id] = 'res-origin';
+          }
+        });
+        setContainerAssignments(initialCntrMap);
+
+        // 初始化货物件重尺分配：原票全量，新票 0
+        const initialCargoAlloc: Record<
+          string,
+          Record<
+            string,
+            { packageCount: number; grossWeightKg: string; volumeCbm: string }
+          >
+        > = {};
+        ctx.cargoItems?.forEach((ci: API.SeaOrderSplitCargoItem) => {
+          if (ci.id) {
+            initialCargoAlloc[ci.id] = {
+              'res-origin': {
+                packageCount: ci.packageCount || 0,
+                grossWeightKg: String(ci.grossWeightKg || '0'),
+                volumeCbm: String(ci.volumeCbm || '0'),
+              },
+              'res-new-1': {
+                packageCount: 0,
+                grossWeightKg: '0',
+                volumeCbm: '0',
+              },
+            };
+          }
+        });
+        setCargoAllocations(initialCargoAlloc);
+
+        // 初始化共享箱分配：原票全量，新票 0
+        const initialSharedAlloc: Record<
+          string,
+          Record<
+            string,
+            { packageCount: number; grossWeightKg: string; volumeCbm: string }
+          >
+        > = {};
+        ctx.sharedContainerAllocations?.forEach(
+          (sa: API.SeaOrderSplitSharedContainerAllocationItem) => {
+            if (sa.allocationId) {
+              initialSharedAlloc[sa.allocationId] = {
+                'res-origin': {
+                  packageCount: sa.packageCount || 0,
+                  grossWeightKg: String(sa.grossWeightKg || '0'),
+                  volumeCbm: String(sa.volumeCbm || '0'),
+                },
+                'res-new-1': {
+                  packageCount: 0,
+                  grossWeightKg: '0',
+                  volumeCbm: '0',
+                },
+              };
             }
           },
         );
-        setHblAssignments(initialHblMap);
+        setSharedAllocations(initialSharedAlloc);
 
         // 费用默认全部留原票
         const initialFeeMap: Record<string, string> = {};
@@ -343,15 +424,13 @@ export default function SeaOrderSplitPage() {
   // 构造拆票结果明细
   const buildSplitResults = (
     currentResults = results,
-    currentHbls = hblAssignments,
+    currentContainers = containerAssignments,
+    currentCargoAllocs = cargoAllocations,
+    currentSharedAllocs = sharedAllocations,
     currentFees = feeAssignments,
     currentAtts = attAssignments,
   ): API.SeaOrderSplitResultInput[] => {
     return currentResults.map((r) => {
-      const hblIds = Object.entries(currentHbls)
-        .filter(([, resKey]) => resKey === r.key)
-        .map(([hId]) => hId);
-
       const feeIds = Object.entries(currentFees)
         .filter(([, resKey]) => resKey === r.key)
         .map(([fId]) => fId);
@@ -360,13 +439,61 @@ export default function SeaOrderSplitPage() {
         .filter(([, resKeys]) => resKeys.includes(r.key))
         .map(([aId]) => aId);
 
+      const cIds = Object.entries(currentContainers)
+        .filter(([, resKey]) => resKey === r.key)
+        .map(([cId]) => cId);
+
+      const cargoAllocs = (splitContext?.cargoItems || []).map((ci) => {
+        const a = currentCargoAllocs[ci.id || '']?.[r.key] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        return {
+          cargoItemId: ci.id || '',
+          packageCount: Number(a.packageCount) || 0,
+          grossWeightKg: String(a.grossWeightKg || '0'),
+          volumeCbm: String(a.volumeCbm || '0'),
+        };
+      });
+
+      const sharedAllocs = (
+        splitContext?.sharedContainerAllocations || []
+      ).map((sa) => {
+        const a = currentSharedAllocs[sa.allocationId || '']?.[r.key] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        return {
+          allocationId: sa.allocationId || '',
+          packageCount: Number(a.packageCount) || 0,
+          grossWeightKg: String(a.grossWeightKg || '0'),
+          volumeCbm: String(a.volumeCbm || '0'),
+        };
+      });
+
+      let houseBill: API.SeaOrderSplitHouseBillInput | undefined;
+      if (r.role === 'CREATED' && splitContext?.documentStructure === 'HOUSE') {
+        houseBill = {
+          houseNo: r.houseNo || '',
+          issuerSource: r.issuerSource || 'SELF_ORGANIZATION',
+          issuerPartnerId: r.issuerPartnerId,
+          note: r.houseBillNote,
+        };
+      }
+
       return {
         clientResultKey: r.key,
         resultRole: r.role,
         clientTargetKey: r.key,
-        houseBillIds: hblIds,
         draftFeeIds: feeIds,
         attachmentReferenceIds: attIds,
+        containerIds: cIds,
+        cargoAllocations: cargoAllocs,
+        sharedContainerAllocations:
+          sharedAllocs.length > 0 ? sharedAllocs : undefined,
+        houseBill,
         internalReferenceNo: r.internalReferenceNo,
         bookingNotes: r.bookingNotes,
         allocationNotes: r.allocationNotes,
@@ -380,17 +507,8 @@ export default function SeaOrderSplitPage() {
     currentResults = results,
   ): API.SeaOrderSplitExpectedVersions | undefined => {
     if (!splitContext) return undefined;
-    if (
-      !splitContext.orderVersion ||
-      !splitContext.currentLinkVersion ||
-      !splitContext.cargoAllocationVersion
-    ) {
+    if (!splitContext.orderVersion || !splitContext.currentLinkVersion) {
       return undefined;
-    }
-    const houseBillVersions: Record<string, string> = {};
-    for (const h of splitContext.houseBills || []) {
-      if (!h.id || !h.version) return undefined;
-      houseBillVersions[h.id] = String(h.version);
     }
     const cargoItemVersions: Record<string, string> = {};
     for (const ci of splitContext.cargoItems || []) {
@@ -406,6 +524,14 @@ export default function SeaOrderSplitPage() {
     for (const f of splitContext.draftFees || []) {
       if (!f.id || !f.version) return undefined;
       feeVersions[f.id] = String(f.version);
+    }
+    const sharedContainerVersions: Record<string, string> = {};
+    for (const sa of splitContext.sharedContainerAllocations || []) {
+      if (sa.sharedContainerId && sa.sharedContainerVersion) {
+        sharedContainerVersions[sa.sharedContainerId] = String(
+          sa.sharedContainerVersion,
+        );
+      }
     }
     const candidateMblVersions: Record<string, string> = {};
     const candidateTeVersions: Record<string, string> = {};
@@ -427,11 +553,16 @@ export default function SeaOrderSplitPage() {
     return {
       orderVersion: String(splitContext.orderVersion),
       linkVersion: String(splitContext.currentLinkVersion),
-      allocationVersion: String(splitContext.cargoAllocationVersion),
-      houseBillVersions,
+      currentHblVersion: splitContext.currentHouseBill?.version
+        ? String(splitContext.currentHouseBill.version)
+        : undefined,
       cargoItemVersions,
       containerVersions,
       feeVersions,
+      sharedContainerVersions:
+        Object.keys(sharedContainerVersions).length > 0
+          ? sharedContainerVersions
+          : undefined,
       candidateMblVersions,
       candidateTeVersions,
       attachmentReferenceFingerprint:
@@ -442,7 +573,9 @@ export default function SeaOrderSplitPage() {
   // 触发校验与预览
   const triggerPreview = async (
     currentResults = results,
-    currentHbls = hblAssignments,
+    currentContainers = containerAssignments,
+    currentCargoAllocs = cargoAllocations,
+    currentSharedAllocs = sharedAllocations,
     currentFees = feeAssignments,
     currentAtts = attAssignments,
   ) => {
@@ -459,7 +592,9 @@ export default function SeaOrderSplitPage() {
       const targets = buildTargets(currentResults);
       const splitResults = buildSplitResults(
         currentResults,
-        currentHbls,
+        currentContainers,
+        currentCargoAllocs,
+        currentSharedAllocs,
         currentFees,
         currentAtts,
       );
@@ -510,7 +645,9 @@ export default function SeaOrderSplitPage() {
     return undefined;
   }, [
     results,
-    hblAssignments,
+    containerAssignments,
+    cargoAllocations,
+    sharedAllocations,
     feeAssignments,
     attAssignments,
     note,
@@ -528,6 +665,9 @@ export default function SeaOrderSplitPage() {
     if (!ensureSplitEditable()) return;
     const nextIdx = results.filter((r) => r.role === 'CREATED').length + 1;
     const newKey = `res-new-${Date.now()}`;
+    const defaultHouseNo = splitContext?.currentHouseBill?.houseNo
+      ? `${splitContext.currentHouseBill.houseNo}-${nextIdx}`
+      : `HBL-${nextIdx}`;
     const newRes: ResultConfig = {
       key: newKey,
       role: 'CREATED',
@@ -537,9 +677,33 @@ export default function SeaOrderSplitPage() {
       bookingNotes: splitContext?.bookingNotes,
       allocationNotes: splitContext?.allocationNotes || '',
       operationNotes: splitContext?.operationNotes,
+      houseNo: defaultHouseNo,
+      issuerSource: 'SELF_ORGANIZATION',
     };
     const updated = [...results, newRes];
     setResults(updated);
+
+    setCargoAllocations((prev) => {
+      const next = { ...prev };
+      for (const ciId of Object.keys(next)) {
+        next[ciId] = {
+          ...next[ciId],
+          [newKey]: { packageCount: 0, grossWeightKg: '0', volumeCbm: '0' },
+        };
+      }
+      return next;
+    });
+
+    setSharedAllocations((prev) => {
+      const next = { ...prev };
+      for (const saId of Object.keys(next)) {
+        next[saId] = {
+          ...next[saId],
+          [newKey]: { packageCount: 0, grossWeightKg: '0', volumeCbm: '0' },
+        };
+      }
+      return next;
+    });
   };
 
   // 移除新票
@@ -550,17 +714,87 @@ export default function SeaOrderSplitPage() {
       return;
     }
     const updated = results.filter((r) => r.key !== key);
-    const nextHbls = { ...hblAssignments };
-    Object.keys(nextHbls).forEach((hId) => {
-      if (nextHbls[hId] === key) nextHbls[hId] = 'res-origin';
+    const nextContainers = { ...containerAssignments };
+    Object.keys(nextContainers).forEach((cId) => {
+      if (nextContainers[cId] === key) nextContainers[cId] = 'res-origin';
     });
     const nextFees = { ...feeAssignments };
     Object.keys(nextFees).forEach((fId) => {
       if (nextFees[fId] === key) nextFees[fId] = 'res-origin';
     });
     setResults(updated);
-    setHblAssignments(nextHbls);
+    setContainerAssignments(nextContainers);
     setFeeAssignments(nextFees);
+
+    setCargoAllocations((prev) => {
+      const next = { ...prev };
+      for (const ci of splitContext?.cargoItems || []) {
+        if (!ci.id || !next[ci.id]) continue;
+        const removed = next[ci.id][key] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        const origin = next[ci.id]['res-origin'] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        const pkg =
+          (Number(origin.packageCount) || 0) + (Number(removed.packageCount) || 0);
+        const wt = new Decimal(origin.grossWeightKg || '0')
+          .add(new Decimal(removed.grossWeightKg || '0'))
+          .toString();
+        const vol = new Decimal(origin.volumeCbm || '0')
+          .add(new Decimal(removed.volumeCbm || '0'))
+          .toString();
+        const { [key]: _, ...rest } = next[ci.id];
+        next[ci.id] = {
+          ...rest,
+          'res-origin': {
+            packageCount: pkg,
+            grossWeightKg: wt,
+            volumeCbm: vol,
+          },
+        };
+      }
+      return next;
+    });
+
+    setSharedAllocations((prev) => {
+      const next = { ...prev };
+      for (const sa of splitContext?.sharedContainerAllocations || []) {
+        if (!sa.allocationId || !next[sa.allocationId]) continue;
+        const removed = next[sa.allocationId][key] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        const origin = next[sa.allocationId]['res-origin'] || {
+          packageCount: 0,
+          grossWeightKg: '0',
+          volumeCbm: '0',
+        };
+        const pkg =
+          (Number(origin.packageCount) || 0) + (Number(removed.packageCount) || 0);
+        const wt = new Decimal(origin.grossWeightKg || '0')
+          .add(new Decimal(removed.grossWeightKg || '0'))
+          .toString();
+        const vol = new Decimal(origin.volumeCbm || '0')
+          .add(new Decimal(removed.volumeCbm || '0'))
+          .toString();
+        const { [key]: _, ...rest } = next[sa.allocationId];
+        next[sa.allocationId] = {
+          ...rest,
+          'res-origin': {
+            packageCount: pkg,
+            grossWeightKg: wt,
+            volumeCbm: vol,
+          },
+        };
+      }
+      return next;
+    });
   };
 
   // 执行拆票提交
@@ -577,7 +811,9 @@ export default function SeaOrderSplitPage() {
       const targets = buildTargets(results);
       const splitResults = buildSplitResults(
         results,
-        hblAssignments,
+        containerAssignments,
+        cargoAllocations,
+        sharedAllocations,
         feeAssignments,
         attAssignments,
       );
@@ -622,53 +858,40 @@ export default function SeaOrderSplitPage() {
     }
   };
 
-  // 分单分配列
-  const hblColumns: ColumnsType<API.SeaOrderSplitHouseBillItem> = [
+  // 独占箱整箱归属列
+  const containerColumns: ColumnsType<API.SeaOrderSplitContainerItem> = [
     {
-      title: '分单号 (HBL No)',
-      dataIndex: 'houseNo',
-      render: (val) => <Text strong>{val}</Text>,
+      title: '箱号',
+      dataIndex: 'containerNo',
+      render: (val) => <Text strong>{val || '-'}</Text>,
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      width: 100,
-      render: (val) => (
-        <Tag color={val === 'DRAFT' ? 'orange' : 'green'}>{val}</Tag>
+      title: '箱型规格',
+      dataIndex: 'containerSpecName',
+      render: (val) => val || '-',
+    },
+    {
+      title: '货物统计 (件/重/尺)',
+      render: (_, c) => (
+        <span>
+          {c.packageCount ?? 0} 件 / {c.grossWeightKg ?? 0} KGS /{' '}
+          {c.volumeCbm ?? 0} CBM
+        </span>
       ),
     },
     {
-      title: '集装箱与货物绑定情况',
-      render: (_, hbl) => {
-        const allocs =
-          splitContext?.allocations?.filter((a) => a.houseBillId === hbl.id) ||
-          [];
-        const containerIds = Array.from(
-          new Set(allocs.map((a) => a.containerId).filter(Boolean)),
-        );
-        const totalPkg = allocs.reduce(
-          (acc, cur) => acc + (cur.packageCount || 0),
-          0,
-        );
-        return (
-          <Space orientation="vertical" size={2}>
-            <Text type="secondary">
-              关联装箱：{containerIds.length} 箱（合计分配 {totalPkg} 件）
-            </Text>
-          </Space>
-        );
-      },
-    },
-    {
-      title: '归属结果票',
+      title: '整箱归属结果票',
       width: 260,
-      render: (_, hbl) => (
+      render: (_, c) => (
         <Select
-          value={hbl.id ? hblAssignments[hbl.id] : undefined}
+          value={c.id ? containerAssignments[c.id] : undefined}
           style={{ width: '100%' }}
           onChange={(val) => {
-            if (hbl.id) {
-              setHblAssignments({ ...hblAssignments, [hbl.id]: val });
+            if (c.id) {
+              setContainerAssignments({
+                ...containerAssignments,
+                [c.id]: val,
+              });
             }
           }}
           options={results.map((r) => ({
@@ -890,9 +1113,9 @@ export default function SeaOrderSplitPage() {
               </Col>
               <Col span={4}>
                 <Statistic
-                  title="分单总数 (HBL)"
-                  value={splitContext?.houseBills?.length || 0}
-                  suffix="票"
+                  title="货物项总数"
+                  value={splitContext?.cargoItems?.length || 0}
+                  suffix="项"
                 />
               </Col>
               <Col span={4}>
@@ -1071,6 +1294,99 @@ export default function SeaOrderSplitPage() {
                         />
                       </Col>
                     </Row>
+
+                    {res.role === 'ORIGINAL' ? (
+                      <div
+                        style={{
+                          marginTop: 12,
+                          padding: 8,
+                          background: '#f5f5f5',
+                          borderRadius: 4,
+                        }}
+                      >
+                        <Text type="secondary">保留单分单号 (HBL No)：</Text>
+                        <Text strong style={{ marginLeft: 8 }}>
+                          {splitContext?.currentHouseBill?.houseNo || '无分单（直单模式）'}
+                        </Text>
+                      </div>
+                    ) : (
+                      splitContext?.documentStructure === 'HOUSE' && (
+                        <div
+                          style={{
+                            marginTop: 12,
+                            padding: 12,
+                            background: '#ffffff',
+                            borderRadius: 4,
+                            border: '1px dashed #91caff',
+                          }}
+                        >
+                          <Row gutter={12}>
+                            <Col span={8}>
+                              <div style={{ marginBottom: 4 }}>
+                                <Text strong>新分单号 (HBL No) *</Text>
+                              </div>
+                              <Input
+                                placeholder="新分单号"
+                                value={res.houseNo}
+                                onChange={(e) => {
+                                  const updated = [...results];
+                                  updated[index] = {
+                                    ...res,
+                                    houseNo: e.target.value,
+                                  };
+                                  setResults(updated);
+                                }}
+                              />
+                            </Col>
+                            <Col span={8}>
+                              <div style={{ marginBottom: 4 }}>
+                                <Text strong>签发主体</Text>
+                              </div>
+                              <Select
+                                value={res.issuerSource || 'SELF_ORGANIZATION'}
+                                onChange={(val) => {
+                                  const updated = [...results];
+                                  updated[index] = { ...res, issuerSource: val };
+                                  setResults(updated);
+                                }}
+                                style={{ width: '100%' }}
+                                options={[
+                                  {
+                                    label: '组织自签 (SELF_ORGANIZATION)',
+                                    value: 'SELF_ORGANIZATION',
+                                  },
+                                  {
+                                    label: '客户代签 (CUSTOMER_PARTNER)',
+                                    value: 'CUSTOMER_PARTNER',
+                                  },
+                                  {
+                                    label: '第三方代签 (OTHER_PARTNER)',
+                                    value: 'OTHER_PARTNER',
+                                  },
+                                ]}
+                              />
+                            </Col>
+                            <Col span={8}>
+                              <div style={{ marginBottom: 4 }}>
+                                <Text strong>分单备注</Text>
+                              </div>
+                              <Input
+                                placeholder="可选分单备注"
+                                value={res.houseBillNote}
+                                onChange={(e) => {
+                                  const updated = [...results];
+                                  updated[index] = {
+                                    ...res,
+                                    houseBillNote: e.target.value,
+                                  };
+                                  setResults(updated);
+                                }}
+                              />
+                            </Col>
+                          </Row>
+                        </div>
+                      )
+                    )}
 
                     {res.targetType === 'CANDIDATE' && (
                       <div
@@ -1306,24 +1622,547 @@ export default function SeaOrderSplitPage() {
             </Row>
           </SectionCard>
 
-          {/* 3. 分单分配区块 */}
+          {/* 3. 集装箱与货物分配切分区块 */}
           <SectionCard
             title={
               <Space>
-                <Text strong>分单 (HBL) 分配与集装箱归属</Text>
+                <Text strong>集装箱与货物明细切分</Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  （每个分单必须唯一指派到一个结果票，且同一集装箱内货物不得跨票分配）
+                  （独占箱整箱归属单一结果票；各货物项件重尺需严格守恒切分）
                 </Text>
               </Space>
             }
           >
-            <Table<API.SeaOrderSplitHouseBillItem>
-              columns={hblColumns}
-              dataSource={splitContext?.houseBills || []}
-              rowKey="id"
-              pagination={false}
-              size="middle"
-            />
+            {splitContext?.containers && splitContext.containers.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <Text strong style={{ marginBottom: 8, display: 'block' }}>
+                  独占集装箱整箱归属：
+                </Text>
+                <Table<API.SeaOrderSplitContainerItem>
+                  columns={containerColumns}
+                  dataSource={splitContext.containers}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                />
+              </div>
+            )}
+
+            <div>
+              <Text strong style={{ marginBottom: 8, display: 'block' }}>
+                货物明细与件重尺分配：
+              </Text>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                {(splitContext?.cargoItems || []).map((ci) => {
+                  if (!ci.id) return null;
+                  const currentAllocMap = cargoAllocations[ci.id] || {};
+                  const totalAllocPkg = results.reduce(
+                    (acc, r) =>
+                      acc + (Number(currentAllocMap[r.key]?.packageCount) || 0),
+                    0,
+                  );
+                  const totalAllocWt = results.reduce(
+                    (acc, r) =>
+                      acc.add(
+                        new Decimal(currentAllocMap[r.key]?.grossWeightKg || '0'),
+                      ),
+                    new Decimal(0),
+                  );
+                  const totalAllocVol = results.reduce(
+                    (acc, r) =>
+                      acc.add(
+                        new Decimal(currentAllocMap[r.key]?.volumeCbm || '0'),
+                      ),
+                    new Decimal(0),
+                  );
+
+                  const baselinePkg = ci.packageCount || 0;
+                  const baselineWt = new Decimal(ci.grossWeightKg || '0');
+                  const baselineVol = new Decimal(ci.volumeCbm || '0');
+
+                  const isPkgEqual = totalAllocPkg === baselinePkg;
+                  const isWtEqual = totalAllocWt.equals(baselineWt);
+                  const isVolEqual = totalAllocVol.equals(baselineVol);
+                  const isAllConserved = isPkgEqual && isWtEqual && isVolEqual;
+
+                  const fillRemaining = (targetKey: string) => {
+                    const otherPkg = results
+                      .filter((r) => r.key !== targetKey)
+                      .reduce(
+                        (acc, r) =>
+                          acc + (Number(currentAllocMap[r.key]?.packageCount) || 0),
+                        0,
+                      );
+                    const otherWt = results
+                      .filter((r) => r.key !== targetKey)
+                      .reduce(
+                        (acc, r) =>
+                          acc.add(
+                            new Decimal(currentAllocMap[r.key]?.grossWeightKg || '0'),
+                          ),
+                        new Decimal(0),
+                      );
+                    const otherVol = results
+                      .filter((r) => r.key !== targetKey)
+                      .reduce(
+                        (acc, r) =>
+                          acc.add(
+                            new Decimal(currentAllocMap[r.key]?.volumeCbm || '0'),
+                          ),
+                        new Decimal(0),
+                      );
+
+                    const remPkg = Math.max(0, baselinePkg - otherPkg);
+                    const remWt = Decimal.max(0, baselineWt.sub(otherWt)).toFixed(3);
+                    const remVol = Decimal.max(0, baselineVol.sub(otherVol)).toFixed(6);
+
+                    setCargoAllocations((prev) => ({
+                      ...prev,
+                      [ci.id as string]: {
+                        ...(prev[ci.id as string] || {}),
+                        [targetKey]: {
+                          packageCount: remPkg,
+                          grossWeightKg: remWt,
+                          volumeCbm: remVol,
+                        },
+                      },
+                    }));
+                  };
+
+                  return (
+                    <Card
+                      key={ci.id}
+                      size="small"
+                      type="inner"
+                      title={
+                        <Space>
+                          <Text strong>{ci.cargoName || '货物项'}</Text>
+                          <Text type="secondary">
+                            （基准总量：{baselinePkg} 件 / {ci.grossWeightKg} KGS /{' '}
+                            {ci.volumeCbm} CBM）
+                          </Text>
+                        </Space>
+                      }
+                      extra={
+                        isAllConserved ? (
+                          <Tag color="success" icon={<CheckCircleOutlined />}>
+                            件重尺守恒
+                          </Tag>
+                        ) : (
+                          <Tag color="error">
+                            差额: {baselinePkg - totalAllocPkg} 件 /{' '}
+                            {baselineWt.sub(totalAllocWt).toFixed(3)} KGS /{' '}
+                            {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
+                          </Tag>
+                        )
+                      }
+                    >
+                      <Table
+                        dataSource={results}
+                        rowKey="key"
+                        pagination={false}
+                        size="small"
+                        columns={[
+                          {
+                            title: '结果票',
+                            width: 200,
+                            render: (_, r) => (
+                              <span>
+                                <Tag
+                                  color={
+                                    r.role === 'ORIGINAL' ? 'default' : 'blue'
+                                  }
+                                >
+                                  {r.role === 'ORIGINAL' ? '原' : '新'}
+                                </Tag>
+                                {r.title}
+                              </span>
+                            ),
+                          },
+                          {
+                            title: '分配件数',
+                            width: 160,
+                            render: (_, r) => (
+                              <InputNumber
+                                min={0}
+                                max={baselinePkg}
+                                value={
+                                  currentAllocMap[r.key]?.packageCount ?? 0
+                                }
+                                onChange={(val) => {
+                                  setCargoAllocations((prev) => ({
+                                    ...prev,
+                                    [ci.id as string]: {
+                                      ...(prev[ci.id as string] || {}),
+                                      [r.key]: {
+                                        packageCount: Number(val) || 0,
+                                        grossWeightKg:
+                                          currentAllocMap[r.key]
+                                            ?.grossWeightKg ?? '0',
+                                        volumeCbm:
+                                          currentAllocMap[r.key]?.volumeCbm ??
+                                          '0',
+                                      },
+                                    },
+                                  }));
+                                }}
+                              />
+                            ),
+                          },
+                          {
+                            title: '分配毛重 (KGS)',
+                            width: 180,
+                            render: (_, r) => (
+                              <Input
+                                value={
+                                  currentAllocMap[r.key]?.grossWeightKg ?? '0'
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setCargoAllocations((prev) => ({
+                                    ...prev,
+                                    [ci.id as string]: {
+                                      ...(prev[ci.id as string] || {}),
+                                      [r.key]: {
+                                        packageCount:
+                                          currentAllocMap[r.key]
+                                            ?.packageCount ?? 0,
+                                        grossWeightKg: val,
+                                        volumeCbm:
+                                          currentAllocMap[r.key]?.volumeCbm ??
+                                          '0',
+                                      },
+                                    },
+                                  }));
+                                }}
+                              />
+                            ),
+                          },
+                          {
+                            title: '分配体积 (CBM)',
+                            width: 180,
+                            render: (_, r) => (
+                              <Input
+                                value={currentAllocMap[r.key]?.volumeCbm ?? '0'}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setCargoAllocations((prev) => ({
+                                    ...prev,
+                                    [ci.id as string]: {
+                                      ...(prev[ci.id as string] || {}),
+                                      [r.key]: {
+                                        packageCount:
+                                          currentAllocMap[r.key]
+                                            ?.packageCount ?? 0,
+                                        grossWeightKg:
+                                          currentAllocMap[r.key]
+                                            ?.grossWeightKg ?? '0',
+                                        volumeCbm: val,
+                                      },
+                                    },
+                                  }));
+                                }}
+                              />
+                            ),
+                          },
+                          {
+                            title: '快捷操作',
+                            render: (_, r) => (
+                              <Button
+                                size="small"
+                                type="link"
+                                onClick={() => fillRemaining(r.key)}
+                              >
+                                填入剩余
+                              </Button>
+                            ),
+                          },
+                        ]}
+                      />
+                    </Card>
+                  );
+                })}
+              </Space>
+            </div>
+
+            {splitContext?.sharedContainerAllocations &&
+              splitContext.sharedContainerAllocations.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <Text strong style={{ marginBottom: 8, display: 'block' }}>
+                    跨订单共享箱分配切分：
+                  </Text>
+                  <Space
+                    direction="vertical"
+                    style={{ width: '100%' }}
+                    size="middle"
+                  >
+                    {splitContext.sharedContainerAllocations.map((sa) => {
+                      if (!sa.allocationId) return null;
+                      const currentAllocMap =
+                        sharedAllocations[sa.allocationId] || {};
+                      const totalAllocPkg = results.reduce(
+                        (acc, r) =>
+                          acc +
+                          (Number(currentAllocMap[r.key]?.packageCount) || 0),
+                        0,
+                      );
+                      const totalAllocWt = results.reduce(
+                        (acc, r) =>
+                          acc.add(
+                            new Decimal(
+                              currentAllocMap[r.key]?.grossWeightKg || '0',
+                            ),
+                          ),
+                        new Decimal(0),
+                      );
+                      const totalAllocVol = results.reduce(
+                        (acc, r) =>
+                          acc.add(
+                            new Decimal(
+                              currentAllocMap[r.key]?.volumeCbm || '0',
+                            ),
+                          ),
+                        new Decimal(0),
+                      );
+
+                      const baselinePkg = sa.packageCount || 0;
+                      const baselineWt = new Decimal(sa.grossWeightKg || '0');
+                      const baselineVol = new Decimal(sa.volumeCbm || '0');
+
+                      const isAllConserved =
+                        totalAllocPkg === baselinePkg &&
+                        totalAllocWt.equals(baselineWt) &&
+                        totalAllocVol.equals(baselineVol);
+
+                      const fillSharedRemaining = (targetKey: string) => {
+                        const otherPkg = results
+                          .filter((r) => r.key !== targetKey)
+                          .reduce(
+                            (acc, r) =>
+                              acc +
+                              (Number(currentAllocMap[r.key]?.packageCount) ||
+                                0),
+                            0,
+                          );
+                        const otherWt = results
+                          .filter((r) => r.key !== targetKey)
+                          .reduce(
+                            (acc, r) =>
+                              acc.add(
+                                new Decimal(
+                                  currentAllocMap[r.key]?.grossWeightKg || '0',
+                                ),
+                              ),
+                            new Decimal(0),
+                          );
+                        const otherVol = results
+                          .filter((r) => r.key !== targetKey)
+                          .reduce(
+                            (acc, r) =>
+                              acc.add(
+                                new Decimal(
+                                  currentAllocMap[r.key]?.volumeCbm || '0',
+                                ),
+                              ),
+                            new Decimal(0),
+                          );
+
+                        const remPkg = Math.max(0, baselinePkg - otherPkg);
+                        const remWt = Decimal.max(
+                          0,
+                          baselineWt.sub(otherWt),
+                        ).toFixed(3);
+                        const remVol = Decimal.max(
+                          0,
+                          baselineVol.sub(otherVol),
+                        ).toFixed(6);
+
+                        setSharedAllocations((prev) => ({
+                          ...prev,
+                          [sa.allocationId as string]: {
+                            ...(prev[sa.allocationId as string] || {}),
+                            [targetKey]: {
+                              packageCount: remPkg,
+                              grossWeightKg: remWt,
+                              volumeCbm: remVol,
+                            },
+                          },
+                        }));
+                      };
+
+                      return (
+                        <Card
+                          key={sa.allocationId}
+                          size="small"
+                          type="inner"
+                          title={
+                            <Space>
+                              <Text strong>
+                                共享箱: {sa.containerNo || '待配箱号'} (
+                                {sa.containerSpecName || '-'})
+                              </Text>
+                              <Text type="secondary">
+                                （分配基准：{baselinePkg} 件 /{' '}
+                                {sa.grossWeightKg} KGS / {sa.volumeCbm} CBM）
+                              </Text>
+                            </Space>
+                          }
+                          extra={
+                            isAllConserved ? (
+                              <Tag
+                                color="success"
+                                icon={<CheckCircleOutlined />}
+                              >
+                                守恒满足
+                              </Tag>
+                            ) : (
+                              <Tag color="error">
+                                差额: {baselinePkg - totalAllocPkg} 件 /{' '}
+                                {baselineWt.sub(totalAllocWt).toFixed(3)} KGS /{' '}
+                                {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
+                              </Tag>
+                            )
+                          }
+                        >
+                          <Table
+                            dataSource={results}
+                            rowKey="key"
+                            pagination={false}
+                            size="small"
+                            columns={[
+                              {
+                                title: '结果票',
+                                width: 200,
+                                render: (_, r) => (
+                                  <span>
+                                    <Tag
+                                      color={
+                                        r.role === 'ORIGINAL'
+                                          ? 'default'
+                                          : 'blue'
+                                      }
+                                    >
+                                      {r.role === 'ORIGINAL' ? '原' : '新'}
+                                    </Tag>
+                                    {r.title}
+                                  </span>
+                                ),
+                              },
+                              {
+                                title: '分配件数',
+                                width: 160,
+                                render: (_, r) => (
+                                  <InputNumber
+                                    min={0}
+                                    max={baselinePkg}
+                                    value={
+                                      currentAllocMap[r.key]?.packageCount ?? 0
+                                    }
+                                    onChange={(val) => {
+                                      setSharedAllocations((prev) => ({
+                                        ...prev,
+                                        [sa.allocationId as string]: {
+                                          ...(prev[
+                                            sa.allocationId as string
+                                          ] || {}),
+                                          [r.key]: {
+                                            packageCount: Number(val) || 0,
+                                            grossWeightKg:
+                                              currentAllocMap[r.key]
+                                                ?.grossWeightKg ?? '0',
+                                            volumeCbm:
+                                              currentAllocMap[r.key]
+                                                ?.volumeCbm ?? '0',
+                                          },
+                                        },
+                                      }));
+                                    }}
+                                  />
+                                ),
+                              },
+                              {
+                                title: '分配毛重 (KGS)',
+                                width: 180,
+                                render: (_, r) => (
+                                  <Input
+                                    value={
+                                      currentAllocMap[r.key]?.grossWeightKg ??
+                                      '0'
+                                    }
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setSharedAllocations((prev) => ({
+                                        ...prev,
+                                        [sa.allocationId as string]: {
+                                          ...(prev[
+                                            sa.allocationId as string
+                                          ] || {}),
+                                          [r.key]: {
+                                            packageCount:
+                                              currentAllocMap[r.key]
+                                                ?.packageCount ?? 0,
+                                            grossWeightKg: val,
+                                            volumeCbm:
+                                              currentAllocMap[r.key]
+                                                ?.volumeCbm ?? '0',
+                                          },
+                                        },
+                                      }));
+                                    }}
+                                  />
+                                ),
+                              },
+                              {
+                                title: '分配体积 (CBM)',
+                                width: 180,
+                                render: (_, r) => (
+                                  <Input
+                                    value={
+                                      currentAllocMap[r.key]?.volumeCbm ?? '0'
+                                    }
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setSharedAllocations((prev) => ({
+                                        ...prev,
+                                        [sa.allocationId as string]: {
+                                          ...(prev[
+                                            sa.allocationId as string
+                                          ] || {}),
+                                          [r.key]: {
+                                            packageCount:
+                                              currentAllocMap[r.key]
+                                                ?.packageCount ?? 0,
+                                            grossWeightKg:
+                                              currentAllocMap[r.key]
+                                                ?.grossWeightKg ?? '0',
+                                            volumeCbm: val,
+                                          },
+                                        },
+                                      }));
+                                    }}
+                                  />
+                                ),
+                              },
+                              {
+                                title: '快捷操作',
+                                render: (_, r) => (
+                                  <Button
+                                    size="small"
+                                    type="link"
+                                    onClick={() => fillSharedRemaining(r.key)}
+                                  >
+                                    填入剩余
+                                  </Button>
+                                ),
+                              },
+                            ]}
+                          />
+                        </Card>
+                      );
+                    })}
+                  </Space>
+                </div>
+              )}
           </SectionCard>
 
           {/* 4. 草稿费用分配区块 */}
@@ -1649,7 +2488,7 @@ export default function SeaOrderSplitPage() {
                           KGS / {pr.volumeCbm} CBM
                         </div>
                         <div>
-                          分配分单：{pr.houseBillCount} 票 | 归属费用：
+                          分单号：{pr.houseNo || '无'} | 归属费用：
                           {pr.feeCount} 笔
                         </div>
                         <div style={{ marginTop: 6 }}>

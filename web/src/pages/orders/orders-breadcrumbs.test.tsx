@@ -45,6 +45,7 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceCheckOrderReference: vi.fn(),
   orderServiceCreateOrder: vi.fn(),
   orderServiceUpdateOrder: vi.fn(),
+  orderServiceListSameBatchOrders: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
