@@ -824,3 +824,35 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 33: 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过
+<!-- trellis-session: v=2 fp=5b94e3ba5afd8a06 -->
+
+**Date**: 2026-09-07
+**Task**: 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过
+**Branch**: `main`
+
+### Summary
+
+完成海运主分单模型简化任务：修复增量迁移脚本与单测，对齐并生成 Wire/PB/Ent/Web-Client 契约，实现 MBL 与实际航次解耦、单证变更模式切换与外部确认、SharedContainer/Allocation 跨订单共享箱模型，通过全量后端 check:server 与前端 tsc/biome/vitest 测试并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `372966b0` | refactor: 解耦海运主单航次并收敛单证变更与共享箱模型 |
+| `020dfe43` | feat: 增加共享航次统一调整入口 |
+| `09c01592` | feat: 为海运单证变更记录外部确认 |
+| `871650c8` | refactor: 删除旧海运箱货分配页面 |
+| `0fc306ea` | feat: 为海运改配记录外部确认 |
+| `5ae8e62b` | refactor: 删除海运换单前端流程 |
+| `c7c63a10` | feat: 增加海运外部确认表单 |
+| `092fdef8` | refactor: 移除旧海运箱货分配入口 |
+| `0eda90d9` | feat: 展示海运同批关联订单 |
+| `dc5cfa27` | feat: 增加海运订单聚合号码筛选 |
+| `c8409caa` | refactor: 收敛海运订单单值分单表单 |
+
+### Status
+
+[OK] **Completed**
