@@ -243,6 +243,46 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		}
 	})
 
+	t.Run("跨组织可写访问的写操作正向放行并切换到锚点组织", func(t *testing.T) {
+		orgA := uuid.New()
+		orgB := uuid.New()
+		anchorOrderB := &biz.Order{ID: uuid.New(), OrganizationID: orgB, BusinessType: biz.OrderBusinessSE}
+		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerUpdate)
+		principal := &biz.Principal{
+			Organization: biz.Organization{ID: orgA},
+			Permissions:  []string{permission},
+			RoleScopes: []biz.RoleScope{
+				{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
+			},
+			RolePermissions: map[string]map[string]struct{}{
+				"operator": {permission: {}},
+			},
+			OrderOrganizationAccesses: []biz.OrderOrganizationAccess{
+				{OrganizationID: orgB, Writable: true},
+			},
+		}
+
+		request := &orderv1.ConfirmSeaSharedContainerRequest{
+			OrderId:         anchorOrderB.ID.String(),
+			Id:              uuid.New().String(),
+			ExpectedVersion: 1,
+		}
+		state := runSharedContainerMiddleware(
+			t,
+			"/order.v1.SeaSharedContainerService/ConfirmSeaSharedContainer",
+			"sid=valid-token",
+			principal,
+			anchorOrderB,
+			request,
+		)
+		if !state.called {
+			t.Fatal("跨组织 Writable=true 时写操作应进入 handler")
+		}
+		if state.orgID != orgB {
+			t.Fatalf("写操作 handler 内有效组织应为锚点组织 %s, 实际 %s", orgB, state.orgID)
+		}
+	})
+
 	t.Run("写操作在无锚点组织写权限时拒绝", func(t *testing.T) {
 		principal := principalWith(access.OrderContainerUpdate, false)
 		// 主体属于其他组织且对锚点组织只有只读访问

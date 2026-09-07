@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -442,6 +444,11 @@ func TestSeaSharedContainerAnchorExecutionBinding(t *testing.T) {
 	if _, err = f.uc.Withdraw(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version); err != biz.ErrSeaSharedContainerInvalidReference {
 		t.Fatalf("锚点订单与共享箱不在同一执行上时撤回应拒绝, 实际: %v", err)
 	}
+	// Confirm 的 allocations=nil 兼容路径必须在预读阶段即执行锚点校验，
+	// 不得先展开无关联共享箱的完整聚合数据
+	if _, err = f.uc.Confirm(ctx, f.orgID, f.userID, f.order2.ID, container.ID, container.Version, nil); err != biz.ErrSeaSharedContainerInvalidReference {
+		t.Fatalf("allocations=nil 时错误锚点确认应在预读阶段拒绝, 实际: %v", err)
+	}
 
 	// 4. 正确锚点（order1 → teID）操作不受影响（order2 已切到其他执行，仅保留其自身分配）
 	draft, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, []*biz.SeaSharedContainerAllocationInput{f.fullAllocationInputs()[0]})
@@ -518,6 +525,108 @@ func TestSeaSharedContainerUpdateImmutableExecution(t *testing.T) {
 	}
 	if updated.SealNo == nil || *updated.SealNo != "SL-909" {
 		t.Fatalf("铅封号未更新: %+v", updated.SealNo)
+	}
+}
+
+// TestSeaSharedContainerUpdateConcurrentMutationLockOrder 验证 Update（共享箱→分配）
+// 与 SaveDraft/Confirm（执行→共享箱→分配）对同一共享箱并发时不会形成反向锁序死锁：
+// 结果只能是单一成功或稳定版本冲突，版本递增次数与成功操作数一致，无部分提交。
+func TestSeaSharedContainerUpdateConcurrentMutationLockOrder(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		// mutation 与 update 并发执行；返回错误用于断言
+		mutation func(f *sharedContainerFixture, ctx context.Context, container *biz.SeaSharedContainer) error
+	}{
+		{
+			name: "Update与SaveDraft并发",
+			mutation: func(f *sharedContainerFixture, ctx context.Context, container *biz.SeaSharedContainer) error {
+				_, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, f.fullAllocationInputs())
+				return err
+			},
+		},
+		{
+			name: "Update与Confirm并发",
+			mutation: func(f *sharedContainerFixture, ctx context.Context, container *biz.SeaSharedContainer) error {
+				_, err := f.uc.Confirm(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, f.fullAllocationInputs())
+				return err
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			for round := 0; round < 3; round++ {
+				f := newSharedContainerFixture(t)
+				ctx := context.Background()
+				created := f.createContainer(t, fmt.Sprintf("06%d%s", round, tc.name[:1]))
+				// 预置完整分配，使并发双方都在“已有两行分配”的真实状态下竞争
+				container, err := f.uc.SaveDraft(ctx, f.orgID, f.userID, f.order1.ID, created.ID, created.Version, f.fullAllocationInputs())
+				if err != nil {
+					t.Fatalf("%s 第 %d 轮预置分配失败: %v", tc.name, round, err)
+				}
+				updateInput := func() *biz.SeaSharedContainer {
+					return &biz.SeaSharedContainer{
+						TransportExecutionID: f.teID,
+						ContainerNo:          fmt.Sprintf("LOCKORD%d%s", round, uuid.New().String()[:6]),
+						ContainerSpecID:      f.specID,
+						PackageCount:         200,
+						GrossWeightKg:        decimal.NewFromInt(2000),
+						VolumeCbm:            decimal.NewFromInt(20),
+					}
+				}
+
+				type outcome struct {
+					label string
+					err   error
+				}
+				start := make(chan struct{})
+				resultsChan := make(chan outcome, 2)
+				var wg sync.WaitGroup
+				wg.Add(2)
+				go func() {
+					defer wg.Done()
+					<-start
+					_, err := f.uc.Update(ctx, f.orgID, f.userID, f.order1.ID, container.ID, container.Version, updateInput())
+					resultsChan <- outcome{label: "update", err: err}
+				}()
+				go func() {
+					defer wg.Done()
+					<-start
+					err := tc.mutation(f, ctx, container)
+					resultsChan <- outcome{label: "mutation", err: err}
+				}()
+				close(start)
+				wg.Wait()
+				close(resultsChan)
+
+				successes := 0
+				for result := range resultsChan {
+					if result.err != nil && strings.Contains(strings.ToLower(result.err.Error()), "deadlock") {
+						t.Fatalf("%s 第 %d 轮 %s 出现数据库死锁: %v", tc.name, round, result.label, result.err)
+					}
+					if result.err == nil {
+						successes++
+						continue
+					}
+					if result.err != biz.ErrSeaSharedContainerConflict && result.err != biz.ErrSeaSharedContainerStatusConflict && result.err != biz.ErrSeaSharedContainerIncomplete {
+						t.Fatalf("%s 第 %d 轮 %s 返回非预期错误: %v", tc.name, round, result.label, result.err)
+					}
+				}
+				if successes < 1 || successes > 2 {
+					t.Fatalf("%s 第 %d 轮成功操作数异常: %d", tc.name, round, successes)
+				}
+
+				after, err := f.data.db.SeaSharedContainer.Get(ctx, container.ID)
+				if err != nil {
+					t.Fatalf("%s 第 %d 轮读取共享箱失败: %v", tc.name, round, err)
+				}
+				if after.Version != container.Version+uint64(successes) {
+					t.Fatalf("%s 第 %d 轮版本递增次数应等于成功操作数: version=%d want=%d", tc.name, round, after.Version, container.Version+uint64(successes))
+				}
+				allocCount, _ := f.data.db.SeaSharedContainerAllocation.Query().Where(seasharedcontainerallocationent.SharedContainerIDEQ(container.ID)).Count(ctx)
+				if allocCount != 2 {
+					t.Fatalf("%s 第 %d 轮分配数异常（部分提交）: %d", tc.name, round, allocCount)
+				}
+			}
+		})
 	}
 }
 

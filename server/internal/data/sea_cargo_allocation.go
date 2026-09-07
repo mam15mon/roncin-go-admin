@@ -226,12 +226,10 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if container.Status != seasharedcontainerent.StatusDRAFT {
 			return biz.ErrSeaSharedContainerStatusConflict
 		}
-		// 运输执行对共享箱不可变：普通编辑不得更换航次；确需移动时另行设计显式命令
+		// 运输执行对共享箱不可变：锁内比对现值即可，不再加锁运输执行，
+		// 避免与 SaveDraft/Confirm 的 Execution→SharedContainer 锁序形成反向死锁
 		if container.TransportExecutionID != input.TransportExecutionID {
 			return biz.ErrSeaSharedContainerInvalidReference
-		}
-		if _, err = client.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(container.TransportExecutionID), seatransportexecutionent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx); err != nil {
-			return mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
 		}
 		allocations, err := client.SeaSharedContainerAllocation.Query().Where(seasharedcontainerallocationent.SharedContainerIDEQ(id), seasharedcontainerallocationent.OrganizationIDEQ(organizationID)).Order(seasharedcontainerallocationent.ByID()).ForUpdate().All(txCtx)
 		if err != nil {
@@ -322,7 +320,9 @@ func (r *seaSharedContainerRepo) SaveDraft(ctx context.Context, organizationID, 
 // 为 nil 时按当前已保存分配合成输入，并携带各实体实际版本进入同一套乐观锁校验。
 func (r *seaSharedContainerRepo) Confirm(ctx context.Context, organizationID, actorID, anchorOrderID, id uuid.UUID, expectedVersion uint64, inputs []*biz.SeaSharedContainerAllocationInput, audit *biz.AuditEvent) (*biz.SeaSharedContainer, error) {
 	if inputs == nil {
-		current, err := r.reload(ctx, organizationID, id)
+		// 预读阶段即执行锚点绑定校验，禁止在鉴权前展开无关联共享箱的完整聚合数据；
+		// 事务锁内仍会复验锚点，覆盖预读与加锁之间的状态变化
+		current, err := r.Get(ctx, organizationID, anchorOrderID, id)
 		if err != nil {
 			return nil, err
 		}
@@ -716,8 +716,8 @@ func ensureSharedAnchorExecution(ctx context.Context, client *ent.Client, organi
 		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 	).Only(ctx)
 	if err != nil {
-		// 仅“无活动 Link / 多条活动 Link”映射为业务引用错误；
-		// 连接中断、超时等数据库故障原样上抛，不伪装成客户端参数问题。
+		// 仅“无活动 Link”映射为业务引用错误；多条活动 Link（数据不变量破坏）、
+		// 连接中断、超时等数据库故障经 mapEntError 原样上抛。
 		return mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
 	}
 	if link.TransportExecutionID != executionID {
