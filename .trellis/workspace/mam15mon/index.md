@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 31
-- **Last Active**: 2026-09-06
+- **Total Sessions**: 32
+- **Last Active**: 2026-09-07
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~804 | Active |
+| `journal-1.md` | ~826 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 32 | 2026-09-07 | 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛 | `66389349` | `main` |
 | 31 | 2026-09-06 | 海运出口船公司切换为 ShippingLine | `834ff883` | `main` |
 | 30 | 2026-09-06 | 简化海运出口主单签发方录入 | `047b3e79` | `main` |
 | 29 | 2026-09-06 | 修复订单缓存组织隔离 | `a70c39e0` | `fix/order-cache-org-isolation` |

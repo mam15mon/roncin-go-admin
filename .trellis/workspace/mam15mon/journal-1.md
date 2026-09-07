@@ -802,3 +802,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 32: 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛
+<!-- trellis-session: v=2 fp=a213e5f45f8f0ce9 -->
+
+**Date**: 2026-09-07
+**Task**: 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛
+**Branch**: `main`
+
+### Summary
+
+完成阶段2所有内容：收敛Proto契约与生成物；重构Order/SeaMasterBill/SeaDocument的service、biz、data实现；增加Booking No.与客户业务号/Booking/MBL三维度同批订单查询；移除废弃的Add/Remove HBL与UNDETERMINED调用链；通过全量服务端测试与代码检查。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `66389349` | refactor: 收敛海运订单单值分单契约 |
+
+### Status
+
+[OK] **Completed**
