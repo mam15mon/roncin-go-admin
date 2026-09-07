@@ -46,7 +46,12 @@ export interface OrderListFilterParams {
   statusTimeRange?: [string, string];
 
   // 单号与业务实体类
-  numberType?: 'order' | 'master' | 'consolidated_master';
+  numberType?:
+    | 'order'
+    | 'master'
+    | 'consolidated_master'
+    | 'customer_reference'
+    | 'booking';
   numberKeyword?: string;
   shippingLineId?: string; // 船公司
   originLocationId?: string; // 起运港

@@ -112,6 +112,15 @@ describe('OrderListSearchFilter', () => {
     });
   });
 
+  it('提供客户业务号与 Booking No 筛选类型', () => {
+    render(<OrderListSearchFilter onSearch={vi.fn()} onReset={vi.fn()} />);
+
+    fireEvent.mouseDown(document.querySelector('#numberType')!);
+
+    expect(screen.getByText('客户业务号')).toBeInTheDocument();
+    expect(screen.getByText('Booking No')).toBeInTheDocument();
+  });
+
   it('展开全量筛选并按服务端方式加载动态候选项', async () => {
     const loadPorts = vi.fn().mockResolvedValue([]);
     const loadPartners = vi.fn().mockResolvedValue([]);

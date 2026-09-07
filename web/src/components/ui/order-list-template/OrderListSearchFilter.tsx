@@ -298,6 +298,8 @@ export function OrderListSearchFilter({
                       { label: '订单号', value: 'order' },
                       { label: '主单号', value: 'master' },
                       { label: '加拼主单号', value: 'consolidated_master' },
+                      { label: '客户业务号', value: 'customer_reference' },
+                      { label: 'Booking No', value: 'booking' },
                     ]}
                   />
                 </Form.Item>

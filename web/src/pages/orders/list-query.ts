@@ -41,7 +41,11 @@ export async function queryOrderList(
           ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_MASTER
           : params.numberType === 'consolidated_master'
             ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER
-            : undefined,
+            : params.numberType === 'customer_reference'
+              ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE
+              : params.numberType === 'booking'
+                ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_BOOKING
+                : undefined,
     numberKeyword: params.numberKeyword,
     ...lifecycleFilters,
     businessType: config.businessType,

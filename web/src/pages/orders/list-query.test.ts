@@ -14,6 +14,26 @@ describe('queryOrderList', () => {
     listOrdersMock.mockReset();
   });
 
+  it.each([
+    ['customer_reference', 4],
+    ['booking', 5],
+  ] as const)('映射新增号码筛选类型 %s', async (numberType, expectedType) => {
+    listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
+
+    await queryOrderList(
+      { numberType, numberKeyword: 'REF-001' },
+      ORDER_KIND_CONFIGS['sea-export'],
+      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+    );
+
+    expect(listOrdersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        numberType: expectedType,
+        numberKeyword: 'REF-001',
+      }),
+    );
+  });
+
   it('将页面筛选条件映射为订单查询参数', async () => {
     listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
 
