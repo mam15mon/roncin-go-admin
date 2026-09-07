@@ -13,7 +13,6 @@ import (
 	orderreleasepod "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seahousebillversion "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -289,7 +288,7 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 		if link.Version != expectedLinkVersion {
 			return biz.ErrSeaDocumentStructureConflict
 		}
-		if link.DocumentStructure != seamasterbillorderlink.DocumentStructureUNDETERMINED {
+		if link.DocumentStructure != seamasterbillorderlink.DocumentStructureHOUSE {
 			return biz.ErrSeaDocumentStructureInvalid
 		}
 
@@ -304,19 +303,6 @@ func (r *seaDocumentRepo) MarkSeaOrderDirect(ctx context.Context, organizationID
 		}
 		if hbCount > 0 {
 			return biz.ErrSeaDocumentStructureInvalid
-		}
-
-		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
-			return biz.ErrSeaCargoAllocationStatusConflict
-		}
-		hasAlloc, err := tx.SeaCargoAllocation.Query().
-			Where(seacargoallocation.MasterBillOrderLinkIDEQ(link.ID)).
-			Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if hasAlloc {
-			return biz.ErrSeaCargoAllocationStatusConflict
 		}
 
 		if _, err := link.Update().
@@ -418,9 +404,8 @@ func (r *seaDocumentRepo) CancelSeaOrderDirect(ctx context.Context, organization
 		}
 
 		if _, err := link.Update().
-			SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED).
+			SetDocumentStructure(seamasterbillorderlink.DocumentStructureHOUSE).
 			SetVersion(link.Version + 1).
-			SetCargoAllocationVersion(link.CargoAllocationVersion + 1).
 			Save(ctx); err != nil {
 			return err
 		}
@@ -522,9 +507,6 @@ func (r *seaDocumentRepo) AddSeaHouseBill(ctx context.Context, organizationID, a
 		if link.DocumentStructure == seamasterbillorderlink.DocumentStructureDIRECT {
 			return biz.ErrSeaDocumentDirectAddHBLBlocked
 		}
-		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
-			return biz.ErrSeaCargoAllocationStatusConflict
-		}
 
 		// 4. 校验签发主体
 		issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, order.OrganizationID, order.CustomerID, input)
@@ -562,9 +544,9 @@ func (r *seaDocumentRepo) AddSeaHouseBill(ctx context.Context, organizationID, a
 			return err
 		}
 
-		// 结构转换：若当前为 UNDETERMINED，则转为 HOUSE
-		linkUpdate := link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1)
-		if link.DocumentStructure == seamasterbillorderlink.DocumentStructureUNDETERMINED {
+		// 结构转换：确保为 HOUSE
+		linkUpdate := link.Update().SetVersion(link.Version + 1)
+		if link.DocumentStructure != seamasterbillorderlink.DocumentStructureHOUSE {
 			linkUpdate.SetDocumentStructure(seamasterbillorderlink.DocumentStructureHOUSE)
 		}
 		if _, err := linkUpdate.Save(ctx); err != nil {
@@ -663,9 +645,6 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		if link.Version != expectedLinkVersion {
 			return biz.ErrSeaDocumentStructureConflict
 		}
-		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
-			return biz.ErrSeaCargoAllocationStatusConflict
-		}
 
 		// 4. 固定锁顺序：SeaHouseBill
 		hb, queryErr := tx.SeaHouseBill.Query().
@@ -689,9 +668,6 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		}
 		if hb.Status == seahousebill.StatusVOIDED {
 			return biz.ErrSeaDocumentVoided
-		}
-		if hb.Status == seahousebill.StatusREPLACED {
-			return biz.ErrSeaHouseBillSwitchConflict
 		}
 
 		// 5. 校验签发主体
@@ -840,21 +816,6 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		if hb.Status == seahousebill.StatusVOIDED {
 			return biz.ErrSeaDocumentVoided
 		}
-		if hb.Status == seahousebill.StatusREPLACED {
-			return biz.ErrSeaHouseBillSwitchConflict
-		}
-		if link.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
-			return biz.ErrSeaCargoAllocationStatusConflict
-		}
-		hasAlloc, err := client.SeaCargoAllocation.Query().
-			Where(seacargoallocation.HouseBillIDEQ(houseBillID)).
-			Exist(txCtx)
-		if err != nil {
-			return err
-		}
-		if hasAlloc {
-			return biz.ErrSeaCargoAllocationInvalidReference
-		}
 
 		// 5. 按 UUID 固定顺序锁定关联放货记录，状态变化与 HBL 删除在同一事务内判定。
 		releasePods, err := client.OrderReleasePod.Query().
@@ -874,25 +835,7 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 			return biz.ErrSeaHouseBillReleasePodConfirmationRequired
 		}
 
-		// 6. 统计当前 MBL 下该订单剩余 HBL 数量
-		count, err := client.SeaHouseBill.Query().
-			Where(
-				seahousebill.OrganizationIDEQ(organizationID),
-				seahousebill.OrderIDEQ(orderID),
-				seahousebill.MasterBillIDEQ(mbl.ID),
-			).Count(txCtx)
-		if err != nil {
-			return err
-		}
-
-		linkUpdate := link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1)
-		if count == 1 {
-			// 最后一张 HBL 删除，必须显式确认回到未确定
-			if !returnToUndetermined {
-				return biz.ErrSeaDocumentDeleteLastHBLConfirmationRequired
-			}
-			linkUpdate.SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED)
-		}
+		linkUpdate := link.Update().SetVersion(link.Version + 1)
 		if _, err := linkUpdate.Save(txCtx); err != nil {
 			return err
 		}
@@ -928,9 +871,6 @@ func (r *seaDocumentRepo) RemoveSeaHouseBill(ctx context.Context, organizationID
 		audit.Details["release_pod.deleted_count"] = fmt.Sprintf("%d", len(releasePodIDs))
 		if len(releasePodIDTexts) > 0 {
 			audit.Details["release_pod.deleted_ids"] = strings.Join(releasePodIDTexts, ",")
-		}
-		if count == 1 {
-			audit.Details["document_structure.new"] = string(biz.SeaDocumentStructureUndetermined)
 		}
 		return writeAudit(txCtx, client.AuditLog, audit)
 	})

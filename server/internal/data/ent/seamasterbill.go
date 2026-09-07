@@ -13,7 +13,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -30,8 +29,6 @@ type SeaMasterBill struct {
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// ShippingLineID holds the value of the "shipping_line_id" field.
 	ShippingLineID uuid.UUID `json:"shipping_line_id,omitempty"`
-	// TransportExecutionID holds the value of the "transport_execution_id" field.
-	TransportExecutionID uuid.UUID `json:"transport_execution_id,omitempty"`
 	// MasterNo holds the value of the "master_no" field.
 	MasterNo string `json:"master_no,omitempty"`
 	// NormalizedMasterNo holds the value of the "normalized_master_no" field.
@@ -84,8 +81,6 @@ type SeaMasterBillEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// ShippingLine holds the value of the shipping_line edge.
 	ShippingLine *ShippingLine `json:"shipping_line,omitempty"`
-	// TransportExecution holds the value of the transport_execution edge.
-	TransportExecution *SeaTransportExecution `json:"transport_execution,omitempty"`
 	// OrderLinks holds the value of the order_links edge.
 	OrderLinks []*SeaMasterBillOrderLink `json:"order_links,omitempty"`
 	// HouseBills holds the value of the house_bills edge.
@@ -108,13 +103,11 @@ type SeaMasterBillEdges struct {
 	LockRecords []*OrderLockRecord `json:"lock_records,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
 	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
-	// SwitchEvents holds the value of the switch_events edge.
-	SwitchEvents []*SeaHouseBillSwitchEvent `json:"switch_events,omitempty"`
 	// ReleasePods holds the value of the release_pods edge.
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [16]bool
+	loadedTypes [14]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -139,21 +132,10 @@ func (e SeaMasterBillEdges) ShippingLineOrErr() (*ShippingLine, error) {
 	return nil, &NotLoadedError{edge: "shipping_line"}
 }
 
-// TransportExecutionOrErr returns the TransportExecution value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e SeaMasterBillEdges) TransportExecutionOrErr() (*SeaTransportExecution, error) {
-	if e.TransportExecution != nil {
-		return e.TransportExecution, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: seatransportexecution.Label}
-	}
-	return nil, &NotLoadedError{edge: "transport_execution"}
-}
-
 // OrderLinksOrErr returns the OrderLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) OrderLinksOrErr() ([]*SeaMasterBillOrderLink, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.OrderLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "order_links"}
@@ -162,7 +144,7 @@ func (e SeaMasterBillEdges) OrderLinksOrErr() ([]*SeaMasterBillOrderLink, error)
 // HouseBillsOrErr returns the HouseBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) HouseBillsOrErr() ([]*SeaHouseBill, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.HouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bills"}
@@ -171,7 +153,7 @@ func (e SeaMasterBillEdges) HouseBillsOrErr() ([]*SeaHouseBill, error) {
 // InitialSeaOrderSplitResultsOrErr returns the InitialSeaOrderSplitResults value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) InitialSeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.InitialSeaOrderSplitResults, nil
 	}
 	return nil, &NotLoadedError{edge: "initial_sea_order_split_results"}
@@ -180,7 +162,7 @@ func (e SeaMasterBillEdges) InitialSeaOrderSplitResultsOrErr() ([]*SeaOrderSplit
 // FinalSeaOrderSplitResultsOrErr returns the FinalSeaOrderSplitResults value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) FinalSeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[5] {
 		return e.FinalSeaOrderSplitResults, nil
 	}
 	return nil, &NotLoadedError{edge: "final_sea_order_split_results"}
@@ -189,7 +171,7 @@ func (e SeaMasterBillEdges) FinalSeaOrderSplitResultsOrErr() ([]*SeaOrderSplitRe
 // PreviousSeaOrderReassignmentsOrErr returns the PreviousSeaOrderReassignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) PreviousSeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[6] {
 		return e.PreviousSeaOrderReassignments, nil
 	}
 	return nil, &NotLoadedError{edge: "previous_sea_order_reassignments"}
@@ -198,7 +180,7 @@ func (e SeaMasterBillEdges) PreviousSeaOrderReassignmentsOrErr() ([]*SeaOrderRea
 // TargetSeaOrderReassignmentsOrErr returns the TargetSeaOrderReassignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) TargetSeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[7] {
 		return e.TargetSeaOrderReassignments, nil
 	}
 	return nil, &NotLoadedError{edge: "target_sea_order_reassignments"}
@@ -209,7 +191,7 @@ func (e SeaMasterBillEdges) TargetSeaOrderReassignmentsOrErr() ([]*SeaOrderReass
 func (e SeaMasterBillEdges) CurrentVersionOrErr() (*SeaMasterBillVersion, error) {
 	if e.CurrentVersion != nil {
 		return e.CurrentVersion, nil
-	} else if e.loadedTypes[9] {
+	} else if e.loadedTypes[8] {
 		return nil, &NotFoundError{label: seamasterbillversion.Label}
 	}
 	return nil, &NotLoadedError{edge: "current_version"}
@@ -218,7 +200,7 @@ func (e SeaMasterBillEdges) CurrentVersionOrErr() (*SeaMasterBillVersion, error)
 // VersionsOrErr returns the Versions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) VersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[9] {
 		return e.Versions, nil
 	}
 	return nil, &NotLoadedError{edge: "versions"}
@@ -227,7 +209,7 @@ func (e SeaMasterBillEdges) VersionsOrErr() ([]*SeaMasterBillVersion, error) {
 // HouseBillVersionsOrErr returns the HouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) HouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[10] {
 		return e.HouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bill_versions"}
@@ -236,7 +218,7 @@ func (e SeaMasterBillEdges) HouseBillVersionsOrErr() ([]*SeaHouseBillVersion, er
 // LockRecordsOrErr returns the LockRecords value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[11] {
 		return e.LockRecords, nil
 	}
 	return nil, &NotLoadedError{edge: "lock_records"}
@@ -245,25 +227,16 @@ func (e SeaMasterBillEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
 // VoidEventsOrErr returns the VoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[12] {
 		return e.VoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "void_events"}
 }
 
-// SwitchEventsOrErr returns the SwitchEvents value or an error if the edge
-// was not loaded in eager-loading.
-func (e SeaMasterBillEdges) SwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[14] {
-		return e.SwitchEvents, nil
-	}
-	return nil, &NotLoadedError{edge: "switch_events"}
-}
-
 // ReleasePodsOrErr returns the ReleasePods value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaMasterBillEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[13] {
 		return e.ReleasePods, nil
 	}
 	return nil, &NotLoadedError{edge: "release_pods"}
@@ -284,7 +257,7 @@ func (*SeaMasterBill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case seamasterbill.FieldCreatedAt, seamasterbill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case seamasterbill.FieldID, seamasterbill.FieldOrganizationID, seamasterbill.FieldShippingLineID, seamasterbill.FieldTransportExecutionID:
+		case seamasterbill.FieldID, seamasterbill.FieldOrganizationID, seamasterbill.FieldShippingLineID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -330,12 +303,6 @@ func (_m *SeaMasterBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field shipping_line_id", values[i])
 			} else if value != nil {
 				_m.ShippingLineID = *value
-			}
-		case seamasterbill.FieldTransportExecutionID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field transport_execution_id", values[i])
-			} else if value != nil {
-				_m.TransportExecutionID = *value
 			}
 		case seamasterbill.FieldMasterNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -496,11 +463,6 @@ func (_m *SeaMasterBill) QueryShippingLine() *ShippingLineQuery {
 	return NewSeaMasterBillClient(_m.config).QueryShippingLine(_m)
 }
 
-// QueryTransportExecution queries the "transport_execution" edge of the SeaMasterBill entity.
-func (_m *SeaMasterBill) QueryTransportExecution() *SeaTransportExecutionQuery {
-	return NewSeaMasterBillClient(_m.config).QueryTransportExecution(_m)
-}
-
 // QueryOrderLinks queries the "order_links" edge of the SeaMasterBill entity.
 func (_m *SeaMasterBill) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
 	return NewSeaMasterBillClient(_m.config).QueryOrderLinks(_m)
@@ -556,11 +518,6 @@ func (_m *SeaMasterBill) QueryVoidEvents() *SeaDocumentVoidEventQuery {
 	return NewSeaMasterBillClient(_m.config).QueryVoidEvents(_m)
 }
 
-// QuerySwitchEvents queries the "switch_events" edge of the SeaMasterBill entity.
-func (_m *SeaMasterBill) QuerySwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewSeaMasterBillClient(_m.config).QuerySwitchEvents(_m)
-}
-
 // QueryReleasePods queries the "release_pods" edge of the SeaMasterBill entity.
 func (_m *SeaMasterBill) QueryReleasePods() *OrderReleasePodQuery {
 	return NewSeaMasterBillClient(_m.config).QueryReleasePods(_m)
@@ -600,9 +557,6 @@ func (_m *SeaMasterBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("shipping_line_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ShippingLineID))
-	builder.WriteString(", ")
-	builder.WriteString("transport_execution_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TransportExecutionID))
 	builder.WriteString(", ")
 	builder.WriteString("master_no=")
 	builder.WriteString(_m.MasterNo)

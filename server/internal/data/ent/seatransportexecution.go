@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -42,6 +43,8 @@ type SeaTransportExecution struct {
 	Etd *time.Time `json:"etd,omitempty"`
 	// Eta holds the value of the "eta" field.
 	Eta *time.Time `json:"eta,omitempty"`
+	// CurrentVersionID holds the value of the "current_version_id" field.
+	CurrentVersionID *uuid.UUID `json:"current_version_id,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -56,13 +59,19 @@ type SeaTransportExecutionEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// ShippingLine holds the value of the shipping_line edge.
 	ShippingLine *ShippingLine `json:"shipping_line,omitempty"`
-	// MasterBills holds the value of the master_bills edge.
-	MasterBills []*SeaMasterBill `json:"master_bills,omitempty"`
-	// MasterBillVersions holds the value of the master_bill_versions edge.
-	MasterBillVersions []*SeaMasterBillVersion `json:"master_bill_versions,omitempty"`
+	// OrderLinks holds the value of the order_links edge.
+	OrderLinks []*SeaMasterBillOrderLink `json:"order_links,omitempty"`
+	// CurrentVersion holds the value of the current_version edge.
+	CurrentVersion *SeaTransportExecutionVersion `json:"current_version,omitempty"`
+	// Versions holds the value of the versions edge.
+	Versions []*SeaTransportExecutionVersion `json:"versions,omitempty"`
+	// SharedContainers holds the value of the shared_containers edge.
+	SharedContainers []*SeaSharedContainer `json:"shared_containers,omitempty"`
+	// LockRecords holds the value of the lock_records edge.
+	LockRecords []*OrderLockRecord `json:"lock_records,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -87,22 +96,51 @@ func (e SeaTransportExecutionEdges) ShippingLineOrErr() (*ShippingLine, error) {
 	return nil, &NotLoadedError{edge: "shipping_line"}
 }
 
-// MasterBillsOrErr returns the MasterBills value or an error if the edge
+// OrderLinksOrErr returns the OrderLinks value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaTransportExecutionEdges) MasterBillsOrErr() ([]*SeaMasterBill, error) {
+func (e SeaTransportExecutionEdges) OrderLinksOrErr() ([]*SeaMasterBillOrderLink, error) {
 	if e.loadedTypes[2] {
-		return e.MasterBills, nil
+		return e.OrderLinks, nil
 	}
-	return nil, &NotLoadedError{edge: "master_bills"}
+	return nil, &NotLoadedError{edge: "order_links"}
 }
 
-// MasterBillVersionsOrErr returns the MasterBillVersions value or an error if the edge
-// was not loaded in eager-loading.
-func (e SeaTransportExecutionEdges) MasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[3] {
-		return e.MasterBillVersions, nil
+// CurrentVersionOrErr returns the CurrentVersion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaTransportExecutionEdges) CurrentVersionOrErr() (*SeaTransportExecutionVersion, error) {
+	if e.CurrentVersion != nil {
+		return e.CurrentVersion, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: seatransportexecutionversion.Label}
 	}
-	return nil, &NotLoadedError{edge: "master_bill_versions"}
+	return nil, &NotLoadedError{edge: "current_version"}
+}
+
+// VersionsOrErr returns the Versions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaTransportExecutionEdges) VersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
+	if e.loadedTypes[4] {
+		return e.Versions, nil
+	}
+	return nil, &NotLoadedError{edge: "versions"}
+}
+
+// SharedContainersOrErr returns the SharedContainers value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaTransportExecutionEdges) SharedContainersOrErr() ([]*SeaSharedContainer, error) {
+	if e.loadedTypes[5] {
+		return e.SharedContainers, nil
+	}
+	return nil, &NotLoadedError{edge: "shared_containers"}
+}
+
+// LockRecordsOrErr returns the LockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaTransportExecutionEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[6] {
+		return e.LockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "lock_records"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -110,7 +148,7 @@ func (*SeaTransportExecution) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seatransportexecution.FieldOriginLocationID, seatransportexecution.FieldDischargeLocationID, seatransportexecution.FieldTransitLocationID:
+		case seatransportexecution.FieldOriginLocationID, seatransportexecution.FieldDischargeLocationID, seatransportexecution.FieldTransitLocationID, seatransportexecution.FieldCurrentVersionID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seatransportexecution.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -212,6 +250,13 @@ func (_m *SeaTransportExecution) assignValues(columns []string, values []any) er
 				_m.Eta = new(time.Time)
 				*_m.Eta = value.Time
 			}
+		case seatransportexecution.FieldCurrentVersionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field current_version_id", values[i])
+			} else if value.Valid {
+				_m.CurrentVersionID = new(uuid.UUID)
+				*_m.CurrentVersionID = *value.S.(*uuid.UUID)
+			}
 		case seatransportexecution.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -241,14 +286,29 @@ func (_m *SeaTransportExecution) QueryShippingLine() *ShippingLineQuery {
 	return NewSeaTransportExecutionClient(_m.config).QueryShippingLine(_m)
 }
 
-// QueryMasterBills queries the "master_bills" edge of the SeaTransportExecution entity.
-func (_m *SeaTransportExecution) QueryMasterBills() *SeaMasterBillQuery {
-	return NewSeaTransportExecutionClient(_m.config).QueryMasterBills(_m)
+// QueryOrderLinks queries the "order_links" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryOrderLinks(_m)
 }
 
-// QueryMasterBillVersions queries the "master_bill_versions" edge of the SeaTransportExecution entity.
-func (_m *SeaTransportExecution) QueryMasterBillVersions() *SeaMasterBillVersionQuery {
-	return NewSeaTransportExecutionClient(_m.config).QueryMasterBillVersions(_m)
+// QueryCurrentVersion queries the "current_version" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryCurrentVersion() *SeaTransportExecutionVersionQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryCurrentVersion(_m)
+}
+
+// QueryVersions queries the "versions" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryVersions() *SeaTransportExecutionVersionQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryVersions(_m)
+}
+
+// QuerySharedContainers queries the "shared_containers" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QuerySharedContainers() *SeaSharedContainerQuery {
+	return NewSeaTransportExecutionClient(_m.config).QuerySharedContainers(_m)
+}
+
+// QueryLockRecords queries the "lock_records" edge of the SeaTransportExecution entity.
+func (_m *SeaTransportExecution) QueryLockRecords() *OrderLockRecordQuery {
+	return NewSeaTransportExecutionClient(_m.config).QueryLockRecords(_m)
 }
 
 // Update returns a builder for updating this SeaTransportExecution.
@@ -315,6 +375,11 @@ func (_m *SeaTransportExecution) String() string {
 	if v := _m.Eta; v != nil {
 		builder.WriteString("eta=")
 		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.CurrentVersionID; v != nil {
+		builder.WriteString("current_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("version=")

@@ -16,6 +16,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -143,6 +149,96 @@ func (_u *OrderAttachmentUpdate) SetCreator(v *User) *OrderAttachmentUpdate {
 	return _u.SetCreatorID(v.ID)
 }
 
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrderAttachmentUpdate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrderAttachmentUpdate) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillVersionIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrderAttachmentUpdate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
+// AddSeaDocumentVoidEventIDs adds the "sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentVoidEvents adds the "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrderAttachmentUpdate) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddSeaDocumentModeChangeEventIDs adds the "sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaDocumentModeChangeEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentModeChangeEvents adds the "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *OrderAttachmentUpdate) AddSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_u *OrderAttachmentUpdate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *OrderAttachmentUpdate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
 // Mutation returns the OrderAttachmentMutation object of the builder.
 func (_u *OrderAttachmentUpdate) Mutation() *OrderAttachmentMutation {
 	return _u.mutation
@@ -164,6 +260,132 @@ func (_u *OrderAttachmentUpdate) ClearAsset() *OrderAttachmentUpdate {
 func (_u *OrderAttachmentUpdate) ClearCreator() *OrderAttachmentUpdate {
 	_u.mutation.ClearCreator()
 	return _u
+}
+
+// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrderAttachmentUpdate) ClearSeaMasterBillVersions() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaMasterBillVersions()
+	return _u
+}
+
+// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillVersionIDs(ids...)
+}
+
+// ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrderAttachmentUpdate) ClearSeaHouseBillVersions() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveSeaHouseBillVersionIDs removes the "sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillVersions removes "sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearSeaOrderReassignmentEvents clears all "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrderAttachmentUpdate) ClearSeaOrderReassignmentEvents() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaOrderReassignmentEvents()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEvents removes "sea_order_reassignment_events" edges to SeaOrderReassignmentEvent entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
+}
+
+// ClearSeaDocumentVoidEvents clears all "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrderAttachmentUpdate) ClearSeaDocumentVoidEvents() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaDocumentVoidEvents()
+	return _u
+}
+
+// RemoveSeaDocumentVoidEventIDs removes the "sea_document_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentVoidEvents removes "sea_document_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentVoidEventIDs(ids...)
+}
+
+// ClearSeaDocumentModeChangeEvents clears all "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *OrderAttachmentUpdate) ClearSeaDocumentModeChangeEvents() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaDocumentModeChangeEvents()
+	return _u
+}
+
+// RemoveSeaDocumentModeChangeEventIDs removes the "sea_document_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaDocumentModeChangeEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentModeChangeEvents removes "sea_document_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// ClearSeaTransportExecutionVersions clears all "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *OrderAttachmentUpdate) ClearSeaTransportExecutionVersions() *OrderAttachmentUpdate {
+	_u.mutation.ClearSeaTransportExecutionVersions()
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersionIDs removes the "sea_transport_execution_versions" edge to SeaTransportExecutionVersion entities by IDs.
+func (_u *OrderAttachmentUpdate) RemoveSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdate {
+	_u.mutation.RemoveSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersions removes "sea_transport_execution_versions" edges to SeaTransportExecutionVersion entities.
+func (_u *OrderAttachmentUpdate) RemoveSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrderAttachmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaTransportExecutionVersionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -331,6 +553,276 @@ func (_u *OrderAttachmentUpdate) sqlSave(ctx context.Context) (_node int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentModeChangeEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentModeChangeEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaTransportExecutionVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderattachment.Label}
@@ -462,6 +954,96 @@ func (_u *OrderAttachmentUpdateOne) SetCreator(v *User) *OrderAttachmentUpdateOn
 	return _u.SetCreatorID(v.ID)
 }
 
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillVersionIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
+// AddSeaDocumentVoidEventIDs adds the "sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentVoidEvents adds the "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddSeaDocumentModeChangeEventIDs adds the "sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaDocumentModeChangeEventIDs(ids...)
+	return _u
+}
+
+// AddSeaDocumentModeChangeEvents adds the "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_u *OrderAttachmentUpdateOne) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *OrderAttachmentUpdateOne) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
 // Mutation returns the OrderAttachmentMutation object of the builder.
 func (_u *OrderAttachmentUpdateOne) Mutation() *OrderAttachmentMutation {
 	return _u.mutation
@@ -483,6 +1065,132 @@ func (_u *OrderAttachmentUpdateOne) ClearAsset() *OrderAttachmentUpdateOne {
 func (_u *OrderAttachmentUpdateOne) ClearCreator() *OrderAttachmentUpdateOne {
 	_u.mutation.ClearCreator()
 	return _u
+}
+
+// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaMasterBillVersions() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaMasterBillVersions()
+	return _u
+}
+
+// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaMasterBillVersionIDs(ids...)
+}
+
+// ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaHouseBillVersions() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaHouseBillVersions()
+	return _u
+}
+
+// RemoveSeaHouseBillVersionIDs removes the "sea_house_bill_versions" edge to SeaHouseBillVersion entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaHouseBillVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBillVersions removes "sea_house_bill_versions" edges to SeaHouseBillVersion entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillVersionIDs(ids...)
+}
+
+// ClearSeaOrderReassignmentEvents clears all "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaOrderReassignmentEvents() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaOrderReassignmentEvents()
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEventIDs removes the "sea_order_reassignment_events" edge to SeaOrderReassignmentEvent entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaOrderReassignmentEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaOrderReassignmentEvents removes "sea_order_reassignment_events" edges to SeaOrderReassignmentEvent entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaOrderReassignmentEventIDs(ids...)
+}
+
+// ClearSeaDocumentVoidEvents clears all "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaDocumentVoidEvents() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaDocumentVoidEvents()
+	return _u
+}
+
+// RemoveSeaDocumentVoidEventIDs removes the "sea_document_void_events" edge to SeaDocumentVoidEvent entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaDocumentVoidEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentVoidEvents removes "sea_document_void_events" edges to SeaDocumentVoidEvent entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentVoidEventIDs(ids...)
+}
+
+// ClearSeaDocumentModeChangeEvents clears all "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaDocumentModeChangeEvents() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaDocumentModeChangeEvents()
+	return _u
+}
+
+// RemoveSeaDocumentModeChangeEventIDs removes the "sea_document_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaDocumentModeChangeEventIDs(ids...)
+	return _u
+}
+
+// RemoveSeaDocumentModeChangeEvents removes "sea_document_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// ClearSeaTransportExecutionVersions clears all "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *OrderAttachmentUpdateOne) ClearSeaTransportExecutionVersions() *OrderAttachmentUpdateOne {
+	_u.mutation.ClearSeaTransportExecutionVersions()
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersionIDs removes the "sea_transport_execution_versions" edge to SeaTransportExecutionVersion entities by IDs.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrderAttachmentUpdateOne {
+	_u.mutation.RemoveSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersions removes "sea_transport_execution_versions" edges to SeaTransportExecutionVersion entities.
+func (_u *OrderAttachmentUpdateOne) RemoveSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrderAttachmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaTransportExecutionVersionIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderAttachmentUpdate builder.
@@ -673,6 +1381,276 @@ func (_u *OrderAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *OrderAt
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaOrderReassignmentEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaOrderReassignmentEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentVoidEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentVoidEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaDocumentModeChangeEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaDocumentModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.SeaDocumentModeChangeEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaTransportExecutionVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

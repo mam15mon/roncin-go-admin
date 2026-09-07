@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -64,6 +65,14 @@ type SeaHouseBillVersion struct {
 	IdempotencyKey *string `json:"idempotency_key,omitempty"`
 	// RequestFingerprint holds the value of the "request_fingerprint" field.
 	RequestFingerprint *string `json:"request_fingerprint,omitempty"`
+	// ConfirmedByParty holds the value of the "confirmed_by_party" field.
+	ConfirmedByParty *string `json:"confirmed_by_party,omitempty"`
+	// ConfirmedAt holds the value of the "confirmed_at" field.
+	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
+	// ConfirmationNote holds the value of the "confirmation_note" field.
+	ConfirmationNote *string `json:"confirmation_note,omitempty"`
+	// ConfirmationAttachmentID holds the value of the "confirmation_attachment_id" field.
+	ConfirmationAttachmentID *uuid.UUID `json:"confirmation_attachment_id,omitempty"`
 	// ShipperText holds the value of the "shipper_text" field.
 	ShipperText *string `json:"shipper_text,omitempty"`
 	// ConsigneeText holds the value of the "consignee_text" field.
@@ -116,19 +125,21 @@ type SeaHouseBillVersionEdges struct {
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// ConfirmationAttachment holds the value of the confirmation_attachment edge.
+	ConfirmationAttachment *OrderAttachment `json:"confirmation_attachment,omitempty"`
 	// LockSnapshots holds the value of the lock_snapshots edge.
 	LockSnapshots []*OrderLockHouseBillSnapshot `json:"lock_snapshots,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
 	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
 	// PreviousVoidEvents holds the value of the previous_void_events edge.
 	PreviousVoidEvents []*SeaDocumentVoidEvent `json:"previous_void_events,omitempty"`
-	// OldSwitchEvents holds the value of the old_switch_events edge.
-	OldSwitchEvents []*SeaHouseBillSwitchEvent `json:"old_switch_events,omitempty"`
-	// NewSwitchEvents holds the value of the new_switch_events edge.
-	NewSwitchEvents []*SeaHouseBillSwitchEvent `json:"new_switch_events,omitempty"`
+	// PreviousModeChangeEvents holds the value of the previous_mode_change_events edge.
+	PreviousModeChangeEvents []*SeaDocumentModeChangeEvent `json:"previous_mode_change_events,omitempty"`
+	// TargetModeChangeEvents holds the value of the target_mode_change_events edge.
+	TargetModeChangeEvents []*SeaDocumentModeChangeEvent `json:"target_mode_change_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -208,10 +219,21 @@ func (e SeaHouseBillVersionEdges) CreatorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "creator"}
 }
 
+// ConfirmationAttachmentOrErr returns the ConfirmationAttachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaHouseBillVersionEdges) ConfirmationAttachmentOrErr() (*OrderAttachment, error) {
+	if e.ConfirmationAttachment != nil {
+		return e.ConfirmationAttachment, nil
+	} else if e.loadedTypes[7] {
+		return nil, &NotFoundError{label: orderattachment.Label}
+	}
+	return nil, &NotLoadedError{edge: "confirmation_attachment"}
+}
+
 // LockSnapshotsOrErr returns the LockSnapshots value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaHouseBillVersionEdges) LockSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.LockSnapshots, nil
 	}
 	return nil, &NotLoadedError{edge: "lock_snapshots"}
@@ -220,7 +242,7 @@ func (e SeaHouseBillVersionEdges) LockSnapshotsOrErr() ([]*OrderLockHouseBillSna
 // VoidEventsOrErr returns the VoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaHouseBillVersionEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.VoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "void_events"}
@@ -229,28 +251,28 @@ func (e SeaHouseBillVersionEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, er
 // PreviousVoidEventsOrErr returns the PreviousVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e SeaHouseBillVersionEdges) PreviousVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.PreviousVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "previous_void_events"}
 }
 
-// OldSwitchEventsOrErr returns the OldSwitchEvents value or an error if the edge
+// PreviousModeChangeEventsOrErr returns the PreviousModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaHouseBillVersionEdges) OldSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[10] {
-		return e.OldSwitchEvents, nil
+func (e SeaHouseBillVersionEdges) PreviousModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
+	if e.loadedTypes[11] {
+		return e.PreviousModeChangeEvents, nil
 	}
-	return nil, &NotLoadedError{edge: "old_switch_events"}
+	return nil, &NotLoadedError{edge: "previous_mode_change_events"}
 }
 
-// NewSwitchEventsOrErr returns the NewSwitchEvents value or an error if the edge
+// TargetModeChangeEventsOrErr returns the TargetModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaHouseBillVersionEdges) NewSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[11] {
-		return e.NewSwitchEvents, nil
+func (e SeaHouseBillVersionEdges) TargetModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
+	if e.loadedTypes[12] {
+		return e.TargetModeChangeEvents, nil
 	}
-	return nil, &NotLoadedError{edge: "new_switch_events"}
+	return nil, &NotLoadedError{edge: "target_mode_change_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -258,15 +280,15 @@ func (*SeaHouseBillVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seahousebillversion.FieldIssuerOrganizationID, seahousebillversion.FieldIssuerPartnerID, seahousebillversion.FieldCreatedBy:
+		case seahousebillversion.FieldIssuerOrganizationID, seahousebillversion.FieldIssuerPartnerID, seahousebillversion.FieldCreatedBy, seahousebillversion.FieldConfirmationAttachmentID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seahousebillversion.FieldGrossWeightKg, seahousebillversion.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case seahousebillversion.FieldVersionNo, seahousebillversion.FieldSourceEntityVersion, seahousebillversion.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seahousebillversion.FieldHouseNo, seahousebillversion.FieldNormalizedHouseNo, seahousebillversion.FieldIssuerSource, seahousebillversion.FieldStatus, seahousebillversion.FieldNote, seahousebillversion.FieldContentHash, seahousebillversion.FieldSource, seahousebillversion.FieldReason, seahousebillversion.FieldIdempotencyKey, seahousebillversion.FieldRequestFingerprint, seahousebillversion.FieldShipperText, seahousebillversion.FieldConsigneeText, seahousebillversion.FieldNotifyPartyText, seahousebillversion.FieldSecondNotifyPartyText, seahousebillversion.FieldMarksText, seahousebillversion.FieldGoodsDescriptionText, seahousebillversion.FieldPackageUnit, seahousebillversion.FieldFreightTerms, seahousebillversion.FieldTransportTerms, seahousebillversion.FieldBillForm, seahousebillversion.FieldReleaseType, seahousebillversion.FieldClauses:
+		case seahousebillversion.FieldHouseNo, seahousebillversion.FieldNormalizedHouseNo, seahousebillversion.FieldIssuerSource, seahousebillversion.FieldStatus, seahousebillversion.FieldNote, seahousebillversion.FieldContentHash, seahousebillversion.FieldSource, seahousebillversion.FieldReason, seahousebillversion.FieldIdempotencyKey, seahousebillversion.FieldRequestFingerprint, seahousebillversion.FieldConfirmedByParty, seahousebillversion.FieldConfirmationNote, seahousebillversion.FieldShipperText, seahousebillversion.FieldConsigneeText, seahousebillversion.FieldNotifyPartyText, seahousebillversion.FieldSecondNotifyPartyText, seahousebillversion.FieldMarksText, seahousebillversion.FieldGoodsDescriptionText, seahousebillversion.FieldPackageUnit, seahousebillversion.FieldFreightTerms, seahousebillversion.FieldTransportTerms, seahousebillversion.FieldBillForm, seahousebillversion.FieldReleaseType, seahousebillversion.FieldClauses:
 			values[i] = new(sql.NullString)
-		case seahousebillversion.FieldCreatedAt:
+		case seahousebillversion.FieldCreatedAt, seahousebillversion.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
 		case seahousebillversion.FieldID, seahousebillversion.FieldOrganizationID, seahousebillversion.FieldHouseBillID, seahousebillversion.FieldOrderID, seahousebillversion.FieldMasterBillID:
 			values[i] = new(uuid.UUID)
@@ -417,6 +439,34 @@ func (_m *SeaHouseBillVersion) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				_m.RequestFingerprint = new(string)
 				*_m.RequestFingerprint = value.String
+			}
+		case seahousebillversion.FieldConfirmedByParty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_by_party", values[i])
+			} else if value.Valid {
+				_m.ConfirmedByParty = new(string)
+				*_m.ConfirmedByParty = value.String
+			}
+		case seahousebillversion.FieldConfirmedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_at", values[i])
+			} else if value.Valid {
+				_m.ConfirmedAt = new(time.Time)
+				*_m.ConfirmedAt = value.Time
+			}
+		case seahousebillversion.FieldConfirmationNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_note", values[i])
+			} else if value.Valid {
+				_m.ConfirmationNote = new(string)
+				*_m.ConfirmationNote = value.String
+			}
+		case seahousebillversion.FieldConfirmationAttachmentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_attachment_id", values[i])
+			} else if value.Valid {
+				_m.ConfirmationAttachmentID = new(uuid.UUID)
+				*_m.ConfirmationAttachmentID = *value.S.(*uuid.UUID)
 			}
 		case seahousebillversion.FieldShipperText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -571,6 +621,11 @@ func (_m *SeaHouseBillVersion) QueryCreator() *UserQuery {
 	return NewSeaHouseBillVersionClient(_m.config).QueryCreator(_m)
 }
 
+// QueryConfirmationAttachment queries the "confirmation_attachment" edge of the SeaHouseBillVersion entity.
+func (_m *SeaHouseBillVersion) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	return NewSeaHouseBillVersionClient(_m.config).QueryConfirmationAttachment(_m)
+}
+
 // QueryLockSnapshots queries the "lock_snapshots" edge of the SeaHouseBillVersion entity.
 func (_m *SeaHouseBillVersion) QueryLockSnapshots() *OrderLockHouseBillSnapshotQuery {
 	return NewSeaHouseBillVersionClient(_m.config).QueryLockSnapshots(_m)
@@ -586,14 +641,14 @@ func (_m *SeaHouseBillVersion) QueryPreviousVoidEvents() *SeaDocumentVoidEventQu
 	return NewSeaHouseBillVersionClient(_m.config).QueryPreviousVoidEvents(_m)
 }
 
-// QueryOldSwitchEvents queries the "old_switch_events" edge of the SeaHouseBillVersion entity.
-func (_m *SeaHouseBillVersion) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewSeaHouseBillVersionClient(_m.config).QueryOldSwitchEvents(_m)
+// QueryPreviousModeChangeEvents queries the "previous_mode_change_events" edge of the SeaHouseBillVersion entity.
+func (_m *SeaHouseBillVersion) QueryPreviousModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewSeaHouseBillVersionClient(_m.config).QueryPreviousModeChangeEvents(_m)
 }
 
-// QueryNewSwitchEvents queries the "new_switch_events" edge of the SeaHouseBillVersion entity.
-func (_m *SeaHouseBillVersion) QueryNewSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewSeaHouseBillVersionClient(_m.config).QueryNewSwitchEvents(_m)
+// QueryTargetModeChangeEvents queries the "target_mode_change_events" edge of the SeaHouseBillVersion entity.
+func (_m *SeaHouseBillVersion) QueryTargetModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewSeaHouseBillVersionClient(_m.config).QueryTargetModeChangeEvents(_m)
 }
 
 // Update returns a builder for updating this SeaHouseBillVersion.
@@ -691,6 +746,26 @@ func (_m *SeaHouseBillVersion) String() string {
 	if v := _m.RequestFingerprint; v != nil {
 		builder.WriteString("request_fingerprint=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmedByParty; v != nil {
+		builder.WriteString("confirmed_by_party=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmedAt; v != nil {
+		builder.WriteString("confirmed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmationNote; v != nil {
+		builder.WriteString("confirmation_note=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmationAttachmentID; v != nil {
+		builder.WriteString("confirmation_attachment_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	if v := _m.ShipperText; v != nil {

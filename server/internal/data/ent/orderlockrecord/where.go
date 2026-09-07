@@ -106,6 +106,16 @@ func MasterBillVersionID(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldMasterBillVersionID, v))
 }
 
+// TransportExecutionID applies equality check predicate on the "transport_execution_id" field. It's identical to TransportExecutionIDEQ.
+func TransportExecutionID(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTransportExecutionID, v))
+}
+
+// TransportExecutionVersionID applies equality check predicate on the "transport_execution_version_id" field. It's identical to TransportExecutionVersionIDEQ.
+func TransportExecutionVersionID(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTransportExecutionVersionID, v))
+}
+
 // UnlockedBy applies equality check predicate on the "unlocked_by" field. It's identical to UnlockedByEQ.
 func UnlockedBy(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldUnlockedBy, v))
@@ -504,6 +514,66 @@ func MasterBillVersionIDIsNil() predicate.OrderLockRecord {
 // MasterBillVersionIDNotNil applies the NotNil predicate on the "master_bill_version_id" field.
 func MasterBillVersionIDNotNil() predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldNotNull(FieldMasterBillVersionID))
+}
+
+// TransportExecutionIDEQ applies the EQ predicate on the "transport_execution_id" field.
+func TransportExecutionIDEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTransportExecutionID, v))
+}
+
+// TransportExecutionIDNEQ applies the NEQ predicate on the "transport_execution_id" field.
+func TransportExecutionIDNEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldTransportExecutionID, v))
+}
+
+// TransportExecutionIDIn applies the In predicate on the "transport_execution_id" field.
+func TransportExecutionIDIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldTransportExecutionID, vs...))
+}
+
+// TransportExecutionIDNotIn applies the NotIn predicate on the "transport_execution_id" field.
+func TransportExecutionIDNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldTransportExecutionID, vs...))
+}
+
+// TransportExecutionIDIsNil applies the IsNil predicate on the "transport_execution_id" field.
+func TransportExecutionIDIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldTransportExecutionID))
+}
+
+// TransportExecutionIDNotNil applies the NotNil predicate on the "transport_execution_id" field.
+func TransportExecutionIDNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTransportExecutionID))
+}
+
+// TransportExecutionVersionIDEQ applies the EQ predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTransportExecutionVersionID, v))
+}
+
+// TransportExecutionVersionIDNEQ applies the NEQ predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDNEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldTransportExecutionVersionID, v))
+}
+
+// TransportExecutionVersionIDIn applies the In predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldTransportExecutionVersionID, vs...))
+}
+
+// TransportExecutionVersionIDNotIn applies the NotIn predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldTransportExecutionVersionID, vs...))
+}
+
+// TransportExecutionVersionIDIsNil applies the IsNil predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldTransportExecutionVersionID))
+}
+
+// TransportExecutionVersionIDNotNil applies the NotNil predicate on the "transport_execution_version_id" field.
+func TransportExecutionVersionIDNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTransportExecutionVersionID))
 }
 
 // UnlockedByEQ applies the EQ predicate on the "unlocked_by" field.
@@ -1031,6 +1101,52 @@ func HasMasterBillVersion() predicate.OrderLockRecord {
 func HasMasterBillVersionWith(preds ...predicate.SeaMasterBillVersion) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(func(s *sql.Selector) {
 		step := newMasterBillVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTransportExecution applies the HasEdge predicate on the "transport_execution" edge.
+func HasTransportExecution() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTransportExecutionWith applies the HasEdge predicate on the "transport_execution" edge with a given conditions (other predicates).
+func HasTransportExecutionWith(preds ...predicate.SeaTransportExecution) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := newTransportExecutionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTransportExecutionVersion applies the HasEdge predicate on the "transport_execution_version" edge.
+func HasTransportExecutionVersion() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionVersionTable, TransportExecutionVersionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTransportExecutionVersionWith applies the HasEdge predicate on the "transport_execution_version" edge with a given conditions (other predicates).
+func HasTransportExecutionVersionWith(preds ...predicate.SeaTransportExecutionVersion) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := newTransportExecutionVersionStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

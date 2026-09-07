@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -194,6 +195,38 @@ func (_c *SeaDocumentVoidEventCreate) SetRequestFingerprint(v string) *SeaDocume
 	return _c
 }
 
+// SetConfirmedByParty sets the "confirmed_by_party" field.
+func (_c *SeaDocumentVoidEventCreate) SetConfirmedByParty(v string) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetConfirmedByParty(v)
+	return _c
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (_c *SeaDocumentVoidEventCreate) SetConfirmedAt(v time.Time) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetConfirmedAt(v)
+	return _c
+}
+
+// SetConfirmationNote sets the "confirmation_note" field.
+func (_c *SeaDocumentVoidEventCreate) SetConfirmationNote(v string) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetConfirmationNote(v)
+	return _c
+}
+
+// SetConfirmationAttachmentID sets the "confirmation_attachment_id" field.
+func (_c *SeaDocumentVoidEventCreate) SetConfirmationAttachmentID(v uuid.UUID) *SeaDocumentVoidEventCreate {
+	_c.mutation.SetConfirmationAttachmentID(v)
+	return _c
+}
+
+// SetNillableConfirmationAttachmentID sets the "confirmation_attachment_id" field if the given value is not nil.
+func (_c *SeaDocumentVoidEventCreate) SetNillableConfirmationAttachmentID(v *uuid.UUID) *SeaDocumentVoidEventCreate {
+	if v != nil {
+		_c.SetConfirmationAttachmentID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaDocumentVoidEventCreate) SetID(v uuid.UUID) *SeaDocumentVoidEventCreate {
 	_c.mutation.SetID(v)
@@ -257,6 +290,11 @@ func (_c *SeaDocumentVoidEventCreate) SetCreatorID(id uuid.UUID) *SeaDocumentVoi
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *SeaDocumentVoidEventCreate) SetCreator(v *User) *SeaDocumentVoidEventCreate {
 	return _c.SetCreatorID(v.ID)
+}
+
+// SetConfirmationAttachment sets the "confirmation_attachment" edge to the OrderAttachment entity.
+func (_c *SeaDocumentVoidEventCreate) SetConfirmationAttachment(v *OrderAttachment) *SeaDocumentVoidEventCreate {
+	return _c.SetConfirmationAttachmentID(v.ID)
 }
 
 // Mutation returns the SeaDocumentVoidEventMutation object of the builder.
@@ -371,6 +409,25 @@ func (_c *SeaDocumentVoidEventCreate) check() error {
 			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaDocumentVoidEvent.request_fingerprint": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ConfirmedByParty(); !ok {
+		return &ValidationError{Name: "confirmed_by_party", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.confirmed_by_party"`)}
+	}
+	if v, ok := _c.mutation.ConfirmedByParty(); ok {
+		if err := seadocumentvoidevent.ConfirmedByPartyValidator(v); err != nil {
+			return &ValidationError{Name: "confirmed_by_party", err: fmt.Errorf(`ent: validator failed for field "SeaDocumentVoidEvent.confirmed_by_party": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ConfirmedAt(); !ok {
+		return &ValidationError{Name: "confirmed_at", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.confirmed_at"`)}
+	}
+	if _, ok := _c.mutation.ConfirmationNote(); !ok {
+		return &ValidationError{Name: "confirmation_note", err: errors.New(`ent: missing required field "SeaDocumentVoidEvent.confirmation_note"`)}
+	}
+	if v, ok := _c.mutation.ConfirmationNote(); ok {
+		if err := seadocumentvoidevent.ConfirmationNoteValidator(v); err != nil {
+			return &ValidationError{Name: "confirmation_note", err: fmt.Errorf(`ent: validator failed for field "SeaDocumentVoidEvent.confirmation_note": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "SeaDocumentVoidEvent.organization"`)}
 	}
@@ -446,6 +503,18 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 	if value, ok := _c.mutation.RequestFingerprint(); ok {
 		_spec.SetField(seadocumentvoidevent.FieldRequestFingerprint, field.TypeString, value)
 		_node.RequestFingerprint = value
+	}
+	if value, ok := _c.mutation.ConfirmedByParty(); ok {
+		_spec.SetField(seadocumentvoidevent.FieldConfirmedByParty, field.TypeString, value)
+		_node.ConfirmedByParty = value
+	}
+	if value, ok := _c.mutation.ConfirmedAt(); ok {
+		_spec.SetField(seadocumentvoidevent.FieldConfirmedAt, field.TypeTime, value)
+		_node.ConfirmedAt = value
+	}
+	if value, ok := _c.mutation.ConfirmationNote(); ok {
+		_spec.SetField(seadocumentvoidevent.FieldConfirmationNote, field.TypeString, value)
+		_node.ConfirmationNote = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -598,6 +667,23 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CreatedBy = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmationAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seadocumentvoidevent.ConfirmationAttachmentTable,
+			Columns: []string{seadocumentvoidevent.ConfirmationAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ConfirmationAttachmentID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

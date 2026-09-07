@@ -82,7 +82,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("updated_enterprise_resources", EnterpriseResource.Type),
 		edge.To("uploaded_enterprise_resource_images", EnterpriseResourceImage.Type),
 		edge.To("enterprise_resource_assignments", EnterpriseResourceAssignee.Type),
-		edge.To("confirmed_sea_cargo_allocation_links", SeaMasterBillOrderLink.Type),
 		edge.To("created_sea_order_split_events", SeaOrderSplitEvent.Type),
 		edge.To("created_sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
 		edge.To("uploaded_attachment_assets", OrderAttachmentAsset.Type),
@@ -96,7 +95,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("created_sea_master_bill_versions", SeaMasterBillVersion.Type),
 		edge.To("created_sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("created_sea_document_void_events", SeaDocumentVoidEvent.Type),
-		edge.To("created_sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
+		edge.To("created_sea_transport_execution_versions", SeaTransportExecutionVersion.Type),
+		edge.To("created_sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),
+		edge.To("confirmed_sea_shared_containers", SeaSharedContainer.Type),
 	}
 }
 

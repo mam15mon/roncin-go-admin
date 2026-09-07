@@ -276,27 +276,31 @@ func derefUUID(u *uuid.UUID) string {
 	return u.String()
 }
 
-func computeMBLContentHash(mbl *ent.SeaMasterBill, exec *ent.SeaTransportExecution) string {
+func computeMBLContentHash(mbl *ent.SeaMasterBill) string {
 	h := sha256.New()
-	fmt.Fprintf(h, "no:%s|norm:%s|shipping_line:%s|trans:%s|", mbl.MasterNo, mbl.NormalizedMasterNo, mbl.ShippingLineID, mbl.TransportExecutionID)
-	if exec != nil {
-		var etdStr, etaStr string
-		if exec.Etd != nil {
-			etdStr = exec.Etd.Format(time.RFC3339)
-		}
-		if exec.Eta != nil {
-			etaStr = exec.Eta.Format(time.RFC3339)
-		}
-		fmt.Fprintf(h, "vessel:%s|voyage:%s|etd:%s|eta:%s|origin:%s|discharge:%s|transit:%s|",
-			exec.VesselName, exec.VoyageNo, etdStr, etaStr,
-			derefUUID(exec.OriginLocationID), derefUUID(exec.DischargeLocationID), derefUUID(exec.TransitLocationID))
-	}
+	fmt.Fprintf(h, "no:%s|norm:%s|shipping_line:%s|", mbl.MasterNo, mbl.NormalizedMasterNo, mbl.ShippingLineID)
 	fmt.Fprintf(h, "shipper:%s|consignee:%s|notify:%s|notify2:%s|marks:%s|goods:%s|",
 		derefStr(mbl.ShipperText), derefStr(mbl.ConsigneeText), derefStr(mbl.NotifyPartyText),
 		derefStr(mbl.SecondNotifyPartyText), derefStr(mbl.MarksText), derefStr(mbl.GoodsDescriptionText))
 	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|",
 		derefInt(mbl.PackageCount), derefStr(mbl.PackageUnit), derefFloat(mbl.GrossWeightKg), derefFloat(mbl.VolumeCbm),
 		derefStr(mbl.FreightTerms), derefStr(mbl.TransportTerms), derefStr(mbl.BillForm), derefStr(mbl.ReleaseType), derefStr(mbl.Clauses))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func computeTransportExecutionContentHash(exec *ent.SeaTransportExecution) string {
+	h := sha256.New()
+	fmt.Fprintf(h, "shipping_line:%s|", exec.ShippingLineID)
+	var etdStr, etaStr string
+	if exec.Etd != nil {
+		etdStr = exec.Etd.Format(time.RFC3339)
+	}
+	if exec.Eta != nil {
+		etaStr = exec.Eta.Format(time.RFC3339)
+	}
+	fmt.Fprintf(h, "vessel:%s|voyage:%s|etd:%s|eta:%s|origin:%s|discharge:%s|transit:%s|",
+		exec.VesselName, exec.VoyageNo, etdStr, etaStr,
+		derefUUID(exec.OriginLocationID), derefUUID(exec.DischargeLocationID), derefUUID(exec.TransitLocationID))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -610,7 +614,11 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 			SetIdempotencyKey(idempotencyKey).
 			SetRequestFingerprint(fingerprint)
 		if seaSnapshot != nil {
-			recordCreate.SetMasterBillID(seaSnapshot.MasterBillID).SetMasterBillVersionID(seaSnapshot.MasterBillVersionID)
+			recordCreate.
+				SetMasterBillID(seaSnapshot.MasterBillID).
+				SetMasterBillVersionID(seaSnapshot.MasterBillVersionID).
+				SetTransportExecutionID(seaSnapshot.TransportExecutionID).
+				SetTransportExecutionVersionID(seaSnapshot.TransportExecutionVersionID)
 		}
 
 		rec, err := recordCreate.Save(ctx)

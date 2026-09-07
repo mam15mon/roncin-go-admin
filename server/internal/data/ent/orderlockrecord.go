@@ -16,6 +16,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -46,6 +48,10 @@ type OrderLockRecord struct {
 	MasterBillID *uuid.UUID `json:"master_bill_id,omitempty"`
 	// MasterBillVersionID holds the value of the "master_bill_version_id" field.
 	MasterBillVersionID *uuid.UUID `json:"master_bill_version_id,omitempty"`
+	// TransportExecutionID holds the value of the "transport_execution_id" field.
+	TransportExecutionID *uuid.UUID `json:"transport_execution_id,omitempty"`
+	// TransportExecutionVersionID holds the value of the "transport_execution_version_id" field.
+	TransportExecutionVersionID *uuid.UUID `json:"transport_execution_version_id,omitempty"`
 	// UnlockedBy holds the value of the "unlocked_by" field.
 	UnlockedBy *uuid.UUID `json:"unlocked_by,omitempty"`
 	// UnlockedAt holds the value of the "unlocked_at" field.
@@ -82,6 +88,10 @@ type OrderLockRecordEdges struct {
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
 	// MasterBillVersion holds the value of the master_bill_version edge.
 	MasterBillVersion *SeaMasterBillVersion `json:"master_bill_version,omitempty"`
+	// TransportExecution holds the value of the transport_execution edge.
+	TransportExecution *SeaTransportExecution `json:"transport_execution,omitempty"`
+	// TransportExecutionVersion holds the value of the transport_execution_version edge.
+	TransportExecutionVersion *SeaTransportExecutionVersion `json:"transport_execution_version,omitempty"`
 	// UnlockRequests holds the value of the unlock_requests edge.
 	UnlockRequests []*OrderUnlockRequest `json:"unlock_requests,omitempty"`
 	// AppliedUnlockRequest holds the value of the applied_unlock_request edge.
@@ -90,7 +100,7 @@ type OrderLockRecordEdges struct {
 	HouseBillSnapshots []*OrderLockHouseBillSnapshot `json:"house_bill_snapshots,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [11]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -159,10 +169,32 @@ func (e OrderLockRecordEdges) MasterBillVersionOrErr() (*SeaMasterBillVersion, e
 	return nil, &NotLoadedError{edge: "master_bill_version"}
 }
 
+// TransportExecutionOrErr returns the TransportExecution value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderLockRecordEdges) TransportExecutionOrErr() (*SeaTransportExecution, error) {
+	if e.TransportExecution != nil {
+		return e.TransportExecution, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: seatransportexecution.Label}
+	}
+	return nil, &NotLoadedError{edge: "transport_execution"}
+}
+
+// TransportExecutionVersionOrErr returns the TransportExecutionVersion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderLockRecordEdges) TransportExecutionVersionOrErr() (*SeaTransportExecutionVersion, error) {
+	if e.TransportExecutionVersion != nil {
+		return e.TransportExecutionVersion, nil
+	} else if e.loadedTypes[7] {
+		return nil, &NotFoundError{label: seatransportexecutionversion.Label}
+	}
+	return nil, &NotLoadedError{edge: "transport_execution_version"}
+}
+
 // UnlockRequestsOrErr returns the UnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderLockRecordEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[8] {
 		return e.UnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "unlock_requests"}
@@ -173,7 +205,7 @@ func (e OrderLockRecordEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, erro
 func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, error) {
 	if e.AppliedUnlockRequest != nil {
 		return e.AppliedUnlockRequest, nil
-	} else if e.loadedTypes[7] {
+	} else if e.loadedTypes[9] {
 		return nil, &NotFoundError{label: orderunlockrequest.Label}
 	}
 	return nil, &NotLoadedError{edge: "applied_unlock_request"}
@@ -182,7 +214,7 @@ func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, 
 // HouseBillSnapshotsOrErr returns the HouseBillSnapshots value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderLockRecordEdges) HouseBillSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[10] {
 		return e.HouseBillSnapshots, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bill_snapshots"}
@@ -193,7 +225,7 @@ func (*OrderLockRecord) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
+		case orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldTransportExecutionID, orderlockrecord.FieldTransportExecutionVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldOrderVersionAtUnlock:
 			values[i] = new(sql.NullInt64)
@@ -292,6 +324,20 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 				_m.MasterBillVersionID = new(uuid.UUID)
 				*_m.MasterBillVersionID = *value.S.(*uuid.UUID)
 			}
+		case orderlockrecord.FieldTransportExecutionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field transport_execution_id", values[i])
+			} else if value.Valid {
+				_m.TransportExecutionID = new(uuid.UUID)
+				*_m.TransportExecutionID = *value.S.(*uuid.UUID)
+			}
+		case orderlockrecord.FieldTransportExecutionVersionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field transport_execution_version_id", values[i])
+			} else if value.Valid {
+				_m.TransportExecutionVersionID = new(uuid.UUID)
+				*_m.TransportExecutionVersionID = *value.S.(*uuid.UUID)
+			}
 		case orderlockrecord.FieldUnlockedBy:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field unlocked_by", values[i])
@@ -389,6 +435,16 @@ func (_m *OrderLockRecord) QueryMasterBillVersion() *SeaMasterBillVersionQuery {
 	return NewOrderLockRecordClient(_m.config).QueryMasterBillVersion(_m)
 }
 
+// QueryTransportExecution queries the "transport_execution" edge of the OrderLockRecord entity.
+func (_m *OrderLockRecord) QueryTransportExecution() *SeaTransportExecutionQuery {
+	return NewOrderLockRecordClient(_m.config).QueryTransportExecution(_m)
+}
+
+// QueryTransportExecutionVersion queries the "transport_execution_version" edge of the OrderLockRecord entity.
+func (_m *OrderLockRecord) QueryTransportExecutionVersion() *SeaTransportExecutionVersionQuery {
+	return NewOrderLockRecordClient(_m.config).QueryTransportExecutionVersion(_m)
+}
+
 // QueryUnlockRequests queries the "unlock_requests" edge of the OrderLockRecord entity.
 func (_m *OrderLockRecord) QueryUnlockRequests() *OrderUnlockRequestQuery {
 	return NewOrderLockRecordClient(_m.config).QueryUnlockRequests(_m)
@@ -461,6 +517,16 @@ func (_m *OrderLockRecord) String() string {
 	builder.WriteString(", ")
 	if v := _m.MasterBillVersionID; v != nil {
 		builder.WriteString("master_bill_version_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TransportExecutionID; v != nil {
+		builder.WriteString("transport_execution_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TransportExecutionVersionID; v != nil {
+		builder.WriteString("transport_execution_version_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

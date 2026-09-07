@@ -45,6 +45,10 @@ func (SeaDocumentVoidEvent) Fields() []ent.Field {
 		field.UUID("created_by", uuid.Nil).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
 		field.String("request_fingerprint").NotEmpty().MaxLen(128).Immutable(),
+		field.String("confirmed_by_party").NotEmpty().MaxLen(128).Immutable(),
+		field.Time("confirmed_at").Immutable(),
+		field.String("confirmation_note").NotEmpty().MaxLen(500).Immutable(),
+		field.UUID("confirmation_attachment_id", uuid.Nil).Optional().Nillable().Immutable(),
 	}
 }
 
@@ -59,6 +63,7 @@ func (SeaDocumentVoidEvent) Edges() []ent.Edge {
 		edge.From("house_bill_version", SeaHouseBillVersion.Type).Ref("void_events").Field("house_bill_version_id").Unique().Immutable(),
 		edge.From("previous_house_bill_version", SeaHouseBillVersion.Type).Ref("previous_void_events").Field("previous_house_bill_version_id").Unique().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_document_void_events").Field("created_by").Unique().Required().Immutable(),
+		edge.From("confirmation_attachment", OrderAttachment.Type).Ref("sea_document_void_events").Field("confirmation_attachment_id").Unique().Immutable(),
 	}
 }
 

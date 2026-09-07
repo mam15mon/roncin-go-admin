@@ -59,10 +59,6 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		WithArgs(orderID, orgID).
 		WillReturnRows(orderRows(orderID, orgID))
 
-	mock.ExpectQuery(`SELECT "sea_master_bill_order_links"\."id"`).
-		WithArgs(orgID, orderID, "ACTIVE").
-		WillReturnRows(sqlmock.NewRows([]string{"id"}))
-
 	// Unique constraint error with Postgres constraint name
 	mock.ExpectExec(`INSERT INTO "order_containers"`).
 		WillReturnError(errors.New(`pq: duplicate key value violates unique constraint "ordercontainer_order_id_container_no"`))
@@ -136,9 +132,6 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 	mock.ExpectQuery(`SELECT "orders"\."id"`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(orderRows(orderID, orgID))
-	mock.ExpectQuery(`SELECT "sea_master_bill_order_links"\."id"`).
-		WithArgs(orgID, orderID, "ACTIVE").
-		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectExec(`INSERT INTO "order_containers"`).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectExec(`INSERT INTO "audit_logs"`).WillReturnError(errors.New("写入审计失败"))
 	mock.ExpectRollback()

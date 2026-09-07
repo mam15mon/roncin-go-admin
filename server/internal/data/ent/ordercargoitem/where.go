@@ -627,21 +627,21 @@ func HasOrderWith(preds ...predicate.Order) predicate.OrderCargoItem {
 	})
 }
 
-// HasCargoAllocations applies the HasEdge predicate on the "cargo_allocations" edge.
-func HasCargoAllocations() predicate.OrderCargoItem {
+// HasSharedContainerAllocations applies the HasEdge predicate on the "shared_container_allocations" edge.
+func HasSharedContainerAllocations() predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, SharedContainerAllocationsTable, SharedContainerAllocationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCargoAllocationsWith applies the HasEdge predicate on the "cargo_allocations" edge with a given conditions (other predicates).
-func HasCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.OrderCargoItem {
+// HasSharedContainerAllocationsWith applies the HasEdge predicate on the "shared_container_allocations" edge with a given conditions (other predicates).
+func HasSharedContainerAllocationsWith(preds ...predicate.SeaSharedContainerAllocation) predicate.OrderCargoItem {
 	return predicate.OrderCargoItem(func(s *sql.Selector) {
-		step := newCargoAllocationsStep()
+		step := newSharedContainerAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

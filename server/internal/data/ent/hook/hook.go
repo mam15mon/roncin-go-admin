@@ -1053,16 +1053,16 @@ func (f RoleOrderOrganizationAccessFunc) Mutate(ctx context.Context, m ent.Mutat
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleOrderOrganizationAccessMutation", m)
 }
 
-// The SeaCargoAllocationFunc type is an adapter to allow the use of ordinary
-// function as SeaCargoAllocation mutator.
-type SeaCargoAllocationFunc func(context.Context, *ent.SeaCargoAllocationMutation) (ent.Value, error)
+// The SeaDocumentModeChangeEventFunc type is an adapter to allow the use of ordinary
+// function as SeaDocumentModeChangeEvent mutator.
+type SeaDocumentModeChangeEventFunc func(context.Context, *ent.SeaDocumentModeChangeEventMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f SeaCargoAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SeaCargoAllocationMutation); ok {
+func (f SeaDocumentModeChangeEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaDocumentModeChangeEventMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaCargoAllocationMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaDocumentModeChangeEventMutation", m)
 }
 
 // The SeaDocumentVoidEventFunc type is an adapter to allow the use of ordinary
@@ -1087,18 +1087,6 @@ func (f SeaHouseBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaHouseBillMutation", m)
-}
-
-// The SeaHouseBillSwitchEventFunc type is an adapter to allow the use of ordinary
-// function as SeaHouseBillSwitchEvent mutator.
-type SeaHouseBillSwitchEventFunc func(context.Context, *ent.SeaHouseBillSwitchEventMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SeaHouseBillSwitchEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SeaHouseBillSwitchEventMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaHouseBillSwitchEventMutation", m)
 }
 
 // The SeaHouseBillVersionFunc type is an adapter to allow the use of ordinary
@@ -1185,6 +1173,30 @@ func (f SeaOrderSplitResultFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaOrderSplitResultMutation", m)
 }
 
+// The SeaSharedContainerFunc type is an adapter to allow the use of ordinary
+// function as SeaSharedContainer mutator.
+type SeaSharedContainerFunc func(context.Context, *ent.SeaSharedContainerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaSharedContainerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaSharedContainerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaSharedContainerMutation", m)
+}
+
+// The SeaSharedContainerAllocationFunc type is an adapter to allow the use of ordinary
+// function as SeaSharedContainerAllocation mutator.
+type SeaSharedContainerAllocationFunc func(context.Context, *ent.SeaSharedContainerAllocationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaSharedContainerAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaSharedContainerAllocationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaSharedContainerAllocationMutation", m)
+}
+
 // The SeaTransportExecutionFunc type is an adapter to allow the use of ordinary
 // function as SeaTransportExecution mutator.
 type SeaTransportExecutionFunc func(context.Context, *ent.SeaTransportExecutionMutation) (ent.Value, error)
@@ -1195,6 +1207,18 @@ func (f SeaTransportExecutionFunc) Mutate(ctx context.Context, m ent.Mutation) (
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaTransportExecutionMutation", m)
+}
+
+// The SeaTransportExecutionVersionFunc type is an adapter to allow the use of ordinary
+// function as SeaTransportExecutionVersion mutator.
+type SeaTransportExecutionVersionFunc func(context.Context, *ent.SeaTransportExecutionVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeaTransportExecutionVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SeaTransportExecutionVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeaTransportExecutionVersionMutation", m)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary

@@ -34,15 +34,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -908,6 +908,20 @@ func (_c *OrderCreate) SetNillableOrderDate(v *string) *OrderCreate {
 	return _c
 }
 
+// SetBookingNo sets the "booking_no" field.
+func (_c *OrderCreate) SetBookingNo(v string) *OrderCreate {
+	_c.mutation.SetBookingNo(v)
+	return _c
+}
+
+// SetNillableBookingNo sets the "booking_no" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableBookingNo(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetBookingNo(*v)
+	}
+	return _c
+}
+
 // SetNotes sets the "notes" field.
 func (_c *OrderCreate) SetNotes(v string) *OrderCreate {
 	_c.mutation.SetNotes(v)
@@ -1293,19 +1307,34 @@ func (_c *OrderCreate) AddSeaHouseBills(v ...*SeaHouseBill) *OrderCreate {
 	return _c.AddSeaHouseBillIDs(ids...)
 }
 
-// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_c *OrderCreate) AddSeaCargoAllocationIDs(ids ...uuid.UUID) *OrderCreate {
-	_c.mutation.AddSeaCargoAllocationIDs(ids...)
+// AddSeaDocumentModeChangeEventIDs adds the "sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *OrderCreate) AddSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaDocumentModeChangeEventIDs(ids...)
 	return _c
 }
 
-// AddSeaCargoAllocations adds the "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_c *OrderCreate) AddSeaCargoAllocations(v ...*SeaCargoAllocation) *OrderCreate {
+// AddSeaDocumentModeChangeEvents adds the "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *OrderCreate) AddSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddSeaCargoAllocationIDs(ids...)
+	return _c.AddSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddSeaSharedContainerAllocationIDs adds the "sea_shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_c *OrderCreate) AddSeaSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaSharedContainerAllocationIDs(ids...)
+	return _c
+}
+
+// AddSeaSharedContainerAllocations adds the "sea_shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_c *OrderCreate) AddSeaSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaSharedContainerAllocationIDs(ids...)
 }
 
 // AddSeaOrderSplitEventIDs adds the "sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
@@ -1430,21 +1459,6 @@ func (_c *OrderCreate) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *Ord
 		ids[i] = v[i].ID
 	}
 	return _c.AddSeaDocumentVoidEventIDs(ids...)
-}
-
-// AddSeaHouseBillSwitchEventIDs adds the "sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_c *OrderCreate) AddSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrderCreate {
-	_c.mutation.AddSeaHouseBillSwitchEventIDs(ids...)
-	return _c
-}
-
-// AddSeaHouseBillSwitchEvents adds the "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_c *OrderCreate) AddSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrderCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddSeaHouseBillSwitchEventIDs(ids...)
 }
 
 // Mutation returns the OrderMutation object of the builder.
@@ -1796,6 +1810,11 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "order_date", err: fmt.Errorf(`ent: validator failed for field "Order.order_date": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.BookingNo(); ok {
+		if err := order.BookingNoValidator(v); err != nil {
+			return &ValidationError{Name: "booking_no", err: fmt.Errorf(`ent: validator failed for field "Order.booking_no": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.Notes(); ok {
 		if err := order.NotesValidator(v); err != nil {
 			return &ValidationError{Name: "notes", err: fmt.Errorf(`ent: validator failed for field "Order.notes": %w`, err)}
@@ -2100,6 +2119,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OrderDate(); ok {
 		_spec.SetField(order.FieldOrderDate, field.TypeString, value)
 		_node.OrderDate = value
+	}
+	if value, ok := _c.mutation.BookingNo(); ok {
+		_spec.SetField(order.FieldBookingNo, field.TypeString, value)
+		_node.BookingNo = value
 	}
 	if value, ok := _c.mutation.Notes(); ok {
 		_spec.SetField(order.FieldNotes, field.TypeString, value)
@@ -2488,15 +2511,31 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.SeaCargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   order.SeaCargoAllocationsTable,
-			Columns: []string{order.SeaCargoAllocationsColumn},
+			Table:   order.SeaDocumentModeChangeEventsTable,
+			Columns: []string{order.SeaDocumentModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaSharedContainerAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaSharedContainerAllocationsTable,
+			Columns: []string{order.SeaSharedContainerAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2626,22 +2665,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.SeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.SeaHouseBillSwitchEventsTable,
-			Columns: []string{order.SeaHouseBillSwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -39,6 +39,25 @@
 
 - 本次规划前已对本地开发库核对：SE Order、MBL、Link、HBL、SeaCargoAllocation、MBL/HBL
   Version、Split/Reassignment/Switch 事件均为 0 行。
+- 实施前只读数据库审计（2026-09-07）：
+  | 表 / 查询条件 | 行数 |
+  | --- | ---: |
+  | orders (business_type = 'SE') | 0 |
+  | sea_master_bills | 0 |
+  | sea_master_bill_versions | 0 |
+  | sea_master_bill_order_links | 0 |
+  | sea_house_bills | 0 |
+  | sea_house_bill_versions | 0 |
+  | sea_house_bill_switch_events | 0 |
+  | sea_cargo_allocations | 0 |
+  | sea_transport_executions | 0 |
+  | sea_order_split_events | 0 |
+  | sea_order_split_results | 0 |
+  | sea_order_reassignment_events | 0 |
+  | sea_document_void_events | 0 |
+  | order_release_pods (sea_mbl/hbl) | 0 |
+  | order_lock_records (sea_mbl/v) | 0 |
+  | order_lock_house_bill_snapshots | 0 |
 - 因此目标迁移采用“相关表任一非空则在 DDL 前失败”的明确策略，不设计自动折叠多 HBL、
   猜测 HOUSE/DIRECT、拆解旧分配或把旧 MBL 航次隐式搬到 Link。
 - 历史迁移文件保持不可变；新增一条增量迁移完成新表、字段、约束和旧 Switch/Allocation

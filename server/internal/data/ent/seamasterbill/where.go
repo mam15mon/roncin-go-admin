@@ -76,11 +76,6 @@ func ShippingLineID(v uuid.UUID) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// TransportExecutionID applies equality check predicate on the "transport_execution_id" field. It's identical to TransportExecutionIDEQ.
-func TransportExecutionID(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldEQ(FieldTransportExecutionID, v))
-}
-
 // MasterNo applies equality check predicate on the "master_no" field. It's identical to MasterNoEQ.
 func MasterNo(v string) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldMasterNo, v))
@@ -294,26 +289,6 @@ func ShippingLineIDIn(vs ...uuid.UUID) predicate.SeaMasterBill {
 // ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
 func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldNotIn(FieldShippingLineID, vs...))
-}
-
-// TransportExecutionIDEQ applies the EQ predicate on the "transport_execution_id" field.
-func TransportExecutionIDEQ(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldEQ(FieldTransportExecutionID, v))
-}
-
-// TransportExecutionIDNEQ applies the NEQ predicate on the "transport_execution_id" field.
-func TransportExecutionIDNEQ(v uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldNEQ(FieldTransportExecutionID, v))
-}
-
-// TransportExecutionIDIn applies the In predicate on the "transport_execution_id" field.
-func TransportExecutionIDIn(vs ...uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldIn(FieldTransportExecutionID, vs...))
-}
-
-// TransportExecutionIDNotIn applies the NotIn predicate on the "transport_execution_id" field.
-func TransportExecutionIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(sql.FieldNotIn(FieldTransportExecutionID, vs...))
 }
 
 // MasterNoEQ applies the EQ predicate on the "master_no" field.
@@ -1632,29 +1607,6 @@ func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaMasterBil
 	})
 }
 
-// HasTransportExecution applies the HasEdge predicate on the "transport_execution" edge.
-func HasTransportExecution() predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTransportExecutionWith applies the HasEdge predicate on the "transport_execution" edge with a given conditions (other predicates).
-func HasTransportExecutionWith(preds ...predicate.SeaTransportExecution) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(func(s *sql.Selector) {
-		step := newTransportExecutionStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasOrderLinks applies the HasEdge predicate on the "order_links" edge.
 func HasOrderLinks() predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
@@ -1900,29 +1852,6 @@ func HasVoidEvents() predicate.SeaMasterBill {
 func HasVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
 		step := newVoidEventsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasSwitchEvents applies the HasEdge predicate on the "switch_events" edge.
-func HasSwitchEvents() predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SwitchEventsTable, SwitchEventsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasSwitchEventsWith applies the HasEdge predicate on the "switch_events" edge with a given conditions (other predicates).
-func HasSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaMasterBill {
-	return predicate.SeaMasterBill(func(s *sql.Selector) {
-		step := newSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

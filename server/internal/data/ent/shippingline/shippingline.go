@@ -50,6 +50,8 @@ const (
 	EdgeOrders = "orders"
 	// EdgeSeaTransportExecutions holds the string denoting the sea_transport_executions edge name in mutations.
 	EdgeSeaTransportExecutions = "sea_transport_executions"
+	// EdgeSeaTransportExecutionVersions holds the string denoting the sea_transport_execution_versions edge name in mutations.
+	EdgeSeaTransportExecutionVersions = "sea_transport_execution_versions"
 	// EdgeSeaMasterBills holds the string denoting the sea_master_bills edge name in mutations.
 	EdgeSeaMasterBills = "sea_master_bills"
 	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
@@ -84,6 +86,13 @@ const (
 	SeaTransportExecutionsInverseTable = "sea_transport_executions"
 	// SeaTransportExecutionsColumn is the table column denoting the sea_transport_executions relation/edge.
 	SeaTransportExecutionsColumn = "shipping_line_id"
+	// SeaTransportExecutionVersionsTable is the table that holds the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	SeaTransportExecutionVersionsInverseTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsColumn is the table column denoting the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsColumn = "shipping_line_id"
 	// SeaMasterBillsTable is the table that holds the sea_master_bills relation/edge.
 	SeaMasterBillsTable = "sea_master_bills"
 	// SeaMasterBillsInverseTable is the table name for the SeaMasterBill entity.
@@ -289,6 +298,20 @@ func BySeaTransportExecutions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 	}
 }
 
+// BySeaTransportExecutionVersionsCount orders the results by sea_transport_execution_versions count.
+func BySeaTransportExecutionVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionVersionsStep(), opts...)
+	}
+}
+
+// BySeaTransportExecutionVersions orders the results by sea_transport_execution_versions terms.
+func BySeaTransportExecutionVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // BySeaMasterBillsCount orders the results by sea_master_bills count.
 func BySeaMasterBillsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -342,6 +365,13 @@ func newSeaTransportExecutionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaTransportExecutionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionsTable, SeaTransportExecutionsColumn),
+	)
+}
+func newSeaTransportExecutionVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaTransportExecutionVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
 	)
 }
 func newSeaMasterBillsStep() *sqlgraph.Step {

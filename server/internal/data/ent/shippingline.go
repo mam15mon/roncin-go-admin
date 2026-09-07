@@ -61,13 +61,15 @@ type ShippingLineEdges struct {
 	Orders []*Order `json:"orders,omitempty"`
 	// SeaTransportExecutions holds the value of the sea_transport_executions edge.
 	SeaTransportExecutions []*SeaTransportExecution `json:"sea_transport_executions,omitempty"`
+	// SeaTransportExecutionVersions holds the value of the sea_transport_execution_versions edge.
+	SeaTransportExecutionVersions []*SeaTransportExecutionVersion `json:"sea_transport_execution_versions,omitempty"`
 	// SeaMasterBills holds the value of the sea_master_bills edge.
 	SeaMasterBills []*SeaMasterBill `json:"sea_master_bills,omitempty"`
 	// SeaMasterBillVersions holds the value of the sea_master_bill_versions edge.
 	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -108,10 +110,19 @@ func (e ShippingLineEdges) SeaTransportExecutionsOrErr() ([]*SeaTransportExecuti
 	return nil, &NotLoadedError{edge: "sea_transport_executions"}
 }
 
+// SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
+	if e.loadedTypes[4] {
+		return e.SeaTransportExecutionVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
+}
+
 // SeaMasterBillsOrErr returns the SeaMasterBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.SeaMasterBills, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bills"}
@@ -120,7 +131,7 @@ func (e ShippingLineEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
 // SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.SeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
@@ -273,6 +284,11 @@ func (_m *ShippingLine) QueryOrders() *OrderQuery {
 // QuerySeaTransportExecutions queries the "sea_transport_executions" edge of the ShippingLine entity.
 func (_m *ShippingLine) QuerySeaTransportExecutions() *SeaTransportExecutionQuery {
 	return NewShippingLineClient(_m.config).QuerySeaTransportExecutions(_m)
+}
+
+// QuerySeaTransportExecutionVersions queries the "sea_transport_execution_versions" edge of the ShippingLine entity.
+func (_m *ShippingLine) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	return NewShippingLineClient(_m.config).QuerySeaTransportExecutionVersions(_m)
 }
 
 // QuerySeaMasterBills queries the "sea_master_bills" edge of the ShippingLine entity.

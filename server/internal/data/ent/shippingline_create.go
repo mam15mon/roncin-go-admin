@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 )
@@ -231,6 +232,21 @@ func (_c *ShippingLineCreate) AddSeaTransportExecutions(v ...*SeaTransportExecut
 		ids[i] = v[i].ID
 	}
 	return _c.AddSeaTransportExecutionIDs(ids...)
+}
+
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *ShippingLineCreate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *ShippingLineCreate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaTransportExecutionVersionIDs(ids...)
 }
 
 // AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
@@ -554,6 +570,22 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

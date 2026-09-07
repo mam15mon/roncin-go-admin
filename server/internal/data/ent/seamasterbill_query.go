@@ -20,14 +20,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -40,7 +38,6 @@ type SeaMasterBillQuery struct {
 	predicates                        []predicate.SeaMasterBill
 	withOrganization                  *OrganizationQuery
 	withShippingLine                  *ShippingLineQuery
-	withTransportExecution            *SeaTransportExecutionQuery
 	withOrderLinks                    *SeaMasterBillOrderLinkQuery
 	withHouseBills                    *SeaHouseBillQuery
 	withInitialSeaOrderSplitResults   *SeaOrderSplitResultQuery
@@ -52,7 +49,6 @@ type SeaMasterBillQuery struct {
 	withHouseBillVersions             *SeaHouseBillVersionQuery
 	withLockRecords                   *OrderLockRecordQuery
 	withVoidEvents                    *SeaDocumentVoidEventQuery
-	withSwitchEvents                  *SeaHouseBillSwitchEventQuery
 	withReleasePods                   *OrderReleasePodQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -128,28 +124,6 @@ func (_q *SeaMasterBillQuery) QueryShippingLine() *ShippingLineQuery {
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
 			sqlgraph.To(shippingline.Table, shippingline.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.ShippingLineTable, seamasterbill.ShippingLineColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryTransportExecution chains the current query on the "transport_execution" edge.
-func (_q *SeaMasterBillQuery) QueryTransportExecution() *SeaTransportExecutionQuery {
-	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
-			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.TransportExecutionTable, seamasterbill.TransportExecutionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -399,28 +373,6 @@ func (_q *SeaMasterBillQuery) QueryVoidEvents() *SeaDocumentVoidEventQuery {
 	return query
 }
 
-// QuerySwitchEvents chains the current query on the "switch_events" edge.
-func (_q *SeaMasterBillQuery) QuerySwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.SwitchEventsTable, seamasterbill.SwitchEventsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryReleasePods chains the current query on the "release_pods" edge.
 func (_q *SeaMasterBillQuery) QueryReleasePods() *OrderReleasePodQuery {
 	query := (&OrderReleasePodClient{config: _q.config}).Query()
@@ -637,7 +589,6 @@ func (_q *SeaMasterBillQuery) Clone() *SeaMasterBillQuery {
 		predicates:                        append([]predicate.SeaMasterBill{}, _q.predicates...),
 		withOrganization:                  _q.withOrganization.Clone(),
 		withShippingLine:                  _q.withShippingLine.Clone(),
-		withTransportExecution:            _q.withTransportExecution.Clone(),
 		withOrderLinks:                    _q.withOrderLinks.Clone(),
 		withHouseBills:                    _q.withHouseBills.Clone(),
 		withInitialSeaOrderSplitResults:   _q.withInitialSeaOrderSplitResults.Clone(),
@@ -649,7 +600,6 @@ func (_q *SeaMasterBillQuery) Clone() *SeaMasterBillQuery {
 		withHouseBillVersions:             _q.withHouseBillVersions.Clone(),
 		withLockRecords:                   _q.withLockRecords.Clone(),
 		withVoidEvents:                    _q.withVoidEvents.Clone(),
-		withSwitchEvents:                  _q.withSwitchEvents.Clone(),
 		withReleasePods:                   _q.withReleasePods.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -676,17 +626,6 @@ func (_q *SeaMasterBillQuery) WithShippingLine(opts ...func(*ShippingLineQuery))
 		opt(query)
 	}
 	_q.withShippingLine = query
-	return _q
-}
-
-// WithTransportExecution tells the query-builder to eager-load the nodes that are connected to
-// the "transport_execution" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaMasterBillQuery) WithTransportExecution(opts ...func(*SeaTransportExecutionQuery)) *SeaMasterBillQuery {
-	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withTransportExecution = query
 	return _q
 }
 
@@ -811,17 +750,6 @@ func (_q *SeaMasterBillQuery) WithVoidEvents(opts ...func(*SeaDocumentVoidEventQ
 	return _q
 }
 
-// WithSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaMasterBillQuery) WithSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *SeaMasterBillQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withSwitchEvents = query
-	return _q
-}
-
 // WithReleasePods tells the query-builder to eager-load the nodes that are connected to
 // the "release_pods" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *SeaMasterBillQuery) WithReleasePods(opts ...func(*OrderReleasePodQuery)) *SeaMasterBillQuery {
@@ -911,10 +839,9 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*SeaMasterBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [16]bool{
+		loadedTypes = [14]bool{
 			_q.withOrganization != nil,
 			_q.withShippingLine != nil,
-			_q.withTransportExecution != nil,
 			_q.withOrderLinks != nil,
 			_q.withHouseBills != nil,
 			_q.withInitialSeaOrderSplitResults != nil,
@@ -926,7 +853,6 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			_q.withHouseBillVersions != nil,
 			_q.withLockRecords != nil,
 			_q.withVoidEvents != nil,
-			_q.withSwitchEvents != nil,
 			_q.withReleasePods != nil,
 		}
 	)
@@ -960,12 +886,6 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if query := _q.withShippingLine; query != nil {
 		if err := _q.loadShippingLine(ctx, query, nodes, nil,
 			func(n *SeaMasterBill, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withTransportExecution; query != nil {
-		if err := _q.loadTransportExecution(ctx, query, nodes, nil,
-			func(n *SeaMasterBill, e *SeaTransportExecution) { n.Edges.TransportExecution = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1055,15 +975,6 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			return nil, err
 		}
 	}
-	if query := _q.withSwitchEvents; query != nil {
-		if err := _q.loadSwitchEvents(ctx, query, nodes,
-			func(n *SeaMasterBill) { n.Edges.SwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *SeaMasterBill, e *SeaHouseBillSwitchEvent) {
-				n.Edges.SwitchEvents = append(n.Edges.SwitchEvents, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withReleasePods; query != nil {
 		if err := _q.loadReleasePods(ctx, query, nodes,
 			func(n *SeaMasterBill) { n.Edges.ReleasePods = []*OrderReleasePod{} },
@@ -1125,35 +1036,6 @@ func (_q *SeaMasterBillQuery) loadShippingLine(ctx context.Context, query *Shipp
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *SeaMasterBillQuery) loadTransportExecution(ctx context.Context, query *SeaTransportExecutionQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaTransportExecution)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*SeaMasterBill)
-	for i := range nodes {
-		fk := nodes[i].TransportExecutionID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(seatransportexecution.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "transport_execution_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -1499,36 +1381,6 @@ func (_q *SeaMasterBillQuery) loadVoidEvents(ctx context.Context, query *SeaDocu
 	}
 	return nil
 }
-func (_q *SeaMasterBillQuery) loadSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaHouseBillSwitchEvent)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*SeaMasterBill)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldMasterBillID)
-	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(seamasterbill.SwitchEventsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.MasterBillID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (_q *SeaMasterBillQuery) loadReleasePods(ctx context.Context, query *OrderReleasePodQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *OrderReleasePod)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaMasterBill)
@@ -1596,9 +1448,6 @@ func (_q *SeaMasterBillQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withShippingLine != nil {
 			_spec.Node.AddColumnOnce(seamasterbill.FieldShippingLineID)
-		}
-		if _q.withTransportExecution != nil {
-			_spec.Node.AddColumnOnce(seamasterbill.FieldTransportExecutionID)
 		}
 		if _q.withCurrentVersion != nil {
 			_spec.Node.AddColumnOnce(seamasterbill.FieldCurrentVersionID)

@@ -28,11 +28,11 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 		}).
 		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
 			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
+				WithTransportExecution().
 				WithMasterBill(func(mq *ent.SeaMasterBillQuery) {
-					mq.WithTransportExecution().
-						WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
-							lq.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
-						})
+					mq.WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
+						lq.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
+					})
 				})
 		})
 }
@@ -104,8 +104,8 @@ func orderToBiz(item *ent.Order) *biz.Order {
 				Version:        mbl.Version,
 				MemberCount:    len(mbl.Edges.OrderLinks),
 			}
-			if mbl.Edges.TransportExecution != nil {
-				te := mbl.Edges.TransportExecution
+			if activeLink.Edges.TransportExecution != nil {
+				te := activeLink.Edges.TransportExecution
 				summary.TransportExecutionID = te.ID
 				summary.OriginLocationID = te.OriginLocationID
 				summary.DischargeLocationID = te.DischargeLocationID

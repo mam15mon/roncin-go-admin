@@ -84,8 +84,8 @@ const (
 	EdgeIssuerOrganization = "issuer_organization"
 	// EdgeIssuerPartner holds the string denoting the issuer_partner edge name in mutations.
 	EdgeIssuerPartner = "issuer_partner"
-	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
-	EdgeCargoAllocations = "cargo_allocations"
+	// EdgeSharedContainerAllocations holds the string denoting the shared_container_allocations edge name in mutations.
+	EdgeSharedContainerAllocations = "shared_container_allocations"
 	// EdgeCurrentVersion holds the string denoting the current_version edge name in mutations.
 	EdgeCurrentVersion = "current_version"
 	// EdgeVersions holds the string denoting the versions edge name in mutations.
@@ -94,10 +94,10 @@ const (
 	EdgeLockSnapshots = "lock_snapshots"
 	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
 	EdgeVoidEvents = "void_events"
-	// EdgeOldSwitchEvents holds the string denoting the old_switch_events edge name in mutations.
-	EdgeOldSwitchEvents = "old_switch_events"
-	// EdgeNewSwitchEvents holds the string denoting the new_switch_events edge name in mutations.
-	EdgeNewSwitchEvents = "new_switch_events"
+	// EdgePreviousModeChangeEvents holds the string denoting the previous_mode_change_events edge name in mutations.
+	EdgePreviousModeChangeEvents = "previous_mode_change_events"
+	// EdgeTargetModeChangeEvents holds the string denoting the target_mode_change_events edge name in mutations.
+	EdgeTargetModeChangeEvents = "target_mode_change_events"
 	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
 	EdgeReleasePods = "release_pods"
 	// Table holds the table name of the seahousebill in the database.
@@ -137,13 +137,13 @@ const (
 	IssuerPartnerInverseTable = "partners"
 	// IssuerPartnerColumn is the table column denoting the issuer_partner relation/edge.
 	IssuerPartnerColumn = "issuer_partner_id"
-	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
-	CargoAllocationsTable = "sea_cargo_allocations"
-	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	CargoAllocationsInverseTable = "sea_cargo_allocations"
-	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
-	CargoAllocationsColumn = "house_bill_id"
+	// SharedContainerAllocationsTable is the table that holds the shared_container_allocations relation/edge.
+	SharedContainerAllocationsTable = "sea_shared_container_allocations"
+	// SharedContainerAllocationsInverseTable is the table name for the SeaSharedContainerAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainerallocation" package.
+	SharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
+	// SharedContainerAllocationsColumn is the table column denoting the shared_container_allocations relation/edge.
+	SharedContainerAllocationsColumn = "house_bill_id"
 	// CurrentVersionTable is the table that holds the current_version relation/edge.
 	CurrentVersionTable = "sea_house_bills"
 	// CurrentVersionInverseTable is the table name for the SeaHouseBillVersion entity.
@@ -172,20 +172,20 @@ const (
 	VoidEventsInverseTable = "sea_document_void_events"
 	// VoidEventsColumn is the table column denoting the void_events relation/edge.
 	VoidEventsColumn = "house_bill_id"
-	// OldSwitchEventsTable is the table that holds the old_switch_events relation/edge.
-	OldSwitchEventsTable = "sea_house_bill_switch_events"
-	// OldSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	OldSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// OldSwitchEventsColumn is the table column denoting the old_switch_events relation/edge.
-	OldSwitchEventsColumn = "old_house_bill_id"
-	// NewSwitchEventsTable is the table that holds the new_switch_events relation/edge.
-	NewSwitchEventsTable = "sea_house_bill_switch_events"
-	// NewSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	NewSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// NewSwitchEventsColumn is the table column denoting the new_switch_events relation/edge.
-	NewSwitchEventsColumn = "new_house_bill_id"
+	// PreviousModeChangeEventsTable is the table that holds the previous_mode_change_events relation/edge.
+	PreviousModeChangeEventsTable = "sea_document_mode_change_events"
+	// PreviousModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	PreviousModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// PreviousModeChangeEventsColumn is the table column denoting the previous_mode_change_events relation/edge.
+	PreviousModeChangeEventsColumn = "previous_house_bill_id"
+	// TargetModeChangeEventsTable is the table that holds the target_mode_change_events relation/edge.
+	TargetModeChangeEventsTable = "sea_document_mode_change_events"
+	// TargetModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	TargetModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// TargetModeChangeEventsColumn is the table column denoting the target_mode_change_events relation/edge.
+	TargetModeChangeEventsColumn = "target_house_bill_id"
 	// ReleasePodsTable is the table that holds the release_pods relation/edge.
 	ReleasePodsTable = "order_release_pods"
 	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
@@ -310,7 +310,6 @@ const (
 	StatusCONFIRMED Status = "CONFIRMED"
 	StatusRELEASED  Status = "RELEASED"
 	StatusVOIDED    Status = "VOIDED"
-	StatusREPLACED  Status = "REPLACED"
 )
 
 func (s Status) String() string {
@@ -320,7 +319,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED, StatusVOIDED, StatusREPLACED:
+	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED, StatusVOIDED:
 		return nil
 	default:
 		return fmt.Errorf("seahousebill: invalid enum value for status field: %q", s)
@@ -515,17 +514,17 @@ func ByIssuerPartnerField(field string, opts ...sql.OrderTermOption) OrderOption
 	}
 }
 
-// ByCargoAllocationsCount orders the results by cargo_allocations count.
-func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySharedContainerAllocationsCount orders the results by shared_container_allocations count.
+func BySharedContainerAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSharedContainerAllocationsStep(), opts...)
 	}
 }
 
-// ByCargoAllocations orders the results by cargo_allocations terms.
-func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySharedContainerAllocations orders the results by shared_container_allocations terms.
+func BySharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -578,31 +577,31 @@ func ByVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByOldSwitchEventsCount orders the results by old_switch_events count.
-func ByOldSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPreviousModeChangeEventsCount orders the results by previous_mode_change_events count.
+func ByPreviousModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOldSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newPreviousModeChangeEventsStep(), opts...)
 	}
 }
 
-// ByOldSwitchEvents orders the results by old_switch_events terms.
-func ByOldSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPreviousModeChangeEvents orders the results by previous_mode_change_events terms.
+func ByPreviousModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOldSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPreviousModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByNewSwitchEventsCount orders the results by new_switch_events count.
-func ByNewSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTargetModeChangeEventsCount orders the results by target_mode_change_events count.
+func ByTargetModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newNewSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newTargetModeChangeEventsStep(), opts...)
 	}
 }
 
-// ByNewSwitchEvents orders the results by new_switch_events terms.
-func ByNewSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByTargetModeChangeEvents orders the results by target_mode_change_events terms.
+func ByTargetModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newNewSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTargetModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -654,11 +653,11 @@ func newIssuerPartnerStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, IssuerPartnerTable, IssuerPartnerColumn),
 	)
 }
-func newCargoAllocationsStep() *sqlgraph.Step {
+func newSharedContainerAllocationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+		sqlgraph.To(SharedContainerAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SharedContainerAllocationsTable, SharedContainerAllocationsColumn),
 	)
 }
 func newCurrentVersionStep() *sqlgraph.Step {
@@ -689,18 +688,18 @@ func newVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, VoidEventsTable, VoidEventsColumn),
 	)
 }
-func newOldSwitchEventsStep() *sqlgraph.Step {
+func newPreviousModeChangeEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OldSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OldSwitchEventsTable, OldSwitchEventsColumn),
+		sqlgraph.To(PreviousModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PreviousModeChangeEventsTable, PreviousModeChangeEventsColumn),
 	)
 }
-func newNewSwitchEventsStep() *sqlgraph.Step {
+func newTargetModeChangeEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(NewSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, NewSwitchEventsTable, NewSwitchEventsColumn),
+		sqlgraph.To(TargetModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TargetModeChangeEventsTable, TargetModeChangeEventsColumn),
 	)
 }
 func newReleasePodsStep() *sqlgraph.Step {

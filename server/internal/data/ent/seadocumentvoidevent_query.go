@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -40,6 +41,7 @@ type SeaDocumentVoidEventQuery struct {
 	withHouseBillVersion          *SeaHouseBillVersionQuery
 	withPreviousHouseBillVersion  *SeaHouseBillVersionQuery
 	withCreator                   *UserQuery
+	withConfirmationAttachment    *OrderAttachmentQuery
 	modifiers                     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -275,6 +277,28 @@ func (_q *SeaDocumentVoidEventQuery) QueryCreator() *UserQuery {
 	return query
 }
 
+// QueryConfirmationAttachment chains the current query on the "confirmation_attachment" edge.
+func (_q *SeaDocumentVoidEventQuery) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.ConfirmationAttachmentTable, seadocumentvoidevent.ConfirmationAttachmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first SeaDocumentVoidEvent entity from the query.
 // Returns a *NotFoundError when no SeaDocumentVoidEvent was found.
 func (_q *SeaDocumentVoidEventQuery) First(ctx context.Context) (*SeaDocumentVoidEvent, error) {
@@ -476,6 +500,7 @@ func (_q *SeaDocumentVoidEventQuery) Clone() *SeaDocumentVoidEventQuery {
 		withHouseBillVersion:          _q.withHouseBillVersion.Clone(),
 		withPreviousHouseBillVersion:  _q.withPreviousHouseBillVersion.Clone(),
 		withCreator:                   _q.withCreator.Clone(),
+		withConfirmationAttachment:    _q.withConfirmationAttachment.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -581,6 +606,17 @@ func (_q *SeaDocumentVoidEventQuery) WithCreator(opts ...func(*UserQuery)) *SeaD
 	return _q
 }
 
+// WithConfirmationAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "confirmation_attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaDocumentVoidEventQuery) WithConfirmationAttachment(opts ...func(*OrderAttachmentQuery)) *SeaDocumentVoidEventQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmationAttachment = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -659,7 +695,7 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*SeaDocumentVoidEvent{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withMasterBill != nil,
@@ -669,6 +705,7 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 			_q.withHouseBillVersion != nil,
 			_q.withPreviousHouseBillVersion != nil,
 			_q.withCreator != nil,
+			_q.withConfirmationAttachment != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -743,6 +780,12 @@ func (_q *SeaDocumentVoidEventQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
 			func(n *SeaDocumentVoidEvent, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmationAttachment; query != nil {
+		if err := _q.loadConfirmationAttachment(ctx, query, nodes, nil,
+			func(n *SeaDocumentVoidEvent, e *OrderAttachment) { n.Edges.ConfirmationAttachment = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1028,6 +1071,38 @@ func (_q *SeaDocumentVoidEventQuery) loadCreator(ctx context.Context, query *Use
 	}
 	return nil
 }
+func (_q *SeaDocumentVoidEventQuery) loadConfirmationAttachment(ctx context.Context, query *OrderAttachmentQuery, nodes []*SeaDocumentVoidEvent, init func(*SeaDocumentVoidEvent), assign func(*SeaDocumentVoidEvent, *OrderAttachment)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaDocumentVoidEvent)
+	for i := range nodes {
+		if nodes[i].ConfirmationAttachmentID == nil {
+			continue
+		}
+		fk := *nodes[i].ConfirmationAttachmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderattachment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "confirmation_attachment_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *SeaDocumentVoidEventQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -1083,6 +1158,9 @@ func (_q *SeaDocumentVoidEventQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldCreatedBy)
+		}
+		if _q.withConfirmationAttachment != nil {
+			_spec.Node.AddColumnOnce(seadocumentvoidevent.FieldConfirmationAttachmentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

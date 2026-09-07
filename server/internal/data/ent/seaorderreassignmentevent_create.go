@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -215,6 +216,38 @@ func (_c *SeaOrderReassignmentEventCreate) SetNillableCreatedBy(v *uuid.UUID) *S
 	return _c
 }
 
+// SetConfirmedByParty sets the "confirmed_by_party" field.
+func (_c *SeaOrderReassignmentEventCreate) SetConfirmedByParty(v string) *SeaOrderReassignmentEventCreate {
+	_c.mutation.SetConfirmedByParty(v)
+	return _c
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (_c *SeaOrderReassignmentEventCreate) SetConfirmedAt(v time.Time) *SeaOrderReassignmentEventCreate {
+	_c.mutation.SetConfirmedAt(v)
+	return _c
+}
+
+// SetConfirmationNote sets the "confirmation_note" field.
+func (_c *SeaOrderReassignmentEventCreate) SetConfirmationNote(v string) *SeaOrderReassignmentEventCreate {
+	_c.mutation.SetConfirmationNote(v)
+	return _c
+}
+
+// SetConfirmationAttachmentID sets the "confirmation_attachment_id" field.
+func (_c *SeaOrderReassignmentEventCreate) SetConfirmationAttachmentID(v uuid.UUID) *SeaOrderReassignmentEventCreate {
+	_c.mutation.SetConfirmationAttachmentID(v)
+	return _c
+}
+
+// SetNillableConfirmationAttachmentID sets the "confirmation_attachment_id" field if the given value is not nil.
+func (_c *SeaOrderReassignmentEventCreate) SetNillableConfirmationAttachmentID(v *uuid.UUID) *SeaOrderReassignmentEventCreate {
+	if v != nil {
+		_c.SetConfirmationAttachmentID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaOrderReassignmentEventCreate) SetID(v uuid.UUID) *SeaOrderReassignmentEventCreate {
 	_c.mutation.SetID(v)
@@ -281,6 +314,11 @@ func (_c *SeaOrderReassignmentEventCreate) SetNillableCreatorID(id *uuid.UUID) *
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *SeaOrderReassignmentEventCreate) SetCreator(v *User) *SeaOrderReassignmentEventCreate {
 	return _c.SetCreatorID(v.ID)
+}
+
+// SetConfirmationAttachment sets the "confirmation_attachment" edge to the OrderAttachment entity.
+func (_c *SeaOrderReassignmentEventCreate) SetConfirmationAttachment(v *OrderAttachment) *SeaOrderReassignmentEventCreate {
+	return _c.SetConfirmationAttachmentID(v.ID)
 }
 
 // Mutation returns the SeaOrderReassignmentEventMutation object of the builder.
@@ -414,6 +452,25 @@ func (_c *SeaOrderReassignmentEventCreate) check() error {
 	if _, ok := _c.mutation.AfterSnapshot(); !ok {
 		return &ValidationError{Name: "after_snapshot", err: errors.New(`ent: missing required field "SeaOrderReassignmentEvent.after_snapshot"`)}
 	}
+	if _, ok := _c.mutation.ConfirmedByParty(); !ok {
+		return &ValidationError{Name: "confirmed_by_party", err: errors.New(`ent: missing required field "SeaOrderReassignmentEvent.confirmed_by_party"`)}
+	}
+	if v, ok := _c.mutation.ConfirmedByParty(); ok {
+		if err := seaorderreassignmentevent.ConfirmedByPartyValidator(v); err != nil {
+			return &ValidationError{Name: "confirmed_by_party", err: fmt.Errorf(`ent: validator failed for field "SeaOrderReassignmentEvent.confirmed_by_party": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ConfirmedAt(); !ok {
+		return &ValidationError{Name: "confirmed_at", err: errors.New(`ent: missing required field "SeaOrderReassignmentEvent.confirmed_at"`)}
+	}
+	if _, ok := _c.mutation.ConfirmationNote(); !ok {
+		return &ValidationError{Name: "confirmation_note", err: errors.New(`ent: missing required field "SeaOrderReassignmentEvent.confirmation_note"`)}
+	}
+	if v, ok := _c.mutation.ConfirmationNote(); ok {
+		if err := seaorderreassignmentevent.ConfirmationNoteValidator(v); err != nil {
+			return &ValidationError{Name: "confirmation_note", err: fmt.Errorf(`ent: validator failed for field "SeaOrderReassignmentEvent.confirmation_note": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "SeaOrderReassignmentEvent.organization"`)}
 	}
@@ -520,6 +577,18 @@ func (_c *SeaOrderReassignmentEventCreate) createSpec() (*SeaOrderReassignmentEv
 	if value, ok := _c.mutation.AfterSnapshot(); ok {
 		_spec.SetField(seaorderreassignmentevent.FieldAfterSnapshot, field.TypeJSON, value)
 		_node.AfterSnapshot = value
+	}
+	if value, ok := _c.mutation.ConfirmedByParty(); ok {
+		_spec.SetField(seaorderreassignmentevent.FieldConfirmedByParty, field.TypeString, value)
+		_node.ConfirmedByParty = value
+	}
+	if value, ok := _c.mutation.ConfirmedAt(); ok {
+		_spec.SetField(seaorderreassignmentevent.FieldConfirmedAt, field.TypeTime, value)
+		_node.ConfirmedAt = value
+	}
+	if value, ok := _c.mutation.ConfirmationNote(); ok {
+		_spec.SetField(seaorderreassignmentevent.FieldConfirmationNote, field.TypeString, value)
+		_node.ConfirmationNote = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -655,6 +724,23 @@ func (_c *SeaOrderReassignmentEventCreate) createSpec() (*SeaOrderReassignmentEv
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CreatedBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmationAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seaorderreassignmentevent.ConfirmationAttachmentTable,
+			Columns: []string{seaorderreassignmentevent.ConfirmationAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ConfirmationAttachmentID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

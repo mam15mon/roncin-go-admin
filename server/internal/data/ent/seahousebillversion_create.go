@@ -12,12 +12,13 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -210,6 +211,62 @@ func (_c *SeaHouseBillVersionCreate) SetRequestFingerprint(v string) *SeaHouseBi
 func (_c *SeaHouseBillVersionCreate) SetNillableRequestFingerprint(v *string) *SeaHouseBillVersionCreate {
 	if v != nil {
 		_c.SetRequestFingerprint(*v)
+	}
+	return _c
+}
+
+// SetConfirmedByParty sets the "confirmed_by_party" field.
+func (_c *SeaHouseBillVersionCreate) SetConfirmedByParty(v string) *SeaHouseBillVersionCreate {
+	_c.mutation.SetConfirmedByParty(v)
+	return _c
+}
+
+// SetNillableConfirmedByParty sets the "confirmed_by_party" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableConfirmedByParty(v *string) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmedByParty(*v)
+	}
+	return _c
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (_c *SeaHouseBillVersionCreate) SetConfirmedAt(v time.Time) *SeaHouseBillVersionCreate {
+	_c.mutation.SetConfirmedAt(v)
+	return _c
+}
+
+// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableConfirmedAt(v *time.Time) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmedAt(*v)
+	}
+	return _c
+}
+
+// SetConfirmationNote sets the "confirmation_note" field.
+func (_c *SeaHouseBillVersionCreate) SetConfirmationNote(v string) *SeaHouseBillVersionCreate {
+	_c.mutation.SetConfirmationNote(v)
+	return _c
+}
+
+// SetNillableConfirmationNote sets the "confirmation_note" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableConfirmationNote(v *string) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmationNote(*v)
+	}
+	return _c
+}
+
+// SetConfirmationAttachmentID sets the "confirmation_attachment_id" field.
+func (_c *SeaHouseBillVersionCreate) SetConfirmationAttachmentID(v uuid.UUID) *SeaHouseBillVersionCreate {
+	_c.mutation.SetConfirmationAttachmentID(v)
+	return _c
+}
+
+// SetNillableConfirmationAttachmentID sets the "confirmation_attachment_id" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableConfirmationAttachmentID(v *uuid.UUID) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmationAttachmentID(*v)
 	}
 	return _c
 }
@@ -487,6 +544,11 @@ func (_c *SeaHouseBillVersionCreate) SetCreator(v *User) *SeaHouseBillVersionCre
 	return _c.SetCreatorID(v.ID)
 }
 
+// SetConfirmationAttachment sets the "confirmation_attachment" edge to the OrderAttachment entity.
+func (_c *SeaHouseBillVersionCreate) SetConfirmationAttachment(v *OrderAttachment) *SeaHouseBillVersionCreate {
+	return _c.SetConfirmationAttachmentID(v.ID)
+}
+
 // AddLockSnapshotIDs adds the "lock_snapshots" edge to the OrderLockHouseBillSnapshot entity by IDs.
 func (_c *SeaHouseBillVersionCreate) AddLockSnapshotIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
 	_c.mutation.AddLockSnapshotIDs(ids...)
@@ -532,34 +594,34 @@ func (_c *SeaHouseBillVersionCreate) AddPreviousVoidEvents(v ...*SeaDocumentVoid
 	return _c.AddPreviousVoidEventIDs(ids...)
 }
 
-// AddOldSwitchEventIDs adds the "old_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_c *SeaHouseBillVersionCreate) AddOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
-	_c.mutation.AddOldSwitchEventIDs(ids...)
+// AddPreviousModeChangeEventIDs adds the "previous_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *SeaHouseBillVersionCreate) AddPreviousModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
+	_c.mutation.AddPreviousModeChangeEventIDs(ids...)
 	return _c
 }
 
-// AddOldSwitchEvents adds the "old_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_c *SeaHouseBillVersionCreate) AddOldSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillVersionCreate {
+// AddPreviousModeChangeEvents adds the "previous_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *SeaHouseBillVersionCreate) AddPreviousModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillVersionCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddOldSwitchEventIDs(ids...)
+	return _c.AddPreviousModeChangeEventIDs(ids...)
 }
 
-// AddNewSwitchEventIDs adds the "new_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_c *SeaHouseBillVersionCreate) AddNewSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
-	_c.mutation.AddNewSwitchEventIDs(ids...)
+// AddTargetModeChangeEventIDs adds the "target_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *SeaHouseBillVersionCreate) AddTargetModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillVersionCreate {
+	_c.mutation.AddTargetModeChangeEventIDs(ids...)
 	return _c
 }
 
-// AddNewSwitchEvents adds the "new_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_c *SeaHouseBillVersionCreate) AddNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillVersionCreate {
+// AddTargetModeChangeEvents adds the "target_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *SeaHouseBillVersionCreate) AddTargetModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillVersionCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddNewSwitchEventIDs(ids...)
+	return _c.AddTargetModeChangeEventIDs(ids...)
 }
 
 // Mutation returns the SeaHouseBillVersionMutation object of the builder.
@@ -696,6 +758,16 @@ func (_c *SeaHouseBillVersionCreate) check() error {
 	if v, ok := _c.mutation.RequestFingerprint(); ok {
 		if err := seahousebillversion.RequestFingerprintValidator(v); err != nil {
 			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.request_fingerprint": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ConfirmedByParty(); ok {
+		if err := seahousebillversion.ConfirmedByPartyValidator(v); err != nil {
+			return &ValidationError{Name: "confirmed_by_party", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.confirmed_by_party": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ConfirmationNote(); ok {
+		if err := seahousebillversion.ConfirmationNoteValidator(v); err != nil {
+			return &ValidationError{Name: "confirmation_note", err: fmt.Errorf(`ent: validator failed for field "SeaHouseBillVersion.confirmation_note": %w`, err)}
 		}
 	}
 	if v, ok := _c.mutation.PackageCount(); ok {
@@ -836,6 +908,18 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 	if value, ok := _c.mutation.RequestFingerprint(); ok {
 		_spec.SetField(seahousebillversion.FieldRequestFingerprint, field.TypeString, value)
 		_node.RequestFingerprint = &value
+	}
+	if value, ok := _c.mutation.ConfirmedByParty(); ok {
+		_spec.SetField(seahousebillversion.FieldConfirmedByParty, field.TypeString, value)
+		_node.ConfirmedByParty = &value
+	}
+	if value, ok := _c.mutation.ConfirmedAt(); ok {
+		_spec.SetField(seahousebillversion.FieldConfirmedAt, field.TypeTime, value)
+		_node.ConfirmedAt = &value
+	}
+	if value, ok := _c.mutation.ConfirmationNote(); ok {
+		_spec.SetField(seahousebillversion.FieldConfirmationNote, field.TypeString, value)
+		_node.ConfirmationNote = &value
 	}
 	if value, ok := _c.mutation.ShipperText(); ok {
 		_spec.SetField(seahousebillversion.FieldShipperText, field.TypeString, value)
@@ -1016,6 +1100,23 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 		_node.CreatedBy = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.ConfirmationAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seahousebillversion.ConfirmationAttachmentTable,
+			Columns: []string{seahousebillversion.ConfirmationAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ConfirmationAttachmentID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.LockSnapshotsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1064,15 +1165,15 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.OldSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PreviousModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebillversion.OldSwitchEventsTable,
-			Columns: []string{seahousebillversion.OldSwitchEventsColumn},
+			Table:   seahousebillversion.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebillversion.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1080,15 +1181,15 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.NewSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.TargetModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebillversion.NewSwitchEventsTable,
-			Columns: []string{seahousebillversion.NewSwitchEventsColumn},
+			Table:   seahousebillversion.TargetModeChangeEventsTable,
+			Columns: []string{seahousebillversion.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

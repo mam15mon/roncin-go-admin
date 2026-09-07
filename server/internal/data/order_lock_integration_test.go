@@ -282,7 +282,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).
 		SetShippingLineID(carrier.ID).
-		SetTransportExecutionID(exec.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetPackageCount(pkgCount).
 		SetGrossWeightKg(gw).
@@ -324,9 +323,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetOrderID(orderA.ID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(exec.ID).
 		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-		SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-		SetCargoAllocationVersion(1).
 		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 		SetVersion(1).
 		Save(ctx)
@@ -418,14 +416,17 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		return o
 	}
 
-	linkMBL := func(orderID uuid.UUID, mblID uuid.UUID, docStruct seamasterbillorderlinkent.DocumentStructure) *ent.SeaMasterBillOrderLink {
+	linkMBL := func(orderID uuid.UUID, mblID uuid.UUID, docStruct seamasterbillorderlinkent.DocumentStructure, customExecID ...uuid.UUID) *ent.SeaMasterBillOrderLink {
+		eID := exec.ID
+		if len(customExecID) > 0 && customExecID[0] != uuid.Nil {
+			eID = customExecID[0]
+		}
 		link, err := data.db.SeaMasterBillOrderLink.Create().
 			SetOrganizationID(org.ID).
 			SetOrderID(orderID).
 			SetMasterBillID(mblID).
+			SetTransportExecutionID(eID).
 			SetDocumentStructure(docStruct).
-			SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-			SetCargoAllocationVersion(1).
 			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 			SetVersion(1).
 			Save(ctx)
@@ -683,17 +684,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if mblVer.VersionNo != 1 || mblVer.ContentHash == "" {
 			t.Fatalf("MBL 版本字段异常: version_no=%d, hash=%s", mblVer.VersionNo, mblVer.ContentHash)
 		}
-		if mblVer.VesselVoyageSnapshot == nil || *mblVer.VesselVoyageSnapshot != "MAERSK MC-KINNEY MOLLER 2609W" {
-			t.Errorf("MBL 船名航次快照异常: %v", mblVer.VesselVoyageSnapshot)
-		}
-		if mblVer.ShippingLineID != routeShippingLineID ||
-			mblVer.OriginLocationID == nil || *mblVer.OriginLocationID != routeOriginID ||
-			mblVer.DischargeLocationID == nil || *mblVer.DischargeLocationID != routeDischargeID ||
-			mblVer.TransitLocationID == nil || *mblVer.TransitLocationID != routeTransitID ||
-			mblVer.Etd == nil || !mblVer.Etd.Equal(etd) || mblVer.Eta == nil || !mblVer.Eta.Equal(eta) {
-			t.Fatalf("MBL 权威航程快照不完整: %#v", mblVer)
-		}
-
 		// 检查 HBL 版本与快照
 		dbHbl, err := data.db.SeaHouseBill.Get(ctx, hblA.ID)
 		if err != nil {
@@ -723,6 +713,26 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		if record.MasterBillVersionID == nil || *record.MasterBillVersionID != mblVer.ID {
 			t.Errorf("锁定事实记录中的 MBL 版本 ID 不匹配")
+		}
+		if record.TransportExecutionID == nil || *record.TransportExecutionID != exec.ID {
+			t.Errorf("锁定事实记录中的 TE ID 不匹配")
+		}
+		if record.TransportExecutionVersionID == nil {
+			t.Fatal("锁定事实记录中的 TE 版本 ID 未设置")
+		}
+		teVer, err := data.db.SeaTransportExecutionVersion.Get(ctx, *record.TransportExecutionVersionID)
+		if err != nil {
+			t.Fatalf("读取 TE 版本失败: %v", err)
+		}
+		if teVer.VesselName != "MAERSK MC-KINNEY MOLLER" || teVer.VoyageNo != "2609W" {
+			t.Errorf("TE 船名航次快照异常: %s %s", teVer.VesselName, teVer.VoyageNo)
+		}
+		if teVer.ShippingLineID != routeShippingLineID ||
+			teVer.OriginLocationID == nil || *teVer.OriginLocationID != routeOriginID ||
+			teVer.DischargeLocationID == nil || *teVer.DischargeLocationID != routeDischargeID ||
+			teVer.TransitLocationID == nil || *teVer.TransitLocationID != routeTransitID ||
+			teVer.Etd == nil || !teVer.Etd.Equal(etd) || teVer.Eta == nil || !teVer.Eta.Equal(eta) {
+			t.Fatalf("TE 权威航程快照不完整: %#v", teVer)
 		}
 		if len(record.Edges.HouseBillSnapshots) != 1 {
 			t.Fatalf("期望 1 条 HBL 快照关联，实际得到: %d", len(record.Edges.HouseBillSnapshots))
@@ -841,9 +851,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			SetOrganizationID(org.ID).
 			SetOrderID(orderB.ID).
 			SetMasterBillID(mbl.ID).
+			SetTransportExecutionID(exec.ID).
 			SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-			SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-			SetCargoAllocationVersion(1).
 			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 			SetVersion(1).
 			Save(ctx)
@@ -1313,7 +1322,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		mblD, err := data.db.SeaMasterBill.Create().
 			SetOrganizationID(org.ID).
 			SetShippingLineID(routeShippingLineID).
-			SetTransportExecutionID(execD.ID).
 			SetMasterNo("MBL-D-" + suffix).
 			SetNormalizedMasterNo("MBL-D-" + suffix).
 			SetStatus(seamasterbillent.StatusDRAFT).
@@ -1324,7 +1332,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 
 		orderD := createSEOrder("SE-" + suffix + "-D")
-		linkMBL(orderD.ID, mblD.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		linkMBL(orderD.ID, mblD.ID, seamasterbillorderlinkent.DocumentStructureHOUSE, execD.ID)
 		hblD := createHBL(orderD.ID, mblD.ID, "HBL-D-"+suffix)
 
 		auditD := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}

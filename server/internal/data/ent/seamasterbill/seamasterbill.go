@@ -24,8 +24,6 @@ const (
 	FieldOrganizationID = "organization_id"
 	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
 	FieldShippingLineID = "shipping_line_id"
-	// FieldTransportExecutionID holds the string denoting the transport_execution_id field in the database.
-	FieldTransportExecutionID = "transport_execution_id"
 	// FieldMasterNo holds the string denoting the master_no field in the database.
 	FieldMasterNo = "master_no"
 	// FieldNormalizedMasterNo holds the string denoting the normalized_master_no field in the database.
@@ -70,8 +68,6 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
 	EdgeShippingLine = "shipping_line"
-	// EdgeTransportExecution holds the string denoting the transport_execution edge name in mutations.
-	EdgeTransportExecution = "transport_execution"
 	// EdgeOrderLinks holds the string denoting the order_links edge name in mutations.
 	EdgeOrderLinks = "order_links"
 	// EdgeHouseBills holds the string denoting the house_bills edge name in mutations.
@@ -94,8 +90,6 @@ const (
 	EdgeLockRecords = "lock_records"
 	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
 	EdgeVoidEvents = "void_events"
-	// EdgeSwitchEvents holds the string denoting the switch_events edge name in mutations.
-	EdgeSwitchEvents = "switch_events"
 	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
 	EdgeReleasePods = "release_pods"
 	// Table holds the table name of the seamasterbill in the database.
@@ -114,13 +108,6 @@ const (
 	ShippingLineInverseTable = "shipping_lines"
 	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
 	ShippingLineColumn = "shipping_line_id"
-	// TransportExecutionTable is the table that holds the transport_execution relation/edge.
-	TransportExecutionTable = "sea_master_bills"
-	// TransportExecutionInverseTable is the table name for the SeaTransportExecution entity.
-	// It exists in this package in order to avoid circular dependency with the "seatransportexecution" package.
-	TransportExecutionInverseTable = "sea_transport_executions"
-	// TransportExecutionColumn is the table column denoting the transport_execution relation/edge.
-	TransportExecutionColumn = "transport_execution_id"
 	// OrderLinksTable is the table that holds the order_links relation/edge.
 	OrderLinksTable = "sea_master_bill_order_links"
 	// OrderLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
@@ -198,13 +185,6 @@ const (
 	VoidEventsInverseTable = "sea_document_void_events"
 	// VoidEventsColumn is the table column denoting the void_events relation/edge.
 	VoidEventsColumn = "master_bill_id"
-	// SwitchEventsTable is the table that holds the switch_events relation/edge.
-	SwitchEventsTable = "sea_house_bill_switch_events"
-	// SwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	SwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// SwitchEventsColumn is the table column denoting the switch_events relation/edge.
-	SwitchEventsColumn = "master_bill_id"
 	// ReleasePodsTable is the table that holds the release_pods relation/edge.
 	ReleasePodsTable = "order_release_pods"
 	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
@@ -221,7 +201,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrganizationID,
 	FieldShippingLineID,
-	FieldTransportExecutionID,
 	FieldMasterNo,
 	FieldNormalizedMasterNo,
 	FieldStatus,
@@ -343,11 +322,6 @@ func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
-// ByTransportExecutionID orders the results by the transport_execution_id field.
-func ByTransportExecutionID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTransportExecutionID, opts...).ToFunc()
-}
-
 // ByMasterNo orders the results by the master_no field.
 func ByMasterNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMasterNo, opts...).ToFunc()
@@ -459,13 +433,6 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByTransportExecutionField orders the results by transport_execution field.
-func ByTransportExecutionField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTransportExecutionStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -616,20 +583,6 @@ func ByVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// BySwitchEventsCount orders the results by switch_events count.
-func BySwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSwitchEventsStep(), opts...)
-	}
-}
-
-// BySwitchEvents orders the results by switch_events terms.
-func BySwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByReleasePodsCount orders the results by release_pods count.
 func ByReleasePodsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -655,13 +608,6 @@ func newShippingLineStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShippingLineInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
-	)
-}
-func newTransportExecutionStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TransportExecutionInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
 	)
 }
 func newOrderLinksStep() *sqlgraph.Step {
@@ -739,13 +685,6 @@ func newVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VoidEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VoidEventsTable, VoidEventsColumn),
-	)
-}
-func newSwitchEventsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SwitchEventsTable, SwitchEventsColumn),
 	)
 }
 func newReleasePodsStep() *sqlgraph.Step {

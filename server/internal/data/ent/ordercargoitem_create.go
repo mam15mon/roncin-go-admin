@@ -14,7 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 )
 
 // OrderCargoItemCreate is the builder for creating a OrderCargoItem entity.
@@ -154,19 +154,19 @@ func (_c *OrderCargoItemCreate) SetOrder(v *Order) *OrderCargoItemCreate {
 	return _c.SetOrderID(v.ID)
 }
 
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_c *OrderCargoItemCreate) AddCargoAllocationIDs(ids ...uuid.UUID) *OrderCargoItemCreate {
-	_c.mutation.AddCargoAllocationIDs(ids...)
+// AddSharedContainerAllocationIDs adds the "shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_c *OrderCargoItemCreate) AddSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCargoItemCreate {
+	_c.mutation.AddSharedContainerAllocationIDs(ids...)
 	return _c
 }
 
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_c *OrderCargoItemCreate) AddCargoAllocations(v ...*SeaCargoAllocation) *OrderCargoItemCreate {
+// AddSharedContainerAllocations adds the "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_c *OrderCargoItemCreate) AddSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCargoItemCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddCargoAllocationIDs(ids...)
+	return _c.AddSharedContainerAllocationIDs(ids...)
 }
 
 // Mutation returns the OrderCargoItemMutation object of the builder.
@@ -392,15 +392,15 @@ func (_c *OrderCargoItemCreate) createSpec() (*OrderCargoItem, *sqlgraph.CreateS
 		_node.OrderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SharedContainerAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -903,6 +903,29 @@ func HasSeaTransportExecutionsWith(preds ...predicate.SeaTransportExecution) pre
 	})
 }
 
+// HasSeaTransportExecutionVersions applies the HasEdge predicate on the "sea_transport_execution_versions" edge.
+func HasSeaTransportExecutionVersions() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaTransportExecutionVersionsWith applies the HasEdge predicate on the "sea_transport_execution_versions" edge with a given conditions (other predicates).
+func HasSeaTransportExecutionVersionsWith(preds ...predicate.SeaTransportExecutionVersion) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newSeaTransportExecutionVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasSeaMasterBills applies the HasEdge predicate on the "sea_master_bills" edge.
 func HasSeaMasterBills() predicate.ShippingLine {
 	return predicate.ShippingLine(func(s *sql.Selector) {

@@ -186,14 +186,12 @@ type Tx struct {
 	RoleAssignment *RoleAssignmentClient
 	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
-	// SeaCargoAllocation is the client for interacting with the SeaCargoAllocation builders.
-	SeaCargoAllocation *SeaCargoAllocationClient
+	// SeaDocumentModeChangeEvent is the client for interacting with the SeaDocumentModeChangeEvent builders.
+	SeaDocumentModeChangeEvent *SeaDocumentModeChangeEventClient
 	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
 	SeaDocumentVoidEvent *SeaDocumentVoidEventClient
 	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
 	SeaHouseBill *SeaHouseBillClient
-	// SeaHouseBillSwitchEvent is the client for interacting with the SeaHouseBillSwitchEvent builders.
-	SeaHouseBillSwitchEvent *SeaHouseBillSwitchEventClient
 	// SeaHouseBillVersion is the client for interacting with the SeaHouseBillVersion builders.
 	SeaHouseBillVersion *SeaHouseBillVersionClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
@@ -208,8 +206,14 @@ type Tx struct {
 	SeaOrderSplitEvent *SeaOrderSplitEventClient
 	// SeaOrderSplitResult is the client for interacting with the SeaOrderSplitResult builders.
 	SeaOrderSplitResult *SeaOrderSplitResultClient
+	// SeaSharedContainer is the client for interacting with the SeaSharedContainer builders.
+	SeaSharedContainer *SeaSharedContainerClient
+	// SeaSharedContainerAllocation is the client for interacting with the SeaSharedContainerAllocation builders.
+	SeaSharedContainerAllocation *SeaSharedContainerAllocationClient
 	// SeaTransportExecution is the client for interacting with the SeaTransportExecution builders.
 	SeaTransportExecution *SeaTransportExecutionClient
+	// SeaTransportExecutionVersion is the client for interacting with the SeaTransportExecutionVersion builders.
+	SeaTransportExecutionVersion *SeaTransportExecutionVersionClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -438,10 +442,9 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
-	tx.SeaCargoAllocation = NewSeaCargoAllocationClient(tx.config)
+	tx.SeaDocumentModeChangeEvent = NewSeaDocumentModeChangeEventClient(tx.config)
 	tx.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(tx.config)
 	tx.SeaHouseBill = NewSeaHouseBillClient(tx.config)
-	tx.SeaHouseBillSwitchEvent = NewSeaHouseBillSwitchEventClient(tx.config)
 	tx.SeaHouseBillVersion = NewSeaHouseBillVersionClient(tx.config)
 	tx.SeaMasterBill = NewSeaMasterBillClient(tx.config)
 	tx.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(tx.config)
@@ -449,7 +452,10 @@ func (tx *Tx) init() {
 	tx.SeaOrderReassignmentEvent = NewSeaOrderReassignmentEventClient(tx.config)
 	tx.SeaOrderSplitEvent = NewSeaOrderSplitEventClient(tx.config)
 	tx.SeaOrderSplitResult = NewSeaOrderSplitResultClient(tx.config)
+	tx.SeaSharedContainer = NewSeaSharedContainerClient(tx.config)
+	tx.SeaSharedContainerAllocation = NewSeaSharedContainerAllocationClient(tx.config)
 	tx.SeaTransportExecution = NewSeaTransportExecutionClient(tx.config)
+	tx.SeaTransportExecutionVersion = NewSeaTransportExecutionVersionClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.ShippingLine = NewShippingLineClient(tx.config)
 	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)

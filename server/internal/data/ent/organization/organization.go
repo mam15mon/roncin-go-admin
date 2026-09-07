@@ -85,8 +85,6 @@ const (
 	EdgeOrderCargoItems = "order_cargo_items"
 	// EdgeOrderContainers holds the string denoting the order_containers edge name in mutations.
 	EdgeOrderContainers = "order_containers"
-	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
-	EdgeSeaCargoAllocations = "sea_cargo_allocations"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -153,8 +151,14 @@ const (
 	EdgeDingtalkApprovalDispatches = "dingtalk_approval_dispatches"
 	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
 	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
-	// EdgeSeaHouseBillSwitchEvents holds the string denoting the sea_house_bill_switch_events edge name in mutations.
-	EdgeSeaHouseBillSwitchEvents = "sea_house_bill_switch_events"
+	// EdgeSeaTransportExecutionVersions holds the string denoting the sea_transport_execution_versions edge name in mutations.
+	EdgeSeaTransportExecutionVersions = "sea_transport_execution_versions"
+	// EdgeSeaDocumentModeChangeEvents holds the string denoting the sea_document_mode_change_events edge name in mutations.
+	EdgeSeaDocumentModeChangeEvents = "sea_document_mode_change_events"
+	// EdgeSeaSharedContainers holds the string denoting the sea_shared_containers edge name in mutations.
+	EdgeSeaSharedContainers = "sea_shared_containers"
+	// EdgeSeaSharedContainerAllocations holds the string denoting the sea_shared_container_allocations edge name in mutations.
+	EdgeSeaSharedContainerAllocations = "sea_shared_container_allocations"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -326,13 +330,6 @@ const (
 	OrderContainersInverseTable = "order_containers"
 	// OrderContainersColumn is the table column denoting the order_containers relation/edge.
 	OrderContainersColumn = "organization_id"
-	// SeaCargoAllocationsTable is the table that holds the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsColumn = "organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -564,13 +561,34 @@ const (
 	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
 	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
 	SeaDocumentVoidEventsColumn = "organization_id"
-	// SeaHouseBillSwitchEventsTable is the table that holds the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	SeaHouseBillSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsColumn is the table column denoting the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsColumn = "organization_id"
+	// SeaTransportExecutionVersionsTable is the table that holds the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	SeaTransportExecutionVersionsInverseTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsColumn is the table column denoting the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsColumn = "organization_id"
+	// SeaDocumentModeChangeEventsTable is the table that holds the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	SeaDocumentModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsColumn is the table column denoting the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsColumn = "organization_id"
+	// SeaSharedContainersTable is the table that holds the sea_shared_containers relation/edge.
+	SeaSharedContainersTable = "sea_shared_containers"
+	// SeaSharedContainersInverseTable is the table name for the SeaSharedContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainer" package.
+	SeaSharedContainersInverseTable = "sea_shared_containers"
+	// SeaSharedContainersColumn is the table column denoting the sea_shared_containers relation/edge.
+	SeaSharedContainersColumn = "organization_id"
+	// SeaSharedContainerAllocationsTable is the table that holds the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsInverseTable is the table name for the SeaSharedContainerAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainerallocation" package.
+	SeaSharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsColumn is the table column denoting the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -1045,20 +1063,6 @@ func ByOrderContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// BySeaCargoAllocationsCount orders the results by sea_cargo_allocations count.
-func BySeaCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaCargoAllocationsStep(), opts...)
-	}
-}
-
-// BySeaCargoAllocations orders the results by sea_cargo_allocations terms.
-func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByOrderPersonnelCount orders the results by order_personnel count.
 func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1521,17 +1525,59 @@ func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
-// BySeaHouseBillSwitchEventsCount orders the results by sea_house_bill_switch_events count.
-func BySeaHouseBillSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySeaTransportExecutionVersionsCount orders the results by sea_transport_execution_versions count.
+func BySeaTransportExecutionVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionVersionsStep(), opts...)
 	}
 }
 
-// BySeaHouseBillSwitchEvents orders the results by sea_house_bill_switch_events terms.
-func BySeaHouseBillSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySeaTransportExecutionVersions orders the results by sea_transport_execution_versions terms.
+func BySeaTransportExecutionVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentModeChangeEventsCount orders the results by sea_document_mode_change_events count.
+func BySeaDocumentModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentModeChangeEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentModeChangeEvents orders the results by sea_document_mode_change_events terms.
+func BySeaDocumentModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaSharedContainersCount orders the results by sea_shared_containers count.
+func BySeaSharedContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaSharedContainersStep(), opts...)
+	}
+}
+
+// BySeaSharedContainers orders the results by sea_shared_containers terms.
+func BySeaSharedContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaSharedContainerAllocationsCount orders the results by sea_shared_container_allocations count.
+func BySeaSharedContainerAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaSharedContainerAllocationsStep(), opts...)
+	}
+}
+
+// BySeaSharedContainerAllocations orders the results by sea_shared_container_allocations terms.
+func BySeaSharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newParentStep() *sqlgraph.Step {
@@ -1707,13 +1753,6 @@ func newOrderContainersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderContainersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderContainersTable, OrderContainersColumn),
-	)
-}
-func newSeaCargoAllocationsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {
@@ -1947,10 +1986,31 @@ func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
 	)
 }
-func newSeaHouseBillSwitchEventsStep() *sqlgraph.Step {
+func newSeaTransportExecutionVersionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaHouseBillSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
+		sqlgraph.To(SeaTransportExecutionVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+	)
+}
+func newSeaDocumentModeChangeEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
+	)
+}
+func newSeaSharedContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaSharedContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainersTable, SeaSharedContainersColumn),
+	)
+}
+func newSeaSharedContainerAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaSharedContainerAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
 	)
 }

@@ -152,6 +152,8 @@ type Order struct {
 	SpecialRequirements string `json:"special_requirements,omitempty"`
 	// OrderDate holds the value of the "order_date" field.
 	OrderDate string `json:"order_date,omitempty"`
+	// BookingNo holds the value of the "booking_no" field.
+	BookingNo string `json:"booking_no,omitempty"`
 	// Notes holds the value of the "notes" field.
 	Notes string `json:"notes,omitempty"`
 	// BookingNotes holds the value of the "booking_notes" field.
@@ -214,8 +216,10 @@ type OrderEdges struct {
 	SeaMasterBillLinks []*SeaMasterBillOrderLink `json:"sea_master_bill_links,omitempty"`
 	// SeaHouseBills holds the value of the sea_house_bills edge.
 	SeaHouseBills []*SeaHouseBill `json:"sea_house_bills,omitempty"`
-	// SeaCargoAllocations holds the value of the sea_cargo_allocations edge.
-	SeaCargoAllocations []*SeaCargoAllocation `json:"sea_cargo_allocations,omitempty"`
+	// SeaDocumentModeChangeEvents holds the value of the sea_document_mode_change_events edge.
+	SeaDocumentModeChangeEvents []*SeaDocumentModeChangeEvent `json:"sea_document_mode_change_events,omitempty"`
+	// SeaSharedContainerAllocations holds the value of the sea_shared_container_allocations edge.
+	SeaSharedContainerAllocations []*SeaSharedContainerAllocation `json:"sea_shared_container_allocations,omitempty"`
 	// SeaOrderSplitEvents holds the value of the sea_order_split_events edge.
 	SeaOrderSplitEvents []*SeaOrderSplitEvent `json:"sea_order_split_events,omitempty"`
 	// SeaOrderSplitResults holds the value of the sea_order_split_results edge.
@@ -232,8 +236,6 @@ type OrderEdges struct {
 	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
 	// SeaDocumentVoidEvents holds the value of the sea_document_void_events edge.
 	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
-	// SeaHouseBillSwitchEvents holds the value of the sea_house_bill_switch_events edge.
-	SeaHouseBillSwitchEvents []*SeaHouseBillSwitchEvent `json:"sea_house_bill_switch_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [33]bool
@@ -452,19 +454,28 @@ func (e OrderEdges) SeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
 	return nil, &NotLoadedError{edge: "sea_house_bills"}
 }
 
-// SeaCargoAllocationsOrErr returns the SeaCargoAllocations value or an error if the edge
+// SeaDocumentModeChangeEventsOrErr returns the SeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrderEdges) SeaCargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+func (e OrderEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
 	if e.loadedTypes[23] {
-		return e.SeaCargoAllocations, nil
+		return e.SeaDocumentModeChangeEvents, nil
 	}
-	return nil, &NotLoadedError{edge: "sea_cargo_allocations"}
+	return nil, &NotLoadedError{edge: "sea_document_mode_change_events"}
+}
+
+// SeaSharedContainerAllocationsOrErr returns the SeaSharedContainerAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
+	if e.loadedTypes[24] {
+		return e.SeaSharedContainerAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_shared_container_allocations"}
 }
 
 // SeaOrderSplitEventsOrErr returns the SeaOrderSplitEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
-	if e.loadedTypes[24] {
+	if e.loadedTypes[25] {
 		return e.SeaOrderSplitEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_split_events"}
@@ -473,7 +484,7 @@ func (e OrderEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
 // SeaOrderSplitResultsOrErr returns the SeaOrderSplitResults value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
-	if e.loadedTypes[25] {
+	if e.loadedTypes[26] {
 		return e.SeaOrderSplitResults, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_split_results"}
@@ -482,7 +493,7 @@ func (e OrderEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) 
 // SeaOrderReassignmentEventsOrErr returns the SeaOrderReassignmentEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[26] {
+	if e.loadedTypes[27] {
 		return e.SeaOrderReassignmentEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
@@ -493,7 +504,7 @@ func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEv
 func (e OrderEdges) LockedByUserOrErr() (*User, error) {
 	if e.LockedByUser != nil {
 		return e.LockedByUser, nil
-	} else if e.loadedTypes[27] {
+	} else if e.loadedTypes[28] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "locked_by_user"}
@@ -502,7 +513,7 @@ func (e OrderEdges) LockedByUserOrErr() (*User, error) {
 // LockRecordsOrErr returns the LockRecords value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
-	if e.loadedTypes[28] {
+	if e.loadedTypes[29] {
 		return e.LockRecords, nil
 	}
 	return nil, &NotLoadedError{edge: "lock_records"}
@@ -511,7 +522,7 @@ func (e OrderEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
 // UnlockRequestsOrErr returns the UnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[29] {
+	if e.loadedTypes[30] {
 		return e.UnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "unlock_requests"}
@@ -520,7 +531,7 @@ func (e OrderEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
 // SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[31] {
 		return e.SeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
@@ -529,19 +540,10 @@ func (e OrderEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) 
 // SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[32] {
 		return e.SeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_document_void_events"}
-}
-
-// SeaHouseBillSwitchEventsOrErr returns the SeaHouseBillSwitchEvents value or an error if the edge
-// was not loaded in eager-loading.
-func (e OrderEdges) SeaHouseBillSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
-	if e.loadedTypes[32] {
-		return e.SeaHouseBillSwitchEvents, nil
-	}
-	return nil, &NotLoadedError{edge: "sea_house_bill_switch_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -557,7 +559,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -997,6 +999,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OrderDate = value.String
 			}
+		case order.FieldBookingNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field booking_no", values[i])
+			} else if value.Valid {
+				_m.BookingNo = value.String
+			}
 		case order.FieldNotes:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field notes", values[i])
@@ -1149,9 +1157,14 @@ func (_m *Order) QuerySeaHouseBills() *SeaHouseBillQuery {
 	return NewOrderClient(_m.config).QuerySeaHouseBills(_m)
 }
 
-// QuerySeaCargoAllocations queries the "sea_cargo_allocations" edge of the Order entity.
-func (_m *Order) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
-	return NewOrderClient(_m.config).QuerySeaCargoAllocations(_m)
+// QuerySeaDocumentModeChangeEvents queries the "sea_document_mode_change_events" edge of the Order entity.
+func (_m *Order) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewOrderClient(_m.config).QuerySeaDocumentModeChangeEvents(_m)
+}
+
+// QuerySeaSharedContainerAllocations queries the "sea_shared_container_allocations" edge of the Order entity.
+func (_m *Order) QuerySeaSharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	return NewOrderClient(_m.config).QuerySeaSharedContainerAllocations(_m)
 }
 
 // QuerySeaOrderSplitEvents queries the "sea_order_split_events" edge of the Order entity.
@@ -1192,11 +1205,6 @@ func (_m *Order) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
 // QuerySeaDocumentVoidEvents queries the "sea_document_void_events" edge of the Order entity.
 func (_m *Order) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
 	return NewOrderClient(_m.config).QuerySeaDocumentVoidEvents(_m)
-}
-
-// QuerySeaHouseBillSwitchEvents queries the "sea_house_bill_switch_events" edge of the Order entity.
-func (_m *Order) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewOrderClient(_m.config).QuerySeaHouseBillSwitchEvents(_m)
 }
 
 // Update returns a builder for updating this Order.
@@ -1462,6 +1470,9 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_date=")
 	builder.WriteString(_m.OrderDate)
+	builder.WriteString(", ")
+	builder.WriteString("booking_no=")
+	builder.WriteString(_m.BookingNo)
 	builder.WriteString(", ")
 	builder.WriteString("notes=")
 	builder.WriteString(_m.Notes)

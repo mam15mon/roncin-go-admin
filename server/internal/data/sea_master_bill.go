@@ -39,9 +39,9 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(normalizedMasterNo),
 		).
-		WithTransportExecution().
 		WithOrderLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
 			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
+				WithTransportExecution().
 				WithOrder(func(oq *ent.OrderQuery) {
 					oq.Where(orderent.OrganizationIDEQ(organizationID))
 				})
@@ -55,7 +55,13 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		return nil, err
 	}
 
-	te := mbl.Edges.TransportExecution
+	var te *ent.SeaTransportExecution
+	for _, l := range mbl.Edges.OrderLinks {
+		if l.Edges.TransportExecution != nil {
+			te = l.Edges.TransportExecution
+			break
+		}
+	}
 	if te == nil {
 		return &biz.SeaMasterBillMatchResult{Matched: false}, nil
 	}
@@ -149,9 +155,9 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			seamasterbillorderlink.OrderIDIn(orderIDs...),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
+		WithTransportExecution().
 		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.Where(seamasterbill.OrganizationIDEQ(organizationID)).
-				WithTransportExecution()
+			q.Where(seamasterbill.OrganizationIDEQ(organizationID))
 		}).
 		All(ctx)
 
@@ -193,7 +199,7 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 		if mbl == nil {
 			continue
 		}
-		te := mbl.Edges.TransportExecution
+		te := link.Edges.TransportExecution
 		shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
 		if err != nil {
 			return nil, err

@@ -41,8 +41,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
-	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
-	EdgeCargoAllocations = "cargo_allocations"
+	// EdgeSharedContainerAllocations holds the string denoting the shared_container_allocations edge name in mutations.
+	EdgeSharedContainerAllocations = "shared_container_allocations"
 	// Table holds the table name of the ordercargoitem in the database.
 	Table = "order_cargo_items"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -59,13 +59,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
-	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
-	CargoAllocationsTable = "sea_cargo_allocations"
-	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	CargoAllocationsInverseTable = "sea_cargo_allocations"
-	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
-	CargoAllocationsColumn = "cargo_item_id"
+	// SharedContainerAllocationsTable is the table that holds the shared_container_allocations relation/edge.
+	SharedContainerAllocationsTable = "sea_shared_container_allocations"
+	// SharedContainerAllocationsInverseTable is the table name for the SeaSharedContainerAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainerallocation" package.
+	SharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
+	// SharedContainerAllocationsColumn is the table column denoting the shared_container_allocations relation/edge.
+	SharedContainerAllocationsColumn = "cargo_item_id"
 )
 
 // Columns holds all SQL columns for ordercargoitem fields.
@@ -196,17 +196,17 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByCargoAllocationsCount orders the results by cargo_allocations count.
-func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySharedContainerAllocationsCount orders the results by shared_container_allocations count.
+func BySharedContainerAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSharedContainerAllocationsStep(), opts...)
 	}
 }
 
-// ByCargoAllocations orders the results by cargo_allocations terms.
-func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySharedContainerAllocations orders the results by shared_container_allocations terms.
+func BySharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -223,10 +223,10 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
 	)
 }
-func newCargoAllocationsStep() *sqlgraph.Step {
+func newSharedContainerAllocationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+		sqlgraph.To(SharedContainerAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SharedContainerAllocationsTable, SharedContainerAllocationsColumn),
 	)
 }

@@ -40,6 +40,7 @@ func (ShippingLine) Edges() []ent.Edge {
 		edge.To("container_prefixes", ShippingLineContainerPrefix.Type),
 		edge.To("orders", Order.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("sea_transport_executions", SeaTransportExecution.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_transport_execution_versions", SeaTransportExecutionVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("sea_master_bills", SeaMasterBill.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}

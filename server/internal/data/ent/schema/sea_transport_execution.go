@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -24,6 +25,7 @@ func (SeaTransportExecution) Fields() []ent.Field {
 		field.String("voyage_no").Default("").MaxLen(64),
 		field.Time("etd").Optional().Nillable(),
 		field.Time("eta").Optional().Nillable(),
+		field.UUID("current_version_id", uuid.Nil).Optional().Nillable(),
 		field.Uint64("version").Default(1),
 	}
 }
@@ -32,8 +34,11 @@ func (SeaTransportExecution) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("sea_transport_executions").Field("organization_id").Unique().Required(),
 		edge.From("shipping_line", ShippingLine.Type).Ref("sea_transport_executions").Field("shipping_line_id").Unique().Required(),
-		edge.To("master_bills", SeaMasterBill.Type),
-		edge.To("master_bill_versions", SeaMasterBillVersion.Type),
+		edge.To("order_links", SeaMasterBillOrderLink.Type),
+		edge.To("current_version", SeaTransportExecutionVersion.Type).Field("current_version_id").Unique(),
+		edge.To("versions", SeaTransportExecutionVersion.Type),
+		edge.To("shared_containers", SeaSharedContainer.Type),
+		edge.To("lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

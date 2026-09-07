@@ -86,11 +86,6 @@ func ShippingLineID(v uuid.UUID) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// TransportExecutionID applies equality check predicate on the "transport_execution_id" field. It's identical to TransportExecutionIDEQ.
-func TransportExecutionID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldTransportExecutionID, v))
-}
-
 // MasterNo applies equality check predicate on the "master_no" field. It's identical to MasterNoEQ.
 func MasterNo(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldMasterNo, v))
@@ -99,56 +94,6 @@ func MasterNo(v string) predicate.SeaMasterBillVersion {
 // NormalizedMasterNo applies equality check predicate on the "normalized_master_no" field. It's identical to NormalizedMasterNoEQ.
 func NormalizedMasterNo(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldNormalizedMasterNo, v))
-}
-
-// VesselVoyageSnapshot applies equality check predicate on the "vessel_voyage_snapshot" field. It's identical to VesselVoyageSnapshotEQ.
-func VesselVoyageSnapshot(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVesselVoyageSnapshot, v))
-}
-
-// EtdSnapshot applies equality check predicate on the "etd_snapshot" field. It's identical to EtdSnapshotEQ.
-func EtdSnapshot(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtdSnapshot, v))
-}
-
-// EtaSnapshot applies equality check predicate on the "eta_snapshot" field. It's identical to EtaSnapshotEQ.
-func EtaSnapshot(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtaSnapshot, v))
-}
-
-// OriginLocationID applies equality check predicate on the "origin_location_id" field. It's identical to OriginLocationIDEQ.
-func OriginLocationID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldOriginLocationID, v))
-}
-
-// DischargeLocationID applies equality check predicate on the "discharge_location_id" field. It's identical to DischargeLocationIDEQ.
-func DischargeLocationID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldDischargeLocationID, v))
-}
-
-// TransitLocationID applies equality check predicate on the "transit_location_id" field. It's identical to TransitLocationIDEQ.
-func TransitLocationID(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldTransitLocationID, v))
-}
-
-// VesselName applies equality check predicate on the "vessel_name" field. It's identical to VesselNameEQ.
-func VesselName(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVesselName, v))
-}
-
-// VoyageNo applies equality check predicate on the "voyage_no" field. It's identical to VoyageNoEQ.
-func VoyageNo(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVoyageNo, v))
-}
-
-// Etd applies equality check predicate on the "etd" field. It's identical to EtdEQ.
-func Etd(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtd, v))
-}
-
-// Eta applies equality check predicate on the "eta" field. It's identical to EtaEQ.
-func Eta(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEta, v))
 }
 
 // ContentHash applies equality check predicate on the "content_hash" field. It's identical to ContentHashEQ.
@@ -174,6 +119,26 @@ func IdempotencyKey(v string) predicate.SeaMasterBillVersion {
 // RequestFingerprint applies equality check predicate on the "request_fingerprint" field. It's identical to RequestFingerprintEQ.
 func RequestFingerprint(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldRequestFingerprint, v))
+}
+
+// ConfirmedByParty applies equality check predicate on the "confirmed_by_party" field. It's identical to ConfirmedByPartyEQ.
+func ConfirmedByParty(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAt applies equality check predicate on the "confirmed_at" field. It's identical to ConfirmedAtEQ.
+func ConfirmedAt(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmationNote applies equality check predicate on the "confirmation_note" field. It's identical to ConfirmationNoteEQ.
+func ConfirmationNote(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentID applies equality check predicate on the "confirmation_attachment_id" field. It's identical to ConfirmationAttachmentIDEQ.
+func ConfirmationAttachmentID(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmationAttachmentID, v))
 }
 
 // ShipperText applies equality check predicate on the "shipper_text" field. It's identical to ShipperTextEQ.
@@ -431,26 +396,6 @@ func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
-// TransportExecutionIDEQ applies the EQ predicate on the "transport_execution_id" field.
-func TransportExecutionIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldTransportExecutionID, v))
-}
-
-// TransportExecutionIDNEQ applies the NEQ predicate on the "transport_execution_id" field.
-func TransportExecutionIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldTransportExecutionID, v))
-}
-
-// TransportExecutionIDIn applies the In predicate on the "transport_execution_id" field.
-func TransportExecutionIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldTransportExecutionID, vs...))
-}
-
-// TransportExecutionIDNotIn applies the NotIn predicate on the "transport_execution_id" field.
-func TransportExecutionIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldTransportExecutionID, vs...))
-}
-
 // MasterNoEQ applies the EQ predicate on the "master_no" field.
 func MasterNoEQ(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldMasterNo, v))
@@ -599,611 +544,6 @@ func StatusIn(vs ...Status) predicate.SeaMasterBillVersion {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// VesselVoyageSnapshotEQ applies the EQ predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotNEQ applies the NEQ predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotNEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotIn applies the In predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldVesselVoyageSnapshot, vs...))
-}
-
-// VesselVoyageSnapshotNotIn applies the NotIn predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotNotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldVesselVoyageSnapshot, vs...))
-}
-
-// VesselVoyageSnapshotGT applies the GT predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotGT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotGTE applies the GTE predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotGTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotLT applies the LT predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotLT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotLTE applies the LTE predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotLTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotContains applies the Contains predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotContains(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotHasPrefix applies the HasPrefix predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotHasPrefix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotHasSuffix applies the HasSuffix predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotHasSuffix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotIsNil applies the IsNil predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldVesselVoyageSnapshot))
-}
-
-// VesselVoyageSnapshotNotNil applies the NotNil predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldVesselVoyageSnapshot))
-}
-
-// VesselVoyageSnapshotEqualFold applies the EqualFold predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotEqualFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldVesselVoyageSnapshot, v))
-}
-
-// VesselVoyageSnapshotContainsFold applies the ContainsFold predicate on the "vessel_voyage_snapshot" field.
-func VesselVoyageSnapshotContainsFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldVesselVoyageSnapshot, v))
-}
-
-// EtdSnapshotEQ applies the EQ predicate on the "etd_snapshot" field.
-func EtdSnapshotEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotNEQ applies the NEQ predicate on the "etd_snapshot" field.
-func EtdSnapshotNEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotIn applies the In predicate on the "etd_snapshot" field.
-func EtdSnapshotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldEtdSnapshot, vs...))
-}
-
-// EtdSnapshotNotIn applies the NotIn predicate on the "etd_snapshot" field.
-func EtdSnapshotNotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldEtdSnapshot, vs...))
-}
-
-// EtdSnapshotGT applies the GT predicate on the "etd_snapshot" field.
-func EtdSnapshotGT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotGTE applies the GTE predicate on the "etd_snapshot" field.
-func EtdSnapshotGTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotLT applies the LT predicate on the "etd_snapshot" field.
-func EtdSnapshotLT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotLTE applies the LTE predicate on the "etd_snapshot" field.
-func EtdSnapshotLTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotContains applies the Contains predicate on the "etd_snapshot" field.
-func EtdSnapshotContains(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotHasPrefix applies the HasPrefix predicate on the "etd_snapshot" field.
-func EtdSnapshotHasPrefix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotHasSuffix applies the HasSuffix predicate on the "etd_snapshot" field.
-func EtdSnapshotHasSuffix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotIsNil applies the IsNil predicate on the "etd_snapshot" field.
-func EtdSnapshotIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldEtdSnapshot))
-}
-
-// EtdSnapshotNotNil applies the NotNil predicate on the "etd_snapshot" field.
-func EtdSnapshotNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldEtdSnapshot))
-}
-
-// EtdSnapshotEqualFold applies the EqualFold predicate on the "etd_snapshot" field.
-func EtdSnapshotEqualFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldEtdSnapshot, v))
-}
-
-// EtdSnapshotContainsFold applies the ContainsFold predicate on the "etd_snapshot" field.
-func EtdSnapshotContainsFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldEtdSnapshot, v))
-}
-
-// EtaSnapshotEQ applies the EQ predicate on the "eta_snapshot" field.
-func EtaSnapshotEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotNEQ applies the NEQ predicate on the "eta_snapshot" field.
-func EtaSnapshotNEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotIn applies the In predicate on the "eta_snapshot" field.
-func EtaSnapshotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldEtaSnapshot, vs...))
-}
-
-// EtaSnapshotNotIn applies the NotIn predicate on the "eta_snapshot" field.
-func EtaSnapshotNotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldEtaSnapshot, vs...))
-}
-
-// EtaSnapshotGT applies the GT predicate on the "eta_snapshot" field.
-func EtaSnapshotGT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotGTE applies the GTE predicate on the "eta_snapshot" field.
-func EtaSnapshotGTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotLT applies the LT predicate on the "eta_snapshot" field.
-func EtaSnapshotLT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotLTE applies the LTE predicate on the "eta_snapshot" field.
-func EtaSnapshotLTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotContains applies the Contains predicate on the "eta_snapshot" field.
-func EtaSnapshotContains(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotHasPrefix applies the HasPrefix predicate on the "eta_snapshot" field.
-func EtaSnapshotHasPrefix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotHasSuffix applies the HasSuffix predicate on the "eta_snapshot" field.
-func EtaSnapshotHasSuffix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotIsNil applies the IsNil predicate on the "eta_snapshot" field.
-func EtaSnapshotIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldEtaSnapshot))
-}
-
-// EtaSnapshotNotNil applies the NotNil predicate on the "eta_snapshot" field.
-func EtaSnapshotNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldEtaSnapshot))
-}
-
-// EtaSnapshotEqualFold applies the EqualFold predicate on the "eta_snapshot" field.
-func EtaSnapshotEqualFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldEtaSnapshot, v))
-}
-
-// EtaSnapshotContainsFold applies the ContainsFold predicate on the "eta_snapshot" field.
-func EtaSnapshotContainsFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldEtaSnapshot, v))
-}
-
-// OriginLocationIDEQ applies the EQ predicate on the "origin_location_id" field.
-func OriginLocationIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDNEQ applies the NEQ predicate on the "origin_location_id" field.
-func OriginLocationIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDIn applies the In predicate on the "origin_location_id" field.
-func OriginLocationIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldOriginLocationID, vs...))
-}
-
-// OriginLocationIDNotIn applies the NotIn predicate on the "origin_location_id" field.
-func OriginLocationIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldOriginLocationID, vs...))
-}
-
-// OriginLocationIDGT applies the GT predicate on the "origin_location_id" field.
-func OriginLocationIDGT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDGTE applies the GTE predicate on the "origin_location_id" field.
-func OriginLocationIDGTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDLT applies the LT predicate on the "origin_location_id" field.
-func OriginLocationIDLT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDLTE applies the LTE predicate on the "origin_location_id" field.
-func OriginLocationIDLTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldOriginLocationID, v))
-}
-
-// OriginLocationIDIsNil applies the IsNil predicate on the "origin_location_id" field.
-func OriginLocationIDIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldOriginLocationID))
-}
-
-// OriginLocationIDNotNil applies the NotNil predicate on the "origin_location_id" field.
-func OriginLocationIDNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldOriginLocationID))
-}
-
-// DischargeLocationIDEQ applies the EQ predicate on the "discharge_location_id" field.
-func DischargeLocationIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDNEQ applies the NEQ predicate on the "discharge_location_id" field.
-func DischargeLocationIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDIn applies the In predicate on the "discharge_location_id" field.
-func DischargeLocationIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldDischargeLocationID, vs...))
-}
-
-// DischargeLocationIDNotIn applies the NotIn predicate on the "discharge_location_id" field.
-func DischargeLocationIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldDischargeLocationID, vs...))
-}
-
-// DischargeLocationIDGT applies the GT predicate on the "discharge_location_id" field.
-func DischargeLocationIDGT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDGTE applies the GTE predicate on the "discharge_location_id" field.
-func DischargeLocationIDGTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDLT applies the LT predicate on the "discharge_location_id" field.
-func DischargeLocationIDLT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDLTE applies the LTE predicate on the "discharge_location_id" field.
-func DischargeLocationIDLTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldDischargeLocationID, v))
-}
-
-// DischargeLocationIDIsNil applies the IsNil predicate on the "discharge_location_id" field.
-func DischargeLocationIDIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldDischargeLocationID))
-}
-
-// DischargeLocationIDNotNil applies the NotNil predicate on the "discharge_location_id" field.
-func DischargeLocationIDNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldDischargeLocationID))
-}
-
-// TransitLocationIDEQ applies the EQ predicate on the "transit_location_id" field.
-func TransitLocationIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDNEQ applies the NEQ predicate on the "transit_location_id" field.
-func TransitLocationIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDIn applies the In predicate on the "transit_location_id" field.
-func TransitLocationIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldTransitLocationID, vs...))
-}
-
-// TransitLocationIDNotIn applies the NotIn predicate on the "transit_location_id" field.
-func TransitLocationIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldTransitLocationID, vs...))
-}
-
-// TransitLocationIDGT applies the GT predicate on the "transit_location_id" field.
-func TransitLocationIDGT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDGTE applies the GTE predicate on the "transit_location_id" field.
-func TransitLocationIDGTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDLT applies the LT predicate on the "transit_location_id" field.
-func TransitLocationIDLT(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDLTE applies the LTE predicate on the "transit_location_id" field.
-func TransitLocationIDLTE(v uuid.UUID) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldTransitLocationID, v))
-}
-
-// TransitLocationIDIsNil applies the IsNil predicate on the "transit_location_id" field.
-func TransitLocationIDIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldTransitLocationID))
-}
-
-// TransitLocationIDNotNil applies the NotNil predicate on the "transit_location_id" field.
-func TransitLocationIDNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldTransitLocationID))
-}
-
-// VesselNameEQ applies the EQ predicate on the "vessel_name" field.
-func VesselNameEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVesselName, v))
-}
-
-// VesselNameNEQ applies the NEQ predicate on the "vessel_name" field.
-func VesselNameNEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldVesselName, v))
-}
-
-// VesselNameIn applies the In predicate on the "vessel_name" field.
-func VesselNameIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldVesselName, vs...))
-}
-
-// VesselNameNotIn applies the NotIn predicate on the "vessel_name" field.
-func VesselNameNotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldVesselName, vs...))
-}
-
-// VesselNameGT applies the GT predicate on the "vessel_name" field.
-func VesselNameGT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldVesselName, v))
-}
-
-// VesselNameGTE applies the GTE predicate on the "vessel_name" field.
-func VesselNameGTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldVesselName, v))
-}
-
-// VesselNameLT applies the LT predicate on the "vessel_name" field.
-func VesselNameLT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldVesselName, v))
-}
-
-// VesselNameLTE applies the LTE predicate on the "vessel_name" field.
-func VesselNameLTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldVesselName, v))
-}
-
-// VesselNameContains applies the Contains predicate on the "vessel_name" field.
-func VesselNameContains(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldVesselName, v))
-}
-
-// VesselNameHasPrefix applies the HasPrefix predicate on the "vessel_name" field.
-func VesselNameHasPrefix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldVesselName, v))
-}
-
-// VesselNameHasSuffix applies the HasSuffix predicate on the "vessel_name" field.
-func VesselNameHasSuffix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldVesselName, v))
-}
-
-// VesselNameEqualFold applies the EqualFold predicate on the "vessel_name" field.
-func VesselNameEqualFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldVesselName, v))
-}
-
-// VesselNameContainsFold applies the ContainsFold predicate on the "vessel_name" field.
-func VesselNameContainsFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldVesselName, v))
-}
-
-// VoyageNoEQ applies the EQ predicate on the "voyage_no" field.
-func VoyageNoEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldVoyageNo, v))
-}
-
-// VoyageNoNEQ applies the NEQ predicate on the "voyage_no" field.
-func VoyageNoNEQ(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldVoyageNo, v))
-}
-
-// VoyageNoIn applies the In predicate on the "voyage_no" field.
-func VoyageNoIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldVoyageNo, vs...))
-}
-
-// VoyageNoNotIn applies the NotIn predicate on the "voyage_no" field.
-func VoyageNoNotIn(vs ...string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldVoyageNo, vs...))
-}
-
-// VoyageNoGT applies the GT predicate on the "voyage_no" field.
-func VoyageNoGT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldVoyageNo, v))
-}
-
-// VoyageNoGTE applies the GTE predicate on the "voyage_no" field.
-func VoyageNoGTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldVoyageNo, v))
-}
-
-// VoyageNoLT applies the LT predicate on the "voyage_no" field.
-func VoyageNoLT(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldVoyageNo, v))
-}
-
-// VoyageNoLTE applies the LTE predicate on the "voyage_no" field.
-func VoyageNoLTE(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldVoyageNo, v))
-}
-
-// VoyageNoContains applies the Contains predicate on the "voyage_no" field.
-func VoyageNoContains(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldVoyageNo, v))
-}
-
-// VoyageNoHasPrefix applies the HasPrefix predicate on the "voyage_no" field.
-func VoyageNoHasPrefix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldVoyageNo, v))
-}
-
-// VoyageNoHasSuffix applies the HasSuffix predicate on the "voyage_no" field.
-func VoyageNoHasSuffix(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldVoyageNo, v))
-}
-
-// VoyageNoEqualFold applies the EqualFold predicate on the "voyage_no" field.
-func VoyageNoEqualFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldVoyageNo, v))
-}
-
-// VoyageNoContainsFold applies the ContainsFold predicate on the "voyage_no" field.
-func VoyageNoContainsFold(v string) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldVoyageNo, v))
-}
-
-// EtdEQ applies the EQ predicate on the "etd" field.
-func EtdEQ(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEtd, v))
-}
-
-// EtdNEQ applies the NEQ predicate on the "etd" field.
-func EtdNEQ(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldEtd, v))
-}
-
-// EtdIn applies the In predicate on the "etd" field.
-func EtdIn(vs ...time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldEtd, vs...))
-}
-
-// EtdNotIn applies the NotIn predicate on the "etd" field.
-func EtdNotIn(vs ...time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldEtd, vs...))
-}
-
-// EtdGT applies the GT predicate on the "etd" field.
-func EtdGT(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldEtd, v))
-}
-
-// EtdGTE applies the GTE predicate on the "etd" field.
-func EtdGTE(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldEtd, v))
-}
-
-// EtdLT applies the LT predicate on the "etd" field.
-func EtdLT(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldEtd, v))
-}
-
-// EtdLTE applies the LTE predicate on the "etd" field.
-func EtdLTE(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldEtd, v))
-}
-
-// EtdIsNil applies the IsNil predicate on the "etd" field.
-func EtdIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldEtd))
-}
-
-// EtdNotNil applies the NotNil predicate on the "etd" field.
-func EtdNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldEtd))
-}
-
-// EtaEQ applies the EQ predicate on the "eta" field.
-func EtaEQ(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldEta, v))
-}
-
-// EtaNEQ applies the NEQ predicate on the "eta" field.
-func EtaNEQ(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldEta, v))
-}
-
-// EtaIn applies the In predicate on the "eta" field.
-func EtaIn(vs ...time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldEta, vs...))
-}
-
-// EtaNotIn applies the NotIn predicate on the "eta" field.
-func EtaNotIn(vs ...time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldEta, vs...))
-}
-
-// EtaGT applies the GT predicate on the "eta" field.
-func EtaGT(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldEta, v))
-}
-
-// EtaGTE applies the GTE predicate on the "eta" field.
-func EtaGTE(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldEta, v))
-}
-
-// EtaLT applies the LT predicate on the "eta" field.
-func EtaLT(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldEta, v))
-}
-
-// EtaLTE applies the LTE predicate on the "eta" field.
-func EtaLTE(v time.Time) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldEta, v))
-}
-
-// EtaIsNil applies the IsNil predicate on the "eta" field.
-func EtaIsNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldEta))
-}
-
-// EtaNotNil applies the NotNil predicate on the "eta" field.
-func EtaNotNil() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldEta))
 }
 
 // ContentHashEQ applies the EQ predicate on the "content_hash" field.
@@ -1544,6 +884,236 @@ func RequestFingerprintEqualFold(v string) predicate.SeaMasterBillVersion {
 // RequestFingerprintContainsFold applies the ContainsFold predicate on the "request_fingerprint" field.
 func RequestFingerprintContainsFold(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldRequestFingerprint, v))
+}
+
+// ConfirmedByPartyEQ applies the EQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyNEQ applies the NEQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyIn applies the In predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyNotIn applies the NotIn predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNotIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyGT applies the GT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyGTE applies the GTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLT applies the LT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLTE applies the LTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContains applies the Contains predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContains(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasPrefix applies the HasPrefix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasPrefix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasSuffix applies the HasSuffix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasSuffix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyIsNil applies the IsNil predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldConfirmedByParty))
+}
+
+// ConfirmedByPartyNotNil applies the NotNil predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldConfirmedByParty))
+}
+
+// ConfirmedByPartyEqualFold applies the EqualFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEqualFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContainsFold applies the ContainsFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContainsFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAtEQ applies the EQ predicate on the "confirmed_at" field.
+func ConfirmedAtEQ(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtNEQ applies the NEQ predicate on the "confirmed_at" field.
+func ConfirmedAtNEQ(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIn applies the In predicate on the "confirmed_at" field.
+func ConfirmedAtIn(vs ...time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtNotIn applies the NotIn predicate on the "confirmed_at" field.
+func ConfirmedAtNotIn(vs ...time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtGT applies the GT predicate on the "confirmed_at" field.
+func ConfirmedAtGT(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtGTE applies the GTE predicate on the "confirmed_at" field.
+func ConfirmedAtGTE(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLT applies the LT predicate on the "confirmed_at" field.
+func ConfirmedAtLT(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLTE applies the LTE predicate on the "confirmed_at" field.
+func ConfirmedAtLTE(v time.Time) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIsNil applies the IsNil predicate on the "confirmed_at" field.
+func ConfirmedAtIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldConfirmedAt))
+}
+
+// ConfirmedAtNotNil applies the NotNil predicate on the "confirmed_at" field.
+func ConfirmedAtNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldConfirmedAt))
+}
+
+// ConfirmationNoteEQ applies the EQ predicate on the "confirmation_note" field.
+func ConfirmationNoteEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteNEQ applies the NEQ predicate on the "confirmation_note" field.
+func ConfirmationNoteNEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteIn applies the In predicate on the "confirmation_note" field.
+func ConfirmationNoteIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteNotIn applies the NotIn predicate on the "confirmation_note" field.
+func ConfirmationNoteNotIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteGT applies the GT predicate on the "confirmation_note" field.
+func ConfirmationNoteGT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteGTE applies the GTE predicate on the "confirmation_note" field.
+func ConfirmationNoteGTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLT applies the LT predicate on the "confirmation_note" field.
+func ConfirmationNoteLT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLTE applies the LTE predicate on the "confirmation_note" field.
+func ConfirmationNoteLTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContains applies the Contains predicate on the "confirmation_note" field.
+func ConfirmationNoteContains(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasPrefix applies the HasPrefix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasPrefix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasSuffix applies the HasSuffix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasSuffix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteIsNil applies the IsNil predicate on the "confirmation_note" field.
+func ConfirmationNoteIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldConfirmationNote))
+}
+
+// ConfirmationNoteNotNil applies the NotNil predicate on the "confirmation_note" field.
+func ConfirmationNoteNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldConfirmationNote))
+}
+
+// ConfirmationNoteEqualFold applies the EqualFold predicate on the "confirmation_note" field.
+func ConfirmationNoteEqualFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContainsFold applies the ContainsFold predicate on the "confirmation_note" field.
+func ConfirmationNoteContainsFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentIDEQ applies the EQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDNEQ applies the NEQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNEQ(v uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDIn applies the In predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDNotIn applies the NotIn predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotIn(vs ...uuid.UUID) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDIsNil applies the IsNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldConfirmationAttachmentID))
+}
+
+// ConfirmationAttachmentIDNotNil applies the NotNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldConfirmationAttachmentID))
 }
 
 // ShipperTextEQ applies the EQ predicate on the "shipper_text" field.
@@ -2665,29 +2235,6 @@ func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaMasterBil
 	})
 }
 
-// HasTransportExecution applies the HasEdge predicate on the "transport_execution" edge.
-func HasTransportExecution() predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTransportExecutionWith applies the HasEdge predicate on the "transport_execution" edge with a given conditions (other predicates).
-func HasTransportExecutionWith(preds ...predicate.SeaTransportExecution) predicate.SeaMasterBillVersion {
-	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
-		step := newTransportExecutionStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
@@ -2703,6 +2250,29 @@ func HasCreator() predicate.SeaMasterBillVersion {
 func HasCreatorWith(preds ...predicate.User) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
 		step := newCreatorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConfirmationAttachment applies the HasEdge predicate on the "confirmation_attachment" edge.
+func HasConfirmationAttachment() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmationAttachmentWith applies the HasEdge predicate on the "confirmation_attachment" edge with a given conditions (other predicates).
+func HasConfirmationAttachmentWith(preds ...predicate.OrderAttachment) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		step := newConfirmationAttachmentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

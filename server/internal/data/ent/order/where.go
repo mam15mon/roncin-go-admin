@@ -326,6 +326,11 @@ func OrderDate(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderDate, v))
 }
 
+// BookingNo applies equality check predicate on the "booking_no" field. It's identical to BookingNoEQ.
+func BookingNo(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNo, v))
+}
+
 // Notes applies equality check predicate on the "notes" field. It's identical to NotesEQ.
 func Notes(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNotes, v))
@@ -3846,6 +3851,81 @@ func OrderDateContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldOrderDate, v))
 }
 
+// BookingNoEQ applies the EQ predicate on the "booking_no" field.
+func BookingNoEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNo, v))
+}
+
+// BookingNoNEQ applies the NEQ predicate on the "booking_no" field.
+func BookingNoNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldBookingNo, v))
+}
+
+// BookingNoIn applies the In predicate on the "booking_no" field.
+func BookingNoIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldBookingNo, vs...))
+}
+
+// BookingNoNotIn applies the NotIn predicate on the "booking_no" field.
+func BookingNoNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldBookingNo, vs...))
+}
+
+// BookingNoGT applies the GT predicate on the "booking_no" field.
+func BookingNoGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldBookingNo, v))
+}
+
+// BookingNoGTE applies the GTE predicate on the "booking_no" field.
+func BookingNoGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldBookingNo, v))
+}
+
+// BookingNoLT applies the LT predicate on the "booking_no" field.
+func BookingNoLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldBookingNo, v))
+}
+
+// BookingNoLTE applies the LTE predicate on the "booking_no" field.
+func BookingNoLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldBookingNo, v))
+}
+
+// BookingNoContains applies the Contains predicate on the "booking_no" field.
+func BookingNoContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldBookingNo, v))
+}
+
+// BookingNoHasPrefix applies the HasPrefix predicate on the "booking_no" field.
+func BookingNoHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldBookingNo, v))
+}
+
+// BookingNoHasSuffix applies the HasSuffix predicate on the "booking_no" field.
+func BookingNoHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldBookingNo, v))
+}
+
+// BookingNoIsNil applies the IsNil predicate on the "booking_no" field.
+func BookingNoIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldBookingNo))
+}
+
+// BookingNoNotNil applies the NotNil predicate on the "booking_no" field.
+func BookingNoNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldBookingNo))
+}
+
+// BookingNoEqualFold applies the EqualFold predicate on the "booking_no" field.
+func BookingNoEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldBookingNo, v))
+}
+
+// BookingNoContainsFold applies the ContainsFold predicate on the "booking_no" field.
+func BookingNoContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldBookingNo, v))
+}
+
 // NotesEQ applies the EQ predicate on the "notes" field.
 func NotesEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNotes, v))
@@ -4675,21 +4755,44 @@ func HasSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Order {
 	})
 }
 
-// HasSeaCargoAllocations applies the HasEdge predicate on the "sea_cargo_allocations" edge.
-func HasSeaCargoAllocations() predicate.Order {
+// HasSeaDocumentModeChangeEvents applies the HasEdge predicate on the "sea_document_mode_change_events" edge.
+func HasSeaDocumentModeChangeEvents() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSeaCargoAllocationsWith applies the HasEdge predicate on the "sea_cargo_allocations" edge with a given conditions (other predicates).
-func HasSeaCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.Order {
+// HasSeaDocumentModeChangeEventsWith applies the HasEdge predicate on the "sea_document_mode_change_events" edge with a given conditions (other predicates).
+func HasSeaDocumentModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
-		step := newSeaCargoAllocationsStep()
+		step := newSeaDocumentModeChangeEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaSharedContainerAllocations applies the HasEdge predicate on the "sea_shared_container_allocations" edge.
+func HasSeaSharedContainerAllocations() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaSharedContainerAllocationsWith applies the HasEdge predicate on the "sea_shared_container_allocations" edge with a given conditions (other predicates).
+func HasSeaSharedContainerAllocationsWith(preds ...predicate.SeaSharedContainerAllocation) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaSharedContainerAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -4874,29 +4977,6 @@ func HasSeaDocumentVoidEvents() predicate.Order {
 func HasSeaDocumentVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newSeaDocumentVoidEventsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasSeaHouseBillSwitchEvents applies the HasEdge predicate on the "sea_house_bill_switch_events" edge.
-func HasSeaHouseBillSwitchEvents() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasSeaHouseBillSwitchEventsWith applies the HasEdge predicate on the "sea_house_bill_switch_events" edge with a given conditions (other predicates).
-func HasSeaHouseBillSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newSeaHouseBillSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

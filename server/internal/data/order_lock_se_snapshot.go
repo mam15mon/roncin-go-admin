@@ -2,8 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -15,6 +13,7 @@ import (
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seamasterbillversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	seatransportexecutionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	seatransportexecutionversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 )
 
 type seaOrderLockHouseBillSnapshot struct {
@@ -24,9 +23,11 @@ type seaOrderLockHouseBillSnapshot struct {
 }
 
 type seaOrderLockSnapshot struct {
-	MasterBillID        uuid.UUID
-	MasterBillVersionID uuid.UUID
-	HouseBills          []seaOrderLockHouseBillSnapshot
+	MasterBillID                 uuid.UUID
+	MasterBillVersionID          uuid.UUID
+	TransportExecutionID        uuid.UUID
+	TransportExecutionVersionID uuid.UUID
+	HouseBills                  []seaOrderLockHouseBillSnapshot
 }
 
 // createSeaOrderLockSnapshot 在已持有 Order 行锁的事务内创建或复用 SE 单证不可变版本。
@@ -69,7 +70,7 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 	}
 
 	execution, err := tx.SeaTransportExecution.Query().
-		Where(seatransportexecutionent.IDEQ(mbl.TransportExecutionID)).
+		Where(seatransportexecutionent.IDEQ(link.TransportExecutionID)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -80,7 +81,7 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 		Where(
 			seahousebillent.OrganizationIDEQ(organizationID),
 			seahousebillent.OrderIDEQ(orderID),
-			seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED, seahousebillent.StatusREPLACED),
+			seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED),
 		).
 		Order(ent.Asc(seahousebillent.FieldID)).
 		ForUpdate().
@@ -95,7 +96,58 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 		return nil, biz.ErrSeaDocumentStructureConflict
 	}
 
-	mblHash := computeMBLContentHash(mbl, execution)
+	// 运输执行快照（复用或新建 SeaTransportExecutionVersion）
+	teHash := computeTransportExecutionContentHash(execution)
+	var teVersionID uuid.UUID
+	reusedTeVersion := false
+	if execution.CurrentVersionID != nil {
+		current, currentErr := tx.SeaTransportExecutionVersion.Get(ctx, *execution.CurrentVersionID)
+		if currentErr == nil && current != nil && current.SourceEntityVersion == execution.Version && current.ContentHash == teHash {
+			teVersionID = current.ID
+			reusedTeVersion = true
+		}
+	}
+	if !reusedTeVersion {
+		latest, _ := tx.SeaTransportExecutionVersion.Query().
+			Where(seatransportexecutionversionent.TransportExecutionIDEQ(execution.ID)).
+			Order(ent.Desc(seatransportexecutionversionent.FieldVersionNo)).
+			First(ctx)
+		nextVersion := uint64(1)
+		if latest != nil {
+			nextVersion = latest.VersionNo + 1
+		}
+
+		created, createErr := tx.SeaTransportExecutionVersion.Create().
+			SetOrganizationID(organizationID).
+			SetTransportExecutionID(execution.ID).
+			SetVersionNo(nextVersion).
+			SetSourceEntityVersion(execution.Version).
+			SetShippingLineID(execution.ShippingLineID).
+			SetNillableOriginLocationID(execution.OriginLocationID).
+			SetNillableDischargeLocationID(execution.DischargeLocationID).
+			SetNillableTransitLocationID(execution.TransitLocationID).
+			SetVesselName(execution.VesselName).
+			SetVoyageNo(execution.VoyageNo).
+			SetNillableEtd(execution.Etd).
+			SetNillableEta(execution.Eta).
+			SetContentHash(teHash).
+			SetSource(seatransportexecutionversionent.SourceORDER_LOCK).
+			SetNillableCreatedBy(&callerID).
+			Save(ctx)
+		if createErr != nil {
+			return nil, createErr
+		}
+		if created.TransportExecutionID != execution.ID {
+			return nil, biz.ErrSeaDocumentStructureConflict
+		}
+		teVersionID = created.ID
+		if _, err := tx.SeaTransportExecution.UpdateOneID(execution.ID).SetCurrentVersionID(created.ID).Save(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	// MBL 快照（复用或新建 SeaMasterBillVersion）
+	mblHash := computeMBLContentHash(mbl)
 	var mblVersionID uuid.UUID
 	reusedMblVersion := false
 	if mbl.CurrentVersionID != nil {
@@ -115,37 +167,15 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 			nextVersion = latest.VersionNo + 1
 		}
 
-		var vesselVoyageSnapshot *string
-		var etdSnapshot *string
-		var etaSnapshot *string
-		if execution != nil {
-			vesselVoyage := strings.TrimSpace(execution.VesselName + " " + execution.VoyageNo)
-			if vesselVoyage != "" {
-				vesselVoyageSnapshot = &vesselVoyage
-			}
-			if execution.Etd != nil {
-				value := execution.Etd.Format(time.RFC3339)
-				etdSnapshot = &value
-			}
-			if execution.Eta != nil {
-				value := execution.Eta.Format(time.RFC3339)
-				etaSnapshot = &value
-			}
-		}
-
-		create := tx.SeaMasterBillVersion.Create().
+		created, createErr := tx.SeaMasterBillVersion.Create().
 			SetOrganizationID(organizationID).
 			SetMasterBillID(mbl.ID).
 			SetVersionNo(nextVersion).
 			SetSourceEntityVersion(mbl.Version).
 			SetShippingLineID(mbl.ShippingLineID).
-			SetTransportExecutionID(mbl.TransportExecutionID).
 			SetMasterNo(mbl.MasterNo).
 			SetNormalizedMasterNo(mbl.NormalizedMasterNo).
 			SetStatus(seamasterbillversionent.Status(mbl.Status)).
-			SetNillableVesselVoyageSnapshot(vesselVoyageSnapshot).
-			SetNillableEtdSnapshot(etdSnapshot).
-			SetNillableEtaSnapshot(etaSnapshot).
 			SetContentHash(mblHash).
 			SetSource(seamasterbillversionent.SourceORDER_LOCK).
 			SetNillableCreatedBy(&callerID).
@@ -163,18 +193,8 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 			SetNillableTransportTerms(mbl.TransportTerms).
 			SetNillableBillForm(mbl.BillForm).
 			SetNillableReleaseType(mbl.ReleaseType).
-			SetNillableClauses(mbl.Clauses)
-		if execution != nil {
-			create.
-				SetNillableOriginLocationID(execution.OriginLocationID).
-				SetNillableDischargeLocationID(execution.DischargeLocationID).
-				SetNillableTransitLocationID(execution.TransitLocationID).
-				SetVesselName(execution.VesselName).
-				SetVoyageNo(execution.VoyageNo).
-				SetNillableEtd(execution.Etd).
-				SetNillableEta(execution.Eta)
-		}
-		created, createErr := create.Save(ctx)
+			SetNillableClauses(mbl.Clauses).
+			Save(ctx)
 		if createErr != nil {
 			return nil, createErr
 		}
@@ -188,9 +208,11 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 	}
 
 	snapshot := &seaOrderLockSnapshot{
-		MasterBillID:        mbl.ID,
-		MasterBillVersionID: mblVersionID,
-		HouseBills:          make([]seaOrderLockHouseBillSnapshot, 0, len(hbls)),
+		MasterBillID:                 mbl.ID,
+		MasterBillVersionID:          mblVersionID,
+		TransportExecutionID:        execution.ID,
+		TransportExecutionVersionID: teVersionID,
+		HouseBills:                  make([]seaOrderLockHouseBillSnapshot, 0, len(hbls)),
 	}
 	for _, hbl := range hbls {
 		hash := computeHBLContentHash(hbl)

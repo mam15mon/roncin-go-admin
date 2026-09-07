@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -28,6 +29,12 @@ func (OrderAttachment) Edges() []ent.Edge {
 		edge.From("order", Order.Type).Ref("attachments").Field("order_id").Unique().Required(),
 		edge.From("asset", OrderAttachmentAsset.Type).Ref("attachments").Field("asset_id").Unique().Required(),
 		edge.From("creator", User.Type).Ref("created_order_attachments").Field("created_by").Unique(),
+		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_document_void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("sea_transport_execution_versions", SeaTransportExecutionVersion.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

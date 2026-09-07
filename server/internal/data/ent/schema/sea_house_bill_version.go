@@ -39,14 +39,18 @@ func (SeaHouseBillVersion) Fields() []ent.Field {
 		field.Enum("issuer_source").Values("SELF_ORGANIZATION", "CUSTOMER_PARTNER", "OTHER_PARTNER").Immutable(),
 		field.UUID("issuer_organization_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("issuer_partner_id", uuid.Nil).Optional().Nillable().Immutable(),
-		field.Enum("status").Values("DRAFT", "CONFIRMED", "RELEASED", "VOIDED", "REPLACED").Immutable(),
+		field.Enum("status").Values("DRAFT", "CONFIRMED", "RELEASED", "VOIDED").Immutable(),
 		field.String("note").Optional().Nillable().MaxLen(500).Immutable(),
 		field.String("content_hash").NotEmpty().MaxLen(64).Immutable(),
-		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID").Immutable(),
+		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE").Immutable(),
 		field.String("reason").Optional().Nillable().MaxLen(500).Immutable(),
 		field.UUID("created_by", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("idempotency_key").Optional().Nillable().MaxLen(128).Immutable(),
 		field.String("request_fingerprint").Optional().Nillable().MaxLen(128).Immutable(),
+		field.String("confirmed_by_party").Optional().Nillable().MaxLen(128).Immutable(),
+		field.Time("confirmed_at").Optional().Nillable().Immutable(),
+		field.String("confirmation_note").Optional().Nillable().MaxLen(500).Immutable(),
+		field.UUID("confirmation_attachment_id", uuid.Nil).Optional().Nillable().Immutable(),
 	}
 	return append(fields, immutableSeaBillContentFields()...)
 }
@@ -60,11 +64,12 @@ func (SeaHouseBillVersion) Edges() []ent.Edge {
 		edge.From("order", Order.Type).Ref("sea_house_bill_versions").Field("order_id").Unique().Required().Immutable(),
 		edge.From("master_bill", SeaMasterBill.Type).Ref("house_bill_versions").Field("master_bill_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_house_bill_versions").Field("created_by").Unique().Immutable(),
+		edge.From("confirmation_attachment", OrderAttachment.Type).Ref("sea_house_bill_versions").Field("confirmation_attachment_id").Unique().Immutable(),
 		edge.To("lock_snapshots", OrderLockHouseBillSnapshot.Type),
 		edge.To("void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("previous_void_events", SeaDocumentVoidEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
-		edge.To("old_switch_events", SeaHouseBillSwitchEvent.Type),
-		edge.To("new_switch_events", SeaHouseBillSwitchEvent.Type),
+		edge.To("previous_mode_change_events", SeaDocumentModeChangeEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("target_mode_change_events", SeaDocumentModeChangeEvent.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

@@ -14,26 +14,31 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaTransportExecutionQuery is the builder for querying SeaTransportExecution entities.
 type SeaTransportExecutionQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []seatransportexecution.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.SeaTransportExecution
-	withOrganization       *OrganizationQuery
-	withShippingLine       *ShippingLineQuery
-	withMasterBills        *SeaMasterBillQuery
-	withMasterBillVersions *SeaMasterBillVersionQuery
-	modifiers              []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []seatransportexecution.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.SeaTransportExecution
+	withOrganization     *OrganizationQuery
+	withShippingLine     *ShippingLineQuery
+	withOrderLinks       *SeaMasterBillOrderLinkQuery
+	withCurrentVersion   *SeaTransportExecutionVersionQuery
+	withVersions         *SeaTransportExecutionVersionQuery
+	withSharedContainers *SeaSharedContainerQuery
+	withLockRecords      *OrderLockRecordQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -114,9 +119,9 @@ func (_q *SeaTransportExecutionQuery) QueryShippingLine() *ShippingLineQuery {
 	return query
 }
 
-// QueryMasterBills chains the current query on the "master_bills" edge.
-func (_q *SeaTransportExecutionQuery) QueryMasterBills() *SeaMasterBillQuery {
-	query := (&SeaMasterBillClient{config: _q.config}).Query()
+// QueryOrderLinks chains the current query on the "order_links" edge.
+func (_q *SeaTransportExecutionQuery) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -127,8 +132,8 @@ func (_q *SeaTransportExecutionQuery) QueryMasterBills() *SeaMasterBillQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
-			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.OrderLinksTable, seatransportexecution.OrderLinksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -136,9 +141,9 @@ func (_q *SeaTransportExecutionQuery) QueryMasterBills() *SeaMasterBillQuery {
 	return query
 }
 
-// QueryMasterBillVersions chains the current query on the "master_bill_versions" edge.
-func (_q *SeaTransportExecutionQuery) QueryMasterBillVersions() *SeaMasterBillVersionQuery {
-	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+// QueryCurrentVersion chains the current query on the "current_version" edge.
+func (_q *SeaTransportExecutionQuery) QueryCurrentVersion() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -149,8 +154,74 @@ func (_q *SeaTransportExecutionQuery) QueryMasterBillVersions() *SeaMasterBillVe
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
-			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillVersionsTable, seatransportexecution.MasterBillVersionsColumn),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, seatransportexecution.CurrentVersionTable, seatransportexecution.CurrentVersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVersions chains the current query on the "versions" edge.
+func (_q *SeaTransportExecutionQuery) QueryVersions() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.VersionsTable, seatransportexecution.VersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySharedContainers chains the current query on the "shared_containers" edge.
+func (_q *SeaTransportExecutionQuery) QuerySharedContainers() *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.SharedContainersTable, seatransportexecution.SharedContainersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLockRecords chains the current query on the "lock_records" edge.
+func (_q *SeaTransportExecutionQuery) QueryLockRecords() *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, selector),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.LockRecordsTable, seatransportexecution.LockRecordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -345,15 +416,18 @@ func (_q *SeaTransportExecutionQuery) Clone() *SeaTransportExecutionQuery {
 		return nil
 	}
 	return &SeaTransportExecutionQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]seatransportexecution.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.SeaTransportExecution{}, _q.predicates...),
-		withOrganization:       _q.withOrganization.Clone(),
-		withShippingLine:       _q.withShippingLine.Clone(),
-		withMasterBills:        _q.withMasterBills.Clone(),
-		withMasterBillVersions: _q.withMasterBillVersions.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]seatransportexecution.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.SeaTransportExecution{}, _q.predicates...),
+		withOrganization:     _q.withOrganization.Clone(),
+		withShippingLine:     _q.withShippingLine.Clone(),
+		withOrderLinks:       _q.withOrderLinks.Clone(),
+		withCurrentVersion:   _q.withCurrentVersion.Clone(),
+		withVersions:         _q.withVersions.Clone(),
+		withSharedContainers: _q.withSharedContainers.Clone(),
+		withLockRecords:      _q.withLockRecords.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -382,25 +456,58 @@ func (_q *SeaTransportExecutionQuery) WithShippingLine(opts ...func(*ShippingLin
 	return _q
 }
 
-// WithMasterBills tells the query-builder to eager-load the nodes that are connected to
-// the "master_bills" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaTransportExecutionQuery) WithMasterBills(opts ...func(*SeaMasterBillQuery)) *SeaTransportExecutionQuery {
-	query := (&SeaMasterBillClient{config: _q.config}).Query()
+// WithOrderLinks tells the query-builder to eager-load the nodes that are connected to
+// the "order_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithOrderLinks(opts ...func(*SeaMasterBillOrderLinkQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withMasterBills = query
+	_q.withOrderLinks = query
 	return _q
 }
 
-// WithMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
-// the "master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaTransportExecutionQuery) WithMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *SeaTransportExecutionQuery {
-	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+// WithCurrentVersion tells the query-builder to eager-load the nodes that are connected to
+// the "current_version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithCurrentVersion(opts ...func(*SeaTransportExecutionVersionQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withMasterBillVersions = query
+	_q.withCurrentVersion = query
+	return _q
+}
+
+// WithVersions tells the query-builder to eager-load the nodes that are connected to
+// the "versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithVersions(opts ...func(*SeaTransportExecutionVersionQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withVersions = query
+	return _q
+}
+
+// WithSharedContainers tells the query-builder to eager-load the nodes that are connected to
+// the "shared_containers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithSharedContainers(opts ...func(*SeaSharedContainerQuery)) *SeaTransportExecutionQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSharedContainers = query
+	return _q
+}
+
+// WithLockRecords tells the query-builder to eager-load the nodes that are connected to
+// the "lock_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaTransportExecutionQuery) WithLockRecords(opts ...func(*OrderLockRecordQuery)) *SeaTransportExecutionQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLockRecords = query
 	return _q
 }
 
@@ -482,11 +589,14 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*SeaTransportExecution{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [7]bool{
 			_q.withOrganization != nil,
 			_q.withShippingLine != nil,
-			_q.withMasterBills != nil,
-			_q.withMasterBillVersions != nil,
+			_q.withOrderLinks != nil,
+			_q.withCurrentVersion != nil,
+			_q.withVersions != nil,
+			_q.withSharedContainers != nil,
+			_q.withLockRecords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -522,18 +632,44 @@ func (_q *SeaTransportExecutionQuery) sqlAll(ctx context.Context, hooks ...query
 			return nil, err
 		}
 	}
-	if query := _q.withMasterBills; query != nil {
-		if err := _q.loadMasterBills(ctx, query, nodes,
-			func(n *SeaTransportExecution) { n.Edges.MasterBills = []*SeaMasterBill{} },
-			func(n *SeaTransportExecution, e *SeaMasterBill) { n.Edges.MasterBills = append(n.Edges.MasterBills, e) }); err != nil {
+	if query := _q.withOrderLinks; query != nil {
+		if err := _q.loadOrderLinks(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.OrderLinks = []*SeaMasterBillOrderLink{} },
+			func(n *SeaTransportExecution, e *SeaMasterBillOrderLink) {
+				n.Edges.OrderLinks = append(n.Edges.OrderLinks, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withMasterBillVersions; query != nil {
-		if err := _q.loadMasterBillVersions(ctx, query, nodes,
-			func(n *SeaTransportExecution) { n.Edges.MasterBillVersions = []*SeaMasterBillVersion{} },
-			func(n *SeaTransportExecution, e *SeaMasterBillVersion) {
-				n.Edges.MasterBillVersions = append(n.Edges.MasterBillVersions, e)
+	if query := _q.withCurrentVersion; query != nil {
+		if err := _q.loadCurrentVersion(ctx, query, nodes, nil,
+			func(n *SeaTransportExecution, e *SeaTransportExecutionVersion) { n.Edges.CurrentVersion = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withVersions; query != nil {
+		if err := _q.loadVersions(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.Versions = []*SeaTransportExecutionVersion{} },
+			func(n *SeaTransportExecution, e *SeaTransportExecutionVersion) {
+				n.Edges.Versions = append(n.Edges.Versions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSharedContainers; query != nil {
+		if err := _q.loadSharedContainers(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.SharedContainers = []*SeaSharedContainer{} },
+			func(n *SeaTransportExecution, e *SeaSharedContainer) {
+				n.Edges.SharedContainers = append(n.Edges.SharedContainers, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withLockRecords; query != nil {
+		if err := _q.loadLockRecords(ctx, query, nodes,
+			func(n *SeaTransportExecution) { n.Edges.LockRecords = []*OrderLockRecord{} },
+			func(n *SeaTransportExecution, e *OrderLockRecord) {
+				n.Edges.LockRecords = append(n.Edges.LockRecords, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -599,7 +735,7 @@ func (_q *SeaTransportExecutionQuery) loadShippingLine(ctx context.Context, quer
 	}
 	return nil
 }
-func (_q *SeaTransportExecutionQuery) loadMasterBills(ctx context.Context, query *SeaMasterBillQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaMasterBill)) error {
+func (_q *SeaTransportExecutionQuery) loadOrderLinks(ctx context.Context, query *SeaMasterBillOrderLinkQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaMasterBillOrderLink)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
 	for i := range nodes {
@@ -610,10 +746,10 @@ func (_q *SeaTransportExecutionQuery) loadMasterBills(ctx context.Context, query
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seamasterbill.FieldTransportExecutionID)
+		query.ctx.AppendFieldOnce(seamasterbillorderlink.FieldTransportExecutionID)
 	}
-	query.Where(predicate.SeaMasterBill(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(seatransportexecution.MasterBillsColumn), fks...))
+	query.Where(predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.OrderLinksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -629,7 +765,39 @@ func (_q *SeaTransportExecutionQuery) loadMasterBills(ctx context.Context, query
 	}
 	return nil
 }
-func (_q *SeaTransportExecutionQuery) loadMasterBillVersions(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaMasterBillVersion)) error {
+func (_q *SeaTransportExecutionQuery) loadCurrentVersion(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaTransportExecutionVersion)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaTransportExecution)
+	for i := range nodes {
+		if nodes[i].CurrentVersionID == nil {
+			continue
+		}
+		fk := *nodes[i].CurrentVersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seatransportexecutionversion.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "current_version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *SeaTransportExecutionQuery) loadVersions(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaTransportExecutionVersion)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
 	for i := range nodes {
@@ -640,10 +808,10 @@ func (_q *SeaTransportExecutionQuery) loadMasterBillVersions(ctx context.Context
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seamasterbillversion.FieldTransportExecutionID)
+		query.ctx.AppendFieldOnce(seatransportexecutionversion.FieldTransportExecutionID)
 	}
-	query.Where(predicate.SeaMasterBillVersion(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(seatransportexecution.MasterBillVersionsColumn), fks...))
+	query.Where(predicate.SeaTransportExecutionVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.VersionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -654,6 +822,69 @@ func (_q *SeaTransportExecutionQuery) loadMasterBillVersions(ctx context.Context
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "transport_execution_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaTransportExecutionQuery) loadSharedContainers(ctx context.Context, query *SeaSharedContainerQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *SeaSharedContainer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seasharedcontainer.FieldTransportExecutionID)
+	}
+	query.Where(predicate.SeaSharedContainer(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.SharedContainersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TransportExecutionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "transport_execution_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaTransportExecutionQuery) loadLockRecords(ctx context.Context, query *OrderLockRecordQuery, nodes []*SeaTransportExecution, init func(*SeaTransportExecution), assign func(*SeaTransportExecution, *OrderLockRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaTransportExecution)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderlockrecord.FieldTransportExecutionID)
+	}
+	query.Where(predicate.OrderLockRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seatransportexecution.LockRecordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TransportExecutionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "transport_execution_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "transport_execution_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -693,6 +924,9 @@ func (_q *SeaTransportExecutionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withShippingLine != nil {
 			_spec.Node.AddColumnOnce(seatransportexecution.FieldShippingLineID)
+		}
+		if _q.withCurrentVersion != nil {
+			_spec.Node.AddColumnOnce(seatransportexecution.FieldCurrentVersionID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

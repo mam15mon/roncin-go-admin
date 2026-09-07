@@ -111,6 +111,11 @@ func Eta(v time.Time) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldEQ(FieldEta, v))
 }
 
+// CurrentVersionID applies equality check predicate on the "current_version_id" field. It's identical to CurrentVersionIDEQ.
+func CurrentVersionID(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldEQ(FieldCurrentVersionID, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldEQ(FieldVersion, v))
@@ -616,6 +621,36 @@ func EtaNotNil() predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldNotNull(FieldEta))
 }
 
+// CurrentVersionIDEQ applies the EQ predicate on the "current_version_id" field.
+func CurrentVersionIDEQ(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldEQ(FieldCurrentVersionID, v))
+}
+
+// CurrentVersionIDNEQ applies the NEQ predicate on the "current_version_id" field.
+func CurrentVersionIDNEQ(v uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldNEQ(FieldCurrentVersionID, v))
+}
+
+// CurrentVersionIDIn applies the In predicate on the "current_version_id" field.
+func CurrentVersionIDIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldIn(FieldCurrentVersionID, vs...))
+}
+
+// CurrentVersionIDNotIn applies the NotIn predicate on the "current_version_id" field.
+func CurrentVersionIDNotIn(vs ...uuid.UUID) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldNotIn(FieldCurrentVersionID, vs...))
+}
+
+// CurrentVersionIDIsNil applies the IsNil predicate on the "current_version_id" field.
+func CurrentVersionIDIsNil() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldIsNull(FieldCurrentVersionID))
+}
+
+// CurrentVersionIDNotNil applies the NotNil predicate on the "current_version_id" field.
+func CurrentVersionIDNotNil() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(sql.FieldNotNull(FieldCurrentVersionID))
+}
+
 // VersionEQ applies the EQ predicate on the "version" field.
 func VersionEQ(v uint64) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(sql.FieldEQ(FieldVersion, v))
@@ -702,21 +737,21 @@ func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.SeaTransport
 	})
 }
 
-// HasMasterBills applies the HasEdge predicate on the "master_bills" edge.
-func HasMasterBills() predicate.SeaTransportExecution {
+// HasOrderLinks applies the HasEdge predicate on the "order_links" edge.
+func HasOrderLinks() predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MasterBillsTable, MasterBillsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderLinksTable, OrderLinksColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasMasterBillsWith applies the HasEdge predicate on the "master_bills" edge with a given conditions (other predicates).
-func HasMasterBillsWith(preds ...predicate.SeaMasterBill) predicate.SeaTransportExecution {
+// HasOrderLinksWith applies the HasEdge predicate on the "order_links" edge with a given conditions (other predicates).
+func HasOrderLinksWith(preds ...predicate.SeaMasterBillOrderLink) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(func(s *sql.Selector) {
-		step := newMasterBillsStep()
+		step := newOrderLinksStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -725,21 +760,90 @@ func HasMasterBillsWith(preds ...predicate.SeaMasterBill) predicate.SeaTransport
 	})
 }
 
-// HasMasterBillVersions applies the HasEdge predicate on the "master_bill_versions" edge.
-func HasMasterBillVersions() predicate.SeaTransportExecution {
+// HasCurrentVersion applies the HasEdge predicate on the "current_version" edge.
+func HasCurrentVersion() predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MasterBillVersionsTable, MasterBillVersionsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, CurrentVersionTable, CurrentVersionColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasMasterBillVersionsWith applies the HasEdge predicate on the "master_bill_versions" edge with a given conditions (other predicates).
-func HasMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.SeaTransportExecution {
+// HasCurrentVersionWith applies the HasEdge predicate on the "current_version" edge with a given conditions (other predicates).
+func HasCurrentVersionWith(preds ...predicate.SeaTransportExecutionVersion) predicate.SeaTransportExecution {
 	return predicate.SeaTransportExecution(func(s *sql.Selector) {
-		step := newMasterBillVersionsStep()
+		step := newCurrentVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVersions applies the HasEdge predicate on the "versions" edge.
+func HasVersions() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVersionsWith applies the HasEdge predicate on the "versions" edge with a given conditions (other predicates).
+func HasVersionsWith(preds ...predicate.SeaTransportExecutionVersion) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := newVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSharedContainers applies the HasEdge predicate on the "shared_containers" edge.
+func HasSharedContainers() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SharedContainersTable, SharedContainersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSharedContainersWith applies the HasEdge predicate on the "shared_containers" edge with a given conditions (other predicates).
+func HasSharedContainersWith(preds ...predicate.SeaSharedContainer) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := newSharedContainersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLockRecords applies the HasEdge predicate on the "lock_records" edge.
+func HasLockRecords() predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockRecordsWith applies the HasEdge predicate on the "lock_records" edge with a given conditions (other predicates).
+func HasLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.SeaTransportExecution {
+	return predicate.SeaTransportExecution(func(s *sql.Selector) {
+		step := newLockRecordsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

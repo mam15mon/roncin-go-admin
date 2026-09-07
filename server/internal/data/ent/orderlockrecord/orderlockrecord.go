@@ -38,6 +38,10 @@ const (
 	FieldMasterBillID = "master_bill_id"
 	// FieldMasterBillVersionID holds the string denoting the master_bill_version_id field in the database.
 	FieldMasterBillVersionID = "master_bill_version_id"
+	// FieldTransportExecutionID holds the string denoting the transport_execution_id field in the database.
+	FieldTransportExecutionID = "transport_execution_id"
+	// FieldTransportExecutionVersionID holds the string denoting the transport_execution_version_id field in the database.
+	FieldTransportExecutionVersionID = "transport_execution_version_id"
 	// FieldUnlockedBy holds the string denoting the unlocked_by field in the database.
 	FieldUnlockedBy = "unlocked_by"
 	// FieldUnlockedAt holds the string denoting the unlocked_at field in the database.
@@ -66,6 +70,10 @@ const (
 	EdgeMasterBill = "master_bill"
 	// EdgeMasterBillVersion holds the string denoting the master_bill_version edge name in mutations.
 	EdgeMasterBillVersion = "master_bill_version"
+	// EdgeTransportExecution holds the string denoting the transport_execution edge name in mutations.
+	EdgeTransportExecution = "transport_execution"
+	// EdgeTransportExecutionVersion holds the string denoting the transport_execution_version edge name in mutations.
+	EdgeTransportExecutionVersion = "transport_execution_version"
 	// EdgeUnlockRequests holds the string denoting the unlock_requests edge name in mutations.
 	EdgeUnlockRequests = "unlock_requests"
 	// EdgeAppliedUnlockRequest holds the string denoting the applied_unlock_request edge name in mutations.
@@ -116,6 +124,20 @@ const (
 	MasterBillVersionInverseTable = "sea_master_bill_versions"
 	// MasterBillVersionColumn is the table column denoting the master_bill_version relation/edge.
 	MasterBillVersionColumn = "master_bill_version_id"
+	// TransportExecutionTable is the table that holds the transport_execution relation/edge.
+	TransportExecutionTable = "order_lock_records"
+	// TransportExecutionInverseTable is the table name for the SeaTransportExecution entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecution" package.
+	TransportExecutionInverseTable = "sea_transport_executions"
+	// TransportExecutionColumn is the table column denoting the transport_execution relation/edge.
+	TransportExecutionColumn = "transport_execution_id"
+	// TransportExecutionVersionTable is the table that holds the transport_execution_version relation/edge.
+	TransportExecutionVersionTable = "order_lock_records"
+	// TransportExecutionVersionInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	TransportExecutionVersionInverseTable = "sea_transport_execution_versions"
+	// TransportExecutionVersionColumn is the table column denoting the transport_execution_version relation/edge.
+	TransportExecutionVersionColumn = "transport_execution_version_id"
 	// UnlockRequestsTable is the table that holds the unlock_requests relation/edge.
 	UnlockRequestsTable = "order_unlock_requests"
 	// UnlockRequestsInverseTable is the table name for the OrderUnlockRequest entity.
@@ -153,6 +175,8 @@ var Columns = []string{
 	FieldOrderVersionAtLock,
 	FieldMasterBillID,
 	FieldMasterBillVersionID,
+	FieldTransportExecutionID,
+	FieldTransportExecutionVersionID,
 	FieldUnlockedBy,
 	FieldUnlockedAt,
 	FieldOrderVersionAtUnlock,
@@ -302,6 +326,16 @@ func ByMasterBillVersionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMasterBillVersionID, opts...).ToFunc()
 }
 
+// ByTransportExecutionID orders the results by the transport_execution_id field.
+func ByTransportExecutionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTransportExecutionID, opts...).ToFunc()
+}
+
+// ByTransportExecutionVersionID orders the results by the transport_execution_version_id field.
+func ByTransportExecutionVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTransportExecutionVersionID, opts...).ToFunc()
+}
+
 // ByUnlockedBy orders the results by the unlocked_by field.
 func ByUnlockedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUnlockedBy, opts...).ToFunc()
@@ -384,6 +418,20 @@ func ByMasterBillVersionField(field string, opts ...sql.OrderTermOption) OrderOp
 	}
 }
 
+// ByTransportExecutionField orders the results by transport_execution field.
+func ByTransportExecutionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTransportExecutionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTransportExecutionVersionField orders the results by transport_execution_version field.
+func ByTransportExecutionVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTransportExecutionVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByUnlockRequestsCount orders the results by unlock_requests count.
 func ByUnlockRequestsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -458,6 +506,20 @@ func newMasterBillVersionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MasterBillVersionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, MasterBillVersionTable, MasterBillVersionColumn),
+	)
+}
+func newTransportExecutionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TransportExecutionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
+	)
+}
+func newTransportExecutionVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TransportExecutionVersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionVersionTable, TransportExecutionVersionColumn),
 	)
 }
 func newUnlockRequestsStep() *sqlgraph.Step {

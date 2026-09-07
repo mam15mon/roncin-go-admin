@@ -181,9 +181,6 @@ func (_u *SeaMasterBillVersionUpdate) check() error {
 	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.shipping_line"`)
 	}
-	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.transport_execution"`)
-	}
 	return nil
 }
 
@@ -199,30 +196,6 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 			}
 		}
 	}
-	if _u.mutation.VesselVoyageSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldVesselVoyageSnapshot, field.TypeString)
-	}
-	if _u.mutation.EtdSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtdSnapshot, field.TypeString)
-	}
-	if _u.mutation.EtaSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtaSnapshot, field.TypeString)
-	}
-	if _u.mutation.OriginLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID)
-	}
-	if _u.mutation.DischargeLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldDischargeLocationID, field.TypeUUID)
-	}
-	if _u.mutation.TransitLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldTransitLocationID, field.TypeUUID)
-	}
-	if _u.mutation.EtdCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtd, field.TypeTime)
-	}
-	if _u.mutation.EtaCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEta, field.TypeTime)
-	}
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seamasterbillversion.FieldReason, field.TypeString)
 	}
@@ -231,6 +204,15 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if _u.mutation.RequestFingerprintCleared() {
 		_spec.ClearField(seamasterbillversion.FieldRequestFingerprint, field.TypeString)
+	}
+	if _u.mutation.ConfirmedByPartyCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmedByParty, field.TypeString)
+	}
+	if _u.mutation.ConfirmedAtCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmedAt, field.TypeTime)
+	}
+	if _u.mutation.ConfirmationNoteCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmationNote, field.TypeString)
 	}
 	if _u.mutation.ShipperTextCleared() {
 		_spec.ClearField(seamasterbillversion.FieldShipperText, field.TypeString)
@@ -596,9 +578,6 @@ func (_u *SeaMasterBillVersionUpdateOne) check() error {
 	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.shipping_line"`)
 	}
-	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBillVersion.transport_execution"`)
-	}
 	return nil
 }
 
@@ -631,30 +610,6 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 			}
 		}
 	}
-	if _u.mutation.VesselVoyageSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldVesselVoyageSnapshot, field.TypeString)
-	}
-	if _u.mutation.EtdSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtdSnapshot, field.TypeString)
-	}
-	if _u.mutation.EtaSnapshotCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtaSnapshot, field.TypeString)
-	}
-	if _u.mutation.OriginLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID)
-	}
-	if _u.mutation.DischargeLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldDischargeLocationID, field.TypeUUID)
-	}
-	if _u.mutation.TransitLocationIDCleared() {
-		_spec.ClearField(seamasterbillversion.FieldTransitLocationID, field.TypeUUID)
-	}
-	if _u.mutation.EtdCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEtd, field.TypeTime)
-	}
-	if _u.mutation.EtaCleared() {
-		_spec.ClearField(seamasterbillversion.FieldEta, field.TypeTime)
-	}
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seamasterbillversion.FieldReason, field.TypeString)
 	}
@@ -663,6 +618,15 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 	}
 	if _u.mutation.RequestFingerprintCleared() {
 		_spec.ClearField(seamasterbillversion.FieldRequestFingerprint, field.TypeString)
+	}
+	if _u.mutation.ConfirmedByPartyCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmedByParty, field.TypeString)
+	}
+	if _u.mutation.ConfirmedAtCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmedAt, field.TypeTime)
+	}
+	if _u.mutation.ConfirmationNoteCleared() {
+		_spec.ClearField(seamasterbillversion.FieldConfirmationNote, field.TypeString)
 	}
 	if _u.mutation.ShipperTextCleared() {
 		_spec.ClearField(seamasterbillversion.FieldShipperText, field.TypeString)

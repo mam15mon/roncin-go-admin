@@ -40,13 +40,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -89,7 +90,6 @@ type UserQuery struct {
 	withUpdatedEnterpriseResources            *EnterpriseResourceQuery
 	withUploadedEnterpriseResourceImages      *EnterpriseResourceImageQuery
 	withEnterpriseResourceAssignments         *EnterpriseResourceAssigneeQuery
-	withConfirmedSeaCargoAllocationLinks      *SeaMasterBillOrderLinkQuery
 	withCreatedSeaOrderSplitEvents            *SeaOrderSplitEventQuery
 	withCreatedSeaOrderReassignmentEvents     *SeaOrderReassignmentEventQuery
 	withUploadedAttachmentAssets              *OrderAttachmentAssetQuery
@@ -103,7 +103,9 @@ type UserQuery struct {
 	withCreatedSeaMasterBillVersions          *SeaMasterBillVersionQuery
 	withCreatedSeaHouseBillVersions           *SeaHouseBillVersionQuery
 	withCreatedSeaDocumentVoidEvents          *SeaDocumentVoidEventQuery
-	withCreatedSeaHouseBillSwitchEvents       *SeaHouseBillSwitchEventQuery
+	withCreatedSeaTransportExecutionVersions  *SeaTransportExecutionVersionQuery
+	withCreatedSeaDocumentModeChangeEvents    *SeaDocumentModeChangeEventQuery
+	withConfirmedSeaSharedContainers          *SeaSharedContainerQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -823,28 +825,6 @@ func (_q *UserQuery) QueryEnterpriseResourceAssignments() *EnterpriseResourceAss
 	return query
 }
 
-// QueryConfirmedSeaCargoAllocationLinks chains the current query on the "confirmed_sea_cargo_allocation_links" edge.
-func (_q *UserQuery) QueryConfirmedSeaCargoAllocationLinks() *SeaMasterBillOrderLinkQuery {
-	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedSeaCargoAllocationLinksTable, user.ConfirmedSeaCargoAllocationLinksColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryCreatedSeaOrderSplitEvents chains the current query on the "created_sea_order_split_events" edge.
 func (_q *UserQuery) QueryCreatedSeaOrderSplitEvents() *SeaOrderSplitEventQuery {
 	query := (&SeaOrderSplitEventClient{config: _q.config}).Query()
@@ -1131,9 +1111,9 @@ func (_q *UserQuery) QueryCreatedSeaDocumentVoidEvents() *SeaDocumentVoidEventQu
 	return query
 }
 
-// QueryCreatedSeaHouseBillSwitchEvents chains the current query on the "created_sea_house_bill_switch_events" edge.
-func (_q *UserQuery) QueryCreatedSeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// QueryCreatedSeaTransportExecutionVersions chains the current query on the "created_sea_transport_execution_versions" edge.
+func (_q *UserQuery) QueryCreatedSeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -1144,8 +1124,52 @@ func (_q *UserQuery) QueryCreatedSeaHouseBillSwitchEvents() *SeaHouseBillSwitchE
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaHouseBillSwitchEventsTable, user.CreatedSeaHouseBillSwitchEventsColumn),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaTransportExecutionVersionsTable, user.CreatedSeaTransportExecutionVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaDocumentModeChangeEvents chains the current query on the "created_sea_document_mode_change_events" edge.
+func (_q *UserQuery) QueryCreatedSeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaDocumentModeChangeEventsTable, user.CreatedSeaDocumentModeChangeEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfirmedSeaSharedContainers chains the current query on the "confirmed_sea_shared_containers" edge.
+func (_q *UserQuery) QueryConfirmedSeaSharedContainers() *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedSeaSharedContainersTable, user.ConfirmedSeaSharedContainersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1376,7 +1400,6 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withUpdatedEnterpriseResources:            _q.withUpdatedEnterpriseResources.Clone(),
 		withUploadedEnterpriseResourceImages:      _q.withUploadedEnterpriseResourceImages.Clone(),
 		withEnterpriseResourceAssignments:         _q.withEnterpriseResourceAssignments.Clone(),
-		withConfirmedSeaCargoAllocationLinks:      _q.withConfirmedSeaCargoAllocationLinks.Clone(),
 		withCreatedSeaOrderSplitEvents:            _q.withCreatedSeaOrderSplitEvents.Clone(),
 		withCreatedSeaOrderReassignmentEvents:     _q.withCreatedSeaOrderReassignmentEvents.Clone(),
 		withUploadedAttachmentAssets:              _q.withUploadedAttachmentAssets.Clone(),
@@ -1390,7 +1413,9 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCreatedSeaMasterBillVersions:          _q.withCreatedSeaMasterBillVersions.Clone(),
 		withCreatedSeaHouseBillVersions:           _q.withCreatedSeaHouseBillVersions.Clone(),
 		withCreatedSeaDocumentVoidEvents:          _q.withCreatedSeaDocumentVoidEvents.Clone(),
-		withCreatedSeaHouseBillSwitchEvents:       _q.withCreatedSeaHouseBillSwitchEvents.Clone(),
+		withCreatedSeaTransportExecutionVersions:  _q.withCreatedSeaTransportExecutionVersions.Clone(),
+		withCreatedSeaDocumentModeChangeEvents:    _q.withCreatedSeaDocumentModeChangeEvents.Clone(),
+		withConfirmedSeaSharedContainers:          _q.withConfirmedSeaSharedContainers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1738,17 +1763,6 @@ func (_q *UserQuery) WithEnterpriseResourceAssignments(opts ...func(*EnterpriseR
 	return _q
 }
 
-// WithConfirmedSeaCargoAllocationLinks tells the query-builder to eager-load the nodes that are connected to
-// the "confirmed_sea_cargo_allocation_links" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithConfirmedSeaCargoAllocationLinks(opts ...func(*SeaMasterBillOrderLinkQuery)) *UserQuery {
-	query := (&SeaMasterBillOrderLinkClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withConfirmedSeaCargoAllocationLinks = query
-	return _q
-}
-
 // WithCreatedSeaOrderSplitEvents tells the query-builder to eager-load the nodes that are connected to
 // the "created_sea_order_split_events" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithCreatedSeaOrderSplitEvents(opts ...func(*SeaOrderSplitEventQuery)) *UserQuery {
@@ -1892,14 +1906,36 @@ func (_q *UserQuery) WithCreatedSeaDocumentVoidEvents(opts ...func(*SeaDocumentV
 	return _q
 }
 
-// WithCreatedSeaHouseBillSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "created_sea_house_bill_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithCreatedSeaHouseBillSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *UserQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// WithCreatedSeaTransportExecutionVersions tells the query-builder to eager-load the nodes that are connected to
+// the "created_sea_transport_execution_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedSeaTransportExecutionVersions(opts ...func(*SeaTransportExecutionVersionQuery)) *UserQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withCreatedSeaHouseBillSwitchEvents = query
+	_q.withCreatedSeaTransportExecutionVersions = query
+	return _q
+}
+
+// WithCreatedSeaDocumentModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "created_sea_document_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedSeaDocumentModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *UserQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedSeaDocumentModeChangeEvents = query
+	return _q
+}
+
+// WithConfirmedSeaSharedContainers tells the query-builder to eager-load the nodes that are connected to
+// the "confirmed_sea_shared_containers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConfirmedSeaSharedContainers(opts ...func(*SeaSharedContainerQuery)) *UserQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmedSeaSharedContainers = query
 	return _q
 }
 
@@ -1981,7 +2017,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [46]bool{
+		loadedTypes = [47]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2013,7 +2049,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withUpdatedEnterpriseResources != nil,
 			_q.withUploadedEnterpriseResourceImages != nil,
 			_q.withEnterpriseResourceAssignments != nil,
-			_q.withConfirmedSeaCargoAllocationLinks != nil,
 			_q.withCreatedSeaOrderSplitEvents != nil,
 			_q.withCreatedSeaOrderReassignmentEvents != nil,
 			_q.withUploadedAttachmentAssets != nil,
@@ -2027,7 +2062,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCreatedSeaMasterBillVersions != nil,
 			_q.withCreatedSeaHouseBillVersions != nil,
 			_q.withCreatedSeaDocumentVoidEvents != nil,
-			_q.withCreatedSeaHouseBillSwitchEvents != nil,
+			_q.withCreatedSeaTransportExecutionVersions != nil,
+			_q.withCreatedSeaDocumentModeChangeEvents != nil,
+			_q.withConfirmedSeaSharedContainers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2322,15 +2359,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := _q.withConfirmedSeaCargoAllocationLinks; query != nil {
-		if err := _q.loadConfirmedSeaCargoAllocationLinks(ctx, query, nodes,
-			func(n *User) { n.Edges.ConfirmedSeaCargoAllocationLinks = []*SeaMasterBillOrderLink{} },
-			func(n *User, e *SeaMasterBillOrderLink) {
-				n.Edges.ConfirmedSeaCargoAllocationLinks = append(n.Edges.ConfirmedSeaCargoAllocationLinks, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withCreatedSeaOrderSplitEvents; query != nil {
 		if err := _q.loadCreatedSeaOrderSplitEvents(ctx, query, nodes,
 			func(n *User) { n.Edges.CreatedSeaOrderSplitEvents = []*SeaOrderSplitEvent{} },
@@ -2444,11 +2472,29 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := _q.withCreatedSeaHouseBillSwitchEvents; query != nil {
-		if err := _q.loadCreatedSeaHouseBillSwitchEvents(ctx, query, nodes,
-			func(n *User) { n.Edges.CreatedSeaHouseBillSwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *User, e *SeaHouseBillSwitchEvent) {
-				n.Edges.CreatedSeaHouseBillSwitchEvents = append(n.Edges.CreatedSeaHouseBillSwitchEvents, e)
+	if query := _q.withCreatedSeaTransportExecutionVersions; query != nil {
+		if err := _q.loadCreatedSeaTransportExecutionVersions(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedSeaTransportExecutionVersions = []*SeaTransportExecutionVersion{} },
+			func(n *User, e *SeaTransportExecutionVersion) {
+				n.Edges.CreatedSeaTransportExecutionVersions = append(n.Edges.CreatedSeaTransportExecutionVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedSeaDocumentModeChangeEvents; query != nil {
+		if err := _q.loadCreatedSeaDocumentModeChangeEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedSeaDocumentModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *User, e *SeaDocumentModeChangeEvent) {
+				n.Edges.CreatedSeaDocumentModeChangeEvents = append(n.Edges.CreatedSeaDocumentModeChangeEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmedSeaSharedContainers; query != nil {
+		if err := _q.loadConfirmedSeaSharedContainers(ctx, query, nodes,
+			func(n *User) { n.Edges.ConfirmedSeaSharedContainers = []*SeaSharedContainer{} },
+			func(n *User, e *SeaSharedContainer) {
+				n.Edges.ConfirmedSeaSharedContainers = append(n.Edges.ConfirmedSeaSharedContainers, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -3437,39 +3483,6 @@ func (_q *UserQuery) loadEnterpriseResourceAssignments(ctx context.Context, quer
 	}
 	return nil
 }
-func (_q *UserQuery) loadConfirmedSeaCargoAllocationLinks(ctx context.Context, query *SeaMasterBillOrderLinkQuery, nodes []*User, init func(*User), assign func(*User, *SeaMasterBillOrderLink)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seamasterbillorderlink.FieldCargoAllocationConfirmedBy)
-	}
-	query.Where(predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.ConfirmedSeaCargoAllocationLinksColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.CargoAllocationConfirmedBy
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "cargo_allocation_confirmed_by" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "cargo_allocation_confirmed_by" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (_q *UserQuery) loadCreatedSeaOrderSplitEvents(ctx context.Context, query *SeaOrderSplitEventQuery, nodes []*User, init func(*User), assign func(*User, *SeaOrderSplitEvent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
@@ -3887,7 +3900,7 @@ func (_q *UserQuery) loadCreatedSeaDocumentVoidEvents(ctx context.Context, query
 	}
 	return nil
 }
-func (_q *UserQuery) loadCreatedSeaHouseBillSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*User, init func(*User), assign func(*User, *SeaHouseBillSwitchEvent)) error {
+func (_q *UserQuery) loadCreatedSeaTransportExecutionVersions(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*User, init func(*User), assign func(*User, *SeaTransportExecutionVersion)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -3898,10 +3911,43 @@ func (_q *UserQuery) loadCreatedSeaHouseBillSwitchEvents(ctx context.Context, qu
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldCreatedBy)
+		query.ctx.AppendFieldOnce(seatransportexecutionversion.FieldCreatedBy)
 	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.CreatedSeaHouseBillSwitchEventsColumn), fks...))
+	query.Where(predicate.SeaTransportExecutionVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedSeaTransportExecutionVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "created_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedSeaDocumentModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*User, init func(*User), assign func(*User, *SeaDocumentModeChangeEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldCreatedBy)
+	}
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedSeaDocumentModeChangeEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -3912,6 +3958,39 @@ func (_q *UserQuery) loadCreatedSeaHouseBillSwitchEvents(ctx context.Context, qu
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConfirmedSeaSharedContainers(ctx context.Context, query *SeaSharedContainerQuery, nodes []*User, init func(*User), assign func(*User, *SeaSharedContainer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seasharedcontainer.FieldConfirmedBy)
+	}
+	query.Where(predicate.SeaSharedContainer(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConfirmedSeaSharedContainersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmed_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

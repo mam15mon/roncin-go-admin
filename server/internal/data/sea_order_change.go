@@ -28,7 +28,6 @@ import (
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
-	seacargoallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -195,10 +194,6 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 		actions.CanSplit = false
 		actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, "DIRECT 当前没有 HBL 箱货分配，暂不支持部分拆票，可执行整票改配")
 	} else {
-		if activeLink.CargoAllocationStatus != seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
-			actions.CanSplit = false
-			actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, "箱货分配未确认，请先完成箱货分配并确认后再拆票")
-		}
 		hblCount, err := client.SeaHouseBill.Query().Where(seahousebillent.OrderIDEQ(orderID)).Count(ctx)
 		if err != nil {
 			return nil, err
@@ -235,9 +230,8 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 			seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
 			seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 		).
-		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.WithTransportExecution()
-		}).
+		WithTransportExecution().
+		WithMasterBill().
 		Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
@@ -247,7 +241,7 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 	if mbl == nil {
 		return nil, biz.ErrSeaMasterBillNotFound
 	}
-	mblSummary, err := mblToSummary(ctx, client, organizationID, mbl)
+	mblSummary, err := mblToSummary(ctx, client, organizationID, mbl, activeLink.Edges.TransportExecution)
 	if err != nil {
 		return nil, err
 	}
@@ -318,33 +312,7 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 	}
 
 	// 查询 Allocations
-	allocs, err := client.SeaCargoAllocation.Query().
-		Where(seacargoallocationent.OrderIDEQ(orderID)).
-		Order(seacargoallocationent.ByCreatedAt(), seacargoallocationent.ByID()).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	allocList := make([]*biz.SeaOrderSplitAllocationItem, 0, len(allocs))
-	for _, a := range allocs {
-		gw, err := decimal.NewFromString(a.GrossWeightKg)
-		if err != nil {
-			return nil, err
-		}
-		vol, err := decimal.NewFromString(a.VolumeCbm)
-		if err != nil {
-			return nil, err
-		}
-		allocList = append(allocList, &biz.SeaOrderSplitAllocationItem{
-			ID:            a.ID,
-			CargoItemID:   a.CargoItemID,
-			HouseBillID:   a.HouseBillID,
-			ContainerID:   a.ContainerID,
-			PackageCount:  int32(a.PackageCount),
-			GrossWeightKg: gw,
-			VolumeCbm:     vol,
-		})
-	}
+	allocList := make([]*biz.SeaOrderSplitAllocationItem, 0)
 
 	// 查询草稿费用 (排除已作废)
 	fees, err := client.OrderFee.Query().
@@ -456,8 +424,8 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 		CurrentLinkID:                  activeLink.ID,
 		CurrentLinkVersion:             activeLink.Version,
 		DocumentStructure:              string(activeLink.DocumentStructure),
-		CargoAllocationStatus:          string(activeLink.CargoAllocationStatus),
-		CargoAllocationVersion:         activeLink.CargoAllocationVersion,
+		CargoAllocationStatus:          "",
+		CargoAllocationVersion:         0,
 		HouseBills:                     hblItems,
 		CargoItems:                     cargoItemList,
 		Containers:                     containerList,
@@ -491,7 +459,10 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 					seamasterbillent.IDEQ(*target.CandidateID),
 					seamasterbillent.OrganizationIDEQ(organizationID),
 				).
-				WithTransportExecution().
+				WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
+					lq.Where(seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).
+						WithTransportExecution()
+				}).
 				Only(ctx)
 			if queryErr != nil {
 				if ent.IsNotFound(queryErr) {
@@ -499,11 +470,17 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 				}
 				return nil, queryErr
 			}
-			candidateTE := candidate.Edges.TransportExecution
+			var candidateTE *ent.SeaTransportExecution
+			for _, l := range candidate.Edges.OrderLinks {
+				if l.Edges.TransportExecution != nil {
+					candidateTE = l.Edges.TransportExecution
+					break
+				}
+			}
 			if candidateTE == nil ||
 				candidate.Status != seamasterbillent.StatusDRAFT ||
 				candidate.Version != *target.CandidateVersion ||
-				candidate.TransportExecutionID != *target.CandidateTEID ||
+				candidateTE.ID != *target.CandidateTEID ||
 				candidateTE.Version != *target.CandidateTEVersion {
 				return nil, biz.ErrSeaOrderSplitVersionConflict
 			}
@@ -1013,7 +990,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
 				seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 			).
-			Select(seamasterbillorderlinkent.FieldID, seamasterbillorderlinkent.FieldMasterBillID).
+			Select(seamasterbillorderlinkent.FieldID, seamasterbillorderlinkent.FieldMasterBillID, seamasterbillorderlinkent.FieldTransportExecutionID).
 			Only(ctx)
 		if linkErr != nil {
 			if ent.IsNotFound(linkErr) {
@@ -1031,7 +1008,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		mblIDsToLock = sortAndDeduplicateUUIDs(mblIDsToLock)
 
 		lockedMBLs := make(map[uuid.UUID]*ent.SeaMasterBill, len(mblIDsToLock))
-		teIDsToLock := make([]uuid.UUID, 0, len(mblIDsToLock))
+		teIDsToLock := make([]uuid.UUID, 0, len(mblIDsToLock)+len(input.Targets))
+		teIDsToLock = append(teIDsToLock, activeLink.TransportExecutionID)
+		for _, t := range input.Targets {
+			if t.CandidateTEID != nil && *t.CandidateTEID != uuid.Nil {
+				teIDsToLock = append(teIDsToLock, *t.CandidateTEID)
+			}
+		}
 		for _, mblID := range mblIDsToLock {
 			mbl, err := tx.SeaMasterBill.Query().
 				Where(seamasterbillent.IDEQ(mblID), seamasterbillent.OrganizationIDEQ(organizationID)).
@@ -1041,7 +1024,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 			}
 			lockedMBLs[mblID] = mbl
-			teIDsToLock = append(teIDsToLock, mbl.TransportExecutionID)
 		}
 		if lockedMBLs[activeLink.MasterBillID].Status != seamasterbillent.StatusDRAFT {
 			return biz.ErrSeaOrderSplitBlocked
@@ -1075,13 +1057,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		if input.ExpectedVersions.LinkVersion == 0 || lockedActiveLink.Version != input.ExpectedVersions.LinkVersion {
 			return biz.ErrSeaOrderSplitVersionConflict
 		}
-		if input.ExpectedVersions.AllocationVersion == 0 || lockedActiveLink.CargoAllocationVersion != input.ExpectedVersions.AllocationVersion {
-			return biz.ErrSeaOrderSplitVersionConflict
-		}
 		if lockedActiveLink.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE {
-			return biz.ErrSeaOrderSplitBlocked
-		}
-		if lockedActiveLink.CargoAllocationStatus != seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
 			return biz.ErrSeaOrderSplitBlocked
 		}
 
@@ -1105,8 +1081,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				candID := *t.CandidateID
 				candMBL := lockedMBLs[candID]
 				if candMBL == nil || t.CandidateVersion == nil || candMBL.Version != *t.CandidateVersion ||
-					t.CandidateTEID == nil || *t.CandidateTEID == uuid.Nil ||
-					candMBL.TransportExecutionID != *t.CandidateTEID {
+					t.CandidateTEID == nil || *t.CandidateTEID == uuid.Nil {
 					return biz.ErrSeaOrderSplitVersionConflict
 				}
 				if candMBL.Status != seamasterbillent.StatusDRAFT {
@@ -1120,7 +1095,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					return biz.ErrSeaOrderSplitVersionConflict
 				}
 
-				candTE := lockedTEs[candMBL.TransportExecutionID]
+				candTE := lockedTEs[*t.CandidateTEID]
 				if candTE == nil {
 					return biz.ErrSeaTransportExecutionNotFound
 				}
@@ -1281,14 +1256,16 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		allocations, err := tx.SeaCargoAllocation.Query().
-			Where(seacargoallocationent.OrderIDEQ(sourceOrder.ID)).
-			Order(seacargoallocationent.ByID()).
-			ForUpdate().
-			All(ctx)
-		if err != nil {
-			return err
+		type splitAlloc struct {
+			ID            uuid.UUID
+			CargoItemID   uuid.UUID
+			HouseBillID   uuid.UUID
+			ContainerID   *uuid.UUID
+			PackageCount  int
+			GrossWeightKg string
+			VolumeCbm     string
 		}
+		var allocations []splitAlloc
 
 		fees, err := tx.OrderFee.Query().
 			Where(orderfeeent.OrderIDEQ(sourceOrder.ID)).
@@ -1602,7 +1579,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			"active_link": map[string]interface{}{
 				"id":                       lockedActiveLink.ID,
 				"version":                  lockedActiveLink.Version,
-				"cargo_allocation_version": lockedActiveLink.CargoAllocationVersion,
+				"cargo_allocation_version": 0,
 				"status":                   lockedActiveLink.Status,
 				"master_bill_id":           lockedActiveLink.MasterBillID,
 			},
@@ -1648,7 +1625,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			SetSourceOrderVersion(sourceOrder.Version).
 			SetSourceLinkID(lockedActiveLink.ID).
 			SetSourceLinkVersion(lockedActiveLink.Version).
-			SetSourceAllocationVersion(lockedActiveLink.CargoAllocationVersion).
+			SetSourceAllocationVersion(0).
 			SetBeforeSnapshot(beforeSnapshotBytes).
 			SetConservationSnapshot(conservationSnapshotBytes).
 			SetCreatedBy(actorID)
@@ -1675,7 +1652,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			if target.TargetType == biz.SplitTargetTypeCandidate {
 				if target.CandidateID != nil && *target.CandidateID != uuid.Nil {
 					candMBL := lockedMBLs[*target.CandidateID]
-					candTE := lockedTEs[candMBL.TransportExecutionID]
+					candTE := lockedTEs[*target.CandidateTEID]
 					targetEntities[target.ClientTargetKey] = &targetEntityInfo{
 						MBL: candMBL,
 						TE:  candTE,
@@ -1740,19 +1717,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetID(uuid.Must(uuid.NewV7())).
 						SetOrganizationID(organizationID).
 						SetMasterBillID(reassignMblID).
+						SetTransportExecutionID(reassignTEID).
 						SetOrderID(sourceOrder.ID).
 						SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-						SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-						SetCargoAllocationVersion(1).
 						SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 						SetStartedAt(now).
 						SetVersion(1)
-					if lockedActiveLink.CargoAllocationConfirmedAt != nil {
-						finalLinkBuilder.SetCargoAllocationConfirmedAt(*lockedActiveLink.CargoAllocationConfirmedAt)
-					}
-					if lockedActiveLink.CargoAllocationConfirmedBy != nil {
-						finalLinkBuilder.SetCargoAllocationConfirmedBy(*lockedActiveLink.CargoAllocationConfirmedBy)
-					}
 					finalLink, err := finalLinkBuilder.Save(ctx)
 					if err != nil {
 						return err
@@ -1793,7 +1763,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetRequestFingerprint(input.RequestFingerprint).
 						SetPreviousMasterBillID(lockedActiveLink.MasterBillID).
 						SetTargetMasterBillID(reassignMblID).
-						SetPreviousTransportExecutionID(lockedMBLs[lockedActiveLink.MasterBillID].TransportExecutionID).
+						SetPreviousTransportExecutionID(lockedActiveLink.TransportExecutionID).
 						SetTargetTransportExecutionID(reassignTEID).
 						SetPreviousLinkID(lockedActiveLink.ID).
 						SetTargetLinkID(finalLink.ID).
@@ -1845,14 +1815,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						return err
 					}
 				} else {
-					// 留在当前母单，分配版本递增
-					if _, err := tx.SeaMasterBillOrderLink.UpdateOneID(lockedActiveLink.ID).
-						SetCargoAllocationVersion(lockedActiveLink.CargoAllocationVersion + 1).
-						SetCargoAllocationConfirmedAt(now).
-						SetCargoAllocationConfirmedBy(actorID).
-						Save(ctx); err != nil {
-						return err
-					}
+					// 留在当前母单
 					resultLinkMap[res.ClientResultKey] = lockedActiveLink.ID
 				}
 				resultFinalMblMap[res.ClientResultKey] = finalMblID
@@ -2048,19 +2011,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					SetID(uuid.Must(uuid.NewV7())).
 					SetOrganizationID(organizationID).
 					SetMasterBillID(lockedActiveLink.MasterBillID).
+					SetTransportExecutionID(lockedActiveLink.TransportExecutionID).
 					SetOrderID(newOrder.ID).
 					SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-					SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-					SetCargoAllocationVersion(1).
 					SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 					SetStartedAt(now).
 					SetVersion(1)
-				if lockedActiveLink.CargoAllocationConfirmedAt != nil {
-					initialChildLinkBuilder.SetCargoAllocationConfirmedAt(*lockedActiveLink.CargoAllocationConfirmedAt)
-				}
-				if lockedActiveLink.CargoAllocationConfirmedBy != nil {
-					initialChildLinkBuilder.SetCargoAllocationConfirmedBy(*lockedActiveLink.CargoAllocationConfirmedBy)
-				}
 				initialChildLink, err := initialChildLinkBuilder.Save(ctx)
 				if err != nil {
 					return err
@@ -2094,19 +2050,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetID(uuid.Must(uuid.NewV7())).
 						SetOrganizationID(organizationID).
 						SetMasterBillID(finalMblID).
+						SetTransportExecutionID(finalTEID).
 						SetOrderID(newOrder.ID).
 						SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-						SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-						SetCargoAllocationVersion(1).
 						SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 						SetStartedAt(now).
 						SetVersion(1)
-					if lockedActiveLink.CargoAllocationConfirmedAt != nil {
-						finalChildLinkBuilder.SetCargoAllocationConfirmedAt(*lockedActiveLink.CargoAllocationConfirmedAt)
-					}
-					if lockedActiveLink.CargoAllocationConfirmedBy != nil {
-						finalChildLinkBuilder.SetCargoAllocationConfirmedBy(*lockedActiveLink.CargoAllocationConfirmedBy)
-					}
 					finalChildLink, err := finalChildLinkBuilder.Save(ctx)
 					if err != nil {
 						return err
@@ -2147,7 +2096,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetRequestFingerprint(input.RequestFingerprint).
 						SetPreviousMasterBillID(lockedActiveLink.MasterBillID).
 						SetTargetMasterBillID(finalMblID).
-						SetPreviousTransportExecutionID(lockedMBLs[lockedActiveLink.MasterBillID].TransportExecutionID).
+						SetPreviousTransportExecutionID(lockedActiveLink.TransportExecutionID).
 						SetTargetTransportExecutionID(finalTEID).
 						SetPreviousLinkID(initialChildLink.ID). // 必须属于该结果订单!
 						SetTargetLinkID(finalChildLink.ID).
@@ -2257,7 +2206,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			targetOrderID := resultOrderMap[res.ClientResultKey]
 
 			if res.ResultRole == biz.ResultRoleCreated {
-				itemAllocMap := make(map[uuid.UUID][]*ent.SeaCargoAllocation)
+				itemAllocMap := make(map[uuid.UUID][]splitAlloc)
 				for _, hID := range res.HouseBillIDs {
 					for _, a := range allocations {
 						if a.HouseBillID == hID {
@@ -2360,12 +2309,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		// A.2: 来源旧 SeaCargoAllocation 全部删除，并为每个结果全部创建新 UUID 的 allocation!
-		if _, err := tx.SeaCargoAllocation.Delete().
-			Where(seacargoallocationent.OrderIDEQ(sourceOrder.ID)).
-			Exec(ctx); err != nil {
-			return err
-		}
+
 
 		// 零剩余货物行在旧分配删除后彻底物理删除
 		for _, zID := range zeroRemainingCargoIDs {
@@ -2374,46 +2318,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		for _, res := range input.Results {
-			targetOrderID := resultOrderMap[res.ClientResultKey]
-			targetLinkID := resultLinkMap[res.ClientResultKey]
 
-			for _, hID := range res.HouseBillIDs {
-				for _, a := range allocations {
-					if a.HouseBillID == hID {
-						var targetCargoItemUUID uuid.UUID
-						if res.ResultRole == biz.ResultRoleOriginal {
-							targetCargoItemUUID = a.CargoItemID
-						} else {
-							newCargoIDStr, ok := resultCargoOldNewMap[res.ClientResultKey][a.CargoItemID.String()]
-							if !ok {
-								return biz.ErrSeaCargoAllocationNotFound
-							}
-							targetCargoItemUUID = uuid.Must(uuid.Parse(newCargoIDStr))
-						}
-
-						newAllocID := uuid.Must(uuid.NewV7())
-						allocCreate := tx.SeaCargoAllocation.Create().
-							SetID(newAllocID).
-							SetOrganizationID(organizationID).
-							SetOrderID(targetOrderID).
-							SetMasterBillOrderLinkID(targetLinkID).
-							SetCargoItemID(targetCargoItemUUID).
-							SetHouseBillID(hID).
-							SetPackageCount(a.PackageCount).
-							SetGrossWeightKg(a.GrossWeightKg).
-							SetVolumeCbm(a.VolumeCbm)
-						if a.ContainerID != nil {
-							allocCreate.SetContainerID(*a.ContainerID)
-						}
-						if _, err := allocCreate.Save(ctx); err != nil {
-							return err
-						}
-						resultAllocOldNewMap[res.ClientResultKey][a.ID.String()] = newAllocID.String()
-					}
-				}
-			}
-		}
 
 		// A.8: 迁移草稿费用：整行克隆到新订单，记录每个结果自己的 fee old->new ID 映射
 		resultFeeOldNewMap := make(map[string]map[string]string)
@@ -2770,9 +2675,8 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
 			seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 		).
-		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.WithTransportExecution()
-		}).
+		WithMasterBill().
+		WithTransportExecution().
 		Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
@@ -2782,7 +2686,7 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 	if curMBL == nil {
 		return nil, biz.ErrSeaMasterBillNotFound
 	}
-	curSummary, err := mblToSummary(ctx, client, organizationID, curMBL)
+	curSummary, err := mblToSummary(ctx, client, organizationID, curMBL, activeLink.Edges.TransportExecution)
 	if err != nil {
 		return nil, err
 	}
@@ -2817,9 +2721,9 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 				seamasterbillent.IDEQ(*input.Target.CandidateID),
 				seamasterbillent.OrganizationIDEQ(organizationID),
 			).
-			WithTransportExecution().
 			WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
-				lq.Where(seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE))
+				lq.Where(seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).
+					WithTransportExecution()
 			}).
 			Only(ctx)
 		if err != nil {
@@ -2835,11 +2739,17 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			preview.Errors = append(preview.Errors, "目标母单与当前母单相同，无需改配")
 			return preview, nil
 		}
-		candidateTE := candMBL.Edges.TransportExecution
+		var candidateTE *ent.SeaTransportExecution
+		for _, l := range candMBL.Edges.OrderLinks {
+			if l.Edges.TransportExecution != nil {
+				candidateTE = l.Edges.TransportExecution
+				break
+			}
+		}
 		if candidateTE == nil ||
 			candMBL.Status != seamasterbillent.StatusDRAFT ||
 			candMBL.Version != *input.Target.CandidateVersion ||
-			candMBL.TransportExecutionID != *input.Target.CandidateTEID ||
+			candidateTE.ID != *input.Target.CandidateTEID ||
 			candidateTE.Version != *input.Target.CandidateTEVersion {
 			return nil, biz.ErrSeaOrderReassignmentVersionConflict
 		}
@@ -2862,7 +2772,7 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 				"reason": "CANDIDATE_MBL_SHIPPING_LINE_UNAVAILABLE",
 			})
 		}
-		targetSummary, err = mblToSummary(ctx, client, organizationID, candMBL)
+		targetSummary, err = mblToSummary(ctx, client, organizationID, candMBL, candidateTE)
 		if err != nil {
 			return nil, err
 		}
@@ -3089,10 +2999,9 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		}
 
 		// 收集并锁定 TE
-		teIDs := []uuid.UUID{oldMBL.TransportExecutionID}
-		if input.Target.TargetType == biz.SplitTargetTypeCandidate && input.Target.CandidateID != nil && *input.Target.CandidateID != uuid.Nil {
-			candMBL := mbls[*input.Target.CandidateID]
-			teIDs = append(teIDs, candMBL.TransportExecutionID)
+		teIDs := []uuid.UUID{oldLink.TransportExecutionID}
+		if input.Target.TargetType == biz.SplitTargetTypeCandidate && input.Target.CandidateTEID != nil && *input.Target.CandidateTEID != uuid.Nil {
+			teIDs = append(teIDs, *input.Target.CandidateTEID)
 		}
 		teIDs = sortAndDeduplicateUUIDs(teIDs)
 		lockedTEs := make(map[uuid.UUID]*ent.SeaTransportExecution, len(teIDs))
@@ -3106,7 +3015,7 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			}
 			lockedTEs[tid] = te
 		}
-		oldTE := lockedTEs[oldMBL.TransportExecutionID]
+		oldTE := lockedTEs[oldLink.TransportExecutionID]
 
 		// 门禁检查
 		nonDraftHblCount, err := tx.SeaHouseBill.Query().
@@ -3169,8 +3078,7 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			}
 			targetMBL := mbls[targetMBLID]
 			if targetMBL == nil || input.Target.CandidateVersion == nil || targetMBL.Version != *input.Target.CandidateVersion ||
-				input.Target.CandidateTEID == nil || *input.Target.CandidateTEID == uuid.Nil ||
-				targetMBL.TransportExecutionID != *input.Target.CandidateTEID {
+				input.Target.CandidateTEID == nil || *input.Target.CandidateTEID == uuid.Nil {
 				return biz.ErrSeaOrderReassignmentVersionConflict
 			}
 			if targetMBL.Status != seamasterbillent.StatusDRAFT {
@@ -3180,7 +3088,7 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 				return biz.ErrSeaOrderReassignmentVersionConflict
 			}
 			targetMBLNo = targetMBL.MasterNo
-			targetTEID = targetMBL.TransportExecutionID
+			targetTEID = *input.Target.CandidateTEID
 			targetTE = lockedTEs[targetTEID]
 			if targetTE == nil {
 				return biz.ErrSeaTransportExecutionNotFound
@@ -3307,24 +3215,12 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			SetID(uuid.Must(uuid.NewV7())).
 			SetOrganizationID(organizationID).
 			SetMasterBillID(targetMBLID).
+			SetTransportExecutionID(targetTEID).
 			SetOrderID(order.ID).
 			SetDocumentStructure(oldLink.DocumentStructure).
 			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 			SetStartedAt(now).
 			SetVersion(1)
-		if oldLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
-			newLinkBuilder.SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED)
-			newLinkBuilder.SetCargoAllocationVersion(oldLink.CargoAllocationVersion)
-			if oldLink.CargoAllocationConfirmedAt != nil {
-				newLinkBuilder.SetCargoAllocationConfirmedAt(*oldLink.CargoAllocationConfirmedAt)
-			}
-			if oldLink.CargoAllocationConfirmedBy != nil {
-				newLinkBuilder.SetCargoAllocationConfirmedBy(*oldLink.CargoAllocationConfirmedBy)
-			}
-		} else {
-			newLinkBuilder.SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusDRAFT)
-			newLinkBuilder.SetCargoAllocationVersion(1)
-		}
 		newLink, err := newLinkBuilder.Save(ctx)
 		if err != nil {
 			return err
@@ -3348,33 +3244,13 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			}
 		}
 
-		// 锁定并迁移该订单现有的箱货分配至新活动 Link (UUID 升序锁定)
-		allocs, err := tx.SeaCargoAllocation.Query().
-			Where(seacargoallocationent.OrderIDEQ(order.ID)).
-			Order(seacargoallocationent.ByID()).
-			ForUpdate().
-			All(ctx)
-		if err != nil {
-			return err
-		}
-		for _, a := range allocs {
-			if _, err := tx.SeaCargoAllocation.UpdateOneID(a.ID).
-				SetMasterBillOrderLinkID(newLink.ID).
-				Save(ctx); err != nil {
-				return err
-			}
-		}
-
 		beforeSnapshotMap := map[string]interface{}{
 			"schema_version": 1,
 			"link": map[string]interface{}{
-				"id":                            oldLink.ID,
-				"version":                       oldLink.Version,
-				"status":                        oldLink.Status,
-				"cargo_allocation_status":       oldLink.CargoAllocationStatus,
-				"cargo_allocation_version":      oldLink.CargoAllocationVersion,
-				"cargo_allocation_confirmed_at": oldLink.CargoAllocationConfirmedAt,
-				"cargo_allocation_confirmed_by": oldLink.CargoAllocationConfirmedBy,
+				"id":                     oldLink.ID,
+				"version":                oldLink.Version,
+				"status":                 oldLink.Status,
+				"transport_execution_id": oldLink.TransportExecutionID,
 			},
 			"master_bill": map[string]interface{}{
 				"id":               oldMBL.ID,
@@ -3410,13 +3286,10 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		afterSnapshotMap := map[string]interface{}{
 			"schema_version": 1,
 			"link": map[string]interface{}{
-				"id":                            newLink.ID,
-				"version":                       newLink.Version,
-				"status":                        newLink.Status,
-				"cargo_allocation_status":       newLink.CargoAllocationStatus,
-				"cargo_allocation_version":      newLink.CargoAllocationVersion,
-				"cargo_allocation_confirmed_at": newLink.CargoAllocationConfirmedAt,
-				"cargo_allocation_confirmed_by": newLink.CargoAllocationConfirmedBy,
+				"id":                     newLink.ID,
+				"version":                newLink.Version,
+				"status":                 newLink.Status,
+				"transport_execution_id": newLink.TransportExecutionID,
 			},
 			"master_bill": map[string]interface{}{
 				"id":               targetMBLID,
@@ -3958,7 +3831,6 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetShippingLineID(*target.ShippingLineID).
-		SetTransportExecutionID(te.ID).
 		SetMasterNo(normalizedMasterNo).
 		SetNormalizedMasterNo(normalizedMasterNo).
 		SetStatus(seamasterbillent.StatusDRAFT).
@@ -3990,7 +3862,7 @@ func enabledShippingLineExists(ctx context.Context, client *ent.Client, organiza
 	return query.Exist(ctx)
 }
 
-func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.UUID, mbl *ent.SeaMasterBill) (*biz.SeaMasterBillSummary, error) {
+func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.UUID, mbl *ent.SeaMasterBill, te *ent.SeaTransportExecution) (*biz.SeaMasterBillSummary, error) {
 	s := &biz.SeaMasterBillSummary{
 		MasterBillID:   mbl.ID,
 		MasterNo:       mbl.MasterNo,
@@ -4006,7 +3878,7 @@ func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.U
 		return nil, err
 	}
 	s.ShippingLineName = formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode)
-	if te := mbl.Edges.TransportExecution; te != nil {
+	if te != nil {
 		s.TransportExecutionID = te.ID
 		s.TransportExecutionVersion = te.Version
 		s.VesselName = te.VesselName

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -17,20 +18,32 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderAttachmentQuery is the builder for querying OrderAttachment entities.
 type OrderAttachmentQuery struct {
 	config
-	ctx         *QueryContext
-	order       []orderattachment.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.OrderAttachment
-	withOrder   *OrderQuery
-	withAsset   *OrderAttachmentAssetQuery
-	withCreator *UserQuery
-	modifiers   []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []orderattachment.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.OrderAttachment
+	withOrder                         *OrderQuery
+	withAsset                         *OrderAttachmentAssetQuery
+	withCreator                       *UserQuery
+	withSeaMasterBillVersions         *SeaMasterBillVersionQuery
+	withSeaHouseBillVersions          *SeaHouseBillVersionQuery
+	withSeaOrderReassignmentEvents    *SeaOrderReassignmentEventQuery
+	withSeaDocumentVoidEvents         *SeaDocumentVoidEventQuery
+	withSeaDocumentModeChangeEvents   *SeaDocumentModeChangeEventQuery
+	withSeaTransportExecutionVersions *SeaTransportExecutionVersionQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -126,6 +139,138 @@ func (_q *OrderAttachmentQuery) QueryCreator() *UserQuery {
 			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderattachment.CreatorTable, orderattachment.CreatorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions chains the current query on the "sea_master_bill_versions" edge.
+func (_q *OrderAttachmentQuery) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaMasterBillVersionsTable, orderattachment.SeaMasterBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions chains the current query on the "sea_house_bill_versions" edge.
+func (_q *OrderAttachmentQuery) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaHouseBillVersionsTable, orderattachment.SeaHouseBillVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaOrderReassignmentEvents chains the current query on the "sea_order_reassignment_events" edge.
+func (_q *OrderAttachmentQuery) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaOrderReassignmentEventsTable, orderattachment.SeaOrderReassignmentEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentVoidEvents chains the current query on the "sea_document_void_events" edge.
+func (_q *OrderAttachmentQuery) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaDocumentVoidEventsTable, orderattachment.SeaDocumentVoidEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentModeChangeEvents chains the current query on the "sea_document_mode_change_events" edge.
+func (_q *OrderAttachmentQuery) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaDocumentModeChangeEventsTable, orderattachment.SeaDocumentModeChangeEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutionVersions chains the current query on the "sea_transport_execution_versions" edge.
+func (_q *OrderAttachmentQuery) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, selector),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaTransportExecutionVersionsTable, orderattachment.SeaTransportExecutionVersionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -320,14 +465,20 @@ func (_q *OrderAttachmentQuery) Clone() *OrderAttachmentQuery {
 		return nil
 	}
 	return &OrderAttachmentQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]orderattachment.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.OrderAttachment{}, _q.predicates...),
-		withOrder:   _q.withOrder.Clone(),
-		withAsset:   _q.withAsset.Clone(),
-		withCreator: _q.withCreator.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]orderattachment.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.OrderAttachment{}, _q.predicates...),
+		withOrder:                         _q.withOrder.Clone(),
+		withAsset:                         _q.withAsset.Clone(),
+		withCreator:                       _q.withCreator.Clone(),
+		withSeaMasterBillVersions:         _q.withSeaMasterBillVersions.Clone(),
+		withSeaHouseBillVersions:          _q.withSeaHouseBillVersions.Clone(),
+		withSeaOrderReassignmentEvents:    _q.withSeaOrderReassignmentEvents.Clone(),
+		withSeaDocumentVoidEvents:         _q.withSeaDocumentVoidEvents.Clone(),
+		withSeaDocumentModeChangeEvents:   _q.withSeaDocumentModeChangeEvents.Clone(),
+		withSeaTransportExecutionVersions: _q.withSeaTransportExecutionVersions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -364,6 +515,72 @@ func (_q *OrderAttachmentQuery) WithCreator(opts ...func(*UserQuery)) *OrderAtta
 		opt(query)
 	}
 	_q.withCreator = query
+	return _q
+}
+
+// WithSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *OrderAttachmentQuery {
+	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaMasterBillVersions = query
+	return _q
+}
+
+// WithSeaHouseBillVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaHouseBillVersions(opts ...func(*SeaHouseBillVersionQuery)) *OrderAttachmentQuery {
+	query := (&SeaHouseBillVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBillVersions = query
+	return _q
+}
+
+// WithSeaOrderReassignmentEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_order_reassignment_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaOrderReassignmentEvents(opts ...func(*SeaOrderReassignmentEventQuery)) *OrderAttachmentQuery {
+	query := (&SeaOrderReassignmentEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaOrderReassignmentEvents = query
+	return _q
+}
+
+// WithSeaDocumentVoidEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_document_void_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaDocumentVoidEvents(opts ...func(*SeaDocumentVoidEventQuery)) *OrderAttachmentQuery {
+	query := (&SeaDocumentVoidEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaDocumentVoidEvents = query
+	return _q
+}
+
+// WithSeaDocumentModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_document_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaDocumentModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *OrderAttachmentQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaDocumentModeChangeEvents = query
+	return _q
+}
+
+// WithSeaTransportExecutionVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_transport_execution_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderAttachmentQuery) WithSeaTransportExecutionVersions(opts ...func(*SeaTransportExecutionVersionQuery)) *OrderAttachmentQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaTransportExecutionVersions = query
 	return _q
 }
 
@@ -445,10 +662,16 @@ func (_q *OrderAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderAttachment{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [9]bool{
 			_q.withOrder != nil,
 			_q.withAsset != nil,
 			_q.withCreator != nil,
+			_q.withSeaMasterBillVersions != nil,
+			_q.withSeaHouseBillVersions != nil,
+			_q.withSeaOrderReassignmentEvents != nil,
+			_q.withSeaDocumentVoidEvents != nil,
+			_q.withSeaDocumentModeChangeEvents != nil,
+			_q.withSeaTransportExecutionVersions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -487,6 +710,60 @@ func (_q *OrderAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
 			func(n *OrderAttachment, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaMasterBillVersions; query != nil {
+		if err := _q.loadSeaMasterBillVersions(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaMasterBillVersions = []*SeaMasterBillVersion{} },
+			func(n *OrderAttachment, e *SeaMasterBillVersion) {
+				n.Edges.SeaMasterBillVersions = append(n.Edges.SeaMasterBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBillVersions; query != nil {
+		if err := _q.loadSeaHouseBillVersions(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaHouseBillVersions = []*SeaHouseBillVersion{} },
+			func(n *OrderAttachment, e *SeaHouseBillVersion) {
+				n.Edges.SeaHouseBillVersions = append(n.Edges.SeaHouseBillVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaOrderReassignmentEvents; query != nil {
+		if err := _q.loadSeaOrderReassignmentEvents(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaOrderReassignmentEvents = []*SeaOrderReassignmentEvent{} },
+			func(n *OrderAttachment, e *SeaOrderReassignmentEvent) {
+				n.Edges.SeaOrderReassignmentEvents = append(n.Edges.SeaOrderReassignmentEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaDocumentVoidEvents; query != nil {
+		if err := _q.loadSeaDocumentVoidEvents(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaDocumentVoidEvents = []*SeaDocumentVoidEvent{} },
+			func(n *OrderAttachment, e *SeaDocumentVoidEvent) {
+				n.Edges.SeaDocumentVoidEvents = append(n.Edges.SeaDocumentVoidEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaDocumentModeChangeEvents; query != nil {
+		if err := _q.loadSeaDocumentModeChangeEvents(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaDocumentModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *OrderAttachment, e *SeaDocumentModeChangeEvent) {
+				n.Edges.SeaDocumentModeChangeEvents = append(n.Edges.SeaDocumentModeChangeEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaTransportExecutionVersions; query != nil {
+		if err := _q.loadSeaTransportExecutionVersions(ctx, query, nodes,
+			func(n *OrderAttachment) { n.Edges.SeaTransportExecutionVersions = []*SeaTransportExecutionVersion{} },
+			func(n *OrderAttachment, e *SeaTransportExecutionVersion) {
+				n.Edges.SeaTransportExecutionVersions = append(n.Edges.SeaTransportExecutionVersions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -580,6 +857,204 @@ func (_q *OrderAttachmentQuery) loadCreator(ctx context.Context, query *UserQuer
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaMasterBillVersions(ctx context.Context, query *SeaMasterBillVersionQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaMasterBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seamasterbillversion.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaMasterBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaMasterBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaHouseBillVersions(ctx context.Context, query *SeaHouseBillVersionQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaHouseBillVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebillversion.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaHouseBillVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaOrderReassignmentEvents(ctx context.Context, query *SeaOrderReassignmentEventQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaOrderReassignmentEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seaorderreassignmentevent.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaOrderReassignmentEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaDocumentVoidEvents(ctx context.Context, query *SeaDocumentVoidEventQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaDocumentVoidEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentvoidevent.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaDocumentVoidEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaDocumentVoidEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaDocumentModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaDocumentModeChangeEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaDocumentModeChangeEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderAttachmentQuery) loadSeaTransportExecutionVersions(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*OrderAttachment, init func(*OrderAttachment), assign func(*OrderAttachment, *SeaTransportExecutionVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderAttachment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seatransportexecutionversion.FieldConfirmationAttachmentID)
+	}
+	query.Where(predicate.SeaTransportExecutionVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderattachment.SeaTransportExecutionVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmationAttachmentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmation_attachment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmation_attachment_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

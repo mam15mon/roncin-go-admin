@@ -146,6 +146,8 @@ const (
 	FieldSpecialRequirements = "special_requirements"
 	// FieldOrderDate holds the string denoting the order_date field in the database.
 	FieldOrderDate = "order_date"
+	// FieldBookingNo holds the string denoting the booking_no field in the database.
+	FieldBookingNo = "booking_no"
 	// FieldNotes holds the string denoting the notes field in the database.
 	FieldNotes = "notes"
 	// FieldBookingNotes holds the string denoting the booking_notes field in the database.
@@ -200,8 +202,10 @@ const (
 	EdgeSeaMasterBillLinks = "sea_master_bill_links"
 	// EdgeSeaHouseBills holds the string denoting the sea_house_bills edge name in mutations.
 	EdgeSeaHouseBills = "sea_house_bills"
-	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
-	EdgeSeaCargoAllocations = "sea_cargo_allocations"
+	// EdgeSeaDocumentModeChangeEvents holds the string denoting the sea_document_mode_change_events edge name in mutations.
+	EdgeSeaDocumentModeChangeEvents = "sea_document_mode_change_events"
+	// EdgeSeaSharedContainerAllocations holds the string denoting the sea_shared_container_allocations edge name in mutations.
+	EdgeSeaSharedContainerAllocations = "sea_shared_container_allocations"
 	// EdgeSeaOrderSplitEvents holds the string denoting the sea_order_split_events edge name in mutations.
 	EdgeSeaOrderSplitEvents = "sea_order_split_events"
 	// EdgeSeaOrderSplitResults holds the string denoting the sea_order_split_results edge name in mutations.
@@ -218,8 +222,6 @@ const (
 	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
 	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
 	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
-	// EdgeSeaHouseBillSwitchEvents holds the string denoting the sea_house_bill_switch_events edge name in mutations.
-	EdgeSeaHouseBillSwitchEvents = "sea_house_bill_switch_events"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -383,13 +385,20 @@ const (
 	SeaHouseBillsInverseTable = "sea_house_bills"
 	// SeaHouseBillsColumn is the table column denoting the sea_house_bills relation/edge.
 	SeaHouseBillsColumn = "order_id"
-	// SeaCargoAllocationsTable is the table that holds the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsColumn = "order_id"
+	// SeaDocumentModeChangeEventsTable is the table that holds the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	SeaDocumentModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsColumn is the table column denoting the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsColumn = "order_id"
+	// SeaSharedContainerAllocationsTable is the table that holds the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsInverseTable is the table name for the SeaSharedContainerAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainerallocation" package.
+	SeaSharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsColumn is the table column denoting the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsColumn = "order_id"
 	// SeaOrderSplitEventsTable is the table that holds the sea_order_split_events relation/edge.
 	SeaOrderSplitEventsTable = "sea_order_split_events"
 	// SeaOrderSplitEventsInverseTable is the table name for the SeaOrderSplitEvent entity.
@@ -446,13 +455,6 @@ const (
 	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
 	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
 	SeaDocumentVoidEventsColumn = "order_id"
-	// SeaHouseBillSwitchEventsTable is the table that holds the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	SeaHouseBillSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsColumn is the table column denoting the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -523,6 +525,7 @@ var Columns = []string{
 	FieldTotalPackageUnit,
 	FieldSpecialRequirements,
 	FieldOrderDate,
+	FieldBookingNo,
 	FieldNotes,
 	FieldBookingNotes,
 	FieldAllocationNotes,
@@ -620,6 +623,8 @@ var (
 	SpecialRequirementsValidator func(string) error
 	// OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
 	OrderDateValidator func(string) error
+	// BookingNoValidator is a validator for the "booking_no" field. It is called by the builders before save.
+	BookingNoValidator func(string) error
 	// NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	NotesValidator func(string) error
 	// BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
@@ -1251,6 +1256,11 @@ func ByOrderDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderDate, opts...).ToFunc()
 }
 
+// ByBookingNo orders the results by the booking_no field.
+func ByBookingNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBookingNo, opts...).ToFunc()
+}
+
 // ByNotes orders the results by the notes field.
 func ByNotes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNotes, opts...).ToFunc()
@@ -1572,17 +1582,31 @@ func BySeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// BySeaCargoAllocationsCount orders the results by sea_cargo_allocations count.
-func BySeaCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySeaDocumentModeChangeEventsCount orders the results by sea_document_mode_change_events count.
+func BySeaDocumentModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaCargoAllocationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentModeChangeEventsStep(), opts...)
 	}
 }
 
-// BySeaCargoAllocations orders the results by sea_cargo_allocations terms.
-func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySeaDocumentModeChangeEvents orders the results by sea_document_mode_change_events terms.
+func BySeaDocumentModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaSharedContainerAllocationsCount orders the results by sea_shared_container_allocations count.
+func BySeaSharedContainerAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaSharedContainerAllocationsStep(), opts...)
+	}
+}
+
+// BySeaSharedContainerAllocations orders the results by sea_shared_container_allocations terms.
+func BySeaSharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1688,20 +1712,6 @@ func BySeaDocumentVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
 func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// BySeaHouseBillSwitchEventsCount orders the results by sea_house_bill_switch_events count.
-func BySeaHouseBillSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillSwitchEventsStep(), opts...)
-	}
-}
-
-// BySeaHouseBillSwitchEvents orders the results by sea_house_bill_switch_events terms.
-func BySeaHouseBillSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -1865,11 +1875,18 @@ func newSeaHouseBillsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillsTable, SeaHouseBillsColumn),
 	)
 }
-func newSeaCargoAllocationsStep() *sqlgraph.Step {
+func newSeaDocumentModeChangeEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
+		sqlgraph.To(SeaDocumentModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
+	)
+}
+func newSeaSharedContainerAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaSharedContainerAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
 	)
 }
 func newSeaOrderSplitEventsStep() *sqlgraph.Step {
@@ -1926,12 +1943,5 @@ func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaDocumentVoidEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
-	)
-}
-func newSeaHouseBillSwitchEventsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaHouseBillSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
 	)
 }

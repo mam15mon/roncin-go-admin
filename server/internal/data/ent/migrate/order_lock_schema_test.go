@@ -16,7 +16,7 @@ func TestOrderLockSchemaMetadataSupportsAllBusinessTypes(t *testing.T) {
 	if !equalStrings(lockBusinessType.Enums, wantEnums) {
 		t.Fatalf("锁记录 business_type 枚举 = %v，期望 %v", lockBusinessType.Enums, wantEnums)
 	}
-	for _, name := range []string{"master_bill_id", "master_bill_version_id"} {
+	for _, name := range []string{"master_bill_id", "master_bill_version_id", "transport_execution_id", "transport_execution_version_id"} {
 		if column := requireColumn(t, OrderLockRecordsColumns, name); !column.Nullable {
 			t.Fatalf("锁记录 %s 必须可空", name)
 		}
@@ -28,7 +28,7 @@ func TestOrderLockSchemaMetadataSupportsAllBusinessTypes(t *testing.T) {
 	}
 
 	const checkName = "order_lock_records_business_type_document_refs_check"
-	const checkExpression = "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL)"
+	const checkExpression = "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)"
 	if OrderLockRecordsTable.Annotation == nil || OrderLockRecordsTable.Annotation.Checks[checkName] != checkExpression {
 		t.Fatalf("锁记录 CHECK 元数据缺失或不一致: %#v", OrderLockRecordsTable.Annotation)
 	}
@@ -36,6 +36,8 @@ func TestOrderLockSchemaMetadataSupportsAllBusinessTypes(t *testing.T) {
 	for _, symbol := range []string{
 		"order_lock_records_sea_master_bills_lock_records",
 		"order_lock_records_sea_master_bill_versions_lock_records",
+		"order_lock_records_sea_transport_executions_lock_records",
+		"order_lock_records_sea_transport_execution_versions_lock_records",
 	} {
 		foreignKey := requireForeignKey(t, OrderLockRecordsTable.ForeignKeys, symbol)
 		if foreignKey.OnDelete != schema.NoAction {

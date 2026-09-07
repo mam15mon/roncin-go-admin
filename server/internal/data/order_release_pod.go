@@ -137,7 +137,7 @@ func validateReleasePodDocumentReference(ctx context.Context, client *ent.Client
 			}
 			return queryErr
 		}
-		if hb.Status == seahousebillent.StatusVOIDED || hb.Status == seahousebillent.StatusREPLACED {
+		if hb.Status == seahousebillent.StatusVOIDED {
 			return biz.ErrOrderReleasePodDocumentInvalid
 		}
 	default:

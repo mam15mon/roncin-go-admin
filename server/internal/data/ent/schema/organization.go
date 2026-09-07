@@ -53,7 +53,6 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("issued_sea_house_bills", SeaHouseBill.Type),
 		edge.To("order_cargo_items", OrderCargoItem.Type),
 		edge.To("order_containers", OrderContainer.Type),
-		edge.To("sea_cargo_allocations", SeaCargoAllocation.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("background_tasks", BackgroundTask.Type),
 		edge.To("finance_bills", FinanceBill.Type),
@@ -87,7 +86,10 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("issued_sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("dingtalk_approval_dispatches", DingTalkApprovalDispatch.Type),
 		edge.To("sea_document_void_events", SeaDocumentVoidEvent.Type),
-		edge.To("sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
+		edge.To("sea_transport_execution_versions", SeaTransportExecutionVersion.Type),
+		edge.To("sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),
+		edge.To("sea_shared_containers", SeaSharedContainer.Type),
+		edge.To("sea_shared_container_allocations", SeaSharedContainerAllocation.Type),
 	}
 }
 

@@ -78,6 +78,7 @@ func (Order) Fields() []ent.Field {
 		field.String("total_package_unit").Optional().MaxLen(32),
 		field.String("special_requirements").Optional().MaxLen(1000),
 		field.String("order_date").Optional().MaxLen(32),
+		field.String("booking_no").Optional().MaxLen(100),
 		field.String("notes").Optional().MaxLen(1000),
 		field.String("booking_notes").Optional().MaxLen(1000),
 		field.String("allocation_notes").Optional().MaxLen(1000),
@@ -110,7 +111,8 @@ func (Order) Edges() []ent.Edge {
 		edge.To("enterprise_tag_links", OrderEnterpriseTag.Type),
 		edge.To("sea_master_bill_links", SeaMasterBillOrderLink.Type),
 		edge.To("sea_house_bills", SeaHouseBill.Type),
-		edge.To("sea_cargo_allocations", SeaCargoAllocation.Type),
+		edge.To("sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),
+		edge.To("sea_shared_container_allocations", SeaSharedContainerAllocation.Type),
 		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
 		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),
 		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
@@ -119,7 +121,6 @@ func (Order) Edges() []ent.Edge {
 		edge.To("unlock_requests", OrderUnlockRequest.Type),
 		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("sea_document_void_events", SeaDocumentVoidEvent.Type),
-		edge.To("sea_house_bill_switch_events", SeaHouseBillSwitchEvent.Type),
 	}
 }
 
@@ -136,5 +137,6 @@ func (Order) Indexes() []ent.Index {
 		index.Fields("organization_id", "destination_location_id"),
 		index.Fields("organization_id", "locked_at"),
 		index.Fields("organization_id", "is_shared"),
+		index.Fields("organization_id", "booking_no"),
 	}
 }

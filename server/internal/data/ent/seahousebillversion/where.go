@@ -141,6 +141,26 @@ func RequestFingerprint(v string) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldRequestFingerprint, v))
 }
 
+// ConfirmedByParty applies equality check predicate on the "confirmed_by_party" field. It's identical to ConfirmedByPartyEQ.
+func ConfirmedByParty(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAt applies equality check predicate on the "confirmed_at" field. It's identical to ConfirmedAtEQ.
+func ConfirmedAt(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmationNote applies equality check predicate on the "confirmation_note" field. It's identical to ConfirmationNoteEQ.
+func ConfirmationNote(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentID applies equality check predicate on the "confirmation_attachment_id" field. It's identical to ConfirmationAttachmentIDEQ.
+func ConfirmationAttachmentID(v uuid.UUID) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmationAttachmentID, v))
+}
+
 // ShipperText applies equality check predicate on the "shipper_text" field. It's identical to ShipperTextEQ.
 func ShipperText(v string) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldShipperText, v))
@@ -1059,6 +1079,236 @@ func RequestFingerprintEqualFold(v string) predicate.SeaHouseBillVersion {
 // RequestFingerprintContainsFold applies the ContainsFold predicate on the "request_fingerprint" field.
 func RequestFingerprintContainsFold(v string) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(sql.FieldContainsFold(FieldRequestFingerprint, v))
+}
+
+// ConfirmedByPartyEQ applies the EQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEQ(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyNEQ applies the NEQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNEQ(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyIn applies the In predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyIn(vs ...string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyNotIn applies the NotIn predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNotIn(vs ...string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyGT applies the GT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGT(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyGTE applies the GTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGTE(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLT applies the LT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLT(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLTE applies the LTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLTE(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContains applies the Contains predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContains(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldContains(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasPrefix applies the HasPrefix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasPrefix(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldHasPrefix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasSuffix applies the HasSuffix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasSuffix(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldHasSuffix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyIsNil applies the IsNil predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyIsNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIsNull(FieldConfirmedByParty))
+}
+
+// ConfirmedByPartyNotNil applies the NotNil predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNotNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotNull(FieldConfirmedByParty))
+}
+
+// ConfirmedByPartyEqualFold applies the EqualFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEqualFold(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEqualFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContainsFold applies the ContainsFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContainsFold(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldContainsFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAtEQ applies the EQ predicate on the "confirmed_at" field.
+func ConfirmedAtEQ(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtNEQ applies the NEQ predicate on the "confirmed_at" field.
+func ConfirmedAtNEQ(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIn applies the In predicate on the "confirmed_at" field.
+func ConfirmedAtIn(vs ...time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtNotIn applies the NotIn predicate on the "confirmed_at" field.
+func ConfirmedAtNotIn(vs ...time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtGT applies the GT predicate on the "confirmed_at" field.
+func ConfirmedAtGT(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtGTE applies the GTE predicate on the "confirmed_at" field.
+func ConfirmedAtGTE(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLT applies the LT predicate on the "confirmed_at" field.
+func ConfirmedAtLT(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLTE applies the LTE predicate on the "confirmed_at" field.
+func ConfirmedAtLTE(v time.Time) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIsNil applies the IsNil predicate on the "confirmed_at" field.
+func ConfirmedAtIsNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIsNull(FieldConfirmedAt))
+}
+
+// ConfirmedAtNotNil applies the NotNil predicate on the "confirmed_at" field.
+func ConfirmedAtNotNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotNull(FieldConfirmedAt))
+}
+
+// ConfirmationNoteEQ applies the EQ predicate on the "confirmation_note" field.
+func ConfirmationNoteEQ(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteNEQ applies the NEQ predicate on the "confirmation_note" field.
+func ConfirmationNoteNEQ(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteIn applies the In predicate on the "confirmation_note" field.
+func ConfirmationNoteIn(vs ...string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteNotIn applies the NotIn predicate on the "confirmation_note" field.
+func ConfirmationNoteNotIn(vs ...string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteGT applies the GT predicate on the "confirmation_note" field.
+func ConfirmationNoteGT(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteGTE applies the GTE predicate on the "confirmation_note" field.
+func ConfirmationNoteGTE(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldGTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLT applies the LT predicate on the "confirmation_note" field.
+func ConfirmationNoteLT(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLTE applies the LTE predicate on the "confirmation_note" field.
+func ConfirmationNoteLTE(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldLTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContains applies the Contains predicate on the "confirmation_note" field.
+func ConfirmationNoteContains(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldContains(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasPrefix applies the HasPrefix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasPrefix(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldHasPrefix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasSuffix applies the HasSuffix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasSuffix(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldHasSuffix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteIsNil applies the IsNil predicate on the "confirmation_note" field.
+func ConfirmationNoteIsNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIsNull(FieldConfirmationNote))
+}
+
+// ConfirmationNoteNotNil applies the NotNil predicate on the "confirmation_note" field.
+func ConfirmationNoteNotNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotNull(FieldConfirmationNote))
+}
+
+// ConfirmationNoteEqualFold applies the EqualFold predicate on the "confirmation_note" field.
+func ConfirmationNoteEqualFold(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEqualFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContainsFold applies the ContainsFold predicate on the "confirmation_note" field.
+func ConfirmationNoteContainsFold(v string) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldContainsFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentIDEQ applies the EQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDEQ(v uuid.UUID) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDNEQ applies the NEQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNEQ(v uuid.UUID) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDIn applies the In predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIn(vs ...uuid.UUID) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDNotIn applies the NotIn predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotIn(vs ...uuid.UUID) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDIsNil applies the IsNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIsNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIsNull(FieldConfirmationAttachmentID))
+}
+
+// ConfirmationAttachmentIDNotNil applies the NotNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotNull(FieldConfirmationAttachmentID))
 }
 
 // ShipperTextEQ applies the EQ predicate on the "shipper_text" field.
@@ -2272,6 +2522,29 @@ func HasCreatorWith(preds ...predicate.User) predicate.SeaHouseBillVersion {
 	})
 }
 
+// HasConfirmationAttachment applies the HasEdge predicate on the "confirmation_attachment" edge.
+func HasConfirmationAttachment() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmationAttachmentWith applies the HasEdge predicate on the "confirmation_attachment" edge with a given conditions (other predicates).
+func HasConfirmationAttachmentWith(preds ...predicate.OrderAttachment) predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
+		step := newConfirmationAttachmentStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasLockSnapshots applies the HasEdge predicate on the "lock_snapshots" edge.
 func HasLockSnapshots() predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
@@ -2341,21 +2614,21 @@ func HasPreviousVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicat
 	})
 }
 
-// HasOldSwitchEvents applies the HasEdge predicate on the "old_switch_events" edge.
-func HasOldSwitchEvents() predicate.SeaHouseBillVersion {
+// HasPreviousModeChangeEvents applies the HasEdge predicate on the "previous_mode_change_events" edge.
+func HasPreviousModeChangeEvents() predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, OldSwitchEventsTable, OldSwitchEventsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, PreviousModeChangeEventsTable, PreviousModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasOldSwitchEventsWith applies the HasEdge predicate on the "old_switch_events" edge with a given conditions (other predicates).
-func HasOldSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaHouseBillVersion {
+// HasPreviousModeChangeEventsWith applies the HasEdge predicate on the "previous_mode_change_events" edge with a given conditions (other predicates).
+func HasPreviousModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
-		step := newOldSwitchEventsStep()
+		step := newPreviousModeChangeEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -2364,21 +2637,21 @@ func HasOldSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicat
 	})
 }
 
-// HasNewSwitchEvents applies the HasEdge predicate on the "new_switch_events" edge.
-func HasNewSwitchEvents() predicate.SeaHouseBillVersion {
+// HasTargetModeChangeEvents applies the HasEdge predicate on the "target_mode_change_events" edge.
+func HasTargetModeChangeEvents() predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, NewSwitchEventsTable, NewSwitchEventsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TargetModeChangeEventsTable, TargetModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNewSwitchEventsWith applies the HasEdge predicate on the "new_switch_events" edge with a given conditions (other predicates).
-func HasNewSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaHouseBillVersion {
+// HasTargetModeChangeEventsWith applies the HasEdge predicate on the "target_mode_change_events" edge with a given conditions (other predicates).
+func HasTargetModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(func(s *sql.Selector) {
-		step := newNewSwitchEventsStep()
+		step := newTargetModeChangeEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

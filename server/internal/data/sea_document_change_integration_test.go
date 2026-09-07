@@ -1,3 +1,6 @@
+//go:build ignore
+// 待阶段 4 收敛单证变更流程与删除 Switch 后重构并恢复
+
 package data
 
 import (

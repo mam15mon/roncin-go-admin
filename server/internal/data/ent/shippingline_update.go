@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 )
@@ -250,6 +251,21 @@ func (_u *ShippingLineUpdate) AddSeaTransportExecutions(v ...*SeaTransportExecut
 	return _u.AddSeaTransportExecutionIDs(ids...)
 }
 
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_u *ShippingLineUpdate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineUpdate {
+	_u.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *ShippingLineUpdate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
 // AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
 func (_u *ShippingLineUpdate) AddSeaMasterBillIDs(ids ...uuid.UUID) *ShippingLineUpdate {
 	_u.mutation.AddSeaMasterBillIDs(ids...)
@@ -352,6 +368,27 @@ func (_u *ShippingLineUpdate) RemoveSeaTransportExecutions(v ...*SeaTransportExe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaTransportExecutionIDs(ids...)
+}
+
+// ClearSeaTransportExecutionVersions clears all "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *ShippingLineUpdate) ClearSeaTransportExecutionVersions() *ShippingLineUpdate {
+	_u.mutation.ClearSeaTransportExecutionVersions()
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersionIDs removes the "sea_transport_execution_versions" edge to SeaTransportExecutionVersion entities by IDs.
+func (_u *ShippingLineUpdate) RemoveSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineUpdate {
+	_u.mutation.RemoveSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersions removes "sea_transport_execution_versions" edges to SeaTransportExecutionVersion entities.
+func (_u *ShippingLineUpdate) RemoveSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaTransportExecutionVersionIDs(ids...)
 }
 
 // ClearSeaMasterBills clears all "sea_master_bills" edges to the SeaMasterBill entity.
@@ -691,6 +728,51 @@ func (_u *ShippingLineUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaTransportExecutionVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.SeaMasterBillsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1016,6 +1098,21 @@ func (_u *ShippingLineUpdateOne) AddSeaTransportExecutions(v ...*SeaTransportExe
 	return _u.AddSeaTransportExecutionIDs(ids...)
 }
 
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_u *ShippingLineUpdateOne) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineUpdateOne {
+	_u.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *ShippingLineUpdateOne) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
 // AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
 func (_u *ShippingLineUpdateOne) AddSeaMasterBillIDs(ids ...uuid.UUID) *ShippingLineUpdateOne {
 	_u.mutation.AddSeaMasterBillIDs(ids...)
@@ -1118,6 +1215,27 @@ func (_u *ShippingLineUpdateOne) RemoveSeaTransportExecutions(v ...*SeaTransport
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaTransportExecutionIDs(ids...)
+}
+
+// ClearSeaTransportExecutionVersions clears all "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_u *ShippingLineUpdateOne) ClearSeaTransportExecutionVersions() *ShippingLineUpdateOne {
+	_u.mutation.ClearSeaTransportExecutionVersions()
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersionIDs removes the "sea_transport_execution_versions" edge to SeaTransportExecutionVersion entities by IDs.
+func (_u *ShippingLineUpdateOne) RemoveSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineUpdateOne {
+	_u.mutation.RemoveSeaTransportExecutionVersionIDs(ids...)
+	return _u
+}
+
+// RemoveSeaTransportExecutionVersions removes "sea_transport_execution_versions" edges to SeaTransportExecutionVersion entities.
+func (_u *ShippingLineUpdateOne) RemoveSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaTransportExecutionVersionIDs(ids...)
 }
 
 // ClearSeaMasterBills clears all "sea_master_bills" edges to the SeaMasterBill entity.
@@ -1480,6 +1598,51 @@ func (_u *ShippingLineUpdateOne) sqlSave(ctx context.Context) (_node *ShippingLi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaTransportExecutionVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaTransportExecutionVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

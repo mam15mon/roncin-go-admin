@@ -51,6 +51,10 @@ func (SeaOrderReassignmentEvent) Fields() []ent.Field {
 		field.JSON("before_snapshot", json.RawMessage{}).Immutable(),
 		field.JSON("after_snapshot", json.RawMessage{}).Immutable(),
 		field.UUID("created_by", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("confirmed_by_party").NotEmpty().MaxLen(128).Immutable(),
+		field.Time("confirmed_at").Immutable(),
+		field.String("confirmation_note").NotEmpty().MaxLen(500).Immutable(),
+		field.UUID("confirmation_attachment_id", uuid.Nil).Optional().Nillable().Immutable(),
 	}
 }
 
@@ -64,6 +68,7 @@ func (SeaOrderReassignmentEvent) Edges() []ent.Edge {
 		edge.From("target_master_bill", SeaMasterBill.Type).Ref("target_sea_order_reassignments").Field("target_master_bill_id").Unique().Required().Immutable(),
 		edge.From("responsible_partner", Partner.Type).Ref("sea_order_reassignments").Field("responsible_partner_id").Unique().Immutable(),
 		edge.From("creator", User.Type).Ref("created_sea_order_reassignment_events").Field("created_by").Unique().Immutable(),
+		edge.From("confirmation_attachment", OrderAttachment.Type).Ref("sea_order_reassignment_events").Field("confirmation_attachment_id").Unique().Immutable(),
 	}
 }
 

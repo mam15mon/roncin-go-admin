@@ -16,7 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 )
 
 // OrderCargoItemUpdate is the builder for updating OrderCargoItem entities.
@@ -221,19 +221,19 @@ func (_u *OrderCargoItemUpdate) SetOrder(v *Order) *OrderCargoItemUpdate {
 	return _u.SetOrderID(v.ID)
 }
 
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_u *OrderCargoItemUpdate) AddCargoAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdate {
-	_u.mutation.AddCargoAllocationIDs(ids...)
+// AddSharedContainerAllocationIDs adds the "shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_u *OrderCargoItemUpdate) AddSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdate {
+	_u.mutation.AddSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *OrderCargoItemUpdate) AddCargoAllocations(v ...*SeaCargoAllocation) *OrderCargoItemUpdate {
+// AddSharedContainerAllocations adds the "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *OrderCargoItemUpdate) AddSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCargoItemUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddCargoAllocationIDs(ids...)
+	return _u.AddSharedContainerAllocationIDs(ids...)
 }
 
 // Mutation returns the OrderCargoItemMutation object of the builder.
@@ -253,25 +253,25 @@ func (_u *OrderCargoItemUpdate) ClearOrder() *OrderCargoItemUpdate {
 	return _u
 }
 
-// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *OrderCargoItemUpdate) ClearCargoAllocations() *OrderCargoItemUpdate {
-	_u.mutation.ClearCargoAllocations()
+// ClearSharedContainerAllocations clears all "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *OrderCargoItemUpdate) ClearSharedContainerAllocations() *OrderCargoItemUpdate {
+	_u.mutation.ClearSharedContainerAllocations()
 	return _u
 }
 
-// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
-func (_u *OrderCargoItemUpdate) RemoveCargoAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdate {
-	_u.mutation.RemoveCargoAllocationIDs(ids...)
+// RemoveSharedContainerAllocationIDs removes the "shared_container_allocations" edge to SeaSharedContainerAllocation entities by IDs.
+func (_u *OrderCargoItemUpdate) RemoveSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdate {
+	_u.mutation.RemoveSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
-func (_u *OrderCargoItemUpdate) RemoveCargoAllocations(v ...*SeaCargoAllocation) *OrderCargoItemUpdate {
+// RemoveSharedContainerAllocations removes "shared_container_allocations" edges to SeaSharedContainerAllocation entities.
+func (_u *OrderCargoItemUpdate) RemoveSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCargoItemUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveCargoAllocationIDs(ids...)
+	return _u.RemoveSharedContainerAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -466,28 +466,28 @@ func (_u *OrderCargoItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.CargoAllocationsCleared() {
+	if _u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+	if nodes := _u.mutation.RemovedSharedContainerAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -495,15 +495,15 @@ func (_u *OrderCargoItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SharedContainerAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -720,19 +720,19 @@ func (_u *OrderCargoItemUpdateOne) SetOrder(v *Order) *OrderCargoItemUpdateOne {
 	return _u.SetOrderID(v.ID)
 }
 
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_u *OrderCargoItemUpdateOne) AddCargoAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdateOne {
-	_u.mutation.AddCargoAllocationIDs(ids...)
+// AddSharedContainerAllocationIDs adds the "shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_u *OrderCargoItemUpdateOne) AddSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdateOne {
+	_u.mutation.AddSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *OrderCargoItemUpdateOne) AddCargoAllocations(v ...*SeaCargoAllocation) *OrderCargoItemUpdateOne {
+// AddSharedContainerAllocations adds the "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *OrderCargoItemUpdateOne) AddSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCargoItemUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddCargoAllocationIDs(ids...)
+	return _u.AddSharedContainerAllocationIDs(ids...)
 }
 
 // Mutation returns the OrderCargoItemMutation object of the builder.
@@ -752,25 +752,25 @@ func (_u *OrderCargoItemUpdateOne) ClearOrder() *OrderCargoItemUpdateOne {
 	return _u
 }
 
-// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *OrderCargoItemUpdateOne) ClearCargoAllocations() *OrderCargoItemUpdateOne {
-	_u.mutation.ClearCargoAllocations()
+// ClearSharedContainerAllocations clears all "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *OrderCargoItemUpdateOne) ClearSharedContainerAllocations() *OrderCargoItemUpdateOne {
+	_u.mutation.ClearSharedContainerAllocations()
 	return _u
 }
 
-// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
-func (_u *OrderCargoItemUpdateOne) RemoveCargoAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdateOne {
-	_u.mutation.RemoveCargoAllocationIDs(ids...)
+// RemoveSharedContainerAllocationIDs removes the "shared_container_allocations" edge to SeaSharedContainerAllocation entities by IDs.
+func (_u *OrderCargoItemUpdateOne) RemoveSharedContainerAllocationIDs(ids ...uuid.UUID) *OrderCargoItemUpdateOne {
+	_u.mutation.RemoveSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
-func (_u *OrderCargoItemUpdateOne) RemoveCargoAllocations(v ...*SeaCargoAllocation) *OrderCargoItemUpdateOne {
+// RemoveSharedContainerAllocations removes "shared_container_allocations" edges to SeaSharedContainerAllocation entities.
+func (_u *OrderCargoItemUpdateOne) RemoveSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrderCargoItemUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveCargoAllocationIDs(ids...)
+	return _u.RemoveSharedContainerAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderCargoItemUpdate builder.
@@ -995,28 +995,28 @@ func (_u *OrderCargoItemUpdateOne) sqlSave(ctx context.Context) (_node *OrderCar
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.CargoAllocationsCleared() {
+	if _u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+	if nodes := _u.mutation.RemovedSharedContainerAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1024,15 +1024,15 @@ func (_u *OrderCargoItemUpdateOne) sqlSave(ctx context.Context) (_node *OrderCar
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SharedContainerAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   ordercargoitem.CargoAllocationsTable,
-			Columns: []string{ordercargoitem.CargoAllocationsColumn},
+			Table:   ordercargoitem.SharedContainerAllocationsTable,
+			Columns: []string{ordercargoitem.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

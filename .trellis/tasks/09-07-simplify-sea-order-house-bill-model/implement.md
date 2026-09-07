@@ -11,14 +11,14 @@
 
 ## 阶段 1：Schema、迁移与领域骨架
 
-- [ ] 再次执行相关 SE 表行数审计并保存结果，确保迁移空库前提成立。
-- [ ] 调整 Ent Schema：MBL/TE 解耦、Link 增加 TE、两态结构、当前 HBL 条件唯一、Booking No.、
+- [x] 再次执行相关 SE 表行数审计并保存结果，确保迁移空库前提成立。
+- [x] 调整 Ent Schema：MBL/TE 解耦、Link 增加 TE、两态结构、当前 HBL 条件唯一、Booking No.、
   TE Version、ModeChangeEvent、SharedContainer/Allocation、确认字段、锁记录 TE 快照。
-- [ ] 删除 SeaCargoAllocation、SeaHouseBillSwitchEvent 及所有 Schema 边；删除 `REPLACED` 与
+- [x] 删除 SeaCargoAllocation、SeaHouseBillSwitchEvent 及所有 Schema 边；删除 `REPLACED` 与
   `SWITCH` 来源。
-- [ ] 新增不可变增量迁移，先做全量相关数据 preflight，再执行目标 DDL；更新 migration revision。
-- [ ] 运行 Ent 生成和服务端编译，补数据库约束/迁移集成测试。
-- [ ] 提交 `refactor: 重构海运主分单数据模型`。
+- [x] 新增不可变增量迁移，先做全量相关数据 preflight，再执行目标 DDL；更新 migration revision。
+- [x] 运行 Ent 生成和服务端编译，补数据库约束/迁移集成测试。
+- [x] 提交 `refactor: 重构海运主分单数据模型`。
 
 ## 阶段 2：Proto、创建/查询与单值 HBL
 

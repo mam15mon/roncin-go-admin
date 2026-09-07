@@ -2834,6 +2834,7 @@ var (
 		{Name: "total_package_unit", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "special_requirements", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "order_date", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "booking_no", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "booking_notes", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "allocation_notes", Type: field.TypeString, Nullable: true, Size: 1000},
@@ -2851,25 +2852,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[66]},
+				Columns:    []*schema.Column{OrdersColumns[67]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[67]},
+				Columns:    []*schema.Column{OrdersColumns[68]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_shipping_lines_orders",
-				Columns:    []*schema.Column{OrdersColumns[68]},
+				Columns:    []*schema.Column{OrdersColumns[69]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_users_locked_orders",
-				Columns:    []*schema.Column{OrdersColumns[69]},
+				Columns:    []*schema.Column{OrdersColumns[70]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2883,57 +2884,62 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_flow_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[30]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[30]},
 			},
 			{
 				Name:    "order_organization_id_termination_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[31]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[31]},
 			},
 			{
 				Name:    "order_organization_id_closure_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[36]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[36]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[23]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[23]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[67]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[68]},
 			},
 			{
 				Name:    "order_organization_id_shipping_line_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[68]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[69]},
 			},
 			{
 				Name:    "order_organization_id_origin_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[44]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[44]},
 			},
 			{
 				Name:    "order_organization_id_destination_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[45]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[45]},
 			},
 			{
 				Name:    "order_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[40]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[40]},
 			},
 			{
 				Name:    "order_organization_id_is_shared",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[42]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[42]},
+			},
+			{
+				Name:    "order_organization_id_booking_no",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[62]},
 			},
 		},
 	}
@@ -3688,6 +3694,8 @@ var (
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "master_bill_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "master_bill_version_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transport_execution_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transport_execution_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "locked_by", Type: field.TypeUUID},
 		{Name: "unlocked_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -3728,14 +3736,26 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_lock_records_users_order_lock_records",
+				Symbol:     "order_lock_records_sea_transport_executions_lock_records",
 				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
+				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_lock_records_sea_transport_execution_versions_lock_records",
+				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
+				RefColumns: []*schema.Column{SeaTransportExecutionVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_lock_records_users_order_lock_records",
+				Columns:    []*schema.Column{OrderLockRecordsColumns[20]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_unlocked_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[21]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -4998,110 +5018,98 @@ var (
 			},
 		},
 	}
-	// SeaCargoAllocationsColumns holds the columns for the "sea_cargo_allocations" table.
-	SeaCargoAllocationsColumns = []*schema.Column{
+	// SeaDocumentModeChangeEventsColumns holds the columns for the "sea_document_mode_change_events" table.
+	SeaDocumentModeChangeEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "package_count", Type: field.TypeInt},
-		{Name: "gross_weight_kg", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
-		{Name: "volume_cbm", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "previous_mode", Type: field.TypeEnum, Enums: []string{"HOUSE", "DIRECT"}},
+		{Name: "target_mode", Type: field.TypeEnum, Enums: []string{"HOUSE", "DIRECT"}},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "impact_summary", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "confirmed_by_party", Type: field.TypeString, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime},
+		{Name: "confirmation_note", Type: field.TypeString, Size: 500},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
 		{Name: "order_id", Type: field.TypeUUID},
-		{Name: "cargo_item_id", Type: field.TypeUUID},
-		{Name: "container_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "house_bill_id", Type: field.TypeUUID},
-		{Name: "master_bill_order_link_id", Type: field.TypeUUID},
+		{Name: "previous_house_bill_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "target_house_bill_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "previous_house_bill_version_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "target_house_bill_version_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID},
 	}
-	// SeaCargoAllocationsTable holds the schema information for the "sea_cargo_allocations" table.
-	SeaCargoAllocationsTable = &schema.Table{
-		Name:       "sea_cargo_allocations",
-		Columns:    SeaCargoAllocationsColumns,
-		PrimaryKey: []*schema.Column{SeaCargoAllocationsColumns[0]},
+	// SeaDocumentModeChangeEventsTable holds the schema information for the "sea_document_mode_change_events" table.
+	SeaDocumentModeChangeEventsTable = &schema.Table{
+		Name:       "sea_document_mode_change_events",
+		Columns:    SeaDocumentModeChangeEventsColumns,
+		PrimaryKey: []*schema.Column{SeaDocumentModeChangeEventsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "sea_cargo_allocations_orders_sea_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[6]},
+				Symbol:     "sea_document_mode_change_events_orders_sea_document_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[11]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_cargo_allocations_order_cargo_items_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[7]},
-				RefColumns: []*schema.Column{OrderCargoItemsColumns[0]},
+				Symbol:     "sea_document_mode_change_events_order_attachments_sea_document_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[12]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_cargo_allocations_order_containers_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[8]},
-				RefColumns: []*schema.Column{OrderContainersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "sea_cargo_allocations_organizations_sea_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[9]},
+				Symbol:     "sea_document_mode_change_events_organizations_sea_document_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_cargo_allocations_sea_house_bills_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[10]},
+				Symbol:     "sea_document_mode_change_events_sea_house_bills_previous_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[14]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_cargo_allocations_sea_master_bill_order_links_cargo_allocations",
-				Columns:    []*schema.Column{SeaCargoAllocationsColumns[11]},
-				RefColumns: []*schema.Column{SeaMasterBillOrderLinksColumns[0]},
+				Symbol:     "sea_document_mode_change_events_sea_house_bills_target_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[15]},
+				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_document_mode_change_events_sea_house_bill_versions_previous_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[16]},
+				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_document_mode_change_events_sea_house_bill_versions_target_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[17]},
+				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_document_mode_change_events_users_created_sea_document_mode_change_events",
+				Columns:    []*schema.Column{SeaDocumentModeChangeEventsColumns[18]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "seacargoallocation_updated_at",
+				Name:    "seadocumentmodechangeevent_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[2]},
+				Columns: []*schema.Column{SeaDocumentModeChangeEventsColumns[13], SeaDocumentModeChangeEventsColumns[11]},
 			},
 			{
-				Name:    "seacargoallocation_organization_id_order_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[9], SeaCargoAllocationsColumns[6]},
-			},
-			{
-				Name:    "seacargoallocation_master_bill_order_link_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[11]},
-			},
-			{
-				Name:    "seacargoallocation_cargo_item_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[7]},
-			},
-			{
-				Name:    "seacargoallocation_house_bill_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[10]},
-			},
-			{
-				Name:    "seacargoallocation_container_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[8]},
-			},
-			{
-				Name:    "idx_sea_cargo_allocations_no_cntr_unique",
+				Name:    "sea_doc_mode_change_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[11], SeaCargoAllocationsColumns[7], SeaCargoAllocationsColumns[10]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "container_id IS NULL",
-				},
+				Columns: []*schema.Column{SeaDocumentModeChangeEventsColumns[13], SeaDocumentModeChangeEventsColumns[9]},
 			},
 			{
-				Name:    "idx_sea_cargo_allocations_cntr_unique",
-				Unique:  true,
-				Columns: []*schema.Column{SeaCargoAllocationsColumns[11], SeaCargoAllocationsColumns[7], SeaCargoAllocationsColumns[10], SeaCargoAllocationsColumns[8]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "container_id IS NOT NULL",
-				},
+				Name:    "seadocumentmodechangeevent_organization_id_request_fingerprint",
+				Unique:  false,
+				Columns: []*schema.Column{SeaDocumentModeChangeEventsColumns[13], SeaDocumentModeChangeEventsColumns[10]},
 			},
 		},
 	}
@@ -5116,7 +5124,11 @@ var (
 		{Name: "impact_summary", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
+		{Name: "confirmed_by_party", Type: field.TypeString, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime},
+		{Name: "confirmation_note", Type: field.TypeString, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "house_bill_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "house_bill_version_id", Type: field.TypeUUID, Nullable: true},
@@ -5134,55 +5146,61 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_document_void_events_orders_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[9]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[12]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "sea_document_void_events_order_attachments_sea_document_void_events",
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[13]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "sea_document_void_events_organizations_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[10]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_house_bills_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[11]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[15]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_house_bill_versions_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[12]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[16]},
 				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_house_bill_versions_previous_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[13]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[17]},
 				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_master_bills_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[14]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[18]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_master_bill_versions_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[15]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[19]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_sea_master_bill_versions_previous_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[16]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[20]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_document_void_events_users_created_sea_document_void_events",
-				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[17]},
+				Columns:    []*schema.Column{SeaDocumentVoidEventsColumns[21]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5191,22 +5209,22 @@ var (
 			{
 				Name:    "seadocumentvoidevent_organization_id_document_type",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[2]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[14], SeaDocumentVoidEventsColumns[2]},
 			},
 			{
 				Name:    "seadocumentvoidevent_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[14]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[14], SeaDocumentVoidEventsColumns[18]},
 			},
 			{
 				Name:    "seadocumentvoidevent_organization_id_house_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[11]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[14], SeaDocumentVoidEventsColumns[15]},
 			},
 			{
 				Name:    "sea_document_void_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[10], SeaDocumentVoidEventsColumns[7]},
+				Columns: []*schema.Column{SeaDocumentVoidEventsColumns[14], SeaDocumentVoidEventsColumns[7]},
 			},
 		},
 	}
@@ -5218,7 +5236,7 @@ var (
 		{Name: "house_no", Type: field.TypeString, Size: 128},
 		{Name: "normalized_house_no", Type: field.TypeString, Size: 128},
 		{Name: "issuer_source", Type: field.TypeEnum, Enums: []string{"SELF_ORGANIZATION", "CUSTOMER_PARTNER", "OTHER_PARTNER"}},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED", "REPLACED"}, Default: "DRAFT"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED"}, Default: "DRAFT"},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -5303,6 +5321,14 @@ var (
 				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[29]},
 			},
 			{
+				Name:    "idx_sea_house_bills_current_order_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaHouseBillsColumns[24]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status IN ('DRAFT', 'CONFIRMED', 'RELEASED')",
+				},
+			},
+			{
 				Name:    "idx_sea_house_bills_self_org_unique",
 				Unique:  true,
 				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[26], SeaHouseBillsColumns[4]},
@@ -5320,104 +5346,6 @@ var (
 			},
 		},
 	}
-	// SeaHouseBillSwitchEventsColumns holds the columns for the "sea_house_bill_switch_events" table.
-	SeaHouseBillSwitchEventsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "chain_id", Type: field.TypeUUID},
-		{Name: "sequence", Type: field.TypeInt},
-		{Name: "reason", Type: field.TypeString, Size: 500},
-		{Name: "surrender_info", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "impact_summary", Type: field.TypeString, Nullable: true, Size: 1000},
-		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
-		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
-		{Name: "order_id", Type: field.TypeUUID},
-		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "old_house_bill_id", Type: field.TypeUUID},
-		{Name: "new_house_bill_id", Type: field.TypeUUID},
-		{Name: "old_house_bill_version_id", Type: field.TypeUUID},
-		{Name: "new_house_bill_version_id", Type: field.TypeUUID},
-		{Name: "master_bill_id", Type: field.TypeUUID},
-		{Name: "created_by", Type: field.TypeUUID},
-	}
-	// SeaHouseBillSwitchEventsTable holds the schema information for the "sea_house_bill_switch_events" table.
-	SeaHouseBillSwitchEventsTable = &schema.Table{
-		Name:       "sea_house_bill_switch_events",
-		Columns:    SeaHouseBillSwitchEventsColumns,
-		PrimaryKey: []*schema.Column{SeaHouseBillSwitchEventsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "sea_house_bill_switch_events_orders_sea_house_bill_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[9]},
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_organizations_sea_house_bill_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[10]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_sea_house_bills_old_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[11]},
-				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_sea_house_bills_new_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[12]},
-				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_sea_house_bill_versions_old_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[13]},
-				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_sea_house_bill_versions_new_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[14]},
-				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_sea_master_bills_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[15]},
-				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "sea_house_bill_switch_events_users_created_sea_house_bill_switch_events",
-				Columns:    []*schema.Column{SeaHouseBillSwitchEventsColumns[16]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "sea_hbl_switch_idempotency_key",
-				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillSwitchEventsColumns[10], SeaHouseBillSwitchEventsColumns[7]},
-			},
-			{
-				Name:    "sea_hbl_switch_old_hbl_unique",
-				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillSwitchEventsColumns[11]},
-			},
-			{
-				Name:    "seahousebillswitchevent_chain_id_sequence",
-				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillSwitchEventsColumns[2], SeaHouseBillSwitchEventsColumns[3]},
-			},
-			{
-				Name:    "seahousebillswitchevent_organization_id_order_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillSwitchEventsColumns[10], SeaHouseBillSwitchEventsColumns[9]},
-			},
-		},
-	}
 	// SeaHouseBillVersionsColumns holds the columns for the "sea_house_bill_versions" table.
 	SeaHouseBillVersionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -5427,13 +5355,16 @@ var (
 		{Name: "house_no", Type: field.TypeString, Size: 128},
 		{Name: "normalized_house_no", Type: field.TypeString, Size: 128},
 		{Name: "issuer_source", Type: field.TypeEnum, Enums: []string{"SELF_ORGANIZATION", "CUSTOMER_PARTNER", "OTHER_PARTNER"}},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED", "REPLACED"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED"}},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "content_hash", Type: field.TypeString, Size: 64},
-		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID"}},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE"}},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_by_party", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "confirmation_note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -5450,6 +5381,7 @@ var (
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "issuer_organization_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "issuer_partner_id", Type: field.TypeUUID, Nullable: true},
@@ -5465,43 +5397,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_house_bill_versions_orders_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[29]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[32]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "sea_house_bill_versions_order_attachments_sea_house_bill_versions",
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "sea_house_bill_versions_organizations_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[30]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_organizations_issued_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[31]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[35]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_partners_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[32]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[36]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_house_bills_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[37]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_master_bills_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[34]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[38]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_users_created_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[35]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[39]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5510,27 +5448,27 @@ var (
 			{
 				Name:    "sea_hbl_version_house_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[33], SeaHouseBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[37], SeaHouseBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_hbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[33], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[37], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_house_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[33]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[37]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[29]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[32]},
 			},
 			{
 				Name:    "sea_hbl_version_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[30], SeaHouseBillVersionsColumns[12]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[12]},
 			},
 		},
 	}
@@ -5560,7 +5498,6 @@ var (
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "current_version_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "transport_execution_id", Type: field.TypeUUID},
 		{Name: "shipping_line_id", Type: field.TypeUUID},
 	}
 	// SeaMasterBillsTable holds the schema information for the "sea_master_bills" table.
@@ -5582,14 +5519,8 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "sea_master_bills_sea_transport_executions_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
-				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
 				Symbol:     "sea_master_bills_shipping_lines_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[25]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5603,12 +5534,7 @@ var (
 			{
 				Name:    "seamasterbill_organization_id_shipping_line_id_normalized_master_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillsColumns[22], SeaMasterBillsColumns[25], SeaMasterBillsColumns[4]},
-			},
-			{
-				Name:    "seamasterbill_organization_id_transport_execution_id",
-				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillsColumns[22], SeaMasterBillsColumns[24]},
+				Columns: []*schema.Column{SeaMasterBillsColumns[22], SeaMasterBillsColumns[24], SeaMasterBillsColumns[4]},
 			},
 		},
 	}
@@ -5618,18 +5544,15 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "ENDED"}, Default: "ACTIVE"},
-		{Name: "document_structure", Type: field.TypeEnum, Enums: []string{"UNDETERMINED", "DIRECT", "HOUSE"}, Default: "UNDETERMINED"},
+		{Name: "document_structure", Type: field.TypeEnum, Enums: []string{"DIRECT", "HOUSE"}, Default: "HOUSE"},
 		{Name: "started_at", Type: field.TypeTime},
 		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
 		{Name: "ended_reason", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
-		{Name: "cargo_allocation_status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED"}, Default: "DRAFT"},
-		{Name: "cargo_allocation_version", Type: field.TypeUint64, Default: 1},
-		{Name: "cargo_allocation_confirmed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "master_bill_id", Type: field.TypeUUID},
-		{Name: "cargo_allocation_confirmed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "transport_execution_id", Type: field.TypeUUID},
 	}
 	// SeaMasterBillOrderLinksTable holds the schema information for the "sea_master_bill_order_links" table.
 	SeaMasterBillOrderLinksTable = &schema.Table{
@@ -5639,27 +5562,27 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_order_links_orders_sea_master_bill_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[12]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_organizations_sea_master_bill_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[13]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_sea_master_bills_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[14]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[11]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_master_bill_order_links_users_confirmed_sea_cargo_allocation_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[15]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				Symbol:     "sea_master_bill_order_links_sea_transport_executions_order_links",
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[12]},
+				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -5671,17 +5594,22 @@ var (
 			{
 				Name:    "seamasterbillorderlink_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[13], SeaMasterBillOrderLinksColumns[14]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[11]},
+			},
+			{
+				Name:    "seamasterbillorderlink_organization_id_transport_execution_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[12]},
 			},
 			{
 				Name:    "seamasterbillorderlink_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[13], SeaMasterBillOrderLinksColumns[12]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[9]},
 			},
 			{
 				Name:    "idx_sea_mbl_order_links_active_order",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[12]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status = 'ACTIVE'",
 				},
@@ -5697,21 +5625,14 @@ var (
 		{Name: "master_no", Type: field.TypeString, Size: 64},
 		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED"}},
-		{Name: "vessel_voyage_snapshot", Type: field.TypeString, Nullable: true, Size: 100},
-		{Name: "etd_snapshot", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "eta_snapshot", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "discharge_location_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "transit_location_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "vessel_name", Type: field.TypeString, Size: 128, Default: ""},
-		{Name: "voyage_no", Type: field.TypeString, Size: 64, Default: ""},
-		{Name: "etd", Type: field.TypeTime, Nullable: true},
-		{Name: "eta", Type: field.TypeTime, Nullable: true},
 		{Name: "content_hash", Type: field.TypeString, Size: 64},
-		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "SWITCH", "VOID"}},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "VOID"}},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_by_party", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "confirmation_note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -5727,9 +5648,9 @@ var (
 		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "master_bill_id", Type: field.TypeUUID},
-		{Name: "transport_execution_id", Type: field.TypeUUID},
 		{Name: "shipping_line_id", Type: field.TypeUUID},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -5740,32 +5661,32 @@ var (
 		PrimaryKey: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "sea_master_bill_versions_order_attachments_sea_master_bill_versions",
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[30]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "sea_master_bill_versions_organizations_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[37]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[31]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_sea_master_bills_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[38]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[32]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_master_bill_versions_sea_transport_executions_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[39]},
-				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
 				Symbol:     "sea_master_bill_versions_shipping_lines_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[40]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[33]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_users_created_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[41]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5774,22 +5695,22 @@ var (
 			{
 				Name:    "sea_mbl_version_master_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_mbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[38], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[17]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[7]},
 			},
 			{
 				Name:    "seamasterbillversion_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[37], SeaMasterBillVersionsColumns[38]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[31], SeaMasterBillVersionsColumns[32]},
 			},
 			{
 				Name:    "sea_mbl_version_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[37], SeaMasterBillVersionsColumns[20]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[31], SeaMasterBillVersionsColumns[10]},
 			},
 		},
 	}
@@ -5811,7 +5732,11 @@ var (
 		{Name: "responsible_partner_name", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "before_snapshot", Type: field.TypeJSON},
 		{Name: "after_snapshot", Type: field.TypeJSON},
+		{Name: "confirmed_by_party", Type: field.TypeString, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime},
+		{Name: "confirmation_note", Type: field.TypeString, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "responsible_partner_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "previous_master_bill_id", Type: field.TypeUUID},
@@ -5828,49 +5753,55 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_order_reassignment_events_orders_sea_order_reassignment_events",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[16]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[19]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "sea_order_reassignment_events_order_attachments_sea_order_reassignment_events",
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[20]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "sea_order_reassignment_events_organizations_sea_order_reassignment_events",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[17]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[21]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_partners_sea_order_reassignments",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[18]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[22]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_sea_master_bills_previous_sea_order_reassignments",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[19]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[23]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_sea_master_bills_target_sea_order_reassignments",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[20]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[24]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_sea_order_split_events_reassignments",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[21]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[25]},
 				RefColumns: []*schema.Column{SeaOrderSplitEventsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_sea_order_split_results_reassignment_events",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[22]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[26]},
 				RefColumns: []*schema.Column{SeaOrderSplitResultsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_order_reassignment_events_users_created_sea_order_reassignment_events",
-				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[23]},
+				Columns:    []*schema.Column{SeaOrderReassignmentEventsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5879,17 +5810,17 @@ var (
 			{
 				Name:    "sea_order_reassignment_event_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[3]},
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[21], SeaOrderReassignmentEventsColumns[3]},
 			},
 			{
 				Name:    "seaorderreassignmentevent_organization_id_order_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[16], SeaOrderReassignmentEventsColumns[1]},
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[21], SeaOrderReassignmentEventsColumns[19], SeaOrderReassignmentEventsColumns[1]},
 			},
 			{
 				Name:    "seaorderreassignmentevent_organization_id_request_fingerprint",
 				Unique:  false,
-				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[17], SeaOrderReassignmentEventsColumns[4]},
+				Columns: []*schema.Column{SeaOrderReassignmentEventsColumns[21], SeaOrderReassignmentEventsColumns[4]},
 			},
 		},
 	}
@@ -6024,6 +5955,153 @@ var (
 			},
 		},
 	}
+	// SeaSharedContainersColumns holds the columns for the "sea_shared_containers" table.
+	SeaSharedContainersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "container_no", Type: field.TypeString, Size: 64},
+		{Name: "container_spec_id", Type: field.TypeUUID},
+		{Name: "seal_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "package_count", Type: field.TypeInt},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
+		{Name: "volume_cbm", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED"}, Default: "DRAFT"},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "transport_execution_id", Type: field.TypeUUID},
+		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// SeaSharedContainersTable holds the schema information for the "sea_shared_containers" table.
+	SeaSharedContainersTable = &schema.Table{
+		Name:       "sea_shared_containers",
+		Columns:    SeaSharedContainersColumns,
+		PrimaryKey: []*schema.Column{SeaSharedContainersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_shared_containers_organizations_sea_shared_containers",
+				Columns:    []*schema.Column{SeaSharedContainersColumns[13]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_containers_sea_transport_executions_shared_containers",
+				Columns:    []*schema.Column{SeaSharedContainersColumns[14]},
+				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_containers_users_confirmed_sea_shared_containers",
+				Columns:    []*schema.Column{SeaSharedContainersColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seasharedcontainer_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainersColumns[2]},
+			},
+			{
+				Name:    "sea_shared_container_execution_no",
+				Unique:  true,
+				Columns: []*schema.Column{SeaSharedContainersColumns[14], SeaSharedContainersColumns[3]},
+			},
+			{
+				Name:    "seasharedcontainer_organization_id_transport_execution_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainersColumns[13], SeaSharedContainersColumns[14]},
+			},
+			{
+				Name:    "seasharedcontainer_organization_id_container_spec_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainersColumns[13], SeaSharedContainersColumns[4]},
+			},
+		},
+	}
+	// SeaSharedContainerAllocationsColumns holds the columns for the "sea_shared_container_allocations" table.
+	SeaSharedContainerAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "package_count", Type: field.TypeInt},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,3)"}},
+		{Name: "volume_cbm", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "cargo_item_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "house_bill_id", Type: field.TypeUUID},
+		{Name: "shared_container_id", Type: field.TypeUUID},
+	}
+	// SeaSharedContainerAllocationsTable holds the schema information for the "sea_shared_container_allocations" table.
+	SeaSharedContainerAllocationsTable = &schema.Table{
+		Name:       "sea_shared_container_allocations",
+		Columns:    SeaSharedContainerAllocationsColumns,
+		PrimaryKey: []*schema.Column{SeaSharedContainerAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_shared_container_allocations_orders_sea_shared_container_allocations",
+				Columns:    []*schema.Column{SeaSharedContainerAllocationsColumns[7]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_container_allocations_order_cargo_items_shared_container_allocations",
+				Columns:    []*schema.Column{SeaSharedContainerAllocationsColumns[8]},
+				RefColumns: []*schema.Column{OrderCargoItemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_container_allocations_organizations_sea_shared_container_allocations",
+				Columns:    []*schema.Column{SeaSharedContainerAllocationsColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_container_allocations_sea_house_bills_shared_container_allocations",
+				Columns:    []*schema.Column{SeaSharedContainerAllocationsColumns[10]},
+				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_shared_container_allocations_sea_shared_containers_allocations",
+				Columns:    []*schema.Column{SeaSharedContainerAllocationsColumns[11]},
+				RefColumns: []*schema.Column{SeaSharedContainersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seasharedcontainerallocation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainerAllocationsColumns[2]},
+			},
+			{
+				Name:    "sea_shared_cntr_alloc_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaSharedContainerAllocationsColumns[11], SeaSharedContainerAllocationsColumns[8]},
+			},
+			{
+				Name:    "seasharedcontainerallocation_organization_id_shared_container_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainerAllocationsColumns[9], SeaSharedContainerAllocationsColumns[11]},
+			},
+			{
+				Name:    "seasharedcontainerallocation_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainerAllocationsColumns[9], SeaSharedContainerAllocationsColumns[7]},
+			},
+			{
+				Name:    "seasharedcontainerallocation_organization_id_house_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaSharedContainerAllocationsColumns[9], SeaSharedContainerAllocationsColumns[10]},
+			},
+		},
+	}
 	// SeaTransportExecutionsColumns holds the columns for the "sea_transport_executions" table.
 	SeaTransportExecutionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -6038,6 +6116,7 @@ var (
 		{Name: "eta", Type: field.TypeTime, Nullable: true},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "current_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "shipping_line_id", Type: field.TypeUUID},
 	}
 	// SeaTransportExecutionsTable holds the schema information for the "sea_transport_executions" table.
@@ -6053,8 +6132,14 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "sea_transport_executions_shipping_lines_sea_transport_executions",
+				Symbol:     "sea_transport_executions_sea_transport_execution_versions_current_version",
 				Columns:    []*schema.Column{SeaTransportExecutionsColumns[12]},
+				RefColumns: []*schema.Column{SeaTransportExecutionVersionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_transport_executions_shipping_lines_sea_transport_executions",
+				Columns:    []*schema.Column{SeaTransportExecutionsColumns[13]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -6068,12 +6153,99 @@ var (
 			{
 				Name:    "seatransportexecution_organization_id_shipping_line_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaTransportExecutionsColumns[11], SeaTransportExecutionsColumns[12]},
+				Columns: []*schema.Column{SeaTransportExecutionsColumns[11], SeaTransportExecutionsColumns[13]},
 			},
 			{
 				Name:    "seatransportexecution_organization_id_origin_location_id_discharge_location_id",
 				Unique:  false,
 				Columns: []*schema.Column{SeaTransportExecutionsColumns[11], SeaTransportExecutionsColumns[3], SeaTransportExecutionsColumns[4]},
+			},
+		},
+	}
+	// SeaTransportExecutionVersionsColumns holds the columns for the "sea_transport_execution_versions" table.
+	SeaTransportExecutionVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "version_no", Type: field.TypeUint64},
+		{Name: "source_entity_version", Type: field.TypeUint64},
+		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "discharge_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transit_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "vessel_name", Type: field.TypeString, Size: 128, Default: ""},
+		{Name: "voyage_no", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "etd", Type: field.TypeTime, Nullable: true},
+		{Name: "eta", Type: field.TypeTime, Nullable: true},
+		{Name: "content_hash", Type: field.TypeString, Size: 64},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "SHARED_UPDATE", "REASSIGNMENT"}},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_by_party", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "confirmation_note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "transport_execution_id", Type: field.TypeUUID},
+		{Name: "shipping_line_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// SeaTransportExecutionVersionsTable holds the schema information for the "sea_transport_execution_versions" table.
+	SeaTransportExecutionVersionsTable = &schema.Table{
+		Name:       "sea_transport_execution_versions",
+		Columns:    SeaTransportExecutionVersionsColumns,
+		PrimaryKey: []*schema.Column{SeaTransportExecutionVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_transport_execution_versions_order_attachments_sea_transport_execution_versions",
+				Columns:    []*schema.Column{SeaTransportExecutionVersionsColumns[19]},
+				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_transport_execution_versions_organizations_sea_transport_execution_versions",
+				Columns:    []*schema.Column{SeaTransportExecutionVersionsColumns[20]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_transport_execution_versions_sea_transport_executions_versions",
+				Columns:    []*schema.Column{SeaTransportExecutionVersionsColumns[21]},
+				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_transport_execution_versions_shipping_lines_sea_transport_execution_versions",
+				Columns:    []*schema.Column{SeaTransportExecutionVersionsColumns[22]},
+				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_transport_execution_versions_users_created_sea_transport_execution_versions",
+				Columns:    []*schema.Column{SeaTransportExecutionVersionsColumns[23]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sea_te_version_transport_version_no",
+				Unique:  true,
+				Columns: []*schema.Column{SeaTransportExecutionVersionsColumns[21], SeaTransportExecutionVersionsColumns[2]},
+			},
+			{
+				Name:    "sea_te_version_source_hash",
+				Unique:  true,
+				Columns: []*schema.Column{SeaTransportExecutionVersionsColumns[21], SeaTransportExecutionVersionsColumns[3], SeaTransportExecutionVersionsColumns[11]},
+			},
+			{
+				Name:    "seatransportexecutionversion_organization_id_transport_execution_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaTransportExecutionVersionsColumns[20], SeaTransportExecutionVersionsColumns[21]},
+			},
+			{
+				Name:    "sea_te_version_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{SeaTransportExecutionVersionsColumns[20], SeaTransportExecutionVersionsColumns[14]},
 			},
 		},
 	}
@@ -6434,10 +6606,9 @@ var (
 		RolesTable,
 		RoleAssignmentsTable,
 		RoleOrderOrganizationAccessesTable,
-		SeaCargoAllocationsTable,
+		SeaDocumentModeChangeEventsTable,
 		SeaDocumentVoidEventsTable,
 		SeaHouseBillsTable,
-		SeaHouseBillSwitchEventsTable,
 		SeaHouseBillVersionsTable,
 		SeaMasterBillsTable,
 		SeaMasterBillOrderLinksTable,
@@ -6445,7 +6616,10 @@ var (
 		SeaOrderReassignmentEventsTable,
 		SeaOrderSplitEventsTable,
 		SeaOrderSplitResultsTable,
+		SeaSharedContainersTable,
+		SeaSharedContainerAllocationsTable,
 		SeaTransportExecutionsTable,
+		SeaTransportExecutionVersionsTable,
 		SessionsTable,
 		ShippingLinesTable,
 		ShippingLineContainerPrefixesTable,
@@ -6608,11 +6782,13 @@ func init() {
 	OrderLockRecordsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	OrderLockRecordsTable.ForeignKeys[3].RefTable = SeaMasterBillsTable
 	OrderLockRecordsTable.ForeignKeys[4].RefTable = SeaMasterBillVersionsTable
-	OrderLockRecordsTable.ForeignKeys[5].RefTable = UsersTable
-	OrderLockRecordsTable.ForeignKeys[6].RefTable = UsersTable
+	OrderLockRecordsTable.ForeignKeys[5].RefTable = SeaTransportExecutionsTable
+	OrderLockRecordsTable.ForeignKeys[6].RefTable = SeaTransportExecutionVersionsTable
+	OrderLockRecordsTable.ForeignKeys[7].RefTable = UsersTable
+	OrderLockRecordsTable.ForeignKeys[8].RefTable = UsersTable
 	OrderLockRecordsTable.Annotation = &entsql.Annotation{}
 	OrderLockRecordsTable.Annotation.Checks = map[string]string{
-		"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL)",
+		"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)",
 	}
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
@@ -6663,21 +6839,28 @@ func init() {
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
-	SeaCargoAllocationsTable.ForeignKeys[0].RefTable = OrdersTable
-	SeaCargoAllocationsTable.ForeignKeys[1].RefTable = OrderCargoItemsTable
-	SeaCargoAllocationsTable.ForeignKeys[2].RefTable = OrderContainersTable
-	SeaCargoAllocationsTable.ForeignKeys[3].RefTable = OrganizationsTable
-	SeaCargoAllocationsTable.ForeignKeys[4].RefTable = SeaHouseBillsTable
-	SeaCargoAllocationsTable.ForeignKeys[5].RefTable = SeaMasterBillOrderLinksTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[3].RefTable = SeaHouseBillsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[4].RefTable = SeaHouseBillsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[5].RefTable = SeaHouseBillVersionsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[6].RefTable = SeaHouseBillVersionsTable
+	SeaDocumentModeChangeEventsTable.ForeignKeys[7].RefTable = UsersTable
+	SeaDocumentModeChangeEventsTable.Annotation = &entsql.Annotation{}
+	SeaDocumentModeChangeEventsTable.Annotation.Checks = map[string]string{
+		"sea_document_mode_change_events_mode_check": "previous_mode <> target_mode AND ((previous_mode = 'HOUSE' AND target_mode = 'DIRECT' AND previous_house_bill_id IS NOT NULL AND previous_house_bill_version_id IS NOT NULL AND target_house_bill_id IS NULL AND target_house_bill_version_id IS NULL) OR (previous_mode = 'DIRECT' AND target_mode = 'HOUSE' AND target_house_bill_id IS NOT NULL AND target_house_bill_version_id IS NOT NULL AND previous_house_bill_id IS NULL AND previous_house_bill_version_id IS NULL))",
+	}
 	SeaDocumentVoidEventsTable.ForeignKeys[0].RefTable = OrdersTable
-	SeaDocumentVoidEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[2].RefTable = SeaHouseBillsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[3].RefTable = SeaHouseBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[3].RefTable = SeaHouseBillsTable
 	SeaDocumentVoidEventsTable.ForeignKeys[4].RefTable = SeaHouseBillVersionsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[5].RefTable = SeaMasterBillsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[6].RefTable = SeaMasterBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[5].RefTable = SeaHouseBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[6].RefTable = SeaMasterBillsTable
 	SeaDocumentVoidEventsTable.ForeignKeys[7].RefTable = SeaMasterBillVersionsTable
-	SeaDocumentVoidEventsTable.ForeignKeys[8].RefTable = UsersTable
+	SeaDocumentVoidEventsTable.ForeignKeys[8].RefTable = SeaMasterBillVersionsTable
+	SeaDocumentVoidEventsTable.ForeignKeys[9].RefTable = UsersTable
 	SeaDocumentVoidEventsTable.Annotation = &entsql.Annotation{}
 	SeaDocumentVoidEventsTable.Annotation.Checks = map[string]string{
 		"sea_document_void_events_document_type_check": "((document_type = 'MASTER' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND previous_master_bill_version_id IS NOT NULL AND house_bill_id IS NULL AND house_bill_version_id IS NULL AND previous_house_bill_version_id IS NULL) OR (document_type = 'HOUSE' AND house_bill_id IS NOT NULL AND house_bill_version_id IS NOT NULL AND previous_house_bill_version_id IS NOT NULL AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND previous_master_bill_version_id IS NULL))",
@@ -6689,46 +6872,39 @@ func init() {
 	SeaHouseBillsTable.ForeignKeys[3].RefTable = PartnersTable
 	SeaHouseBillsTable.ForeignKeys[4].RefTable = SeaHouseBillVersionsTable
 	SeaHouseBillsTable.ForeignKeys[5].RefTable = SeaMasterBillsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[0].RefTable = OrdersTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[2].RefTable = SeaHouseBillsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[3].RefTable = SeaHouseBillsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[4].RefTable = SeaHouseBillVersionsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[5].RefTable = SeaHouseBillVersionsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[6].RefTable = SeaMasterBillsTable
-	SeaHouseBillSwitchEventsTable.ForeignKeys[7].RefTable = UsersTable
 	SeaHouseBillVersionsTable.ForeignKeys[0].RefTable = OrdersTable
-	SeaHouseBillVersionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaHouseBillVersionsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
 	SeaHouseBillVersionsTable.ForeignKeys[2].RefTable = OrganizationsTable
-	SeaHouseBillVersionsTable.ForeignKeys[3].RefTable = PartnersTable
-	SeaHouseBillVersionsTable.ForeignKeys[4].RefTable = SeaHouseBillsTable
-	SeaHouseBillVersionsTable.ForeignKeys[5].RefTable = SeaMasterBillsTable
-	SeaHouseBillVersionsTable.ForeignKeys[6].RefTable = UsersTable
+	SeaHouseBillVersionsTable.ForeignKeys[3].RefTable = OrganizationsTable
+	SeaHouseBillVersionsTable.ForeignKeys[4].RefTable = PartnersTable
+	SeaHouseBillVersionsTable.ForeignKeys[5].RefTable = SeaHouseBillsTable
+	SeaHouseBillVersionsTable.ForeignKeys[6].RefTable = SeaMasterBillsTable
+	SeaHouseBillVersionsTable.ForeignKeys[7].RefTable = UsersTable
 	SeaHouseBillVersionsTable.Annotation = &entsql.Annotation{}
 	SeaHouseBillVersionsTable.Annotation.Checks = map[string]string{
 		"sea_house_bill_versions_issuer_check": "((issuer_source = 'SELF_ORGANIZATION' AND issuer_organization_id IS NOT NULL AND issuer_partner_id IS NULL) OR (issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER') AND issuer_organization_id IS NULL AND issuer_partner_id IS NOT NULL))",
 	}
 	SeaMasterBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SeaMasterBillsTable.ForeignKeys[1].RefTable = SeaMasterBillVersionsTable
-	SeaMasterBillsTable.ForeignKeys[2].RefTable = SeaTransportExecutionsTable
-	SeaMasterBillsTable.ForeignKeys[3].RefTable = ShippingLinesTable
+	SeaMasterBillsTable.ForeignKeys[2].RefTable = ShippingLinesTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
-	SeaMasterBillOrderLinksTable.ForeignKeys[3].RefTable = UsersTable
-	SeaMasterBillVersionsTable.ForeignKeys[0].RefTable = OrganizationsTable
-	SeaMasterBillVersionsTable.ForeignKeys[1].RefTable = SeaMasterBillsTable
-	SeaMasterBillVersionsTable.ForeignKeys[2].RefTable = SeaTransportExecutionsTable
+	SeaMasterBillOrderLinksTable.ForeignKeys[3].RefTable = SeaTransportExecutionsTable
+	SeaMasterBillVersionsTable.ForeignKeys[0].RefTable = OrderAttachmentsTable
+	SeaMasterBillVersionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaMasterBillVersionsTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
 	SeaMasterBillVersionsTable.ForeignKeys[3].RefTable = ShippingLinesTable
 	SeaMasterBillVersionsTable.ForeignKeys[4].RefTable = UsersTable
 	SeaOrderReassignmentEventsTable.ForeignKeys[0].RefTable = OrdersTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[1].RefTable = OrganizationsTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[2].RefTable = PartnersTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[3].RefTable = SeaMasterBillsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[3].RefTable = PartnersTable
 	SeaOrderReassignmentEventsTable.ForeignKeys[4].RefTable = SeaMasterBillsTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[5].RefTable = SeaOrderSplitEventsTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[6].RefTable = SeaOrderSplitResultsTable
-	SeaOrderReassignmentEventsTable.ForeignKeys[7].RefTable = UsersTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[5].RefTable = SeaMasterBillsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[6].RefTable = SeaOrderSplitEventsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[7].RefTable = SeaOrderSplitResultsTable
+	SeaOrderReassignmentEventsTable.ForeignKeys[8].RefTable = UsersTable
 	SeaOrderReassignmentEventsTable.Annotation = &entsql.Annotation{}
 	SeaOrderReassignmentEventsTable.Annotation.Checks = map[string]string{
 		"sea_order_reassignment_events_responsibility_type_check": "responsibility_type IN ('CARRIER', 'CUSTOMER', 'CUSTOMS', 'OWN_COMPANY', 'FORCE_MAJEURE', 'OTHER')",
@@ -6745,8 +6921,22 @@ func init() {
 	SeaOrderSplitResultsTable.Annotation.Checks = map[string]string{
 		"sea_order_split_results_result_role_check": "result_role IN ('ORIGINAL', 'CREATED')",
 	}
+	SeaSharedContainersTable.ForeignKeys[0].RefTable = OrganizationsTable
+	SeaSharedContainersTable.ForeignKeys[1].RefTable = SeaTransportExecutionsTable
+	SeaSharedContainersTable.ForeignKeys[2].RefTable = UsersTable
+	SeaSharedContainerAllocationsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaSharedContainerAllocationsTable.ForeignKeys[1].RefTable = OrderCargoItemsTable
+	SeaSharedContainerAllocationsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	SeaSharedContainerAllocationsTable.ForeignKeys[3].RefTable = SeaHouseBillsTable
+	SeaSharedContainerAllocationsTable.ForeignKeys[4].RefTable = SeaSharedContainersTable
 	SeaTransportExecutionsTable.ForeignKeys[0].RefTable = OrganizationsTable
-	SeaTransportExecutionsTable.ForeignKeys[1].RefTable = ShippingLinesTable
+	SeaTransportExecutionsTable.ForeignKeys[1].RefTable = SeaTransportExecutionVersionsTable
+	SeaTransportExecutionsTable.ForeignKeys[2].RefTable = ShippingLinesTable
+	SeaTransportExecutionVersionsTable.ForeignKeys[0].RefTable = OrderAttachmentsTable
+	SeaTransportExecutionVersionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaTransportExecutionVersionsTable.ForeignKeys[2].RefTable = SeaTransportExecutionsTable
+	SeaTransportExecutionVersionsTable.ForeignKeys[3].RefTable = ShippingLinesTable
+	SeaTransportExecutionVersionsTable.ForeignKeys[4].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
 	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable

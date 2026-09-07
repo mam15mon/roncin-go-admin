@@ -43,8 +43,6 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
-	// EdgeCargoAllocations holds the string denoting the cargo_allocations edge name in mutations.
-	EdgeCargoAllocations = "cargo_allocations"
 	// Table holds the table name of the ordercontainer in the database.
 	Table = "order_containers"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -61,13 +59,6 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
-	// CargoAllocationsTable is the table that holds the cargo_allocations relation/edge.
-	CargoAllocationsTable = "sea_cargo_allocations"
-	// CargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	CargoAllocationsInverseTable = "sea_cargo_allocations"
-	// CargoAllocationsColumn is the table column denoting the cargo_allocations relation/edge.
-	CargoAllocationsColumn = "container_id"
 )
 
 // Columns holds all SQL columns for ordercontainer fields.
@@ -203,20 +194,6 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByCargoAllocationsCount orders the results by cargo_allocations count.
-func ByCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCargoAllocationsStep(), opts...)
-	}
-}
-
-// ByCargoAllocations orders the results by cargo_allocations terms.
-func ByCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -229,12 +206,5 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
-	)
-}
-func newCargoAllocationsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
 	)
 }

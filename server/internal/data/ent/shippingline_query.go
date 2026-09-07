@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 )
@@ -27,17 +28,18 @@ import (
 // ShippingLineQuery is the builder for querying ShippingLine entities.
 type ShippingLineQuery struct {
 	config
-	ctx                        *QueryContext
-	order                      []shippingline.OrderOption
-	inters                     []Interceptor
-	predicates                 []predicate.ShippingLine
-	withOrganization           *OrganizationQuery
-	withContainerPrefixes      *ShippingLineContainerPrefixQuery
-	withOrders                 *OrderQuery
-	withSeaTransportExecutions *SeaTransportExecutionQuery
-	withSeaMasterBills         *SeaMasterBillQuery
-	withSeaMasterBillVersions  *SeaMasterBillVersionQuery
-	modifiers                  []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []shippingline.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.ShippingLine
+	withOrganization                  *OrganizationQuery
+	withContainerPrefixes             *ShippingLineContainerPrefixQuery
+	withOrders                        *OrderQuery
+	withSeaTransportExecutions        *SeaTransportExecutionQuery
+	withSeaTransportExecutionVersions *SeaTransportExecutionVersionQuery
+	withSeaMasterBills                *SeaMasterBillQuery
+	withSeaMasterBillVersions         *SeaMasterBillVersionQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -155,6 +157,28 @@ func (_q *ShippingLineQuery) QuerySeaTransportExecutions() *SeaTransportExecutio
 			sqlgraph.From(shippingline.Table, shippingline.FieldID, selector),
 			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaTransportExecutionsTable, shippingline.SeaTransportExecutionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutionVersions chains the current query on the "sea_transport_execution_versions" edge.
+func (_q *ShippingLineQuery) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, selector),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaTransportExecutionVersionsTable, shippingline.SeaTransportExecutionVersionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -393,17 +417,18 @@ func (_q *ShippingLineQuery) Clone() *ShippingLineQuery {
 		return nil
 	}
 	return &ShippingLineQuery{
-		config:                     _q.config,
-		ctx:                        _q.ctx.Clone(),
-		order:                      append([]shippingline.OrderOption{}, _q.order...),
-		inters:                     append([]Interceptor{}, _q.inters...),
-		predicates:                 append([]predicate.ShippingLine{}, _q.predicates...),
-		withOrganization:           _q.withOrganization.Clone(),
-		withContainerPrefixes:      _q.withContainerPrefixes.Clone(),
-		withOrders:                 _q.withOrders.Clone(),
-		withSeaTransportExecutions: _q.withSeaTransportExecutions.Clone(),
-		withSeaMasterBills:         _q.withSeaMasterBills.Clone(),
-		withSeaMasterBillVersions:  _q.withSeaMasterBillVersions.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]shippingline.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.ShippingLine{}, _q.predicates...),
+		withOrganization:                  _q.withOrganization.Clone(),
+		withContainerPrefixes:             _q.withContainerPrefixes.Clone(),
+		withOrders:                        _q.withOrders.Clone(),
+		withSeaTransportExecutions:        _q.withSeaTransportExecutions.Clone(),
+		withSeaTransportExecutionVersions: _q.withSeaTransportExecutionVersions.Clone(),
+		withSeaMasterBills:                _q.withSeaMasterBills.Clone(),
+		withSeaMasterBillVersions:         _q.withSeaMasterBillVersions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -451,6 +476,17 @@ func (_q *ShippingLineQuery) WithSeaTransportExecutions(opts ...func(*SeaTranspo
 		opt(query)
 	}
 	_q.withSeaTransportExecutions = query
+	return _q
+}
+
+// WithSeaTransportExecutionVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_transport_execution_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ShippingLineQuery) WithSeaTransportExecutionVersions(opts ...func(*SeaTransportExecutionVersionQuery)) *ShippingLineQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaTransportExecutionVersions = query
 	return _q
 }
 
@@ -554,11 +590,12 @@ func (_q *ShippingLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*ShippingLine{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withOrganization != nil,
 			_q.withContainerPrefixes != nil,
 			_q.withOrders != nil,
 			_q.withSeaTransportExecutions != nil,
+			_q.withSeaTransportExecutionVersions != nil,
 			_q.withSeaMasterBills != nil,
 			_q.withSeaMasterBillVersions != nil,
 		}
@@ -611,6 +648,15 @@ func (_q *ShippingLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *ShippingLine) { n.Edges.SeaTransportExecutions = []*SeaTransportExecution{} },
 			func(n *ShippingLine, e *SeaTransportExecution) {
 				n.Edges.SeaTransportExecutions = append(n.Edges.SeaTransportExecutions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaTransportExecutionVersions; query != nil {
+		if err := _q.loadSeaTransportExecutionVersions(ctx, query, nodes,
+			func(n *ShippingLine) { n.Edges.SeaTransportExecutionVersions = []*SeaTransportExecutionVersion{} },
+			func(n *ShippingLine, e *SeaTransportExecutionVersion) {
+				n.Edges.SeaTransportExecutionVersions = append(n.Edges.SeaTransportExecutionVersions, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -741,6 +787,36 @@ func (_q *ShippingLineQuery) loadSeaTransportExecutions(ctx context.Context, que
 	}
 	query.Where(predicate.SeaTransportExecution(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(shippingline.SeaTransportExecutionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ShippingLineID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "shipping_line_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *ShippingLineQuery) loadSeaTransportExecutionVersions(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*ShippingLine, init func(*ShippingLine), assign func(*ShippingLine, *SeaTransportExecutionVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*ShippingLine)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seatransportexecutionversion.FieldShippingLineID)
+	}
+	query.Where(predicate.SeaTransportExecutionVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(shippingline.SeaTransportExecutionVersionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

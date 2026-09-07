@@ -18,6 +18,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -114,6 +116,34 @@ func (_c *OrderLockRecordCreate) SetMasterBillVersionID(v uuid.UUID) *OrderLockR
 func (_c *OrderLockRecordCreate) SetNillableMasterBillVersionID(v *uuid.UUID) *OrderLockRecordCreate {
 	if v != nil {
 		_c.SetMasterBillVersionID(*v)
+	}
+	return _c
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (_c *OrderLockRecordCreate) SetTransportExecutionID(v uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.SetTransportExecutionID(v)
+	return _c
+}
+
+// SetNillableTransportExecutionID sets the "transport_execution_id" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTransportExecutionID(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetTransportExecutionID(*v)
+	}
+	return _c
+}
+
+// SetTransportExecutionVersionID sets the "transport_execution_version_id" field.
+func (_c *OrderLockRecordCreate) SetTransportExecutionVersionID(v uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.SetTransportExecutionVersionID(v)
+	return _c
+}
+
+// SetNillableTransportExecutionVersionID sets the "transport_execution_version_id" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTransportExecutionVersionID(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetTransportExecutionVersionID(*v)
 	}
 	return _c
 }
@@ -276,6 +306,16 @@ func (_c *OrderLockRecordCreate) SetMasterBill(v *SeaMasterBill) *OrderLockRecor
 // SetMasterBillVersion sets the "master_bill_version" edge to the SeaMasterBillVersion entity.
 func (_c *OrderLockRecordCreate) SetMasterBillVersion(v *SeaMasterBillVersion) *OrderLockRecordCreate {
 	return _c.SetMasterBillVersionID(v.ID)
+}
+
+// SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
+func (_c *OrderLockRecordCreate) SetTransportExecution(v *SeaTransportExecution) *OrderLockRecordCreate {
+	return _c.SetTransportExecutionID(v.ID)
+}
+
+// SetTransportExecutionVersion sets the "transport_execution_version" edge to the SeaTransportExecutionVersion entity.
+func (_c *OrderLockRecordCreate) SetTransportExecutionVersion(v *SeaTransportExecutionVersion) *OrderLockRecordCreate {
+	return _c.SetTransportExecutionVersionID(v.ID)
 }
 
 // AddUnlockRequestIDs adds the "unlock_requests" edge to the OrderUnlockRequest entity by IDs.
@@ -629,6 +669,40 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.MasterBillVersionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TransportExecutionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderlockrecord.TransportExecutionTable,
+			Columns: []string{orderlockrecord.TransportExecutionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.TransportExecutionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TransportExecutionVersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderlockrecord.TransportExecutionVersionTable,
+			Columns: []string{orderlockrecord.TransportExecutionVersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.TransportExecutionVersionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UnlockRequestsIDs(); len(nodes) > 0 {

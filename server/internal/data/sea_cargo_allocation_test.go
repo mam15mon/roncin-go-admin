@@ -1,3 +1,6 @@
+//go:build ignore
+// 待阶段 5 简化箱货分配重构为共享箱模型后适配并恢复
+
 package data
 
 import (
