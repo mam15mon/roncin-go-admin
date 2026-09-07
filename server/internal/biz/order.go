@@ -32,6 +32,7 @@ type OrderRepo interface {
 	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
+	ListSameBatchOrders(context.Context, uuid.UUID, uuid.UUID) ([]*SameBatchOrderSummary, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *Order, *AuditEvent) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, uint64, *Order, *AuditEvent) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, uint64, OrderFlowStatus, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)

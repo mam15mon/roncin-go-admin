@@ -24,9 +24,10 @@ func (t SeaDocumentType) Valid() bool {
 type SeaDocumentEventType string
 
 const (
-	SeaDocumentEventTypeAmendment SeaDocumentEventType = "AMENDMENT"
-	SeaDocumentEventTypeVoid      SeaDocumentEventType = "VOID"
-	SeaDocumentEventTypeSwitch    SeaDocumentEventType = "SWITCH"
+	SeaDocumentEventTypeAmendment  SeaDocumentEventType = "AMENDMENT"
+	SeaDocumentEventTypeVoid       SeaDocumentEventType = "VOID"
+	SeaDocumentEventTypeSwitch     SeaDocumentEventType = "SWITCH"
+	SeaDocumentEventTypeModeChange SeaDocumentEventType = "MODE_CHANGE"
 )
 
 var (

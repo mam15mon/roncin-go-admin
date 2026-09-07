@@ -43,6 +43,11 @@ service OrderService {
     option (google.api.http) = {get: "/api/v1/orders/{id}/consolidations"};
   }
 
+  rpc ListSameBatchOrders(ListSameBatchOrdersRequest) returns (ListSameBatchOrdersResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{id}/same-batch"};
+  }
+
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -153,6 +158,7 @@ enum OrderReferenceType {
   ORDER_REFERENCE_TYPE_UNSPECIFIED = 0;
   ORDER_REFERENCE_TYPE_CUSTOMER = 1;
   ORDER_REFERENCE_TYPE_INTERNAL = 2;
+  ORDER_REFERENCE_TYPE_BOOKING = 3;
 }
 
 // OrderNumberFilterType 订单列表复合单号查询类型。
@@ -161,6 +167,8 @@ enum OrderNumberFilterType {
   ORDER_NUMBER_FILTER_TYPE_ORDER = 1;
   ORDER_NUMBER_FILTER_TYPE_MASTER = 2;
   ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER = 3;
+  ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE = 4;
+  ORDER_NUMBER_FILTER_TYPE_BOOKING = 5;
 }
 
 // OrderFlowStatus 海运出口订单主流程状态。
@@ -309,6 +317,7 @@ message Order {
   optional SeaDocumentStructure sea_document_structure = 82;
   optional uint64 sea_document_link_version = 83;
   optional SeaOrderDocumentSummary sea_document_summary = 84;
+  optional string booking_no = 85;
 }
 
 message OrderCargoMeasurement {
@@ -541,6 +550,7 @@ message CreateOrderRequest {
   optional string consignee_short_name = 56;
   optional SeaMasterBillInput sea_master_bill = 57;
   optional SeaOrderDocumentInput sea_document = 58;
+  optional string booking_no = 59;
 }
 
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
@@ -603,6 +613,7 @@ message UpdateOrderRequest {
   optional string consignee_short_name = 56;
   optional SeaMasterBillInput sea_master_bill = 57;
   optional SeaOrderDocumentInput sea_document = 58;
+  optional string booking_no = 59;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。
@@ -820,4 +831,33 @@ message MatchSeaMasterBillCandidateResponse {
   optional SeaMasterBillCandidate candidate = 5;
   repeated SeaVoyageConflict conflicts = 6;
   string trace_id = 7;
+}
+
+// SameBatchOrderSummary 同批订单只读摘要。
+message SameBatchOrderSummary {
+  string order_id = 1;
+  string order_no = 2;
+  optional string customer_id = 3;
+  optional string customer_reference_no = 4;
+  optional string booking_no = 5;
+  optional string master_no = 6;
+  optional string house_no = 7;
+  OrderFlowStatus flow_status = 8;
+  repeated string match_sources = 9;
+  optional int32 total_packages = 10;
+  optional double total_gross_weight_kg = 11;
+  optional double total_volume_cbm = 12;
+  string created_at = 13;
+}
+
+message ListSameBatchOrdersRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListSameBatchOrdersResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated SameBatchOrderSummary data = 4;
+  string trace_id = 5;
 }

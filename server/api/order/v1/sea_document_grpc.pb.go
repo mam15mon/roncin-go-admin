@@ -19,23 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SeaDocumentService_GetSeaOrderDocuments_FullMethodName        = "/order.v1.SeaDocumentService/GetSeaOrderDocuments"
-	SeaDocumentService_ListSeaMasterBillVersions_FullMethodName   = "/order.v1.SeaDocumentService/ListSeaMasterBillVersions"
-	SeaDocumentService_ListSeaHouseBillVersions_FullMethodName    = "/order.v1.SeaDocumentService/ListSeaHouseBillVersions"
-	SeaDocumentService_GetSeaDocumentVersion_FullMethodName       = "/order.v1.SeaDocumentService/GetSeaDocumentVersion"
-	SeaDocumentService_ListSeaDocumentEvents_FullMethodName       = "/order.v1.SeaDocumentService/ListSeaDocumentEvents"
-	SeaDocumentService_PreviewSeaDocumentAmendment_FullMethodName = "/order.v1.SeaDocumentService/PreviewSeaDocumentAmendment"
-	SeaDocumentService_ExecuteSeaDocumentAmendment_FullMethodName = "/order.v1.SeaDocumentService/ExecuteSeaDocumentAmendment"
-	SeaDocumentService_PreviewSeaDocumentVoid_FullMethodName      = "/order.v1.SeaDocumentService/PreviewSeaDocumentVoid"
-	SeaDocumentService_ExecuteSeaDocumentVoid_FullMethodName      = "/order.v1.SeaDocumentService/ExecuteSeaDocumentVoid"
-	SeaDocumentService_PreviewSeaHouseBillSwitch_FullMethodName   = "/order.v1.SeaDocumentService/PreviewSeaHouseBillSwitch"
-	SeaDocumentService_ExecuteSeaHouseBillSwitch_FullMethodName   = "/order.v1.SeaDocumentService/ExecuteSeaHouseBillSwitch"
-	SeaDocumentService_MarkSeaOrderDirect_FullMethodName          = "/order.v1.SeaDocumentService/MarkSeaOrderDirect"
-	SeaDocumentService_CancelSeaOrderDirect_FullMethodName        = "/order.v1.SeaDocumentService/CancelSeaOrderDirect"
-	SeaDocumentService_AddSeaHouseBill_FullMethodName             = "/order.v1.SeaDocumentService/AddSeaHouseBill"
-	SeaDocumentService_UpdateSeaHouseBill_FullMethodName          = "/order.v1.SeaDocumentService/UpdateSeaHouseBill"
-	SeaDocumentService_RemoveSeaHouseBill_FullMethodName          = "/order.v1.SeaDocumentService/RemoveSeaHouseBill"
-	SeaDocumentService_UpdateSeaMasterBillContent_FullMethodName  = "/order.v1.SeaDocumentService/UpdateSeaMasterBillContent"
+	SeaDocumentService_GetSeaOrderDocuments_FullMethodName         = "/order.v1.SeaDocumentService/GetSeaOrderDocuments"
+	SeaDocumentService_ListSeaMasterBillVersions_FullMethodName    = "/order.v1.SeaDocumentService/ListSeaMasterBillVersions"
+	SeaDocumentService_ListSeaHouseBillVersions_FullMethodName     = "/order.v1.SeaDocumentService/ListSeaHouseBillVersions"
+	SeaDocumentService_GetSeaDocumentVersion_FullMethodName        = "/order.v1.SeaDocumentService/GetSeaDocumentVersion"
+	SeaDocumentService_ListSeaDocumentEvents_FullMethodName        = "/order.v1.SeaDocumentService/ListSeaDocumentEvents"
+	SeaDocumentService_PreviewSeaDocumentAmendment_FullMethodName  = "/order.v1.SeaDocumentService/PreviewSeaDocumentAmendment"
+	SeaDocumentService_ExecuteSeaDocumentAmendment_FullMethodName  = "/order.v1.SeaDocumentService/ExecuteSeaDocumentAmendment"
+	SeaDocumentService_PreviewSeaDocumentVoid_FullMethodName       = "/order.v1.SeaDocumentService/PreviewSeaDocumentVoid"
+	SeaDocumentService_ExecuteSeaDocumentVoid_FullMethodName       = "/order.v1.SeaDocumentService/ExecuteSeaDocumentVoid"
+	SeaDocumentService_PreviewSeaHouseBillSwitch_FullMethodName    = "/order.v1.SeaDocumentService/PreviewSeaHouseBillSwitch"
+	SeaDocumentService_ExecuteSeaHouseBillSwitch_FullMethodName    = "/order.v1.SeaDocumentService/ExecuteSeaHouseBillSwitch"
+	SeaDocumentService_PreviewChangeSeaDocumentMode_FullMethodName = "/order.v1.SeaDocumentService/PreviewChangeSeaDocumentMode"
+	SeaDocumentService_ExecuteChangeSeaDocumentMode_FullMethodName = "/order.v1.SeaDocumentService/ExecuteChangeSeaDocumentMode"
+	SeaDocumentService_UpdateSeaHouseBill_FullMethodName           = "/order.v1.SeaDocumentService/UpdateSeaHouseBill"
+	SeaDocumentService_UpdateSeaMasterBillContent_FullMethodName   = "/order.v1.SeaDocumentService/UpdateSeaMasterBillContent"
 )
 
 // SeaDocumentServiceClient is the client API for SeaDocumentService service.
@@ -66,16 +64,12 @@ type SeaDocumentServiceClient interface {
 	PreviewSeaHouseBillSwitch(ctx context.Context, in *PreviewSeaHouseBillSwitchRequest, opts ...grpc.CallOption) (*PreviewSeaHouseBillSwitchResponse, error)
 	// ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
 	ExecuteSeaHouseBillSwitch(ctx context.Context, in *ExecuteSeaHouseBillSwitchRequest, opts ...grpc.CallOption) (*ExecuteSeaHouseBillSwitchResponse, error)
-	// MarkSeaOrderDirect 明确标记海运订单为直单。
-	MarkSeaOrderDirect(ctx context.Context, in *MarkSeaOrderDirectRequest, opts ...grpc.CallOption) (*MarkSeaOrderDirectResponse, error)
-	// CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-	CancelSeaOrderDirect(ctx context.Context, in *CancelSeaOrderDirectRequest, opts ...grpc.CallOption) (*CancelSeaOrderDirectResponse, error)
-	// AddSeaHouseBill 添加海运分单（HBL）。
-	AddSeaHouseBill(ctx context.Context, in *AddSeaHouseBillRequest, opts ...grpc.CallOption) (*AddSeaHouseBillResponse, error)
+	// PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+	PreviewChangeSeaDocumentMode(ctx context.Context, in *PreviewChangeSeaDocumentModeRequest, opts ...grpc.CallOption) (*PreviewChangeSeaDocumentModeResponse, error)
+	// ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+	ExecuteChangeSeaDocumentMode(ctx context.Context, in *ExecuteChangeSeaDocumentModeRequest, opts ...grpc.CallOption) (*ExecuteChangeSeaDocumentModeResponse, error)
 	// UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(ctx context.Context, in *UpdateSeaHouseBillRequest, opts ...grpc.CallOption) (*UpdateSeaHouseBillResponse, error)
-	// RemoveSeaHouseBill 移除海运分单。
-	RemoveSeaHouseBill(ctx context.Context, in *RemoveSeaHouseBillRequest, opts ...grpc.CallOption) (*RemoveSeaHouseBillResponse, error)
 	// UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
 	UpdateSeaMasterBillContent(ctx context.Context, in *UpdateSeaMasterBillContentRequest, opts ...grpc.CallOption) (*UpdateSeaMasterBillContentResponse, error)
 }
@@ -198,30 +192,20 @@ func (c *seaDocumentServiceClient) ExecuteSeaHouseBillSwitch(ctx context.Context
 	return out, nil
 }
 
-func (c *seaDocumentServiceClient) MarkSeaOrderDirect(ctx context.Context, in *MarkSeaOrderDirectRequest, opts ...grpc.CallOption) (*MarkSeaOrderDirectResponse, error) {
+func (c *seaDocumentServiceClient) PreviewChangeSeaDocumentMode(ctx context.Context, in *PreviewChangeSeaDocumentModeRequest, opts ...grpc.CallOption) (*PreviewChangeSeaDocumentModeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MarkSeaOrderDirectResponse)
-	err := c.cc.Invoke(ctx, SeaDocumentService_MarkSeaOrderDirect_FullMethodName, in, out, cOpts...)
+	out := new(PreviewChangeSeaDocumentModeResponse)
+	err := c.cc.Invoke(ctx, SeaDocumentService_PreviewChangeSeaDocumentMode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaDocumentServiceClient) CancelSeaOrderDirect(ctx context.Context, in *CancelSeaOrderDirectRequest, opts ...grpc.CallOption) (*CancelSeaOrderDirectResponse, error) {
+func (c *seaDocumentServiceClient) ExecuteChangeSeaDocumentMode(ctx context.Context, in *ExecuteChangeSeaDocumentModeRequest, opts ...grpc.CallOption) (*ExecuteChangeSeaDocumentModeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CancelSeaOrderDirectResponse)
-	err := c.cc.Invoke(ctx, SeaDocumentService_CancelSeaOrderDirect_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *seaDocumentServiceClient) AddSeaHouseBill(ctx context.Context, in *AddSeaHouseBillRequest, opts ...grpc.CallOption) (*AddSeaHouseBillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddSeaHouseBillResponse)
-	err := c.cc.Invoke(ctx, SeaDocumentService_AddSeaHouseBill_FullMethodName, in, out, cOpts...)
+	out := new(ExecuteChangeSeaDocumentModeResponse)
+	err := c.cc.Invoke(ctx, SeaDocumentService_ExecuteChangeSeaDocumentMode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -232,16 +216,6 @@ func (c *seaDocumentServiceClient) UpdateSeaHouseBill(ctx context.Context, in *U
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateSeaHouseBillResponse)
 	err := c.cc.Invoke(ctx, SeaDocumentService_UpdateSeaHouseBill_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *seaDocumentServiceClient) RemoveSeaHouseBill(ctx context.Context, in *RemoveSeaHouseBillRequest, opts ...grpc.CallOption) (*RemoveSeaHouseBillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RemoveSeaHouseBillResponse)
-	err := c.cc.Invoke(ctx, SeaDocumentService_RemoveSeaHouseBill_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -286,16 +260,12 @@ type SeaDocumentServiceServer interface {
 	PreviewSeaHouseBillSwitch(context.Context, *PreviewSeaHouseBillSwitchRequest) (*PreviewSeaHouseBillSwitchResponse, error)
 	// ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
 	ExecuteSeaHouseBillSwitch(context.Context, *ExecuteSeaHouseBillSwitchRequest) (*ExecuteSeaHouseBillSwitchResponse, error)
-	// MarkSeaOrderDirect 明确标记海运订单为直单。
-	MarkSeaOrderDirect(context.Context, *MarkSeaOrderDirectRequest) (*MarkSeaOrderDirectResponse, error)
-	// CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-	CancelSeaOrderDirect(context.Context, *CancelSeaOrderDirectRequest) (*CancelSeaOrderDirectResponse, error)
-	// AddSeaHouseBill 添加海运分单（HBL）。
-	AddSeaHouseBill(context.Context, *AddSeaHouseBillRequest) (*AddSeaHouseBillResponse, error)
+	// PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+	PreviewChangeSeaDocumentMode(context.Context, *PreviewChangeSeaDocumentModeRequest) (*PreviewChangeSeaDocumentModeResponse, error)
+	// ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+	ExecuteChangeSeaDocumentMode(context.Context, *ExecuteChangeSeaDocumentModeRequest) (*ExecuteChangeSeaDocumentModeResponse, error)
 	// UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(context.Context, *UpdateSeaHouseBillRequest) (*UpdateSeaHouseBillResponse, error)
-	// RemoveSeaHouseBill 移除海运分单。
-	RemoveSeaHouseBill(context.Context, *RemoveSeaHouseBillRequest) (*RemoveSeaHouseBillResponse, error)
 	// UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
 	UpdateSeaMasterBillContent(context.Context, *UpdateSeaMasterBillContentRequest) (*UpdateSeaMasterBillContentResponse, error)
 	mustEmbedUnimplementedSeaDocumentServiceServer()
@@ -341,20 +311,14 @@ func (UnimplementedSeaDocumentServiceServer) PreviewSeaHouseBillSwitch(context.C
 func (UnimplementedSeaDocumentServiceServer) ExecuteSeaHouseBillSwitch(context.Context, *ExecuteSeaHouseBillSwitchRequest) (*ExecuteSeaHouseBillSwitchResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExecuteSeaHouseBillSwitch not implemented")
 }
-func (UnimplementedSeaDocumentServiceServer) MarkSeaOrderDirect(context.Context, *MarkSeaOrderDirectRequest) (*MarkSeaOrderDirectResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method MarkSeaOrderDirect not implemented")
+func (UnimplementedSeaDocumentServiceServer) PreviewChangeSeaDocumentMode(context.Context, *PreviewChangeSeaDocumentModeRequest) (*PreviewChangeSeaDocumentModeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewChangeSeaDocumentMode not implemented")
 }
-func (UnimplementedSeaDocumentServiceServer) CancelSeaOrderDirect(context.Context, *CancelSeaOrderDirectRequest) (*CancelSeaOrderDirectResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CancelSeaOrderDirect not implemented")
-}
-func (UnimplementedSeaDocumentServiceServer) AddSeaHouseBill(context.Context, *AddSeaHouseBillRequest) (*AddSeaHouseBillResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AddSeaHouseBill not implemented")
+func (UnimplementedSeaDocumentServiceServer) ExecuteChangeSeaDocumentMode(context.Context, *ExecuteChangeSeaDocumentModeRequest) (*ExecuteChangeSeaDocumentModeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExecuteChangeSeaDocumentMode not implemented")
 }
 func (UnimplementedSeaDocumentServiceServer) UpdateSeaHouseBill(context.Context, *UpdateSeaHouseBillRequest) (*UpdateSeaHouseBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSeaHouseBill not implemented")
-}
-func (UnimplementedSeaDocumentServiceServer) RemoveSeaHouseBill(context.Context, *RemoveSeaHouseBillRequest) (*RemoveSeaHouseBillResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RemoveSeaHouseBill not implemented")
 }
 func (UnimplementedSeaDocumentServiceServer) UpdateSeaMasterBillContent(context.Context, *UpdateSeaMasterBillContentRequest) (*UpdateSeaMasterBillContentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSeaMasterBillContent not implemented")
@@ -578,56 +542,38 @@ func _SeaDocumentService_ExecuteSeaHouseBillSwitch_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaDocumentService_MarkSeaOrderDirect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MarkSeaOrderDirectRequest)
+func _SeaDocumentService_PreviewChangeSeaDocumentMode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewChangeSeaDocumentModeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaDocumentServiceServer).MarkSeaOrderDirect(ctx, in)
+		return srv.(SeaDocumentServiceServer).PreviewChangeSeaDocumentMode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaDocumentService_MarkSeaOrderDirect_FullMethodName,
+		FullMethod: SeaDocumentService_PreviewChangeSeaDocumentMode_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaDocumentServiceServer).MarkSeaOrderDirect(ctx, req.(*MarkSeaOrderDirectRequest))
+		return srv.(SeaDocumentServiceServer).PreviewChangeSeaDocumentMode(ctx, req.(*PreviewChangeSeaDocumentModeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaDocumentService_CancelSeaOrderDirect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CancelSeaOrderDirectRequest)
+func _SeaDocumentService_ExecuteChangeSeaDocumentMode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteChangeSeaDocumentModeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaDocumentServiceServer).CancelSeaOrderDirect(ctx, in)
+		return srv.(SeaDocumentServiceServer).ExecuteChangeSeaDocumentMode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaDocumentService_CancelSeaOrderDirect_FullMethodName,
+		FullMethod: SeaDocumentService_ExecuteChangeSeaDocumentMode_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaDocumentServiceServer).CancelSeaOrderDirect(ctx, req.(*CancelSeaOrderDirectRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SeaDocumentService_AddSeaHouseBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddSeaHouseBillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SeaDocumentServiceServer).AddSeaHouseBill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SeaDocumentService_AddSeaHouseBill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaDocumentServiceServer).AddSeaHouseBill(ctx, req.(*AddSeaHouseBillRequest))
+		return srv.(SeaDocumentServiceServer).ExecuteChangeSeaDocumentMode(ctx, req.(*ExecuteChangeSeaDocumentModeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -646,24 +592,6 @@ func _SeaDocumentService_UpdateSeaHouseBill_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SeaDocumentServiceServer).UpdateSeaHouseBill(ctx, req.(*UpdateSeaHouseBillRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SeaDocumentService_RemoveSeaHouseBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveSeaHouseBillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SeaDocumentServiceServer).RemoveSeaHouseBill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SeaDocumentService_RemoveSeaHouseBill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaDocumentServiceServer).RemoveSeaHouseBill(ctx, req.(*RemoveSeaHouseBillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -738,24 +666,16 @@ var SeaDocumentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SeaDocumentService_ExecuteSeaHouseBillSwitch_Handler,
 		},
 		{
-			MethodName: "MarkSeaOrderDirect",
-			Handler:    _SeaDocumentService_MarkSeaOrderDirect_Handler,
+			MethodName: "PreviewChangeSeaDocumentMode",
+			Handler:    _SeaDocumentService_PreviewChangeSeaDocumentMode_Handler,
 		},
 		{
-			MethodName: "CancelSeaOrderDirect",
-			Handler:    _SeaDocumentService_CancelSeaOrderDirect_Handler,
-		},
-		{
-			MethodName: "AddSeaHouseBill",
-			Handler:    _SeaDocumentService_AddSeaHouseBill_Handler,
+			MethodName: "ExecuteChangeSeaDocumentMode",
+			Handler:    _SeaDocumentService_ExecuteChangeSeaDocumentMode_Handler,
 		},
 		{
 			MethodName: "UpdateSeaHouseBill",
 			Handler:    _SeaDocumentService_UpdateSeaHouseBill_Handler,
-		},
-		{
-			MethodName: "RemoveSeaHouseBill",
-			Handler:    _SeaDocumentService_RemoveSeaHouseBill_Handler,
 		},
 		{
 			MethodName: "UpdateSeaMasterBillContent",

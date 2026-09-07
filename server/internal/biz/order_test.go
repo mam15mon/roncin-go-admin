@@ -66,6 +66,10 @@ func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, u
 	return nil, nil
 }
 
+func (s *orderRepoStub) ListSameBatchOrders(context.Context, uuid.UUID, uuid.UUID) ([]*SameBatchOrderSummary, error) {
+	return nil, nil
+}
+
 func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, input *Order, audit *AuditEvent) (*Order, error) {
 	number := "SE0007"
 	s.created = input

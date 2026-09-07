@@ -166,7 +166,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	return &biz.Order{
 		CustomerID: customerID,
 		ShippingLineID:  shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
-		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
+		CustomerReferenceNo: request.GetCustomerReferenceNo(), BookingNo: request.GetBookingNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
@@ -235,6 +235,9 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.CustomerReferenceNo != nil {
 		output.CustomerReferenceNo = request.GetCustomerReferenceNo()
+	}
+	if request.BookingNo != nil {
+		output.BookingNo = request.GetBookingNo()
 	}
 	if request.InternalReferenceNo != nil {
 		output.InternalReferenceNo = request.GetInternalReferenceNo()

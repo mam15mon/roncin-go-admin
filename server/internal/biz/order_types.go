@@ -192,10 +192,11 @@ type OrderReferenceType string
 const (
 	OrderReferenceCustomer OrderReferenceType = "customer"
 	OrderReferenceInternal OrderReferenceType = "internal"
+	OrderReferenceBooking  OrderReferenceType = "booking"
 )
 
 func (v OrderReferenceType) Valid() bool {
-	return v == OrderReferenceCustomer || v == OrderReferenceInternal
+	return v == OrderReferenceCustomer || v == OrderReferenceInternal || v == OrderReferenceBooking
 }
 
 type OrderNumberFilterType string
@@ -204,10 +205,13 @@ const (
 	OrderNumberFilterOrder              OrderNumberFilterType = "order"
 	OrderNumberFilterMaster             OrderNumberFilterType = "master"
 	OrderNumberFilterConsolidatedMaster OrderNumberFilterType = "consolidated_master"
+	OrderNumberFilterCustomerReference  OrderNumberFilterType = "customer_reference"
+	OrderNumberFilterBooking            OrderNumberFilterType = "booking"
 )
 
 func (v OrderNumberFilterType) Valid() bool {
-	return v == OrderNumberFilterOrder || v == OrderNumberFilterMaster || v == OrderNumberFilterConsolidatedMaster
+	return v == OrderNumberFilterOrder || v == OrderNumberFilterMaster || v == OrderNumberFilterConsolidatedMaster ||
+		v == OrderNumberFilterCustomerReference || v == OrderNumberFilterBooking
 }
 
 type OrderDateRange struct {
@@ -290,6 +294,7 @@ type Order struct {
 	TotalPackageUnit       string
 	SpecialRequirements    string
 	OrderDate              string
+	BookingNo              string
 	Notes                  string
 	BookingNotes           string
 	AllocationNotes        string
@@ -391,4 +396,20 @@ type OrderPersonnelOption struct {
 	DisplayName      string
 	OrganizationID   uuid.UUID
 	OrganizationName string
+}
+
+type SameBatchOrderSummary struct {
+	OrderID             uuid.UUID
+	OrderNo             string
+	CustomerID          *uuid.UUID
+	CustomerReferenceNo string
+	BookingNo           string
+	MasterNo            string
+	HouseNo             string
+	FlowStatus          OrderFlowStatus
+	MatchSources        []string
+	TotalPackages       *int
+	TotalGrossWeightKg  *float64
+	TotalVolumeCbm      *float64
+	CreatedAt           time.Time
 }

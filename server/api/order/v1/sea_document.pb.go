@@ -23,29 +23,26 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SeaDocumentStructure 海运单证结构三态。
+// SeaDocumentStructure 海运单证结构两态。
 type SeaDocumentStructure int32
 
 const (
-	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED  SeaDocumentStructure = 0
-	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNDETERMINED SeaDocumentStructure = 1
-	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT       SeaDocumentStructure = 2
-	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_HOUSE        SeaDocumentStructure = 3
+	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED SeaDocumentStructure = 0
+	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT      SeaDocumentStructure = 2
+	SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_HOUSE       SeaDocumentStructure = 3
 )
 
 // Enum value maps for SeaDocumentStructure.
 var (
 	SeaDocumentStructure_name = map[int32]string{
 		0: "SEA_DOCUMENT_STRUCTURE_UNSPECIFIED",
-		1: "SEA_DOCUMENT_STRUCTURE_UNDETERMINED",
 		2: "SEA_DOCUMENT_STRUCTURE_DIRECT",
 		3: "SEA_DOCUMENT_STRUCTURE_HOUSE",
 	}
 	SeaDocumentStructure_value = map[string]int32{
-		"SEA_DOCUMENT_STRUCTURE_UNSPECIFIED":  0,
-		"SEA_DOCUMENT_STRUCTURE_UNDETERMINED": 1,
-		"SEA_DOCUMENT_STRUCTURE_DIRECT":       2,
-		"SEA_DOCUMENT_STRUCTURE_HOUSE":        3,
+		"SEA_DOCUMENT_STRUCTURE_UNSPECIFIED": 0,
+		"SEA_DOCUMENT_STRUCTURE_DIRECT":      2,
+		"SEA_DOCUMENT_STRUCTURE_HOUSE":       3,
 	}
 )
 
@@ -138,7 +135,6 @@ const (
 	SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_CONFIRMED   SeaHouseBillStatus = 2
 	SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_RELEASED    SeaHouseBillStatus = 3
 	SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_VOIDED      SeaHouseBillStatus = 4
-	SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_REPLACED    SeaHouseBillStatus = 5
 )
 
 // Enum value maps for SeaHouseBillStatus.
@@ -149,7 +145,6 @@ var (
 		2: "SEA_HOUSE_BILL_STATUS_CONFIRMED",
 		3: "SEA_HOUSE_BILL_STATUS_RELEASED",
 		4: "SEA_HOUSE_BILL_STATUS_VOIDED",
-		5: "SEA_HOUSE_BILL_STATUS_REPLACED",
 	}
 	SeaHouseBillStatus_value = map[string]int32{
 		"SEA_HOUSE_BILL_STATUS_UNSPECIFIED": 0,
@@ -157,7 +152,6 @@ var (
 		"SEA_HOUSE_BILL_STATUS_CONFIRMED":   2,
 		"SEA_HOUSE_BILL_STATUS_RELEASED":    3,
 		"SEA_HOUSE_BILL_STATUS_VOIDED":      4,
-		"SEA_HOUSE_BILL_STATUS_REPLACED":    5,
 	}
 )
 
@@ -193,33 +187,24 @@ type SeaDocumentAction int32
 
 const (
 	SeaDocumentAction_SEA_DOCUMENT_ACTION_UNSPECIFIED                SeaDocumentAction = 0
-	SeaDocumentAction_SEA_DOCUMENT_ACTION_MARK_DIRECT                SeaDocumentAction = 1
-	SeaDocumentAction_SEA_DOCUMENT_ACTION_CANCEL_DIRECT              SeaDocumentAction = 2
-	SeaDocumentAction_SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL             SeaDocumentAction = 3
 	SeaDocumentAction_SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL          SeaDocumentAction = 4
-	SeaDocumentAction_SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL          SeaDocumentAction = 5
 	SeaDocumentAction_SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT SeaDocumentAction = 6
+	SeaDocumentAction_SEA_DOCUMENT_ACTION_CHANGE_MODE                SeaDocumentAction = 7
 )
 
 // Enum value maps for SeaDocumentAction.
 var (
 	SeaDocumentAction_name = map[int32]string{
 		0: "SEA_DOCUMENT_ACTION_UNSPECIFIED",
-		1: "SEA_DOCUMENT_ACTION_MARK_DIRECT",
-		2: "SEA_DOCUMENT_ACTION_CANCEL_DIRECT",
-		3: "SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL",
 		4: "SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL",
-		5: "SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL",
 		6: "SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT",
+		7: "SEA_DOCUMENT_ACTION_CHANGE_MODE",
 	}
 	SeaDocumentAction_value = map[string]int32{
 		"SEA_DOCUMENT_ACTION_UNSPECIFIED":                0,
-		"SEA_DOCUMENT_ACTION_MARK_DIRECT":                1,
-		"SEA_DOCUMENT_ACTION_CANCEL_DIRECT":              2,
-		"SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL":             3,
 		"SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL":          4,
-		"SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL":          5,
 		"SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT": 6,
+		"SEA_DOCUMENT_ACTION_CHANGE_MODE":                7,
 	}
 )
 
@@ -307,8 +292,8 @@ const (
 	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED SeaDocumentVersionSource = 0
 	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK  SeaDocumentVersionSource = 1
 	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT   SeaDocumentVersionSource = 2
-	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_SWITCH      SeaDocumentVersionSource = 3
 	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_VOID        SeaDocumentVersionSource = 4
+	SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE SeaDocumentVersionSource = 5
 )
 
 // Enum value maps for SeaDocumentVersionSource.
@@ -317,15 +302,15 @@ var (
 		0: "SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED",
 		1: "SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK",
 		2: "SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT",
-		3: "SEA_DOCUMENT_VERSION_SOURCE_SWITCH",
 		4: "SEA_DOCUMENT_VERSION_SOURCE_VOID",
+		5: "SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE",
 	}
 	SeaDocumentVersionSource_value = map[string]int32{
 		"SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED": 0,
 		"SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK":  1,
 		"SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT":   2,
-		"SEA_DOCUMENT_VERSION_SOURCE_SWITCH":      3,
 		"SEA_DOCUMENT_VERSION_SOURCE_VOID":        4,
+		"SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE": 5,
 	}
 )
 
@@ -363,7 +348,7 @@ const (
 	SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED SeaDocumentEventType = 0
 	SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_AMENDMENT   SeaDocumentEventType = 1
 	SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_VOID        SeaDocumentEventType = 2
-	SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_SWITCH      SeaDocumentEventType = 3
+	SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE SeaDocumentEventType = 4
 )
 
 // Enum value maps for SeaDocumentEventType.
@@ -372,13 +357,13 @@ var (
 		0: "SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED",
 		1: "SEA_DOCUMENT_EVENT_TYPE_AMENDMENT",
 		2: "SEA_DOCUMENT_EVENT_TYPE_VOID",
-		3: "SEA_DOCUMENT_EVENT_TYPE_SWITCH",
+		4: "SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE",
 	}
 	SeaDocumentEventType_value = map[string]int32{
 		"SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED": 0,
 		"SEA_DOCUMENT_EVENT_TYPE_AMENDMENT":   1,
 		"SEA_DOCUMENT_EVENT_TYPE_VOID":        2,
-		"SEA_DOCUMENT_EVENT_TYPE_SWITCH":      3,
+		"SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE": 4,
 	}
 )
 
@@ -962,8 +947,7 @@ type SeaOrderDocumentSummary struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	DocumentStructure SeaDocumentStructure   `protobuf:"varint,1,opt,name=document_structure,json=documentStructure,proto3,enum=order.v1.SeaDocumentStructure" json:"document_structure,omitempty"`
 	LinkVersion       uint64                 `protobuf:"varint,2,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
-	HouseBillCount    int32                  `protobuf:"varint,3,opt,name=house_bill_count,json=houseBillCount,proto3" json:"house_bill_count,omitempty"`
-	HouseNos          []string               `protobuf:"bytes,4,rep,name=house_nos,json=houseNos,proto3" json:"house_nos,omitempty"`
+	HouseNo           *string                `protobuf:"bytes,5,opt,name=house_no,json=houseNo,proto3,oneof" json:"house_no,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1012,18 +996,11 @@ func (x *SeaOrderDocumentSummary) GetLinkVersion() uint64 {
 	return 0
 }
 
-func (x *SeaOrderDocumentSummary) GetHouseBillCount() int32 {
-	if x != nil {
-		return x.HouseBillCount
+func (x *SeaOrderDocumentSummary) GetHouseNo() string {
+	if x != nil && x.HouseNo != nil {
+		return *x.HouseNo
 	}
-	return 0
-}
-
-func (x *SeaOrderDocumentSummary) GetHouseNos() []string {
-	if x != nil {
-		return x.HouseNos
-	}
-	return nil
+	return ""
 }
 
 // SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
@@ -1033,7 +1010,7 @@ type SeaOrderDocumentInput struct {
 	ExpectedLinkVersion *uint64                `protobuf:"varint,2,opt,name=expected_link_version,json=expectedLinkVersion,proto3,oneof" json:"expected_link_version,omitempty"`
 	ExpectedMblVersion  *uint64                `protobuf:"varint,3,opt,name=expected_mbl_version,json=expectedMblVersion,proto3,oneof" json:"expected_mbl_version,omitempty"`
 	MasterBillContent   *SeaBillContent        `protobuf:"bytes,4,opt,name=master_bill_content,json=masterBillContent,proto3,oneof" json:"master_bill_content,omitempty"`
-	HouseBills          []*SeaHouseBillInput   `protobuf:"bytes,5,rep,name=house_bills,json=houseBills,proto3" json:"house_bills,omitempty"`
+	HouseBill           *SeaHouseBillInput     `protobuf:"bytes,6,opt,name=house_bill,json=houseBill,proto3,oneof" json:"house_bill,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -1096,9 +1073,9 @@ func (x *SeaOrderDocumentInput) GetMasterBillContent() *SeaBillContent {
 	return nil
 }
 
-func (x *SeaOrderDocumentInput) GetHouseBills() []*SeaHouseBillInput {
+func (x *SeaOrderDocumentInput) GetHouseBill() *SeaHouseBillInput {
 	if x != nil {
-		return x.HouseBills
+		return x.HouseBill
 	}
 	return nil
 }
@@ -1110,8 +1087,8 @@ type SeaOrderDocuments struct {
 	DocumentStructure SeaDocumentStructure   `protobuf:"varint,2,opt,name=document_structure,json=documentStructure,proto3,enum=order.v1.SeaDocumentStructure" json:"document_structure,omitempty"`
 	LinkVersion       uint64                 `protobuf:"varint,3,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
 	MasterBill        *SeaMasterBillDetail   `protobuf:"bytes,4,opt,name=master_bill,json=masterBill,proto3,oneof" json:"master_bill,omitempty"`
-	HouseBills        []*SeaHouseBill        `protobuf:"bytes,5,rep,name=house_bills,json=houseBills,proto3" json:"house_bills,omitempty"`
 	AllowedActions    []SeaDocumentAction    `protobuf:"varint,6,rep,packed,name=allowed_actions,json=allowedActions,proto3,enum=order.v1.SeaDocumentAction" json:"allowed_actions,omitempty"`
+	HouseBill         *SeaHouseBill          `protobuf:"bytes,7,opt,name=house_bill,json=houseBill,proto3,oneof" json:"house_bill,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1174,16 +1151,16 @@ func (x *SeaOrderDocuments) GetMasterBill() *SeaMasterBillDetail {
 	return nil
 }
 
-func (x *SeaOrderDocuments) GetHouseBills() []*SeaHouseBill {
+func (x *SeaOrderDocuments) GetAllowedActions() []SeaDocumentAction {
 	if x != nil {
-		return x.HouseBills
+		return x.AllowedActions
 	}
 	return nil
 }
 
-func (x *SeaOrderDocuments) GetAllowedActions() []SeaDocumentAction {
+func (x *SeaOrderDocuments) GetHouseBill() *SeaHouseBill {
 	if x != nil {
-		return x.AllowedActions
+		return x.HouseBill
 	}
 	return nil
 }
@@ -1310,29 +1287,31 @@ func (x *GetSeaOrderDocumentsResponse) GetTraceId() string {
 	return ""
 }
 
-// MarkSeaOrderDirectRequest 标记直单请求。
-type MarkSeaOrderDirectRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedLinkVersion uint64                 `protobuf:"varint,2,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+// SeaExternalConfirmationInput 外部确认输入。
+type SeaExternalConfirmationInput struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	ConfirmedByParty         string                 `protobuf:"bytes,1,opt,name=confirmed_by_party,json=confirmedByParty,proto3" json:"confirmed_by_party,omitempty"`
+	ConfirmedAt              string                 `protobuf:"bytes,2,opt,name=confirmed_at,json=confirmedAt,proto3" json:"confirmed_at,omitempty"`
+	ConfirmationNote         string                 `protobuf:"bytes,3,opt,name=confirmation_note,json=confirmationNote,proto3" json:"confirmation_note,omitempty"`
+	ConfirmationAttachmentId *string                `protobuf:"bytes,4,opt,name=confirmation_attachment_id,json=confirmationAttachmentId,proto3,oneof" json:"confirmation_attachment_id,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
-func (x *MarkSeaOrderDirectRequest) Reset() {
-	*x = MarkSeaOrderDirectRequest{}
+func (x *SeaExternalConfirmationInput) Reset() {
+	*x = SeaExternalConfirmationInput{}
 	mi := &file_order_v1_sea_document_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MarkSeaOrderDirectRequest) String() string {
+func (x *SeaExternalConfirmationInput) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MarkSeaOrderDirectRequest) ProtoMessage() {}
+func (*SeaExternalConfirmationInput) ProtoMessage() {}
 
-func (x *MarkSeaOrderDirectRequest) ProtoReflect() protoreflect.Message {
+func (x *SeaExternalConfirmationInput) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_sea_document_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1344,51 +1323,65 @@ func (x *MarkSeaOrderDirectRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MarkSeaOrderDirectRequest.ProtoReflect.Descriptor instead.
-func (*MarkSeaOrderDirectRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SeaExternalConfirmationInput.ProtoReflect.Descriptor instead.
+func (*SeaExternalConfirmationInput) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *MarkSeaOrderDirectRequest) GetOrderId() string {
+func (x *SeaExternalConfirmationInput) GetConfirmedByParty() string {
 	if x != nil {
-		return x.OrderId
+		return x.ConfirmedByParty
 	}
 	return ""
 }
 
-func (x *MarkSeaOrderDirectRequest) GetExpectedLinkVersion() uint64 {
+func (x *SeaExternalConfirmationInput) GetConfirmedAt() string {
 	if x != nil {
-		return x.ExpectedLinkVersion
+		return x.ConfirmedAt
 	}
-	return 0
+	return ""
 }
 
-// MarkSeaOrderDirectResponse 标记直单响应。
-type MarkSeaOrderDirectResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaOrderDocuments     `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+func (x *SeaExternalConfirmationInput) GetConfirmationNote() string {
+	if x != nil {
+		return x.ConfirmationNote
+	}
+	return ""
 }
 
-func (x *MarkSeaOrderDirectResponse) Reset() {
-	*x = MarkSeaOrderDirectResponse{}
+func (x *SeaExternalConfirmationInput) GetConfirmationAttachmentId() string {
+	if x != nil && x.ConfirmationAttachmentId != nil {
+		return *x.ConfirmationAttachmentId
+	}
+	return ""
+}
+
+// SeaExternalConfirmationSummary 外部确认摘要。
+type SeaExternalConfirmationSummary struct {
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	ConfirmedByParty           string                 `protobuf:"bytes,1,opt,name=confirmed_by_party,json=confirmedByParty,proto3" json:"confirmed_by_party,omitempty"`
+	ConfirmedAt                string                 `protobuf:"bytes,2,opt,name=confirmed_at,json=confirmedAt,proto3" json:"confirmed_at,omitempty"`
+	ConfirmationNote           string                 `protobuf:"bytes,3,opt,name=confirmation_note,json=confirmationNote,proto3" json:"confirmation_note,omitempty"`
+	ConfirmationAttachmentId   *string                `protobuf:"bytes,4,opt,name=confirmation_attachment_id,json=confirmationAttachmentId,proto3,oneof" json:"confirmation_attachment_id,omitempty"`
+	ConfirmationAttachmentName *string                `protobuf:"bytes,5,opt,name=confirmation_attachment_name,json=confirmationAttachmentName,proto3,oneof" json:"confirmation_attachment_name,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *SeaExternalConfirmationSummary) Reset() {
+	*x = SeaExternalConfirmationSummary{}
 	mi := &file_order_v1_sea_document_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MarkSeaOrderDirectResponse) String() string {
+func (x *SeaExternalConfirmationSummary) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MarkSeaOrderDirectResponse) ProtoMessage() {}
+func (*SeaExternalConfirmationSummary) ProtoMessage() {}
 
-func (x *MarkSeaOrderDirectResponse) ProtoReflect() protoreflect.Message {
+func (x *SeaExternalConfirmationSummary) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_sea_document_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1400,69 +1393,71 @@ func (x *MarkSeaOrderDirectResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MarkSeaOrderDirectResponse.ProtoReflect.Descriptor instead.
-func (*MarkSeaOrderDirectResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SeaExternalConfirmationSummary.ProtoReflect.Descriptor instead.
+func (*SeaExternalConfirmationSummary) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *MarkSeaOrderDirectResponse) GetSuccess() bool {
+func (x *SeaExternalConfirmationSummary) GetConfirmedByParty() string {
 	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *MarkSeaOrderDirectResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *MarkSeaOrderDirectResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
+		return x.ConfirmedByParty
 	}
 	return ""
 }
 
-func (x *MarkSeaOrderDirectResponse) GetData() *SeaOrderDocuments {
+func (x *SeaExternalConfirmationSummary) GetConfirmedAt() string {
 	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *MarkSeaOrderDirectResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
+		return x.ConfirmedAt
 	}
 	return ""
 }
 
-// CancelSeaOrderDirectRequest 取消直单标记请求。
-type CancelSeaOrderDirectRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedLinkVersion uint64                 `protobuf:"varint,2,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+func (x *SeaExternalConfirmationSummary) GetConfirmationNote() string {
+	if x != nil {
+		return x.ConfirmationNote
+	}
+	return ""
 }
 
-func (x *CancelSeaOrderDirectRequest) Reset() {
-	*x = CancelSeaOrderDirectRequest{}
+func (x *SeaExternalConfirmationSummary) GetConfirmationAttachmentId() string {
+	if x != nil && x.ConfirmationAttachmentId != nil {
+		return *x.ConfirmationAttachmentId
+	}
+	return ""
+}
+
+func (x *SeaExternalConfirmationSummary) GetConfirmationAttachmentName() string {
+	if x != nil && x.ConfirmationAttachmentName != nil {
+		return *x.ConfirmationAttachmentName
+	}
+	return ""
+}
+
+// PreviewChangeSeaDocumentModeRequest 预览模式切换请求。
+type PreviewChangeSeaDocumentModeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	TargetMode    SeaDocumentStructure   `protobuf:"varint,2,opt,name=target_mode,json=targetMode,proto3,enum=order.v1.SeaDocumentStructure" json:"target_mode,omitempty"`
+	NewHouseBill  *SeaHouseBillInput     `protobuf:"bytes,3,opt,name=new_house_bill,json=newHouseBill,proto3,oneof" json:"new_house_bill,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewChangeSeaDocumentModeRequest) Reset() {
+	*x = PreviewChangeSeaDocumentModeRequest{}
 	mi := &file_order_v1_sea_document_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CancelSeaOrderDirectRequest) String() string {
+func (x *PreviewChangeSeaDocumentModeRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CancelSeaOrderDirectRequest) ProtoMessage() {}
+func (*PreviewChangeSeaDocumentModeRequest) ProtoMessage() {}
 
-func (x *CancelSeaOrderDirectRequest) ProtoReflect() protoreflect.Message {
+func (x *PreviewChangeSeaDocumentModeRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_sea_document_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1474,27 +1469,312 @@ func (x *CancelSeaOrderDirectRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CancelSeaOrderDirectRequest.ProtoReflect.Descriptor instead.
-func (*CancelSeaOrderDirectRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use PreviewChangeSeaDocumentModeRequest.ProtoReflect.Descriptor instead.
+func (*PreviewChangeSeaDocumentModeRequest) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *CancelSeaOrderDirectRequest) GetOrderId() string {
+func (x *PreviewChangeSeaDocumentModeRequest) GetOrderId() string {
 	if x != nil {
 		return x.OrderId
 	}
 	return ""
 }
 
-func (x *CancelSeaOrderDirectRequest) GetExpectedLinkVersion() uint64 {
+func (x *PreviewChangeSeaDocumentModeRequest) GetTargetMode() SeaDocumentStructure {
+	if x != nil {
+		return x.TargetMode
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
+func (x *PreviewChangeSeaDocumentModeRequest) GetNewHouseBill() *SeaHouseBillInput {
+	if x != nil {
+		return x.NewHouseBill
+	}
+	return nil
+}
+
+func (x *PreviewChangeSeaDocumentModeRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// PreviewChangeSeaDocumentModeResponse 预览模式切换响应。
+type PreviewChangeSeaDocumentModeResponse struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Success       bool                          `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                         `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                        `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaDocumentModeChangePreview `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                        `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) Reset() {
+	*x = PreviewChangeSeaDocumentModeResponse{}
+	mi := &file_order_v1_sea_document_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewChangeSeaDocumentModeResponse) ProtoMessage() {}
+
+func (x *PreviewChangeSeaDocumentModeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_document_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewChangeSeaDocumentModeResponse.ProtoReflect.Descriptor instead.
+func (*PreviewChangeSeaDocumentModeResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) GetData() *SeaDocumentModeChangePreview {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PreviewChangeSeaDocumentModeResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// SeaDocumentModeChangePreview 模式切换预览数据。
+type SeaDocumentModeChangePreview struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	PreviousMode  SeaDocumentStructure           `protobuf:"varint,1,opt,name=previous_mode,json=previousMode,proto3,enum=order.v1.SeaDocumentStructure" json:"previous_mode,omitempty"`
+	TargetMode    SeaDocumentStructure           `protobuf:"varint,2,opt,name=target_mode,json=targetMode,proto3,enum=order.v1.SeaDocumentStructure" json:"target_mode,omitempty"`
+	Differences   []*SeaDocumentFieldDifference  `protobuf:"bytes,3,rep,name=differences,proto3" json:"differences,omitempty"`
+	Impacts       []*SeaDocumentDownstreamImpact `protobuf:"bytes,4,rep,name=impacts,proto3" json:"impacts,omitempty"`
+	Executable    bool                           `protobuf:"varint,5,opt,name=executable,proto3" json:"executable,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SeaDocumentModeChangePreview) Reset() {
+	*x = SeaDocumentModeChangePreview{}
+	mi := &file_order_v1_sea_document_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaDocumentModeChangePreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaDocumentModeChangePreview) ProtoMessage() {}
+
+func (x *SeaDocumentModeChangePreview) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_document_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaDocumentModeChangePreview.ProtoReflect.Descriptor instead.
+func (*SeaDocumentModeChangePreview) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SeaDocumentModeChangePreview) GetPreviousMode() SeaDocumentStructure {
+	if x != nil {
+		return x.PreviousMode
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
+func (x *SeaDocumentModeChangePreview) GetTargetMode() SeaDocumentStructure {
+	if x != nil {
+		return x.TargetMode
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
+func (x *SeaDocumentModeChangePreview) GetDifferences() []*SeaDocumentFieldDifference {
+	if x != nil {
+		return x.Differences
+	}
+	return nil
+}
+
+func (x *SeaDocumentModeChangePreview) GetImpacts() []*SeaDocumentDownstreamImpact {
+	if x != nil {
+		return x.Impacts
+	}
+	return nil
+}
+
+func (x *SeaDocumentModeChangePreview) GetExecutable() bool {
+	if x != nil {
+		return x.Executable
+	}
+	return false
+}
+
+// ExecuteChangeSeaDocumentModeRequest 执行模式切换请求。
+type ExecuteChangeSeaDocumentModeRequest struct {
+	state                    protoimpl.MessageState        `protogen:"open.v1"`
+	OrderId                  string                        `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedOrderVersion     uint64                        `protobuf:"varint,2,opt,name=expected_order_version,json=expectedOrderVersion,proto3" json:"expected_order_version,omitempty"`
+	ExpectedLinkVersion      uint64                        `protobuf:"varint,3,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
+	ExpectedHouseBillVersion *uint64                       `protobuf:"varint,4,opt,name=expected_house_bill_version,json=expectedHouseBillVersion,proto3,oneof" json:"expected_house_bill_version,omitempty"`
+	ExpectedCurrentVersionId *string                       `protobuf:"bytes,5,opt,name=expected_current_version_id,json=expectedCurrentVersionId,proto3,oneof" json:"expected_current_version_id,omitempty"`
+	TargetMode               SeaDocumentStructure          `protobuf:"varint,6,opt,name=target_mode,json=targetMode,proto3,enum=order.v1.SeaDocumentStructure" json:"target_mode,omitempty"`
+	NewHouseBill             *SeaHouseBillInput            `protobuf:"bytes,7,opt,name=new_house_bill,json=newHouseBill,proto3,oneof" json:"new_house_bill,omitempty"`
+	Reason                   string                        `protobuf:"bytes,8,opt,name=reason,proto3" json:"reason,omitempty"`
+	Confirmation             *SeaExternalConfirmationInput `protobuf:"bytes,9,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	IdempotencyKey           string                        `protobuf:"bytes,10,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) Reset() {
+	*x = ExecuteChangeSeaDocumentModeRequest{}
+	mi := &file_order_v1_sea_document_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteChangeSeaDocumentModeRequest) ProtoMessage() {}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_document_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteChangeSeaDocumentModeRequest.ProtoReflect.Descriptor instead.
+func (*ExecuteChangeSeaDocumentModeRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetExpectedOrderVersion() uint64 {
+	if x != nil {
+		return x.ExpectedOrderVersion
+	}
+	return 0
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetExpectedLinkVersion() uint64 {
 	if x != nil {
 		return x.ExpectedLinkVersion
 	}
 	return 0
 }
 
-// CancelSeaOrderDirectResponse 取消直单标记响应。
-type CancelSeaOrderDirectResponse struct {
+func (x *ExecuteChangeSeaDocumentModeRequest) GetExpectedHouseBillVersion() uint64 {
+	if x != nil && x.ExpectedHouseBillVersion != nil {
+		return *x.ExpectedHouseBillVersion
+	}
+	return 0
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetExpectedCurrentVersionId() string {
+	if x != nil && x.ExpectedCurrentVersionId != nil {
+		return *x.ExpectedCurrentVersionId
+	}
+	return ""
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetTargetMode() SeaDocumentStructure {
+	if x != nil {
+		return x.TargetMode
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetNewHouseBill() *SeaHouseBillInput {
+	if x != nil {
+		return x.NewHouseBill
+	}
+	return nil
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetConfirmation() *SeaExternalConfirmationInput {
+	if x != nil {
+		return x.Confirmation
+	}
+	return nil
+}
+
+func (x *ExecuteChangeSeaDocumentModeRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+// ExecuteChangeSeaDocumentModeResponse 执行模式切换响应。
+type ExecuteChangeSeaDocumentModeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1505,21 +1785,21 @@ type CancelSeaOrderDirectResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CancelSeaOrderDirectResponse) Reset() {
-	*x = CancelSeaOrderDirectResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[12]
+func (x *ExecuteChangeSeaDocumentModeResponse) Reset() {
+	*x = ExecuteChangeSeaDocumentModeResponse{}
+	mi := &file_order_v1_sea_document_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CancelSeaOrderDirectResponse) String() string {
+func (x *ExecuteChangeSeaDocumentModeResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CancelSeaOrderDirectResponse) ProtoMessage() {}
+func (*ExecuteChangeSeaDocumentModeResponse) ProtoMessage() {}
 
-func (x *CancelSeaOrderDirectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[12]
+func (x *ExecuteChangeSeaDocumentModeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_document_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1530,178 +1810,40 @@ func (x *CancelSeaOrderDirectResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CancelSeaOrderDirectResponse.ProtoReflect.Descriptor instead.
-func (*CancelSeaOrderDirectResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use ExecuteChangeSeaDocumentModeResponse.ProtoReflect.Descriptor instead.
+func (*ExecuteChangeSeaDocumentModeResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *CancelSeaOrderDirectResponse) GetSuccess() bool {
+func (x *ExecuteChangeSeaDocumentModeResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *CancelSeaOrderDirectResponse) GetCode() int32 {
+func (x *ExecuteChangeSeaDocumentModeResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *CancelSeaOrderDirectResponse) GetMessage() string {
+func (x *ExecuteChangeSeaDocumentModeResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *CancelSeaOrderDirectResponse) GetData() *SeaOrderDocuments {
+func (x *ExecuteChangeSeaDocumentModeResponse) GetData() *SeaOrderDocuments {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *CancelSeaOrderDirectResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// AddSeaHouseBillRequest 添加分单请求。
-type AddSeaHouseBillRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedLinkVersion uint64                 `protobuf:"varint,2,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
-	HouseBill           *SeaHouseBillInput     `protobuf:"bytes,3,opt,name=house_bill,json=houseBill,proto3" json:"house_bill,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
-func (x *AddSeaHouseBillRequest) Reset() {
-	*x = AddSeaHouseBillRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddSeaHouseBillRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddSeaHouseBillRequest) ProtoMessage() {}
-
-func (x *AddSeaHouseBillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddSeaHouseBillRequest.ProtoReflect.Descriptor instead.
-func (*AddSeaHouseBillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *AddSeaHouseBillRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *AddSeaHouseBillRequest) GetExpectedLinkVersion() uint64 {
-	if x != nil {
-		return x.ExpectedLinkVersion
-	}
-	return 0
-}
-
-func (x *AddSeaHouseBillRequest) GetHouseBill() *SeaHouseBillInput {
-	if x != nil {
-		return x.HouseBill
-	}
-	return nil
-}
-
-// AddSeaHouseBillResponse 添加分单响应。
-type AddSeaHouseBillResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaHouseBill          `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AddSeaHouseBillResponse) Reset() {
-	*x = AddSeaHouseBillResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddSeaHouseBillResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddSeaHouseBillResponse) ProtoMessage() {}
-
-func (x *AddSeaHouseBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddSeaHouseBillResponse.ProtoReflect.Descriptor instead.
-func (*AddSeaHouseBillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *AddSeaHouseBillResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *AddSeaHouseBillResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *AddSeaHouseBillResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *AddSeaHouseBillResponse) GetData() *SeaHouseBill {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *AddSeaHouseBillResponse) GetTraceId() string {
+func (x *ExecuteChangeSeaDocumentModeResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -1722,7 +1864,7 @@ type UpdateSeaHouseBillRequest struct {
 
 func (x *UpdateSeaHouseBillRequest) Reset() {
 	*x = UpdateSeaHouseBillRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[15]
+	mi := &file_order_v1_sea_document_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1734,7 +1876,7 @@ func (x *UpdateSeaHouseBillRequest) String() string {
 func (*UpdateSeaHouseBillRequest) ProtoMessage() {}
 
 func (x *UpdateSeaHouseBillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[15]
+	mi := &file_order_v1_sea_document_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1747,7 +1889,7 @@ func (x *UpdateSeaHouseBillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSeaHouseBillRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSeaHouseBillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateSeaHouseBillRequest) GetOrderId() string {
@@ -1799,7 +1941,7 @@ type UpdateSeaHouseBillResponse struct {
 
 func (x *UpdateSeaHouseBillResponse) Reset() {
 	*x = UpdateSeaHouseBillResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[16]
+	mi := &file_order_v1_sea_document_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1811,7 +1953,7 @@ func (x *UpdateSeaHouseBillResponse) String() string {
 func (*UpdateSeaHouseBillResponse) ProtoMessage() {}
 
 func (x *UpdateSeaHouseBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[16]
+	mi := &file_order_v1_sea_document_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1824,7 +1966,7 @@ func (x *UpdateSeaHouseBillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSeaHouseBillResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSeaHouseBillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateSeaHouseBillResponse) GetSuccess() bool {
@@ -1862,160 +2004,6 @@ func (x *UpdateSeaHouseBillResponse) GetTraceId() string {
 	return ""
 }
 
-// RemoveSeaHouseBillRequest 移除分单请求。
-type RemoveSeaHouseBillRequest struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	OrderId                  string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id                       string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	ExpectedVersion          uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	ExpectedLinkVersion      uint64                 `protobuf:"varint,4,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
-	ReturnToUndetermined     *bool                  `protobuf:"varint,5,opt,name=return_to_undetermined,json=returnToUndetermined,proto3,oneof" json:"return_to_undetermined,omitempty"`
-	RemoveRelatedReleasePods *bool                  `protobuf:"varint,6,opt,name=remove_related_release_pods,json=removeRelatedReleasePods,proto3,oneof" json:"remove_related_release_pods,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *RemoveSeaHouseBillRequest) Reset() {
-	*x = RemoveSeaHouseBillRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemoveSeaHouseBillRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemoveSeaHouseBillRequest) ProtoMessage() {}
-
-func (x *RemoveSeaHouseBillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemoveSeaHouseBillRequest.ProtoReflect.Descriptor instead.
-func (*RemoveSeaHouseBillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *RemoveSeaHouseBillRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *RemoveSeaHouseBillRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *RemoveSeaHouseBillRequest) GetExpectedVersion() uint64 {
-	if x != nil {
-		return x.ExpectedVersion
-	}
-	return 0
-}
-
-func (x *RemoveSeaHouseBillRequest) GetExpectedLinkVersion() uint64 {
-	if x != nil {
-		return x.ExpectedLinkVersion
-	}
-	return 0
-}
-
-func (x *RemoveSeaHouseBillRequest) GetReturnToUndetermined() bool {
-	if x != nil && x.ReturnToUndetermined != nil {
-		return *x.ReturnToUndetermined
-	}
-	return false
-}
-
-func (x *RemoveSeaHouseBillRequest) GetRemoveRelatedReleasePods() bool {
-	if x != nil && x.RemoveRelatedReleasePods != nil {
-		return *x.RemoveRelatedReleasePods
-	}
-	return false
-}
-
-// RemoveSeaHouseBillResponse 移除分单响应。
-type RemoveSeaHouseBillResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RemoveSeaHouseBillResponse) Reset() {
-	*x = RemoveSeaHouseBillResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemoveSeaHouseBillResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemoveSeaHouseBillResponse) ProtoMessage() {}
-
-func (x *RemoveSeaHouseBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemoveSeaHouseBillResponse.ProtoReflect.Descriptor instead.
-func (*RemoveSeaHouseBillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *RemoveSeaHouseBillResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *RemoveSeaHouseBillResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *RemoveSeaHouseBillResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *RemoveSeaHouseBillResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
 // UpdateSeaMasterBillContentRequest 更新共享 MBL 内容请求。
 type UpdateSeaMasterBillContentRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -2028,7 +2016,7 @@ type UpdateSeaMasterBillContentRequest struct {
 
 func (x *UpdateSeaMasterBillContentRequest) Reset() {
 	*x = UpdateSeaMasterBillContentRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[19]
+	mi := &file_order_v1_sea_document_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2040,7 +2028,7 @@ func (x *UpdateSeaMasterBillContentRequest) String() string {
 func (*UpdateSeaMasterBillContentRequest) ProtoMessage() {}
 
 func (x *UpdateSeaMasterBillContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[19]
+	mi := &file_order_v1_sea_document_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2053,7 +2041,7 @@ func (x *UpdateSeaMasterBillContentRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use UpdateSeaMasterBillContentRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSeaMasterBillContentRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateSeaMasterBillContentRequest) GetOrderId() string {
@@ -2091,7 +2079,7 @@ type UpdateSeaMasterBillContentResponse struct {
 
 func (x *UpdateSeaMasterBillContentResponse) Reset() {
 	*x = UpdateSeaMasterBillContentResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[20]
+	mi := &file_order_v1_sea_document_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2103,7 +2091,7 @@ func (x *UpdateSeaMasterBillContentResponse) String() string {
 func (*UpdateSeaMasterBillContentResponse) ProtoMessage() {}
 
 func (x *UpdateSeaMasterBillContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[20]
+	mi := &file_order_v1_sea_document_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2116,7 +2104,7 @@ func (x *UpdateSeaMasterBillContentResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use UpdateSeaMasterBillContentResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSeaMasterBillContentResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateSeaMasterBillContentResponse) GetSuccess() bool {
@@ -2189,7 +2177,7 @@ type SeaDocumentVersion struct {
 
 func (x *SeaDocumentVersion) Reset() {
 	*x = SeaDocumentVersion{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[21]
+	mi := &file_order_v1_sea_document_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2201,7 +2189,7 @@ func (x *SeaDocumentVersion) String() string {
 func (*SeaDocumentVersion) ProtoMessage() {}
 
 func (x *SeaDocumentVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[21]
+	mi := &file_order_v1_sea_document_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2202,7 @@ func (x *SeaDocumentVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentVersion.ProtoReflect.Descriptor instead.
 func (*SeaDocumentVersion) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SeaDocumentVersion) GetId() string {
@@ -2411,7 +2399,7 @@ type SeaDocumentFieldDifference struct {
 
 func (x *SeaDocumentFieldDifference) Reset() {
 	*x = SeaDocumentFieldDifference{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[22]
+	mi := &file_order_v1_sea_document_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2423,7 +2411,7 @@ func (x *SeaDocumentFieldDifference) String() string {
 func (*SeaDocumentFieldDifference) ProtoMessage() {}
 
 func (x *SeaDocumentFieldDifference) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[22]
+	mi := &file_order_v1_sea_document_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2436,7 +2424,7 @@ func (x *SeaDocumentFieldDifference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentFieldDifference.ProtoReflect.Descriptor instead.
 func (*SeaDocumentFieldDifference) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SeaDocumentFieldDifference) GetField() string {
@@ -2480,7 +2468,7 @@ type SeaDocumentDownstreamImpact struct {
 
 func (x *SeaDocumentDownstreamImpact) Reset() {
 	*x = SeaDocumentDownstreamImpact{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[23]
+	mi := &file_order_v1_sea_document_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2492,7 +2480,7 @@ func (x *SeaDocumentDownstreamImpact) String() string {
 func (*SeaDocumentDownstreamImpact) ProtoMessage() {}
 
 func (x *SeaDocumentDownstreamImpact) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[23]
+	mi := &file_order_v1_sea_document_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2505,7 +2493,7 @@ func (x *SeaDocumentDownstreamImpact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentDownstreamImpact.ProtoReflect.Descriptor instead.
 func (*SeaDocumentDownstreamImpact) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{23}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SeaDocumentDownstreamImpact) GetFactType() string {
@@ -2569,7 +2557,7 @@ type SeaDocumentEvent struct {
 
 func (x *SeaDocumentEvent) Reset() {
 	*x = SeaDocumentEvent{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[24]
+	mi := &file_order_v1_sea_document_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2581,7 +2569,7 @@ func (x *SeaDocumentEvent) String() string {
 func (*SeaDocumentEvent) ProtoMessage() {}
 
 func (x *SeaDocumentEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[24]
+	mi := &file_order_v1_sea_document_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2594,7 +2582,7 @@ func (x *SeaDocumentEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentEvent.ProtoReflect.Descriptor instead.
 func (*SeaDocumentEvent) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{24}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SeaDocumentEvent) GetId() string {
@@ -2733,7 +2721,7 @@ type SeaDocumentAmendmentInput struct {
 
 func (x *SeaDocumentAmendmentInput) Reset() {
 	*x = SeaDocumentAmendmentInput{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[25]
+	mi := &file_order_v1_sea_document_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2745,7 +2733,7 @@ func (x *SeaDocumentAmendmentInput) String() string {
 func (*SeaDocumentAmendmentInput) ProtoMessage() {}
 
 func (x *SeaDocumentAmendmentInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[25]
+	mi := &file_order_v1_sea_document_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2758,7 +2746,7 @@ func (x *SeaDocumentAmendmentInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentAmendmentInput.ProtoReflect.Descriptor instead.
 func (*SeaDocumentAmendmentInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{25}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SeaDocumentAmendmentInput) GetMasterBillContent() *SeaBillContent {
@@ -2787,7 +2775,7 @@ type SeaDocumentAmendmentPreview struct {
 
 func (x *SeaDocumentAmendmentPreview) Reset() {
 	*x = SeaDocumentAmendmentPreview{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[26]
+	mi := &file_order_v1_sea_document_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2799,7 +2787,7 @@ func (x *SeaDocumentAmendmentPreview) String() string {
 func (*SeaDocumentAmendmentPreview) ProtoMessage() {}
 
 func (x *SeaDocumentAmendmentPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[26]
+	mi := &file_order_v1_sea_document_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2812,7 +2800,7 @@ func (x *SeaDocumentAmendmentPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentAmendmentPreview.ProtoReflect.Descriptor instead.
 func (*SeaDocumentAmendmentPreview) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{26}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SeaDocumentAmendmentPreview) GetBaseVersion() *SeaDocumentVersion {
@@ -2855,7 +2843,7 @@ type SeaDocumentVoidPreview struct {
 
 func (x *SeaDocumentVoidPreview) Reset() {
 	*x = SeaDocumentVoidPreview{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[27]
+	mi := &file_order_v1_sea_document_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2867,7 +2855,7 @@ func (x *SeaDocumentVoidPreview) String() string {
 func (*SeaDocumentVoidPreview) ProtoMessage() {}
 
 func (x *SeaDocumentVoidPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[27]
+	mi := &file_order_v1_sea_document_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2880,7 +2868,7 @@ func (x *SeaDocumentVoidPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaDocumentVoidPreview.ProtoReflect.Descriptor instead.
 func (*SeaDocumentVoidPreview) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{27}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SeaDocumentVoidPreview) GetBaseVersion() *SeaDocumentVersion {
@@ -2923,7 +2911,7 @@ type SeaHouseBillSwitchPreview struct {
 
 func (x *SeaHouseBillSwitchPreview) Reset() {
 	*x = SeaHouseBillSwitchPreview{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[28]
+	mi := &file_order_v1_sea_document_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2935,7 +2923,7 @@ func (x *SeaHouseBillSwitchPreview) String() string {
 func (*SeaHouseBillSwitchPreview) ProtoMessage() {}
 
 func (x *SeaHouseBillSwitchPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[28]
+	mi := &file_order_v1_sea_document_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2948,7 +2936,7 @@ func (x *SeaHouseBillSwitchPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaHouseBillSwitchPreview.ProtoReflect.Descriptor instead.
 func (*SeaHouseBillSwitchPreview) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{28}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SeaHouseBillSwitchPreview) GetBaseVersion() *SeaDocumentVersion {
@@ -2990,7 +2978,7 @@ type ListSeaMasterBillVersionsRequest struct {
 
 func (x *ListSeaMasterBillVersionsRequest) Reset() {
 	*x = ListSeaMasterBillVersionsRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[29]
+	mi := &file_order_v1_sea_document_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3002,7 +2990,7 @@ func (x *ListSeaMasterBillVersionsRequest) String() string {
 func (*ListSeaMasterBillVersionsRequest) ProtoMessage() {}
 
 func (x *ListSeaMasterBillVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[29]
+	mi := &file_order_v1_sea_document_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3015,7 +3003,7 @@ func (x *ListSeaMasterBillVersionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaMasterBillVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSeaMasterBillVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{29}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListSeaMasterBillVersionsRequest) GetOrderId() string {
@@ -3051,7 +3039,7 @@ type ListSeaHouseBillVersionsRequest struct {
 
 func (x *ListSeaHouseBillVersionsRequest) Reset() {
 	*x = ListSeaHouseBillVersionsRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[30]
+	mi := &file_order_v1_sea_document_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3063,7 +3051,7 @@ func (x *ListSeaHouseBillVersionsRequest) String() string {
 func (*ListSeaHouseBillVersionsRequest) ProtoMessage() {}
 
 func (x *ListSeaHouseBillVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[30]
+	mi := &file_order_v1_sea_document_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3076,7 +3064,7 @@ func (x *ListSeaHouseBillVersionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaHouseBillVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSeaHouseBillVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{30}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListSeaHouseBillVersionsRequest) GetOrderId() string {
@@ -3121,7 +3109,7 @@ type ListSeaMasterBillVersionsResponse struct {
 
 func (x *ListSeaMasterBillVersionsResponse) Reset() {
 	*x = ListSeaMasterBillVersionsResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[31]
+	mi := &file_order_v1_sea_document_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3133,7 +3121,7 @@ func (x *ListSeaMasterBillVersionsResponse) String() string {
 func (*ListSeaMasterBillVersionsResponse) ProtoMessage() {}
 
 func (x *ListSeaMasterBillVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[31]
+	mi := &file_order_v1_sea_document_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3146,7 +3134,7 @@ func (x *ListSeaMasterBillVersionsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListSeaMasterBillVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSeaMasterBillVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{31}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListSeaMasterBillVersionsResponse) GetSuccess() bool {
@@ -3205,7 +3193,7 @@ type ListSeaHouseBillVersionsResponse struct {
 
 func (x *ListSeaHouseBillVersionsResponse) Reset() {
 	*x = ListSeaHouseBillVersionsResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[32]
+	mi := &file_order_v1_sea_document_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3217,7 +3205,7 @@ func (x *ListSeaHouseBillVersionsResponse) String() string {
 func (*ListSeaHouseBillVersionsResponse) ProtoMessage() {}
 
 func (x *ListSeaHouseBillVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[32]
+	mi := &file_order_v1_sea_document_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3230,7 +3218,7 @@ func (x *ListSeaHouseBillVersionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaHouseBillVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSeaHouseBillVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{32}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListSeaHouseBillVersionsResponse) GetSuccess() bool {
@@ -3286,7 +3274,7 @@ type GetSeaDocumentVersionRequest struct {
 
 func (x *GetSeaDocumentVersionRequest) Reset() {
 	*x = GetSeaDocumentVersionRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[33]
+	mi := &file_order_v1_sea_document_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3298,7 +3286,7 @@ func (x *GetSeaDocumentVersionRequest) String() string {
 func (*GetSeaDocumentVersionRequest) ProtoMessage() {}
 
 func (x *GetSeaDocumentVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[33]
+	mi := &file_order_v1_sea_document_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3311,7 +3299,7 @@ func (x *GetSeaDocumentVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeaDocumentVersionRequest.ProtoReflect.Descriptor instead.
 func (*GetSeaDocumentVersionRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{33}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetSeaDocumentVersionRequest) GetOrderId() string {
@@ -3348,7 +3336,7 @@ type GetSeaDocumentVersionResponse struct {
 
 func (x *GetSeaDocumentVersionResponse) Reset() {
 	*x = GetSeaDocumentVersionResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[34]
+	mi := &file_order_v1_sea_document_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3360,7 +3348,7 @@ func (x *GetSeaDocumentVersionResponse) String() string {
 func (*GetSeaDocumentVersionResponse) ProtoMessage() {}
 
 func (x *GetSeaDocumentVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[34]
+	mi := &file_order_v1_sea_document_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3373,7 +3361,7 @@ func (x *GetSeaDocumentVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeaDocumentVersionResponse.ProtoReflect.Descriptor instead.
 func (*GetSeaDocumentVersionResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{34}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetSeaDocumentVersionResponse) GetSuccess() bool {
@@ -3422,7 +3410,7 @@ type ListSeaDocumentEventsRequest struct {
 
 func (x *ListSeaDocumentEventsRequest) Reset() {
 	*x = ListSeaDocumentEventsRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[35]
+	mi := &file_order_v1_sea_document_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3434,7 +3422,7 @@ func (x *ListSeaDocumentEventsRequest) String() string {
 func (*ListSeaDocumentEventsRequest) ProtoMessage() {}
 
 func (x *ListSeaDocumentEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[35]
+	mi := &file_order_v1_sea_document_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3447,7 +3435,7 @@ func (x *ListSeaDocumentEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaDocumentEventsRequest.ProtoReflect.Descriptor instead.
 func (*ListSeaDocumentEventsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{35}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListSeaDocumentEventsRequest) GetOrderId() string {
@@ -3485,7 +3473,7 @@ type ListSeaDocumentEventsResponse struct {
 
 func (x *ListSeaDocumentEventsResponse) Reset() {
 	*x = ListSeaDocumentEventsResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[36]
+	mi := &file_order_v1_sea_document_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3497,7 +3485,7 @@ func (x *ListSeaDocumentEventsResponse) String() string {
 func (*ListSeaDocumentEventsResponse) ProtoMessage() {}
 
 func (x *ListSeaDocumentEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[36]
+	mi := &file_order_v1_sea_document_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3510,7 +3498,7 @@ func (x *ListSeaDocumentEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaDocumentEventsResponse.ProtoReflect.Descriptor instead.
 func (*ListSeaDocumentEventsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{36}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListSeaDocumentEventsResponse) GetSuccess() bool {
@@ -3571,7 +3559,7 @@ type PreviewSeaDocumentAmendmentRequest struct {
 
 func (x *PreviewSeaDocumentAmendmentRequest) Reset() {
 	*x = PreviewSeaDocumentAmendmentRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[37]
+	mi := &file_order_v1_sea_document_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3583,7 +3571,7 @@ func (x *PreviewSeaDocumentAmendmentRequest) String() string {
 func (*PreviewSeaDocumentAmendmentRequest) ProtoMessage() {}
 
 func (x *PreviewSeaDocumentAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[37]
+	mi := &file_order_v1_sea_document_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3596,7 +3584,7 @@ func (x *PreviewSeaDocumentAmendmentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PreviewSeaDocumentAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*PreviewSeaDocumentAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{37}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PreviewSeaDocumentAmendmentRequest) GetOrderId() string {
@@ -3668,7 +3656,7 @@ type PreviewSeaDocumentAmendmentResponse struct {
 
 func (x *PreviewSeaDocumentAmendmentResponse) Reset() {
 	*x = PreviewSeaDocumentAmendmentResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[38]
+	mi := &file_order_v1_sea_document_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3680,7 +3668,7 @@ func (x *PreviewSeaDocumentAmendmentResponse) String() string {
 func (*PreviewSeaDocumentAmendmentResponse) ProtoMessage() {}
 
 func (x *PreviewSeaDocumentAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[38]
+	mi := &file_order_v1_sea_document_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3693,7 +3681,7 @@ func (x *PreviewSeaDocumentAmendmentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use PreviewSeaDocumentAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*PreviewSeaDocumentAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{38}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PreviewSeaDocumentAmendmentResponse) GetSuccess() bool {
@@ -3748,7 +3736,7 @@ type ExecuteSeaDocumentAmendmentRequest struct {
 
 func (x *ExecuteSeaDocumentAmendmentRequest) Reset() {
 	*x = ExecuteSeaDocumentAmendmentRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[39]
+	mi := &file_order_v1_sea_document_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3760,7 +3748,7 @@ func (x *ExecuteSeaDocumentAmendmentRequest) String() string {
 func (*ExecuteSeaDocumentAmendmentRequest) ProtoMessage() {}
 
 func (x *ExecuteSeaDocumentAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[39]
+	mi := &file_order_v1_sea_document_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3773,7 +3761,7 @@ func (x *ExecuteSeaDocumentAmendmentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ExecuteSeaDocumentAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaDocumentAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{39}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ExecuteSeaDocumentAmendmentRequest) GetOrderId() string {
@@ -3852,7 +3840,7 @@ type ExecuteSeaDocumentAmendmentResponse struct {
 
 func (x *ExecuteSeaDocumentAmendmentResponse) Reset() {
 	*x = ExecuteSeaDocumentAmendmentResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[40]
+	mi := &file_order_v1_sea_document_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3864,7 +3852,7 @@ func (x *ExecuteSeaDocumentAmendmentResponse) String() string {
 func (*ExecuteSeaDocumentAmendmentResponse) ProtoMessage() {}
 
 func (x *ExecuteSeaDocumentAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[40]
+	mi := &file_order_v1_sea_document_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3877,7 +3865,7 @@ func (x *ExecuteSeaDocumentAmendmentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ExecuteSeaDocumentAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaDocumentAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{40}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ExecuteSeaDocumentAmendmentResponse) GetSuccess() bool {
@@ -3930,7 +3918,7 @@ type PreviewSeaDocumentVoidRequest struct {
 
 func (x *PreviewSeaDocumentVoidRequest) Reset() {
 	*x = PreviewSeaDocumentVoidRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[41]
+	mi := &file_order_v1_sea_document_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3942,7 +3930,7 @@ func (x *PreviewSeaDocumentVoidRequest) String() string {
 func (*PreviewSeaDocumentVoidRequest) ProtoMessage() {}
 
 func (x *PreviewSeaDocumentVoidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[41]
+	mi := &file_order_v1_sea_document_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3955,7 +3943,7 @@ func (x *PreviewSeaDocumentVoidRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewSeaDocumentVoidRequest.ProtoReflect.Descriptor instead.
 func (*PreviewSeaDocumentVoidRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{41}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *PreviewSeaDocumentVoidRequest) GetOrderId() string {
@@ -4020,7 +4008,7 @@ type PreviewSeaDocumentVoidResponse struct {
 
 func (x *PreviewSeaDocumentVoidResponse) Reset() {
 	*x = PreviewSeaDocumentVoidResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[42]
+	mi := &file_order_v1_sea_document_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4032,7 +4020,7 @@ func (x *PreviewSeaDocumentVoidResponse) String() string {
 func (*PreviewSeaDocumentVoidResponse) ProtoMessage() {}
 
 func (x *PreviewSeaDocumentVoidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[42]
+	mi := &file_order_v1_sea_document_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4045,7 +4033,7 @@ func (x *PreviewSeaDocumentVoidResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewSeaDocumentVoidResponse.ProtoReflect.Descriptor instead.
 func (*PreviewSeaDocumentVoidResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{42}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *PreviewSeaDocumentVoidResponse) GetSuccess() bool {
@@ -4099,7 +4087,7 @@ type ExecuteSeaDocumentVoidRequest struct {
 
 func (x *ExecuteSeaDocumentVoidRequest) Reset() {
 	*x = ExecuteSeaDocumentVoidRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[43]
+	mi := &file_order_v1_sea_document_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4111,7 +4099,7 @@ func (x *ExecuteSeaDocumentVoidRequest) String() string {
 func (*ExecuteSeaDocumentVoidRequest) ProtoMessage() {}
 
 func (x *ExecuteSeaDocumentVoidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[43]
+	mi := &file_order_v1_sea_document_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4124,7 +4112,7 @@ func (x *ExecuteSeaDocumentVoidRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaDocumentVoidRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaDocumentVoidRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{43}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ExecuteSeaDocumentVoidRequest) GetOrderId() string {
@@ -4196,7 +4184,7 @@ type ExecuteSeaDocumentVoidResponse struct {
 
 func (x *ExecuteSeaDocumentVoidResponse) Reset() {
 	*x = ExecuteSeaDocumentVoidResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[44]
+	mi := &file_order_v1_sea_document_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4208,7 +4196,7 @@ func (x *ExecuteSeaDocumentVoidResponse) String() string {
 func (*ExecuteSeaDocumentVoidResponse) ProtoMessage() {}
 
 func (x *ExecuteSeaDocumentVoidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[44]
+	mi := &file_order_v1_sea_document_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4221,7 +4209,7 @@ func (x *ExecuteSeaDocumentVoidResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaDocumentVoidResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaDocumentVoidResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{44}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ExecuteSeaDocumentVoidResponse) GetSuccess() bool {
@@ -4275,7 +4263,7 @@ type PreviewSeaHouseBillSwitchRequest struct {
 
 func (x *PreviewSeaHouseBillSwitchRequest) Reset() {
 	*x = PreviewSeaHouseBillSwitchRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[45]
+	mi := &file_order_v1_sea_document_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4275,7 @@ func (x *PreviewSeaHouseBillSwitchRequest) String() string {
 func (*PreviewSeaHouseBillSwitchRequest) ProtoMessage() {}
 
 func (x *PreviewSeaHouseBillSwitchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[45]
+	mi := &file_order_v1_sea_document_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4288,7 @@ func (x *PreviewSeaHouseBillSwitchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewSeaHouseBillSwitchRequest.ProtoReflect.Descriptor instead.
 func (*PreviewSeaHouseBillSwitchRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{45}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *PreviewSeaHouseBillSwitchRequest) GetOrderId() string {
@@ -4372,7 +4360,7 @@ type PreviewSeaHouseBillSwitchResponse struct {
 
 func (x *PreviewSeaHouseBillSwitchResponse) Reset() {
 	*x = PreviewSeaHouseBillSwitchResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[46]
+	mi := &file_order_v1_sea_document_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4384,7 +4372,7 @@ func (x *PreviewSeaHouseBillSwitchResponse) String() string {
 func (*PreviewSeaHouseBillSwitchResponse) ProtoMessage() {}
 
 func (x *PreviewSeaHouseBillSwitchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[46]
+	mi := &file_order_v1_sea_document_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4397,7 +4385,7 @@ func (x *PreviewSeaHouseBillSwitchResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use PreviewSeaHouseBillSwitchResponse.ProtoReflect.Descriptor instead.
 func (*PreviewSeaHouseBillSwitchResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{46}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *PreviewSeaHouseBillSwitchResponse) GetSuccess() bool {
@@ -4452,7 +4440,7 @@ type ExecuteSeaHouseBillSwitchRequest struct {
 
 func (x *ExecuteSeaHouseBillSwitchRequest) Reset() {
 	*x = ExecuteSeaHouseBillSwitchRequest{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[47]
+	mi := &file_order_v1_sea_document_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4464,7 +4452,7 @@ func (x *ExecuteSeaHouseBillSwitchRequest) String() string {
 func (*ExecuteSeaHouseBillSwitchRequest) ProtoMessage() {}
 
 func (x *ExecuteSeaHouseBillSwitchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[47]
+	mi := &file_order_v1_sea_document_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4477,7 +4465,7 @@ func (x *ExecuteSeaHouseBillSwitchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaHouseBillSwitchRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaHouseBillSwitchRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{47}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ExecuteSeaHouseBillSwitchRequest) GetOrderId() string {
@@ -4557,7 +4545,7 @@ type ExecuteSeaHouseBillSwitchResponse struct {
 
 func (x *ExecuteSeaHouseBillSwitchResponse) Reset() {
 	*x = ExecuteSeaHouseBillSwitchResponse{}
-	mi := &file_order_v1_sea_document_proto_msgTypes[48]
+	mi := &file_order_v1_sea_document_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4569,7 +4557,7 @@ func (x *ExecuteSeaHouseBillSwitchResponse) String() string {
 func (*ExecuteSeaHouseBillSwitchResponse) ProtoMessage() {}
 
 func (x *ExecuteSeaHouseBillSwitchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_document_proto_msgTypes[48]
+	mi := &file_order_v1_sea_document_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4582,7 +4570,7 @@ func (x *ExecuteSeaHouseBillSwitchResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ExecuteSeaHouseBillSwitchResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaHouseBillSwitchResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{48}
+	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ExecuteSeaHouseBillSwitchResponse) GetSuccess() bool {
@@ -4724,33 +4712,35 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x17immutable_version_count\x18\n" +
 	" \x01(\x04R\x15immutableVersionCountB\x15\n" +
 	"\x13_shipping_line_nameB\x15\n" +
-	"\x13_current_version_id\"\xd2\x01\n" +
+	"\x13_current_version_id\"\xe1\x01\n" +
 	"\x17SeaOrderDocumentSummary\x12M\n" +
 	"\x12document_structure\x18\x01 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructure\x12!\n" +
-	"\flink_version\x18\x02 \x01(\x04R\vlinkVersion\x12(\n" +
-	"\x10house_bill_count\x18\x03 \x01(\x05R\x0ehouseBillCount\x12\x1b\n" +
-	"\thouse_nos\x18\x04 \x03(\tR\bhouseNos\"\xca\x03\n" +
+	"\flink_version\x18\x02 \x01(\x04R\vlinkVersion\x12\x1e\n" +
+	"\bhouse_no\x18\x05 \x01(\tH\x00R\ahouseNo\x88\x01\x01B\v\n" +
+	"\t_house_noJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x10house_bill_countR\thouse_nos\"\xef\x03\n" +
 	"\x15SeaOrderDocumentInput\x12R\n" +
 	"\x12document_structure\x18\x01 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH\x00R\x11documentStructure\x88\x01\x01\x127\n" +
 	"\x15expected_link_version\x18\x02 \x01(\x04H\x01R\x13expectedLinkVersion\x88\x01\x01\x125\n" +
 	"\x14expected_mbl_version\x18\x03 \x01(\x04H\x02R\x12expectedMblVersion\x88\x01\x01\x12M\n" +
-	"\x13master_bill_content\x18\x04 \x01(\v2\x18.order.v1.SeaBillContentH\x03R\x11masterBillContent\x88\x01\x01\x12<\n" +
-	"\vhouse_bills\x18\x05 \x03(\v2\x1b.order.v1.SeaHouseBillInputR\n" +
-	"houseBillsB\x15\n" +
+	"\x13master_bill_content\x18\x04 \x01(\v2\x18.order.v1.SeaBillContentH\x03R\x11masterBillContent\x88\x01\x01\x12?\n" +
+	"\n" +
+	"house_bill\x18\x06 \x01(\v2\x1b.order.v1.SeaHouseBillInputH\x04R\thouseBill\x88\x01\x01B\x15\n" +
 	"\x13_document_structureB\x18\n" +
 	"\x16_expected_link_versionB\x17\n" +
 	"\x15_expected_mbl_versionB\x16\n" +
-	"\x14_master_bill_content\"\xf4\x02\n" +
+	"\x14_master_bill_contentB\r\n" +
+	"\v_house_billJ\x04\b\x05\x10\x06R\vhouse_bills\"\x99\x03\n" +
 	"\x11SeaOrderDocuments\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12M\n" +
 	"\x12document_structure\x18\x02 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructure\x12!\n" +
 	"\flink_version\x18\x03 \x01(\x04R\vlinkVersion\x12C\n" +
 	"\vmaster_bill\x18\x04 \x01(\v2\x1d.order.v1.SeaMasterBillDetailH\x00R\n" +
-	"masterBill\x88\x01\x01\x127\n" +
-	"\vhouse_bills\x18\x05 \x03(\v2\x16.order.v1.SeaHouseBillR\n" +
-	"houseBills\x12D\n" +
-	"\x0fallowed_actions\x18\x06 \x03(\x0e2\x1b.order.v1.SeaDocumentActionR\x0eallowedActionsB\x0e\n" +
-	"\f_master_bill\"=\n" +
+	"masterBill\x88\x01\x01\x12D\n" +
+	"\x0fallowed_actions\x18\x06 \x03(\x0e2\x1b.order.v1.SeaDocumentActionR\x0eallowedActions\x12:\n" +
+	"\n" +
+	"house_bill\x18\a \x01(\v2\x16.order.v1.SeaHouseBillH\x01R\thouseBill\x88\x01\x01B\x0e\n" +
+	"\f_master_billB\r\n" +
+	"\v_house_billJ\x04\b\x05\x10\x06R\vhouse_bills\"=\n" +
 	"\x1bGetSeaOrderDocumentsRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xb2\x01\n" +
 	"\x1cGetSeaOrderDocumentsResponse\x12\x18\n" +
@@ -4758,35 +4748,64 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.SeaOrderDocumentsR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"t\n" +
-	"\x19MarkSeaOrderDirectRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x127\n" +
-	"\x15expected_link_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\"\xb0\x01\n" +
-	"\x1aMarkSeaOrderDirectResponse\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x8d\x02\n" +
+	"\x1cSeaExternalConfirmationInput\x121\n" +
+	"\x12confirmed_by_party\x18\x01 \x01(\tB\x03\xe0A\x02R\x10confirmedByParty\x12&\n" +
+	"\fconfirmed_at\x18\x02 \x01(\tB\x03\xe0A\x02R\vconfirmedAt\x120\n" +
+	"\x11confirmation_note\x18\x03 \x01(\tB\x03\xe0A\x02R\x10confirmationNote\x12A\n" +
+	"\x1aconfirmation_attachment_id\x18\x04 \x01(\tH\x00R\x18confirmationAttachmentId\x88\x01\x01B\x1d\n" +
+	"\x1b_confirmation_attachment_id\"\xe8\x02\n" +
+	"\x1eSeaExternalConfirmationSummary\x12,\n" +
+	"\x12confirmed_by_party\x18\x01 \x01(\tR\x10confirmedByParty\x12!\n" +
+	"\fconfirmed_at\x18\x02 \x01(\tR\vconfirmedAt\x12+\n" +
+	"\x11confirmation_note\x18\x03 \x01(\tR\x10confirmationNote\x12A\n" +
+	"\x1aconfirmation_attachment_id\x18\x04 \x01(\tH\x00R\x18confirmationAttachmentId\x88\x01\x01\x12E\n" +
+	"\x1cconfirmation_attachment_name\x18\x05 \x01(\tH\x01R\x1aconfirmationAttachmentName\x88\x01\x01B\x1d\n" +
+	"\x1b_confirmation_attachment_idB\x1f\n" +
+	"\x1d_confirmation_attachment_name\"\x83\x02\n" +
+	"#PreviewChangeSeaDocumentModeRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12D\n" +
+	"\vtarget_mode\x18\x02 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureB\x03\xe0A\x02R\n" +
+	"targetMode\x12F\n" +
+	"\x0enew_house_bill\x18\x03 \x01(\v2\x1b.order.v1.SeaHouseBillInputH\x00R\fnewHouseBill\x88\x01\x01\x12\x1b\n" +
+	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reasonB\x11\n" +
+	"\x0f_new_house_bill\"\xc5\x01\n" +
+	"$PreviewChangeSeaDocumentModeResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
-	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.SeaOrderDocumentsR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"v\n" +
-	"\x1bCancelSeaOrderDirectRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x127\n" +
-	"\x15expected_link_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\"\xb2\x01\n" +
-	"\x1cCancelSeaOrderDirectResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
-	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.SeaOrderDocumentsR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb2\x01\n" +
-	"\x16AddSeaHouseBillRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x127\n" +
-	"\x15expected_link_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x12?\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12:\n" +
+	"\x04data\x18\x04 \x01(\v2&.order.v1.SeaDocumentModeChangePreviewR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcd\x02\n" +
+	"\x1cSeaDocumentModeChangePreview\x12C\n" +
+	"\rprevious_mode\x18\x01 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\fpreviousMode\x12?\n" +
+	"\vtarget_mode\x18\x02 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\n" +
+	"targetMode\x12F\n" +
+	"\vdifferences\x18\x03 \x03(\v2$.order.v1.SeaDocumentFieldDifferenceR\vdifferences\x12?\n" +
+	"\aimpacts\x18\x04 \x03(\v2%.order.v1.SeaDocumentDownstreamImpactR\aimpacts\x12\x1e\n" +
 	"\n" +
-	"house_bill\x18\x03 \x01(\v2\x1b.order.v1.SeaHouseBillInputB\x03\xe0A\x02R\thouseBill\"\xa8\x01\n" +
-	"\x17AddSeaHouseBillResponse\x12\x18\n" +
+	"executable\x18\x05 \x01(\bR\n" +
+	"executable\"\xbe\x05\n" +
+	"#ExecuteChangeSeaDocumentModeRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x129\n" +
+	"\x16expected_order_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x14expectedOrderVersion\x127\n" +
+	"\x15expected_link_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x12B\n" +
+	"\x1bexpected_house_bill_version\x18\x04 \x01(\x04H\x00R\x18expectedHouseBillVersion\x88\x01\x01\x12B\n" +
+	"\x1bexpected_current_version_id\x18\x05 \x01(\tH\x01R\x18expectedCurrentVersionId\x88\x01\x01\x12D\n" +
+	"\vtarget_mode\x18\x06 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureB\x03\xe0A\x02R\n" +
+	"targetMode\x12F\n" +
+	"\x0enew_house_bill\x18\a \x01(\v2\x1b.order.v1.SeaHouseBillInputH\x02R\fnewHouseBill\x88\x01\x01\x12\x1b\n" +
+	"\x06reason\x18\b \x01(\tB\x03\xe0A\x02R\x06reason\x12O\n" +
+	"\fconfirmation\x18\t \x01(\v2&.order.v1.SeaExternalConfirmationInputB\x03\xe0A\x02R\fconfirmation\x12,\n" +
+	"\x0fidempotency_key\x18\n" +
+	" \x01(\tB\x03\xe0A\x02R\x0eidempotencyKeyB\x1e\n" +
+	"\x1c_expected_house_bill_versionB\x1e\n" +
+	"\x1c_expected_current_version_idB\x11\n" +
+	"\x0f_new_house_bill\"\xba\x01\n" +
+	"$ExecuteChangeSeaDocumentModeResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
-	"\x04data\x18\x04 \x01(\v2\x16.order.v1.SeaHouseBillR\x04data\x12\x19\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.SeaOrderDocumentsR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xfa\x01\n" +
 	"\x19UpdateSeaHouseBillRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
@@ -4800,21 +4819,7 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
 	"\x04data\x18\x04 \x01(\v2\x16.order.v1.SeaHouseBillR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf3\x02\n" +
-	"\x19RemoveSeaHouseBillRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x127\n" +
-	"\x15expected_link_version\x18\x04 \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x129\n" +
-	"\x16return_to_undetermined\x18\x05 \x01(\bH\x00R\x14returnToUndetermined\x88\x01\x01\x12B\n" +
-	"\x1bremove_related_release_pods\x18\x06 \x01(\bH\x01R\x18removeRelatedReleasePods\x88\x01\x01B\x19\n" +
-	"\x17_return_to_undeterminedB\x1e\n" +
-	"\x1c_remove_related_release_pods\"\x7f\n" +
-	"\x1aRemoveSeaHouseBillResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
 	"!UpdateSeaMasterBillContentRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x125\n" +
 	"\x14expected_mbl_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x12expectedMblVersion\x127\n" +
@@ -5096,47 +5101,42 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x01(\v2\x1a.order.v1.SeaDocumentEventR\x04data\x12<\n" +
 	"\x0enew_house_bill\x18\x05 \x01(\v2\x16.order.v1.SeaHouseBillR\fnewHouseBill\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId*\xac\x01\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId*\xae\x01\n" +
 	"\x14SeaDocumentStructure\x12&\n" +
-	"\"SEA_DOCUMENT_STRUCTURE_UNSPECIFIED\x10\x00\x12'\n" +
-	"#SEA_DOCUMENT_STRUCTURE_UNDETERMINED\x10\x01\x12!\n" +
+	"\"SEA_DOCUMENT_STRUCTURE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dSEA_DOCUMENT_STRUCTURE_DIRECT\x10\x02\x12 \n" +
-	"\x1cSEA_DOCUMENT_STRUCTURE_HOUSE\x10\x03*\xdf\x01\n" +
+	"\x1cSEA_DOCUMENT_STRUCTURE_HOUSE\x10\x03\"\x04\b\x01\x10\x01*#SEA_DOCUMENT_STRUCTURE_UNDETERMINED*\xdf\x01\n" +
 	"\x18SeaHouseBillIssuerSource\x12,\n" +
 	"(SEA_HOUSE_BILL_ISSUER_SOURCE_UNSPECIFIED\x10\x00\x122\n" +
 	".SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION\x10\x01\x121\n" +
 	"-SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER\x10\x02\x12.\n" +
-	"*SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER\x10\x03*\xeb\x01\n" +
+	"*SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER\x10\x03*\xed\x01\n" +
 	"\x12SeaHouseBillStatus\x12%\n" +
 	"!SEA_HOUSE_BILL_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bSEA_HOUSE_BILL_STATUS_DRAFT\x10\x01\x12#\n" +
 	"\x1fSEA_HOUSE_BILL_STATUS_CONFIRMED\x10\x02\x12\"\n" +
 	"\x1eSEA_HOUSE_BILL_STATUS_RELEASED\x10\x03\x12 \n" +
-	"\x1cSEA_HOUSE_BILL_STATUS_VOIDED\x10\x04\x12\"\n" +
-	"\x1eSEA_HOUSE_BILL_STATUS_REPLACED\x10\x05*\xb6\x02\n" +
+	"\x1cSEA_HOUSE_BILL_STATUS_VOIDED\x10\x04\"\x04\b\x05\x10\x05*\x1eSEA_HOUSE_BILL_STATUS_REPLACED*\xe3\x02\n" +
 	"\x11SeaDocumentAction\x12#\n" +
-	"\x1fSEA_DOCUMENT_ACTION_UNSPECIFIED\x10\x00\x12#\n" +
-	"\x1fSEA_DOCUMENT_ACTION_MARK_DIRECT\x10\x01\x12%\n" +
-	"!SEA_DOCUMENT_ACTION_CANCEL_DIRECT\x10\x02\x12&\n" +
-	"\"SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL\x10\x03\x12)\n" +
-	"%SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL\x10\x04\x12)\n" +
-	"%SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL\x10\x05\x122\n" +
-	".SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT\x10\x06*y\n" +
+	"\x1fSEA_DOCUMENT_ACTION_UNSPECIFIED\x10\x00\x12)\n" +
+	"%SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL\x10\x04\x122\n" +
+	".SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT\x10\x06\x12#\n" +
+	"\x1fSEA_DOCUMENT_ACTION_CHANGE_MODE\x10\a\"\x04\b\x01\x10\x01\"\x04\b\x02\x10\x02\"\x04\b\x03\x10\x03\"\x04\b\x05\x10\x05*\x1fSEA_DOCUMENT_ACTION_MARK_DIRECT*!SEA_DOCUMENT_ACTION_CANCEL_DIRECT*\"SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL*%SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL*y\n" +
 	"\x0fSeaDocumentType\x12!\n" +
 	"\x1dSEA_DOCUMENT_TYPE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dSEA_DOCUMENT_TYPE_MASTER_BILL\x10\x01\x12 \n" +
-	"\x1cSEA_DOCUMENT_TYPE_HOUSE_BILL\x10\x02*\xec\x01\n" +
+	"\x1cSEA_DOCUMENT_TYPE_HOUSE_BILL\x10\x02*\x9b\x02\n" +
 	"\x18SeaDocumentVersionSource\x12+\n" +
 	"'SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED\x10\x00\x12*\n" +
 	"&SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK\x10\x01\x12)\n" +
-	"%SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT\x10\x02\x12&\n" +
-	"\"SEA_DOCUMENT_VERSION_SOURCE_SWITCH\x10\x03\x12$\n" +
-	" SEA_DOCUMENT_VERSION_SOURCE_VOID\x10\x04*\xac\x01\n" +
+	"%SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT\x10\x02\x12$\n" +
+	" SEA_DOCUMENT_VERSION_SOURCE_VOID\x10\x04\x12+\n" +
+	"'SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE\x10\x05\"\x04\b\x03\x10\x03*\"SEA_DOCUMENT_VERSION_SOURCE_SWITCH*\xd7\x01\n" +
 	"\x14SeaDocumentEventType\x12'\n" +
 	"#SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED\x10\x00\x12%\n" +
 	"!SEA_DOCUMENT_EVENT_TYPE_AMENDMENT\x10\x01\x12 \n" +
-	"\x1cSEA_DOCUMENT_EVENT_TYPE_VOID\x10\x02\x12\"\n" +
-	"\x1eSEA_DOCUMENT_EVENT_TYPE_SWITCH\x10\x032\xd9\x19\n" +
+	"\x1cSEA_DOCUMENT_EVENT_TYPE_VOID\x10\x02\x12'\n" +
+	"#SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE\x10\x04\"\x04\b\x03\x10\x03*\x1eSEA_DOCUMENT_EVENT_TYPE_SWITCH2\xb8\x17\n" +
 	"\x12SeaDocumentService\x12\xa4\x01\n" +
 	"\x14GetSeaOrderDocuments\x12%.order.v1.GetSeaOrderDocumentsRequest\x1a&.order.v1.GetSeaOrderDocumentsResponse\"=\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/orders/{order_id}/sea-documents\x12\xc8\x01\n" +
@@ -5155,12 +5155,10 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x16ExecuteSeaDocumentVoid\x12'.order.v1.ExecuteSeaDocumentVoidRequest\x1a(.order.v1.ExecuteSeaDocumentVoidResponse\"F\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04void \x02\x82\xd3\xe4\x93\x022:\x01*\"-/api/v1/orders/{order_id}/sea-documents/voids\x12\xd4\x01\n" +
 	"\x19PreviewSeaHouseBillSwitch\x12*.order.v1.PreviewSeaHouseBillSwitchRequest\x1a+.order.v1.PreviewSeaHouseBillSwitchResponse\"^\x82\xb5\x18\f\b\x04\x1a\x06switch \x02\x82\xd3\xe4\x93\x02H:\x01*\"C/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview\x12\xcc\x01\n" +
-	"\x19ExecuteSeaHouseBillSwitch\x12*.order.v1.ExecuteSeaHouseBillSwitchRequest\x1a+.order.v1.ExecuteSeaHouseBillSwitchResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06switch \x02\x82\xd3\xe4\x93\x02@:\x01*\";/api/v1/orders/{order_id}/sea-documents/house-bill-switches\x12\xaf\x01\n" +
-	"\x12MarkSeaOrderDirect\x12#.order.v1.MarkSeaOrderDirectRequest\x1a$.order.v1.MarkSeaOrderDirectResponse\"N\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/orders/{order_id}/sea-documents/mark-direct\x12\xb7\x01\n" +
-	"\x14CancelSeaOrderDirect\x12%.order.v1.CancelSeaOrderDirectRequest\x1a&.order.v1.CancelSeaOrderDirectResponse\"P\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/orders/{order_id}/sea-documents/cancel-direct\x12\xa6\x01\n" +
-	"\x0fAddSeaHouseBill\x12 .order.v1.AddSeaHouseBillRequest\x1a!.order.v1.AddSeaHouseBillResponse\"N\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/orders/{order_id}/sea-documents/house-bills\x12\xb4\x01\n" +
-	"\x12UpdateSeaHouseBill\x12#.order.v1.UpdateSeaHouseBillRequest\x1a$.order.v1.UpdateSeaHouseBillResponse\"S\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02=:\x01*\x1a8/api/v1/orders/{order_id}/sea-documents/house-bills/{id}\x12\xb1\x01\n" +
-	"\x12RemoveSeaHouseBill\x12#.order.v1.RemoveSeaHouseBillRequest\x1a$.order.v1.RemoveSeaHouseBillResponse\"P\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02:*8/api/v1/orders/{order_id}/sea-documents/house-bills/{id}\x12\xcf\x01\n" +
+	"\x19ExecuteSeaHouseBillSwitch\x12*.order.v1.ExecuteSeaHouseBillSwitchRequest\x1a+.order.v1.ExecuteSeaHouseBillSwitchResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06switch \x02\x82\xd3\xe4\x93\x02@:\x01*\";/api/v1/orders/{order_id}/sea-documents/house-bill-switches\x12\xd5\x01\n" +
+	"\x1cPreviewChangeSeaDocumentMode\x12-.order.v1.PreviewChangeSeaDocumentModeRequest\x1a..order.v1.PreviewChangeSeaDocumentModeResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02@:\x01*\";/api/v1/orders/{order_id}/sea-documents/mode-change/preview\x12\xcd\x01\n" +
+	"\x1cExecuteChangeSeaDocumentMode\x12-.order.v1.ExecuteChangeSeaDocumentModeRequest\x1a..order.v1.ExecuteChangeSeaDocumentModeResponse\"N\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/orders/{order_id}/sea-documents/mode-change\x12\xb4\x01\n" +
+	"\x12UpdateSeaHouseBill\x12#.order.v1.UpdateSeaHouseBillRequest\x1a$.order.v1.UpdateSeaHouseBillResponse\"S\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02=:\x01*\x1a8/api/v1/orders/{order_id}/sea-documents/house-bills/{id}\x12\xcf\x01\n" +
 	"\x1aUpdateSeaMasterBillContent\x12+.order.v1.UpdateSeaMasterBillContentRequest\x1a,.order.v1.UpdateSeaMasterBillContentResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/orders/{order_id}/sea-documents/master-bill-contentB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
@@ -5176,64 +5174,63 @@ func file_order_v1_sea_document_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_sea_document_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_order_v1_sea_document_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_order_v1_sea_document_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_order_v1_sea_document_proto_goTypes = []any{
-	(SeaDocumentStructure)(0),                   // 0: order.v1.SeaDocumentStructure
-	(SeaHouseBillIssuerSource)(0),               // 1: order.v1.SeaHouseBillIssuerSource
-	(SeaHouseBillStatus)(0),                     // 2: order.v1.SeaHouseBillStatus
-	(SeaDocumentAction)(0),                      // 3: order.v1.SeaDocumentAction
-	(SeaDocumentType)(0),                        // 4: order.v1.SeaDocumentType
-	(SeaDocumentVersionSource)(0),               // 5: order.v1.SeaDocumentVersionSource
-	(SeaDocumentEventType)(0),                   // 6: order.v1.SeaDocumentEventType
-	(*SeaBillContent)(nil),                      // 7: order.v1.SeaBillContent
-	(*SeaHouseBill)(nil),                        // 8: order.v1.SeaHouseBill
-	(*SeaHouseBillInput)(nil),                   // 9: order.v1.SeaHouseBillInput
-	(*SeaMasterBillDetail)(nil),                 // 10: order.v1.SeaMasterBillDetail
-	(*SeaOrderDocumentSummary)(nil),             // 11: order.v1.SeaOrderDocumentSummary
-	(*SeaOrderDocumentInput)(nil),               // 12: order.v1.SeaOrderDocumentInput
-	(*SeaOrderDocuments)(nil),                   // 13: order.v1.SeaOrderDocuments
-	(*GetSeaOrderDocumentsRequest)(nil),         // 14: order.v1.GetSeaOrderDocumentsRequest
-	(*GetSeaOrderDocumentsResponse)(nil),        // 15: order.v1.GetSeaOrderDocumentsResponse
-	(*MarkSeaOrderDirectRequest)(nil),           // 16: order.v1.MarkSeaOrderDirectRequest
-	(*MarkSeaOrderDirectResponse)(nil),          // 17: order.v1.MarkSeaOrderDirectResponse
-	(*CancelSeaOrderDirectRequest)(nil),         // 18: order.v1.CancelSeaOrderDirectRequest
-	(*CancelSeaOrderDirectResponse)(nil),        // 19: order.v1.CancelSeaOrderDirectResponse
-	(*AddSeaHouseBillRequest)(nil),              // 20: order.v1.AddSeaHouseBillRequest
-	(*AddSeaHouseBillResponse)(nil),             // 21: order.v1.AddSeaHouseBillResponse
-	(*UpdateSeaHouseBillRequest)(nil),           // 22: order.v1.UpdateSeaHouseBillRequest
-	(*UpdateSeaHouseBillResponse)(nil),          // 23: order.v1.UpdateSeaHouseBillResponse
-	(*RemoveSeaHouseBillRequest)(nil),           // 24: order.v1.RemoveSeaHouseBillRequest
-	(*RemoveSeaHouseBillResponse)(nil),          // 25: order.v1.RemoveSeaHouseBillResponse
-	(*UpdateSeaMasterBillContentRequest)(nil),   // 26: order.v1.UpdateSeaMasterBillContentRequest
-	(*UpdateSeaMasterBillContentResponse)(nil),  // 27: order.v1.UpdateSeaMasterBillContentResponse
-	(*SeaDocumentVersion)(nil),                  // 28: order.v1.SeaDocumentVersion
-	(*SeaDocumentFieldDifference)(nil),          // 29: order.v1.SeaDocumentFieldDifference
-	(*SeaDocumentDownstreamImpact)(nil),         // 30: order.v1.SeaDocumentDownstreamImpact
-	(*SeaDocumentEvent)(nil),                    // 31: order.v1.SeaDocumentEvent
-	(*SeaDocumentAmendmentInput)(nil),           // 32: order.v1.SeaDocumentAmendmentInput
-	(*SeaDocumentAmendmentPreview)(nil),         // 33: order.v1.SeaDocumentAmendmentPreview
-	(*SeaDocumentVoidPreview)(nil),              // 34: order.v1.SeaDocumentVoidPreview
-	(*SeaHouseBillSwitchPreview)(nil),           // 35: order.v1.SeaHouseBillSwitchPreview
-	(*ListSeaMasterBillVersionsRequest)(nil),    // 36: order.v1.ListSeaMasterBillVersionsRequest
-	(*ListSeaHouseBillVersionsRequest)(nil),     // 37: order.v1.ListSeaHouseBillVersionsRequest
-	(*ListSeaMasterBillVersionsResponse)(nil),   // 38: order.v1.ListSeaMasterBillVersionsResponse
-	(*ListSeaHouseBillVersionsResponse)(nil),    // 39: order.v1.ListSeaHouseBillVersionsResponse
-	(*GetSeaDocumentVersionRequest)(nil),        // 40: order.v1.GetSeaDocumentVersionRequest
-	(*GetSeaDocumentVersionResponse)(nil),       // 41: order.v1.GetSeaDocumentVersionResponse
-	(*ListSeaDocumentEventsRequest)(nil),        // 42: order.v1.ListSeaDocumentEventsRequest
-	(*ListSeaDocumentEventsResponse)(nil),       // 43: order.v1.ListSeaDocumentEventsResponse
-	(*PreviewSeaDocumentAmendmentRequest)(nil),  // 44: order.v1.PreviewSeaDocumentAmendmentRequest
-	(*PreviewSeaDocumentAmendmentResponse)(nil), // 45: order.v1.PreviewSeaDocumentAmendmentResponse
-	(*ExecuteSeaDocumentAmendmentRequest)(nil),  // 46: order.v1.ExecuteSeaDocumentAmendmentRequest
-	(*ExecuteSeaDocumentAmendmentResponse)(nil), // 47: order.v1.ExecuteSeaDocumentAmendmentResponse
-	(*PreviewSeaDocumentVoidRequest)(nil),       // 48: order.v1.PreviewSeaDocumentVoidRequest
-	(*PreviewSeaDocumentVoidResponse)(nil),      // 49: order.v1.PreviewSeaDocumentVoidResponse
-	(*ExecuteSeaDocumentVoidRequest)(nil),       // 50: order.v1.ExecuteSeaDocumentVoidRequest
-	(*ExecuteSeaDocumentVoidResponse)(nil),      // 51: order.v1.ExecuteSeaDocumentVoidResponse
-	(*PreviewSeaHouseBillSwitchRequest)(nil),    // 52: order.v1.PreviewSeaHouseBillSwitchRequest
-	(*PreviewSeaHouseBillSwitchResponse)(nil),   // 53: order.v1.PreviewSeaHouseBillSwitchResponse
-	(*ExecuteSeaHouseBillSwitchRequest)(nil),    // 54: order.v1.ExecuteSeaHouseBillSwitchRequest
-	(*ExecuteSeaHouseBillSwitchResponse)(nil),   // 55: order.v1.ExecuteSeaHouseBillSwitchResponse
+	(SeaDocumentStructure)(0),                    // 0: order.v1.SeaDocumentStructure
+	(SeaHouseBillIssuerSource)(0),                // 1: order.v1.SeaHouseBillIssuerSource
+	(SeaHouseBillStatus)(0),                      // 2: order.v1.SeaHouseBillStatus
+	(SeaDocumentAction)(0),                       // 3: order.v1.SeaDocumentAction
+	(SeaDocumentType)(0),                         // 4: order.v1.SeaDocumentType
+	(SeaDocumentVersionSource)(0),                // 5: order.v1.SeaDocumentVersionSource
+	(SeaDocumentEventType)(0),                    // 6: order.v1.SeaDocumentEventType
+	(*SeaBillContent)(nil),                       // 7: order.v1.SeaBillContent
+	(*SeaHouseBill)(nil),                         // 8: order.v1.SeaHouseBill
+	(*SeaHouseBillInput)(nil),                    // 9: order.v1.SeaHouseBillInput
+	(*SeaMasterBillDetail)(nil),                  // 10: order.v1.SeaMasterBillDetail
+	(*SeaOrderDocumentSummary)(nil),              // 11: order.v1.SeaOrderDocumentSummary
+	(*SeaOrderDocumentInput)(nil),                // 12: order.v1.SeaOrderDocumentInput
+	(*SeaOrderDocuments)(nil),                    // 13: order.v1.SeaOrderDocuments
+	(*GetSeaOrderDocumentsRequest)(nil),          // 14: order.v1.GetSeaOrderDocumentsRequest
+	(*GetSeaOrderDocumentsResponse)(nil),         // 15: order.v1.GetSeaOrderDocumentsResponse
+	(*SeaExternalConfirmationInput)(nil),         // 16: order.v1.SeaExternalConfirmationInput
+	(*SeaExternalConfirmationSummary)(nil),       // 17: order.v1.SeaExternalConfirmationSummary
+	(*PreviewChangeSeaDocumentModeRequest)(nil),  // 18: order.v1.PreviewChangeSeaDocumentModeRequest
+	(*PreviewChangeSeaDocumentModeResponse)(nil), // 19: order.v1.PreviewChangeSeaDocumentModeResponse
+	(*SeaDocumentModeChangePreview)(nil),         // 20: order.v1.SeaDocumentModeChangePreview
+	(*ExecuteChangeSeaDocumentModeRequest)(nil),  // 21: order.v1.ExecuteChangeSeaDocumentModeRequest
+	(*ExecuteChangeSeaDocumentModeResponse)(nil), // 22: order.v1.ExecuteChangeSeaDocumentModeResponse
+	(*UpdateSeaHouseBillRequest)(nil),            // 23: order.v1.UpdateSeaHouseBillRequest
+	(*UpdateSeaHouseBillResponse)(nil),           // 24: order.v1.UpdateSeaHouseBillResponse
+	(*UpdateSeaMasterBillContentRequest)(nil),    // 25: order.v1.UpdateSeaMasterBillContentRequest
+	(*UpdateSeaMasterBillContentResponse)(nil),   // 26: order.v1.UpdateSeaMasterBillContentResponse
+	(*SeaDocumentVersion)(nil),                   // 27: order.v1.SeaDocumentVersion
+	(*SeaDocumentFieldDifference)(nil),           // 28: order.v1.SeaDocumentFieldDifference
+	(*SeaDocumentDownstreamImpact)(nil),          // 29: order.v1.SeaDocumentDownstreamImpact
+	(*SeaDocumentEvent)(nil),                     // 30: order.v1.SeaDocumentEvent
+	(*SeaDocumentAmendmentInput)(nil),            // 31: order.v1.SeaDocumentAmendmentInput
+	(*SeaDocumentAmendmentPreview)(nil),          // 32: order.v1.SeaDocumentAmendmentPreview
+	(*SeaDocumentVoidPreview)(nil),               // 33: order.v1.SeaDocumentVoidPreview
+	(*SeaHouseBillSwitchPreview)(nil),            // 34: order.v1.SeaHouseBillSwitchPreview
+	(*ListSeaMasterBillVersionsRequest)(nil),     // 35: order.v1.ListSeaMasterBillVersionsRequest
+	(*ListSeaHouseBillVersionsRequest)(nil),      // 36: order.v1.ListSeaHouseBillVersionsRequest
+	(*ListSeaMasterBillVersionsResponse)(nil),    // 37: order.v1.ListSeaMasterBillVersionsResponse
+	(*ListSeaHouseBillVersionsResponse)(nil),     // 38: order.v1.ListSeaHouseBillVersionsResponse
+	(*GetSeaDocumentVersionRequest)(nil),         // 39: order.v1.GetSeaDocumentVersionRequest
+	(*GetSeaDocumentVersionResponse)(nil),        // 40: order.v1.GetSeaDocumentVersionResponse
+	(*ListSeaDocumentEventsRequest)(nil),         // 41: order.v1.ListSeaDocumentEventsRequest
+	(*ListSeaDocumentEventsResponse)(nil),        // 42: order.v1.ListSeaDocumentEventsResponse
+	(*PreviewSeaDocumentAmendmentRequest)(nil),   // 43: order.v1.PreviewSeaDocumentAmendmentRequest
+	(*PreviewSeaDocumentAmendmentResponse)(nil),  // 44: order.v1.PreviewSeaDocumentAmendmentResponse
+	(*ExecuteSeaDocumentAmendmentRequest)(nil),   // 45: order.v1.ExecuteSeaDocumentAmendmentRequest
+	(*ExecuteSeaDocumentAmendmentResponse)(nil),  // 46: order.v1.ExecuteSeaDocumentAmendmentResponse
+	(*PreviewSeaDocumentVoidRequest)(nil),        // 47: order.v1.PreviewSeaDocumentVoidRequest
+	(*PreviewSeaDocumentVoidResponse)(nil),       // 48: order.v1.PreviewSeaDocumentVoidResponse
+	(*ExecuteSeaDocumentVoidRequest)(nil),        // 49: order.v1.ExecuteSeaDocumentVoidRequest
+	(*ExecuteSeaDocumentVoidResponse)(nil),       // 50: order.v1.ExecuteSeaDocumentVoidResponse
+	(*PreviewSeaHouseBillSwitchRequest)(nil),     // 51: order.v1.PreviewSeaHouseBillSwitchRequest
+	(*PreviewSeaHouseBillSwitchResponse)(nil),    // 52: order.v1.PreviewSeaHouseBillSwitchResponse
+	(*ExecuteSeaHouseBillSwitchRequest)(nil),     // 53: order.v1.ExecuteSeaHouseBillSwitchRequest
+	(*ExecuteSeaHouseBillSwitchResponse)(nil),    // 54: order.v1.ExecuteSeaHouseBillSwitchResponse
 }
 var file_order_v1_sea_document_proto_depIdxs = []int32{
 	1,  // 0: order.v1.SeaHouseBill.issuer_source:type_name -> order.v1.SeaHouseBillIssuerSource
@@ -5245,96 +5242,99 @@ var file_order_v1_sea_document_proto_depIdxs = []int32{
 	0,  // 6: order.v1.SeaOrderDocumentSummary.document_structure:type_name -> order.v1.SeaDocumentStructure
 	0,  // 7: order.v1.SeaOrderDocumentInput.document_structure:type_name -> order.v1.SeaDocumentStructure
 	7,  // 8: order.v1.SeaOrderDocumentInput.master_bill_content:type_name -> order.v1.SeaBillContent
-	9,  // 9: order.v1.SeaOrderDocumentInput.house_bills:type_name -> order.v1.SeaHouseBillInput
+	9,  // 9: order.v1.SeaOrderDocumentInput.house_bill:type_name -> order.v1.SeaHouseBillInput
 	0,  // 10: order.v1.SeaOrderDocuments.document_structure:type_name -> order.v1.SeaDocumentStructure
 	10, // 11: order.v1.SeaOrderDocuments.master_bill:type_name -> order.v1.SeaMasterBillDetail
-	8,  // 12: order.v1.SeaOrderDocuments.house_bills:type_name -> order.v1.SeaHouseBill
-	3,  // 13: order.v1.SeaOrderDocuments.allowed_actions:type_name -> order.v1.SeaDocumentAction
+	3,  // 12: order.v1.SeaOrderDocuments.allowed_actions:type_name -> order.v1.SeaDocumentAction
+	8,  // 13: order.v1.SeaOrderDocuments.house_bill:type_name -> order.v1.SeaHouseBill
 	13, // 14: order.v1.GetSeaOrderDocumentsResponse.data:type_name -> order.v1.SeaOrderDocuments
-	13, // 15: order.v1.MarkSeaOrderDirectResponse.data:type_name -> order.v1.SeaOrderDocuments
-	13, // 16: order.v1.CancelSeaOrderDirectResponse.data:type_name -> order.v1.SeaOrderDocuments
-	9,  // 17: order.v1.AddSeaHouseBillRequest.house_bill:type_name -> order.v1.SeaHouseBillInput
-	8,  // 18: order.v1.AddSeaHouseBillResponse.data:type_name -> order.v1.SeaHouseBill
-	9,  // 19: order.v1.UpdateSeaHouseBillRequest.house_bill:type_name -> order.v1.SeaHouseBillInput
-	8,  // 20: order.v1.UpdateSeaHouseBillResponse.data:type_name -> order.v1.SeaHouseBill
-	7,  // 21: order.v1.UpdateSeaMasterBillContentRequest.content:type_name -> order.v1.SeaBillContent
-	10, // 22: order.v1.UpdateSeaMasterBillContentResponse.data:type_name -> order.v1.SeaMasterBillDetail
-	4,  // 23: order.v1.SeaDocumentVersion.document_type:type_name -> order.v1.SeaDocumentType
-	5,  // 24: order.v1.SeaDocumentVersion.source:type_name -> order.v1.SeaDocumentVersionSource
-	1,  // 25: order.v1.SeaDocumentVersion.issuer_source:type_name -> order.v1.SeaHouseBillIssuerSource
-	7,  // 26: order.v1.SeaDocumentVersion.content:type_name -> order.v1.SeaBillContent
-	6,  // 27: order.v1.SeaDocumentEvent.event_type:type_name -> order.v1.SeaDocumentEventType
-	4,  // 28: order.v1.SeaDocumentEvent.document_type:type_name -> order.v1.SeaDocumentType
-	7,  // 29: order.v1.SeaDocumentAmendmentInput.master_bill_content:type_name -> order.v1.SeaBillContent
-	9,  // 30: order.v1.SeaDocumentAmendmentInput.house_bill:type_name -> order.v1.SeaHouseBillInput
-	28, // 31: order.v1.SeaDocumentAmendmentPreview.base_version:type_name -> order.v1.SeaDocumentVersion
-	29, // 32: order.v1.SeaDocumentAmendmentPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
-	30, // 33: order.v1.SeaDocumentAmendmentPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
-	28, // 34: order.v1.SeaDocumentVoidPreview.base_version:type_name -> order.v1.SeaDocumentVersion
-	29, // 35: order.v1.SeaDocumentVoidPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
-	30, // 36: order.v1.SeaDocumentVoidPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
-	28, // 37: order.v1.SeaHouseBillSwitchPreview.base_version:type_name -> order.v1.SeaDocumentVersion
-	29, // 38: order.v1.SeaHouseBillSwitchPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
-	30, // 39: order.v1.SeaHouseBillSwitchPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
-	28, // 40: order.v1.ListSeaMasterBillVersionsResponse.data:type_name -> order.v1.SeaDocumentVersion
-	28, // 41: order.v1.ListSeaHouseBillVersionsResponse.data:type_name -> order.v1.SeaDocumentVersion
-	4,  // 42: order.v1.GetSeaDocumentVersionRequest.document_type:type_name -> order.v1.SeaDocumentType
-	28, // 43: order.v1.GetSeaDocumentVersionResponse.data:type_name -> order.v1.SeaDocumentVersion
-	31, // 44: order.v1.ListSeaDocumentEventsResponse.data:type_name -> order.v1.SeaDocumentEvent
-	4,  // 45: order.v1.PreviewSeaDocumentAmendmentRequest.document_type:type_name -> order.v1.SeaDocumentType
-	32, // 46: order.v1.PreviewSeaDocumentAmendmentRequest.input:type_name -> order.v1.SeaDocumentAmendmentInput
-	33, // 47: order.v1.PreviewSeaDocumentAmendmentResponse.data:type_name -> order.v1.SeaDocumentAmendmentPreview
-	4,  // 48: order.v1.ExecuteSeaDocumentAmendmentRequest.document_type:type_name -> order.v1.SeaDocumentType
-	32, // 49: order.v1.ExecuteSeaDocumentAmendmentRequest.input:type_name -> order.v1.SeaDocumentAmendmentInput
-	28, // 50: order.v1.ExecuteSeaDocumentAmendmentResponse.data:type_name -> order.v1.SeaDocumentVersion
-	4,  // 51: order.v1.PreviewSeaDocumentVoidRequest.document_type:type_name -> order.v1.SeaDocumentType
-	34, // 52: order.v1.PreviewSeaDocumentVoidResponse.data:type_name -> order.v1.SeaDocumentVoidPreview
-	4,  // 53: order.v1.ExecuteSeaDocumentVoidRequest.document_type:type_name -> order.v1.SeaDocumentType
-	31, // 54: order.v1.ExecuteSeaDocumentVoidResponse.data:type_name -> order.v1.SeaDocumentEvent
-	9,  // 55: order.v1.PreviewSeaHouseBillSwitchRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
-	35, // 56: order.v1.PreviewSeaHouseBillSwitchResponse.data:type_name -> order.v1.SeaHouseBillSwitchPreview
-	9,  // 57: order.v1.ExecuteSeaHouseBillSwitchRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
-	31, // 58: order.v1.ExecuteSeaHouseBillSwitchResponse.data:type_name -> order.v1.SeaDocumentEvent
-	8,  // 59: order.v1.ExecuteSeaHouseBillSwitchResponse.new_house_bill:type_name -> order.v1.SeaHouseBill
-	14, // 60: order.v1.SeaDocumentService.GetSeaOrderDocuments:input_type -> order.v1.GetSeaOrderDocumentsRequest
-	36, // 61: order.v1.SeaDocumentService.ListSeaMasterBillVersions:input_type -> order.v1.ListSeaMasterBillVersionsRequest
-	37, // 62: order.v1.SeaDocumentService.ListSeaHouseBillVersions:input_type -> order.v1.ListSeaHouseBillVersionsRequest
-	40, // 63: order.v1.SeaDocumentService.GetSeaDocumentVersion:input_type -> order.v1.GetSeaDocumentVersionRequest
-	42, // 64: order.v1.SeaDocumentService.ListSeaDocumentEvents:input_type -> order.v1.ListSeaDocumentEventsRequest
-	44, // 65: order.v1.SeaDocumentService.PreviewSeaDocumentAmendment:input_type -> order.v1.PreviewSeaDocumentAmendmentRequest
-	46, // 66: order.v1.SeaDocumentService.ExecuteSeaDocumentAmendment:input_type -> order.v1.ExecuteSeaDocumentAmendmentRequest
-	48, // 67: order.v1.SeaDocumentService.PreviewSeaDocumentVoid:input_type -> order.v1.PreviewSeaDocumentVoidRequest
-	50, // 68: order.v1.SeaDocumentService.ExecuteSeaDocumentVoid:input_type -> order.v1.ExecuteSeaDocumentVoidRequest
-	52, // 69: order.v1.SeaDocumentService.PreviewSeaHouseBillSwitch:input_type -> order.v1.PreviewSeaHouseBillSwitchRequest
-	54, // 70: order.v1.SeaDocumentService.ExecuteSeaHouseBillSwitch:input_type -> order.v1.ExecuteSeaHouseBillSwitchRequest
-	16, // 71: order.v1.SeaDocumentService.MarkSeaOrderDirect:input_type -> order.v1.MarkSeaOrderDirectRequest
-	18, // 72: order.v1.SeaDocumentService.CancelSeaOrderDirect:input_type -> order.v1.CancelSeaOrderDirectRequest
-	20, // 73: order.v1.SeaDocumentService.AddSeaHouseBill:input_type -> order.v1.AddSeaHouseBillRequest
-	22, // 74: order.v1.SeaDocumentService.UpdateSeaHouseBill:input_type -> order.v1.UpdateSeaHouseBillRequest
-	24, // 75: order.v1.SeaDocumentService.RemoveSeaHouseBill:input_type -> order.v1.RemoveSeaHouseBillRequest
-	26, // 76: order.v1.SeaDocumentService.UpdateSeaMasterBillContent:input_type -> order.v1.UpdateSeaMasterBillContentRequest
-	15, // 77: order.v1.SeaDocumentService.GetSeaOrderDocuments:output_type -> order.v1.GetSeaOrderDocumentsResponse
-	38, // 78: order.v1.SeaDocumentService.ListSeaMasterBillVersions:output_type -> order.v1.ListSeaMasterBillVersionsResponse
-	39, // 79: order.v1.SeaDocumentService.ListSeaHouseBillVersions:output_type -> order.v1.ListSeaHouseBillVersionsResponse
-	41, // 80: order.v1.SeaDocumentService.GetSeaDocumentVersion:output_type -> order.v1.GetSeaDocumentVersionResponse
-	43, // 81: order.v1.SeaDocumentService.ListSeaDocumentEvents:output_type -> order.v1.ListSeaDocumentEventsResponse
-	45, // 82: order.v1.SeaDocumentService.PreviewSeaDocumentAmendment:output_type -> order.v1.PreviewSeaDocumentAmendmentResponse
-	47, // 83: order.v1.SeaDocumentService.ExecuteSeaDocumentAmendment:output_type -> order.v1.ExecuteSeaDocumentAmendmentResponse
-	49, // 84: order.v1.SeaDocumentService.PreviewSeaDocumentVoid:output_type -> order.v1.PreviewSeaDocumentVoidResponse
-	51, // 85: order.v1.SeaDocumentService.ExecuteSeaDocumentVoid:output_type -> order.v1.ExecuteSeaDocumentVoidResponse
-	53, // 86: order.v1.SeaDocumentService.PreviewSeaHouseBillSwitch:output_type -> order.v1.PreviewSeaHouseBillSwitchResponse
-	55, // 87: order.v1.SeaDocumentService.ExecuteSeaHouseBillSwitch:output_type -> order.v1.ExecuteSeaHouseBillSwitchResponse
-	17, // 88: order.v1.SeaDocumentService.MarkSeaOrderDirect:output_type -> order.v1.MarkSeaOrderDirectResponse
-	19, // 89: order.v1.SeaDocumentService.CancelSeaOrderDirect:output_type -> order.v1.CancelSeaOrderDirectResponse
-	21, // 90: order.v1.SeaDocumentService.AddSeaHouseBill:output_type -> order.v1.AddSeaHouseBillResponse
-	23, // 91: order.v1.SeaDocumentService.UpdateSeaHouseBill:output_type -> order.v1.UpdateSeaHouseBillResponse
-	25, // 92: order.v1.SeaDocumentService.RemoveSeaHouseBill:output_type -> order.v1.RemoveSeaHouseBillResponse
-	27, // 93: order.v1.SeaDocumentService.UpdateSeaMasterBillContent:output_type -> order.v1.UpdateSeaMasterBillContentResponse
-	77, // [77:94] is the sub-list for method output_type
-	60, // [60:77] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	0,  // 15: order.v1.PreviewChangeSeaDocumentModeRequest.target_mode:type_name -> order.v1.SeaDocumentStructure
+	9,  // 16: order.v1.PreviewChangeSeaDocumentModeRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
+	20, // 17: order.v1.PreviewChangeSeaDocumentModeResponse.data:type_name -> order.v1.SeaDocumentModeChangePreview
+	0,  // 18: order.v1.SeaDocumentModeChangePreview.previous_mode:type_name -> order.v1.SeaDocumentStructure
+	0,  // 19: order.v1.SeaDocumentModeChangePreview.target_mode:type_name -> order.v1.SeaDocumentStructure
+	28, // 20: order.v1.SeaDocumentModeChangePreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
+	29, // 21: order.v1.SeaDocumentModeChangePreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	0,  // 22: order.v1.ExecuteChangeSeaDocumentModeRequest.target_mode:type_name -> order.v1.SeaDocumentStructure
+	9,  // 23: order.v1.ExecuteChangeSeaDocumentModeRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
+	16, // 24: order.v1.ExecuteChangeSeaDocumentModeRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	13, // 25: order.v1.ExecuteChangeSeaDocumentModeResponse.data:type_name -> order.v1.SeaOrderDocuments
+	9,  // 26: order.v1.UpdateSeaHouseBillRequest.house_bill:type_name -> order.v1.SeaHouseBillInput
+	8,  // 27: order.v1.UpdateSeaHouseBillResponse.data:type_name -> order.v1.SeaHouseBill
+	7,  // 28: order.v1.UpdateSeaMasterBillContentRequest.content:type_name -> order.v1.SeaBillContent
+	10, // 29: order.v1.UpdateSeaMasterBillContentResponse.data:type_name -> order.v1.SeaMasterBillDetail
+	4,  // 30: order.v1.SeaDocumentVersion.document_type:type_name -> order.v1.SeaDocumentType
+	5,  // 31: order.v1.SeaDocumentVersion.source:type_name -> order.v1.SeaDocumentVersionSource
+	1,  // 32: order.v1.SeaDocumentVersion.issuer_source:type_name -> order.v1.SeaHouseBillIssuerSource
+	7,  // 33: order.v1.SeaDocumentVersion.content:type_name -> order.v1.SeaBillContent
+	6,  // 34: order.v1.SeaDocumentEvent.event_type:type_name -> order.v1.SeaDocumentEventType
+	4,  // 35: order.v1.SeaDocumentEvent.document_type:type_name -> order.v1.SeaDocumentType
+	7,  // 36: order.v1.SeaDocumentAmendmentInput.master_bill_content:type_name -> order.v1.SeaBillContent
+	9,  // 37: order.v1.SeaDocumentAmendmentInput.house_bill:type_name -> order.v1.SeaHouseBillInput
+	27, // 38: order.v1.SeaDocumentAmendmentPreview.base_version:type_name -> order.v1.SeaDocumentVersion
+	28, // 39: order.v1.SeaDocumentAmendmentPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
+	29, // 40: order.v1.SeaDocumentAmendmentPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	27, // 41: order.v1.SeaDocumentVoidPreview.base_version:type_name -> order.v1.SeaDocumentVersion
+	28, // 42: order.v1.SeaDocumentVoidPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
+	29, // 43: order.v1.SeaDocumentVoidPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	27, // 44: order.v1.SeaHouseBillSwitchPreview.base_version:type_name -> order.v1.SeaDocumentVersion
+	28, // 45: order.v1.SeaHouseBillSwitchPreview.differences:type_name -> order.v1.SeaDocumentFieldDifference
+	29, // 46: order.v1.SeaHouseBillSwitchPreview.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	27, // 47: order.v1.ListSeaMasterBillVersionsResponse.data:type_name -> order.v1.SeaDocumentVersion
+	27, // 48: order.v1.ListSeaHouseBillVersionsResponse.data:type_name -> order.v1.SeaDocumentVersion
+	4,  // 49: order.v1.GetSeaDocumentVersionRequest.document_type:type_name -> order.v1.SeaDocumentType
+	27, // 50: order.v1.GetSeaDocumentVersionResponse.data:type_name -> order.v1.SeaDocumentVersion
+	30, // 51: order.v1.ListSeaDocumentEventsResponse.data:type_name -> order.v1.SeaDocumentEvent
+	4,  // 52: order.v1.PreviewSeaDocumentAmendmentRequest.document_type:type_name -> order.v1.SeaDocumentType
+	31, // 53: order.v1.PreviewSeaDocumentAmendmentRequest.input:type_name -> order.v1.SeaDocumentAmendmentInput
+	32, // 54: order.v1.PreviewSeaDocumentAmendmentResponse.data:type_name -> order.v1.SeaDocumentAmendmentPreview
+	4,  // 55: order.v1.ExecuteSeaDocumentAmendmentRequest.document_type:type_name -> order.v1.SeaDocumentType
+	31, // 56: order.v1.ExecuteSeaDocumentAmendmentRequest.input:type_name -> order.v1.SeaDocumentAmendmentInput
+	27, // 57: order.v1.ExecuteSeaDocumentAmendmentResponse.data:type_name -> order.v1.SeaDocumentVersion
+	4,  // 58: order.v1.PreviewSeaDocumentVoidRequest.document_type:type_name -> order.v1.SeaDocumentType
+	33, // 59: order.v1.PreviewSeaDocumentVoidResponse.data:type_name -> order.v1.SeaDocumentVoidPreview
+	4,  // 60: order.v1.ExecuteSeaDocumentVoidRequest.document_type:type_name -> order.v1.SeaDocumentType
+	30, // 61: order.v1.ExecuteSeaDocumentVoidResponse.data:type_name -> order.v1.SeaDocumentEvent
+	9,  // 62: order.v1.PreviewSeaHouseBillSwitchRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
+	34, // 63: order.v1.PreviewSeaHouseBillSwitchResponse.data:type_name -> order.v1.SeaHouseBillSwitchPreview
+	9,  // 64: order.v1.ExecuteSeaHouseBillSwitchRequest.new_house_bill:type_name -> order.v1.SeaHouseBillInput
+	30, // 65: order.v1.ExecuteSeaHouseBillSwitchResponse.data:type_name -> order.v1.SeaDocumentEvent
+	8,  // 66: order.v1.ExecuteSeaHouseBillSwitchResponse.new_house_bill:type_name -> order.v1.SeaHouseBill
+	14, // 67: order.v1.SeaDocumentService.GetSeaOrderDocuments:input_type -> order.v1.GetSeaOrderDocumentsRequest
+	35, // 68: order.v1.SeaDocumentService.ListSeaMasterBillVersions:input_type -> order.v1.ListSeaMasterBillVersionsRequest
+	36, // 69: order.v1.SeaDocumentService.ListSeaHouseBillVersions:input_type -> order.v1.ListSeaHouseBillVersionsRequest
+	39, // 70: order.v1.SeaDocumentService.GetSeaDocumentVersion:input_type -> order.v1.GetSeaDocumentVersionRequest
+	41, // 71: order.v1.SeaDocumentService.ListSeaDocumentEvents:input_type -> order.v1.ListSeaDocumentEventsRequest
+	43, // 72: order.v1.SeaDocumentService.PreviewSeaDocumentAmendment:input_type -> order.v1.PreviewSeaDocumentAmendmentRequest
+	45, // 73: order.v1.SeaDocumentService.ExecuteSeaDocumentAmendment:input_type -> order.v1.ExecuteSeaDocumentAmendmentRequest
+	47, // 74: order.v1.SeaDocumentService.PreviewSeaDocumentVoid:input_type -> order.v1.PreviewSeaDocumentVoidRequest
+	49, // 75: order.v1.SeaDocumentService.ExecuteSeaDocumentVoid:input_type -> order.v1.ExecuteSeaDocumentVoidRequest
+	51, // 76: order.v1.SeaDocumentService.PreviewSeaHouseBillSwitch:input_type -> order.v1.PreviewSeaHouseBillSwitchRequest
+	53, // 77: order.v1.SeaDocumentService.ExecuteSeaHouseBillSwitch:input_type -> order.v1.ExecuteSeaHouseBillSwitchRequest
+	18, // 78: order.v1.SeaDocumentService.PreviewChangeSeaDocumentMode:input_type -> order.v1.PreviewChangeSeaDocumentModeRequest
+	21, // 79: order.v1.SeaDocumentService.ExecuteChangeSeaDocumentMode:input_type -> order.v1.ExecuteChangeSeaDocumentModeRequest
+	23, // 80: order.v1.SeaDocumentService.UpdateSeaHouseBill:input_type -> order.v1.UpdateSeaHouseBillRequest
+	25, // 81: order.v1.SeaDocumentService.UpdateSeaMasterBillContent:input_type -> order.v1.UpdateSeaMasterBillContentRequest
+	15, // 82: order.v1.SeaDocumentService.GetSeaOrderDocuments:output_type -> order.v1.GetSeaOrderDocumentsResponse
+	37, // 83: order.v1.SeaDocumentService.ListSeaMasterBillVersions:output_type -> order.v1.ListSeaMasterBillVersionsResponse
+	38, // 84: order.v1.SeaDocumentService.ListSeaHouseBillVersions:output_type -> order.v1.ListSeaHouseBillVersionsResponse
+	40, // 85: order.v1.SeaDocumentService.GetSeaDocumentVersion:output_type -> order.v1.GetSeaDocumentVersionResponse
+	42, // 86: order.v1.SeaDocumentService.ListSeaDocumentEvents:output_type -> order.v1.ListSeaDocumentEventsResponse
+	44, // 87: order.v1.SeaDocumentService.PreviewSeaDocumentAmendment:output_type -> order.v1.PreviewSeaDocumentAmendmentResponse
+	46, // 88: order.v1.SeaDocumentService.ExecuteSeaDocumentAmendment:output_type -> order.v1.ExecuteSeaDocumentAmendmentResponse
+	48, // 89: order.v1.SeaDocumentService.PreviewSeaDocumentVoid:output_type -> order.v1.PreviewSeaDocumentVoidResponse
+	50, // 90: order.v1.SeaDocumentService.ExecuteSeaDocumentVoid:output_type -> order.v1.ExecuteSeaDocumentVoidResponse
+	52, // 91: order.v1.SeaDocumentService.PreviewSeaHouseBillSwitch:output_type -> order.v1.PreviewSeaHouseBillSwitchResponse
+	54, // 92: order.v1.SeaDocumentService.ExecuteSeaHouseBillSwitch:output_type -> order.v1.ExecuteSeaHouseBillSwitchResponse
+	19, // 93: order.v1.SeaDocumentService.PreviewChangeSeaDocumentMode:output_type -> order.v1.PreviewChangeSeaDocumentModeResponse
+	22, // 94: order.v1.SeaDocumentService.ExecuteChangeSeaDocumentMode:output_type -> order.v1.ExecuteChangeSeaDocumentModeResponse
+	24, // 95: order.v1.SeaDocumentService.UpdateSeaHouseBill:output_type -> order.v1.UpdateSeaHouseBillResponse
+	26, // 96: order.v1.SeaDocumentService.UpdateSeaMasterBillContent:output_type -> order.v1.UpdateSeaMasterBillContentResponse
+	82, // [82:97] is the sub-list for method output_type
+	67, // [67:82] is the sub-list for method input_type
+	67, // [67:67] is the sub-list for extension type_name
+	67, // [67:67] is the sub-list for extension extendee
+	0,  // [0:67] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_sea_document_proto_init() }
@@ -5346,21 +5346,25 @@ func file_order_v1_sea_document_proto_init() {
 	file_order_v1_sea_document_proto_msgTypes[1].OneofWrappers = []any{}
 	file_order_v1_sea_document_proto_msgTypes[2].OneofWrappers = []any{}
 	file_order_v1_sea_document_proto_msgTypes[3].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[4].OneofWrappers = []any{}
 	file_order_v1_sea_document_proto_msgTypes[5].OneofWrappers = []any{}
 	file_order_v1_sea_document_proto_msgTypes[6].OneofWrappers = []any{}
-	file_order_v1_sea_document_proto_msgTypes[17].OneofWrappers = []any{}
-	file_order_v1_sea_document_proto_msgTypes[21].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[9].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[10].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[11].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[14].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[20].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[23].OneofWrappers = []any{}
 	file_order_v1_sea_document_proto_msgTypes[24].OneofWrappers = []any{}
-	file_order_v1_sea_document_proto_msgTypes[25].OneofWrappers = []any{}
-	file_order_v1_sea_document_proto_msgTypes[45].OneofWrappers = []any{}
-	file_order_v1_sea_document_proto_msgTypes[47].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[44].OneofWrappers = []any{}
+	file_order_v1_sea_document_proto_msgTypes[46].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_sea_document_proto_rawDesc), len(file_order_v1_sea_document_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   49,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

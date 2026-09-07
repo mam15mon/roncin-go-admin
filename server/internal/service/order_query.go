@@ -152,6 +152,10 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 			options.NumberType = biz.OrderNumberFilterMaster
 		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER:
 			options.NumberType = biz.OrderNumberFilterConsolidatedMaster
+		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE:
+			options.NumberType = biz.OrderNumberFilterCustomerReference
+		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_BOOKING:
+			options.NumberType = biz.OrderNumberFilterBooking
 		default:
 			return nil, biz.ErrOrderInvalidArgument
 		}
@@ -383,4 +387,44 @@ func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.
 
 func cargoMeasurementToAPI(value biz.OrderCargoMeasurement) *v1.OrderCargoMeasurement {
 	return &v1.OrderCargoMeasurement{Packages: int32(value.Packages), GrossWeightKg: value.GrossWeightKg, VolumeCbm: value.VolumeCbm}
+}
+
+func (s *OrderService) ListSameBatchOrders(ctx context.Context, request *v1.ListSameBatchOrdersRequest) (*v1.ListSameBatchOrdersResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderInvalidArgument
+	}
+	items, err := s.usecase.ListSameBatchOrders(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.SameBatchOrderSummary, 0, len(items))
+	for _, item := range items {
+		summary := &v1.SameBatchOrderSummary{
+			OrderId:      item.OrderID.String(),
+			OrderNo:      item.OrderNo,
+			FlowStatus:   orderFlowStatusToAPI(item.FlowStatus),
+			MatchSources: item.MatchSources,
+			CreatedAt:    item.CreatedAt.UTC().Format(timeFormatRFC3339),
+		}
+		if item.CustomerID != nil {
+			summary.CustomerId = stringPtrIfNotEmpty(item.CustomerID.String())
+		}
+		summary.CustomerReferenceNo = stringPtrIfNotEmpty(item.CustomerReferenceNo)
+		summary.BookingNo = stringPtrIfNotEmpty(item.BookingNo)
+		summary.MasterNo = stringPtrIfNotEmpty(item.MasterNo)
+		summary.HouseNo = stringPtrIfNotEmpty(item.HouseNo)
+		if item.TotalPackages != nil {
+			val := int32(*item.TotalPackages)
+			summary.TotalPackages = &val
+		}
+		summary.TotalGrossWeightKg = item.TotalGrossWeightKg
+		summary.TotalVolumeCbm = item.TotalVolumeCbm
+		data = append(data, summary)
+	}
+	return okList(ctx, &v1.ListSameBatchOrdersResponse{Data: data}), nil
 }

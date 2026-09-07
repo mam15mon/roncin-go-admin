@@ -53,6 +53,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetOrderNo(number).
 			SetCustomerID(input.CustomerID).
 			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetBookingNo(input.BookingNo).
 			SetInternalReferenceNo(input.InternalReferenceNo).
 			SetShipperShortName(input.ShipperShortName).
 			SetConsigneeShortName(input.ConsigneeShortName).
@@ -382,6 +383,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			SetVersion(existing.Version + 1).
 			SetCustomerID(input.CustomerID).
 			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetBookingNo(input.BookingNo).
 			SetInternalReferenceNo(input.InternalReferenceNo).
 			SetShipperShortName(input.ShipperShortName).
 			SetConsigneeShortName(input.ConsigneeShortName).
@@ -1225,19 +1227,19 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		}
 	}
 
-	hasHBLs := len(docInput.HouseBills) > 0
+	hasHBL := docInput.HouseBill != nil
 	targetStructure := seamasterbillorderlink.DocumentStructureHOUSE
 
 	if docInput.DocumentStructure != nil {
 		switch *docInput.DocumentStructure {
 		case biz.SeaDocumentStructureDirect:
-			if hasHBLs {
+			if hasHBL {
 				return biz.ErrSeaDocumentStructureInvalid
 			}
 			targetStructure = seamasterbillorderlink.DocumentStructureDIRECT
 		case biz.SeaDocumentStructureHouse:
-			if !hasHBLs {
-				return errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须至少包含一张分单")
+			if !hasHBL {
+				return errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须包含分单")
 			}
 			targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
 		}
@@ -1249,7 +1251,8 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		}
 	}
 
-	for _, hbInput := range docInput.HouseBills {
+	if hasHBL {
+		hbInput := docInput.HouseBill
 		normalized, err := biz.NormalizeSeaHouseNo(hbInput.HouseNo)
 		if err != nil {
 			return err
@@ -1295,7 +1298,11 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		audit.Details = make(map[string]string)
 	}
 	audit.Details["sea_document.initial_structure"] = string(targetStructure)
-	audit.Details["sea_house_bills.initial_count"] = fmt.Sprintf("%d", len(docInput.HouseBills))
+	initialCount := 0
+	if hasHBL {
+		initialCount = 1
+	}
+	audit.Details["sea_house_bills.initial_count"] = fmt.Sprintf("%d", initialCount)
 
 	return nil
 }
@@ -1313,8 +1320,8 @@ func syncOrderSeaDocumentOnUpdate(
 		return nil
 	}
 	docInput := input.SeaDocumentInput
-	if docInput.HouseBills != nil && len(docInput.HouseBills) > 0 {
-		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单集合变更，请使用专用单证命令")
+	if docInput.HouseBill != nil {
+		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单变更，请使用专用单证命令")
 	}
 
 	// 1. Order 已在 UpdateDraft 中加锁 ForUpdate
@@ -1416,10 +1423,8 @@ func syncOrderSeaDocumentOnUpdate(
 					return err
 				}
 			}
-		} else if targetStructure == biz.SeaDocumentStructureUndetermined {
-			return biz.ErrSeaDocumentStructureInvalid
 		} else if targetStructure == biz.SeaDocumentStructureHouse {
-			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "不能直接设置 HOUSE 结构，请通过添加分单命令进入 HOUSE 结构")
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "切换单证结构请使用专用模式切换命令")
 		}
 
 		if audit.Details == nil {

@@ -17,8 +17,7 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
-const OperationSeaDocumentServiceAddSeaHouseBill = "/order.v1.SeaDocumentService/AddSeaHouseBill"
-const OperationSeaDocumentServiceCancelSeaOrderDirect = "/order.v1.SeaDocumentService/CancelSeaOrderDirect"
+const OperationSeaDocumentServiceExecuteChangeSeaDocumentMode = "/order.v1.SeaDocumentService/ExecuteChangeSeaDocumentMode"
 const OperationSeaDocumentServiceExecuteSeaDocumentAmendment = "/order.v1.SeaDocumentService/ExecuteSeaDocumentAmendment"
 const OperationSeaDocumentServiceExecuteSeaDocumentVoid = "/order.v1.SeaDocumentService/ExecuteSeaDocumentVoid"
 const OperationSeaDocumentServiceExecuteSeaHouseBillSwitch = "/order.v1.SeaDocumentService/ExecuteSeaHouseBillSwitch"
@@ -27,19 +26,16 @@ const OperationSeaDocumentServiceGetSeaOrderDocuments = "/order.v1.SeaDocumentSe
 const OperationSeaDocumentServiceListSeaDocumentEvents = "/order.v1.SeaDocumentService/ListSeaDocumentEvents"
 const OperationSeaDocumentServiceListSeaHouseBillVersions = "/order.v1.SeaDocumentService/ListSeaHouseBillVersions"
 const OperationSeaDocumentServiceListSeaMasterBillVersions = "/order.v1.SeaDocumentService/ListSeaMasterBillVersions"
-const OperationSeaDocumentServiceMarkSeaOrderDirect = "/order.v1.SeaDocumentService/MarkSeaOrderDirect"
+const OperationSeaDocumentServicePreviewChangeSeaDocumentMode = "/order.v1.SeaDocumentService/PreviewChangeSeaDocumentMode"
 const OperationSeaDocumentServicePreviewSeaDocumentAmendment = "/order.v1.SeaDocumentService/PreviewSeaDocumentAmendment"
 const OperationSeaDocumentServicePreviewSeaDocumentVoid = "/order.v1.SeaDocumentService/PreviewSeaDocumentVoid"
 const OperationSeaDocumentServicePreviewSeaHouseBillSwitch = "/order.v1.SeaDocumentService/PreviewSeaHouseBillSwitch"
-const OperationSeaDocumentServiceRemoveSeaHouseBill = "/order.v1.SeaDocumentService/RemoveSeaHouseBill"
 const OperationSeaDocumentServiceUpdateSeaHouseBill = "/order.v1.SeaDocumentService/UpdateSeaHouseBill"
 const OperationSeaDocumentServiceUpdateSeaMasterBillContent = "/order.v1.SeaDocumentService/UpdateSeaMasterBillContent"
 
 type SeaDocumentServiceHTTPServer interface {
-	// AddSeaHouseBill AddSeaHouseBill 添加海运分单（HBL）。
-	AddSeaHouseBill(context.Context, *AddSeaHouseBillRequest) (*AddSeaHouseBillResponse, error)
-	// CancelSeaOrderDirect CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-	CancelSeaOrderDirect(context.Context, *CancelSeaOrderDirectRequest) (*CancelSeaOrderDirectResponse, error)
+	// ExecuteChangeSeaDocumentMode ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+	ExecuteChangeSeaDocumentMode(context.Context, *ExecuteChangeSeaDocumentModeRequest) (*ExecuteChangeSeaDocumentModeResponse, error)
 	// ExecuteSeaDocumentAmendment ExecuteSeaDocumentAmendment 发布改单版本。
 	ExecuteSeaDocumentAmendment(context.Context, *ExecuteSeaDocumentAmendmentRequest) (*ExecuteSeaDocumentAmendmentResponse, error)
 	// ExecuteSeaDocumentVoid ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。
@@ -56,16 +52,14 @@ type SeaDocumentServiceHTTPServer interface {
 	ListSeaHouseBillVersions(context.Context, *ListSeaHouseBillVersionsRequest) (*ListSeaHouseBillVersionsResponse, error)
 	// ListSeaMasterBillVersions ListSeaMasterBillVersions 分页读取当前订单共享 MBL 的不可变版本。
 	ListSeaMasterBillVersions(context.Context, *ListSeaMasterBillVersionsRequest) (*ListSeaMasterBillVersionsResponse, error)
-	// MarkSeaOrderDirect MarkSeaOrderDirect 明确标记海运订单为直单。
-	MarkSeaOrderDirect(context.Context, *MarkSeaOrderDirectRequest) (*MarkSeaOrderDirectResponse, error)
+	// PreviewChangeSeaDocumentMode PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+	PreviewChangeSeaDocumentMode(context.Context, *PreviewChangeSeaDocumentModeRequest) (*PreviewChangeSeaDocumentModeResponse, error)
 	// PreviewSeaDocumentAmendment PreviewSeaDocumentAmendment 基于当前不可变版本重算改单差异与影响。
 	PreviewSeaDocumentAmendment(context.Context, *PreviewSeaDocumentAmendmentRequest) (*PreviewSeaDocumentAmendmentResponse, error)
 	// PreviewSeaDocumentVoid PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。
 	PreviewSeaDocumentVoid(context.Context, *PreviewSeaDocumentVoidRequest) (*PreviewSeaDocumentVoidResponse, error)
 	// PreviewSeaHouseBillSwitch PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
 	PreviewSeaHouseBillSwitch(context.Context, *PreviewSeaHouseBillSwitchRequest) (*PreviewSeaHouseBillSwitchResponse, error)
-	// RemoveSeaHouseBill RemoveSeaHouseBill 移除海运分单。
-	RemoveSeaHouseBill(context.Context, *RemoveSeaHouseBillRequest) (*RemoveSeaHouseBillResponse, error)
 	// UpdateSeaHouseBill UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(context.Context, *UpdateSeaHouseBillRequest) (*UpdateSeaHouseBillResponse, error)
 	// UpdateSeaMasterBillContent UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
@@ -85,11 +79,9 @@ func RegisterSeaDocumentServiceHTTPServer(s *http.Server, srv SeaDocumentService
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/voids", _SeaDocumentService_ExecuteSeaDocumentVoid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview", _SeaDocumentService_PreviewSeaHouseBillSwitch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/house-bill-switches", _SeaDocumentService_ExecuteSeaHouseBillSwitch0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/mark-direct", _SeaDocumentService_MarkSeaOrderDirect0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/cancel-direct", _SeaDocumentService_CancelSeaOrderDirect0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/house-bills", _SeaDocumentService_AddSeaHouseBill0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/mode-change/preview", _SeaDocumentService_PreviewChangeSeaDocumentMode0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/mode-change", _SeaDocumentService_ExecuteChangeSeaDocumentMode0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}", _SeaDocumentService_UpdateSeaHouseBill0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}", _SeaDocumentService_RemoveSeaHouseBill0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/sea-documents/master-bill-content", _SeaDocumentService_UpdateSeaMasterBillContent0_HTTP_Handler(srv))
 }
 
@@ -335,68 +327,46 @@ func _SeaDocumentService_ExecuteSeaHouseBillSwitch0_HTTP_Handler(srv SeaDocument
 	}
 }
 
-func _SeaDocumentService_MarkSeaOrderDirect0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
+func _SeaDocumentService_PreviewChangeSeaDocumentMode0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in MarkSeaOrderDirectRequest
+		var in PreviewChangeSeaDocumentModeRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaDocumentServiceMarkSeaOrderDirect)
+		http.SetOperation(ctx, OperationSeaDocumentServicePreviewChangeSeaDocumentMode)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.MarkSeaOrderDirect(ctx, req.(*MarkSeaOrderDirectRequest))
+			return srv.PreviewChangeSeaDocumentMode(ctx, req.(*PreviewChangeSeaDocumentModeRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MarkSeaOrderDirectResponse)
+		reply := out.(*PreviewChangeSeaDocumentModeResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaDocumentService_CancelSeaOrderDirect0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
+func _SeaDocumentService_ExecuteChangeSeaDocumentMode0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in CancelSeaOrderDirectRequest
+		var in ExecuteChangeSeaDocumentModeRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaDocumentServiceCancelSeaOrderDirect)
+		http.SetOperation(ctx, OperationSeaDocumentServiceExecuteChangeSeaDocumentMode)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CancelSeaOrderDirect(ctx, req.(*CancelSeaOrderDirectRequest))
+			return srv.ExecuteChangeSeaDocumentMode(ctx, req.(*ExecuteChangeSeaDocumentModeRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*CancelSeaOrderDirectResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SeaDocumentService_AddSeaHouseBill0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AddSeaHouseBillRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeaDocumentServiceAddSeaHouseBill)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AddSeaHouseBill(ctx, req.(*AddSeaHouseBillRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AddSeaHouseBillResponse)
+		reply := out.(*ExecuteChangeSeaDocumentModeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -419,28 +389,6 @@ func _SeaDocumentService_UpdateSeaHouseBill0_HTTP_Handler(srv SeaDocumentService
 			return err
 		}
 		reply := out.(*UpdateSeaHouseBillResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SeaDocumentService_RemoveSeaHouseBill0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RemoveSeaHouseBillRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeaDocumentServiceRemoveSeaHouseBill)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RemoveSeaHouseBill(ctx, req.(*RemoveSeaHouseBillRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RemoveSeaHouseBillResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -468,10 +416,8 @@ func _SeaDocumentService_UpdateSeaMasterBillContent0_HTTP_Handler(srv SeaDocumen
 }
 
 type SeaDocumentServiceHTTPClient interface {
-	// AddSeaHouseBill AddSeaHouseBill 添加海运分单（HBL）。
-	AddSeaHouseBill(ctx context.Context, req *AddSeaHouseBillRequest, opts ...http.CallOption) (rsp *AddSeaHouseBillResponse, err error)
-	// CancelSeaOrderDirect CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-	CancelSeaOrderDirect(ctx context.Context, req *CancelSeaOrderDirectRequest, opts ...http.CallOption) (rsp *CancelSeaOrderDirectResponse, err error)
+	// ExecuteChangeSeaDocumentMode ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+	ExecuteChangeSeaDocumentMode(ctx context.Context, req *ExecuteChangeSeaDocumentModeRequest, opts ...http.CallOption) (rsp *ExecuteChangeSeaDocumentModeResponse, err error)
 	// ExecuteSeaDocumentAmendment ExecuteSeaDocumentAmendment 发布改单版本。
 	ExecuteSeaDocumentAmendment(ctx context.Context, req *ExecuteSeaDocumentAmendmentRequest, opts ...http.CallOption) (rsp *ExecuteSeaDocumentAmendmentResponse, err error)
 	// ExecuteSeaDocumentVoid ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。
@@ -488,16 +434,14 @@ type SeaDocumentServiceHTTPClient interface {
 	ListSeaHouseBillVersions(ctx context.Context, req *ListSeaHouseBillVersionsRequest, opts ...http.CallOption) (rsp *ListSeaHouseBillVersionsResponse, err error)
 	// ListSeaMasterBillVersions ListSeaMasterBillVersions 分页读取当前订单共享 MBL 的不可变版本。
 	ListSeaMasterBillVersions(ctx context.Context, req *ListSeaMasterBillVersionsRequest, opts ...http.CallOption) (rsp *ListSeaMasterBillVersionsResponse, err error)
-	// MarkSeaOrderDirect MarkSeaOrderDirect 明确标记海运订单为直单。
-	MarkSeaOrderDirect(ctx context.Context, req *MarkSeaOrderDirectRequest, opts ...http.CallOption) (rsp *MarkSeaOrderDirectResponse, err error)
+	// PreviewChangeSeaDocumentMode PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+	PreviewChangeSeaDocumentMode(ctx context.Context, req *PreviewChangeSeaDocumentModeRequest, opts ...http.CallOption) (rsp *PreviewChangeSeaDocumentModeResponse, err error)
 	// PreviewSeaDocumentAmendment PreviewSeaDocumentAmendment 基于当前不可变版本重算改单差异与影响。
 	PreviewSeaDocumentAmendment(ctx context.Context, req *PreviewSeaDocumentAmendmentRequest, opts ...http.CallOption) (rsp *PreviewSeaDocumentAmendmentResponse, err error)
 	// PreviewSeaDocumentVoid PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。
 	PreviewSeaDocumentVoid(ctx context.Context, req *PreviewSeaDocumentVoidRequest, opts ...http.CallOption) (rsp *PreviewSeaDocumentVoidResponse, err error)
 	// PreviewSeaHouseBillSwitch PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
 	PreviewSeaHouseBillSwitch(ctx context.Context, req *PreviewSeaHouseBillSwitchRequest, opts ...http.CallOption) (rsp *PreviewSeaHouseBillSwitchResponse, err error)
-	// RemoveSeaHouseBill RemoveSeaHouseBill 移除海运分单。
-	RemoveSeaHouseBill(ctx context.Context, req *RemoveSeaHouseBillRequest, opts ...http.CallOption) (rsp *RemoveSeaHouseBillResponse, err error)
 	// UpdateSeaHouseBill UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(ctx context.Context, req *UpdateSeaHouseBillRequest, opts ...http.CallOption) (rsp *UpdateSeaHouseBillResponse, err error)
 	// UpdateSeaMasterBillContent UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
@@ -512,33 +456,15 @@ func NewSeaDocumentServiceHTTPClient(client *http.Client) SeaDocumentServiceHTTP
 	return &SeaDocumentServiceHTTPClientImpl{client}
 }
 
-// AddSeaHouseBill AddSeaHouseBill 添加海运分单（HBL）。
-func (c *SeaDocumentServiceHTTPClientImpl) AddSeaHouseBill(ctx context.Context, in *AddSeaHouseBillRequest, opts ...http.CallOption) (*AddSeaHouseBillResponse, error) {
-	var out AddSeaHouseBillResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/house-bills"
+// ExecuteChangeSeaDocumentMode ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+func (c *SeaDocumentServiceHTTPClientImpl) ExecuteChangeSeaDocumentMode(ctx context.Context, in *ExecuteChangeSeaDocumentModeRequest, opts ...http.CallOption) (*ExecuteChangeSeaDocumentModeResponse, error) {
+	var out ExecuteChangeSeaDocumentModeResponse
+	pattern := "/api/v1/orders/{order_id}/sea-documents/mode-change"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaDocumentServiceAddSeaHouseBill),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// CancelSeaOrderDirect CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-func (c *SeaDocumentServiceHTTPClientImpl) CancelSeaOrderDirect(ctx context.Context, in *CancelSeaOrderDirectRequest, opts ...http.CallOption) (*CancelSeaOrderDirectResponse, error) {
-	var out CancelSeaOrderDirectResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/cancel-direct"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaDocumentServiceCancelSeaOrderDirect),
+		http.Operation(OperationSeaDocumentServiceExecuteChangeSeaDocumentMode),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -687,15 +613,15 @@ func (c *SeaDocumentServiceHTTPClientImpl) ListSeaMasterBillVersions(ctx context
 	return &out, nil
 }
 
-// MarkSeaOrderDirect MarkSeaOrderDirect 明确标记海运订单为直单。
-func (c *SeaDocumentServiceHTTPClientImpl) MarkSeaOrderDirect(ctx context.Context, in *MarkSeaOrderDirectRequest, opts ...http.CallOption) (*MarkSeaOrderDirectResponse, error) {
-	var out MarkSeaOrderDirectResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/mark-direct"
+// PreviewChangeSeaDocumentMode PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+func (c *SeaDocumentServiceHTTPClientImpl) PreviewChangeSeaDocumentMode(ctx context.Context, in *PreviewChangeSeaDocumentModeRequest, opts ...http.CallOption) (*PreviewChangeSeaDocumentModeResponse, error) {
+	var out PreviewChangeSeaDocumentModeResponse
+	pattern := "/api/v1/orders/{order_id}/sea-documents/mode-change/preview"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaDocumentServiceMarkSeaOrderDirect),
+		http.Operation(OperationSeaDocumentServicePreviewChangeSeaDocumentMode),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -753,23 +679,6 @@ func (c *SeaDocumentServiceHTTPClientImpl) PreviewSeaHouseBillSwitch(ctx context
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// RemoveSeaHouseBill RemoveSeaHouseBill 移除海运分单。
-func (c *SeaDocumentServiceHTTPClientImpl) RemoveSeaHouseBill(ctx context.Context, in *RemoveSeaHouseBillRequest, opts ...http.CallOption) (*RemoveSeaHouseBillResponse, error) {
-	var out RemoveSeaHouseBillResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationSeaDocumentServiceRemoveSeaHouseBill),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

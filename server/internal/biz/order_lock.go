@@ -26,10 +26,11 @@ const (
 	UnlockStatusDispatchUnknown      = "DISPATCH_UNKNOWN"
 	UnlockStatusStale                = "STALE"
 
-	VersionSourceOrderLock = "ORDER_LOCK"
-	VersionSourceAmendment = "AMENDMENT"
-	VersionSourceSwitch    = "SWITCH"
-	VersionSourceVoid      = "VOID"
+	VersionSourceOrderLock  = "ORDER_LOCK"
+	VersionSourceAmendment  = "AMENDMENT"
+	VersionSourceSwitch     = "SWITCH"
+	VersionSourceVoid       = "VOID"
+	VersionSourceModeChange = "MODE_CHANGE"
 )
 
 var (

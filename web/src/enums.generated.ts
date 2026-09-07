@@ -322,6 +322,7 @@ export const OrderReferenceType = {
   ORDER_REFERENCE_TYPE_UNSPECIFIED: 0,
   ORDER_REFERENCE_TYPE_CUSTOMER: 1,
   ORDER_REFERENCE_TYPE_INTERNAL: 2,
+  ORDER_REFERENCE_TYPE_BOOKING: 3,
 } as const;
 
 export type OrderReferenceType = (typeof OrderReferenceType)[keyof typeof OrderReferenceType];
@@ -331,6 +332,8 @@ export const OrderNumberFilterType = {
   ORDER_NUMBER_FILTER_TYPE_ORDER: 1,
   ORDER_NUMBER_FILTER_TYPE_MASTER: 2,
   ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER: 3,
+  ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE: 4,
+  ORDER_NUMBER_FILTER_TYPE_BOOKING: 5,
 } as const;
 
 export type OrderNumberFilterType = (typeof OrderNumberFilterType)[keyof typeof OrderNumberFilterType];
@@ -468,7 +471,6 @@ export type SeaCargoAllocationAction = (typeof SeaCargoAllocationAction)[keyof t
 
 export const SeaDocumentStructure = {
   SEA_DOCUMENT_STRUCTURE_UNSPECIFIED: 0,
-  SEA_DOCUMENT_STRUCTURE_UNDETERMINED: 1,
   SEA_DOCUMENT_STRUCTURE_DIRECT: 2,
   SEA_DOCUMENT_STRUCTURE_HOUSE: 3,
 } as const;
@@ -490,19 +492,15 @@ export const SeaHouseBillStatus = {
   SEA_HOUSE_BILL_STATUS_CONFIRMED: 2,
   SEA_HOUSE_BILL_STATUS_RELEASED: 3,
   SEA_HOUSE_BILL_STATUS_VOIDED: 4,
-  SEA_HOUSE_BILL_STATUS_REPLACED: 5,
 } as const;
 
 export type SeaHouseBillStatus = (typeof SeaHouseBillStatus)[keyof typeof SeaHouseBillStatus];
 
 export const SeaDocumentAction = {
   SEA_DOCUMENT_ACTION_UNSPECIFIED: 0,
-  SEA_DOCUMENT_ACTION_MARK_DIRECT: 1,
-  SEA_DOCUMENT_ACTION_CANCEL_DIRECT: 2,
-  SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL: 3,
   SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL: 4,
-  SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL: 5,
   SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT: 6,
+  SEA_DOCUMENT_ACTION_CHANGE_MODE: 7,
 } as const;
 
 export type SeaDocumentAction = (typeof SeaDocumentAction)[keyof typeof SeaDocumentAction];
@@ -519,8 +517,8 @@ export const SeaDocumentVersionSource = {
   SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED: 0,
   SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK: 1,
   SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT: 2,
-  SEA_DOCUMENT_VERSION_SOURCE_SWITCH: 3,
   SEA_DOCUMENT_VERSION_SOURCE_VOID: 4,
+  SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE: 5,
 } as const;
 
 export type SeaDocumentVersionSource = (typeof SeaDocumentVersionSource)[keyof typeof SeaDocumentVersionSource];
@@ -529,7 +527,7 @@ export const SeaDocumentEventType = {
   SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED: 0,
   SEA_DOCUMENT_EVENT_TYPE_AMENDMENT: 1,
   SEA_DOCUMENT_EVENT_TYPE_VOID: 2,
-  SEA_DOCUMENT_EVENT_TYPE_SWITCH: 3,
+  SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE: 4,
 } as const;
 
 export type SeaDocumentEventType = (typeof SeaDocumentEventType)[keyof typeof SeaDocumentEventType];

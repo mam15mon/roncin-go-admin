@@ -1,30 +1,21 @@
-//go:build ignore
-// 待阶段 2 适配单值 HBL 与移除 UNDETERMINED 后恢复
-
 package data
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
-	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 )
 
-
+func ptr[T any](v T) *T {
+	return &v
+}
 
 func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
@@ -32,6 +23,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	ctx := context.Background()
 	repo := NewSeaDocumentRepo(data)
+	orderRepo := NewOrderRepo(data)
 
 	// 1. 创建测试总部组织与下属部门组织
 	hqOrg, err := data.db.Organization.Create().
@@ -43,9 +35,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试总部组织失败: %v", err)
 	}
-	defer func() {
-		_ = data.db.Organization.DeleteOne(hqOrg).Exec(ctx)
-	}()
 
 	deptOrg, err := data.db.Organization.Create().
 		SetCode("TEST-DEPT-" + uuid.New().String()[:8]).
@@ -56,9 +45,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试部门组织失败: %v", err)
 	}
-	defer func() {
-		_ = data.db.Organization.DeleteOne(deptOrg).Exec(ctx)
-	}()
 
 	// 2. 创建客户 Partner
 	customerPartner, err := data.db.Partner.Create().
@@ -70,9 +56,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试客户失败: %v", err)
 	}
-	defer func() {
-		_ = data.db.Partner.DeleteOne(customerPartner).Exec(ctx)
-	}()
 	if _, err := data.db.PartnerRole.Create().
 		SetPartnerID(customerPartner.ID).
 		SetRoleType(partnerroleent.RoleTypeCustomer).
@@ -93,69 +76,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试船公司失败: %v", err)
 	}
-	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
-
-	// 4. 创建测试订单（所属 deptOrg）
-	testOrder, err := data.db.Order.Create().
-		SetOrganizationID(deptOrg.ID).
-		SetOrderNo("SE-TEST-" + uuid.New().String()[:8]).
-		SetCustomerID(customerPartner.ID).
-		SetShippingLineID(shippingLine.ID).
-		SetBusinessType("SE").
-		SetTradeDirection("export").
-		SetTradeTerm("FOB").
-		SetPaymentTerm("PREPAID").
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试订单失败: %v", err)
-	}
-	defer func() {
-		_ = data.db.Order.DeleteOne(testOrder).Exec(ctx)
-	}()
-
-	// 4.5. 创建运输执行实体
-	te, err := data.db.SeaTransportExecution.Create().
-		SetOrganizationID(deptOrg.ID).
-		SetShippingLineID(shippingLine.ID).
-		SetVesselName("EVER GIVEN").
-		SetVoyageNo("001W").
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试运输执行失败: %v", err)
-	}
-	defer func() {
-		_ = data.db.SeaTransportExecution.DeleteOne(te).Exec(ctx)
-	}()
-
-	// 5. 创建主单与 link
-	masterNo := "TESTMBL" + uuid.New().String()[:8]
-	mbl, err := data.db.SeaMasterBill.Create().
-		SetOrganizationID(deptOrg.ID).
-		SetTransportExecutionID(te.ID).
-		SetMasterNo(masterNo).
-		SetNormalizedMasterNo(masterNo).
-		SetShippingLineID(shippingLine.ID).
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试主单失败: %v", err)
-	}
-	defer func() {
-		_ = data.db.SeaMasterBill.DeleteOne(mbl).Exec(ctx)
-	}()
-
-	link, err := data.db.SeaMasterBillOrderLink.Create().
-		SetOrganizationID(deptOrg.ID).
-		SetOrderID(testOrder.ID).
-		SetMasterBillID(mbl.ID).
-		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
-		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureUNDETERMINED).
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试主单关联合约失败: %v", err)
-	}
-	defer func() {
-		_ = data.db.SeaMasterBillOrderLink.DeleteOne(link).Exec(ctx)
-	}()
 
 	actorID := uuid.New()
 	makeAudit := func() *biz.AuditEvent {
@@ -166,274 +86,260 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		}
 	}
 
-	// 校验 1：初始查询应为未确定
-	docAgg, err := repo.GetSeaOrderDocuments(ctx, deptOrg.ID, testOrder.ID)
+	// 4. 创建 DIRECT 订单与关联验证
+	directOrder, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-DIR-" + uuid.New().String()[:8]).
+		SetCustomerID(customerPartner.ID).
+		SetShippingLineID(shippingLine.ID).
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
 	if err != nil {
-		t.Fatalf("GetSeaOrderDocuments failed: %v", err)
+		t.Fatalf("创建 DIRECT 订单失败: %v", err)
 	}
-	if docAgg.DocumentStructure != biz.SeaDocumentStructureUndetermined {
-		t.Fatalf("expected UNDETERMINED, got %s", docAgg.DocumentStructure)
-	}
-	if docAgg.LinkVersion != link.Version {
-		t.Fatalf("expected link version %d, got %d", link.Version, docAgg.LinkVersion)
-	}
-
-	// 校验 2：业务行更新后 writeAudit 失败时，整个事务必须回滚。
-	failedAudit := makeAudit()
-	failedAudit.Result = "invalid-result"
-	_, err = repo.MarkSeaOrderDirect(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, failedAudit)
-	if err == nil {
-		t.Fatal("writeAudit 使用非法 result 时应失败")
-	}
-	rolledBackLink, err := data.db.SeaMasterBillOrderLink.Get(ctx, link.ID)
+	teDirect, err := data.db.SeaTransportExecution.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetShippingLineID(shippingLine.ID).
+		SetVesselName("EVER GIVEN").
+		SetVoyageNo("001W").
+		Save(ctx)
 	if err != nil {
-		t.Fatalf("审计失败后重读活动关联失败: %v", err)
+		t.Fatalf("创建 DIRECT 运输执行失败: %v", err)
 	}
-	if rolledBackLink.DocumentStructure != seamasterbillorderlinkent.DocumentStructureUNDETERMINED || rolledBackLink.Version != link.Version {
-		t.Fatalf("审计失败后业务写入未回滚: structure=%s version=%d", rolledBackLink.DocumentStructure, rolledBackLink.Version)
-	}
-	var failedAuditCount int
-	if err := data.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM audit_logs WHERE action = 'order.sea_document.mark_direct'`).Scan(&failedAuditCount); err != nil {
-		t.Fatalf("审计失败后统计审计行失败: %v", err)
-	}
-	if failedAuditCount != 0 {
-		t.Fatalf("审计失败不得留下审计行，实际 %d", failedAuditCount)
-	}
-
-	// 校验 3：MarkSeaOrderDirect 标记直单
-	docAgg, err = repo.MarkSeaOrderDirect(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, makeAudit())
+	mblDirectNo := "TESTDIRMBL" + uuid.New().String()[:6]
+	mblDirect, err := data.db.SeaMasterBill.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetMasterNo(mblDirectNo).
+		SetNormalizedMasterNo(mblDirectNo).
+		SetShippingLineID(shippingLine.ID).
+		Save(ctx)
 	if err != nil {
-		t.Fatalf("MarkSeaOrderDirect failed: %v", err)
+		t.Fatalf("创建 DIRECT MBL 失败: %v", err)
 	}
-	if docAgg.DocumentStructure != biz.SeaDocumentStructureDirect {
-		t.Fatalf("expected DIRECT, got %s", docAgg.DocumentStructure)
-	}
-
-	// 校验 4：DIRECT 下禁止添加 HBL
-	_, err = repo.AddSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, &biz.SeaHouseBillInput{
-		HouseNo:      "HBL-DIRECT-FAIL",
-		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
-	}, makeAudit())
-	if err != biz.ErrSeaDocumentDirectAddHBLBlocked {
-		t.Fatalf("expected ErrSeaDocumentDirectAddHBLBlocked under DIRECT, got: %v", err)
-	}
-
-	// 校验 5：CancelSeaOrderDirect 取消直单回到未确定
-	docAgg, err = repo.CancelSeaOrderDirect(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, makeAudit())
+	linkDirect, err := data.db.SeaMasterBillOrderLink.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(directOrder.ID).
+		SetMasterBillID(mblDirect.ID).
+		SetTransportExecutionID(teDirect.ID).
+		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureDIRECT).
+		Save(ctx)
 	if err != nil {
-		t.Fatalf("CancelSeaOrderDirect failed: %v", err)
-	}
-	if docAgg.DocumentStructure != biz.SeaDocumentStructureUndetermined {
-		t.Fatalf("expected UNDETERMINED, got %s", docAgg.DocumentStructure)
+		t.Fatalf("创建 DIRECT link 失败: %v", err)
 	}
 
-	// 校验 5：添加 SELF_ORGANIZATION 分单（应向上解析到 hqOrg），原号无损保存
+	// 校验 1：DIRECT 单证查询验证（HouseBill 为空，允许操作不包含 UPDATE_HOUSE_BILL）
+	docAggDirect, err := repo.GetSeaOrderDocuments(ctx, deptOrg.ID, directOrder.ID)
+	if err != nil {
+		t.Fatalf("GetSeaOrderDocuments direct failed: %v", err)
+	}
+	if docAggDirect.DocumentStructure != biz.SeaDocumentStructureDirect {
+		t.Fatalf("expected DIRECT, got %s", docAggDirect.DocumentStructure)
+	}
+	if docAggDirect.HouseBill != nil {
+		t.Fatalf("expected nil HouseBill for DIRECT, got %+v", docAggDirect.HouseBill)
+	}
+	if docAggDirect.LinkVersion != linkDirect.Version {
+		t.Fatalf("expected link version %d, got %d", linkDirect.Version, docAggDirect.LinkVersion)
+	}
+	hasUpdateHB := false
+	for _, action := range docAggDirect.AllowedActions {
+		if action == biz.SeaDocumentActionUpdateHouseBill {
+			hasUpdateHB = true
+		}
+	}
+	if hasUpdateHB {
+		t.Fatalf("DIRECT 模式下允许动作不应包含 UPDATE_HOUSE_BILL")
+	}
+
+	// 5. 创建 HOUSE 订单及唯一分单
+	houseOrder, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-HSE-" + uuid.New().String()[:8]).
+		SetCustomerID(customerPartner.ID).
+		SetShippingLineID(shippingLine.ID).
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 HOUSE 订单失败: %v", err)
+	}
+	teHouse, err := data.db.SeaTransportExecution.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetShippingLineID(shippingLine.ID).
+		SetVesselName("EVER SMART").
+		SetVoyageNo("002E").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 HOUSE 运输执行失败: %v", err)
+	}
+	mblHouseNo := "TESTHSEMBL" + uuid.New().String()[:6]
+	mblHouse, err := data.db.SeaMasterBill.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetMasterNo(mblHouseNo).
+		SetNormalizedMasterNo(mblHouseNo).
+		SetShippingLineID(shippingLine.ID).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 HOUSE MBL 失败: %v", err)
+	}
+	linkHouse, err := data.db.SeaMasterBillOrderLink.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(houseOrder.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetTransportExecutionID(teHouse.ID).
+		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 HOUSE link 失败: %v", err)
+	}
+	_ = linkHouse
+
 	rawHouseNo := "  COSU 000123 / 2026.B  "
-	createdHB, err := repo.AddSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, &biz.SeaHouseBillInput{
-		HouseNo:      rawHouseNo,
+	hbHouse, err := data.db.SeaHouseBill.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(houseOrder.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetHouseNo(rawHouseNo).
+		SetNormalizedHouseNo("COSU 000123 / 2026.B").
+		SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
+		SetIssuerOrganizationID(hqOrg.ID).
+		SetStatus(seahousebillent.StatusDRAFT).
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 HOUSE HBL 失败: %v", err)
+	}
+
+	// 校验 2：HOUSE 单证查询验证（单值 HBL、IssuerOrg 向上解析）
+	docAggHouse, err := repo.GetSeaOrderDocuments(ctx, deptOrg.ID, houseOrder.ID)
+	if err != nil {
+		t.Fatalf("GetSeaOrderDocuments house failed: %v", err)
+	}
+	if docAggHouse.DocumentStructure != biz.SeaDocumentStructureHouse {
+		t.Fatalf("expected HOUSE, got %s", docAggHouse.DocumentStructure)
+	}
+	if docAggHouse.HouseBill == nil {
+		t.Fatal("expected non-nil HouseBill for HOUSE")
+	}
+	if docAggHouse.HouseBill.HouseNo != rawHouseNo {
+		t.Fatalf("expected raw houseNo preserved verbatim %q, got %q", rawHouseNo, docAggHouse.HouseBill.HouseNo)
+	}
+	if docAggHouse.HouseBill.IssuerOrganizationID == nil || *docAggHouse.HouseBill.IssuerOrganizationID != hqOrg.ID {
+		t.Fatalf("expected IssuerOrganizationID = %s (hqOrg), got %v", hqOrg.ID, docAggHouse.HouseBill.IssuerOrganizationID)
+	}
+
+	// 校验 3：条件唯一索引（idx_sea_house_bills_current_order_unique）
+	// 同一订单创建第二张非 VOIDED 分单必须触发唯一性冲突
+	_, err = data.db.SeaHouseBill.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(houseOrder.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetHouseNo("HBL-DUPLICATE-FAIL").
+		SetNormalizedHouseNo("HBL-DUPLICATE-FAIL").
+		SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
+		SetIssuerOrganizationID(hqOrg.ID).
+		SetStatus(seahousebillent.StatusDRAFT).
+		SetVersion(1).
+		Save(ctx)
+	if err == nil {
+		t.Fatal("同一订单创建第二张活动分单必须触发唯一约束冲突，实际成功")
+	}
+
+	// 校验 4：UpdateSeaHouseBill 校验、版本递增与版本冲突
+	pkgCount := int32(100)
+	updatedHB, err := repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+		HouseNo:      "COSU 000123 / 2026.B",
 		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 		Content: &biz.SeaBillContent{
-			ShipperText: ptr("  SHIPPER 1  "),
+			ShipperText:  ptr("  UPDATED SHIPPER  "),
+			PackageCount: &pkgCount,
 		},
 	}, makeAudit())
 	if err != nil {
-		t.Fatalf("AddSeaHouseBill self org failed: %v", err)
+		t.Fatalf("UpdateSeaHouseBill failed: %v", err)
 	}
-	if createdHB.HouseNo != rawHouseNo {
-		t.Fatalf("AddSeaHouseBill houseNo should be preserved verbatim %q, got %q", rawHouseNo, createdHB.HouseNo)
+	if updatedHB.Version != hbHouse.Version+1 {
+		t.Fatalf("expected HBL version %d, got %d", hbHouse.Version+1, updatedHB.Version)
 	}
-	if createdHB.IssuerOrganizationID == nil || *createdHB.IssuerOrganizationID != hqOrg.ID {
-		t.Fatalf("expected IssuerOrganizationID = %s (hqOrg), got %v", hqOrg.ID, createdHB.IssuerOrganizationID)
-	}
-	defer func() {
-		_ = data.db.SeaHouseBill.DeleteOneID(createdHB.ID).Exec(ctx)
-	}()
-
-	// 真实海运 MBL/HBL 引用必须由放货记录仓储在订单锁后按当前活动关系验证。
-	releasePodUsecase := biz.NewOrderReleasePodUsecase(NewOrderReleasePodRepo(data))
-	mblPod, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
-		SeaDocumentType: biz.SeaDocumentTypeMasterBill,
-		SeaDocumentID:   &mbl.ID,
-		ReleaseNo:       ptr("REL-MBL"),
-	})
-	if err != nil {
-		t.Fatalf("添加关联当前 MBL 的放货记录失败: %v", err)
-	}
-	defer func() {
-		_ = data.db.OrderReleasePod.DeleteOneID(mblPod.ID).Exec(ctx)
-	}()
-	if mblPod.SeaDocumentType != biz.SeaDocumentTypeMasterBill || mblPod.SeaDocumentID == nil || *mblPod.SeaDocumentID != mbl.ID {
-		t.Fatalf("MBL 放货记录回显错误: %+v", mblPod)
-	}
-	invalidMBLID := uuid.New()
-	if _, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
-		SeaDocumentType: biz.SeaDocumentTypeMasterBill,
-		SeaDocumentID:   &invalidMBLID,
-	}); err != biz.ErrOrderReleasePodDocumentInvalid {
-		t.Fatalf("非当前 MBL 引用错误 = %v，期望 %v", err, biz.ErrOrderReleasePodDocumentInvalid)
-	}
-	// 重新获取聚合对象验证结构已自动转为 HOUSE
-	docAgg, err = repo.GetSeaOrderDocuments(ctx, deptOrg.ID, testOrder.ID)
-	if err != nil {
-		t.Fatalf("GetSeaOrderDocuments after AddSeaHouseBill failed: %v", err)
-	}
-	if docAgg.DocumentStructure != biz.SeaDocumentStructureHouse {
-		t.Fatalf("expected HOUSE after adding HBL, got %s", docAgg.DocumentStructure)
+	if updatedHB.Content.ShipperText == nil || *updatedHB.Content.ShipperText != "UPDATED SHIPPER" {
+		t.Fatalf("expected ShipperText trimmed to 'UPDATED SHIPPER', got %v", updatedHB.Content.ShipperText)
 	}
 
-	// 校验 6：UpdateSeaMasterBillContent 校验与版本冲突
-	pkgCount := int32(50)
+	// 旧 HBL 版本更新必须触发冲突
+	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+		HouseNo:      "COSU 000123 / 2026.B",
+		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+	}, makeAudit())
+	if err != biz.ErrSeaHouseBillConflict {
+		t.Fatalf("expected ErrSeaHouseBillConflict on stale HBL version, got: %v", err)
+	}
+
+	// 旧 Link 版本更新必须触发结构冲突
+	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, updatedHB.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+		HouseNo:      "COSU 000123 / 2026.B",
+		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+	}, makeAudit())
+	if err != biz.ErrSeaDocumentStructureConflict {
+		t.Fatalf("expected ErrSeaDocumentStructureConflict on stale Link version, got: %v", err)
+	}
+
+	// 校验 5：UpdateSeaMasterBillContent 校验与版本冲突
+	mblPkgCount := int32(50)
 	gw := 1200.0
 	cbm := 15.5
-	updatedMbl, err := repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.MasterBill.Version, &biz.SeaBillContent{
+	updatedMbl, err := repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
 		ShipperText:   ptr("  MBL SHIPPER  "),
-		PackageCount:  &pkgCount,
+		PackageCount:  &mblPkgCount,
 		GrossWeightKg: &gw,
 		VolumeCbm:     &cbm,
 	}, makeAudit())
 	if err != nil {
 		t.Fatalf("UpdateSeaMasterBillContent failed: %v", err)
 	}
-	if updatedMbl.Version != docAgg.MasterBill.Version+1 {
-		t.Fatalf("expected MBL version %d, got %d", docAgg.MasterBill.Version+1, updatedMbl.Version)
+	if updatedMbl.Version != docAggHouse.MasterBill.Version+1 {
+		t.Fatalf("expected MBL version %d, got %d", docAggHouse.MasterBill.Version+1, updatedMbl.Version)
 	}
 	if updatedMbl.Content.ShipperText == nil || *updatedMbl.Content.ShipperText != "MBL SHIPPER" {
 		t.Fatalf("expected MBL ShipperText to be trimmed to 'MBL SHIPPER', got %v", *updatedMbl.Content.ShipperText)
 	}
 
 	// 旧版本更新应触发 409 Conflict
-	_, err = repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.MasterBill.Version, &biz.SeaBillContent{
+	_, err = repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
 		ShipperText: ptr("STALE UPDATE"),
 	}, makeAudit())
 	if err != biz.ErrSeaMasterBillConflict {
 		t.Fatalf("expected ErrSeaMasterBillConflict on stale MBL version, got: %v", err)
 	}
 
-	// 校验 7：删除最后一张 HBL 如果没有传 returnToUndetermined=true 必须被拒绝
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, false, false, makeAudit())
-	if err != biz.ErrSeaDocumentDeleteLastHBLConfirmationRequired {
-		t.Fatalf("expected ErrSeaDocumentDeleteLastHBLConfirmationRequired, got %v", err)
-	}
-
-	// 校验 8：HBL 版本冲突校验
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version+99, docAgg.LinkVersion, true, false, makeAudit())
-	if err != biz.ErrSeaHouseBillConflict {
-		t.Fatalf("expected ErrSeaHouseBillConflict on mismatched HBL version, got %v", err)
-	}
-
-	// 校验 9：有关联放货记录时必须显式确认，且已回单记录始终阻断。
-	pendingPod, err := releasePodUsecase.Add(ctx, deptOrg.ID, actorID, testOrder.ID, &biz.OrderReleasePod{
-		SeaDocumentType: biz.SeaDocumentTypeHouseBill,
-		SeaDocumentID:   &createdHB.ID,
-		ReleaseNo:       ptr("REL-PENDING"),
-	})
+	// 校验 6：当存在 CUSTOMER_PARTNER 签发的分单时，修改订单客户必须被阻断
+	// 先将旧 HBL 置为 VOIDED，以允许为同一个订单创建新的 CUSTOMER_PARTNER HBL
+	_, err = data.db.SeaHouseBill.UpdateOneID(hbHouse.ID).SetStatus(seahousebillent.StatusVOIDED).Save(ctx)
 	if err != nil {
-		t.Fatalf("添加关联当前 HBL 的放货记录失败: %v", err)
-	}
-	if pendingPod.SeaDocumentType != biz.SeaDocumentTypeHouseBill || pendingPod.SeaDocumentID == nil || *pendingPod.SeaDocumentID != createdHB.ID {
-		t.Fatalf("HBL 放货记录回显错误: %+v", pendingPod)
+		t.Fatalf("置废原分单失败: %v", err)
 	}
 
-	signedPod, err := data.db.OrderReleasePod.Create().
-		SetOrderID(testOrder.ID).
-		SetSeaHouseBillID(createdHB.ID).
-		SetReleaseNo("REL-SIGNED").
-		SetStatus(orderreleasepodent.StatusSIGNED).
+	custHB, err := data.db.SeaHouseBill.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(houseOrder.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetHouseNo("HBL-CUST-ACTIVE").
+		SetNormalizedHouseNo("HBL-CUST-ACTIVE").
+		SetIssuerSource(seahousebillent.IssuerSourceCUSTOMER_PARTNER).
+		SetIssuerPartnerID(customerPartner.ID).
+		SetStatus(seahousebillent.StatusDRAFT).
+		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建已签收放货记录失败: %v", err)
+		t.Fatalf("创建 CUSTOMER_PARTNER 分单失败: %v", err)
 	}
-	returnedPod, err := data.db.OrderReleasePod.Create().
-		SetOrderID(testOrder.ID).
-		SetSeaHouseBillID(createdHB.ID).
-		SetReleaseNo("REL-RETURNED").
-		SetStatus(orderreleasepodent.StatusRETURNED).
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建已回单放货记录失败: %v", err)
-	}
-
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, makeAudit())
-	if err != biz.ErrSeaHouseBillReturnedReleasePodBlocked {
-		t.Fatalf("存在已回单放货记录时错误 = %v，期望 %v", err, biz.ErrSeaHouseBillReturnedReleasePodBlocked)
-	}
-	if err := data.db.OrderReleasePod.DeleteOne(returnedPod).Exec(ctx); err != nil {
-		t.Fatalf("移除已回单测试记录失败: %v", err)
-	}
-
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, false, makeAudit())
-	if err != biz.ErrSeaHouseBillReleasePodConfirmationRequired {
-		t.Fatalf("未确认关联删除时错误 = %v，期望 %v", err, biz.ErrSeaHouseBillReleasePodConfirmationRequired)
-	}
-
-	// 校验 10：确认关联删除后日志写入失败，HBL、放货记录和 Link 版本必须全部回滚。
-	failedRemoveAudit := makeAudit()
-	failedRemoveAudit.Result = "invalid-result"
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, failedRemoveAudit)
-	if err == nil {
-		t.Fatal("关联删除日志写入失败时应返回错误")
-	}
-	if _, err := data.db.SeaHouseBill.Get(ctx, createdHB.ID); err != nil {
-		t.Fatalf("日志失败后检查 HBL 失败: %v", err)
-	}
-	for _, podID := range []uuid.UUID{pendingPod.ID, signedPod.ID} {
-		exists, queryErr := data.db.OrderReleasePod.Query().Where(orderreleasepodent.IDEQ(podID)).Exist(ctx)
-		if queryErr != nil {
-			t.Fatalf("日志失败后检查放货记录 %s 失败: %v", podID, queryErr)
-		}
-		if !exists {
-			t.Fatalf("日志失败后放货记录 %s 不应被删除", podID)
-		}
-	}
-	rolledBackDeleteLink, err := data.db.SeaMasterBillOrderLink.Get(ctx, link.ID)
-	if err != nil {
-		t.Fatalf("日志失败后检查 Link 失败: %v", err)
-	}
-	if rolledBackDeleteLink.Version != docAgg.LinkVersion {
-		t.Fatalf("日志失败后 Link 版本 = %d，期望 %d", rolledBackDeleteLink.Version, docAgg.LinkVersion)
-	}
-
-	// 校验 11：确认后原子删除 HBL 与待签收/已签收记录，并写入一条操作日志。
-	err = repo.RemoveSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, createdHB.ID, createdHB.Version, docAgg.LinkVersion, true, true, makeAudit())
-	if err != nil {
-		t.Fatalf("RemoveSeaHouseBill with confirmation failed: %v", err)
-	}
-	podCount, err := data.db.OrderReleasePod.Query().
-		Where(orderreleasepodent.IDIn(pendingPod.ID, signedPod.ID)).
-		Count(ctx)
-	if err != nil {
-		t.Fatalf("关联删除后统计放货记录失败: %v", err)
-	}
-	if podCount != 0 {
-		t.Fatalf("关联删除后仍有 %d 条放货记录", podCount)
-	}
-	var removeAuditCount int
-	if err := data.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM audit_logs WHERE action = 'sea_house_bill.remove'`).Scan(&removeAuditCount); err != nil {
-		t.Fatalf("统计分单删除操作日志失败: %v", err)
-	}
-	if removeAuditCount != 1 {
-		t.Fatalf("确认关联删除后操作日志数量 = %d，期望 1", removeAuditCount)
-	}
-
-	docAgg, err = repo.GetSeaOrderDocuments(ctx, deptOrg.ID, testOrder.ID)
-	if err != nil {
-		t.Fatalf("GetSeaOrderDocuments after delete failed: %v", err)
-	}
-	if docAgg.DocumentStructure != biz.SeaDocumentStructureUndetermined {
-		t.Fatalf("expected UNDETERMINED after deleting last HBL, got %s", docAgg.DocumentStructure)
-	}
-
-	// 校验 12：当存在 CUSTOMER_PARTNER 签发的 HBL 时，修改订单客户必须被阻断
-	customerHB, err := repo.AddSeaHouseBill(ctx, deptOrg.ID, actorID, testOrder.ID, docAgg.LinkVersion, &biz.SeaHouseBillInput{
-		HouseNo:      "HBL-CUST-002",
-		IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner,
-	}, makeAudit())
-	if err != nil {
-		t.Fatalf("AddSeaHouseBill customer partner failed: %v", err)
-	}
-	defer func() {
-		_ = data.db.SeaHouseBill.DeleteOneID(customerHB.ID).Exec(ctx)
-	}()
+	_ = custHB
 
 	otherCustomer, err := data.db.Partner.Create().
 		SetOrganizationID(deptOrg.ID).
@@ -444,9 +350,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建另一个测试客户失败: %v", err)
 	}
-	defer func() {
-		_ = data.db.Partner.DeleteOne(otherCustomer).Exec(ctx)
-	}()
 	if _, err := data.db.PartnerRole.Create().
 		SetPartnerID(otherCustomer.ID).
 		SetRoleType(partnerroleent.RoleTypeCustomer).
@@ -455,21 +358,196 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建另一个测试客户角色失败: %v", err)
 	}
 
-	orderRepo := NewOrderRepo(data)
-	_, err = orderRepo.UpdateDraft(ctx, deptOrg.ID, testOrder.ID, testOrder.Version, &biz.Order{
+	// 尝试修改订单客户为 otherCustomer
+	freshHouseOrder, err := data.db.Order.Get(ctx, houseOrder.ID)
+	if err != nil {
+		t.Fatalf("获取最新订单失败: %v", err)
+	}
+	_, err = orderRepo.UpdateDraft(ctx, deptOrg.ID, houseOrder.ID, freshHouseOrder.Version, &biz.Order{
 		CustomerID:     otherCustomer.ID,
 		ShippingLineID: &shippingLine.ID,
 		BusinessType:   biz.OrderBusinessSE,
 		TradeDirection: "export",
 		TradeTerm:      "FOB",
 		PaymentTerm:    "PREPAID",
-		VesselVoyage:   "EVER GIVEN / 001W",
+		VesselVoyage:   "EVER SMART / 002E",
 		SeaMasterBillInput: &biz.SeaMasterBillInput{
-			MasterNo: masterNo,
+			MasterNo: mblHouseNo,
 		},
-	}, &biz.AuditEvent{OrganizationID: &deptOrg.ID, UserID: &actorID, Result: "success"})
+	}, makeAudit())
 	if err != biz.ErrOrderCustomerChangeWithHouseBillBlocked {
 		t.Fatalf("expected ErrOrderCustomerChangeWithHouseBillBlocked when Customer HBL exists, got %v", err)
+	}
+
+	// 校验 7：同批订单查询（ListSameBatchOrders）
+	otherOrg, err := data.db.Organization.Create().
+		SetCode("TEST-OTHER-" + uuid.New().String()[:8]).
+		SetName("其他测试组织").
+		SetKind("company").
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建其他组织失败: %v", err)
+	}
+
+	baseOrder, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-BASE-" + uuid.New().String()[:8]).
+		SetCustomerID(customerPartner.ID).
+		SetCustomerReferenceNo("BATCH-REF-1").
+		SetBookingNo("BKG-BATCH-1").
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 baseOrder 失败: %v", err)
+	}
+	_, err = data.db.SeaMasterBillOrderLink.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(baseOrder.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetTransportExecutionID(teHouse.ID).
+		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 baseOrder link 失败: %v", err)
+	}
+
+	// Order 2: 命中 CUSTOMER_REFERENCE
+	orderCustRef, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-REF-" + uuid.New().String()[:8]).
+		SetCustomerID(customerPartner.ID).
+		SetCustomerReferenceNo("BATCH-REF-1").
+		SetBookingNo("BKG-OTHER-99").
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 orderCustRef 失败: %v", err)
+	}
+
+	// Order 3: 命中 BOOKING
+	orderBooking, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-BKG-" + uuid.New().String()[:8]).
+		SetCustomerID(otherCustomer.ID).
+		SetBookingNo("BKG-BATCH-1").
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 orderBooking 失败: %v", err)
+	}
+
+	// Order 4: 命中 MASTER
+	orderMBL, err := data.db.Order.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderNo("SE-MBL-" + uuid.New().String()[:8]).
+		SetCustomerID(otherCustomer.ID).
+		SetBookingNo("BKG-OTHER-88").
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 orderMBL 失败: %v", err)
+	}
+	_, err = data.db.SeaMasterBillOrderLink.Create().
+		SetOrganizationID(deptOrg.ID).
+		SetOrderID(orderMBL.ID).
+		SetMasterBillID(mblHouse.ID).
+		SetTransportExecutionID(teHouse.ID).
+		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureDIRECT).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 orderMBL link 失败: %v", err)
+	}
+
+	// Order 5: 属于其他组织，即便 bookingNo 相同也不应出现在当前组织的结果中
+	otherOrgCust, err := data.db.Partner.Create().
+		SetOrganizationID(otherOrg.ID).
+		SetCode("CUST-OTHERORG-" + uuid.New().String()[:8]).
+		SetLegalName("其他组织客户").
+		SetNormalizedName("其他组织客户").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建其他组织客户失败: %v", err)
+	}
+	_, err = data.db.Order.Create().
+		SetOrganizationID(otherOrg.ID).
+		SetOrderNo("SE-OTHERORG-" + uuid.New().String()[:8]).
+		SetCustomerID(otherOrgCust.ID).
+		SetBookingNo("BKG-BATCH-1").
+		SetBusinessType("SE").
+		SetTradeDirection("export").
+		SetTradeTerm("FOB").
+		SetPaymentTerm("PREPAID").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建 otherOrgOrder 失败: %v", err)
+	}
+
+	sameBatchList, err := orderRepo.ListSameBatchOrders(ctx, deptOrg.ID, baseOrder.ID)
+	if err != nil {
+		t.Fatalf("ListSameBatchOrders failed: %v", err)
+	}
+	if len(sameBatchList) < 3 {
+		t.Fatalf("expected at least 3 same batch orders, got %d", len(sameBatchList))
+	}
+	foundRef, foundBkg, foundMbl := false, false, false
+	for _, item := range sameBatchList {
+		if item.OrderID == baseOrder.ID {
+			t.Fatal("ListSameBatchOrders 不应包含当前订单自身")
+		}
+		if item.OrderID == orderCustRef.ID {
+			foundRef = true
+			matched := false
+			for _, s := range item.MatchSources {
+				if s == "CUSTOMER_REFERENCE" {
+					matched = true
+				}
+			}
+			if !matched {
+				t.Fatalf("expected match sources to contain CUSTOMER_REFERENCE, got %v", item.MatchSources)
+			}
+		}
+		if item.OrderID == orderBooking.ID {
+			foundBkg = true
+			matched := false
+			for _, s := range item.MatchSources {
+				if s == "BOOKING" {
+					matched = true
+				}
+			}
+			if !matched {
+				t.Fatalf("expected match sources to contain BOOKING, got %v", item.MatchSources)
+			}
+		}
+		if item.OrderID == orderMBL.ID {
+			foundMbl = true
+			matched := false
+			for _, s := range item.MatchSources {
+				if s == "MASTER" {
+					matched = true
+				}
+			}
+			if !matched {
+				t.Fatalf("expected match sources to contain MASTER, got %v", item.MatchSources)
+			}
+		}
+	}
+	if !foundRef || !foundBkg || !foundMbl {
+		t.Fatalf("同批订单未能全部匹配: foundRef=%v, foundBkg=%v, foundMbl=%v", foundRef, foundBkg, foundMbl)
 	}
 }
 
@@ -485,7 +563,11 @@ func TestSeaDocument_AuditEnforcementAndRollback(t *testing.T) {
 	orderID := uuid.New()
 
 	t.Run("nil audit is rejected", func(t *testing.T) {
-		_, err := repo.MarkSeaOrderDirect(ctx, orgID, actorID, orderID, 1, nil)
+		_, err := repo.UpdateSeaMasterBillContent(ctx, orgID, actorID, orderID, 1, &biz.SeaBillContent{ShipperText: ptr("test")}, nil)
+		if err != biz.ErrSeaDocumentInvalidArgument {
+			t.Fatalf("expected ErrSeaDocumentInvalidArgument for nil audit, got %v", err)
+		}
+		_, err = repo.UpdateSeaHouseBill(ctx, orgID, actorID, orderID, uuid.New(), 1, 1, &biz.SeaHouseBillInput{HouseNo: "HBL-1", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization}, nil)
 		if err != biz.ErrSeaDocumentInvalidArgument {
 			t.Fatalf("expected ErrSeaDocumentInvalidArgument for nil audit, got %v", err)
 		}
@@ -498,7 +580,11 @@ func TestSeaDocument_AuditEnforcementAndRollback(t *testing.T) {
 			UserID:         &actorID,
 			Result:         "success",
 		}
-		_, err := repo.MarkSeaOrderDirect(ctx, orgID, actorID, orderID, 1, mismatchedAudit)
+		_, err := repo.UpdateSeaMasterBillContent(ctx, orgID, actorID, orderID, 1, &biz.SeaBillContent{ShipperText: ptr("test")}, mismatchedAudit)
+		if err != biz.ErrSeaDocumentInvalidArgument {
+			t.Fatalf("expected ErrSeaDocumentInvalidArgument for mismatched audit, got %v", err)
+		}
+		_, err = repo.UpdateSeaHouseBill(ctx, orgID, actorID, orderID, uuid.New(), 1, 1, &biz.SeaHouseBillInput{HouseNo: "HBL-1", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization}, mismatchedAudit)
 		if err != biz.ErrSeaDocumentInvalidArgument {
 			t.Fatalf("expected ErrSeaDocumentInvalidArgument for mismatched audit, got %v", err)
 		}
@@ -521,7 +607,6 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create org failed: %v", err)
 	}
-	defer func() { _ = data.db.Organization.DeleteOne(org).Exec(ctx) }()
 
 	cust, err := data.db.Partner.Create().
 		SetOrganizationID(org.ID).
@@ -532,7 +617,6 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create customer failed: %v", err)
 	}
-	defer func() { _ = data.db.Partner.DeleteOne(cust).Exec(ctx) }()
 	if _, err := data.db.PartnerRole.Create().SetPartnerID(cust.ID).SetRoleType(partnerroleent.RoleTypeCustomer).SetEnabled(true).Save(ctx); err != nil {
 		t.Fatalf("create customer role failed: %v", err)
 	}
@@ -548,7 +632,6 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create shipping line failed: %v", err)
 	}
-	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
 
 	order, err := data.db.Order.Create().
 		SetOrganizationID(org.ID).
@@ -562,7 +645,6 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create order failed: %v", err)
 	}
-	defer func() { _ = data.db.Order.DeleteOne(order).Exec(ctx) }()
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
@@ -573,12 +655,10 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create te failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaTransportExecution.DeleteOne(te).Exec(ctx) }()
 
 	masterNo := "CONCMBL" + uuid.New().String()[:8]
 	mbl, err := data.db.SeaMasterBill.Create().
 		SetOrganizationID(org.ID).
-		SetTransportExecutionID(te.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
 		SetShippingLineID(shippingLine.ID).
@@ -586,25 +666,43 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create mbl failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaMasterBill.DeleteOne(mbl).Exec(ctx) }()
 
 	link, err := data.db.SeaMasterBillOrderLink.Create().
 		SetOrganizationID(org.ID).
 		SetOrderID(order.ID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(te.ID).
 		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
-		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureUNDETERMINED).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("create link failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaMasterBillOrderLink.DeleteOne(link).Exec(ctx) }()
+
+	hb, err := data.db.SeaHouseBill.Create().
+		SetOrganizationID(org.ID).
+		SetOrderID(order.ID).
+		SetMasterBillID(mbl.ID).
+		SetHouseNo("CONC-HBL-001").
+		SetNormalizedHouseNo("CONC-HBL-001").
+		SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
+		SetIssuerOrganizationID(org.ID).
+		SetStatus(seahousebillent.StatusDRAFT).
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("create HBL failed: %v", err)
+	}
 
 	actorID := uuid.New()
 
-	// 并发执行多次添加分单（严格锁序保证无死锁，版本冲突被正确处理）
+	// 并发执行多次更新分单（严格锁序保证无死锁，且仅能有一个成功更新）
 	var wg sync.WaitGroup
 	workers := 5
+	successCount := 0
+	conflictCount := 0
+	var mu sync.Mutex
+
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func(idx int) {
@@ -614,24 +712,27 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 				UserID:         &actorID,
 				Result:         "success",
 			}
-			hbNo := "CONC-HB-" + uuid.New().String()[:6]
-			// 读取当前 link version
-			currentDoc, qErr := repo.GetSeaOrderDocuments(ctx, org.ID, order.ID)
-			if qErr != nil {
-				return
-			}
-			created, addErr := repo.AddSeaHouseBill(ctx, org.ID, actorID, order.ID, currentDoc.LinkVersion, &biz.SeaHouseBillInput{
-				HouseNo:      hbNo,
+			shipper := fmt.Sprintf("SHIPPER-%d", idx)
+			_, updateErr := repo.UpdateSeaHouseBill(ctx, org.ID, actorID, order.ID, hb.ID, hb.Version, link.Version, &biz.SeaHouseBillInput{
+				HouseNo:      "CONC-HBL-001",
 				IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+				Content:      &biz.SeaBillContent{ShipperText: &shipper},
 			}, audit)
-			if addErr == nil && created != nil {
-				defer func() {
-					_ = data.db.SeaHouseBill.DeleteOneID(created.ID).Exec(context.Background())
-				}()
+
+			mu.Lock()
+			defer mu.Unlock()
+			if updateErr == nil {
+				successCount++
+			} else if updateErr == biz.ErrSeaHouseBillConflict || updateErr == biz.ErrSeaDocumentStructureConflict {
+				conflictCount++
 			}
 		}(i)
 	}
 	wg.Wait()
+
+	if successCount != 1 || conflictCount != workers-1 {
+		t.Fatalf("并发更新分单期望 1 个成功且 %d 个冲突，实际: success=%d, conflict=%d", workers-1, successCount, conflictCount)
+	}
 }
 
 func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
@@ -648,7 +749,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create org failed: %v", err)
 	}
-	defer func() { _ = data.db.Organization.DeleteOne(org).Exec(ctx) }()
 
 	cust, err := data.db.Partner.Create().
 		SetOrganizationID(org.ID).
@@ -659,7 +759,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create customer failed: %v", err)
 	}
-	defer func() { _ = data.db.Partner.DeleteOne(cust).Exec(ctx) }()
 	if _, err := data.db.PartnerRole.Create().SetPartnerID(cust.ID).SetRoleType(partnerroleent.RoleTypeCustomer).SetEnabled(true).Save(ctx); err != nil {
 		t.Fatalf("create customer role failed: %v", err)
 	}
@@ -675,7 +774,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create shipping line failed: %v", err)
 	}
-	defer func() { _ = data.db.ShippingLine.DeleteOne(shippingLine).Exec(ctx) }()
 
 	order, err := data.db.Order.Create().
 		SetOrganizationID(org.ID).
@@ -689,7 +787,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create order failed: %v", err)
 	}
-	defer func() { _ = data.db.Order.DeleteOne(order).Exec(ctx) }()
 
 	te, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
@@ -700,12 +797,10 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create te failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaTransportExecution.DeleteOne(te).Exec(ctx) }()
 
 	masterNo := "UOMBL" + uuid.New().String()[:8]
 	mbl, err := data.db.SeaMasterBill.Create().
 		SetOrganizationID(org.ID).
-		SetTransportExecutionID(te.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
 		SetShippingLineID(shippingLine.ID).
@@ -713,19 +808,18 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create mbl failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaMasterBill.DeleteOne(mbl).Exec(ctx) }()
 
 	link, err := data.db.SeaMasterBillOrderLink.Create().
 		SetOrganizationID(org.ID).
 		SetOrderID(order.ID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(te.ID).
 		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
-		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureUNDETERMINED).
+		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureDIRECT).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("create link failed: %v", err)
 	}
-	defer func() { _ = data.db.SeaMasterBillOrderLink.DeleteOne(link).Exec(ctx) }()
 
 	orderRepo := NewOrderRepo(data)
 	actorID := uuid.New()
@@ -748,7 +842,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		PaymentTerm:    "PREPAID",
 		SeaDocumentInput: &biz.SeaOrderDocumentInput{
 			DocumentStructure: &strDirect,
-			// Missing ExpectedLinkVersion
 		},
 	}, makeAudit())
 	if err == nil {
@@ -765,14 +858,13 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		PaymentTerm:    "PREPAID",
 		SeaDocumentInput: &biz.SeaOrderDocumentInput{
 			MasterBillContent: &biz.SeaBillContent{ShipperText: &s},
-			// Missing ExpectedMblVersion
 		},
 	}, makeAudit())
 	if err == nil {
 		t.Fatalf("expected error for missing expected_mbl_version in UpdateDraft, got nil")
 	}
 
-	// 3. UpdateDraft 携带 HouseBills 应被拒绝
+	// 3. UpdateDraft 携带 HouseBill 应被拒绝（必须走专用命令）
 	_, err = orderRepo.UpdateDraft(ctx, org.ID, order.ID, order.Version, &biz.Order{
 		CustomerID:     cust.ID,
 		BusinessType:   biz.OrderBusinessSE,
@@ -780,13 +872,13 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		TradeTerm:      "FOB",
 		PaymentTerm:    "PREPAID",
 		SeaDocumentInput: &biz.SeaOrderDocumentInput{
-			HouseBills: []*biz.SeaHouseBillInput{
-				{HouseNo: "HBL1", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization},
+			HouseBill: &biz.SeaHouseBillInput{
+				HouseNo: "HBL1", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 			},
 		},
 	}, makeAudit())
 	if err == nil {
-		t.Fatalf("expected error for HouseBills in UpdateDraft, got nil")
+		t.Fatalf("expected error for HouseBill in UpdateDraft, got nil")
 	}
 
 	// 4. UpdateDraft 正确携带版本号成功更新
@@ -810,8 +902,5 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	if updatedOrder == nil {
 		t.Fatalf("expected non-nil updated order")
 	}
-}
-
-func ptr[T any](v T) *T {
-	return &v
+	_ = link
 }

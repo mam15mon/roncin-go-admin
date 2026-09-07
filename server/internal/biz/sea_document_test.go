@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
@@ -185,15 +186,15 @@ func TestValidateSeaOrderDocumentInput(t *testing.T) {
 	strHouse := SeaDocumentStructureHouse
 	ver := uint64(1)
 
-	t.Run("UpdateOrder rejects non-empty HouseBills", func(t *testing.T) {
+	t.Run("UpdateOrder rejects non-nil HouseBill", func(t *testing.T) {
 		input := &SeaOrderDocumentInput{
-			HouseBills: []*SeaHouseBillInput{
-				{HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization},
+			HouseBill: &SeaHouseBillInput{
+				HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization,
 			},
 		}
 		_, err := ValidateSeaOrderDocumentInput(input, false)
 		if err == nil {
-			t.Fatalf("expected error for HouseBills in UpdateOrder, got nil")
+			t.Fatalf("expected error for HouseBill in UpdateOrder, got nil")
 		}
 	})
 
@@ -218,27 +219,27 @@ func TestValidateSeaOrderDocumentInput(t *testing.T) {
 		}
 	})
 
-	t.Run("CreateOrder rejects HOUSE structure with 0 HBLs", func(t *testing.T) {
+	t.Run("CreateOrder rejects HOUSE structure without HBL", func(t *testing.T) {
 		input := &SeaOrderDocumentInput{
 			DocumentStructure: &strHouse,
-			HouseBills:        []*SeaHouseBillInput{},
+			HouseBill:         nil,
 		}
 		_, err := ValidateSeaOrderDocumentInput(input, true)
 		if err == nil {
-			t.Fatalf("expected error for HOUSE with 0 HBLs, got nil")
+			t.Fatalf("expected error for HOUSE without HBL, got nil")
 		}
 	})
 
-	t.Run("CreateOrder rejects DIRECT structure with HBLs", func(t *testing.T) {
+	t.Run("CreateOrder rejects DIRECT structure with HBL", func(t *testing.T) {
 		input := &SeaOrderDocumentInput{
 			DocumentStructure: &strDirect,
-			HouseBills: []*SeaHouseBillInput{
-				{HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization},
+			HouseBill: &SeaHouseBillInput{
+				HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization,
 			},
 		}
 		_, err := ValidateSeaOrderDocumentInput(input, true)
-		if err != ErrSeaDocumentDirectAddHBLBlocked {
-			t.Fatalf("expected ErrSeaDocumentDirectAddHBLBlocked, got %v", err)
+		if errors.Reason(err) != "SEA_DOCUMENT_STRUCTURE_INVALID" {
+			t.Fatalf("expected ErrSeaDocumentStructureInvalid, got %v", err)
 		}
 	})
 
@@ -263,11 +264,7 @@ func TestValidateSeaOrderDocumentInput(t *testing.T) {
 type seaDocumentRepoMock struct {
 	getSeaOrderDocumentsFunc       func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderDocuments, error)
 	getSummariesByOrderIDsFunc     func(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*SeaOrderDocumentSummary, error)
-	markSeaOrderDirectFunc         func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
-	cancelSeaOrderDirectFunc       func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
-	addSeaHouseBillFunc            func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
 	updateSeaHouseBillFunc         func(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
-	removeSeaHouseBillFunc         func(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error
 	updateSeaMasterBillContentFunc func(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error)
 }
 
@@ -285,39 +282,11 @@ func (m *seaDocumentRepoMock) GetSummariesByOrderIDs(ctx context.Context, organi
 	return make(map[uuid.UUID]*SeaOrderDocumentSummary), nil
 }
 
-func (m *seaDocumentRepoMock) MarkSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error) {
-	if m.markSeaOrderDirectFunc != nil {
-		return m.markSeaOrderDirectFunc(ctx, organizationID, actorID, orderID, expectedLinkVersion, audit)
-	}
-	return &SeaOrderDocuments{}, nil
-}
-
-func (m *seaDocumentRepoMock) CancelSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error) {
-	if m.cancelSeaOrderDirectFunc != nil {
-		return m.cancelSeaOrderDirectFunc(ctx, organizationID, actorID, orderID, expectedLinkVersion, audit)
-	}
-	return &SeaOrderDocuments{}, nil
-}
-
-func (m *seaDocumentRepoMock) AddSeaHouseBill(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error) {
-	if m.addSeaHouseBillFunc != nil {
-		return m.addSeaHouseBillFunc(ctx, organizationID, actorID, orderID, expectedLinkVersion, input, audit)
-	}
-	return &SeaHouseBill{}, nil
-}
-
 func (m *seaDocumentRepoMock) UpdateSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error) {
 	if m.updateSeaHouseBillFunc != nil {
 		return m.updateSeaHouseBillFunc(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, input, audit)
 	}
 	return &SeaHouseBill{}, nil
-}
-
-func (m *seaDocumentRepoMock) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error {
-	if m.removeSeaHouseBillFunc != nil {
-		return m.removeSeaHouseBillFunc(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, removeRelatedReleasePods, audit)
-	}
-	return nil
 }
 
 func (m *seaDocumentRepoMock) UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error) {
@@ -337,25 +306,21 @@ func TestSeaDocumentUsecase_ValidationRules(t *testing.T) {
 		Result:         "success",
 	}
 
-	t.Run("AddHouseBill rejects empty HouseNo", func(t *testing.T) {
-		repo := &seaDocumentRepoMock{}
-		uc := NewSeaDocumentUsecase(repo)
-		_, err := uc.AddSeaHouseBill(context.Background(), orgID, actorID, orderID, 1, &SeaHouseBillInput{
+	t.Run("ValidateSeaHouseBillInput rejects empty HouseNo", func(t *testing.T) {
+		_, err := ValidateSeaHouseBillInput(&SeaHouseBillInput{
 			HouseNo:      "   ",
 			IssuerSource: SeaHouseBillIssuerSourceSelfOrganization,
-		}, validAudit)
+		})
 		if err == nil {
 			t.Fatalf("expected error for empty house no, got nil")
 		}
 	})
 
-	t.Run("AddHouseBill rejects other partner without ID", func(t *testing.T) {
-		repo := &seaDocumentRepoMock{}
-		uc := NewSeaDocumentUsecase(repo)
-		_, err := uc.AddSeaHouseBill(context.Background(), orgID, actorID, orderID, 1, &SeaHouseBillInput{
+	t.Run("ValidateSeaHouseBillInput rejects other partner without ID", func(t *testing.T) {
+		_, err := ValidateSeaHouseBillInput(&SeaHouseBillInput{
 			HouseNo:      "HBL001",
 			IssuerSource: SeaHouseBillIssuerSourceOtherPartner,
-		}, validAudit)
+		})
 		if err == nil {
 			t.Fatalf("expected error for missing other partner ID, got nil")
 		}
@@ -403,7 +368,7 @@ func TestSeaDocumentUsecase_ValidationRules(t *testing.T) {
 	t.Run("Usecase rejects nil or mismatched audit", func(t *testing.T) {
 		repo := &seaDocumentRepoMock{}
 		uc := NewSeaDocumentUsecase(repo)
-		_, err := uc.MarkSeaOrderDirect(context.Background(), orgID, actorID, orderID, 1, nil)
+		_, err := uc.UpdateSeaMasterBillContent(context.Background(), orgID, actorID, orderID, 1, &SeaBillContent{}, nil)
 		if err != ErrSeaDocumentInvalidArgument {
 			t.Fatalf("expected ErrSeaDocumentInvalidArgument for nil audit, got %v", err)
 		}
@@ -414,7 +379,7 @@ func TestSeaDocumentUsecase_ValidationRules(t *testing.T) {
 			UserID:         &actorID,
 			Result:         "success",
 		}
-		_, err = uc.MarkSeaOrderDirect(context.Background(), orgID, actorID, orderID, 1, mismatchedAudit)
+		_, err = uc.UpdateSeaMasterBillContent(context.Background(), orgID, actorID, orderID, 1, &SeaBillContent{}, mismatchedAudit)
 		if err != ErrSeaDocumentInvalidArgument {
 			t.Fatalf("expected ErrSeaDocumentInvalidArgument for mismatched audit org, got %v", err)
 		}
@@ -431,7 +396,7 @@ func TestSeaDocumentUsecase_ValidationRules(t *testing.T) {
 		if err == nil {
 			t.Fatalf("expected error for nil orderID")
 		}
-		_, err = uc.MarkSeaOrderDirect(context.Background(), orgID, uuid.Nil, orderID, 1, validAudit)
+		_, err = uc.UpdateSeaMasterBillContent(context.Background(), orgID, uuid.Nil, orderID, 1, &SeaBillContent{}, validAudit)
 		if err == nil {
 			t.Fatalf("expected error for nil actorID")
 		}

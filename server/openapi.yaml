@@ -3771,6 +3771,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.ListOrderConsolidationsResponse'
+    /api/v1/orders/{id}/same-batch:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_ListSameBatchOrders
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ListSameBatchOrdersResponse'
     /api/v1/orders/{id}/status:
         post:
             tags:
@@ -4984,31 +5002,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.PreviewSeaDocumentAmendmentResponse'
-    /api/v1/orders/{orderId}/sea-documents/cancel-direct:
-        post:
-            tags:
-                - SeaDocumentService
-            description: CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-            operationId: SeaDocumentService_CancelSeaOrderDirect
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.CancelSeaOrderDirectRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.CancelSeaOrderDirectResponse'
     /api/v1/orders/{orderId}/sea-documents/events:
         get:
             tags:
@@ -5088,31 +5081,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.PreviewSeaHouseBillSwitchResponse'
-    /api/v1/orders/{orderId}/sea-documents/house-bills:
-        post:
-            tags:
-                - SeaDocumentService
-            description: AddSeaHouseBill 添加海运分单（HBL）。
-            operationId: SeaDocumentService_AddSeaHouseBill
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.AddSeaHouseBillRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.AddSeaHouseBillResponse'
     /api/v1/orders/{orderId}/sea-documents/house-bills/{houseBillId}/versions:
         get:
             tags:
@@ -5177,70 +5145,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.UpdateSeaHouseBillResponse'
-        delete:
-            tags:
-                - SeaDocumentService
-            description: RemoveSeaHouseBill 移除海运分单。
-            operationId: SeaDocumentService_RemoveSeaHouseBill
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: expectedVersion
-                  in: query
-                  schema:
-                    type: string
-                - name: expectedLinkVersion
-                  in: query
-                  schema:
-                    type: string
-                - name: returnToUndetermined
-                  in: query
-                  schema:
-                    type: boolean
-                - name: removeRelatedReleasePods
-                  in: query
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.RemoveSeaHouseBillResponse'
-    /api/v1/orders/{orderId}/sea-documents/mark-direct:
-        post:
-            tags:
-                - SeaDocumentService
-            description: MarkSeaOrderDirect 明确标记海运订单为直单。
-            operationId: SeaDocumentService_MarkSeaOrderDirect
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.MarkSeaOrderDirectRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.MarkSeaOrderDirectResponse'
     /api/v1/orders/{orderId}/sea-documents/master-bill-content:
         put:
             tags:
@@ -5295,6 +5199,56 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.ListSeaMasterBillVersionsResponse'
+    /api/v1/orders/{orderId}/sea-documents/mode-change:
+        post:
+            tags:
+                - SeaDocumentService
+            description: ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+            operationId: SeaDocumentService_ExecuteChangeSeaDocumentMode
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.ExecuteChangeSeaDocumentModeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ExecuteChangeSeaDocumentModeResponse'
+    /api/v1/orders/{orderId}/sea-documents/mode-change/preview:
+        post:
+            tags:
+                - SeaDocumentService
+            description: PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+            operationId: SeaDocumentService_PreviewChangeSeaDocumentMode
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.PreviewChangeSeaDocumentModeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.PreviewChangeSeaDocumentModeResponse'
     /api/v1/orders/{orderId}/sea-documents/versions/{versionId}:
         get:
             tags:
@@ -12760,35 +12714,6 @@ components:
                 traceId:
                     type: string
             description: AddReleasePodResponse 单条放货凭证响应。
-        order.v1.AddSeaHouseBillRequest:
-            required:
-                - orderId
-                - expectedLinkVersion
-                - houseBill
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedLinkVersion:
-                    type: string
-                houseBill:
-                    $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
-            description: AddSeaHouseBillRequest 添加分单请求。
-        order.v1.AddSeaHouseBillResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.SeaHouseBill'
-                traceId:
-                    type: string
-            description: AddSeaHouseBillResponse 添加分单响应。
         order.v1.AddShippingDocumentRequest:
             required:
                 - orderId
@@ -13030,32 +12955,6 @@ components:
             description: |-
                 Order 订单核心信息。
                  BusinessTagSummary 订单返回的组织标签概要。
-        order.v1.CancelSeaOrderDirectRequest:
-            required:
-                - orderId
-                - expectedLinkVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedLinkVersion:
-                    type: string
-            description: CancelSeaOrderDirectRequest 取消直单标记请求。
-        order.v1.CancelSeaOrderDirectResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.SeaOrderDocuments'
-                traceId:
-                    type: string
-            description: CancelSeaOrderDirectResponse 取消直单标记响应。
         order.v1.CheckOrderReferenceResponse:
             type: object
             properties:
@@ -13267,6 +13166,8 @@ components:
                     $ref: '#/components/schemas/order.v1.SeaMasterBillInput'
                 seaDocument:
                     $ref: '#/components/schemas/order.v1.SeaOrderDocumentInput'
+                bookingNo:
+                    type: string
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -13282,6 +13183,54 @@ components:
                     $ref: '#/components/schemas/order.v1.Order'
                 traceId:
                     type: string
+        order.v1.ExecuteChangeSeaDocumentModeRequest:
+            required:
+                - orderId
+                - expectedOrderVersion
+                - expectedLinkVersion
+                - targetMode
+                - reason
+                - confirmation
+                - idempotencyKey
+            type: object
+            properties:
+                orderId:
+                    type: string
+                expectedOrderVersion:
+                    type: string
+                expectedLinkVersion:
+                    type: string
+                expectedHouseBillVersion:
+                    type: string
+                expectedCurrentVersionId:
+                    type: string
+                targetMode:
+                    type: integer
+                    format: enum
+                newHouseBill:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
+                reason:
+                    type: string
+                confirmation:
+                    $ref: '#/components/schemas/order.v1.SeaExternalConfirmationInput'
+                idempotencyKey:
+                    type: string
+            description: ExecuteChangeSeaDocumentModeRequest 执行模式切换请求。
+        order.v1.ExecuteChangeSeaDocumentModeResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.SeaOrderDocuments'
+                traceId:
+                    type: string
+            description: ExecuteChangeSeaDocumentModeResponse 执行模式切换响应。
         order.v1.ExecuteSeaDocumentAmendmentRequest:
             required:
                 - orderId
@@ -13964,6 +13913,22 @@ components:
                 traceId:
                     type: string
             description: ListReleasePodsResponse 放货凭证列表响应。
+        order.v1.ListSameBatchOrdersResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SameBatchOrderSummary'
+                traceId:
+                    type: string
         order.v1.ListSeaDocumentEventsResponse:
             type: object
             properties:
@@ -14110,32 +14075,6 @@ components:
                 traceId:
                     type: string
             description: MarkAbnormalCaseResponse 单条异常标记响应。
-        order.v1.MarkSeaOrderDirectRequest:
-            required:
-                - orderId
-                - expectedLinkVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedLinkVersion:
-                    type: string
-            description: MarkSeaOrderDirectRequest 标记直单请求。
-        order.v1.MarkSeaOrderDirectResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.SeaOrderDocuments'
-                traceId:
-                    type: string
-            description: MarkSeaOrderDirectResponse 标记直单响应。
         order.v1.MatchSeaMasterBillCandidateResponse:
             type: object
             properties:
@@ -14358,6 +14297,8 @@ components:
                     type: string
                 seaDocumentSummary:
                     $ref: '#/components/schemas/order.v1.SeaOrderDocumentSummary'
+                bookingNo:
+                    type: string
         order.v1.OrderAbnormalCase:
             type: object
             properties:
@@ -15030,6 +14971,38 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderLockStateData'
                 request:
                     $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
+        order.v1.PreviewChangeSeaDocumentModeRequest:
+            required:
+                - orderId
+                - targetMode
+                - reason
+            type: object
+            properties:
+                orderId:
+                    type: string
+                targetMode:
+                    type: integer
+                    format: enum
+                newHouseBill:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
+                reason:
+                    type: string
+            description: PreviewChangeSeaDocumentModeRequest 预览模式切换请求。
+        order.v1.PreviewChangeSeaDocumentModeResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.SeaDocumentModeChangePreview'
+                traceId:
+                    type: string
+            description: PreviewChangeSeaDocumentModeResponse 预览模式切换响应。
         order.v1.PreviewSeaDocumentAmendmentRequest:
             required:
                 - orderId
@@ -15346,19 +15319,6 @@ components:
                 traceId:
                     type: string
             description: RemoveReleasePodResponse 放货凭证操作响应。
-        order.v1.RemoveSeaHouseBillResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                traceId:
-                    type: string
-            description: RemoveSeaHouseBillResponse 移除分单响应。
         order.v1.RemoveShippingDocumentResponse:
             type: object
             properties:
@@ -15476,6 +15436,42 @@ components:
                     type: string
                 traceId:
                     type: string
+        order.v1.SameBatchOrderSummary:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                customerId:
+                    type: string
+                customerReferenceNo:
+                    type: string
+                bookingNo:
+                    type: string
+                masterNo:
+                    type: string
+                houseNo:
+                    type: string
+                flowStatus:
+                    type: integer
+                    format: enum
+                matchSources:
+                    type: array
+                    items:
+                        type: string
+                totalPackages:
+                    type: integer
+                    format: int32
+                totalGrossWeightKg:
+                    type: number
+                    format: double
+                totalVolumeCbm:
+                    type: number
+                    format: double
+                createdAt:
+                    type: string
+            description: SameBatchOrderSummary 同批订单只读摘要。
         order.v1.SaveSeaCargoAllocationDraftRequest:
             required:
                 - orderId
@@ -15843,6 +15839,26 @@ components:
                     type: string
                 afterValue:
                     type: string
+        order.v1.SeaDocumentModeChangePreview:
+            type: object
+            properties:
+                previousMode:
+                    type: integer
+                    format: enum
+                targetMode:
+                    type: integer
+                    format: enum
+                differences:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaDocumentFieldDifference'
+                impacts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.SeaDocumentDownstreamImpact'
+                executable:
+                    type: boolean
+            description: SeaDocumentModeChangePreview 模式切换预览数据。
         order.v1.SeaDocumentVersion:
             type: object
             properties:
@@ -15917,6 +15933,22 @@ components:
                         $ref: '#/components/schemas/order.v1.SeaDocumentDownstreamImpact'
                 executable:
                     type: boolean
+        order.v1.SeaExternalConfirmationInput:
+            required:
+                - confirmedByParty
+                - confirmedAt
+                - confirmationNote
+            type: object
+            properties:
+                confirmedByParty:
+                    type: string
+                confirmedAt:
+                    type: string
+                confirmationNote:
+                    type: string
+                confirmationAttachmentId:
+                    type: string
+            description: SeaExternalConfirmationInput 外部确认输入。
         order.v1.SeaHouseBill:
             type: object
             properties:
@@ -16180,10 +16212,8 @@ components:
                     type: string
                 masterBillContent:
                     $ref: '#/components/schemas/order.v1.SeaBillContent'
-                houseBills:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
+                houseBill:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
             description: SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
         order.v1.SeaOrderDocumentSummary:
             type: object
@@ -16193,13 +16223,8 @@ components:
                     format: enum
                 linkVersion:
                     type: string
-                houseBillCount:
-                    type: integer
-                    format: int32
-                houseNos:
-                    type: array
-                    items:
-                        type: string
+                houseNo:
+                    type: string
             description: SeaOrderDocumentSummary 订单中的海运单证摘要。
         order.v1.SeaOrderDocuments:
             type: object
@@ -16213,15 +16238,13 @@ components:
                     type: string
                 masterBill:
                     $ref: '#/components/schemas/order.v1.SeaMasterBillDetail'
-                houseBills:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.SeaHouseBill'
                 allowedActions:
                     type: array
                     items:
                         type: integer
                         format: enum
+                houseBill:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBill'
             description: SeaOrderDocuments 聚合单证响应。
         order.v1.SeaOrderReassignmentEventSummary:
             type: object
@@ -16442,6 +16465,8 @@ components:
                     items:
                         $ref: '#/components/schemas/order.v1.SeaOrderSplitContainerPlanItem'
                 attachmentReferenceFingerprint:
+                    type: string
+                bookingNo:
                     type: string
         order.v1.SeaOrderSplitCreatedOrder:
             type: object
@@ -17316,6 +17341,8 @@ components:
                     $ref: '#/components/schemas/order.v1.SeaMasterBillInput'
                 seaDocument:
                     $ref: '#/components/schemas/order.v1.SeaOrderDocumentInput'
+                bookingNo:
+                    type: string
             description: UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
         order.v1.UpdateOrderResponse:
             type: object

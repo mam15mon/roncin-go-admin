@@ -22,15 +22,15 @@
 
 ## 阶段 2：Proto、创建/查询与单值 HBL
 
-- [ ] 修改 `order.proto`、`sea_document.proto`、`sea_order_change.proto`；增加 Booking No. 和两种
+- [x] 修改 `order.proto`、`sea_document.proto`、`sea_order_change.proto`；增加 Booking No. 和两种
   号码筛选，收敛单值 HBL、模式切换与 MBL/TE 关系，reserved 被删除编号和名称。
-- [ ] 生成 PB、HTTP/gRPC、OpenAPI、Web Client 和枚举。
-- [ ] 重构 Order/SeaMasterBill/SeaDocument 的 service、biz、data：HOUSE 建单在同事务创建唯一
+- [x] 生成 PB、HTTP/gRPC、OpenAPI、Web Client 和枚举。
+- [x] 重构 Order/SeaMasterBill/SeaDocument 的 service、biz、data：HOUSE 建单在同事务创建唯一
   HBL，DIRECT 零 HBL，SE 响应通过 Link→TE 投影运输字段。
-- [ ] 增加按客户业务号、Booking No.、活动 MBL 的精确/模糊查询及同批订单只读摘要。
-- [ ] 移除 Add/Remove HBL、UNDETERMINED、Mark/Cancel Direct 旧调用链和相关测试。
-- [ ] 验证创建零写入、当前 HBL 条件唯一、同批号码不联动、组织隔离及分页上限。
-- [ ] 提交 `refactor: 收敛海运订单单值分单契约`。
+- [x] 增加按客户业务号、Booking No.、活动 MBL 的精确/模糊查询及同批订单只读摘要。
+- [x] 移除 Add/Remove HBL、UNDETERMINED、Mark/Cancel Direct 旧调用链和相关测试。
+- [x] 验证创建零写入、当前 HBL 条件唯一、同批号码不联动、组织隔离及分页上限。
+- [x] 提交 `refactor: 收敛海运订单单值分单契约`。
 
 ## 阶段 3：运输执行版本、共享修改与改配
 

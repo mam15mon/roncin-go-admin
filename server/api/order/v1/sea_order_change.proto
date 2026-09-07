@@ -136,6 +136,7 @@ message SeaOrderSplitContextData {
   repeated SeaOrderSplitAttachmentItem attachments = 23;
   repeated SeaOrderSplitContainerPlanItem container_plans = 24;
   optional string attachment_reference_fingerprint = 25;
+  optional string booking_no = 26;
 }
 
 message SeaOrderSplitMasterBillSummary {

@@ -74,15 +74,15 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		structure := biz.SeaDocumentStructureHouse
 		input.SeaDocumentInput = &biz.SeaOrderDocumentInput{
 			DocumentStructure: &structure,
-			HouseBills: []*biz.SeaHouseBillInput{
-				{HouseNo: "  HBL-AUDIT-001  ", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization},
+			HouseBill: &biz.SeaHouseBillInput{
+				HouseNo: "  HBL-AUDIT-001  ", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 			},
 		}
 		created, err := fixture.newUsecase().Create(context.Background(), fixture.organizationID, fixture.actorID, input)
 		if err != nil {
 			t.Fatalf("创建带初始 HBL 的订单失败: %v", err)
 		}
-		if created.SeaDocumentSummary == nil || created.SeaDocumentSummary.DocumentStructure != biz.SeaDocumentStructureHouse || created.SeaDocumentSummary.HouseBillCount != 1 {
+		if created.SeaDocumentSummary == nil || created.SeaDocumentSummary.DocumentStructure != biz.SeaDocumentStructureHouse || created.SeaDocumentSummary.HouseNo != "HBL-AUDIT-001" {
 			t.Fatalf("创建后的单证摘要异常: %#v", created.SeaDocumentSummary)
 		}
 		if created.ShippingLineID == nil || *created.ShippingLineID != fixture.shippingLineID ||

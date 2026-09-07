@@ -358,6 +358,7 @@ type SeaOrderSplitContextData struct {
 	Attachments                    []*SeaOrderSplitAttachmentItem    `protobuf:"bytes,23,rep,name=attachments,proto3" json:"attachments,omitempty"`
 	ContainerPlans                 []*SeaOrderSplitContainerPlanItem `protobuf:"bytes,24,rep,name=container_plans,json=containerPlans,proto3" json:"container_plans,omitempty"`
 	AttachmentReferenceFingerprint *string                           `protobuf:"bytes,25,opt,name=attachment_reference_fingerprint,json=attachmentReferenceFingerprint,proto3,oneof" json:"attachment_reference_fingerprint,omitempty"`
+	BookingNo                      *string                           `protobuf:"bytes,26,opt,name=booking_no,json=bookingNo,proto3,oneof" json:"booking_no,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -563,6 +564,13 @@ func (x *SeaOrderSplitContextData) GetContainerPlans() []*SeaOrderSplitContainer
 func (x *SeaOrderSplitContextData) GetAttachmentReferenceFingerprint() string {
 	if x != nil && x.AttachmentReferenceFingerprint != nil {
 		return *x.AttachmentReferenceFingerprint
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitContextData) GetBookingNo() string {
+	if x != nil && x.BookingNo != nil {
+		return *x.BookingNo
 	}
 	return ""
 }
@@ -4220,7 +4228,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x126\n" +
 	"\x04data\x18\x04 \x01(\v2\".order.v1.SeaOrderSplitContextDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x83\v\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb6\v\n" +
 	"\x18SeaOrderSplitContextData\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12#\n" +
@@ -4253,8 +4261,11 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"draft_fees\x18\x16 \x03(\v2#.order.v1.SeaOrderSplitDraftFeeItemR\tdraftFees\x12G\n" +
 	"\vattachments\x18\x17 \x03(\v2%.order.v1.SeaOrderSplitAttachmentItemR\vattachments\x12Q\n" +
 	"\x0fcontainer_plans\x18\x18 \x03(\v2(.order.v1.SeaOrderSplitContainerPlanItemR\x0econtainerPlans\x12M\n" +
-	" attachment_reference_fingerprint\x18\x19 \x01(\tH\x00R\x1eattachmentReferenceFingerprint\x88\x01\x01B#\n" +
-	"!_attachment_reference_fingerprint\"\xed\x05\n" +
+	" attachment_reference_fingerprint\x18\x19 \x01(\tH\x00R\x1eattachmentReferenceFingerprint\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"booking_no\x18\x1a \x01(\tH\x01R\tbookingNo\x88\x01\x01B#\n" +
+	"!_attachment_reference_fingerprintB\r\n" +
+	"\v_booking_no\"\xed\x05\n" +
 	"\x1eSeaOrderSplitMasterBillSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +

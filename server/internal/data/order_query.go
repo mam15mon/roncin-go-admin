@@ -17,6 +17,7 @@ import (
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -66,6 +67,10 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 			))
 		case biz.OrderNumberFilterConsolidatedMaster:
 			query.Where(orderConsolidatedMasterContainsFold(options.NumberKeyword))
+		case biz.OrderNumberFilterCustomerReference:
+			query.Where(orderent.CustomerReferenceNoContainsFold(options.NumberKeyword))
+		case biz.OrderNumberFilterBooking:
+			query.Where(orderent.BookingNoContainsFold(options.NumberKeyword))
 		}
 	}
 	if options.CreatedAtRange.From != nil {
@@ -384,4 +389,173 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			OrganizationID: membership.OrganizationID, OrganizationName: membership.Edges.Organization.Name,
 		}
 	}))
+}
+
+func (r *orderRepo) ListSameBatchOrders(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.SameBatchOrderSummary, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	currentOrder, err := client.Order.Query().
+		Where(
+			orderent.IDEQ(orderID),
+			orderent.OrganizationIDEQ(organizationID),
+		).
+		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
+			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
+		}).
+		Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+	}
+
+	matchSourcesByOrderID := make(map[uuid.UUID]map[string]struct{})
+	recordMatch := func(matchedID uuid.UUID, source string) {
+		if matchedID == orderID {
+			return
+		}
+		sources := matchSourcesByOrderID[matchedID]
+		if sources == nil {
+			sources = make(map[string]struct{})
+			matchSourcesByOrderID[matchedID] = sources
+		}
+		sources[source] = struct{}{}
+	}
+
+	// 1. 客户业务号：org + customer_id + customer_reference_no (非空且 customer_id 有效)
+	customerRef := strings.TrimSpace(currentOrder.CustomerReferenceNo)
+	if customerRef != "" && currentOrder.CustomerID != uuid.Nil {
+		matchedOrders, err := client.Order.Query().
+			Where(
+				orderent.OrganizationIDEQ(organizationID),
+				orderent.CustomerIDEQ(currentOrder.CustomerID),
+				orderent.CustomerReferenceNoEQ(customerRef),
+				orderent.IDNEQ(orderID),
+			).
+			Select(orderent.FieldID).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range matchedOrders {
+			recordMatch(o.ID, "CUSTOMER_REFERENCE")
+		}
+	}
+
+	// 2. Booking No：org + booking_no (非空)
+	bookingNo := strings.TrimSpace(currentOrder.BookingNo)
+	if bookingNo != "" {
+		matchedOrders, err := client.Order.Query().
+			Where(
+				orderent.OrganizationIDEQ(organizationID),
+				orderent.BookingNoEQ(bookingNo),
+				orderent.IDNEQ(orderID),
+			).
+			Select(orderent.FieldID).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range matchedOrders {
+			recordMatch(o.ID, "BOOKING")
+		}
+	}
+
+	// 3. 活动 MBL：org + master_bill_id (通过活动 Link 查找同 MBL 的其他订单)
+	var activeMblIDs []uuid.UUID
+	for _, link := range currentOrder.Edges.SeaMasterBillLinks {
+		if link.Status == seamasterbillorderlink.StatusACTIVE && link.MasterBillID != uuid.Nil {
+			activeMblIDs = append(activeMblIDs, link.MasterBillID)
+		}
+	}
+	if len(activeMblIDs) > 0 {
+		matchedLinks, err := client.SeaMasterBillOrderLink.Query().
+			Where(
+				seamasterbillorderlink.MasterBillIDIn(activeMblIDs...),
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+				seamasterbillorderlink.OrderIDNEQ(orderID),
+				seamasterbillorderlink.HasOrderWith(orderent.OrganizationIDEQ(organizationID)),
+			).
+			Select(seamasterbillorderlink.FieldOrderID).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, l := range matchedLinks {
+			recordMatch(l.OrderID, "MASTER")
+		}
+	}
+
+	if len(matchSourcesByOrderID) == 0 {
+		return []*biz.SameBatchOrderSummary{}, nil
+	}
+
+	allMatchedIDs := make([]uuid.UUID, 0, len(matchSourcesByOrderID))
+	for id := range matchSourcesByOrderID {
+		allMatchedIDs = append(allMatchedIDs, id)
+	}
+
+	orders, err := client.Order.Query().
+		Where(
+			orderent.OrganizationIDEQ(organizationID),
+			orderent.IDIn(allMatchedIDs...),
+		).
+		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
+			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
+				WithMasterBill()
+		}).
+		WithSeaHouseBills(func(q *ent.SeaHouseBillQuery) {
+			q.Where(seahousebill.StatusNEQ(seahousebill.StatusVOIDED))
+		}).
+		Order(orderent.ByCreatedAt(entsql.OrderDesc())).
+		Limit(200).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*biz.SameBatchOrderSummary, 0, len(orders))
+	for _, o := range orders {
+		var masterNo string
+		for _, link := range o.Edges.SeaMasterBillLinks {
+			if link.Status == seamasterbillorderlink.StatusACTIVE && link.Edges.MasterBill != nil {
+				masterNo = link.Edges.MasterBill.MasterNo
+				break
+			}
+		}
+		var houseNo string
+		for _, hb := range o.Edges.SeaHouseBills {
+			if hb.Status != seahousebill.StatusVOIDED {
+				houseNo = hb.HouseNo
+				break
+			}
+		}
+		sourcesSet := matchSourcesByOrderID[o.ID]
+		var matchSources []string
+		for _, s := range []string{"CUSTOMER_REFERENCE", "BOOKING", "MASTER"} {
+			if _, ok := sourcesSet[s]; ok {
+				matchSources = append(matchSources, s)
+			}
+		}
+		var customerID *uuid.UUID
+		if o.CustomerID != uuid.Nil {
+			customerID = &o.CustomerID
+		}
+		result = append(result, &biz.SameBatchOrderSummary{
+			OrderID:             o.ID,
+			OrderNo:             o.OrderNo,
+			CustomerID:          customerID,
+			CustomerReferenceNo: o.CustomerReferenceNo,
+			BookingNo:           o.BookingNo,
+			MasterNo:            masterNo,
+			HouseNo:             houseNo,
+			FlowStatus:          biz.OrderFlowStatus(o.FlowStatus),
+			MatchSources:        matchSources,
+			TotalPackages:       o.TotalPackages,
+			TotalGrossWeightKg:  o.TotalGrossWeightKg,
+			TotalVolumeCbm:      o.TotalVolumeCbm,
+			CreatedAt:           o.CreatedAt,
+		})
+	}
+	return result, nil
 }

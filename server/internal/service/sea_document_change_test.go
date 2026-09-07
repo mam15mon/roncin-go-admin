@@ -39,12 +39,12 @@ func TestSeaDocumentChangeDTOConversions(t *testing.T) {
 	oldID, newID, chainID := uuid.New(), uuid.New(), uuid.New()
 	sequence := 2
 	event := seaDocumentEventToAPI(&biz.SeaDocumentEvent{
-		ID: uuid.New(), EventType: biz.SeaDocumentEventTypeSwitch, DocumentType: biz.SeaDocumentTypeHouseBill,
+		ID: uuid.New(), EventType: biz.SeaDocumentEventTypeModeChange, DocumentType: biz.SeaDocumentTypeHouseBill,
 		OldHouseBillID: &oldID, NewHouseBillID: &newID, ChainID: &chainID, Sequence: &sequence,
-		Reason: "二次换单", CreatedAt: now,
+		Reason: "模式切换", CreatedAt: now,
 	})
-	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_SWITCH || event.GetOldHouseBillId() != oldID.String() || event.GetNewHouseBillId() != newID.String() || event.GetSequence() != 2 {
-		t.Fatalf("Switch 事件 DTO 映射错误: %+v", event)
+	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE || event.GetOldHouseBillId() != oldID.String() || event.GetNewHouseBillId() != newID.String() || event.GetSequence() != 2 {
+		t.Fatalf("ModeChange 事件 DTO 映射错误: %+v", event)
 	}
 }
 

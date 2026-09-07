@@ -297,8 +297,8 @@ func seaVersionSourceToAPI(v string) v1.SeaDocumentVersionSource {
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK
 	case biz.VersionSourceAmendment:
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT
-	case biz.VersionSourceSwitch:
-		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_SWITCH
+	case biz.VersionSourceModeChange:
+		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE
 	case biz.VersionSourceVoid:
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_VOID
 	default:
@@ -392,8 +392,8 @@ func seaDocumentEventToAPI(v *biz.SeaDocumentEvent) *v1.SeaDocumentEvent {
 		eventType = v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_AMENDMENT
 	case biz.SeaDocumentEventTypeVoid:
 		eventType = v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_VOID
-	case biz.SeaDocumentEventTypeSwitch:
-		eventType = v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_SWITCH
+	case biz.SeaDocumentEventTypeModeChange:
+		eventType = v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE
 	}
 	result := &v1.SeaDocumentEvent{Id: v.ID.String(), EventType: eventType, DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentNo: v.DocumentNo, OldHouseNo: v.OldHouseNo, NewHouseNo: v.NewHouseNo, Reason: v.Reason, ImpactSummary: v.ImpactSummary, SurrenderInfo: v.SurrenderInfo, CreatedAt: v.CreatedAt.Format(time.RFC3339)}
 	setUUID := func(target **string, id *uuid.UUID) {

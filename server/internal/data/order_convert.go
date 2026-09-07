@@ -41,7 +41,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
 		ID: item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
 		ShippingLineID: item.ShippingLineID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
-		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
+		CustomerReferenceNo: item.CustomerReferenceNo, BookingNo: item.BookingNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		ShipperShortName: item.ShipperShortName, ConsigneeShortName: item.ConsigneeShortName, LockedAt: item.LockedAt, IsShared: item.IsShared,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
 		DeclarationCutoffAt: item.DeclarationCutoffAt, ReceivedAt: item.ReceivedAt,
@@ -117,6 +117,19 @@ func orderToBiz(item *ent.Order) *biz.Order {
 				}
 				if te.Eta != nil {
 					summary.ETA = te.Eta.Format("2006-01-02")
+				}
+				if result.BusinessType == biz.OrderBusinessSE {
+					result.ShippingLineID = &te.ShippingLineID
+					result.OriginLocationID = te.OriginLocationID
+					result.DischargeLocationID = te.DischargeLocationID
+					result.TransitLocationID = te.TransitLocationID
+					result.VesselVoyage = biz.CombineVesselVoyage(te.VesselName, te.VoyageNo)
+					if te.Etd != nil {
+						result.ETD = te.Etd.Format("2006-01-02")
+					}
+					if te.Eta != nil {
+						result.ETA = te.Eta.Format("2006-01-02")
+					}
 				}
 			}
 			result.SeaMasterBill = summary

@@ -27,6 +27,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
 		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
+		BookingNo: stringPtrIfNotEmpty(item.BookingNo),
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
@@ -52,12 +53,14 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		result.SeaDocumentLinkVersion = item.SeaDocumentLinkVersion
 	}
 	if item.SeaDocumentSummary != nil {
-		result.SeaDocumentSummary = &v1.SeaOrderDocumentSummary{
+		summary := &v1.SeaOrderDocumentSummary{
 			DocumentStructure: seaDocumentStructureToAPI(item.SeaDocumentSummary.DocumentStructure),
 			LinkVersion:       item.SeaDocumentSummary.LinkVersion,
-			HouseBillCount:    int32(item.SeaDocumentSummary.HouseBillCount),
-			HouseNos:          item.SeaDocumentSummary.HouseNos,
 		}
+		if item.SeaDocumentSummary.HouseNo != "" {
+			summary.HouseNo = &item.SeaDocumentSummary.HouseNo
+		}
+		result.SeaDocumentSummary = summary
 	}
 	return result
 }
@@ -326,22 +329,19 @@ func seaOrderDocumentInputFromAPI(input *v1.SeaOrderDocumentInput) (*biz.SeaOrde
 	if input.MasterBillContent != nil {
 		masterBillContent = seaBillContentFromAPI(input.MasterBillContent)
 	}
-	var hbs []*biz.SeaHouseBillInput
-	if input.HouseBills != nil {
-		hbs = make([]*biz.SeaHouseBillInput, 0, len(input.HouseBills))
-		for _, hb := range input.HouseBills {
-			h, err := seaHouseBillInputFromAPI(hb)
-			if err != nil {
-				return nil, err
-			}
-			hbs = append(hbs, h)
+	var hb *biz.SeaHouseBillInput
+	if input.HouseBill != nil {
+		h, err := seaHouseBillInputFromAPI(input.HouseBill)
+		if err != nil {
+			return nil, err
 		}
+		hb = h
 	}
 	return &biz.SeaOrderDocumentInput{
 		DocumentStructure:   structure,
 		ExpectedLinkVersion: input.ExpectedLinkVersion,
 		ExpectedMblVersion:  input.ExpectedMblVersion,
 		MasterBillContent:   masterBillContent,
-		HouseBills:          hbs,
+		HouseBill:           hb,
 	}, nil
 }
