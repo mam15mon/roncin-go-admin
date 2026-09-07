@@ -26,6 +26,9 @@ import {
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import type { DefaultOptionType } from 'antd/es/select';
 import { computeCanonicalSha256 } from '@/utils/hash';
+import SeaExternalConfirmationFields, {
+  buildSeaExternalConfirmation,
+} from '../../templates/components/sea/SeaExternalConfirmationFields';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -274,6 +277,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
     try {
       const values = await form.validateFields();
+      const confirmation = buildSeaExternalConfirmation(values);
 
       modal.confirm({
         title: '确认提交整票改配？',
@@ -319,6 +323,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               reason: values.reason?.trim() || '',
               responsibilityType: values.responsibilityType,
               responsiblePartnerId: values.responsiblePartnerId || undefined,
+              confirmation,
               expectedOrderVersion: orderVersion,
               expectedLinkVersion: linkVersion,
               expectedCandidateMblVersion:
@@ -342,6 +347,7 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
                 reason: values.reason.trim(),
                 responsibilityType: values.responsibilityType,
                 responsiblePartnerId: values.responsiblePartnerId || undefined,
+                confirmation,
                 expectedOrderVersion: orderVersion,
                 expectedLinkVersion: linkVersion,
                 expectedCandidateMblVersion:
@@ -623,6 +629,8 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
             </Form.Item>
           </Col>
         </Row>
+
+        <SeaExternalConfirmationFields orderId={orderId} />
       </Form>
 
       {/* 航程要素比对表格 */}

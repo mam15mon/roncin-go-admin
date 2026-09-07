@@ -583,9 +583,7 @@ export default function OrderDetailPage() {
               }
             }}
             onOpenReassign={() => {
-              if (ensureBusinessWriteAllowed()) {
-                setReassignModalOpen(true);
-              }
+              setReassignModalOpen(true);
             }}
             lockState={lockState}
             lockStateLoading={lockStateLoading || synchronizingLockChange}
@@ -656,8 +654,8 @@ export default function OrderDetailPage() {
             orderId={orderId}
             orderNo={order?.orderNo}
             open={reassignModalOpen}
-            disabled={businessWritesDisabled}
-            disabledReason={lockWritePolicy.reason}
+            disabled={changeActions?.canReassign === false}
+            disabledReason={changeActions?.reassignBlockedReasons?.join('；')}
             onClose={() => setReassignModalOpen(false)}
             onSuccess={async () => {
               await Promise.all([loadData(), refreshLockState()]);
