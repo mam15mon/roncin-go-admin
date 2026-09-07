@@ -153,9 +153,6 @@ func StatusValidator(s Status) error {
 // DocumentStructure defines the type for the "document_structure" enum field.
 type DocumentStructure string
 
-// DocumentStructureHOUSE is the default value of the DocumentStructure enum.
-const DefaultDocumentStructure = DocumentStructureHOUSE
-
 // DocumentStructure values.
 const (
 	DocumentStructureDIRECT DocumentStructure = "DIRECT"

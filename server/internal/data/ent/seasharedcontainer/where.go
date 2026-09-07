@@ -97,12 +97,12 @@ func PackageCount(v int) predicate.SeaSharedContainer {
 }
 
 // GrossWeightKg applies equality check predicate on the "gross_weight_kg" field. It's identical to GrossWeightKgEQ.
-func GrossWeightKg(v float64) predicate.SeaSharedContainer {
+func GrossWeightKg(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldEQ(FieldGrossWeightKg, v))
 }
 
 // VolumeCbm applies equality check predicate on the "volume_cbm" field. It's identical to VolumeCbmEQ.
-func VolumeCbm(v float64) predicate.SeaSharedContainer {
+func VolumeCbm(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldEQ(FieldVolumeCbm, v))
 }
 
@@ -467,83 +467,133 @@ func PackageCountLTE(v int) predicate.SeaSharedContainer {
 }
 
 // GrossWeightKgEQ applies the EQ predicate on the "gross_weight_kg" field.
-func GrossWeightKgEQ(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgEQ(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldEQ(FieldGrossWeightKg, v))
 }
 
 // GrossWeightKgNEQ applies the NEQ predicate on the "gross_weight_kg" field.
-func GrossWeightKgNEQ(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgNEQ(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldNEQ(FieldGrossWeightKg, v))
 }
 
 // GrossWeightKgIn applies the In predicate on the "gross_weight_kg" field.
-func GrossWeightKgIn(vs ...float64) predicate.SeaSharedContainer {
+func GrossWeightKgIn(vs ...string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldIn(FieldGrossWeightKg, vs...))
 }
 
 // GrossWeightKgNotIn applies the NotIn predicate on the "gross_weight_kg" field.
-func GrossWeightKgNotIn(vs ...float64) predicate.SeaSharedContainer {
+func GrossWeightKgNotIn(vs ...string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldNotIn(FieldGrossWeightKg, vs...))
 }
 
 // GrossWeightKgGT applies the GT predicate on the "gross_weight_kg" field.
-func GrossWeightKgGT(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgGT(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldGT(FieldGrossWeightKg, v))
 }
 
 // GrossWeightKgGTE applies the GTE predicate on the "gross_weight_kg" field.
-func GrossWeightKgGTE(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgGTE(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldGTE(FieldGrossWeightKg, v))
 }
 
 // GrossWeightKgLT applies the LT predicate on the "gross_weight_kg" field.
-func GrossWeightKgLT(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgLT(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldLT(FieldGrossWeightKg, v))
 }
 
 // GrossWeightKgLTE applies the LTE predicate on the "gross_weight_kg" field.
-func GrossWeightKgLTE(v float64) predicate.SeaSharedContainer {
+func GrossWeightKgLTE(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldLTE(FieldGrossWeightKg, v))
 }
 
+// GrossWeightKgContains applies the Contains predicate on the "gross_weight_kg" field.
+func GrossWeightKgContains(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldContains(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgHasPrefix applies the HasPrefix predicate on the "gross_weight_kg" field.
+func GrossWeightKgHasPrefix(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldHasPrefix(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgHasSuffix applies the HasSuffix predicate on the "gross_weight_kg" field.
+func GrossWeightKgHasSuffix(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldHasSuffix(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgEqualFold applies the EqualFold predicate on the "gross_weight_kg" field.
+func GrossWeightKgEqualFold(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldEqualFold(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgContainsFold applies the ContainsFold predicate on the "gross_weight_kg" field.
+func GrossWeightKgContainsFold(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldContainsFold(FieldGrossWeightKg, v))
+}
+
 // VolumeCbmEQ applies the EQ predicate on the "volume_cbm" field.
-func VolumeCbmEQ(v float64) predicate.SeaSharedContainer {
+func VolumeCbmEQ(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldEQ(FieldVolumeCbm, v))
 }
 
 // VolumeCbmNEQ applies the NEQ predicate on the "volume_cbm" field.
-func VolumeCbmNEQ(v float64) predicate.SeaSharedContainer {
+func VolumeCbmNEQ(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldNEQ(FieldVolumeCbm, v))
 }
 
 // VolumeCbmIn applies the In predicate on the "volume_cbm" field.
-func VolumeCbmIn(vs ...float64) predicate.SeaSharedContainer {
+func VolumeCbmIn(vs ...string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldIn(FieldVolumeCbm, vs...))
 }
 
 // VolumeCbmNotIn applies the NotIn predicate on the "volume_cbm" field.
-func VolumeCbmNotIn(vs ...float64) predicate.SeaSharedContainer {
+func VolumeCbmNotIn(vs ...string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldNotIn(FieldVolumeCbm, vs...))
 }
 
 // VolumeCbmGT applies the GT predicate on the "volume_cbm" field.
-func VolumeCbmGT(v float64) predicate.SeaSharedContainer {
+func VolumeCbmGT(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldGT(FieldVolumeCbm, v))
 }
 
 // VolumeCbmGTE applies the GTE predicate on the "volume_cbm" field.
-func VolumeCbmGTE(v float64) predicate.SeaSharedContainer {
+func VolumeCbmGTE(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldGTE(FieldVolumeCbm, v))
 }
 
 // VolumeCbmLT applies the LT predicate on the "volume_cbm" field.
-func VolumeCbmLT(v float64) predicate.SeaSharedContainer {
+func VolumeCbmLT(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldLT(FieldVolumeCbm, v))
 }
 
 // VolumeCbmLTE applies the LTE predicate on the "volume_cbm" field.
-func VolumeCbmLTE(v float64) predicate.SeaSharedContainer {
+func VolumeCbmLTE(v string) predicate.SeaSharedContainer {
 	return predicate.SeaSharedContainer(sql.FieldLTE(FieldVolumeCbm, v))
+}
+
+// VolumeCbmContains applies the Contains predicate on the "volume_cbm" field.
+func VolumeCbmContains(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldContains(FieldVolumeCbm, v))
+}
+
+// VolumeCbmHasPrefix applies the HasPrefix predicate on the "volume_cbm" field.
+func VolumeCbmHasPrefix(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldHasPrefix(FieldVolumeCbm, v))
+}
+
+// VolumeCbmHasSuffix applies the HasSuffix predicate on the "volume_cbm" field.
+func VolumeCbmHasSuffix(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldHasSuffix(FieldVolumeCbm, v))
+}
+
+// VolumeCbmEqualFold applies the EqualFold predicate on the "volume_cbm" field.
+func VolumeCbmEqualFold(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldEqualFold(FieldVolumeCbm, v))
+}
+
+// VolumeCbmContainsFold applies the ContainsFold predicate on the "volume_cbm" field.
+func VolumeCbmContainsFold(v string) predicate.SeaSharedContainer {
+	return predicate.SeaSharedContainer(sql.FieldContainsFold(FieldVolumeCbm, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

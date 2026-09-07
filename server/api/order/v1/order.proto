@@ -768,6 +768,7 @@ message SeaMasterBillSummary {
   string status = 18;
   uint64 version = 19;
   int32 member_count = 20;
+  uint64 transport_execution_version = 21;
 }
 
 // SeaMasterBillInput 海运主单输入（新建或确认关联已有主单）。
@@ -778,6 +779,8 @@ message SeaMasterBillInput {
   optional string candidate_id = 3;
   optional uint64 expected_candidate_version = 4;
   optional string correction_reason = 5;
+  optional string candidate_te_id = 6;
+  optional uint64 expected_candidate_te_version = 7;
 }
 
 // SeaVoyageConflict 航程冲突详情。
@@ -797,14 +800,16 @@ message SeaMasterBillMemberSummary {
 
 // SeaMasterBillCandidate 匹配到的已有主单候选。
 message SeaMasterBillCandidate {
+  reserved 6;
+  reserved "transport_execution";
   string id = 1;
   uint64 version = 2;
   string master_no = 3;
   string shipping_line_id = 4;
   optional string shipping_line_name = 5;
-  SeaTransportExecution transport_execution = 6;
   int32 member_count = 7;
   repeated SeaMasterBillMemberSummary members = 8;
+  repeated SeaTransportExecution transport_executions = 9;
 }
 
 // MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。

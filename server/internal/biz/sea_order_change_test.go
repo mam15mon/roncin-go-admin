@@ -22,8 +22,10 @@ type mockSeaOrderChangeRepo struct {
 	getReasEventByIdempFunc  func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderReassignmentEvent, error)
 	getSplitEventFunc        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderSplitEvent, error)
 	getReassignmentEventFunc func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
-	listEventsFunc           func(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
-	getEventFunc             func(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	listEventsFunc                      func(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
+	getEventFunc                        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	previewTransportExecutionUpdateFunc func(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error)
+	executeTransportExecutionUpdateFunc func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error)
 }
 
 func (m *mockSeaOrderChangeRepo) GetSplitEventByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error) {
@@ -112,6 +114,20 @@ func (m *mockSeaOrderChangeRepo) ListChangeEvents(ctx context.Context, organizat
 func (m *mockSeaOrderChangeRepo) GetChangeEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error) {
 	if m.getEventFunc != nil {
 		return m.getEventFunc(ctx, organizationID, orderID, eventID, eventType)
+	}
+	return nil, nil
+}
+
+func (m *mockSeaOrderChangeRepo) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error) {
+	if m.previewTransportExecutionUpdateFunc != nil {
+		return m.previewTransportExecutionUpdateFunc(ctx, organizationID, input)
+	}
+	return nil, nil
+}
+
+func (m *mockSeaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error) {
+	if m.executeTransportExecutionUpdateFunc != nil {
+		return m.executeTransportExecutionUpdateFunc(ctx, organizationID, actorID, input, audit)
 	}
 	return nil, nil
 }
@@ -351,6 +367,11 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 		RequestFingerprint:   "fp-reas-123",
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
+		Confirmation: &SeaExternalConfirmation{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      time.Now(),
+			ConfirmationNote: "客户要求改配并经船司确认",
+		},
 	}
 
 	preview, err := uc.PreviewReassignment(ctx, orgID, input)
@@ -567,6 +588,11 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001", ShippingLineID: &reassignShippingLineID},
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
+		Confirmation: &SeaExternalConfirmation{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      time.Now(),
+			ConfirmationNote: "确认船期调整",
+		},
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("reassignment recovery must propagate lookup error, got %v", err)
@@ -977,6 +1003,11 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				ExpectedLinkVersion:         1,
 				ExpectedCandidateMBLVersion: tc.expectedCandidateMBL,
 				ExpectedCandidateTEVersion:  tc.expectedCandidateTE,
+				Confirmation: &SeaExternalConfirmation{
+					ConfirmedByParty: "COSCO",
+					ConfirmedAt:      time.Now(),
+					ConfirmationNote: "确认改配目标",
+				},
 			}
 			_, eErr := uc.ExecuteReassignment(ctx, orgID, actorID, execInput)
 			if tc.wantError && eErr != ErrSeaOrderReassignmentInvalidArgument {

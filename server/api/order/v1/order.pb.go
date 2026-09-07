@@ -5234,27 +5234,28 @@ func (x *SeaTransportExecution) GetVersion() uint64 {
 
 // SeaMasterBillSummary 海运主单及当前航程摘要。
 type SeaMasterBillSummary struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	MasterBillId          string                 `protobuf:"bytes,1,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
-	MasterNo              string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	ShippingLineId        string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
-	ShippingLineName      *string                `protobuf:"bytes,4,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
-	TransportExecutionId  string                 `protobuf:"bytes,5,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
-	OriginLocationId      *string                `protobuf:"bytes,8,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
-	OriginLocationName    *string                `protobuf:"bytes,9,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
-	DischargeLocationId   *string                `protobuf:"bytes,10,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
-	DischargeLocationName *string                `protobuf:"bytes,11,opt,name=discharge_location_name,json=dischargeLocationName,proto3,oneof" json:"discharge_location_name,omitempty"`
-	TransitLocationId     *string                `protobuf:"bytes,12,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
-	TransitLocationName   *string                `protobuf:"bytes,13,opt,name=transit_location_name,json=transitLocationName,proto3,oneof" json:"transit_location_name,omitempty"`
-	VesselName            string                 `protobuf:"bytes,14,opt,name=vessel_name,json=vesselName,proto3" json:"vessel_name,omitempty"`
-	VoyageNo              string                 `protobuf:"bytes,15,opt,name=voyage_no,json=voyageNo,proto3" json:"voyage_no,omitempty"`
-	Etd                   *string                `protobuf:"bytes,16,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
-	Eta                   *string                `protobuf:"bytes,17,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
-	Status                string                 `protobuf:"bytes,18,opt,name=status,proto3" json:"status,omitempty"`
-	Version               uint64                 `protobuf:"varint,19,opt,name=version,proto3" json:"version,omitempty"`
-	MemberCount           int32                  `protobuf:"varint,20,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	MasterBillId              string                 `protobuf:"bytes,1,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
+	MasterNo                  string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	ShippingLineId            string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName          *string                `protobuf:"bytes,4,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
+	TransportExecutionId      string                 `protobuf:"bytes,5,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	OriginLocationId          *string                `protobuf:"bytes,8,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
+	OriginLocationName        *string                `protobuf:"bytes,9,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
+	DischargeLocationId       *string                `protobuf:"bytes,10,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
+	DischargeLocationName     *string                `protobuf:"bytes,11,opt,name=discharge_location_name,json=dischargeLocationName,proto3,oneof" json:"discharge_location_name,omitempty"`
+	TransitLocationId         *string                `protobuf:"bytes,12,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
+	TransitLocationName       *string                `protobuf:"bytes,13,opt,name=transit_location_name,json=transitLocationName,proto3,oneof" json:"transit_location_name,omitempty"`
+	VesselName                string                 `protobuf:"bytes,14,opt,name=vessel_name,json=vesselName,proto3" json:"vessel_name,omitempty"`
+	VoyageNo                  string                 `protobuf:"bytes,15,opt,name=voyage_no,json=voyageNo,proto3" json:"voyage_no,omitempty"`
+	Etd                       *string                `protobuf:"bytes,16,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
+	Eta                       *string                `protobuf:"bytes,17,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
+	Status                    string                 `protobuf:"bytes,18,opt,name=status,proto3" json:"status,omitempty"`
+	Version                   uint64                 `protobuf:"varint,19,opt,name=version,proto3" json:"version,omitempty"`
+	MemberCount               int32                  `protobuf:"varint,20,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	TransportExecutionVersion uint64                 `protobuf:"varint,21,opt,name=transport_execution_version,json=transportExecutionVersion,proto3" json:"transport_execution_version,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *SeaMasterBillSummary) Reset() {
@@ -5413,15 +5414,24 @@ func (x *SeaMasterBillSummary) GetMemberCount() int32 {
 	return 0
 }
 
+func (x *SeaMasterBillSummary) GetTransportExecutionVersion() uint64 {
+	if x != nil {
+		return x.TransportExecutionVersion
+	}
+	return 0
+}
+
 // SeaMasterBillInput 海运主单输入（新建或确认关联已有主单）。
 type SeaMasterBillInput struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	MasterNo                 string                 `protobuf:"bytes,1,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	CandidateId              *string                `protobuf:"bytes,3,opt,name=candidate_id,json=candidateId,proto3,oneof" json:"candidate_id,omitempty"`
-	ExpectedCandidateVersion *uint64                `protobuf:"varint,4,opt,name=expected_candidate_version,json=expectedCandidateVersion,proto3,oneof" json:"expected_candidate_version,omitempty"`
-	CorrectionReason         *string                `protobuf:"bytes,5,opt,name=correction_reason,json=correctionReason,proto3,oneof" json:"correction_reason,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	MasterNo                   string                 `protobuf:"bytes,1,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	CandidateId                *string                `protobuf:"bytes,3,opt,name=candidate_id,json=candidateId,proto3,oneof" json:"candidate_id,omitempty"`
+	ExpectedCandidateVersion   *uint64                `protobuf:"varint,4,opt,name=expected_candidate_version,json=expectedCandidateVersion,proto3,oneof" json:"expected_candidate_version,omitempty"`
+	CorrectionReason           *string                `protobuf:"bytes,5,opt,name=correction_reason,json=correctionReason,proto3,oneof" json:"correction_reason,omitempty"`
+	CandidateTeId              *string                `protobuf:"bytes,6,opt,name=candidate_te_id,json=candidateTeId,proto3,oneof" json:"candidate_te_id,omitempty"`
+	ExpectedCandidateTeVersion *uint64                `protobuf:"varint,7,opt,name=expected_candidate_te_version,json=expectedCandidateTeVersion,proto3,oneof" json:"expected_candidate_te_version,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *SeaMasterBillInput) Reset() {
@@ -5480,6 +5490,20 @@ func (x *SeaMasterBillInput) GetCorrectionReason() string {
 		return *x.CorrectionReason
 	}
 	return ""
+}
+
+func (x *SeaMasterBillInput) GetCandidateTeId() string {
+	if x != nil && x.CandidateTeId != nil {
+		return *x.CandidateTeId
+	}
+	return ""
+}
+
+func (x *SeaMasterBillInput) GetExpectedCandidateTeVersion() uint64 {
+	if x != nil && x.ExpectedCandidateTeVersion != nil {
+		return *x.ExpectedCandidateTeVersion
+	}
+	return 0
 }
 
 // SeaVoyageConflict 航程冲突详情。
@@ -5614,17 +5638,17 @@ func (x *SeaMasterBillMemberSummary) GetCustomerReferenceNo() string {
 
 // SeaMasterBillCandidate 匹配到的已有主单候选。
 type SeaMasterBillCandidate struct {
-	state              protoimpl.MessageState        `protogen:"open.v1"`
-	Id                 string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Version            uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
-	MasterNo           string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	ShippingLineId     string                        `protobuf:"bytes,4,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
-	ShippingLineName   *string                       `protobuf:"bytes,5,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
-	TransportExecution *SeaTransportExecution        `protobuf:"bytes,6,opt,name=transport_execution,json=transportExecution,proto3" json:"transport_execution,omitempty"`
-	MemberCount        int32                         `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
-	Members            []*SeaMasterBillMemberSummary `protobuf:"bytes,8,rep,name=members,proto3" json:"members,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state               protoimpl.MessageState        `protogen:"open.v1"`
+	Id                  string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Version             uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	MasterNo            string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	ShippingLineId      string                        `protobuf:"bytes,4,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName    *string                       `protobuf:"bytes,5,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
+	MemberCount         int32                         `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	Members             []*SeaMasterBillMemberSummary `protobuf:"bytes,8,rep,name=members,proto3" json:"members,omitempty"`
+	TransportExecutions []*SeaTransportExecution      `protobuf:"bytes,9,rep,name=transport_executions,json=transportExecutions,proto3" json:"transport_executions,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SeaMasterBillCandidate) Reset() {
@@ -5692,13 +5716,6 @@ func (x *SeaMasterBillCandidate) GetShippingLineName() string {
 	return ""
 }
 
-func (x *SeaMasterBillCandidate) GetTransportExecution() *SeaTransportExecution {
-	if x != nil {
-		return x.TransportExecution
-	}
-	return nil
-}
-
 func (x *SeaMasterBillCandidate) GetMemberCount() int32 {
 	if x != nil {
 		return x.MemberCount
@@ -5709,6 +5726,13 @@ func (x *SeaMasterBillCandidate) GetMemberCount() int32 {
 func (x *SeaMasterBillCandidate) GetMembers() []*SeaMasterBillMemberSummary {
 	if x != nil {
 		return x.Members
+	}
+	return nil
+}
+
+func (x *SeaMasterBillCandidate) GetTransportExecutions() []*SeaTransportExecution {
+	if x != nil {
+		return x.TransportExecutions
 	}
 	return nil
 }
@@ -6864,7 +6888,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14_transit_location_idB\x18\n" +
 	"\x16_transit_location_nameB\x06\n" +
 	"\x04_etdB\x06\n" +
-	"\x04_eta\"\xe0\a\n" +
+	"\x04_eta\"\xa0\b\n" +
 	"\x14SeaMasterBillSummary\x12$\n" +
 	"\x0emaster_bill_id\x18\x01 \x01(\tR\fmasterBillId\x12\x1b\n" +
 	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
@@ -6885,7 +6909,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x03eta\x18\x11 \x01(\tH\bR\x03eta\x88\x01\x01\x12\x16\n" +
 	"\x06status\x18\x12 \x01(\tR\x06status\x12\x18\n" +
 	"\aversion\x18\x13 \x01(\x04R\aversion\x12!\n" +
-	"\fmember_count\x18\x14 \x01(\x05R\vmemberCountB\x15\n" +
+	"\fmember_count\x18\x14 \x01(\x05R\vmemberCount\x12>\n" +
+	"\x1btransport_execution_version\x18\x15 \x01(\x04R\x19transportExecutionVersionB\x15\n" +
 	"\x13_shipping_line_nameB\x15\n" +
 	"\x13_origin_location_idB\x17\n" +
 	"\x15_origin_location_nameB\x18\n" +
@@ -6895,15 +6920,19 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x16_transit_location_nameB\x06\n" +
 	"\x04_etdB\x06\n" +
 	"\x04_etaJ\x04\b\x06\x10\aJ\x04\b\a\x10\bR\n" +
-	"carrier_idR\fcarrier_name\"\xb2\x02\n" +
+	"carrier_idR\fcarrier_name\"\xdd\x03\n" +
 	"\x12SeaMasterBillInput\x12 \n" +
 	"\tmaster_no\x18\x01 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12&\n" +
 	"\fcandidate_id\x18\x03 \x01(\tH\x00R\vcandidateId\x88\x01\x01\x12A\n" +
 	"\x1aexpected_candidate_version\x18\x04 \x01(\x04H\x01R\x18expectedCandidateVersion\x88\x01\x01\x120\n" +
-	"\x11correction_reason\x18\x05 \x01(\tH\x02R\x10correctionReason\x88\x01\x01B\x0f\n" +
+	"\x11correction_reason\x18\x05 \x01(\tH\x02R\x10correctionReason\x88\x01\x01\x12+\n" +
+	"\x0fcandidate_te_id\x18\x06 \x01(\tH\x03R\rcandidateTeId\x88\x01\x01\x12F\n" +
+	"\x1dexpected_candidate_te_version\x18\a \x01(\x04H\x04R\x1aexpectedCandidateTeVersion\x88\x01\x01B\x0f\n" +
 	"\r_candidate_idB\x1d\n" +
 	"\x1b_expected_candidate_versionB\x14\n" +
-	"\x12_correction_reasonJ\x04\b\x02\x10\x03R\x11issuer_partner_id\"\x87\x01\n" +
+	"\x12_correction_reasonB\x12\n" +
+	"\x10_candidate_te_idB \n" +
+	"\x1e_expected_candidate_te_versionJ\x04\b\x02\x10\x03R\x11issuer_partner_id\"\x87\x01\n" +
 	"\x11SeaVoyageConflict\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12!\n" +
 	"\fmaster_value\x18\x02 \x01(\tR\vmasterValue\x12\x1f\n" +
@@ -6914,17 +6943,17 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x127\n" +
 	"\x15customer_reference_no\x18\x03 \x01(\tH\x00R\x13customerReferenceNo\x88\x01\x01B\x18\n" +
-	"\x16_customer_reference_no\"\x88\x03\n" +
+	"\x16_customer_reference_no\"\xa5\x03\n" +
 	"\x16SeaMasterBillCandidate\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x1b\n" +
 	"\tmaster_no\x18\x03 \x01(\tR\bmasterNo\x12(\n" +
 	"\x10shipping_line_id\x18\x04 \x01(\tR\x0eshippingLineId\x121\n" +
-	"\x12shipping_line_name\x18\x05 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x12P\n" +
-	"\x13transport_execution\x18\x06 \x01(\v2\x1f.order.v1.SeaTransportExecutionR\x12transportExecution\x12!\n" +
+	"\x12shipping_line_name\x18\x05 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x12!\n" +
 	"\fmember_count\x18\a \x01(\x05R\vmemberCount\x12>\n" +
-	"\amembers\x18\b \x03(\v2$.order.v1.SeaMasterBillMemberSummaryR\amembersB\x15\n" +
-	"\x13_shipping_line_name\"\x95\x04\n" +
+	"\amembers\x18\b \x03(\v2$.order.v1.SeaMasterBillMemberSummaryR\amembers\x12R\n" +
+	"\x14transport_executions\x18\t \x03(\v2\x1f.order.v1.SeaTransportExecutionR\x13transportExecutionsB\x15\n" +
+	"\x13_shipping_line_nameJ\x04\b\x06\x10\aR\x13transport_execution\"\x95\x04\n" +
 	"\"MatchSeaMasterBillCandidateRequest\x12-\n" +
 	"\x10shipping_line_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eshippingLineId\x12 \n" +
 	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x121\n" +
@@ -7255,8 +7284,8 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	18, // 66: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
 	32, // 67: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
 	23, // 68: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	48, // 69: order.v1.SeaMasterBillCandidate.transport_execution:type_name -> order.v1.SeaTransportExecution
-	52, // 70: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
+	52, // 69: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
+	48, // 70: order.v1.SeaMasterBillCandidate.transport_executions:type_name -> order.v1.SeaTransportExecution
 	53, // 71: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
 	51, // 72: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
 	9,  // 73: order.v1.SameBatchOrderSummary.flow_status:type_name -> order.v1.OrderFlowStatus

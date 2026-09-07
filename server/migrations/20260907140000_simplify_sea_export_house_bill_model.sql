@@ -97,15 +97,15 @@ BEGIN
 END $$;
 
 -- 1. 删除旧表：sea_cargo_allocations 与 sea_house_bill_switch_events
-DROP TABLE IF EXISTS "sea_cargo_allocations";
-DROP TABLE IF EXISTS "sea_house_bill_switch_events";
+DROP TABLE "sea_cargo_allocations";
+DROP TABLE "sea_house_bill_switch_events";
 
 -- 2. sea_master_bills 解耦实际运输执行
 ALTER TABLE "sea_master_bills"
-  DROP CONSTRAINT IF EXISTS "sea_master_bills_sea_transport_executions_master_bills";
-DROP INDEX IF EXISTS "seamasterbill_organization_id_transport_execution_id";
+  DROP CONSTRAINT "sea_master_bills_sea_transport_executions_master_bills";
+DROP INDEX "seamasterbill_organization_id_transport_execution_id";
 ALTER TABLE "sea_master_bills"
-  DROP COLUMN IF EXISTS "transport_execution_id";
+  DROP COLUMN "transport_execution_id";
 
 -- 3. 创建运输执行版本表 sea_transport_execution_versions
 CREATE TABLE "sea_transport_execution_versions" (
@@ -163,10 +163,10 @@ CREATE INDEX "order_organization_id_booking_no" ON "orders" ("organization_id", 
 
 -- 6. sea_master_bill_order_links 调整：增加 transport_execution_id，移除旧箱货分配，收敛为 DIRECT | HOUSE 两态
 ALTER TABLE "sea_master_bill_order_links"
-  DROP COLUMN IF EXISTS "cargo_allocation_status",
-  DROP COLUMN IF EXISTS "cargo_allocation_version",
-  DROP COLUMN IF EXISTS "cargo_allocation_confirmed_at",
-  DROP COLUMN IF EXISTS "cargo_allocation_confirmed_by";
+  DROP COLUMN "cargo_allocation_status",
+  DROP COLUMN "cargo_allocation_version",
+  DROP COLUMN "cargo_allocation_confirmed_at",
+  DROP COLUMN "cargo_allocation_confirmed_by";
 
 ALTER TABLE "sea_master_bill_order_links"
   ADD COLUMN "transport_execution_id" uuid NOT NULL;
@@ -179,16 +179,16 @@ CREATE INDEX "seamasterbillorderlink_organization_id_transport_execution_id"
   ON "sea_master_bill_order_links" ("organization_id", "transport_execution_id");
 
 ALTER TABLE "sea_master_bill_order_links"
-  DROP CONSTRAINT IF EXISTS "sea_master_bill_order_links_document_structure_check";
+  DROP CONSTRAINT "sea_master_bill_order_links_document_structure_check";
 
 ALTER TABLE "sea_master_bill_order_links"
-  ALTER COLUMN "document_structure" SET DEFAULT 'HOUSE',
+  ALTER COLUMN "document_structure" DROP DEFAULT,
   ADD CONSTRAINT "sea_master_bill_order_links_document_structure_check"
   CHECK ("document_structure" IN ('DIRECT', 'HOUSE'));
 
 -- 7. sea_house_bills 调整：删除 REPLACED 状态，增加当前有效 HBL 条件唯一索引
 ALTER TABLE "sea_house_bills"
-  DROP CONSTRAINT IF EXISTS "sea_house_bills_status_check";
+  DROP CONSTRAINT "sea_house_bills_status_check";
 
 ALTER TABLE "sea_house_bills"
   ADD CONSTRAINT "sea_house_bills_status_check"
@@ -210,14 +210,14 @@ ALTER TABLE "sea_house_bill_versions"
   FOREIGN KEY ("confirmation_attachment_id") REFERENCES "order_attachments" ("id") ON DELETE NO ACTION;
 
 ALTER TABLE "sea_house_bill_versions"
-  DROP CONSTRAINT IF EXISTS "sea_house_bill_versions_source_check";
+  DROP CONSTRAINT "sea_house_bill_versions_source_check";
 
 ALTER TABLE "sea_house_bill_versions"
   ADD CONSTRAINT "sea_house_bill_versions_source_check"
   CHECK ("source" IN ('ORDER_LOCK', 'AMENDMENT', 'VOID', 'MODE_CHANGE'));
 
 ALTER TABLE "sea_house_bill_versions"
-  DROP CONSTRAINT IF EXISTS "sea_house_bill_versions_status_check";
+  DROP CONSTRAINT "sea_house_bill_versions_status_check";
 
 ALTER TABLE "sea_house_bill_versions"
   ADD CONSTRAINT "sea_house_bill_versions_status_check"
@@ -225,19 +225,19 @@ ALTER TABLE "sea_house_bill_versions"
 
 -- 9. sea_master_bill_versions 调整：移除单一航次快照，增加外部确认字段
 ALTER TABLE "sea_master_bill_versions"
-  DROP CONSTRAINT IF EXISTS "sea_master_bill_versions_sea_transport_executions_master_bill_versions";
+  DROP CONSTRAINT "sea_master_bill_versions_sea_transport_executions_master_bill_versions";
 
 DROP INDEX IF EXISTS "seamasterbillversion_organization_id_transport_execution_id";
 
 ALTER TABLE "sea_master_bill_versions"
-  DROP COLUMN IF EXISTS "transport_execution_id",
-  DROP COLUMN IF EXISTS "origin_location_id",
-  DROP COLUMN IF EXISTS "discharge_location_id",
-  DROP COLUMN IF EXISTS "transit_location_id",
-  DROP COLUMN IF EXISTS "vessel_name",
-  DROP COLUMN IF EXISTS "voyage_no",
-  DROP COLUMN IF EXISTS "etd",
-  DROP COLUMN IF EXISTS "eta";
+  DROP COLUMN "transport_execution_id",
+  DROP COLUMN "origin_location_id",
+  DROP COLUMN "discharge_location_id",
+  DROP COLUMN "transit_location_id",
+  DROP COLUMN "vessel_name",
+  DROP COLUMN "voyage_no",
+  DROP COLUMN "etd",
+  DROP COLUMN "eta";
 
 ALTER TABLE "sea_master_bill_versions"
   ADD COLUMN "confirmed_by_party" character varying(128),
@@ -250,7 +250,7 @@ ALTER TABLE "sea_master_bill_versions"
   FOREIGN KEY ("confirmation_attachment_id") REFERENCES "order_attachments" ("id") ON DELETE NO ACTION;
 
 ALTER TABLE "sea_master_bill_versions"
-  DROP CONSTRAINT IF EXISTS "sea_master_bill_versions_source_check";
+  DROP CONSTRAINT "sea_master_bill_versions_source_check";
 
 ALTER TABLE "sea_master_bill_versions"
   ADD CONSTRAINT "sea_master_bill_versions_source_check"
@@ -270,7 +270,7 @@ ALTER TABLE "order_lock_records"
   FOREIGN KEY ("transport_execution_version_id") REFERENCES "sea_transport_execution_versions" ("id") ON DELETE NO ACTION;
 
 ALTER TABLE "order_lock_records"
-  DROP CONSTRAINT IF EXISTS "order_lock_records_business_type_document_refs_check";
+  DROP CONSTRAINT "order_lock_records_business_type_document_refs_check";
 
 ALTER TABLE "order_lock_records"
   ADD CONSTRAINT "order_lock_records_business_type_document_refs_check"

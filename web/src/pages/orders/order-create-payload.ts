@@ -57,6 +57,8 @@ export type CreateOrderFormValues = {
   seaMasterBillMasterNo?: string;
   seaMasterBillCandidateId?: string;
   seaMasterBillExpectedCandidateVersion?: number | string;
+  seaMasterBillCandidateTeId?: string;
+  seaMasterBillExpectedCandidateTeVersion?: number | string;
   seaMasterBillCorrectionReason?: string;
   seaMasterBill?: API.SeaMasterBillInput;
   operatorUserId?: string;
@@ -125,6 +127,12 @@ export function buildCreateOrderPayload(
         values.seaMasterBillExpectedCandidateVersion !== undefined &&
         values.seaMasterBillExpectedCandidateVersion !== null
           ? String(values.seaMasterBillExpectedCandidateVersion)
+          : undefined,
+      candidateTeId: values.seaMasterBillCandidateTeId || undefined,
+      expectedCandidateTeVersion:
+        values.seaMasterBillExpectedCandidateTeVersion !== undefined &&
+        values.seaMasterBillExpectedCandidateTeVersion !== null
+          ? String(values.seaMasterBillExpectedCandidateTeVersion)
           : undefined,
       correctionReason:
         values.seaMasterBillCorrectionReason?.trim() || undefined,

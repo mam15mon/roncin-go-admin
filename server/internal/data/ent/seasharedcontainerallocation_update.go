@@ -132,44 +132,30 @@ func (_u *SeaSharedContainerAllocationUpdate) AddPackageCount(v int) *SeaSharedC
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_u *SeaSharedContainerAllocationUpdate) SetGrossWeightKg(v float64) *SeaSharedContainerAllocationUpdate {
-	_u.mutation.ResetGrossWeightKg()
+func (_u *SeaSharedContainerAllocationUpdate) SetGrossWeightKg(v string) *SeaSharedContainerAllocationUpdate {
 	_u.mutation.SetGrossWeightKg(v)
 	return _u
 }
 
 // SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
-func (_u *SeaSharedContainerAllocationUpdate) SetNillableGrossWeightKg(v *float64) *SeaSharedContainerAllocationUpdate {
+func (_u *SeaSharedContainerAllocationUpdate) SetNillableGrossWeightKg(v *string) *SeaSharedContainerAllocationUpdate {
 	if v != nil {
 		_u.SetGrossWeightKg(*v)
 	}
 	return _u
 }
 
-// AddGrossWeightKg adds value to the "gross_weight_kg" field.
-func (_u *SeaSharedContainerAllocationUpdate) AddGrossWeightKg(v float64) *SeaSharedContainerAllocationUpdate {
-	_u.mutation.AddGrossWeightKg(v)
-	return _u
-}
-
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_u *SeaSharedContainerAllocationUpdate) SetVolumeCbm(v float64) *SeaSharedContainerAllocationUpdate {
-	_u.mutation.ResetVolumeCbm()
+func (_u *SeaSharedContainerAllocationUpdate) SetVolumeCbm(v string) *SeaSharedContainerAllocationUpdate {
 	_u.mutation.SetVolumeCbm(v)
 	return _u
 }
 
 // SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
-func (_u *SeaSharedContainerAllocationUpdate) SetNillableVolumeCbm(v *float64) *SeaSharedContainerAllocationUpdate {
+func (_u *SeaSharedContainerAllocationUpdate) SetNillableVolumeCbm(v *string) *SeaSharedContainerAllocationUpdate {
 	if v != nil {
 		_u.SetVolumeCbm(*v)
 	}
-	return _u
-}
-
-// AddVolumeCbm adds value to the "volume_cbm" field.
-func (_u *SeaSharedContainerAllocationUpdate) AddVolumeCbm(v float64) *SeaSharedContainerAllocationUpdate {
-	_u.mutation.AddVolumeCbm(v)
 	return _u
 }
 
@@ -347,16 +333,10 @@ func (_u *SeaSharedContainerAllocationUpdate) sqlSave(ctx context.Context) (_nod
 		_spec.AddField(seasharedcontainerallocation.FieldPackageCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
-		_spec.AddField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
-		_spec.AddField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(seasharedcontainerallocation.FieldVersion, field.TypeUint64, value)
@@ -627,44 +607,30 @@ func (_u *SeaSharedContainerAllocationUpdateOne) AddPackageCount(v int) *SeaShar
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_u *SeaSharedContainerAllocationUpdateOne) SetGrossWeightKg(v float64) *SeaSharedContainerAllocationUpdateOne {
-	_u.mutation.ResetGrossWeightKg()
+func (_u *SeaSharedContainerAllocationUpdateOne) SetGrossWeightKg(v string) *SeaSharedContainerAllocationUpdateOne {
 	_u.mutation.SetGrossWeightKg(v)
 	return _u
 }
 
 // SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
-func (_u *SeaSharedContainerAllocationUpdateOne) SetNillableGrossWeightKg(v *float64) *SeaSharedContainerAllocationUpdateOne {
+func (_u *SeaSharedContainerAllocationUpdateOne) SetNillableGrossWeightKg(v *string) *SeaSharedContainerAllocationUpdateOne {
 	if v != nil {
 		_u.SetGrossWeightKg(*v)
 	}
 	return _u
 }
 
-// AddGrossWeightKg adds value to the "gross_weight_kg" field.
-func (_u *SeaSharedContainerAllocationUpdateOne) AddGrossWeightKg(v float64) *SeaSharedContainerAllocationUpdateOne {
-	_u.mutation.AddGrossWeightKg(v)
-	return _u
-}
-
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_u *SeaSharedContainerAllocationUpdateOne) SetVolumeCbm(v float64) *SeaSharedContainerAllocationUpdateOne {
-	_u.mutation.ResetVolumeCbm()
+func (_u *SeaSharedContainerAllocationUpdateOne) SetVolumeCbm(v string) *SeaSharedContainerAllocationUpdateOne {
 	_u.mutation.SetVolumeCbm(v)
 	return _u
 }
 
 // SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
-func (_u *SeaSharedContainerAllocationUpdateOne) SetNillableVolumeCbm(v *float64) *SeaSharedContainerAllocationUpdateOne {
+func (_u *SeaSharedContainerAllocationUpdateOne) SetNillableVolumeCbm(v *string) *SeaSharedContainerAllocationUpdateOne {
 	if v != nil {
 		_u.SetVolumeCbm(*v)
 	}
-	return _u
-}
-
-// AddVolumeCbm adds value to the "volume_cbm" field.
-func (_u *SeaSharedContainerAllocationUpdateOne) AddVolumeCbm(v float64) *SeaSharedContainerAllocationUpdateOne {
-	_u.mutation.AddVolumeCbm(v)
 	return _u
 }
 
@@ -872,16 +838,10 @@ func (_u *SeaSharedContainerAllocationUpdateOne) sqlSave(ctx context.Context) (_
 		_spec.AddField(seasharedcontainerallocation.FieldPackageCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
-		_spec.AddField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
-		_spec.AddField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(seasharedcontainerallocation.FieldVersion, field.TypeUint64, value)

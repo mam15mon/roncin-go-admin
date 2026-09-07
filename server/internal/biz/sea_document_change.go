@@ -26,18 +26,25 @@ type SeaDocumentEventType string
 const (
 	SeaDocumentEventTypeAmendment  SeaDocumentEventType = "AMENDMENT"
 	SeaDocumentEventTypeVoid       SeaDocumentEventType = "VOID"
-	SeaDocumentEventTypeSwitch     SeaDocumentEventType = "SWITCH"
 	SeaDocumentEventTypeModeChange SeaDocumentEventType = "MODE_CHANGE"
 )
 
 var (
-	ErrSeaDocumentAmendmentEmpty           = errors.BadRequest("SEA_DOCUMENT_AMENDMENT_EMPTY", "改单内容与当前不可变版本没有差异")
-	ErrSeaDocumentChangeBlocked            = errors.Conflict("SEA_DOCUMENT_CHANGE_BLOCKED", "单证存在不可自动调整的下游事实，当前操作已阻断")
-	ErrSeaDocumentVoided                   = errors.Conflict("SEA_DOCUMENT_VOIDED", "单证已作废，不能再次修改")
-	ErrSeaHouseBillSwitchConflict          = errors.Conflict("SEA_HOUSE_BILL_SWITCH_CONFLICT", "HBL 已被替代或版本已变化，请刷新后重试")
-	ErrSeaHouseBillSwitchDownstreamBlocked = errors.Conflict("SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED", "HBL 存在不可自动调整的下游事实，不能执行 Switch B/L")
-	ErrSeaDocumentVersionNotFound          = errors.NotFound("SEA_DOCUMENT_VERSION_NOT_FOUND", "单证不可变版本不存在")
+	ErrSeaDocumentAmendmentEmpty     = errors.BadRequest("SEA_DOCUMENT_AMENDMENT_EMPTY", "改单内容与当前不可变版本没有差异")
+	ErrSeaDocumentChangeBlocked      = errors.Conflict("SEA_DOCUMENT_CHANGE_BLOCKED", "单证存在不可自动调整的下游事实，当前操作已阻断")
+	ErrSeaDocumentVoided             = errors.Conflict("SEA_DOCUMENT_VOIDED", "单证已作废，不能再次修改")
+	ErrSeaDocumentVersionNotFound    = errors.NotFound("SEA_DOCUMENT_VERSION_NOT_FOUND", "单证不可变版本不存在")
+	ErrSeaDocumentModeChangeConflict = errors.Conflict("SEA_DOCUMENT_MODE_CHANGE_CONFLICT", "单证模式或版本已变化，请刷新后重试")
 )
+
+// SeaExternalConfirmation 是承运方/船代对一次正式变更的不可变确认事实。
+type SeaExternalConfirmation struct {
+	ConfirmedByParty           string
+	ConfirmedAt                time.Time
+	ConfirmationNote           string
+	ConfirmationAttachmentID   *uuid.UUID
+	ConfirmationAttachmentName string
+}
 
 type SeaDocumentVersion struct {
 	ID                   uuid.UUID
@@ -66,6 +73,7 @@ type SeaDocumentVersion struct {
 	Content              *SeaBillContent
 	CreatedBy            *uuid.UUID
 	CreatedAt            time.Time
+	Confirmation         *SeaExternalConfirmation
 }
 
 type SeaDocumentFieldDifference struct {
@@ -91,15 +99,11 @@ type SeaDocumentEvent struct {
 	DocumentNo        *string
 	PreviousVersionID *uuid.UUID
 	ResultVersionID   *uuid.UUID
-	OldHouseBillID    *uuid.UUID
-	OldHouseNo        *string
-	NewHouseBillID    *uuid.UUID
-	NewHouseNo        *string
-	ChainID           *uuid.UUID
-	Sequence          *int
 	Reason            string
 	ImpactSummary     *string
-	SurrenderInfo     *string
+	PreviousMode      *SeaDocumentStructure
+	TargetMode        *SeaDocumentStructure
+	Confirmation      *SeaExternalConfirmation
 	CreatedBy         *uuid.UUID
 	CreatedAt         time.Time
 }
@@ -119,6 +123,7 @@ type SeaDocumentAmendmentCommand struct {
 	Reason                   string
 	IdempotencyKey           string
 	Input                    *SeaDocumentAmendmentInput
+	Confirmation             *SeaExternalConfirmation
 }
 
 type SeaDocumentVoidCommand struct {
@@ -130,18 +135,20 @@ type SeaDocumentVoidCommand struct {
 	ExpectedCurrentVersionID uuid.UUID
 	Reason                   string
 	IdempotencyKey           string
+	Confirmation             *SeaExternalConfirmation
 }
 
-type SeaHouseBillSwitchCommand struct {
+type SeaDocumentModeChangeCommand struct {
 	OrderID                  uuid.UUID
-	OldHouseBillID           uuid.UUID
 	ExpectedOrderVersion     uint64
-	ExpectedHouseBillVersion uint64
-	ExpectedCurrentVersionID uuid.UUID
-	Reason                   string
-	SurrenderInfo            *string
-	IdempotencyKey           string
+	ExpectedLinkVersion      uint64
+	ExpectedHouseBillVersion *uint64
+	ExpectedCurrentVersionID *uuid.UUID
+	TargetMode               SeaDocumentStructure
 	NewHouseBill             *SeaHouseBillInput
+	Reason                   string
+	Confirmation             *SeaExternalConfirmation
+	IdempotencyKey           string
 }
 
 type SeaDocumentChangePreview struct {
@@ -149,11 +156,6 @@ type SeaDocumentChangePreview struct {
 	Differences []*SeaDocumentFieldDifference
 	Impacts     []*SeaDocumentDownstreamImpact
 	Executable  bool
-}
-
-type SeaHouseBillSwitchResult struct {
-	Event        *SeaDocumentEvent
-	NewHouseBill *SeaHouseBill
 }
 
 type SeaDocumentChangeRepo interface {
@@ -165,8 +167,8 @@ type SeaDocumentChangeRepo interface {
 	ExecuteAmendment(context.Context, uuid.UUID, uuid.UUID, *SeaDocumentAmendmentCommand, *AuditEvent) (*SeaDocumentVersion, error)
 	PreviewVoid(context.Context, uuid.UUID, *SeaDocumentVoidCommand) (*SeaDocumentChangePreview, error)
 	ExecuteVoid(context.Context, uuid.UUID, uuid.UUID, *SeaDocumentVoidCommand, *AuditEvent) (*SeaDocumentEvent, error)
-	PreviewSwitch(context.Context, uuid.UUID, *SeaHouseBillSwitchCommand) (*SeaDocumentChangePreview, error)
-	ExecuteSwitch(context.Context, uuid.UUID, uuid.UUID, *SeaHouseBillSwitchCommand, *AuditEvent) (*SeaHouseBillSwitchResult, error)
+	PreviewModeChange(context.Context, uuid.UUID, *SeaDocumentModeChangeCommand) (*SeaDocumentChangePreview, error)
+	ExecuteModeChange(context.Context, uuid.UUID, uuid.UUID, *SeaDocumentModeChangeCommand, *AuditEvent) error
 }
 
 type SeaDocumentChangeUsecase struct{ repo SeaDocumentChangeRepo }
@@ -211,6 +213,27 @@ func normalizeRequiredChangeText(value string, max int) (string, error) {
 	return value, nil
 }
 
+func ValidateSeaExternalConfirmation(input *SeaExternalConfirmation) (*SeaExternalConfirmation, error) {
+	if input == nil || input.ConfirmedAt.IsZero() {
+		return nil, ErrSeaDocumentInvalidArgument
+	}
+	party, err := normalizeRequiredChangeText(input.ConfirmedByParty, 128)
+	if err != nil {
+		return nil, err
+	}
+	note, err := normalizeRequiredChangeText(input.ConfirmationNote, 500)
+	if err != nil {
+		return nil, err
+	}
+	out := *input
+	out.ConfirmedByParty = party
+	out.ConfirmationNote = note
+	if out.ConfirmationAttachmentID != nil && *out.ConfirmationAttachmentID == uuid.Nil {
+		return nil, ErrSeaDocumentInvalidArgument
+	}
+	return &out, nil
+}
+
 func validateAmendmentCommand(input *SeaDocumentAmendmentCommand, execute bool) (*SeaDocumentAmendmentCommand, error) {
 	if input == nil || input.OrderID == uuid.Nil || input.DocumentID == uuid.Nil || !input.DocumentType.Valid() || input.ExpectedOrderVersion == 0 || input.ExpectedDocumentVersion == 0 || input.ExpectedCurrentVersionID == uuid.Nil || input.Input == nil {
 		return nil, ErrSeaDocumentInvalidArgument
@@ -228,6 +251,12 @@ func validateAmendmentCommand(input *SeaDocumentAmendmentCommand, execute bool) 
 	}
 	out := *input
 	out.Reason, out.IdempotencyKey = reason, key
+	if execute {
+		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, err
+		}
+	}
 	switch input.DocumentType {
 	case SeaDocumentTypeMasterBill:
 		if input.Input.MasterBillContent == nil || input.Input.HouseBill != nil {
@@ -268,11 +297,17 @@ func validateVoidCommand(input *SeaDocumentVoidCommand, execute bool) (*SeaDocum
 	}
 	out := *input
 	out.Reason, out.IdempotencyKey = reason, key
+	if execute {
+		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &out, nil
 }
 
-func validateSwitchCommand(input *SeaHouseBillSwitchCommand, execute bool) (*SeaHouseBillSwitchCommand, error) {
-	if input == nil || input.OrderID == uuid.Nil || input.OldHouseBillID == uuid.Nil || input.ExpectedOrderVersion == 0 || input.ExpectedHouseBillVersion == 0 || input.ExpectedCurrentVersionID == uuid.Nil || input.NewHouseBill == nil {
+func validateModeChangeCommand(input *SeaDocumentModeChangeCommand, execute bool) (*SeaDocumentModeChangeCommand, error) {
+	if input == nil || input.OrderID == uuid.Nil || (input.TargetMode != SeaDocumentStructureHouse && input.TargetMode != SeaDocumentStructureDirect) {
 		return nil, ErrSeaDocumentInvalidArgument
 	}
 	reason, err := normalizeRequiredChangeText(input.Reason, 500)
@@ -286,21 +321,26 @@ func validateSwitchCommand(input *SeaHouseBillSwitchCommand, execute bool) (*Sea
 			return nil, err
 		}
 	}
-	hb, err := ValidateSeaHouseBillInput(input.NewHouseBill)
-	if err != nil {
-		return nil, err
-	}
 	out := *input
-	out.Reason, out.IdempotencyKey, out.NewHouseBill = reason, key, hb
-	if input.SurrenderInfo != nil {
-		v := strings.TrimSpace(*input.SurrenderInfo)
-		if utf8.RuneCountInString(v) > 500 || containsControl(v) {
+	out.Reason, out.IdempotencyKey = reason, key
+	if input.TargetMode == SeaDocumentStructureHouse {
+		if input.NewHouseBill == nil {
 			return nil, ErrSeaDocumentInvalidArgument
 		}
-		if v == "" {
-			out.SurrenderInfo = nil
-		} else {
-			out.SurrenderInfo = &v
+		out.NewHouseBill, err = ValidateSeaHouseBillInput(input.NewHouseBill)
+		if err != nil {
+			return nil, err
+		}
+	} else if input.NewHouseBill != nil {
+		return nil, ErrSeaDocumentInvalidArgument
+	}
+	if execute {
+		if input.ExpectedOrderVersion == 0 || input.ExpectedLinkVersion == 0 {
+			return nil, ErrSeaDocumentInvalidArgument
+		}
+		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return &out, nil
@@ -350,24 +390,24 @@ func (uc *SeaDocumentChangeUsecase) ExecuteVoid(ctx context.Context, orgID, acto
 	return uc.repo.ExecuteVoid(ctx, orgID, actorID, validated, audit)
 }
 
-func (uc *SeaDocumentChangeUsecase) PreviewSwitch(ctx context.Context, orgID uuid.UUID, input *SeaHouseBillSwitchCommand) (*SeaDocumentChangePreview, error) {
-	validated, err := validateSwitchCommand(input, false)
+func (uc *SeaDocumentChangeUsecase) PreviewModeChange(ctx context.Context, orgID uuid.UUID, input *SeaDocumentModeChangeCommand) (*SeaDocumentChangePreview, error) {
+	validated, err := validateModeChangeCommand(input, false)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.PreviewSwitch(ctx, orgID, validated)
+	return uc.repo.PreviewModeChange(ctx, orgID, validated)
 }
 
-func (uc *SeaDocumentChangeUsecase) ExecuteSwitch(ctx context.Context, orgID, actorID uuid.UUID, input *SeaHouseBillSwitchCommand, audit *AuditEvent) (*SeaHouseBillSwitchResult, error) {
-	validated, err := validateSwitchCommand(input, true)
+func (uc *SeaDocumentChangeUsecase) ExecuteModeChange(ctx context.Context, orgID, actorID uuid.UUID, input *SeaDocumentModeChangeCommand, audit *AuditEvent) error {
+	validated, err := validateModeChangeCommand(input, true)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if orgID == uuid.Nil || actorID == uuid.Nil {
-		return nil, ErrSeaDocumentInvalidArgument
+		return ErrSeaDocumentInvalidArgument
 	}
 	if err := validateAuditEvent(audit, orgID, actorID); err != nil {
-		return nil, err
+		return err
 	}
-	return uc.repo.ExecuteSwitch(ctx, orgID, actorID, validated, audit)
+	return uc.repo.ExecuteModeChange(ctx, orgID, actorID, validated, audit)
 }

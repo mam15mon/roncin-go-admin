@@ -12,6 +12,7 @@ import * as exchangeRateService from "./exchangeRateService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as orderTagService from "./orderTagService";
+import * as seaSharedContainerService from "./seaSharedContainerService";
 import * as orderAbnormalCaseService from "./orderAbnormalCaseService";
 import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderCargoItemService from "./orderCargoItemService";
@@ -21,7 +22,6 @@ import * as orderLockService from "./orderLockService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
 import * as orderReleasePodService from "./orderReleasePodService";
-import * as seaCargoAllocationService from "./seaCargoAllocationService";
 import * as seaDocumentService from "./seaDocumentService";
 import * as seaOrderChangeService from "./seaOrderChangeService";
 import * as orderShippingDocumentService from "./orderShippingDocumentService";
@@ -37,6 +37,7 @@ export default {
   masterDataService,
   orderService,
   orderTagService,
+  seaSharedContainerService,
   orderAbnormalCaseService,
   orderAttachmentService,
   orderCargoItemService,
@@ -46,7 +47,6 @@ export default {
   orderMilestoneService,
   orderPersonnelService,
   orderReleasePodService,
-  seaCargoAllocationService,
   seaDocumentService,
   seaOrderChangeService,
   orderShippingDocumentService,

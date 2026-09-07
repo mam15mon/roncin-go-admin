@@ -1149,7 +1149,15 @@ export default function SeaOrderSplitPage() {
                                   );
                                 if (resp?.matched && resp.candidate) {
                                   const c = resp.candidate;
-                                  const te = c.transportExecution;
+                                  const transportExecutions =
+                                    c.transportExecutions ?? [];
+                                  if (transportExecutions.length !== 1) {
+                                    message.error(
+                                      '该 MBL 存在多个实际航次，请改用整票改配明确选择目标航次',
+                                    );
+                                    return;
+                                  }
+                                  const te = transportExecutions[0];
                                   if (
                                     !c.id ||
                                     !c.version ||

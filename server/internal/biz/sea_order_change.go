@@ -320,6 +320,7 @@ type SeaOrderReassignmentInput struct {
 	ExpectedLinkVersion         uint64
 	ExpectedCandidateMBLVersion *uint64
 	ExpectedCandidateTEVersion  *uint64
+	Confirmation                *SeaExternalConfirmation
 }
 
 type SeaOrderReassignmentPreview struct {
@@ -366,6 +367,40 @@ type SeaOrderReassignmentEvent struct {
 	BeforeSnapshot               []byte
 	AfterSnapshot                []byte
 	CreatedBy                    *uuid.UUID
+	Confirmation                *SeaExternalConfirmation
+}
+
+type SeaTransportExecutionUpdateInput struct {
+	OriginLocationID    *uuid.UUID
+	DischargeLocationID *uuid.UUID
+	TransitLocationID   *uuid.UUID
+	VesselName          string
+	VoyageNo            string
+	ETD                 *time.Time
+	ETA                 *time.Time
+}
+
+type SeaTransportExecutionUpdateCommand struct {
+	OrderID                           uuid.UUID
+	ExpectedTransportExecutionVersion uint64
+	Input                             *SeaTransportExecutionUpdateInput
+	Reason                            string
+	Confirmation                      *SeaExternalConfirmation
+	IdempotencyKey                    string
+}
+
+type SeaTransportExecutionUpdatePreview struct {
+	TransportExecutionID      uuid.UUID
+	TransportExecutionVersion uint64
+	MemberOrderIDs            []uuid.UUID
+	Differences               []*VoyageDifference
+	Impacts                   []*SeaDocumentDownstreamImpact
+	Executable                bool
+}
+
+type SeaTransportExecutionUpdateResult struct {
+	TransportExecution *SeaTransportExecution
+	VersionID          uuid.UUID
 }
 
 type SeaOrderChangeEventSummary struct {
@@ -404,6 +439,7 @@ type SeaOrderReassignmentEventSummary struct {
 	ResponsibilityType     string
 	ResponsiblePartnerName string
 	Reason                 string
+	Confirmation           *SeaExternalConfirmation
 }
 
 type SeaOrderChangeEventDetail struct {
@@ -433,6 +469,61 @@ type SeaOrderChangeRepo interface {
 	GetReassignmentEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
 	ListChangeEvents(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
 	GetChangeEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error)
+	ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error)
+}
+
+func validateTransportExecutionUpdateCommand(input *SeaTransportExecutionUpdateCommand, execute bool) (*SeaTransportExecutionUpdateCommand, error) {
+	if input == nil || input.OrderID == uuid.Nil || input.ExpectedTransportExecutionVersion == 0 || input.Input == nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	reason, err := normalizeRequiredChangeText(input.Reason, 500)
+	if err != nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	out := *input
+	out.Reason = reason
+	out.Input = &SeaTransportExecutionUpdateInput{
+		OriginLocationID: input.Input.OriginLocationID, DischargeLocationID: input.Input.DischargeLocationID,
+		TransitLocationID: input.Input.TransitLocationID, VesselName: strings.TrimSpace(input.Input.VesselName),
+		VoyageNo: strings.TrimSpace(input.Input.VoyageNo), ETD: input.Input.ETD, ETA: input.Input.ETA,
+	}
+	for _, id := range []*uuid.UUID{out.Input.OriginLocationID, out.Input.DischargeLocationID, out.Input.TransitLocationID} {
+		if id != nil && *id == uuid.Nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+	}
+	if utf8.RuneCountInString(out.Input.VesselName) > 128 || utf8.RuneCountInString(out.Input.VoyageNo) > 64 || out.Input.ETD != nil && out.Input.ETA != nil && out.Input.ETA.Before(*out.Input.ETD) {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	if execute {
+		out.IdempotencyKey, err = normalizeRequiredChangeText(input.IdempotencyKey, 128)
+		if err != nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+	}
+	return &out, nil
+}
+
+func (uc *SeaOrderChangeUsecase) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error) {
+	validated, err := validateTransportExecutionUpdateCommand(input, false)
+	if err != nil || organizationID == uuid.Nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	return uc.repo.PreviewTransportExecutionUpdate(ctx, organizationID, validated)
+}
+
+func (uc *SeaOrderChangeUsecase) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdateResult, error) {
+	validated, err := validateTransportExecutionUpdateCommand(input, true)
+	if err != nil || organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.sea.transport_execution.update", Result: "success", Details: map[string]string{"order.id": validated.OrderID.String(), "reason": validated.Reason}}
+	return uc.repo.ExecuteTransportExecutionUpdate(ctx, organizationID, actorID, validated, audit)
 }
 
 type SeaOrderChangeUsecase struct {
@@ -756,6 +847,11 @@ func (uc *SeaOrderChangeUsecase) ExecuteReassignment(ctx context.Context, organi
 	if input.ExpectedOrderVersion == 0 || input.ExpectedLinkVersion == 0 {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
 	}
+	confirmation, err := ValidateSeaExternalConfirmation(input.Confirmation)
+	if err != nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	input.Confirmation = confirmation
 	if err := validateReassignmentTargetShippingLine(input.Target); err != nil {
 		return nil, err
 	}

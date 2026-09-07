@@ -120,7 +120,7 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		if err != nil {
 			return err
 		}
-		mblVersion, err := createMasterVersion(ctx, tx, txMBL, txExec, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil)
+		mblVersion, err := createMasterVersion(ctx, tx, txMBL, txExec, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -136,7 +136,7 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 			if err != nil {
 				return err
 			}
-			version, err := createHouseVersion(ctx, tx, txHBL, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil)
+			version, err := createHouseVersion(ctx, tx, txHBL, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil, nil)
 			if err != nil {
 				return err
 			}

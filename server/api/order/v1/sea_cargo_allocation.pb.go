@@ -23,143 +23,83 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SeaCargoAllocationStatus 箱货分配状态枚举。
-type SeaCargoAllocationStatus int32
+type SeaSharedContainerStatus int32
 
 const (
-	SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED SeaCargoAllocationStatus = 0
-	SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_DRAFT       SeaCargoAllocationStatus = 1
-	SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_CONFIRMED   SeaCargoAllocationStatus = 2
+	SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED SeaSharedContainerStatus = 0
+	SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_DRAFT       SeaSharedContainerStatus = 1
+	SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_CONFIRMED   SeaSharedContainerStatus = 2
 )
 
-// Enum value maps for SeaCargoAllocationStatus.
+// Enum value maps for SeaSharedContainerStatus.
 var (
-	SeaCargoAllocationStatus_name = map[int32]string{
-		0: "SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED",
-		1: "SEA_CARGO_ALLOCATION_STATUS_DRAFT",
-		2: "SEA_CARGO_ALLOCATION_STATUS_CONFIRMED",
+	SeaSharedContainerStatus_name = map[int32]string{
+		0: "SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED",
+		1: "SEA_SHARED_CONTAINER_STATUS_DRAFT",
+		2: "SEA_SHARED_CONTAINER_STATUS_CONFIRMED",
 	}
-	SeaCargoAllocationStatus_value = map[string]int32{
-		"SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED": 0,
-		"SEA_CARGO_ALLOCATION_STATUS_DRAFT":       1,
-		"SEA_CARGO_ALLOCATION_STATUS_CONFIRMED":   2,
+	SeaSharedContainerStatus_value = map[string]int32{
+		"SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED": 0,
+		"SEA_SHARED_CONTAINER_STATUS_DRAFT":       1,
+		"SEA_SHARED_CONTAINER_STATUS_CONFIRMED":   2,
 	}
 )
 
-func (x SeaCargoAllocationStatus) Enum() *SeaCargoAllocationStatus {
-	p := new(SeaCargoAllocationStatus)
+func (x SeaSharedContainerStatus) Enum() *SeaSharedContainerStatus {
+	p := new(SeaSharedContainerStatus)
 	*p = x
 	return p
 }
 
-func (x SeaCargoAllocationStatus) String() string {
+func (x SeaSharedContainerStatus) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (SeaCargoAllocationStatus) Descriptor() protoreflect.EnumDescriptor {
+func (SeaSharedContainerStatus) Descriptor() protoreflect.EnumDescriptor {
 	return file_order_v1_sea_cargo_allocation_proto_enumTypes[0].Descriptor()
 }
 
-func (SeaCargoAllocationStatus) Type() protoreflect.EnumType {
+func (SeaSharedContainerStatus) Type() protoreflect.EnumType {
 	return &file_order_v1_sea_cargo_allocation_proto_enumTypes[0]
 }
 
-func (x SeaCargoAllocationStatus) Number() protoreflect.EnumNumber {
+func (x SeaSharedContainerStatus) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use SeaCargoAllocationStatus.Descriptor instead.
-func (SeaCargoAllocationStatus) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use SeaSharedContainerStatus.Descriptor instead.
+func (SeaSharedContainerStatus) EnumDescriptor() ([]byte, []int) {
 	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{0}
 }
 
-// SeaCargoAllocationAction 箱货分配允许动作枚举。
-type SeaCargoAllocationAction int32
-
-const (
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED               SeaCargoAllocationAction = 0
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT                SeaCargoAllocationAction = 1
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_CONFIRM                   SeaCargoAllocationAction = 2
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_WITHDRAW                  SeaCargoAllocationAction = 3
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY  SeaCargoAllocationAction = 4
-	SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY SeaCargoAllocationAction = 5
-)
-
-// Enum value maps for SeaCargoAllocationAction.
-var (
-	SeaCargoAllocationAction_name = map[int32]string{
-		0: "SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED",
-		1: "SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT",
-		2: "SEA_CARGO_ALLOCATION_ACTION_CONFIRM",
-		3: "SEA_CARGO_ALLOCATION_ACTION_WITHDRAW",
-		4: "SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY",
-		5: "SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY",
-	}
-	SeaCargoAllocationAction_value = map[string]int32{
-		"SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED":               0,
-		"SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT":                1,
-		"SEA_CARGO_ALLOCATION_ACTION_CONFIRM":                   2,
-		"SEA_CARGO_ALLOCATION_ACTION_WITHDRAW":                  3,
-		"SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY":  4,
-		"SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY": 5,
-	}
-)
-
-func (x SeaCargoAllocationAction) Enum() *SeaCargoAllocationAction {
-	p := new(SeaCargoAllocationAction)
-	*p = x
-	return p
+type SeaSharedContainerInput struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	TransportExecutionId string                 `protobuf:"bytes,1,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	ContainerNo          string                 `protobuf:"bytes,2,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId      string                 `protobuf:"bytes,3,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	SealNo               *string                `protobuf:"bytes,4,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	PackageCount         int32                  `protobuf:"varint,5,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg        string                 `protobuf:"bytes,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm            string                 `protobuf:"bytes,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note                 *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
-func (x SeaCargoAllocationAction) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (SeaCargoAllocationAction) Descriptor() protoreflect.EnumDescriptor {
-	return file_order_v1_sea_cargo_allocation_proto_enumTypes[1].Descriptor()
-}
-
-func (SeaCargoAllocationAction) Type() protoreflect.EnumType {
-	return &file_order_v1_sea_cargo_allocation_proto_enumTypes[1]
-}
-
-func (x SeaCargoAllocationAction) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use SeaCargoAllocationAction.Descriptor instead.
-func (SeaCargoAllocationAction) EnumDescriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{1}
-}
-
-// SeaCargoAllocationItem 箱货定量分配行。
-type SeaCargoAllocationItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CargoItemId   string                 `protobuf:"bytes,2,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
-	HouseBillId   string                 `protobuf:"bytes,3,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
-	ContainerId   *string                `protobuf:"bytes,4,opt,name=container_id,json=containerId,proto3,oneof" json:"container_id,omitempty"`
-	PackageCount  int32                  `protobuf:"varint,5,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
-	GrossWeightKg string                 `protobuf:"bytes,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm     string                 `protobuf:"bytes,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationItem) Reset() {
-	*x = SeaCargoAllocationItem{}
+func (x *SeaSharedContainerInput) Reset() {
+	*x = SeaSharedContainerInput{}
 	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SeaCargoAllocationItem) String() string {
+func (x *SeaSharedContainerInput) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SeaCargoAllocationItem) ProtoMessage() {}
+func (*SeaSharedContainerInput) ProtoMessage() {}
 
-func (x *SeaCargoAllocationItem) ProtoReflect() protoreflect.Message {
+func (x *SeaSharedContainerInput) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -171,456 +111,98 @@ func (x *SeaCargoAllocationItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SeaCargoAllocationItem.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use SeaSharedContainerInput.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerInput) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SeaCargoAllocationItem) GetId() string {
+func (x *SeaSharedContainerInput) GetTransportExecutionId() string {
 	if x != nil {
-		return x.Id
+		return x.TransportExecutionId
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationItem) GetCargoItemId() string {
-	if x != nil {
-		return x.CargoItemId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationItem) GetHouseBillId() string {
-	if x != nil {
-		return x.HouseBillId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationItem) GetContainerId() string {
-	if x != nil && x.ContainerId != nil {
-		return *x.ContainerId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationItem) GetPackageCount() int32 {
-	if x != nil {
-		return x.PackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationItem) GetGrossWeightKg() string {
-	if x != nil {
-		return x.GrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationItem) GetVolumeCbm() string {
-	if x != nil {
-		return x.VolumeCbm
-	}
-	return ""
-}
-
-// SeaCargoAllocationInput 保存草稿请求行。
-type SeaCargoAllocationInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
-	CargoItemId   string                 `protobuf:"bytes,2,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
-	HouseBillId   string                 `protobuf:"bytes,3,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
-	ContainerId   *string                `protobuf:"bytes,4,opt,name=container_id,json=containerId,proto3,oneof" json:"container_id,omitempty"`
-	PackageCount  int32                  `protobuf:"varint,5,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
-	GrossWeightKg string                 `protobuf:"bytes,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm     string                 `protobuf:"bytes,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationInput) Reset() {
-	*x = SeaCargoAllocationInput{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaCargoAllocationInput) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaCargoAllocationInput) ProtoMessage() {}
-
-func (x *SeaCargoAllocationInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaCargoAllocationInput.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SeaCargoAllocationInput) GetId() string {
-	if x != nil && x.Id != nil {
-		return *x.Id
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationInput) GetCargoItemId() string {
-	if x != nil {
-		return x.CargoItemId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationInput) GetHouseBillId() string {
-	if x != nil {
-		return x.HouseBillId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationInput) GetContainerId() string {
-	if x != nil && x.ContainerId != nil {
-		return *x.ContainerId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationInput) GetPackageCount() int32 {
-	if x != nil {
-		return x.PackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationInput) GetGrossWeightKg() string {
-	if x != nil {
-		return x.GrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationInput) GetVolumeCbm() string {
-	if x != nil {
-		return x.VolumeCbm
-	}
-	return ""
-}
-
-// SeaCargoAllocationCargoItemSummary 货物维度进度汇总。
-type SeaCargoAllocationCargoItemSummary struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	CargoItemId            string                 `protobuf:"bytes,1,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
-	CargoName              string                 `protobuf:"bytes,2,opt,name=cargo_name,json=cargoName,proto3" json:"cargo_name,omitempty"`
-	BaselinePackageCount   int32                  `protobuf:"varint,3,opt,name=baseline_package_count,json=baselinePackageCount,proto3" json:"baseline_package_count,omitempty"`
-	AllocatedPackageCount  int32                  `protobuf:"varint,4,opt,name=allocated_package_count,json=allocatedPackageCount,proto3" json:"allocated_package_count,omitempty"`
-	RemainingPackageCount  int32                  `protobuf:"varint,5,opt,name=remaining_package_count,json=remainingPackageCount,proto3" json:"remaining_package_count,omitempty"`
-	BaselineGrossWeightKg  string                 `protobuf:"bytes,6,opt,name=baseline_gross_weight_kg,json=baselineGrossWeightKg,proto3" json:"baseline_gross_weight_kg,omitempty"`
-	AllocatedGrossWeightKg string                 `protobuf:"bytes,7,opt,name=allocated_gross_weight_kg,json=allocatedGrossWeightKg,proto3" json:"allocated_gross_weight_kg,omitempty"`
-	RemainingGrossWeightKg string                 `protobuf:"bytes,8,opt,name=remaining_gross_weight_kg,json=remainingGrossWeightKg,proto3" json:"remaining_gross_weight_kg,omitempty"`
-	BaselineVolumeCbm      string                 `protobuf:"bytes,9,opt,name=baseline_volume_cbm,json=baselineVolumeCbm,proto3" json:"baseline_volume_cbm,omitempty"`
-	AllocatedVolumeCbm     string                 `protobuf:"bytes,10,opt,name=allocated_volume_cbm,json=allocatedVolumeCbm,proto3" json:"allocated_volume_cbm,omitempty"`
-	RemainingVolumeCbm     string                 `protobuf:"bytes,11,opt,name=remaining_volume_cbm,json=remainingVolumeCbm,proto3" json:"remaining_volume_cbm,omitempty"`
-	Status                 string                 `protobuf:"bytes,12,opt,name=status,proto3" json:"status,omitempty"` // IN_PROGRESS, COMPLETED, EXCEEDED
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) Reset() {
-	*x = SeaCargoAllocationCargoItemSummary{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaCargoAllocationCargoItemSummary) ProtoMessage() {}
-
-func (x *SeaCargoAllocationCargoItemSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaCargoAllocationCargoItemSummary.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationCargoItemSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetCargoItemId() string {
-	if x != nil {
-		return x.CargoItemId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetCargoName() string {
-	if x != nil {
-		return x.CargoName
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetBaselinePackageCount() int32 {
-	if x != nil {
-		return x.BaselinePackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetAllocatedPackageCount() int32 {
-	if x != nil {
-		return x.AllocatedPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetRemainingPackageCount() int32 {
-	if x != nil {
-		return x.RemainingPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetBaselineGrossWeightKg() string {
-	if x != nil {
-		return x.BaselineGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetAllocatedGrossWeightKg() string {
-	if x != nil {
-		return x.AllocatedGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetRemainingGrossWeightKg() string {
-	if x != nil {
-		return x.RemainingGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetBaselineVolumeCbm() string {
-	if x != nil {
-		return x.BaselineVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetAllocatedVolumeCbm() string {
-	if x != nil {
-		return x.AllocatedVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetRemainingVolumeCbm() string {
-	if x != nil {
-		return x.RemainingVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationCargoItemSummary) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-// SeaCargoAllocationContainerSummary 实际箱维度进度汇总。
-type SeaCargoAllocationContainerSummary struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	ContainerId            string                 `protobuf:"bytes,1,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
-	ContainerNo            string                 `protobuf:"bytes,2,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
-	BaselinePackageCount   int32                  `protobuf:"varint,3,opt,name=baseline_package_count,json=baselinePackageCount,proto3" json:"baseline_package_count,omitempty"`
-	AllocatedPackageCount  int32                  `protobuf:"varint,4,opt,name=allocated_package_count,json=allocatedPackageCount,proto3" json:"allocated_package_count,omitempty"`
-	RemainingPackageCount  int32                  `protobuf:"varint,5,opt,name=remaining_package_count,json=remainingPackageCount,proto3" json:"remaining_package_count,omitempty"`
-	BaselineGrossWeightKg  string                 `protobuf:"bytes,6,opt,name=baseline_gross_weight_kg,json=baselineGrossWeightKg,proto3" json:"baseline_gross_weight_kg,omitempty"`
-	AllocatedGrossWeightKg string                 `protobuf:"bytes,7,opt,name=allocated_gross_weight_kg,json=allocatedGrossWeightKg,proto3" json:"allocated_gross_weight_kg,omitempty"`
-	RemainingGrossWeightKg string                 `protobuf:"bytes,8,opt,name=remaining_gross_weight_kg,json=remainingGrossWeightKg,proto3" json:"remaining_gross_weight_kg,omitempty"`
-	BaselineVolumeCbm      string                 `protobuf:"bytes,9,opt,name=baseline_volume_cbm,json=baselineVolumeCbm,proto3" json:"baseline_volume_cbm,omitempty"`
-	AllocatedVolumeCbm     string                 `protobuf:"bytes,10,opt,name=allocated_volume_cbm,json=allocatedVolumeCbm,proto3" json:"allocated_volume_cbm,omitempty"`
-	RemainingVolumeCbm     string                 `protobuf:"bytes,11,opt,name=remaining_volume_cbm,json=remainingVolumeCbm,proto3" json:"remaining_volume_cbm,omitempty"`
-	Status                 string                 `protobuf:"bytes,12,opt,name=status,proto3" json:"status,omitempty"` // IN_PROGRESS, COMPLETED, EXCEEDED
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationContainerSummary) Reset() {
-	*x = SeaCargoAllocationContainerSummary{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaCargoAllocationContainerSummary) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaCargoAllocationContainerSummary) ProtoMessage() {}
-
-func (x *SeaCargoAllocationContainerSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaCargoAllocationContainerSummary.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationContainerSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetContainerId() string {
-	if x != nil {
-		return x.ContainerId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetContainerNo() string {
+func (x *SeaSharedContainerInput) GetContainerNo() string {
 	if x != nil {
 		return x.ContainerNo
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetBaselinePackageCount() int32 {
+func (x *SeaSharedContainerInput) GetContainerSpecId() string {
 	if x != nil {
-		return x.BaselinePackageCount
+		return x.ContainerSpecId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerInput) GetSealNo() string {
+	if x != nil && x.SealNo != nil {
+		return *x.SealNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerInput) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
 	}
 	return 0
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetAllocatedPackageCount() int32 {
+func (x *SeaSharedContainerInput) GetGrossWeightKg() string {
 	if x != nil {
-		return x.AllocatedPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetRemainingPackageCount() int32 {
-	if x != nil {
-		return x.RemainingPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetBaselineGrossWeightKg() string {
-	if x != nil {
-		return x.BaselineGrossWeightKg
+		return x.GrossWeightKg
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetAllocatedGrossWeightKg() string {
+func (x *SeaSharedContainerInput) GetVolumeCbm() string {
 	if x != nil {
-		return x.AllocatedGrossWeightKg
+		return x.VolumeCbm
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetRemainingGrossWeightKg() string {
-	if x != nil {
-		return x.RemainingGrossWeightKg
+func (x *SeaSharedContainerInput) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetBaselineVolumeCbm() string {
-	if x != nil {
-		return x.BaselineVolumeCbm
-	}
-	return ""
+type SeaSharedContainerAllocationInput struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                  string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	HouseBillId              string                 `protobuf:"bytes,2,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
+	CargoItemId              string                 `protobuf:"bytes,3,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
+	PackageCount             int32                  `protobuf:"varint,4,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg            string                 `protobuf:"bytes,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm                string                 `protobuf:"bytes,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	ExpectedOrderVersion     uint64                 `protobuf:"varint,7,opt,name=expected_order_version,json=expectedOrderVersion,proto3" json:"expected_order_version,omitempty"`
+	ExpectedLinkVersion      uint64                 `protobuf:"varint,8,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
+	ExpectedHouseBillVersion uint64                 `protobuf:"varint,9,opt,name=expected_house_bill_version,json=expectedHouseBillVersion,proto3" json:"expected_house_bill_version,omitempty"`
+	ExpectedCargoItemVersion uint64                 `protobuf:"varint,10,opt,name=expected_cargo_item_version,json=expectedCargoItemVersion,proto3" json:"expected_cargo_item_version,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
-func (x *SeaCargoAllocationContainerSummary) GetAllocatedVolumeCbm() string {
-	if x != nil {
-		return x.AllocatedVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetRemainingVolumeCbm() string {
-	if x != nil {
-		return x.RemainingVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationContainerSummary) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-// SeaCargoAllocationHouseBillSummary HBL 分单维度进度汇总。
-type SeaCargoAllocationHouseBillSummary struct {
-	state                       protoimpl.MessageState `protogen:"open.v1"`
-	HouseBillId                 string                 `protobuf:"bytes,1,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
-	HouseNo                     string                 `protobuf:"bytes,2,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	AllocatedPackageCount       int32                  `protobuf:"varint,3,opt,name=allocated_package_count,json=allocatedPackageCount,proto3" json:"allocated_package_count,omitempty"`
-	AllocatedGrossWeightKg      string                 `protobuf:"bytes,4,opt,name=allocated_gross_weight_kg,json=allocatedGrossWeightKg,proto3" json:"allocated_gross_weight_kg,omitempty"`
-	AllocatedVolumeCbm          string                 `protobuf:"bytes,5,opt,name=allocated_volume_cbm,json=allocatedVolumeCbm,proto3" json:"allocated_volume_cbm,omitempty"`
-	OrderRemainingPackageCount  int32                  `protobuf:"varint,6,opt,name=order_remaining_package_count,json=orderRemainingPackageCount,proto3" json:"order_remaining_package_count,omitempty"`
-	OrderRemainingGrossWeightKg string                 `protobuf:"bytes,7,opt,name=order_remaining_gross_weight_kg,json=orderRemainingGrossWeightKg,proto3" json:"order_remaining_gross_weight_kg,omitempty"`
-	OrderRemainingVolumeCbm     string                 `protobuf:"bytes,8,opt,name=order_remaining_volume_cbm,json=orderRemainingVolumeCbm,proto3" json:"order_remaining_volume_cbm,omitempty"`
-	DisplayPackageCount         *int32                 `protobuf:"varint,9,opt,name=display_package_count,json=displayPackageCount,proto3,oneof" json:"display_package_count,omitempty"`
-	DisplayGrossWeightKg        *string                `protobuf:"bytes,10,opt,name=display_gross_weight_kg,json=displayGrossWeightKg,proto3,oneof" json:"display_gross_weight_kg,omitempty"`
-	DisplayVolumeCbm            *string                `protobuf:"bytes,11,opt,name=display_volume_cbm,json=displayVolumeCbm,proto3,oneof" json:"display_volume_cbm,omitempty"`
-	DiffPackageCount            int32                  `protobuf:"varint,12,opt,name=diff_package_count,json=diffPackageCount,proto3" json:"diff_package_count,omitempty"`
-	DiffGrossWeightKg           string                 `protobuf:"bytes,13,opt,name=diff_gross_weight_kg,json=diffGrossWeightKg,proto3" json:"diff_gross_weight_kg,omitempty"`
-	DiffVolumeCbm               string                 `protobuf:"bytes,14,opt,name=diff_volume_cbm,json=diffVolumeCbm,proto3" json:"diff_volume_cbm,omitempty"`
-	DisplayMatches              bool                   `protobuf:"varint,15,opt,name=display_matches,json=displayMatches,proto3" json:"display_matches,omitempty"`
-	unknownFields               protoimpl.UnknownFields
-	sizeCache                   protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) Reset() {
-	*x = SeaCargoAllocationHouseBillSummary{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[4]
+func (x *SeaSharedContainerAllocationInput) Reset() {
+	*x = SeaSharedContainerAllocationInput{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) String() string {
+func (x *SeaSharedContainerAllocationInput) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SeaCargoAllocationHouseBillSummary) ProtoMessage() {}
+func (*SeaSharedContainerAllocationInput) ProtoMessage() {}
 
-func (x *SeaCargoAllocationHouseBillSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[4]
+func (x *SeaSharedContainerAllocationInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,1095 +213,1529 @@ func (x *SeaCargoAllocationHouseBillSummary) ProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SeaCargoAllocationHouseBillSummary.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationHouseBillSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use SeaSharedContainerAllocationInput.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerAllocationInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetHouseBillId() string {
+func (x *SeaSharedContainerAllocationInput) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocationInput) GetHouseBillId() string {
 	if x != nil {
 		return x.HouseBillId
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetHouseNo() string {
+func (x *SeaSharedContainerAllocationInput) GetCargoItemId() string {
 	if x != nil {
-		return x.HouseNo
+		return x.CargoItemId
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetAllocatedPackageCount() int32 {
+func (x *SeaSharedContainerAllocationInput) GetPackageCount() int32 {
 	if x != nil {
-		return x.AllocatedPackageCount
+		return x.PackageCount
 	}
 	return 0
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetAllocatedGrossWeightKg() string {
+func (x *SeaSharedContainerAllocationInput) GetGrossWeightKg() string {
 	if x != nil {
-		return x.AllocatedGrossWeightKg
+		return x.GrossWeightKg
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetAllocatedVolumeCbm() string {
+func (x *SeaSharedContainerAllocationInput) GetVolumeCbm() string {
 	if x != nil {
-		return x.AllocatedVolumeCbm
+		return x.VolumeCbm
 	}
 	return ""
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetOrderRemainingPackageCount() int32 {
+func (x *SeaSharedContainerAllocationInput) GetExpectedOrderVersion() uint64 {
 	if x != nil {
-		return x.OrderRemainingPackageCount
+		return x.ExpectedOrderVersion
 	}
 	return 0
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetOrderRemainingGrossWeightKg() string {
+func (x *SeaSharedContainerAllocationInput) GetExpectedLinkVersion() uint64 {
 	if x != nil {
-		return x.OrderRemainingGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetOrderRemainingVolumeCbm() string {
-	if x != nil {
-		return x.OrderRemainingVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDisplayPackageCount() int32 {
-	if x != nil && x.DisplayPackageCount != nil {
-		return *x.DisplayPackageCount
+		return x.ExpectedLinkVersion
 	}
 	return 0
 }
 
-func (x *SeaCargoAllocationHouseBillSummary) GetDisplayGrossWeightKg() string {
-	if x != nil && x.DisplayGrossWeightKg != nil {
-		return *x.DisplayGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDisplayVolumeCbm() string {
-	if x != nil && x.DisplayVolumeCbm != nil {
-		return *x.DisplayVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDiffPackageCount() int32 {
-	if x != nil {
-		return x.DiffPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDiffGrossWeightKg() string {
-	if x != nil {
-		return x.DiffGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDiffVolumeCbm() string {
-	if x != nil {
-		return x.DiffVolumeCbm
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationHouseBillSummary) GetDisplayMatches() bool {
-	if x != nil {
-		return x.DisplayMatches
-	}
-	return false
-}
-
-// SeaCargoAllocationProgress 三视角进度汇总。
-type SeaCargoAllocationProgress struct {
-	state                       protoimpl.MessageState                `protogen:"open.v1"`
-	CargoSummaries              []*SeaCargoAllocationCargoItemSummary `protobuf:"bytes,1,rep,name=cargo_summaries,json=cargoSummaries,proto3" json:"cargo_summaries,omitempty"`
-	ContainerSummaries          []*SeaCargoAllocationContainerSummary `protobuf:"bytes,2,rep,name=container_summaries,json=containerSummaries,proto3" json:"container_summaries,omitempty"`
-	HouseBillSummaries          []*SeaCargoAllocationHouseBillSummary `protobuf:"bytes,3,rep,name=house_bill_summaries,json=houseBillSummaries,proto3" json:"house_bill_summaries,omitempty"`
-	OrderRemainingPackageCount  int32                                 `protobuf:"varint,4,opt,name=order_remaining_package_count,json=orderRemainingPackageCount,proto3" json:"order_remaining_package_count,omitempty"`
-	OrderRemainingGrossWeightKg string                                `protobuf:"bytes,5,opt,name=order_remaining_gross_weight_kg,json=orderRemainingGrossWeightKg,proto3" json:"order_remaining_gross_weight_kg,omitempty"`
-	OrderRemainingVolumeCbm     string                                `protobuf:"bytes,6,opt,name=order_remaining_volume_cbm,json=orderRemainingVolumeCbm,proto3" json:"order_remaining_volume_cbm,omitempty"`
-	unknownFields               protoimpl.UnknownFields
-	sizeCache                   protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationProgress) Reset() {
-	*x = SeaCargoAllocationProgress{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaCargoAllocationProgress) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaCargoAllocationProgress) ProtoMessage() {}
-
-func (x *SeaCargoAllocationProgress) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaCargoAllocationProgress.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationProgress) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *SeaCargoAllocationProgress) GetCargoSummaries() []*SeaCargoAllocationCargoItemSummary {
-	if x != nil {
-		return x.CargoSummaries
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationProgress) GetContainerSummaries() []*SeaCargoAllocationContainerSummary {
-	if x != nil {
-		return x.ContainerSummaries
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationProgress) GetHouseBillSummaries() []*SeaCargoAllocationHouseBillSummary {
-	if x != nil {
-		return x.HouseBillSummaries
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationProgress) GetOrderRemainingPackageCount() int32 {
-	if x != nil {
-		return x.OrderRemainingPackageCount
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationProgress) GetOrderRemainingGrossWeightKg() string {
-	if x != nil {
-		return x.OrderRemainingGrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationProgress) GetOrderRemainingVolumeCbm() string {
-	if x != nil {
-		return x.OrderRemainingVolumeCbm
-	}
-	return ""
-}
-
-// SeaCargoAllocationAggregate 箱货分配聚合模型。
-type SeaCargoAllocationAggregate struct {
-	state             protoimpl.MessageState      `protogen:"open.v1"`
-	OrderId           string                      `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	DocumentStructure SeaDocumentStructure        `protobuf:"varint,2,opt,name=document_structure,json=documentStructure,proto3,enum=order.v1.SeaDocumentStructure" json:"document_structure,omitempty"`
-	ShipmentType      string                      `protobuf:"bytes,3,opt,name=shipment_type,json=shipmentType,proto3" json:"shipment_type,omitempty"`
-	AllocationStatus  SeaCargoAllocationStatus    `protobuf:"varint,4,opt,name=allocation_status,json=allocationStatus,proto3,enum=order.v1.SeaCargoAllocationStatus" json:"allocation_status,omitempty"`
-	AllocationVersion uint64                      `protobuf:"varint,5,opt,name=allocation_version,json=allocationVersion,proto3" json:"allocation_version,omitempty"`
-	ConfirmedAt       *string                     `protobuf:"bytes,6,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	ConfirmedBy       *string                     `protobuf:"bytes,7,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
-	ConfirmedByName   *string                     `protobuf:"bytes,8,opt,name=confirmed_by_name,json=confirmedByName,proto3,oneof" json:"confirmed_by_name,omitempty"`
-	CargoItems        []*OrderCargoItem           `protobuf:"bytes,9,rep,name=cargo_items,json=cargoItems,proto3" json:"cargo_items,omitempty"`
-	Containers        []*OrderContainer           `protobuf:"bytes,10,rep,name=containers,proto3" json:"containers,omitempty"`
-	HouseBills        []*SeaHouseBill             `protobuf:"bytes,11,rep,name=house_bills,json=houseBills,proto3" json:"house_bills,omitempty"`
-	Allocations       []*SeaCargoAllocationItem   `protobuf:"bytes,12,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	Progress          *SeaCargoAllocationProgress `protobuf:"bytes,13,opt,name=progress,proto3" json:"progress,omitempty"`
-	AllowedActions    []SeaCargoAllocationAction  `protobuf:"varint,14,rep,packed,name=allowed_actions,json=allowedActions,proto3,enum=order.v1.SeaCargoAllocationAction" json:"allowed_actions,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *SeaCargoAllocationAggregate) Reset() {
-	*x = SeaCargoAllocationAggregate{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaCargoAllocationAggregate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaCargoAllocationAggregate) ProtoMessage() {}
-
-func (x *SeaCargoAllocationAggregate) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaCargoAllocationAggregate.ProtoReflect.Descriptor instead.
-func (*SeaCargoAllocationAggregate) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *SeaCargoAllocationAggregate) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationAggregate) GetDocumentStructure() SeaDocumentStructure {
-	if x != nil {
-		return x.DocumentStructure
-	}
-	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
-}
-
-func (x *SeaCargoAllocationAggregate) GetShipmentType() string {
-	if x != nil {
-		return x.ShipmentType
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationAggregate) GetAllocationStatus() SeaCargoAllocationStatus {
-	if x != nil {
-		return x.AllocationStatus
-	}
-	return SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED
-}
-
-func (x *SeaCargoAllocationAggregate) GetAllocationVersion() uint64 {
-	if x != nil {
-		return x.AllocationVersion
-	}
-	return 0
-}
-
-func (x *SeaCargoAllocationAggregate) GetConfirmedAt() string {
-	if x != nil && x.ConfirmedAt != nil {
-		return *x.ConfirmedAt
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationAggregate) GetConfirmedBy() string {
-	if x != nil && x.ConfirmedBy != nil {
-		return *x.ConfirmedBy
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationAggregate) GetConfirmedByName() string {
-	if x != nil && x.ConfirmedByName != nil {
-		return *x.ConfirmedByName
-	}
-	return ""
-}
-
-func (x *SeaCargoAllocationAggregate) GetCargoItems() []*OrderCargoItem {
-	if x != nil {
-		return x.CargoItems
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationAggregate) GetContainers() []*OrderContainer {
-	if x != nil {
-		return x.Containers
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationAggregate) GetHouseBills() []*SeaHouseBill {
-	if x != nil {
-		return x.HouseBills
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationAggregate) GetAllocations() []*SeaCargoAllocationItem {
-	if x != nil {
-		return x.Allocations
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationAggregate) GetProgress() *SeaCargoAllocationProgress {
-	if x != nil {
-		return x.Progress
-	}
-	return nil
-}
-
-func (x *SeaCargoAllocationAggregate) GetAllowedActions() []SeaCargoAllocationAction {
-	if x != nil {
-		return x.AllowedActions
-	}
-	return nil
-}
-
-// GetSeaCargoAllocationRequest 获取请求。
-type GetSeaCargoAllocationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetSeaCargoAllocationRequest) Reset() {
-	*x = GetSeaCargoAllocationRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetSeaCargoAllocationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetSeaCargoAllocationRequest) ProtoMessage() {}
-
-func (x *GetSeaCargoAllocationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetSeaCargoAllocationRequest.ProtoReflect.Descriptor instead.
-func (*GetSeaCargoAllocationRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *GetSeaCargoAllocationRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-// GetSeaCargoAllocationResponse 获取响应。
-type GetSeaCargoAllocationResponse struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	Success       bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                        `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                       `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaCargoAllocationAggregate `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                       `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetSeaCargoAllocationResponse) Reset() {
-	*x = GetSeaCargoAllocationResponse{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetSeaCargoAllocationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetSeaCargoAllocationResponse) ProtoMessage() {}
-
-func (x *GetSeaCargoAllocationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetSeaCargoAllocationResponse.ProtoReflect.Descriptor instead.
-func (*GetSeaCargoAllocationResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetSeaCargoAllocationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *GetSeaCargoAllocationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *GetSeaCargoAllocationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *GetSeaCargoAllocationResponse) GetData() *SeaCargoAllocationAggregate {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *GetSeaCargoAllocationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// SaveSeaCargoAllocationDraftRequest 保存草稿请求。
-type SaveSeaCargoAllocationDraftRequest struct {
-	state                     protoimpl.MessageState     `protogen:"open.v1"`
-	OrderId                   string                     `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedAllocationVersion uint64                     `protobuf:"varint,2,opt,name=expected_allocation_version,json=expectedAllocationVersion,proto3" json:"expected_allocation_version,omitempty"`
-	Allocations               []*SeaCargoAllocationInput `protobuf:"bytes,3,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *SaveSeaCargoAllocationDraftRequest) Reset() {
-	*x = SaveSeaCargoAllocationDraftRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SaveSeaCargoAllocationDraftRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SaveSeaCargoAllocationDraftRequest) ProtoMessage() {}
-
-func (x *SaveSeaCargoAllocationDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SaveSeaCargoAllocationDraftRequest.ProtoReflect.Descriptor instead.
-func (*SaveSeaCargoAllocationDraftRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *SaveSeaCargoAllocationDraftRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *SaveSeaCargoAllocationDraftRequest) GetExpectedAllocationVersion() uint64 {
-	if x != nil {
-		return x.ExpectedAllocationVersion
-	}
-	return 0
-}
-
-func (x *SaveSeaCargoAllocationDraftRequest) GetAllocations() []*SeaCargoAllocationInput {
-	if x != nil {
-		return x.Allocations
-	}
-	return nil
-}
-
-// SaveSeaCargoAllocationDraftResponse 保存草稿响应。
-type SaveSeaCargoAllocationDraftResponse struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	Success       bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                        `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                       `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaCargoAllocationAggregate `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                       `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) Reset() {
-	*x = SaveSeaCargoAllocationDraftResponse{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SaveSeaCargoAllocationDraftResponse) ProtoMessage() {}
-
-func (x *SaveSeaCargoAllocationDraftResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SaveSeaCargoAllocationDraftResponse.ProtoReflect.Descriptor instead.
-func (*SaveSeaCargoAllocationDraftResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) GetData() *SeaCargoAllocationAggregate {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *SaveSeaCargoAllocationDraftResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// ConfirmSeaCargoAllocationRequest 确认分配请求。
-type ConfirmSeaCargoAllocationRequest struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	OrderId                   string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedAllocationVersion uint64                 `protobuf:"varint,2,opt,name=expected_allocation_version,json=expectedAllocationVersion,proto3" json:"expected_allocation_version,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *ConfirmSeaCargoAllocationRequest) Reset() {
-	*x = ConfirmSeaCargoAllocationRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConfirmSeaCargoAllocationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConfirmSeaCargoAllocationRequest) ProtoMessage() {}
-
-func (x *ConfirmSeaCargoAllocationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConfirmSeaCargoAllocationRequest.ProtoReflect.Descriptor instead.
-func (*ConfirmSeaCargoAllocationRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ConfirmSeaCargoAllocationRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *ConfirmSeaCargoAllocationRequest) GetExpectedAllocationVersion() uint64 {
-	if x != nil {
-		return x.ExpectedAllocationVersion
-	}
-	return 0
-}
-
-// ConfirmSeaCargoAllocationResponse 确认分配响应。
-type ConfirmSeaCargoAllocationResponse struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	Success       bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                        `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                       `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaCargoAllocationAggregate `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                       `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) Reset() {
-	*x = ConfirmSeaCargoAllocationResponse{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConfirmSeaCargoAllocationResponse) ProtoMessage() {}
-
-func (x *ConfirmSeaCargoAllocationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConfirmSeaCargoAllocationResponse.ProtoReflect.Descriptor instead.
-func (*ConfirmSeaCargoAllocationResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) GetData() *SeaCargoAllocationAggregate {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *ConfirmSeaCargoAllocationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// WithdrawSeaCargoAllocationRequest 撤回确认请求。
-type WithdrawSeaCargoAllocationRequest struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	OrderId                   string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedAllocationVersion uint64                 `protobuf:"varint,2,opt,name=expected_allocation_version,json=expectedAllocationVersion,proto3" json:"expected_allocation_version,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *WithdrawSeaCargoAllocationRequest) Reset() {
-	*x = WithdrawSeaCargoAllocationRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WithdrawSeaCargoAllocationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WithdrawSeaCargoAllocationRequest) ProtoMessage() {}
-
-func (x *WithdrawSeaCargoAllocationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WithdrawSeaCargoAllocationRequest.ProtoReflect.Descriptor instead.
-func (*WithdrawSeaCargoAllocationRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *WithdrawSeaCargoAllocationRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *WithdrawSeaCargoAllocationRequest) GetExpectedAllocationVersion() uint64 {
-	if x != nil {
-		return x.ExpectedAllocationVersion
-	}
-	return 0
-}
-
-// WithdrawSeaCargoAllocationResponse 撤回确认响应。
-type WithdrawSeaCargoAllocationResponse struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	Success       bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                        `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                       `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaCargoAllocationAggregate `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                       `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) Reset() {
-	*x = WithdrawSeaCargoAllocationResponse{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WithdrawSeaCargoAllocationResponse) ProtoMessage() {}
-
-func (x *WithdrawSeaCargoAllocationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WithdrawSeaCargoAllocationResponse.ProtoReflect.Descriptor instead.
-func (*WithdrawSeaCargoAllocationResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) GetData() *SeaCargoAllocationAggregate {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *WithdrawSeaCargoAllocationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// ApplySeaOrderCargoSummaryToMasterBillRequest 填入 MBL 内容请求。
-type ApplySeaOrderCargoSummaryToMasterBillRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	OrderId            string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ExpectedMblVersion uint64                 `protobuf:"varint,2,opt,name=expected_mbl_version,json=expectedMblVersion,proto3" json:"expected_mbl_version,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillRequest) Reset() {
-	*x = ApplySeaOrderCargoSummaryToMasterBillRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ApplySeaOrderCargoSummaryToMasterBillRequest) ProtoMessage() {}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ApplySeaOrderCargoSummaryToMasterBillRequest.ProtoReflect.Descriptor instead.
-func (*ApplySeaOrderCargoSummaryToMasterBillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillRequest) GetExpectedMblVersion() uint64 {
-	if x != nil {
-		return x.ExpectedMblVersion
-	}
-	return 0
-}
-
-// ApplySeaOrderCargoSummaryToMasterBillResponse 填入 MBL 内容响应。
-type ApplySeaOrderCargoSummaryToMasterBillResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaMasterBillDetail   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) Reset() {
-	*x = ApplySeaOrderCargoSummaryToMasterBillResponse{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ApplySeaOrderCargoSummaryToMasterBillResponse) ProtoMessage() {}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ApplySeaOrderCargoSummaryToMasterBillResponse.ProtoReflect.Descriptor instead.
-func (*ApplySeaOrderCargoSummaryToMasterBillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) GetData() *SeaMasterBillDetail {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *ApplySeaOrderCargoSummaryToMasterBillResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// ApplySeaHouseBillAllocationSummaryRequest 填入 HBL 内容请求。
-type ApplySeaHouseBillAllocationSummaryRequest struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	OrderId                   string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	HouseBillId               string                 `protobuf:"bytes,2,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
-	ExpectedAllocationVersion uint64                 `protobuf:"varint,3,opt,name=expected_allocation_version,json=expectedAllocationVersion,proto3" json:"expected_allocation_version,omitempty"`
-	ExpectedHouseBillVersion  uint64                 `protobuf:"varint,4,opt,name=expected_house_bill_version,json=expectedHouseBillVersion,proto3" json:"expected_house_bill_version,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) Reset() {
-	*x = ApplySeaHouseBillAllocationSummaryRequest{}
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ApplySeaHouseBillAllocationSummaryRequest) ProtoMessage() {}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ApplySeaHouseBillAllocationSummaryRequest.ProtoReflect.Descriptor instead.
-func (*ApplySeaHouseBillAllocationSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) GetHouseBillId() string {
-	if x != nil {
-		return x.HouseBillId
-	}
-	return ""
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) GetExpectedAllocationVersion() uint64 {
-	if x != nil {
-		return x.ExpectedAllocationVersion
-	}
-	return 0
-}
-
-func (x *ApplySeaHouseBillAllocationSummaryRequest) GetExpectedHouseBillVersion() uint64 {
+func (x *SeaSharedContainerAllocationInput) GetExpectedHouseBillVersion() uint64 {
 	if x != nil {
 		return x.ExpectedHouseBillVersion
 	}
 	return 0
 }
 
-// ApplySeaHouseBillAllocationSummaryResponse 填入 HBL 内容响应。
-type ApplySeaHouseBillAllocationSummaryResponse struct {
+func (x *SeaSharedContainerAllocationInput) GetExpectedCargoItemVersion() uint64 {
+	if x != nil {
+		return x.ExpectedCargoItemVersion
+	}
+	return 0
+}
+
+type SeaSharedContainerAllocation struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SharedContainerId string                 `protobuf:"bytes,2,opt,name=shared_container_id,json=sharedContainerId,proto3" json:"shared_container_id,omitempty"`
+	OrderId           string                 `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo           string                 `protobuf:"bytes,4,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	HouseBillId       string                 `protobuf:"bytes,5,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
+	HouseNo           string                 `protobuf:"bytes,6,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	CargoItemId       string                 `protobuf:"bytes,7,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
+	CargoName         string                 `protobuf:"bytes,8,opt,name=cargo_name,json=cargoName,proto3" json:"cargo_name,omitempty"`
+	PackageCount      int32                  `protobuf:"varint,9,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg     string                 `protobuf:"bytes,10,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm         string                 `protobuf:"bytes,11,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Version           uint64                 `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
+	CreatedAt         string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt         string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OrderVersion      uint64                 `protobuf:"varint,15,opt,name=order_version,json=orderVersion,proto3" json:"order_version,omitempty"`
+	LinkVersion       uint64                 `protobuf:"varint,16,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
+	HouseBillVersion  uint64                 `protobuf:"varint,17,opt,name=house_bill_version,json=houseBillVersion,proto3" json:"house_bill_version,omitempty"`
+	CargoItemVersion  uint64                 `protobuf:"varint,18,opt,name=cargo_item_version,json=cargoItemVersion,proto3" json:"cargo_item_version,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *SeaSharedContainerAllocation) Reset() {
+	*x = SeaSharedContainerAllocation{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaSharedContainerAllocation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaSharedContainerAllocation) ProtoMessage() {}
+
+func (x *SeaSharedContainerAllocation) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaSharedContainerAllocation.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerAllocation) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SeaSharedContainerAllocation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetSharedContainerId() string {
+	if x != nil {
+		return x.SharedContainerId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetOrderNo() string {
+	if x != nil {
+		return x.OrderNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetHouseBillId() string {
+	if x != nil {
+		return x.HouseBillId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetCargoItemId() string {
+	if x != nil {
+		return x.CargoItemId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetCargoName() string {
+	if x != nil {
+		return x.CargoName
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerAllocation) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerAllocation) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerAllocation) GetOrderVersion() uint64 {
+	if x != nil {
+		return x.OrderVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerAllocation) GetLinkVersion() uint64 {
+	if x != nil {
+		return x.LinkVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerAllocation) GetHouseBillVersion() uint64 {
+	if x != nil {
+		return x.HouseBillVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerAllocation) GetCargoItemVersion() uint64 {
+	if x != nil {
+		return x.CargoItemVersion
+	}
+	return 0
+}
+
+type SeaSharedContainerProgress struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	AllocatedPackageCount  int32                  `protobuf:"varint,1,opt,name=allocated_package_count,json=allocatedPackageCount,proto3" json:"allocated_package_count,omitempty"`
+	AllocatedGrossWeightKg string                 `protobuf:"bytes,2,opt,name=allocated_gross_weight_kg,json=allocatedGrossWeightKg,proto3" json:"allocated_gross_weight_kg,omitempty"`
+	AllocatedVolumeCbm     string                 `protobuf:"bytes,3,opt,name=allocated_volume_cbm,json=allocatedVolumeCbm,proto3" json:"allocated_volume_cbm,omitempty"`
+	RemainingPackageCount  int32                  `protobuf:"varint,4,opt,name=remaining_package_count,json=remainingPackageCount,proto3" json:"remaining_package_count,omitempty"`
+	RemainingGrossWeightKg string                 `protobuf:"bytes,5,opt,name=remaining_gross_weight_kg,json=remainingGrossWeightKg,proto3" json:"remaining_gross_weight_kg,omitempty"`
+	RemainingVolumeCbm     string                 `protobuf:"bytes,6,opt,name=remaining_volume_cbm,json=remainingVolumeCbm,proto3" json:"remaining_volume_cbm,omitempty"`
+	ContainerBalanced      bool                   `protobuf:"varint,7,opt,name=container_balanced,json=containerBalanced,proto3" json:"container_balanced,omitempty"`
+	CargoBalanced          bool                   `protobuf:"varint,8,opt,name=cargo_balanced,json=cargoBalanced,proto3" json:"cargo_balanced,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *SeaSharedContainerProgress) Reset() {
+	*x = SeaSharedContainerProgress{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaSharedContainerProgress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaSharedContainerProgress) ProtoMessage() {}
+
+func (x *SeaSharedContainerProgress) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaSharedContainerProgress.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerProgress) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SeaSharedContainerProgress) GetAllocatedPackageCount() int32 {
+	if x != nil {
+		return x.AllocatedPackageCount
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerProgress) GetAllocatedGrossWeightKg() string {
+	if x != nil {
+		return x.AllocatedGrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerProgress) GetAllocatedVolumeCbm() string {
+	if x != nil {
+		return x.AllocatedVolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerProgress) GetRemainingPackageCount() int32 {
+	if x != nil {
+		return x.RemainingPackageCount
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerProgress) GetRemainingGrossWeightKg() string {
+	if x != nil {
+		return x.RemainingGrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerProgress) GetRemainingVolumeCbm() string {
+	if x != nil {
+		return x.RemainingVolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerProgress) GetContainerBalanced() bool {
+	if x != nil {
+		return x.ContainerBalanced
+	}
+	return false
+}
+
+func (x *SeaSharedContainerProgress) GetCargoBalanced() bool {
+	if x != nil {
+		return x.CargoBalanced
+	}
+	return false
+}
+
+type SeaSharedContainer struct {
+	state                protoimpl.MessageState          `protogen:"open.v1"`
+	Id                   string                          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId       string                          `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	TransportExecutionId string                          `protobuf:"bytes,3,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	ContainerNo          string                          `protobuf:"bytes,4,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId      string                          `protobuf:"bytes,5,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	ContainerSpecName    string                          `protobuf:"bytes,6,opt,name=container_spec_name,json=containerSpecName,proto3" json:"container_spec_name,omitempty"`
+	SealNo               *string                         `protobuf:"bytes,7,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	PackageCount         int32                           `protobuf:"varint,8,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg        string                          `protobuf:"bytes,9,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm            string                          `protobuf:"bytes,10,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Status               SeaSharedContainerStatus        `protobuf:"varint,11,opt,name=status,proto3,enum=order.v1.SeaSharedContainerStatus" json:"status,omitempty"`
+	ConfirmedAt          *string                         `protobuf:"bytes,12,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	ConfirmedBy          *string                         `protobuf:"bytes,13,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
+	ConfirmedByName      *string                         `protobuf:"bytes,14,opt,name=confirmed_by_name,json=confirmedByName,proto3,oneof" json:"confirmed_by_name,omitempty"`
+	Note                 *string                         `protobuf:"bytes,15,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version              uint64                          `protobuf:"varint,16,opt,name=version,proto3" json:"version,omitempty"`
+	Allocations          []*SeaSharedContainerAllocation `protobuf:"bytes,17,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	Progress             *SeaSharedContainerProgress     `protobuf:"bytes,18,opt,name=progress,proto3" json:"progress,omitempty"`
+	CreatedAt            string                          `protobuf:"bytes,19,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string                          `protobuf:"bytes,20,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *SeaSharedContainer) Reset() {
+	*x = SeaSharedContainer{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaSharedContainer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaSharedContainer) ProtoMessage() {}
+
+func (x *SeaSharedContainer) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaSharedContainer.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainer) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SeaSharedContainer) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetTransportExecutionId() string {
+	if x != nil {
+		return x.TransportExecutionId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetContainerNo() string {
+	if x != nil {
+		return x.ContainerNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetContainerSpecId() string {
+	if x != nil {
+		return x.ContainerSpecId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetContainerSpecName() string {
+	if x != nil {
+		return x.ContainerSpecName
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetSealNo() string {
+	if x != nil && x.SealNo != nil {
+		return *x.SealNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaSharedContainer) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetStatus() SeaSharedContainerStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED
+}
+
+func (x *SeaSharedContainer) GetConfirmedAt() string {
+	if x != nil && x.ConfirmedAt != nil {
+		return *x.ConfirmedAt
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetConfirmedBy() string {
+	if x != nil && x.ConfirmedBy != nil {
+		return *x.ConfirmedBy
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetConfirmedByName() string {
+	if x != nil && x.ConfirmedByName != nil {
+		return *x.ConfirmedByName
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *SeaSharedContainer) GetAllocations() []*SeaSharedContainerAllocation {
+	if x != nil {
+		return x.Allocations
+	}
+	return nil
+}
+
+func (x *SeaSharedContainer) GetProgress() *SeaSharedContainerProgress {
+	if x != nil {
+		return x.Progress
+	}
+	return nil
+}
+
+func (x *SeaSharedContainer) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *SeaSharedContainer) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type SeaSharedContainerCandidateCargoItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CargoName     string                 `protobuf:"bytes,2,opt,name=cargo_name,json=cargoName,proto3" json:"cargo_name,omitempty"`
+	PackageCount  int32                  `protobuf:"varint,3,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg string                 `protobuf:"bytes,4,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm     string                 `protobuf:"bytes,5,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Version       uint64                 `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) Reset() {
+	*x = SeaSharedContainerCandidateCargoItem{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaSharedContainerCandidateCargoItem) ProtoMessage() {}
+
+func (x *SeaSharedContainerCandidateCargoItem) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaSharedContainerCandidateCargoItem.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerCandidateCargoItem) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetCargoName() string {
+	if x != nil {
+		return x.CargoName
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateCargoItem) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type SeaSharedContainerCandidateOrder struct {
+	state            protoimpl.MessageState                  `protogen:"open.v1"`
+	OrderId          string                                  `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo          string                                  `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	HouseBillId      string                                  `protobuf:"bytes,3,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
+	HouseNo          string                                  `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	OrderVersion     uint64                                  `protobuf:"varint,5,opt,name=order_version,json=orderVersion,proto3" json:"order_version,omitempty"`
+	LinkVersion      uint64                                  `protobuf:"varint,6,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
+	HouseBillVersion uint64                                  `protobuf:"varint,7,opt,name=house_bill_version,json=houseBillVersion,proto3" json:"house_bill_version,omitempty"`
+	CargoItems       []*SeaSharedContainerCandidateCargoItem `protobuf:"bytes,8,rep,name=cargo_items,json=cargoItems,proto3" json:"cargo_items,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SeaSharedContainerCandidateOrder) Reset() {
+	*x = SeaSharedContainerCandidateOrder{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaSharedContainerCandidateOrder) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaSharedContainerCandidateOrder) ProtoMessage() {}
+
+func (x *SeaSharedContainerCandidateOrder) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaSharedContainerCandidateOrder.ProtoReflect.Descriptor instead.
+func (*SeaSharedContainerCandidateOrder) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetOrderNo() string {
+	if x != nil {
+		return x.OrderNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetHouseBillId() string {
+	if x != nil {
+		return x.HouseBillId
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetOrderVersion() uint64 {
+	if x != nil {
+		return x.OrderVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetLinkVersion() uint64 {
+	if x != nil {
+		return x.LinkVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetHouseBillVersion() uint64 {
+	if x != nil {
+		return x.HouseBillVersion
+	}
+	return 0
+}
+
+func (x *SeaSharedContainerCandidateOrder) GetCargoItems() []*SeaSharedContainerCandidateCargoItem {
+	if x != nil {
+		return x.CargoItems
+	}
+	return nil
+}
+
+type ListSeaSharedContainersRequest struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	TransportExecutionId string                 `protobuf:"bytes,1,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	Page                 int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize             int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword              string                 `protobuf:"bytes,4,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ListSeaSharedContainersRequest) Reset() {
+	*x = ListSeaSharedContainersRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSeaSharedContainersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSeaSharedContainersRequest) ProtoMessage() {}
+
+func (x *ListSeaSharedContainersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSeaSharedContainersRequest.ProtoReflect.Descriptor instead.
+func (*ListSeaSharedContainersRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListSeaSharedContainersRequest) GetTransportExecutionId() string {
+	if x != nil {
+		return x.TransportExecutionId
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainersRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainersRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+type ListSeaSharedContainersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
 	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *SeaHouseBill          `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Data          []*SeaSharedContainer  `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSeaSharedContainersResponse) Reset() {
+	*x = ListSeaSharedContainersResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSeaSharedContainersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSeaSharedContainersResponse) ProtoMessage() {}
+
+func (x *ListSeaSharedContainersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSeaSharedContainersResponse.ProtoReflect.Descriptor instead.
+func (*ListSeaSharedContainersResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListSeaSharedContainersResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListSeaSharedContainersResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainersResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainersResponse) GetData() []*SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListSeaSharedContainersResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainersResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainersResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainersResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetSeaSharedContainerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSeaSharedContainerRequest) Reset() {
+	*x = GetSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *GetSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*GetSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetSeaSharedContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) Reset() {
-	*x = ApplySeaHouseBillAllocationSummaryResponse{}
+func (x *GetSeaSharedContainerResponse) Reset() {
+	*x = GetSeaSharedContainerResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSeaSharedContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSeaSharedContainerResponse) ProtoMessage() {}
+
+func (x *GetSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*GetSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetSeaSharedContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetSeaSharedContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetSeaSharedContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetSeaSharedContainerResponse) GetData() *SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetSeaSharedContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ListSeaSharedContainerCandidatesRequest struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	TransportExecutionId string                 `protobuf:"bytes,1,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	Page                 int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize             int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword              string                 `protobuf:"bytes,4,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) Reset() {
+	*x = ListSeaSharedContainerCandidatesRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSeaSharedContainerCandidatesRequest) ProtoMessage() {}
+
+func (x *ListSeaSharedContainerCandidatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSeaSharedContainerCandidatesRequest.ProtoReflect.Descriptor instead.
+func (*ListSeaSharedContainerCandidatesRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) GetTransportExecutionId() string {
+	if x != nil {
+		return x.TransportExecutionId
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainerCandidatesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+type ListSeaSharedContainerCandidatesResponse struct {
+	state         protoimpl.MessageState              `protogen:"open.v1"`
+	Success       bool                                `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                               `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                              `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*SeaSharedContainerCandidateOrder `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                              `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                               `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                               `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                               `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) Reset() {
+	*x = ListSeaSharedContainerCandidatesResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSeaSharedContainerCandidatesResponse) ProtoMessage() {}
+
+func (x *ListSeaSharedContainerCandidatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSeaSharedContainerCandidatesResponse.ProtoReflect.Descriptor instead.
+func (*ListSeaSharedContainerCandidatesResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetData() []*SeaSharedContainerCandidateOrder {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSeaSharedContainerCandidatesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type CreateSeaSharedContainerRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Input         *SeaSharedContainerInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSeaSharedContainerRequest) Reset() {
+	*x = CreateSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *CreateSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*CreateSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CreateSeaSharedContainerRequest) GetInput() *SeaSharedContainerInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type CreateSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSeaSharedContainerResponse) Reset() {
+	*x = CreateSeaSharedContainerResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSeaSharedContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSeaSharedContainerResponse) ProtoMessage() {}
+
+func (x *CreateSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*CreateSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CreateSeaSharedContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateSeaSharedContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateSeaSharedContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateSeaSharedContainerResponse) GetData() *SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateSeaSharedContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateSeaSharedContainerRequest struct {
+	state           protoimpl.MessageState   `protogen:"open.v1"`
+	Id              string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                   `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Input           *SeaSharedContainerInput `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UpdateSeaSharedContainerRequest) Reset() {
+	*x = UpdateSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *UpdateSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateSeaSharedContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateSeaSharedContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *UpdateSeaSharedContainerRequest) GetInput() *SeaSharedContainerInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type UpdateSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSeaSharedContainerResponse) Reset() {
+	*x = UpdateSeaSharedContainerResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSeaSharedContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSeaSharedContainerResponse) ProtoMessage() {}
+
+func (x *UpdateSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateSeaSharedContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateSeaSharedContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateSeaSharedContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateSeaSharedContainerResponse) GetData() *SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateSeaSharedContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type DeleteSeaSharedContainerRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DeleteSeaSharedContainerRequest) Reset() {
+	*x = DeleteSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *DeleteSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *DeleteSeaSharedContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteSeaSharedContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type DeleteSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSeaSharedContainerResponse) Reset() {
+	*x = DeleteSeaSharedContainerResponse{}
 	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) String() string {
+func (x *DeleteSeaSharedContainerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ApplySeaHouseBillAllocationSummaryResponse) ProtoMessage() {}
+func (*DeleteSeaSharedContainerResponse) ProtoMessage() {}
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) ProtoReflect() protoreflect.Message {
+func (x *DeleteSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1731,40 +1747,425 @@ func (x *ApplySeaHouseBillAllocationSummaryResponse) ProtoReflect() protoreflect
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ApplySeaHouseBillAllocationSummaryResponse.ProtoReflect.Descriptor instead.
-func (*ApplySeaHouseBillAllocationSummaryResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use DeleteSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) GetSuccess() bool {
+func (x *DeleteSeaSharedContainerResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) GetCode() int32 {
+func (x *DeleteSeaSharedContainerResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) GetMessage() string {
+func (x *DeleteSeaSharedContainerResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) GetData() *SeaHouseBill {
+func (x *DeleteSeaSharedContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SaveSeaSharedContainerAllocationsDraftRequest struct {
+	state           protoimpl.MessageState               `protogen:"open.v1"`
+	Id              string                               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                               `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Allocations     []*SeaSharedContainerAllocationInput `protobuf:"bytes,3,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) Reset() {
+	*x = SaveSeaSharedContainerAllocationsDraftRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveSeaSharedContainerAllocationsDraftRequest) ProtoMessage() {}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveSeaSharedContainerAllocationsDraftRequest.ProtoReflect.Descriptor instead.
+func (*SaveSeaSharedContainerAllocationsDraftRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftRequest) GetAllocations() []*SeaSharedContainerAllocationInput {
+	if x != nil {
+		return x.Allocations
+	}
+	return nil
+}
+
+type SaveSeaSharedContainerAllocationsDraftResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) Reset() {
+	*x = SaveSeaSharedContainerAllocationsDraftResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveSeaSharedContainerAllocationsDraftResponse) ProtoMessage() {}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveSeaSharedContainerAllocationsDraftResponse.ProtoReflect.Descriptor instead.
+func (*SaveSeaSharedContainerAllocationsDraftResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) GetData() *SeaSharedContainer {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *ApplySeaHouseBillAllocationSummaryResponse) GetTraceId() string {
+func (x *SaveSeaSharedContainerAllocationsDraftResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ConfirmSeaSharedContainerRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ConfirmSeaSharedContainerRequest) Reset() {
+	*x = ConfirmSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *ConfirmSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ConfirmSeaSharedContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ConfirmSeaSharedContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type ConfirmSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmSeaSharedContainerResponse) Reset() {
+	*x = ConfirmSeaSharedContainerResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmSeaSharedContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmSeaSharedContainerResponse) ProtoMessage() {}
+
+func (x *ConfirmSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*ConfirmSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ConfirmSeaSharedContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ConfirmSeaSharedContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ConfirmSeaSharedContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ConfirmSeaSharedContainerResponse) GetData() *SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ConfirmSeaSharedContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type WithdrawSeaSharedContainerRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *WithdrawSeaSharedContainerRequest) Reset() {
+	*x = WithdrawSeaSharedContainerRequest{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawSeaSharedContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawSeaSharedContainerRequest) ProtoMessage() {}
+
+func (x *WithdrawSeaSharedContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawSeaSharedContainerRequest.ProtoReflect.Descriptor instead.
+func (*WithdrawSeaSharedContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *WithdrawSeaSharedContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WithdrawSeaSharedContainerRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type WithdrawSeaSharedContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaSharedContainer    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WithdrawSeaSharedContainerResponse) Reset() {
+	*x = WithdrawSeaSharedContainerResponse{}
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawSeaSharedContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawSeaSharedContainerResponse) ProtoMessage() {}
+
+func (x *WithdrawSeaSharedContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_cargo_allocation_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawSeaSharedContainerResponse.ProtoReflect.Descriptor instead.
+func (*WithdrawSeaSharedContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_cargo_allocation_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *WithdrawSeaSharedContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *WithdrawSeaSharedContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *WithdrawSeaSharedContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *WithdrawSeaSharedContainerResponse) GetData() *SeaSharedContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *WithdrawSeaSharedContainerResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -1775,183 +2176,223 @@ var File_order_v1_sea_cargo_allocation_proto protoreflect.FileDescriptor
 
 const file_order_v1_sea_cargo_allocation_proto_rawDesc = "" +
 	"\n" +
-	"#order/v1/sea_cargo_allocation.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1forder/v1/order_cargo_item.proto\x1a\x1eorder/v1/order_container.proto\x1a\x1border/v1/sea_document.proto\"\x95\x02\n" +
-	"\x16SeaCargoAllocationItem\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
-	"\rcargo_item_id\x18\x02 \x01(\tR\vcargoItemId\x12\"\n" +
-	"\rhouse_bill_id\x18\x03 \x01(\tR\vhouseBillId\x12&\n" +
-	"\fcontainer_id\x18\x04 \x01(\tH\x00R\vcontainerId\x88\x01\x01\x12#\n" +
-	"\rpackage_count\x18\x05 \x01(\x05R\fpackageCount\x12&\n" +
-	"\x0fgross_weight_kg\x18\x06 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
-	"\n" +
-	"volume_cbm\x18\a \x01(\tR\tvolumeCbmB\x0f\n" +
-	"\r_container_id\"\xbb\x02\n" +
-	"\x17SeaCargoAllocationInput\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12'\n" +
-	"\rcargo_item_id\x18\x02 \x01(\tB\x03\xe0A\x02R\vcargoItemId\x12'\n" +
-	"\rhouse_bill_id\x18\x03 \x01(\tB\x03\xe0A\x02R\vhouseBillId\x12&\n" +
-	"\fcontainer_id\x18\x04 \x01(\tH\x01R\vcontainerId\x88\x01\x01\x12(\n" +
+	"#order/v1/sea_cargo_allocation.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xf4\x02\n" +
+	"\x17SeaSharedContainerInput\x129\n" +
+	"\x16transport_execution_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x14transportExecutionId\x12&\n" +
+	"\fcontainer_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vcontainerNo\x12/\n" +
+	"\x11container_spec_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x12\x1c\n" +
+	"\aseal_no\x18\x04 \x01(\tH\x00R\x06sealNo\x88\x01\x01\x12(\n" +
 	"\rpackage_count\x18\x05 \x01(\x05B\x03\xe0A\x02R\fpackageCount\x12+\n" +
 	"\x0fgross_weight_kg\x18\x06 \x01(\tB\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
-	"volume_cbm\x18\a \x01(\tB\x03\xe0A\x02R\tvolumeCbmB\x05\n" +
-	"\x03_idB\x0f\n" +
-	"\r_container_id\"\xe8\x04\n" +
-	"\"SeaCargoAllocationCargoItemSummary\x12\"\n" +
-	"\rcargo_item_id\x18\x01 \x01(\tR\vcargoItemId\x12\x1d\n" +
+	"volume_cbm\x18\a \x01(\tB\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
+	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01B\n" +
 	"\n" +
-	"cargo_name\x18\x02 \x01(\tR\tcargoName\x124\n" +
-	"\x16baseline_package_count\x18\x03 \x01(\x05R\x14baselinePackageCount\x126\n" +
-	"\x17allocated_package_count\x18\x04 \x01(\x05R\x15allocatedPackageCount\x126\n" +
-	"\x17remaining_package_count\x18\x05 \x01(\x05R\x15remainingPackageCount\x127\n" +
-	"\x18baseline_gross_weight_kg\x18\x06 \x01(\tR\x15baselineGrossWeightKg\x129\n" +
-	"\x19allocated_gross_weight_kg\x18\a \x01(\tR\x16allocatedGrossWeightKg\x129\n" +
-	"\x19remaining_gross_weight_kg\x18\b \x01(\tR\x16remainingGrossWeightKg\x12.\n" +
-	"\x13baseline_volume_cbm\x18\t \x01(\tR\x11baselineVolumeCbm\x120\n" +
-	"\x14allocated_volume_cbm\x18\n" +
-	" \x01(\tR\x12allocatedVolumeCbm\x120\n" +
-	"\x14remaining_volume_cbm\x18\v \x01(\tR\x12remainingVolumeCbm\x12\x16\n" +
-	"\x06status\x18\f \x01(\tR\x06status\"\xeb\x04\n" +
-	"\"SeaCargoAllocationContainerSummary\x12!\n" +
-	"\fcontainer_id\x18\x01 \x01(\tR\vcontainerId\x12!\n" +
-	"\fcontainer_no\x18\x02 \x01(\tR\vcontainerNo\x124\n" +
-	"\x16baseline_package_count\x18\x03 \x01(\x05R\x14baselinePackageCount\x126\n" +
-	"\x17allocated_package_count\x18\x04 \x01(\x05R\x15allocatedPackageCount\x126\n" +
-	"\x17remaining_package_count\x18\x05 \x01(\x05R\x15remainingPackageCount\x127\n" +
-	"\x18baseline_gross_weight_kg\x18\x06 \x01(\tR\x15baselineGrossWeightKg\x129\n" +
-	"\x19allocated_gross_weight_kg\x18\a \x01(\tR\x16allocatedGrossWeightKg\x129\n" +
-	"\x19remaining_gross_weight_kg\x18\b \x01(\tR\x16remainingGrossWeightKg\x12.\n" +
-	"\x13baseline_volume_cbm\x18\t \x01(\tR\x11baselineVolumeCbm\x120\n" +
-	"\x14allocated_volume_cbm\x18\n" +
-	" \x01(\tR\x12allocatedVolumeCbm\x120\n" +
-	"\x14remaining_volume_cbm\x18\v \x01(\tR\x12remainingVolumeCbm\x12\x16\n" +
-	"\x06status\x18\f \x01(\tR\x06status\"\xf3\x06\n" +
-	"\"SeaCargoAllocationHouseBillSummary\x12\"\n" +
-	"\rhouse_bill_id\x18\x01 \x01(\tR\vhouseBillId\x12\x19\n" +
-	"\bhouse_no\x18\x02 \x01(\tR\ahouseNo\x126\n" +
-	"\x17allocated_package_count\x18\x03 \x01(\x05R\x15allocatedPackageCount\x129\n" +
-	"\x19allocated_gross_weight_kg\x18\x04 \x01(\tR\x16allocatedGrossWeightKg\x120\n" +
-	"\x14allocated_volume_cbm\x18\x05 \x01(\tR\x12allocatedVolumeCbm\x12A\n" +
-	"\x1dorder_remaining_package_count\x18\x06 \x01(\x05R\x1aorderRemainingPackageCount\x12D\n" +
-	"\x1forder_remaining_gross_weight_kg\x18\a \x01(\tR\x1borderRemainingGrossWeightKg\x12;\n" +
-	"\x1aorder_remaining_volume_cbm\x18\b \x01(\tR\x17orderRemainingVolumeCbm\x127\n" +
-	"\x15display_package_count\x18\t \x01(\x05H\x00R\x13displayPackageCount\x88\x01\x01\x12:\n" +
-	"\x17display_gross_weight_kg\x18\n" +
-	" \x01(\tH\x01R\x14displayGrossWeightKg\x88\x01\x01\x121\n" +
-	"\x12display_volume_cbm\x18\v \x01(\tH\x02R\x10displayVolumeCbm\x88\x01\x01\x12,\n" +
-	"\x12diff_package_count\x18\f \x01(\x05R\x10diffPackageCount\x12/\n" +
-	"\x14diff_gross_weight_kg\x18\r \x01(\tR\x11diffGrossWeightKg\x12&\n" +
-	"\x0fdiff_volume_cbm\x18\x0e \x01(\tR\rdiffVolumeCbm\x12'\n" +
-	"\x0fdisplay_matches\x18\x0f \x01(\bR\x0edisplayMatchesB\x18\n" +
-	"\x16_display_package_countB\x1a\n" +
-	"\x18_display_gross_weight_kgB\x15\n" +
-	"\x13_display_volume_cbm\"\xf8\x03\n" +
-	"\x1aSeaCargoAllocationProgress\x12U\n" +
-	"\x0fcargo_summaries\x18\x01 \x03(\v2,.order.v1.SeaCargoAllocationCargoItemSummaryR\x0ecargoSummaries\x12]\n" +
-	"\x13container_summaries\x18\x02 \x03(\v2,.order.v1.SeaCargoAllocationContainerSummaryR\x12containerSummaries\x12^\n" +
-	"\x14house_bill_summaries\x18\x03 \x03(\v2,.order.v1.SeaCargoAllocationHouseBillSummaryR\x12houseBillSummaries\x12A\n" +
-	"\x1dorder_remaining_package_count\x18\x04 \x01(\x05R\x1aorderRemainingPackageCount\x12D\n" +
-	"\x1forder_remaining_gross_weight_kg\x18\x05 \x01(\tR\x1borderRemainingGrossWeightKg\x12;\n" +
-	"\x1aorder_remaining_volume_cbm\x18\x06 \x01(\tR\x17orderRemainingVolumeCbm\"\xe6\x06\n" +
-	"\x1bSeaCargoAllocationAggregate\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\x12M\n" +
-	"\x12document_structure\x18\x02 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructure\x12#\n" +
-	"\rshipment_type\x18\x03 \x01(\tR\fshipmentType\x12O\n" +
-	"\x11allocation_status\x18\x04 \x01(\x0e2\".order.v1.SeaCargoAllocationStatusR\x10allocationStatus\x12-\n" +
-	"\x12allocation_version\x18\x05 \x01(\x04R\x11allocationVersion\x12&\n" +
-	"\fconfirmed_at\x18\x06 \x01(\tH\x00R\vconfirmedAt\x88\x01\x01\x12&\n" +
-	"\fconfirmed_by\x18\a \x01(\tH\x01R\vconfirmedBy\x88\x01\x01\x12/\n" +
-	"\x11confirmed_by_name\x18\b \x01(\tH\x02R\x0fconfirmedByName\x88\x01\x01\x129\n" +
-	"\vcargo_items\x18\t \x03(\v2\x18.order.v1.OrderCargoItemR\n" +
-	"cargoItems\x128\n" +
+	"\b_seal_noB\a\n" +
+	"\x05_note\"\x8c\x04\n" +
+	"!SeaSharedContainerAllocationInput\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12'\n" +
+	"\rhouse_bill_id\x18\x02 \x01(\tB\x03\xe0A\x02R\vhouseBillId\x12'\n" +
+	"\rcargo_item_id\x18\x03 \x01(\tB\x03\xe0A\x02R\vcargoItemId\x12(\n" +
+	"\rpackage_count\x18\x04 \x01(\x05B\x03\xe0A\x02R\fpackageCount\x12+\n" +
+	"\x0fgross_weight_kg\x18\x05 \x01(\tB\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
-	"containers\x18\n" +
-	" \x03(\v2\x18.order.v1.OrderContainerR\n" +
-	"containers\x127\n" +
-	"\vhouse_bills\x18\v \x03(\v2\x16.order.v1.SeaHouseBillR\n" +
-	"houseBills\x12B\n" +
-	"\vallocations\x18\f \x03(\v2 .order.v1.SeaCargoAllocationItemR\vallocations\x12@\n" +
-	"\bprogress\x18\r \x01(\v2$.order.v1.SeaCargoAllocationProgressR\bprogress\x12K\n" +
-	"\x0fallowed_actions\x18\x0e \x03(\x0e2\".order.v1.SeaCargoAllocationActionR\x0eallowedActionsB\x0f\n" +
+	"volume_cbm\x18\x06 \x01(\tB\x03\xe0A\x02R\tvolumeCbm\x129\n" +
+	"\x16expected_order_version\x18\a \x01(\x04B\x03\xe0A\x02R\x14expectedOrderVersion\x127\n" +
+	"\x15expected_link_version\x18\b \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x12B\n" +
+	"\x1bexpected_house_bill_version\x18\t \x01(\x04B\x03\xe0A\x02R\x18expectedHouseBillVersion\x12B\n" +
+	"\x1bexpected_cargo_item_version\x18\n" +
+	" \x01(\x04B\x03\xe0A\x02R\x18expectedCargoItemVersion\"\xfe\x04\n" +
+	"\x1cSeaSharedContainerAllocation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12.\n" +
+	"\x13shared_container_id\x18\x02 \x01(\tR\x11sharedContainerId\x12\x19\n" +
+	"\border_id\x18\x03 \x01(\tR\aorderId\x12\x19\n" +
+	"\border_no\x18\x04 \x01(\tR\aorderNo\x12\"\n" +
+	"\rhouse_bill_id\x18\x05 \x01(\tR\vhouseBillId\x12\x19\n" +
+	"\bhouse_no\x18\x06 \x01(\tR\ahouseNo\x12\"\n" +
+	"\rcargo_item_id\x18\a \x01(\tR\vcargoItemId\x12\x1d\n" +
+	"\n" +
+	"cargo_name\x18\b \x01(\tR\tcargoName\x12#\n" +
+	"\rpackage_count\x18\t \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\n" +
+	" \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\v \x01(\tR\tvolumeCbm\x12\x18\n" +
+	"\aversion\x18\f \x01(\x04R\aversion\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt\x12#\n" +
+	"\rorder_version\x18\x0f \x01(\x04R\forderVersion\x12!\n" +
+	"\flink_version\x18\x10 \x01(\x04R\vlinkVersion\x12,\n" +
+	"\x12house_bill_version\x18\x11 \x01(\x04R\x10houseBillVersion\x12,\n" +
+	"\x12cargo_item_version\x18\x12 \x01(\x04R\x10cargoItemVersion\"\xbc\x03\n" +
+	"\x1aSeaSharedContainerProgress\x126\n" +
+	"\x17allocated_package_count\x18\x01 \x01(\x05R\x15allocatedPackageCount\x129\n" +
+	"\x19allocated_gross_weight_kg\x18\x02 \x01(\tR\x16allocatedGrossWeightKg\x120\n" +
+	"\x14allocated_volume_cbm\x18\x03 \x01(\tR\x12allocatedVolumeCbm\x126\n" +
+	"\x17remaining_package_count\x18\x04 \x01(\x05R\x15remainingPackageCount\x129\n" +
+	"\x19remaining_gross_weight_kg\x18\x05 \x01(\tR\x16remainingGrossWeightKg\x120\n" +
+	"\x14remaining_volume_cbm\x18\x06 \x01(\tR\x12remainingVolumeCbm\x12-\n" +
+	"\x12container_balanced\x18\a \x01(\bR\x11containerBalanced\x12%\n" +
+	"\x0ecargo_balanced\x18\b \x01(\bR\rcargoBalanced\"\x93\a\n" +
+	"\x12SeaSharedContainer\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x124\n" +
+	"\x16transport_execution_id\x18\x03 \x01(\tR\x14transportExecutionId\x12!\n" +
+	"\fcontainer_no\x18\x04 \x01(\tR\vcontainerNo\x12*\n" +
+	"\x11container_spec_id\x18\x05 \x01(\tR\x0fcontainerSpecId\x12.\n" +
+	"\x13container_spec_name\x18\x06 \x01(\tR\x11containerSpecName\x12\x1c\n" +
+	"\aseal_no\x18\a \x01(\tH\x00R\x06sealNo\x88\x01\x01\x12#\n" +
+	"\rpackage_count\x18\b \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\t \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\n" +
+	" \x01(\tR\tvolumeCbm\x12:\n" +
+	"\x06status\x18\v \x01(\x0e2\".order.v1.SeaSharedContainerStatusR\x06status\x12&\n" +
+	"\fconfirmed_at\x18\f \x01(\tH\x01R\vconfirmedAt\x88\x01\x01\x12&\n" +
+	"\fconfirmed_by\x18\r \x01(\tH\x02R\vconfirmedBy\x88\x01\x01\x12/\n" +
+	"\x11confirmed_by_name\x18\x0e \x01(\tH\x03R\x0fconfirmedByName\x88\x01\x01\x12\x17\n" +
+	"\x04note\x18\x0f \x01(\tH\x04R\x04note\x88\x01\x01\x12\x18\n" +
+	"\aversion\x18\x10 \x01(\x04R\aversion\x12H\n" +
+	"\vallocations\x18\x11 \x03(\v2&.order.v1.SeaSharedContainerAllocationR\vallocations\x12@\n" +
+	"\bprogress\x18\x12 \x01(\v2$.order.v1.SeaSharedContainerProgressR\bprogress\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x13 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x14 \x01(\tR\tupdatedAtB\n" +
+	"\n" +
+	"\b_seal_noB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
 	"\r_confirmed_byB\x14\n" +
-	"\x12_confirmed_by_name\">\n" +
-	"\x1cGetSeaCargoAllocationRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xbd\x01\n" +
-	"\x1dGetSeaCargoAllocationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
-	"\x04data\x18\x04 \x01(\v2%.order.v1.SeaCargoAllocationAggregateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xce\x01\n" +
-	"\"SaveSeaCargoAllocationDraftRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12C\n" +
-	"\x1bexpected_allocation_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x19expectedAllocationVersion\x12C\n" +
-	"\vallocations\x18\x03 \x03(\v2!.order.v1.SeaCargoAllocationInputR\vallocations\"\xc3\x01\n" +
-	"#SaveSeaCargoAllocationDraftResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
-	"\x04data\x18\x04 \x01(\v2%.order.v1.SeaCargoAllocationAggregateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x87\x01\n" +
-	" ConfirmSeaCargoAllocationRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12C\n" +
-	"\x1bexpected_allocation_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x19expectedAllocationVersion\"\xc1\x01\n" +
-	"!ConfirmSeaCargoAllocationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
-	"\x04data\x18\x04 \x01(\v2%.order.v1.SeaCargoAllocationAggregateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
-	"!WithdrawSeaCargoAllocationRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12C\n" +
-	"\x1bexpected_allocation_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x19expectedAllocationVersion\"\xc2\x01\n" +
-	"\"WithdrawSeaCargoAllocationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
-	"\x04data\x18\x04 \x01(\v2%.order.v1.SeaCargoAllocationAggregateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x85\x01\n" +
-	",ApplySeaOrderCargoSummaryToMasterBillRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x125\n" +
-	"\x14expected_mbl_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x12expectedMblVersion\"\xc5\x01\n" +
-	"-ApplySeaOrderCargoSummaryToMasterBillResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
-	"\x04data\x18\x04 \x01(\v2\x1d.order.v1.SeaMasterBillDetailR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xfd\x01\n" +
-	")ApplySeaHouseBillAllocationSummaryRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12'\n" +
-	"\rhouse_bill_id\x18\x02 \x01(\tB\x03\xe0A\x02R\vhouseBillId\x12C\n" +
-	"\x1bexpected_allocation_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x19expectedAllocationVersion\x12B\n" +
-	"\x1bexpected_house_bill_version\x18\x04 \x01(\x04B\x03\xe0A\x02R\x18expectedHouseBillVersion\"\xbb\x01\n" +
-	"*ApplySeaHouseBillAllocationSummaryResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
-	"\x04data\x18\x04 \x01(\v2\x16.order.v1.SeaHouseBillR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId*\x99\x01\n" +
-	"\x18SeaCargoAllocationStatus\x12+\n" +
-	"'SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
-	"!SEA_CARGO_ALLOCATION_STATUS_DRAFT\x10\x01\x12)\n" +
-	"%SEA_CARGO_ALLOCATION_STATUS_CONFIRMED\x10\x02*\xbb\x02\n" +
-	"\x18SeaCargoAllocationAction\x12+\n" +
-	"'SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED\x10\x00\x12*\n" +
-	"&SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT\x10\x01\x12'\n" +
-	"#SEA_CARGO_ALLOCATION_ACTION_CONFIRM\x10\x02\x12(\n" +
-	"$SEA_CARGO_ALLOCATION_ACTION_WITHDRAW\x10\x03\x128\n" +
-	"4SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY\x10\x04\x129\n" +
-	"5SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY\x10\x052\xbf\n" +
+	"\x12_confirmed_by_nameB\a\n" +
+	"\x05_note\"\xdb\x01\n" +
+	"$SeaSharedContainerCandidateCargoItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"\x19SeaCargoAllocationService\x12\xae\x01\n" +
-	"\x15GetSeaCargoAllocation\x12&.order.v1.GetSeaCargoAllocationRequest\x1a'.order.v1.GetSeaCargoAllocationResponse\"D\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/orders/{order_id}/sea-cargo-allocation\x12\xcb\x01\n" +
-	"\x1bSaveSeaCargoAllocationDraft\x12,.order.v1.SaveSeaCargoAllocationDraftRequest\x1a-.order.v1.SaveSeaCargoAllocationDraftResponse\"O\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x029:\x01*\x1a4/api/v1/orders/{order_id}/sea-cargo-allocation/draft\x12\xc7\x01\n" +
-	"\x19ConfirmSeaCargoAllocation\x12*.order.v1.ConfirmSeaCargoAllocationRequest\x1a+.order.v1.ConfirmSeaCargoAllocationResponse\"Q\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/orders/{order_id}/sea-cargo-allocation/confirm\x12\xcb\x01\n" +
-	"\x1aWithdrawSeaCargoAllocation\x12+.order.v1.WithdrawSeaCargoAllocationRequest\x1a,.order.v1.WithdrawSeaCargoAllocationResponse\"R\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02<:\x01*\"7/api/v1/orders/{order_id}/sea-cargo-allocation/withdraw\x12\x83\x02\n" +
-	"%ApplySeaOrderCargoSummaryToMasterBill\x126.order.v1.ApplySeaOrderCargoSummaryToMasterBillRequest\x1a7.order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse\"i\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02S:\x01*\"N/api/v1/orders/{order_id}/sea-cargo-allocation/master-bill/apply-cargo-summary\x12\x84\x02\n" +
-	"\"ApplySeaHouseBillAllocationSummary\x123.order.v1.ApplySeaHouseBillAllocationSummaryRequest\x1a4.order.v1.ApplySeaHouseBillAllocationSummaryResponse\"s\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02]:\x01*\"X/api/v1/orders/{order_id}/sea-cargo-allocation/house-bills/{house_bill_id}/apply-summaryB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"cargo_name\x18\x02 \x01(\tR\tcargoName\x12#\n" +
+	"\rpackage_count\x18\x03 \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\x04 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\x05 \x01(\tR\tvolumeCbm\x12\x18\n" +
+	"\aversion\x18\x06 \x01(\x04R\aversion\"\xde\x02\n" +
+	" SeaSharedContainerCandidateOrder\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
+	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\"\n" +
+	"\rhouse_bill_id\x18\x03 \x01(\tR\vhouseBillId\x12\x19\n" +
+	"\bhouse_no\x18\x04 \x01(\tR\ahouseNo\x12#\n" +
+	"\rorder_version\x18\x05 \x01(\x04R\forderVersion\x12!\n" +
+	"\flink_version\x18\x06 \x01(\x04R\vlinkVersion\x12,\n" +
+	"\x12house_bill_version\x18\a \x01(\x04R\x10houseBillVersion\x12O\n" +
+	"\vcargo_items\x18\b \x03(\v2..order.v1.SeaSharedContainerCandidateCargoItemR\n" +
+	"cargoItems\"\xa6\x01\n" +
+	"\x1eListSeaSharedContainersRequest\x129\n" +
+	"\x16transport_execution_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x14transportExecutionId\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\akeyword\x18\x04 \x01(\tR\akeyword\"\xfd\x01\n" +
+	"\x1fListSeaSharedContainersResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x03(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"3\n" +
+	"\x1cGetSeaSharedContainerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xb4\x01\n" +
+	"\x1dGetSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaf\x01\n" +
+	"'ListSeaSharedContainerCandidatesRequest\x129\n" +
+	"\x16transport_execution_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x14transportExecutionId\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\akeyword\x18\x04 \x01(\tR\akeyword\"\x94\x02\n" +
+	"(ListSeaSharedContainerCandidatesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
+	"\x04data\x18\x04 \x03(\v2*.order.v1.SeaSharedContainerCandidateOrderR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"_\n" +
+	"\x1fCreateSeaSharedContainerRequest\x12<\n" +
+	"\x05input\x18\x01 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\"\xb7\x01\n" +
+	" CreateSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa4\x01\n" +
+	"\x1fUpdateSeaSharedContainerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12<\n" +
+	"\x05input\x18\x03 \x01(\v2!.order.v1.SeaSharedContainerInputB\x03\xe0A\x02R\x05input\"\xb7\x01\n" +
+	" UpdateSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"f\n" +
+	"\x1fDeleteSeaSharedContainerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\x85\x01\n" +
+	" DeleteSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xc3\x01\n" +
+	"-SaveSeaSharedContainerAllocationsDraftRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12M\n" +
+	"\vallocations\x18\x03 \x03(\v2+.order.v1.SeaSharedContainerAllocationInputR\vallocations\"\xc5\x01\n" +
+	".SaveSeaSharedContainerAllocationsDraftResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"g\n" +
+	" ConfirmSeaSharedContainerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xb8\x01\n" +
+	"!ConfirmSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"h\n" +
+	"!WithdrawSeaSharedContainerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xb9\x01\n" +
+	"\"WithdrawSeaSharedContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.SeaSharedContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\x99\x01\n" +
+	"\x18SeaSharedContainerStatus\x12+\n" +
+	"'SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
+	"!SEA_SHARED_CONTAINER_STATUS_DRAFT\x10\x01\x12)\n" +
+	"%SEA_SHARED_CONTAINER_STATUS_CONFIRMED\x10\x022\xf0\r\n" +
+	"\x19SeaSharedContainerService\x12\xaa\x01\n" +
+	"\x17ListSeaSharedContainers\x12(.order.v1.ListSeaSharedContainersRequest\x1a).order.v1.ListSeaSharedContainersResponse\":\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/sea-shared-containers\x12\xa9\x01\n" +
+	"\x15GetSeaSharedContainer\x12&.order.v1.GetSeaSharedContainerRequest\x1a'.order.v1.GetSeaSharedContainerResponse\"?\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/orders/sea-shared-containers/{id}\x12\xcf\x01\n" +
+	" ListSeaSharedContainerCandidates\x121.order.v1.ListSeaSharedContainerCandidatesRequest\x1a2.order.v1.ListSeaSharedContainerCandidatesResponse\"D\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/orders/sea-shared-container-candidates\x12\xb2\x01\n" +
+	"\x18CreateSeaSharedContainer\x12).order.v1.CreateSeaSharedContainerRequest\x1a*.order.v1.CreateSeaSharedContainerResponse\"?\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/sea-shared-containers\x12\xb7\x01\n" +
+	"\x18UpdateSeaSharedContainer\x12).order.v1.UpdateSeaSharedContainerRequest\x1a*.order.v1.UpdateSeaSharedContainerResponse\"D\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/sea-shared-containers/{id}\x12\xb4\x01\n" +
+	"\x18DeleteSeaSharedContainer\x12).order.v1.DeleteSeaSharedContainerRequest\x1a*.order.v1.DeleteSeaSharedContainerResponse\"A\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/sea-shared-containers/{id}\x12\xf3\x01\n" +
+	"&SaveSeaSharedContainerAllocationsDraft\x127.order.v1.SaveSeaSharedContainerAllocationsDraftRequest\x1a8.order.v1.SaveSeaSharedContainerAllocationsDraftResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/orders/sea-shared-containers/{id}/allocations/draft\x12\xc2\x01\n" +
+	"\x19ConfirmSeaSharedContainer\x12*.order.v1.ConfirmSeaSharedContainerRequest\x1a+.order.v1.ConfirmSeaSharedContainerResponse\"L\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/orders/sea-shared-containers/{id}/confirm\x12\xc6\x01\n" +
+	"\x1aWithdrawSeaSharedContainer\x12+.order.v1.WithdrawSeaSharedContainerRequest\x1a,.order.v1.WithdrawSeaSharedContainerResponse\"M\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/orders/sea-shared-containers/{id}/withdrawB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_sea_cargo_allocation_proto_rawDescOnce sync.Once
@@ -1965,72 +2406,75 @@ func file_order_v1_sea_cargo_allocation_proto_rawDescGZIP() []byte {
 	return file_order_v1_sea_cargo_allocation_proto_rawDescData
 }
 
-var file_order_v1_sea_cargo_allocation_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_order_v1_sea_cargo_allocation_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_order_v1_sea_cargo_allocation_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_order_v1_sea_cargo_allocation_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_order_v1_sea_cargo_allocation_proto_goTypes = []any{
-	(SeaCargoAllocationStatus)(0),                         // 0: order.v1.SeaCargoAllocationStatus
-	(SeaCargoAllocationAction)(0),                         // 1: order.v1.SeaCargoAllocationAction
-	(*SeaCargoAllocationItem)(nil),                        // 2: order.v1.SeaCargoAllocationItem
-	(*SeaCargoAllocationInput)(nil),                       // 3: order.v1.SeaCargoAllocationInput
-	(*SeaCargoAllocationCargoItemSummary)(nil),            // 4: order.v1.SeaCargoAllocationCargoItemSummary
-	(*SeaCargoAllocationContainerSummary)(nil),            // 5: order.v1.SeaCargoAllocationContainerSummary
-	(*SeaCargoAllocationHouseBillSummary)(nil),            // 6: order.v1.SeaCargoAllocationHouseBillSummary
-	(*SeaCargoAllocationProgress)(nil),                    // 7: order.v1.SeaCargoAllocationProgress
-	(*SeaCargoAllocationAggregate)(nil),                   // 8: order.v1.SeaCargoAllocationAggregate
-	(*GetSeaCargoAllocationRequest)(nil),                  // 9: order.v1.GetSeaCargoAllocationRequest
-	(*GetSeaCargoAllocationResponse)(nil),                 // 10: order.v1.GetSeaCargoAllocationResponse
-	(*SaveSeaCargoAllocationDraftRequest)(nil),            // 11: order.v1.SaveSeaCargoAllocationDraftRequest
-	(*SaveSeaCargoAllocationDraftResponse)(nil),           // 12: order.v1.SaveSeaCargoAllocationDraftResponse
-	(*ConfirmSeaCargoAllocationRequest)(nil),              // 13: order.v1.ConfirmSeaCargoAllocationRequest
-	(*ConfirmSeaCargoAllocationResponse)(nil),             // 14: order.v1.ConfirmSeaCargoAllocationResponse
-	(*WithdrawSeaCargoAllocationRequest)(nil),             // 15: order.v1.WithdrawSeaCargoAllocationRequest
-	(*WithdrawSeaCargoAllocationResponse)(nil),            // 16: order.v1.WithdrawSeaCargoAllocationResponse
-	(*ApplySeaOrderCargoSummaryToMasterBillRequest)(nil),  // 17: order.v1.ApplySeaOrderCargoSummaryToMasterBillRequest
-	(*ApplySeaOrderCargoSummaryToMasterBillResponse)(nil), // 18: order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse
-	(*ApplySeaHouseBillAllocationSummaryRequest)(nil),     // 19: order.v1.ApplySeaHouseBillAllocationSummaryRequest
-	(*ApplySeaHouseBillAllocationSummaryResponse)(nil),    // 20: order.v1.ApplySeaHouseBillAllocationSummaryResponse
-	(SeaDocumentStructure)(0),                             // 21: order.v1.SeaDocumentStructure
-	(*OrderCargoItem)(nil),                                // 22: order.v1.OrderCargoItem
-	(*OrderContainer)(nil),                                // 23: order.v1.OrderContainer
-	(*SeaHouseBill)(nil),                                  // 24: order.v1.SeaHouseBill
-	(*SeaMasterBillDetail)(nil),                           // 25: order.v1.SeaMasterBillDetail
+	(SeaSharedContainerStatus)(0),                          // 0: order.v1.SeaSharedContainerStatus
+	(*SeaSharedContainerInput)(nil),                        // 1: order.v1.SeaSharedContainerInput
+	(*SeaSharedContainerAllocationInput)(nil),              // 2: order.v1.SeaSharedContainerAllocationInput
+	(*SeaSharedContainerAllocation)(nil),                   // 3: order.v1.SeaSharedContainerAllocation
+	(*SeaSharedContainerProgress)(nil),                     // 4: order.v1.SeaSharedContainerProgress
+	(*SeaSharedContainer)(nil),                             // 5: order.v1.SeaSharedContainer
+	(*SeaSharedContainerCandidateCargoItem)(nil),           // 6: order.v1.SeaSharedContainerCandidateCargoItem
+	(*SeaSharedContainerCandidateOrder)(nil),               // 7: order.v1.SeaSharedContainerCandidateOrder
+	(*ListSeaSharedContainersRequest)(nil),                 // 8: order.v1.ListSeaSharedContainersRequest
+	(*ListSeaSharedContainersResponse)(nil),                // 9: order.v1.ListSeaSharedContainersResponse
+	(*GetSeaSharedContainerRequest)(nil),                   // 10: order.v1.GetSeaSharedContainerRequest
+	(*GetSeaSharedContainerResponse)(nil),                  // 11: order.v1.GetSeaSharedContainerResponse
+	(*ListSeaSharedContainerCandidatesRequest)(nil),        // 12: order.v1.ListSeaSharedContainerCandidatesRequest
+	(*ListSeaSharedContainerCandidatesResponse)(nil),       // 13: order.v1.ListSeaSharedContainerCandidatesResponse
+	(*CreateSeaSharedContainerRequest)(nil),                // 14: order.v1.CreateSeaSharedContainerRequest
+	(*CreateSeaSharedContainerResponse)(nil),               // 15: order.v1.CreateSeaSharedContainerResponse
+	(*UpdateSeaSharedContainerRequest)(nil),                // 16: order.v1.UpdateSeaSharedContainerRequest
+	(*UpdateSeaSharedContainerResponse)(nil),               // 17: order.v1.UpdateSeaSharedContainerResponse
+	(*DeleteSeaSharedContainerRequest)(nil),                // 18: order.v1.DeleteSeaSharedContainerRequest
+	(*DeleteSeaSharedContainerResponse)(nil),               // 19: order.v1.DeleteSeaSharedContainerResponse
+	(*SaveSeaSharedContainerAllocationsDraftRequest)(nil),  // 20: order.v1.SaveSeaSharedContainerAllocationsDraftRequest
+	(*SaveSeaSharedContainerAllocationsDraftResponse)(nil), // 21: order.v1.SaveSeaSharedContainerAllocationsDraftResponse
+	(*ConfirmSeaSharedContainerRequest)(nil),               // 22: order.v1.ConfirmSeaSharedContainerRequest
+	(*ConfirmSeaSharedContainerResponse)(nil),              // 23: order.v1.ConfirmSeaSharedContainerResponse
+	(*WithdrawSeaSharedContainerRequest)(nil),              // 24: order.v1.WithdrawSeaSharedContainerRequest
+	(*WithdrawSeaSharedContainerResponse)(nil),             // 25: order.v1.WithdrawSeaSharedContainerResponse
 }
 var file_order_v1_sea_cargo_allocation_proto_depIdxs = []int32{
-	4,  // 0: order.v1.SeaCargoAllocationProgress.cargo_summaries:type_name -> order.v1.SeaCargoAllocationCargoItemSummary
-	5,  // 1: order.v1.SeaCargoAllocationProgress.container_summaries:type_name -> order.v1.SeaCargoAllocationContainerSummary
-	6,  // 2: order.v1.SeaCargoAllocationProgress.house_bill_summaries:type_name -> order.v1.SeaCargoAllocationHouseBillSummary
-	21, // 3: order.v1.SeaCargoAllocationAggregate.document_structure:type_name -> order.v1.SeaDocumentStructure
-	0,  // 4: order.v1.SeaCargoAllocationAggregate.allocation_status:type_name -> order.v1.SeaCargoAllocationStatus
-	22, // 5: order.v1.SeaCargoAllocationAggregate.cargo_items:type_name -> order.v1.OrderCargoItem
-	23, // 6: order.v1.SeaCargoAllocationAggregate.containers:type_name -> order.v1.OrderContainer
-	24, // 7: order.v1.SeaCargoAllocationAggregate.house_bills:type_name -> order.v1.SeaHouseBill
-	2,  // 8: order.v1.SeaCargoAllocationAggregate.allocations:type_name -> order.v1.SeaCargoAllocationItem
-	7,  // 9: order.v1.SeaCargoAllocationAggregate.progress:type_name -> order.v1.SeaCargoAllocationProgress
-	1,  // 10: order.v1.SeaCargoAllocationAggregate.allowed_actions:type_name -> order.v1.SeaCargoAllocationAction
-	8,  // 11: order.v1.GetSeaCargoAllocationResponse.data:type_name -> order.v1.SeaCargoAllocationAggregate
-	3,  // 12: order.v1.SaveSeaCargoAllocationDraftRequest.allocations:type_name -> order.v1.SeaCargoAllocationInput
-	8,  // 13: order.v1.SaveSeaCargoAllocationDraftResponse.data:type_name -> order.v1.SeaCargoAllocationAggregate
-	8,  // 14: order.v1.ConfirmSeaCargoAllocationResponse.data:type_name -> order.v1.SeaCargoAllocationAggregate
-	8,  // 15: order.v1.WithdrawSeaCargoAllocationResponse.data:type_name -> order.v1.SeaCargoAllocationAggregate
-	25, // 16: order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse.data:type_name -> order.v1.SeaMasterBillDetail
-	24, // 17: order.v1.ApplySeaHouseBillAllocationSummaryResponse.data:type_name -> order.v1.SeaHouseBill
-	9,  // 18: order.v1.SeaCargoAllocationService.GetSeaCargoAllocation:input_type -> order.v1.GetSeaCargoAllocationRequest
-	11, // 19: order.v1.SeaCargoAllocationService.SaveSeaCargoAllocationDraft:input_type -> order.v1.SaveSeaCargoAllocationDraftRequest
-	13, // 20: order.v1.SeaCargoAllocationService.ConfirmSeaCargoAllocation:input_type -> order.v1.ConfirmSeaCargoAllocationRequest
-	15, // 21: order.v1.SeaCargoAllocationService.WithdrawSeaCargoAllocation:input_type -> order.v1.WithdrawSeaCargoAllocationRequest
-	17, // 22: order.v1.SeaCargoAllocationService.ApplySeaOrderCargoSummaryToMasterBill:input_type -> order.v1.ApplySeaOrderCargoSummaryToMasterBillRequest
-	19, // 23: order.v1.SeaCargoAllocationService.ApplySeaHouseBillAllocationSummary:input_type -> order.v1.ApplySeaHouseBillAllocationSummaryRequest
-	10, // 24: order.v1.SeaCargoAllocationService.GetSeaCargoAllocation:output_type -> order.v1.GetSeaCargoAllocationResponse
-	12, // 25: order.v1.SeaCargoAllocationService.SaveSeaCargoAllocationDraft:output_type -> order.v1.SaveSeaCargoAllocationDraftResponse
-	14, // 26: order.v1.SeaCargoAllocationService.ConfirmSeaCargoAllocation:output_type -> order.v1.ConfirmSeaCargoAllocationResponse
-	16, // 27: order.v1.SeaCargoAllocationService.WithdrawSeaCargoAllocation:output_type -> order.v1.WithdrawSeaCargoAllocationResponse
-	18, // 28: order.v1.SeaCargoAllocationService.ApplySeaOrderCargoSummaryToMasterBill:output_type -> order.v1.ApplySeaOrderCargoSummaryToMasterBillResponse
-	20, // 29: order.v1.SeaCargoAllocationService.ApplySeaHouseBillAllocationSummary:output_type -> order.v1.ApplySeaHouseBillAllocationSummaryResponse
-	24, // [24:30] is the sub-list for method output_type
-	18, // [18:24] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	0,  // 0: order.v1.SeaSharedContainer.status:type_name -> order.v1.SeaSharedContainerStatus
+	3,  // 1: order.v1.SeaSharedContainer.allocations:type_name -> order.v1.SeaSharedContainerAllocation
+	4,  // 2: order.v1.SeaSharedContainer.progress:type_name -> order.v1.SeaSharedContainerProgress
+	6,  // 3: order.v1.SeaSharedContainerCandidateOrder.cargo_items:type_name -> order.v1.SeaSharedContainerCandidateCargoItem
+	5,  // 4: order.v1.ListSeaSharedContainersResponse.data:type_name -> order.v1.SeaSharedContainer
+	5,  // 5: order.v1.GetSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	7,  // 6: order.v1.ListSeaSharedContainerCandidatesResponse.data:type_name -> order.v1.SeaSharedContainerCandidateOrder
+	1,  // 7: order.v1.CreateSeaSharedContainerRequest.input:type_name -> order.v1.SeaSharedContainerInput
+	5,  // 8: order.v1.CreateSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	1,  // 9: order.v1.UpdateSeaSharedContainerRequest.input:type_name -> order.v1.SeaSharedContainerInput
+	5,  // 10: order.v1.UpdateSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	2,  // 11: order.v1.SaveSeaSharedContainerAllocationsDraftRequest.allocations:type_name -> order.v1.SeaSharedContainerAllocationInput
+	5,  // 12: order.v1.SaveSeaSharedContainerAllocationsDraftResponse.data:type_name -> order.v1.SeaSharedContainer
+	5,  // 13: order.v1.ConfirmSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	5,  // 14: order.v1.WithdrawSeaSharedContainerResponse.data:type_name -> order.v1.SeaSharedContainer
+	8,  // 15: order.v1.SeaSharedContainerService.ListSeaSharedContainers:input_type -> order.v1.ListSeaSharedContainersRequest
+	10, // 16: order.v1.SeaSharedContainerService.GetSeaSharedContainer:input_type -> order.v1.GetSeaSharedContainerRequest
+	12, // 17: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:input_type -> order.v1.ListSeaSharedContainerCandidatesRequest
+	14, // 18: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:input_type -> order.v1.CreateSeaSharedContainerRequest
+	16, // 19: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:input_type -> order.v1.UpdateSeaSharedContainerRequest
+	18, // 20: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:input_type -> order.v1.DeleteSeaSharedContainerRequest
+	20, // 21: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:input_type -> order.v1.SaveSeaSharedContainerAllocationsDraftRequest
+	22, // 22: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:input_type -> order.v1.ConfirmSeaSharedContainerRequest
+	24, // 23: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:input_type -> order.v1.WithdrawSeaSharedContainerRequest
+	9,  // 24: order.v1.SeaSharedContainerService.ListSeaSharedContainers:output_type -> order.v1.ListSeaSharedContainersResponse
+	11, // 25: order.v1.SeaSharedContainerService.GetSeaSharedContainer:output_type -> order.v1.GetSeaSharedContainerResponse
+	13, // 26: order.v1.SeaSharedContainerService.ListSeaSharedContainerCandidates:output_type -> order.v1.ListSeaSharedContainerCandidatesResponse
+	15, // 27: order.v1.SeaSharedContainerService.CreateSeaSharedContainer:output_type -> order.v1.CreateSeaSharedContainerResponse
+	17, // 28: order.v1.SeaSharedContainerService.UpdateSeaSharedContainer:output_type -> order.v1.UpdateSeaSharedContainerResponse
+	19, // 29: order.v1.SeaSharedContainerService.DeleteSeaSharedContainer:output_type -> order.v1.DeleteSeaSharedContainerResponse
+	21, // 30: order.v1.SeaSharedContainerService.SaveSeaSharedContainerAllocationsDraft:output_type -> order.v1.SaveSeaSharedContainerAllocationsDraftResponse
+	23, // 31: order.v1.SeaSharedContainerService.ConfirmSeaSharedContainer:output_type -> order.v1.ConfirmSeaSharedContainerResponse
+	25, // 32: order.v1.SeaSharedContainerService.WithdrawSeaSharedContainer:output_type -> order.v1.WithdrawSeaSharedContainerResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_sea_cargo_allocation_proto_init() }
@@ -2038,20 +2482,15 @@ func file_order_v1_sea_cargo_allocation_proto_init() {
 	if File_order_v1_sea_cargo_allocation_proto != nil {
 		return
 	}
-	file_order_v1_order_cargo_item_proto_init()
-	file_order_v1_order_container_proto_init()
-	file_order_v1_sea_document_proto_init()
 	file_order_v1_sea_cargo_allocation_proto_msgTypes[0].OneofWrappers = []any{}
-	file_order_v1_sea_cargo_allocation_proto_msgTypes[1].OneofWrappers = []any{}
 	file_order_v1_sea_cargo_allocation_proto_msgTypes[4].OneofWrappers = []any{}
-	file_order_v1_sea_cargo_allocation_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_sea_cargo_allocation_proto_rawDesc), len(file_order_v1_sea_cargo_allocation_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   19,
+			NumEnums:      1,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

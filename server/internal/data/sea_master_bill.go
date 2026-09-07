@@ -12,6 +12,7 @@ import (
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -40,8 +41,13 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 			seamasterbill.NormalizedMasterNoEQ(normalizedMasterNo),
 		).
 		WithOrderLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
-			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
-				WithTransportExecution().
+			q.Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+			).
+				WithTransportExecution(func(tq *ent.SeaTransportExecutionQuery) {
+					tq.Where(seatransportexecution.OrganizationIDEQ(organizationID))
+				}).
 				WithOrder(func(oq *ent.OrderQuery) {
 					oq.Where(orderent.OrganizationIDEQ(organizationID))
 				})
@@ -55,40 +61,22 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		return nil, err
 	}
 
-	var te *ent.SeaTransportExecution
+	transportExecutions := make([]*biz.SeaTransportExecution, 0, len(mbl.Edges.OrderLinks))
+	seenExecutionIDs := make(map[uuid.UUID]struct{}, len(mbl.Edges.OrderLinks))
 	for _, l := range mbl.Edges.OrderLinks {
-		if l.Edges.TransportExecution != nil {
-			te = l.Edges.TransportExecution
-			break
+		te := l.Edges.TransportExecution
+		if te == nil {
+			continue
 		}
-	}
-	if te == nil {
-		return &biz.SeaMasterBillMatchResult{Matched: false}, nil
-	}
-
-	candidateTE := &biz.SeaTransportExecution{
-		ID:                te.ID,
-		OrganizationID:    te.OrganizationID,
-		TransitLocationID: te.TransitLocationID,
-		VesselName:        te.VesselName,
-		VoyageNo:          te.VoyageNo,
-		ETD:               te.Etd,
-		ETA:               te.Eta,
-		Version:           te.Version,
-		CreatedAt:         te.CreatedAt,
-		UpdatedAt:         te.UpdatedAt,
-	}
-	candidateTE.ShippingLineID = te.ShippingLineID
-	if te.OriginLocationID != nil {
-		candidateTE.OriginLocationID = *te.OriginLocationID
-	}
-	if te.DischargeLocationID != nil {
-		candidateTE.DischargeLocationID = *te.DischargeLocationID
-	}
-
-	// 填补港口名称与船公司名称。
-	if err := r.populateLocationAndShippingLineNames(ctx, client, organizationID, candidateTE); err != nil {
-		return nil, err
+		if _, exists := seenExecutionIDs[te.ID]; exists {
+			continue
+		}
+		seenExecutionIDs[te.ID] = struct{}{}
+		candidateTE := seaTransportExecutionToBiz(te)
+		if err := r.populateLocationAndShippingLineNames(ctx, client, organizationID, candidateTE); err != nil {
+			return nil, err
+		}
+		transportExecutions = append(transportExecutions, candidateTE)
 	}
 
 	var members []*biz.SeaMasterBillMemberSummary
@@ -108,19 +96,19 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 	}
 
 	candidate := &biz.SeaMasterBillCandidate{
-		ID:                 mbl.ID,
-		Version:            mbl.Version,
-		MasterNo:           mbl.MasterNo,
-		ShippingLineID:     mbl.ShippingLineID,
-		ShippingLineName:   shippingLineName,
-		TransportExecution: candidateTE,
-		MemberCount:        len(members),
-		Members:            members,
+		ID:                  mbl.ID,
+		Version:             mbl.Version,
+		MasterNo:            mbl.MasterNo,
+		ShippingLineID:      mbl.ShippingLineID,
+		ShippingLineName:    shippingLineName,
+		TransportExecutions: transportExecutions,
+		MemberCount:         len(members),
+		Members:             members,
 	}
 
 	var conflicts []*biz.SeaVoyageConflict
-	if voyage != nil {
-		conflicts = biz.CheckSeaVoyageConflicts(candidateTE, voyage)
+	if voyage != nil && len(transportExecutions) == 1 {
+		conflicts = biz.CheckSeaVoyageConflicts(transportExecutions[0], voyage)
 	}
 
 	return &biz.SeaMasterBillMatchResult{
@@ -205,13 +193,13 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			return nil, err
 		}
 		summary := &biz.SeaMasterBillSummary{
-			MasterBillID:      mbl.ID,
-			MasterNo:          mbl.MasterNo,
-			ShippingLineID:    mbl.ShippingLineID,
-			ShippingLineName:  shippingLineName,
-			Status:            string(mbl.Status),
-			Version:           mbl.Version,
-			MemberCount:       memberCountMap[mbl.ID],
+			MasterBillID:     mbl.ID,
+			MasterNo:         mbl.MasterNo,
+			ShippingLineID:   mbl.ShippingLineID,
+			ShippingLineName: shippingLineName,
+			Status:           string(mbl.Status),
+			Version:          mbl.Version,
+			MemberCount:      memberCountMap[mbl.ID],
 		}
 		if te != nil {
 			transportExecution := &biz.SeaTransportExecution{
@@ -230,6 +218,7 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 				return nil, err
 			}
 			summary.TransportExecutionID = te.ID
+			summary.TransportExecutionVersion = te.Version
 			summary.OriginLocationID = te.OriginLocationID
 			summary.OriginLocationName = transportExecution.OriginLocationName
 			summary.DischargeLocationID = te.DischargeLocationID

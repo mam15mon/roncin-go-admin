@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -22,8 +23,9 @@ func (SeaSharedContainerAllocation) Fields() []ent.Field {
 		field.UUID("house_bill_id", uuid.Nil),
 		field.UUID("cargo_item_id", uuid.Nil),
 		field.Int("package_count").Positive(),
-		field.Float("gross_weight_kg").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(18,3)"}),
-		field.Float("volume_cbm").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(18,6)"}),
+		// 使用字符串承接 PostgreSQL numeric，守恒判断全程使用 decimal.Decimal。
+		field.String("gross_weight_kg").NotEmpty().SchemaType(map[string]string{dialect.Postgres: "numeric(18,3)"}),
+		field.String("volume_cbm").NotEmpty().SchemaType(map[string]string{dialect.Postgres: "numeric(18,6)"}),
 		field.Uint64("version").Default(1),
 	}
 }
@@ -31,10 +33,10 @@ func (SeaSharedContainerAllocation) Fields() []ent.Field {
 func (SeaSharedContainerAllocation) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("sea_shared_container_allocations").Field("organization_id").Unique().Required(),
-		edge.From("shared_container", SeaSharedContainer.Type).Ref("allocations").Field("shared_container_id").Unique().Required(),
-		edge.From("order", Order.Type).Ref("sea_shared_container_allocations").Field("order_id").Unique().Required(),
-		edge.From("house_bill", SeaHouseBill.Type).Ref("shared_container_allocations").Field("house_bill_id").Unique().Required(),
-		edge.From("cargo_item", OrderCargoItem.Type).Ref("shared_container_allocations").Field("cargo_item_id").Unique().Required(),
+		edge.From("shared_container", SeaSharedContainer.Type).Ref("allocations").Field("shared_container_id").Unique().Required().Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.From("order", Order.Type).Ref("sea_shared_container_allocations").Field("order_id").Unique().Required().Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.From("house_bill", SeaHouseBill.Type).Ref("shared_container_allocations").Field("house_bill_id").Unique().Required().Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.From("cargo_item", OrderCargoItem.Type).Ref("shared_container_allocations").Field("cargo_item_id").Unique().Required().Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

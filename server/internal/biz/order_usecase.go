@@ -402,8 +402,24 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 				return nil, err
 			}
 			output.SeaMasterBillInput.MasterNo = normalizedMasterNo
+			if creating {
+				candidateIDSet := output.SeaMasterBillInput.CandidateID != nil && *output.SeaMasterBillInput.CandidateID != uuid.Nil
+				candidateTEProvided := output.SeaMasterBillInput.CandidateTEID != nil
+				candidateTEIDSet := candidateTEProvided && *output.SeaMasterBillInput.CandidateTEID != uuid.Nil
+				if candidateIDSet {
+					if output.SeaMasterBillInput.ExpectedCandidateVersion == nil || *output.SeaMasterBillInput.ExpectedCandidateVersion == 0 ||
+						!candidateTEIDSet || output.SeaMasterBillInput.ExpectedCandidateTEVersion == nil || *output.SeaMasterBillInput.ExpectedCandidateTEVersion == 0 {
+						return nil, ErrSeaMasterBillInvalidArgument
+					}
+				} else if output.SeaMasterBillInput.ExpectedCandidateVersion != nil || candidateTEProvided || output.SeaMasterBillInput.ExpectedCandidateTEVersion != nil {
+					return nil, ErrSeaMasterBillInvalidArgument
+				}
+			}
 		}
 
+		if creating && output.SeaDocumentInput == nil {
+			return nil, ErrSeaDocumentStructureInvalid
+		}
 		if output.SeaDocumentInput != nil {
 			validatedDoc, err := ValidateSeaOrderDocumentInput(output.SeaDocumentInput, creating)
 			if err != nil {

@@ -27,7 +27,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
 		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
-		BookingNo: stringPtrIfNotEmpty(item.BookingNo),
+		BookingNo:        stringPtrIfNotEmpty(item.BookingNo),
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
@@ -225,24 +225,25 @@ func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBill
 		return nil
 	}
 	res := &v1.SeaMasterBillSummary{
-		MasterBillId:          item.MasterBillID.String(),
-		MasterNo:              item.MasterNo,
-		ShippingLineId:        item.ShippingLineID.String(),
-		ShippingLineName:      stringPtrIfNotEmpty(item.ShippingLineName),
-		TransportExecutionId:  item.TransportExecutionID.String(),
-		OriginLocationId:      uuidStringPtr(item.OriginLocationID),
-		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
-		DischargeLocationId:   uuidStringPtr(item.DischargeLocationID),
-		DischargeLocationName: stringPtrIfNotEmpty(item.DischargeLocationName),
-		TransitLocationId:     uuidStringPtr(item.TransitLocationID),
-		TransitLocationName:   stringPtrIfNotEmpty(item.TransitLocationName),
-		VesselName:            item.VesselName,
-		VoyageNo:              item.VoyageNo,
-		Etd:                   stringPtrIfNotEmpty(item.ETD),
-		Eta:                   stringPtrIfNotEmpty(item.ETA),
-		Status:                item.Status,
-		Version:               item.Version,
-		MemberCount:           int32(item.MemberCount),
+		MasterBillId:              item.MasterBillID.String(),
+		MasterNo:                  item.MasterNo,
+		ShippingLineId:            item.ShippingLineID.String(),
+		ShippingLineName:          stringPtrIfNotEmpty(item.ShippingLineName),
+		TransportExecutionId:      item.TransportExecutionID.String(),
+		TransportExecutionVersion: item.TransportExecutionVersion,
+		OriginLocationId:          uuidStringPtr(item.OriginLocationID),
+		OriginLocationName:        stringPtrIfNotEmpty(item.OriginLocationName),
+		DischargeLocationId:       uuidStringPtr(item.DischargeLocationID),
+		DischargeLocationName:     stringPtrIfNotEmpty(item.DischargeLocationName),
+		TransitLocationId:         uuidStringPtr(item.TransitLocationID),
+		TransitLocationName:       stringPtrIfNotEmpty(item.TransitLocationName),
+		VesselName:                item.VesselName,
+		VoyageNo:                  item.VoyageNo,
+		Etd:                       stringPtrIfNotEmpty(item.ETD),
+		Eta:                       stringPtrIfNotEmpty(item.ETA),
+		Status:                    item.Status,
+		Version:                   item.Version,
+		MemberCount:               int32(item.MemberCount),
 	}
 	return res
 }
@@ -279,13 +280,15 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 		return nil
 	}
 	res := &v1.SeaMasterBillCandidate{
-		Id:                 item.ID.String(),
-		Version:            item.Version,
-		MasterNo:           item.MasterNo,
-		ShippingLineId:     item.ShippingLineID.String(),
-		ShippingLineName:   stringPtrIfNotEmpty(item.ShippingLineName),
-		TransportExecution: seaTransportExecutionToAPI(item.TransportExecution),
-		MemberCount:        int32(item.MemberCount),
+		Id:               item.ID.String(),
+		Version:          item.Version,
+		MasterNo:         item.MasterNo,
+		ShippingLineId:   item.ShippingLineID.String(),
+		ShippingLineName: stringPtrIfNotEmpty(item.ShippingLineName),
+		MemberCount:      int32(item.MemberCount),
+	}
+	for _, execution := range item.TransportExecutions {
+		res.TransportExecutions = append(res.TransportExecutions, seaTransportExecutionToAPI(execution))
 	}
 	for _, m := range item.Members {
 		res.Members = append(res.Members, &v1.SeaMasterBillMemberSummary{
@@ -302,9 +305,10 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 		return nil, nil
 	}
 	res := &biz.SeaMasterBillInput{
-		MasterNo:                 input.GetMasterNo(),
-		CorrectionReason:         input.GetCorrectionReason(),
-		ExpectedCandidateVersion: input.ExpectedCandidateVersion,
+		MasterNo:                   input.GetMasterNo(),
+		CorrectionReason:           input.GetCorrectionReason(),
+		ExpectedCandidateVersion:   input.ExpectedCandidateVersion,
+		ExpectedCandidateTEVersion: input.ExpectedCandidateTeVersion,
 	}
 	if input.CandidateId != nil && strings.TrimSpace(*input.CandidateId) != "" {
 		cid, err := uuid.Parse(strings.TrimSpace(*input.CandidateId))
@@ -312,6 +316,13 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 			return nil, biz.ErrSeaMasterBillInvalidArgument
 		}
 		res.CandidateID = &cid
+	}
+	if input.CandidateTeId != nil && strings.TrimSpace(*input.CandidateTeId) != "" {
+		cid, err := uuid.Parse(strings.TrimSpace(*input.CandidateTeId))
+		if err != nil {
+			return nil, biz.ErrSeaMasterBillInvalidArgument
+		}
+		res.CandidateTEID = &cid
 	}
 	return res, nil
 }

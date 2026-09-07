@@ -19,18 +19,22 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationSeaOrderChangeServiceExecuteSeaOrderReassignment = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderReassignment"
 const OperationSeaOrderChangeServiceExecuteSeaOrderSplit = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderSplit"
+const OperationSeaOrderChangeServiceExecuteSeaTransportExecutionUpdate = "/order.v1.SeaOrderChangeService/ExecuteSeaTransportExecutionUpdate"
 const OperationSeaOrderChangeServiceGetSeaOrderChangeActions = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeActions"
 const OperationSeaOrderChangeServiceGetSeaOrderChangeEvent = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeEvent"
 const OperationSeaOrderChangeServiceGetSeaOrderSplitContext = "/order.v1.SeaOrderChangeService/GetSeaOrderSplitContext"
 const OperationSeaOrderChangeServiceListSeaOrderChangeEvents = "/order.v1.SeaOrderChangeService/ListSeaOrderChangeEvents"
 const OperationSeaOrderChangeServicePreviewSeaOrderReassignment = "/order.v1.SeaOrderChangeService/PreviewSeaOrderReassignment"
 const OperationSeaOrderChangeServicePreviewSeaOrderSplit = "/order.v1.SeaOrderChangeService/PreviewSeaOrderSplit"
+const OperationSeaOrderChangeServicePreviewSeaTransportExecutionUpdate = "/order.v1.SeaOrderChangeService/PreviewSeaTransportExecutionUpdate"
 
 type SeaOrderChangeServiceHTTPServer interface {
 	// ExecuteSeaOrderReassignment ExecuteSeaOrderReassignment 执行整体改配。
 	ExecuteSeaOrderReassignment(context.Context, *ExecuteSeaOrderReassignmentRequest) (*ExecuteSeaOrderReassignmentResponse, error)
 	// ExecuteSeaOrderSplit ExecuteSeaOrderSplit 执行部分拆票。
 	ExecuteSeaOrderSplit(context.Context, *ExecuteSeaOrderSplitRequest) (*ExecuteSeaOrderSplitResponse, error)
+	// ExecuteSeaTransportExecutionUpdate ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+	ExecuteSeaTransportExecutionUpdate(context.Context, *ExecuteSeaTransportExecutionUpdateRequest) (*ExecuteSeaTransportExecutionUpdateResponse, error)
 	// GetSeaOrderChangeActions GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。
 	GetSeaOrderChangeActions(context.Context, *GetSeaOrderChangeActionsRequest) (*GetSeaOrderChangeActionsResponse, error)
 	// GetSeaOrderChangeEvent GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。
@@ -43,6 +47,8 @@ type SeaOrderChangeServiceHTTPServer interface {
 	PreviewSeaOrderReassignment(context.Context, *PreviewSeaOrderReassignmentRequest) (*PreviewSeaOrderReassignmentResponse, error)
 	// PreviewSeaOrderSplit PreviewSeaOrderSplit 预览拆票结果、守恒计算与计划重算。
 	PreviewSeaOrderSplit(context.Context, *PreviewSeaOrderSplitRequest) (*PreviewSeaOrderSplitResponse, error)
+	// PreviewSeaTransportExecutionUpdate PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+	PreviewSeaTransportExecutionUpdate(context.Context, *PreviewSeaTransportExecutionUpdateRequest) (*PreviewSeaTransportExecutionUpdateResponse, error)
 }
 
 func RegisterSeaOrderChangeServiceHTTPServer(s *http.Server, srv SeaOrderChangeServiceHTTPServer) {
@@ -53,6 +59,8 @@ func RegisterSeaOrderChangeServiceHTTPServer(s *http.Server, srv SeaOrderChangeS
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-order-change/split/execute", _SeaOrderChangeService_ExecuteSeaOrderSplit0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-order-change/reassignment/preview", _SeaOrderChangeService_PreviewSeaOrderReassignment0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-order-change/reassignment/execute", _SeaOrderChangeService_ExecuteSeaOrderReassignment0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview", _SeaOrderChangeService_PreviewSeaTransportExecutionUpdate0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/sea-order-change/transport-execution", _SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/sea-order-change/events", _SeaOrderChangeService_ListSeaOrderChangeEvents0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/sea-order-change/events/{event_id}", _SeaOrderChangeService_GetSeaOrderChangeEvent0_HTTP_Handler(srv))
 }
@@ -189,6 +197,50 @@ func _SeaOrderChangeService_ExecuteSeaOrderReassignment0_HTTP_Handler(srv SeaOrd
 	}
 }
 
+func _SeaOrderChangeService_PreviewSeaTransportExecutionUpdate0_HTTP_Handler(srv SeaOrderChangeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewSeaTransportExecutionUpdateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaOrderChangeServicePreviewSeaTransportExecutionUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewSeaTransportExecutionUpdate(ctx, req.(*PreviewSeaTransportExecutionUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewSeaTransportExecutionUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate0_HTTP_Handler(srv SeaOrderChangeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ExecuteSeaTransportExecutionUpdateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaOrderChangeServiceExecuteSeaTransportExecutionUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ExecuteSeaTransportExecutionUpdate(ctx, req.(*ExecuteSeaTransportExecutionUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ExecuteSeaTransportExecutionUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SeaOrderChangeService_ListSeaOrderChangeEvents0_HTTP_Handler(srv SeaOrderChangeServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListSeaOrderChangeEventsRequest
@@ -238,6 +290,8 @@ type SeaOrderChangeServiceHTTPClient interface {
 	ExecuteSeaOrderReassignment(ctx context.Context, req *ExecuteSeaOrderReassignmentRequest, opts ...http.CallOption) (rsp *ExecuteSeaOrderReassignmentResponse, err error)
 	// ExecuteSeaOrderSplit ExecuteSeaOrderSplit 执行部分拆票。
 	ExecuteSeaOrderSplit(ctx context.Context, req *ExecuteSeaOrderSplitRequest, opts ...http.CallOption) (rsp *ExecuteSeaOrderSplitResponse, err error)
+	// ExecuteSeaTransportExecutionUpdate ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+	ExecuteSeaTransportExecutionUpdate(ctx context.Context, req *ExecuteSeaTransportExecutionUpdateRequest, opts ...http.CallOption) (rsp *ExecuteSeaTransportExecutionUpdateResponse, err error)
 	// GetSeaOrderChangeActions GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。
 	GetSeaOrderChangeActions(ctx context.Context, req *GetSeaOrderChangeActionsRequest, opts ...http.CallOption) (rsp *GetSeaOrderChangeActionsResponse, err error)
 	// GetSeaOrderChangeEvent GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。
@@ -250,6 +304,8 @@ type SeaOrderChangeServiceHTTPClient interface {
 	PreviewSeaOrderReassignment(ctx context.Context, req *PreviewSeaOrderReassignmentRequest, opts ...http.CallOption) (rsp *PreviewSeaOrderReassignmentResponse, err error)
 	// PreviewSeaOrderSplit PreviewSeaOrderSplit 预览拆票结果、守恒计算与计划重算。
 	PreviewSeaOrderSplit(ctx context.Context, req *PreviewSeaOrderSplitRequest, opts ...http.CallOption) (rsp *PreviewSeaOrderSplitResponse, err error)
+	// PreviewSeaTransportExecutionUpdate PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+	PreviewSeaTransportExecutionUpdate(ctx context.Context, req *PreviewSeaTransportExecutionUpdateRequest, opts ...http.CallOption) (rsp *PreviewSeaTransportExecutionUpdateResponse, err error)
 }
 
 type SeaOrderChangeServiceHTTPClientImpl struct {
@@ -287,6 +343,24 @@ func (c *SeaOrderChangeServiceHTTPClientImpl) ExecuteSeaOrderSplit(ctx context.C
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSeaOrderChangeServiceExecuteSeaOrderSplit),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ExecuteSeaTransportExecutionUpdate ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+func (c *SeaOrderChangeServiceHTTPClientImpl) ExecuteSeaTransportExecutionUpdate(ctx context.Context, in *ExecuteSeaTransportExecutionUpdateRequest, opts ...http.CallOption) (*ExecuteSeaTransportExecutionUpdateResponse, error) {
+	var out ExecuteSeaTransportExecutionUpdateResponse
+	pattern := "/api/v1/orders/{order_id}/sea-order-change/transport-execution"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSeaOrderChangeServiceExecuteSeaTransportExecutionUpdate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -391,6 +465,24 @@ func (c *SeaOrderChangeServiceHTTPClientImpl) PreviewSeaOrderSplit(ctx context.C
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSeaOrderChangeServicePreviewSeaOrderSplit),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PreviewSeaTransportExecutionUpdate PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+func (c *SeaOrderChangeServiceHTTPClientImpl) PreviewSeaTransportExecutionUpdate(ctx context.Context, in *PreviewSeaTransportExecutionUpdateRequest, opts ...http.CallOption) (*PreviewSeaTransportExecutionUpdateResponse, error) {
+	var out PreviewSeaTransportExecutionUpdateResponse
+	pattern := "/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSeaOrderChangeServicePreviewSeaTransportExecutionUpdate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

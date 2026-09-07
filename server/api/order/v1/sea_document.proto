@@ -34,7 +34,7 @@ service SeaDocumentService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/versions/{version_id}"};
   }
 
-  // ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+  // ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。
   rpc ListSeaDocumentEvents(ListSeaDocumentEventsRequest) returns (ListSeaDocumentEventsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/events"};
@@ -72,24 +72,6 @@ service SeaDocumentService {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "void" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/sea-documents/voids"
-      body: "*"
-    };
-  }
-
-  // PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
-  rpc PreviewSeaHouseBillSwitch(PreviewSeaHouseBillSwitchRequest) returns (PreviewSeaHouseBillSwitchResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview"
-      body: "*"
-    };
-  }
-
-  // ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
-  rpc ExecuteSeaHouseBillSwitch(ExecuteSeaHouseBillSwitchRequest) returns (ExecuteSeaHouseBillSwitchResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches"
       body: "*"
     };
   }
@@ -437,6 +419,7 @@ message SeaDocumentVersion {
   string created_at = 24;
   optional string shipping_line_id = 25;
   optional string shipping_line_name = 26;
+  optional SeaExternalConfirmationSummary confirmation = 27;
 }
 
 message SeaDocumentFieldDifference {
@@ -455,6 +438,8 @@ message SeaDocumentDownstreamImpact {
 }
 
 message SeaDocumentEvent {
+  reserved 8 to 13, 16;
+  reserved "old_house_bill_id", "old_house_no", "new_house_bill_id", "new_house_no", "chain_id", "sequence", "surrender_info";
   string id = 1;
   SeaDocumentEventType event_type = 2;
   SeaDocumentType document_type = 3;
@@ -462,17 +447,13 @@ message SeaDocumentEvent {
   optional string document_no = 5;
   optional string previous_version_id = 6;
   optional string result_version_id = 7;
-  optional string old_house_bill_id = 8;
-  optional string old_house_no = 9;
-  optional string new_house_bill_id = 10;
-  optional string new_house_no = 11;
-  optional string chain_id = 12;
-  optional int32 sequence = 13;
   string reason = 14;
   optional string impact_summary = 15;
-  optional string surrender_info = 16;
   optional string created_by = 17;
   string created_at = 18;
+  optional SeaDocumentStructure previous_mode = 19;
+  optional SeaDocumentStructure target_mode = 20;
+  optional SeaExternalConfirmationSummary confirmation = 21;
 }
 
 message SeaDocumentAmendmentInput {
@@ -488,13 +469,6 @@ message SeaDocumentAmendmentPreview {
 }
 
 message SeaDocumentVoidPreview {
-  SeaDocumentVersion base_version = 1;
-  repeated SeaDocumentFieldDifference differences = 2;
-  repeated SeaDocumentDownstreamImpact impacts = 3;
-  bool executable = 4;
-}
-
-message SeaHouseBillSwitchPreview {
   SeaDocumentVersion base_version = 1;
   repeated SeaDocumentFieldDifference differences = 2;
   repeated SeaDocumentDownstreamImpact impacts = 3;
@@ -590,6 +564,7 @@ message ExecuteSeaDocumentAmendmentRequest {
   string reason = 7 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
   SeaDocumentAmendmentInput input = 9 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 10 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ExecuteSeaDocumentAmendmentResponse {
@@ -627,6 +602,7 @@ message ExecuteSeaDocumentVoidRequest {
   string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
   string reason = 7 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 9 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ExecuteSeaDocumentVoidResponse {
@@ -635,44 +611,4 @@ message ExecuteSeaDocumentVoidResponse {
   string message = 3;
   SeaDocumentEvent data = 4;
   string trace_id = 5;
-}
-
-message PreviewSeaHouseBillSwitchRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
-  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
-  string reason = 6 [(google.api.field_behavior) = REQUIRED];
-  optional string surrender_info = 7;
-  SeaHouseBillInput new_house_bill = 8 [(google.api.field_behavior) = REQUIRED];
-}
-
-message PreviewSeaHouseBillSwitchResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaHouseBillSwitchPreview data = 4;
-  string trace_id = 5;
-}
-
-message ExecuteSeaHouseBillSwitchRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
-  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
-  string reason = 6 [(google.api.field_behavior) = REQUIRED];
-  optional string surrender_info = 7;
-  string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
-  SeaHouseBillInput new_house_bill = 9 [(google.api.field_behavior) = REQUIRED];
-}
-
-message ExecuteSeaHouseBillSwitchResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaDocumentEvent data = 4;
-  SeaHouseBill new_house_bill = 5;
-  string trace_id = 6;
 }

@@ -137,44 +137,30 @@ func (_u *SeaSharedContainerUpdate) AddPackageCount(v int) *SeaSharedContainerUp
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_u *SeaSharedContainerUpdate) SetGrossWeightKg(v float64) *SeaSharedContainerUpdate {
-	_u.mutation.ResetGrossWeightKg()
+func (_u *SeaSharedContainerUpdate) SetGrossWeightKg(v string) *SeaSharedContainerUpdate {
 	_u.mutation.SetGrossWeightKg(v)
 	return _u
 }
 
 // SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
-func (_u *SeaSharedContainerUpdate) SetNillableGrossWeightKg(v *float64) *SeaSharedContainerUpdate {
+func (_u *SeaSharedContainerUpdate) SetNillableGrossWeightKg(v *string) *SeaSharedContainerUpdate {
 	if v != nil {
 		_u.SetGrossWeightKg(*v)
 	}
 	return _u
 }
 
-// AddGrossWeightKg adds value to the "gross_weight_kg" field.
-func (_u *SeaSharedContainerUpdate) AddGrossWeightKg(v float64) *SeaSharedContainerUpdate {
-	_u.mutation.AddGrossWeightKg(v)
-	return _u
-}
-
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_u *SeaSharedContainerUpdate) SetVolumeCbm(v float64) *SeaSharedContainerUpdate {
-	_u.mutation.ResetVolumeCbm()
+func (_u *SeaSharedContainerUpdate) SetVolumeCbm(v string) *SeaSharedContainerUpdate {
 	_u.mutation.SetVolumeCbm(v)
 	return _u
 }
 
 // SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
-func (_u *SeaSharedContainerUpdate) SetNillableVolumeCbm(v *float64) *SeaSharedContainerUpdate {
+func (_u *SeaSharedContainerUpdate) SetNillableVolumeCbm(v *string) *SeaSharedContainerUpdate {
 	if v != nil {
 		_u.SetVolumeCbm(*v)
 	}
-	return _u
-}
-
-// AddVolumeCbm adds value to the "volume_cbm" field.
-func (_u *SeaSharedContainerUpdate) AddVolumeCbm(v float64) *SeaSharedContainerUpdate {
-	_u.mutation.AddVolumeCbm(v)
 	return _u
 }
 
@@ -477,16 +463,10 @@ func (_u *SeaSharedContainerUpdate) sqlSave(ctx context.Context) (_node int, err
 		_spec.AddField(seasharedcontainer.FieldPackageCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
-		_spec.AddField(seasharedcontainer.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
-		_spec.AddField(seasharedcontainer.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(seasharedcontainer.FieldStatus, field.TypeEnum, value)
@@ -765,44 +745,30 @@ func (_u *SeaSharedContainerUpdateOne) AddPackageCount(v int) *SeaSharedContaine
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_u *SeaSharedContainerUpdateOne) SetGrossWeightKg(v float64) *SeaSharedContainerUpdateOne {
-	_u.mutation.ResetGrossWeightKg()
+func (_u *SeaSharedContainerUpdateOne) SetGrossWeightKg(v string) *SeaSharedContainerUpdateOne {
 	_u.mutation.SetGrossWeightKg(v)
 	return _u
 }
 
 // SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
-func (_u *SeaSharedContainerUpdateOne) SetNillableGrossWeightKg(v *float64) *SeaSharedContainerUpdateOne {
+func (_u *SeaSharedContainerUpdateOne) SetNillableGrossWeightKg(v *string) *SeaSharedContainerUpdateOne {
 	if v != nil {
 		_u.SetGrossWeightKg(*v)
 	}
 	return _u
 }
 
-// AddGrossWeightKg adds value to the "gross_weight_kg" field.
-func (_u *SeaSharedContainerUpdateOne) AddGrossWeightKg(v float64) *SeaSharedContainerUpdateOne {
-	_u.mutation.AddGrossWeightKg(v)
-	return _u
-}
-
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_u *SeaSharedContainerUpdateOne) SetVolumeCbm(v float64) *SeaSharedContainerUpdateOne {
-	_u.mutation.ResetVolumeCbm()
+func (_u *SeaSharedContainerUpdateOne) SetVolumeCbm(v string) *SeaSharedContainerUpdateOne {
 	_u.mutation.SetVolumeCbm(v)
 	return _u
 }
 
 // SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
-func (_u *SeaSharedContainerUpdateOne) SetNillableVolumeCbm(v *float64) *SeaSharedContainerUpdateOne {
+func (_u *SeaSharedContainerUpdateOne) SetNillableVolumeCbm(v *string) *SeaSharedContainerUpdateOne {
 	if v != nil {
 		_u.SetVolumeCbm(*v)
 	}
-	return _u
-}
-
-// AddVolumeCbm adds value to the "volume_cbm" field.
-func (_u *SeaSharedContainerUpdateOne) AddVolumeCbm(v float64) *SeaSharedContainerUpdateOne {
-	_u.mutation.AddVolumeCbm(v)
 	return _u
 }
 
@@ -1135,16 +1101,10 @@ func (_u *SeaSharedContainerUpdateOne) sqlSave(ctx context.Context) (_node *SeaS
 		_spec.AddField(seasharedcontainer.FieldPackageCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
-		_spec.AddField(seasharedcontainer.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
-		_spec.AddField(seasharedcontainer.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(seasharedcontainer.FieldStatus, field.TypeEnum, value)

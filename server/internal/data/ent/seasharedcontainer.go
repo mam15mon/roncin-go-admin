@@ -38,9 +38,9 @@ type SeaSharedContainer struct {
 	// PackageCount holds the value of the "package_count" field.
 	PackageCount int `json:"package_count,omitempty"`
 	// GrossWeightKg holds the value of the "gross_weight_kg" field.
-	GrossWeightKg float64 `json:"gross_weight_kg,omitempty"`
+	GrossWeightKg string `json:"gross_weight_kg,omitempty"`
 	// VolumeCbm holds the value of the "volume_cbm" field.
-	VolumeCbm float64 `json:"volume_cbm,omitempty"`
+	VolumeCbm string `json:"volume_cbm,omitempty"`
 	// Status holds the value of the "status" field.
 	Status seasharedcontainer.Status `json:"status,omitempty"`
 	// ConfirmedAt holds the value of the "confirmed_at" field.
@@ -121,11 +121,9 @@ func (*SeaSharedContainer) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case seasharedcontainer.FieldConfirmedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case seasharedcontainer.FieldGrossWeightKg, seasharedcontainer.FieldVolumeCbm:
-			values[i] = new(sql.NullFloat64)
 		case seasharedcontainer.FieldPackageCount, seasharedcontainer.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case seasharedcontainer.FieldContainerNo, seasharedcontainer.FieldSealNo, seasharedcontainer.FieldStatus, seasharedcontainer.FieldNote:
+		case seasharedcontainer.FieldContainerNo, seasharedcontainer.FieldSealNo, seasharedcontainer.FieldGrossWeightKg, seasharedcontainer.FieldVolumeCbm, seasharedcontainer.FieldStatus, seasharedcontainer.FieldNote:
 			values[i] = new(sql.NullString)
 		case seasharedcontainer.FieldCreatedAt, seasharedcontainer.FieldUpdatedAt, seasharedcontainer.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
@@ -202,16 +200,16 @@ func (_m *SeaSharedContainer) assignValues(columns []string, values []any) error
 				_m.PackageCount = int(value.Int64)
 			}
 		case seasharedcontainer.FieldGrossWeightKg:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field gross_weight_kg", values[i])
 			} else if value.Valid {
-				_m.GrossWeightKg = value.Float64
+				_m.GrossWeightKg = value.String
 			}
 		case seasharedcontainer.FieldVolumeCbm:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field volume_cbm", values[i])
 			} else if value.Valid {
-				_m.VolumeCbm = value.Float64
+				_m.VolumeCbm = value.String
 			}
 		case seasharedcontainer.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -329,10 +327,10 @@ func (_m *SeaSharedContainer) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.PackageCount))
 	builder.WriteString(", ")
 	builder.WriteString("gross_weight_kg=")
-	builder.WriteString(fmt.Sprintf("%v", _m.GrossWeightKg))
+	builder.WriteString(_m.GrossWeightKg)
 	builder.WriteString(", ")
 	builder.WriteString("volume_cbm=")
-	builder.WriteString(fmt.Sprintf("%v", _m.VolumeCbm))
+	builder.WriteString(_m.VolumeCbm)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

@@ -61,6 +61,12 @@ func (m *mockSeaOrderChangeRepoForService) GetReassignmentEventByIdempotencyKey(
 func (m *mockSeaOrderChangeRepoForService) GetReassignmentEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*biz.SeaOrderReassignmentEvent, error) {
 	return m.reasEvt, nil
 }
+func (m *mockSeaOrderChangeRepoForService) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *biz.SeaTransportExecutionUpdateCommand) (*biz.SeaTransportExecutionUpdatePreview, error) {
+	return nil, nil
+}
+func (m *mockSeaOrderChangeRepoForService) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.SeaTransportExecutionUpdateCommand, audit *biz.AuditEvent) (*biz.SeaTransportExecutionUpdateResult, error) {
+	return nil, nil
+}
 
 type mockTransactorForService struct{}
 
@@ -320,9 +326,14 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
 		Target: &v1.SeaOrderReassignmentTargetInput{
-			TargetType: "NEW",
-			MasterNo:   strPtr("MBL888"),
-			ShippingLineId:  strPtr(shippingLineID.String()),
+			TargetType:     "NEW",
+			MasterNo:       strPtr("MBL888"),
+			ShippingLineId: strPtr(shippingLineID.String()),
+		},
+		Confirmation: &v1.SeaExternalConfirmationInput{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      "2026-09-07T12:00:00Z",
+			ConfirmationNote: "船公司跳港确认",
 		},
 	})
 	if err != nil {

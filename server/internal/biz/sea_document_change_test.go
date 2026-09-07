@@ -2,6 +2,7 @@ package biz
 
 import (
 	"testing"
+	"time"
 
 	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ func validAmendmentCommand() *SeaDocumentAmendmentCommand {
 		Reason:                   " 客户书面更正 ",
 		IdempotencyKey:           "amend-001",
 		Input:                    &SeaDocumentAmendmentInput{MasterBillContent: &SeaBillContent{ShipperText: &value}},
+		Confirmation:             &SeaExternalConfirmation{ConfirmedByParty: "船代", ConfirmedAt: time.Now(), ConfirmationNote: "已确认"},
 	}
 }
 
@@ -61,20 +63,14 @@ func TestValidateSeaDocumentChangeCommands(t *testing.T) {
 		}
 	})
 
-	t.Run("Switch 校验真实新 HBL", func(t *testing.T) {
-		cmd := &SeaHouseBillSwitchCommand{
-			OrderID: uuid.New(), OldHouseBillID: uuid.New(), ExpectedOrderVersion: 1,
-			ExpectedHouseBillVersion: 1, ExpectedCurrentVersionID: uuid.New(),
-			Reason: "换单", IdempotencyKey: "switch-001",
-			NewHouseBill: &SeaHouseBillInput{HouseNo: " hbl-001 ", IssuerSource: SeaHouseBillIssuerSourceCustomerPartner},
+	t.Run("模式切换强制外部确认", func(t *testing.T) {
+		cmd := &SeaDocumentModeChangeCommand{OrderID: uuid.New(), ExpectedOrderVersion: 1, ExpectedLinkVersion: 1, TargetMode: SeaDocumentStructureHouse, Reason: "改为 HOUSE", IdempotencyKey: "mode-001", NewHouseBill: &SeaHouseBillInput{HouseNo: "HBL-001", IssuerSource: SeaHouseBillIssuerSourceCustomerPartner}}
+		if _, err := validateModeChangeCommand(cmd, true); !kratoserrors.IsBadRequest(err) {
+			t.Fatalf("缺少外部确认应被拒绝: %v", err)
 		}
-		got, err := validateSwitchCommand(cmd, true)
-		if err != nil || got.NewHouseBill.HouseNo != " hbl-001 " {
-			t.Fatalf("Switch 命令校验失败: got=%+v err=%v", got, err)
-		}
-		cmd.NewHouseBill = nil
-		if _, err = validateSwitchCommand(cmd, true); !kratoserrors.IsBadRequest(err) {
-			t.Fatalf("缺少新 HBL 应被拒绝: %v", err)
+		cmd.Confirmation = &SeaExternalConfirmation{ConfirmedByParty: "船代", ConfirmedAt: time.Now(), ConfirmationNote: "已确认"}
+		if _, err := validateModeChangeCommand(cmd, true); err != nil {
+			t.Fatalf("合法模式切换被拒绝: %v", err)
 		}
 	})
 }

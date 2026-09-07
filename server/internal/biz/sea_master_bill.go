@@ -81,8 +81,8 @@ const (
 type SeaTransportExecution struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
-	ShippingLineID       uuid.UUID
-	ShippingLineName     string
+	ShippingLineID        uuid.UUID
+	ShippingLineName      string
 	OriginLocationID      uuid.UUID
 	OriginLocationName    string
 	DischargeLocationID   uuid.UUID
@@ -131,10 +131,12 @@ type SeaMasterBillOrderLink struct {
 
 // SeaMasterBillInput 表单提交的海运主单输入。
 type SeaMasterBillInput struct {
-	MasterNo                 string
-	CandidateID              *uuid.UUID
-	ExpectedCandidateVersion *uint64
-	CorrectionReason         string
+	MasterNo                   string
+	CandidateID                *uuid.UUID
+	ExpectedCandidateVersion   *uint64
+	CandidateTEID              *uuid.UUID
+	ExpectedCandidateTEVersion *uint64
+	CorrectionReason           string
 }
 
 // SeaVoyageConflict 航程冲突项。
@@ -154,14 +156,14 @@ type SeaMasterBillMemberSummary struct {
 
 // SeaMasterBillCandidate 已有共享主单候选。
 type SeaMasterBillCandidate struct {
-	ID                 uuid.UUID
-	Version            uint64
-	MasterNo           string
-	ShippingLineID     uuid.UUID
-	ShippingLineName   string
-	TransportExecution *SeaTransportExecution
-	MemberCount        int
-	Members            []*SeaMasterBillMemberSummary
+	ID                  uuid.UUID
+	Version             uint64
+	MasterNo            string
+	ShippingLineID      uuid.UUID
+	ShippingLineName    string
+	TransportExecutions []*SeaTransportExecution
+	MemberCount         int
+	Members             []*SeaMasterBillMemberSummary
 }
 
 // SeaMasterBillMatchResult 候选匹配结果。

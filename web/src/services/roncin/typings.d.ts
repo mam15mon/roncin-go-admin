@@ -298,34 +298,6 @@ declare namespace API {
     sourceHash?: string;
   };
 
-  type ApplySeaHouseBillAllocationSummaryRequest = {
-    orderId: string;
-    houseBillId: string;
-    expectedAllocationVersion: string;
-    expectedHouseBillVersion: string;
-  };
-
-  type ApplySeaHouseBillAllocationSummaryResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaHouseBill;
-    traceId?: string;
-  };
-
-  type ApplySeaOrderCargoSummaryToMasterBillRequest = {
-    orderId: string;
-    expectedMblVersion: string;
-  };
-
-  type ApplySeaOrderCargoSummaryToMasterBillResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaMasterBillDetail;
-    traceId?: string;
-  };
-
   type AssignPersonnelRequest = {
     orderId: string;
     userId: string;
@@ -923,16 +895,16 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ConfirmSeaCargoAllocationRequest = {
-    orderId: string;
-    expectedAllocationVersion: string;
+  type ConfirmSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
   };
 
-  type ConfirmSeaCargoAllocationResponse = {
+  type ConfirmSeaSharedContainerResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -1442,6 +1414,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateSeaSharedContainerRequest = {
+    input: SeaSharedContainerInput;
+  };
+
+  type CreateSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
+    traceId?: string;
+  };
+
   type CreateShippingLineRequest = {
     scacCode: string;
     nameZh: string;
@@ -1554,6 +1538,13 @@ declare namespace API {
   };
 
   type DeleteEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type DeleteSeaSharedContainerResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -1907,6 +1898,7 @@ declare namespace API {
     reason: string;
     idempotencyKey: string;
     input: SeaDocumentAmendmentInput;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaDocumentAmendmentResponse = {
@@ -1926,6 +1918,7 @@ declare namespace API {
     expectedCurrentVersionId: string;
     reason: string;
     idempotencyKey: string;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaDocumentVoidResponse = {
@@ -1933,27 +1926,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaDocumentEvent;
-    traceId?: string;
-  };
-
-  type ExecuteSeaHouseBillSwitchRequest = {
-    orderId: string;
-    oldHouseBillId: string;
-    expectedOrderVersion: string;
-    expectedHouseBillVersion: string;
-    expectedCurrentVersionId: string;
-    reason: string;
-    surrenderInfo?: string;
-    idempotencyKey: string;
-    newHouseBill: SeaHouseBillInput;
-  };
-
-  type ExecuteSeaHouseBillSwitchResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaDocumentEvent;
-    newHouseBill?: SeaHouseBill;
     traceId?: string;
   };
 
@@ -1978,6 +1950,7 @@ declare namespace API {
     expectedLinkVersion: string;
     expectedCandidateMblVersion?: string;
     expectedCandidateTeVersion?: string;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaOrderReassignmentResponse = {
@@ -2011,6 +1984,24 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExecuteSeaOrderSplitData;
+    traceId?: string;
+  };
+
+  type ExecuteSeaTransportExecutionUpdateRequest = {
+    orderId: string;
+    expectedTransportExecutionVersion: string;
+    input: SeaTransportExecutionUpdateInput;
+    reason: string;
+    confirmation: SeaExternalConfirmationInput;
+    idempotencyKey: string;
+  };
+
+  type ExecuteSeaTransportExecutionUpdateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    transportExecution?: SeaTransportExecution;
+    versionId?: string;
     traceId?: string;
   };
 
@@ -2636,14 +2627,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type GetSeaCargoAllocationResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaCargoAllocationAggregate;
-    traceId?: string;
-  };
-
   type GetSeaDocumentVersionResponse = {
     success?: boolean;
     code?: number;
@@ -2681,6 +2664,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaOrderSplitContextData;
+    traceId?: string;
+  };
+
+  type GetSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -3297,6 +3288,28 @@ declare namespace API {
     data?: SeaOrderChangeEventSummary[];
     total?: number;
     traceId?: string;
+  };
+
+  type ListSeaSharedContainerCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainerCandidateOrder[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListSeaSharedContainersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListShippingDocumentsResponse = {
@@ -4880,25 +4893,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type PreviewSeaHouseBillSwitchRequest = {
-    orderId: string;
-    oldHouseBillId: string;
-    expectedOrderVersion: string;
-    expectedHouseBillVersion: string;
-    expectedCurrentVersionId: string;
-    reason: string;
-    surrenderInfo?: string;
-    newHouseBill: SeaHouseBillInput;
-  };
-
-  type PreviewSeaHouseBillSwitchResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaHouseBillSwitchPreview;
-    traceId?: string;
-  };
-
   type PreviewSeaOrderReassignmentRequest = {
     orderId: string;
     target: SeaOrderReassignmentTargetInput;
@@ -4925,6 +4919,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaOrderSplitPreviewData;
+    traceId?: string;
+  };
+
+  type PreviewSeaTransportExecutionUpdateRequest = {
+    orderId: string;
+    expectedTransportExecutionVersion: string;
+    input: SeaTransportExecutionUpdateInput;
+    reason: string;
+  };
+
+  type PreviewSeaTransportExecutionUpdateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaTransportExecutionUpdatePreviewData;
     traceId?: string;
   };
 
@@ -5169,17 +5178,17 @@ declare namespace API {
     createdAt?: string;
   };
 
-  type SaveSeaCargoAllocationDraftRequest = {
-    orderId: string;
-    expectedAllocationVersion: string;
-    allocations?: SeaCargoAllocationInput[];
+  type SaveSeaSharedContainerAllocationsDraftRequest = {
+    id: string;
+    expectedVersion: string;
+    allocations?: SeaSharedContainerAllocationInput[];
   };
 
-  type SaveSeaCargoAllocationDraftResponse = {
+  type SaveSeaSharedContainerAllocationsDraftResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -5199,125 +5208,6 @@ declare namespace API {
     billForm?: string;
     releaseType?: string;
     clauses?: string;
-  };
-
-  type SeaCargoAllocationAggregate = {
-    orderId?: string;
-    documentStructure?: number;
-    shipmentType?: string;
-    allocationStatus?: number;
-    allocationVersion?: string;
-    confirmedAt?: string;
-    confirmedBy?: string;
-    confirmedByName?: string;
-    cargoItems?: OrderCargoItem[];
-    containers?: OrderContainer[];
-    houseBills?: SeaHouseBill[];
-    allocations?: SeaCargoAllocationItem[];
-    progress?: SeaCargoAllocationProgress;
-    allowedActions?: number[];
-  };
-
-  type SeaCargoAllocationCargoItemSummary = {
-    cargoItemId?: string;
-    cargoName?: string;
-    baselinePackageCount?: number;
-    allocatedPackageCount?: number;
-    remainingPackageCount?: number;
-    baselineGrossWeightKg?: string;
-    allocatedGrossWeightKg?: string;
-    remainingGrossWeightKg?: string;
-    baselineVolumeCbm?: string;
-    allocatedVolumeCbm?: string;
-    remainingVolumeCbm?: string;
-    status?: string;
-  };
-
-  type SeaCargoAllocationContainerSummary = {
-    containerId?: string;
-    containerNo?: string;
-    baselinePackageCount?: number;
-    allocatedPackageCount?: number;
-    remainingPackageCount?: number;
-    baselineGrossWeightKg?: string;
-    allocatedGrossWeightKg?: string;
-    remainingGrossWeightKg?: string;
-    baselineVolumeCbm?: string;
-    allocatedVolumeCbm?: string;
-    remainingVolumeCbm?: string;
-    status?: string;
-  };
-
-  type SeaCargoAllocationHouseBillSummary = {
-    houseBillId?: string;
-    houseNo?: string;
-    allocatedPackageCount?: number;
-    allocatedGrossWeightKg?: string;
-    allocatedVolumeCbm?: string;
-    orderRemainingPackageCount?: number;
-    orderRemainingGrossWeightKg?: string;
-    orderRemainingVolumeCbm?: string;
-    displayPackageCount?: number;
-    displayGrossWeightKg?: string;
-    displayVolumeCbm?: string;
-    diffPackageCount?: number;
-    diffGrossWeightKg?: string;
-    diffVolumeCbm?: string;
-    displayMatches?: boolean;
-  };
-
-  type SeaCargoAllocationInput = {
-    id?: string;
-    cargoItemId: string;
-    houseBillId: string;
-    containerId?: string;
-    packageCount: number;
-    grossWeightKg: string;
-    volumeCbm: string;
-  };
-
-  type SeaCargoAllocationItem = {
-    id?: string;
-    cargoItemId?: string;
-    houseBillId?: string;
-    containerId?: string;
-    packageCount?: number;
-    grossWeightKg?: string;
-    volumeCbm?: string;
-  };
-
-  type SeaCargoAllocationProgress = {
-    cargoSummaries?: SeaCargoAllocationCargoItemSummary[];
-    containerSummaries?: SeaCargoAllocationContainerSummary[];
-    houseBillSummaries?: SeaCargoAllocationHouseBillSummary[];
-    orderRemainingPackageCount?: number;
-    orderRemainingGrossWeightKg?: string;
-    orderRemainingVolumeCbm?: string;
-  };
-
-  type SeaCargoAllocationServiceApplySeaHouseBillAllocationSummaryParams = {
-    orderId: string;
-    houseBillId: string;
-  };
-
-  type SeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBillParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceConfirmSeaCargoAllocationParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceGetSeaCargoAllocationParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceSaveSeaCargoAllocationDraftParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceWithdrawSeaCargoAllocationParams = {
-    orderId: string;
   };
 
   type SeaDocumentAmendmentInput = {
@@ -5348,17 +5238,13 @@ declare namespace API {
     documentNo?: string;
     previousVersionId?: string;
     resultVersionId?: string;
-    oldHouseBillId?: string;
-    oldHouseNo?: string;
-    newHouseBillId?: string;
-    newHouseNo?: string;
-    chainId?: string;
-    sequence?: number;
     reason?: string;
     impactSummary?: string;
-    surrenderInfo?: string;
     createdBy?: string;
     createdAt?: string;
+    previousMode?: number;
+    targetMode?: number;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaDocumentFieldDifference = {
@@ -5385,10 +5271,6 @@ declare namespace API {
   };
 
   type SeaDocumentServiceExecuteSeaDocumentVoidParams = {
-    orderId: string;
-  };
-
-  type SeaDocumentServiceExecuteSeaHouseBillSwitchParams = {
     orderId: string;
   };
 
@@ -5433,10 +5315,6 @@ declare namespace API {
     orderId: string;
   };
 
-  type SeaDocumentServicePreviewSeaHouseBillSwitchParams = {
-    orderId: string;
-  };
-
   type SeaDocumentServiceUpdateSeaHouseBillParams = {
     orderId: string;
     id: string;
@@ -5473,6 +5351,7 @@ declare namespace API {
     createdAt?: string;
     shippingLineId?: string;
     shippingLineName?: string;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaDocumentVoidPreview = {
@@ -5487,6 +5366,14 @@ declare namespace API {
     confirmedAt: string;
     confirmationNote: string;
     confirmationAttachmentId?: string;
+  };
+
+  type SeaExternalConfirmationSummary = {
+    confirmedByParty?: string;
+    confirmedAt?: string;
+    confirmationNote?: string;
+    confirmationAttachmentId?: string;
+    confirmationAttachmentName?: string;
   };
 
   type SeaHouseBill = {
@@ -5520,22 +5407,15 @@ declare namespace API {
     expectedVersion?: string;
   };
 
-  type SeaHouseBillSwitchPreview = {
-    baseVersion?: SeaDocumentVersion;
-    differences?: SeaDocumentFieldDifference[];
-    impacts?: SeaDocumentDownstreamImpact[];
-    executable?: boolean;
-  };
-
   type SeaMasterBillCandidate = {
     id?: string;
     version?: string;
     masterNo?: string;
     shippingLineId?: string;
     shippingLineName?: string;
-    transportExecution?: SeaTransportExecution;
     memberCount?: number;
     members?: SeaMasterBillMemberSummary[];
+    transportExecutions?: SeaTransportExecution[];
   };
 
   type SeaMasterBillDetail = {
@@ -5556,6 +5436,8 @@ declare namespace API {
     candidateId?: string;
     expectedCandidateVersion?: string;
     correctionReason?: string;
+    candidateTeId?: string;
+    expectedCandidateTeVersion?: string;
   };
 
   type SeaMasterBillMemberSummary = {
@@ -5583,6 +5465,7 @@ declare namespace API {
     status?: string;
     version?: string;
     memberCount?: number;
+    transportExecutionVersion?: string;
   };
 
   type SeaOrderChangeActionsData = {
@@ -5625,6 +5508,10 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaOrderChangeServiceExecuteSeaTransportExecutionUpdateParams = {
+    orderId: string;
+  };
+
   type SeaOrderChangeServiceGetSeaOrderChangeActionsParams = {
     orderId: string;
   };
@@ -5650,6 +5537,10 @@ declare namespace API {
   };
 
   type SeaOrderChangeServicePreviewSeaOrderSplitParams = {
+    orderId: string;
+  };
+
+  type SeaOrderChangeServicePreviewSeaTransportExecutionUpdateParams = {
     orderId: string;
   };
 
@@ -5684,6 +5575,7 @@ declare namespace API {
     responsibilityType?: string;
     responsiblePartnerName?: string;
     reason?: string;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaOrderReassignmentPreviewData = {
@@ -6029,6 +5921,144 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type SeaSharedContainer = {
+    id?: string;
+    organizationId?: string;
+    transportExecutionId?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    containerSpecName?: string;
+    sealNo?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    status?: number;
+    confirmedAt?: string;
+    confirmedBy?: string;
+    confirmedByName?: string;
+    note?: string;
+    version?: string;
+    allocations?: SeaSharedContainerAllocation[];
+    progress?: SeaSharedContainerProgress;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type SeaSharedContainerAllocation = {
+    id?: string;
+    sharedContainerId?: string;
+    orderId?: string;
+    orderNo?: string;
+    houseBillId?: string;
+    houseNo?: string;
+    cargoItemId?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    orderVersion?: string;
+    linkVersion?: string;
+    houseBillVersion?: string;
+    cargoItemVersion?: string;
+  };
+
+  type SeaSharedContainerAllocationInput = {
+    orderId: string;
+    houseBillId: string;
+    cargoItemId: string;
+    packageCount: number;
+    grossWeightKg: string;
+    volumeCbm: string;
+    expectedOrderVersion: string;
+    expectedLinkVersion: string;
+    expectedHouseBillVersion: string;
+    expectedCargoItemVersion: string;
+  };
+
+  type SeaSharedContainerCandidateCargoItem = {
+    id?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+  };
+
+  type SeaSharedContainerCandidateOrder = {
+    orderId?: string;
+    orderNo?: string;
+    houseBillId?: string;
+    houseNo?: string;
+    orderVersion?: string;
+    linkVersion?: string;
+    houseBillVersion?: string;
+    cargoItems?: SeaSharedContainerCandidateCargoItem[];
+  };
+
+  type SeaSharedContainerInput = {
+    transportExecutionId: string;
+    containerNo: string;
+    containerSpecId: string;
+    sealNo?: string;
+    packageCount: number;
+    grossWeightKg: string;
+    volumeCbm: string;
+    note?: string;
+  };
+
+  type SeaSharedContainerProgress = {
+    allocatedPackageCount?: number;
+    allocatedGrossWeightKg?: string;
+    allocatedVolumeCbm?: string;
+    remainingPackageCount?: number;
+    remainingGrossWeightKg?: string;
+    remainingVolumeCbm?: string;
+    containerBalanced?: boolean;
+    cargoBalanced?: boolean;
+  };
+
+  type SeaSharedContainerServiceConfirmSeaSharedContainerParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceDeleteSeaSharedContainerParams = {
+    id: string;
+    expectedVersion?: string;
+  };
+
+  type SeaSharedContainerServiceGetSeaSharedContainerParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceListSeaSharedContainerCandidatesParams = {
+    transportExecutionId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
+  type SeaSharedContainerServiceListSeaSharedContainersParams = {
+    transportExecutionId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
+  type SeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraftParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceUpdateSeaSharedContainerParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceWithdrawSeaSharedContainerParams = {
+    id: string;
+  };
+
   type SeaTransportExecution = {
     id?: string;
     shippingLineId?: string;
@@ -6044,6 +6074,25 @@ declare namespace API {
     etd?: string;
     eta?: string;
     version?: string;
+  };
+
+  type SeaTransportExecutionUpdateInput = {
+    originLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+  };
+
+  type SeaTransportExecutionUpdatePreviewData = {
+    transportExecutionId?: string;
+    transportExecutionVersion?: string;
+    memberOrderIds?: string[];
+    differences?: VoyageDifferenceItem[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
   };
 
   type SeaVoyageConflict = {
@@ -7010,6 +7059,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type UpdateSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
+    input: SeaSharedContainerInput;
+  };
+
+  type UpdateSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
+    traceId?: string;
+  };
+
   type UpdateShippingDocumentRequest = {
     orderId: string;
     id: string;
@@ -7128,16 +7191,16 @@ declare namespace API {
     traceId?: string;
   };
 
-  type WithdrawSeaCargoAllocationRequest = {
-    orderId: string;
-    expectedAllocationVersion: string;
+  type WithdrawSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
   };
 
-  type WithdrawSeaCargoAllocationResponse = {
+  type WithdrawSeaSharedContainerResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 }

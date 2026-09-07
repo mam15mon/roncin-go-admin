@@ -20,7 +20,6 @@ const _ = http.SupportPackageIsVersion3
 const OperationSeaDocumentServiceExecuteChangeSeaDocumentMode = "/order.v1.SeaDocumentService/ExecuteChangeSeaDocumentMode"
 const OperationSeaDocumentServiceExecuteSeaDocumentAmendment = "/order.v1.SeaDocumentService/ExecuteSeaDocumentAmendment"
 const OperationSeaDocumentServiceExecuteSeaDocumentVoid = "/order.v1.SeaDocumentService/ExecuteSeaDocumentVoid"
-const OperationSeaDocumentServiceExecuteSeaHouseBillSwitch = "/order.v1.SeaDocumentService/ExecuteSeaHouseBillSwitch"
 const OperationSeaDocumentServiceGetSeaDocumentVersion = "/order.v1.SeaDocumentService/GetSeaDocumentVersion"
 const OperationSeaDocumentServiceGetSeaOrderDocuments = "/order.v1.SeaDocumentService/GetSeaOrderDocuments"
 const OperationSeaDocumentServiceListSeaDocumentEvents = "/order.v1.SeaDocumentService/ListSeaDocumentEvents"
@@ -29,7 +28,6 @@ const OperationSeaDocumentServiceListSeaMasterBillVersions = "/order.v1.SeaDocum
 const OperationSeaDocumentServicePreviewChangeSeaDocumentMode = "/order.v1.SeaDocumentService/PreviewChangeSeaDocumentMode"
 const OperationSeaDocumentServicePreviewSeaDocumentAmendment = "/order.v1.SeaDocumentService/PreviewSeaDocumentAmendment"
 const OperationSeaDocumentServicePreviewSeaDocumentVoid = "/order.v1.SeaDocumentService/PreviewSeaDocumentVoid"
-const OperationSeaDocumentServicePreviewSeaHouseBillSwitch = "/order.v1.SeaDocumentService/PreviewSeaHouseBillSwitch"
 const OperationSeaDocumentServiceUpdateSeaHouseBill = "/order.v1.SeaDocumentService/UpdateSeaHouseBill"
 const OperationSeaDocumentServiceUpdateSeaMasterBillContent = "/order.v1.SeaDocumentService/UpdateSeaMasterBillContent"
 
@@ -40,13 +38,11 @@ type SeaDocumentServiceHTTPServer interface {
 	ExecuteSeaDocumentAmendment(context.Context, *ExecuteSeaDocumentAmendmentRequest) (*ExecuteSeaDocumentAmendmentResponse, error)
 	// ExecuteSeaDocumentVoid ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。
 	ExecuteSeaDocumentVoid(context.Context, *ExecuteSeaDocumentVoidRequest) (*ExecuteSeaDocumentVoidResponse, error)
-	// ExecuteSeaHouseBillSwitch ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
-	ExecuteSeaHouseBillSwitch(context.Context, *ExecuteSeaHouseBillSwitchRequest) (*ExecuteSeaHouseBillSwitchResponse, error)
 	// GetSeaDocumentVersion GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。
 	GetSeaDocumentVersion(context.Context, *GetSeaDocumentVersionRequest) (*GetSeaDocumentVersionResponse, error)
 	// GetSeaOrderDocuments GetSeaOrderDocuments 获取海运单证聚合信息。
 	GetSeaOrderDocuments(context.Context, *GetSeaOrderDocumentsRequest) (*GetSeaOrderDocumentsResponse, error)
-	// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+	// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。
 	ListSeaDocumentEvents(context.Context, *ListSeaDocumentEventsRequest) (*ListSeaDocumentEventsResponse, error)
 	// ListSeaHouseBillVersions ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。
 	ListSeaHouseBillVersions(context.Context, *ListSeaHouseBillVersionsRequest) (*ListSeaHouseBillVersionsResponse, error)
@@ -58,8 +54,6 @@ type SeaDocumentServiceHTTPServer interface {
 	PreviewSeaDocumentAmendment(context.Context, *PreviewSeaDocumentAmendmentRequest) (*PreviewSeaDocumentAmendmentResponse, error)
 	// PreviewSeaDocumentVoid PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。
 	PreviewSeaDocumentVoid(context.Context, *PreviewSeaDocumentVoidRequest) (*PreviewSeaDocumentVoidResponse, error)
-	// PreviewSeaHouseBillSwitch PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
-	PreviewSeaHouseBillSwitch(context.Context, *PreviewSeaHouseBillSwitchRequest) (*PreviewSeaHouseBillSwitchResponse, error)
 	// UpdateSeaHouseBill UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(context.Context, *UpdateSeaHouseBillRequest) (*UpdateSeaHouseBillResponse, error)
 	// UpdateSeaMasterBillContent UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
@@ -77,8 +71,6 @@ func RegisterSeaDocumentServiceHTTPServer(s *http.Server, srv SeaDocumentService
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/amendments", _SeaDocumentService_ExecuteSeaDocumentAmendment0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/voids/preview", _SeaDocumentService_PreviewSeaDocumentVoid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/voids", _SeaDocumentService_ExecuteSeaDocumentVoid0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview", _SeaDocumentService_PreviewSeaHouseBillSwitch0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/house-bill-switches", _SeaDocumentService_ExecuteSeaHouseBillSwitch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/mode-change/preview", _SeaDocumentService_PreviewChangeSeaDocumentMode0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/sea-documents/mode-change", _SeaDocumentService_ExecuteChangeSeaDocumentMode0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}", _SeaDocumentService_UpdateSeaHouseBill0_HTTP_Handler(srv))
@@ -283,50 +275,6 @@ func _SeaDocumentService_ExecuteSeaDocumentVoid0_HTTP_Handler(srv SeaDocumentSer
 	}
 }
 
-func _SeaDocumentService_PreviewSeaHouseBillSwitch0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PreviewSeaHouseBillSwitchRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeaDocumentServicePreviewSeaHouseBillSwitch)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PreviewSeaHouseBillSwitch(ctx, req.(*PreviewSeaHouseBillSwitchRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PreviewSeaHouseBillSwitchResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SeaDocumentService_ExecuteSeaHouseBillSwitch0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ExecuteSeaHouseBillSwitchRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeaDocumentServiceExecuteSeaHouseBillSwitch)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ExecuteSeaHouseBillSwitch(ctx, req.(*ExecuteSeaHouseBillSwitchRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ExecuteSeaHouseBillSwitchResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _SeaDocumentService_PreviewChangeSeaDocumentMode0_HTTP_Handler(srv SeaDocumentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in PreviewChangeSeaDocumentModeRequest
@@ -422,13 +370,11 @@ type SeaDocumentServiceHTTPClient interface {
 	ExecuteSeaDocumentAmendment(ctx context.Context, req *ExecuteSeaDocumentAmendmentRequest, opts ...http.CallOption) (rsp *ExecuteSeaDocumentAmendmentResponse, err error)
 	// ExecuteSeaDocumentVoid ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。
 	ExecuteSeaDocumentVoid(ctx context.Context, req *ExecuteSeaDocumentVoidRequest, opts ...http.CallOption) (rsp *ExecuteSeaDocumentVoidResponse, err error)
-	// ExecuteSeaHouseBillSwitch ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
-	ExecuteSeaHouseBillSwitch(ctx context.Context, req *ExecuteSeaHouseBillSwitchRequest, opts ...http.CallOption) (rsp *ExecuteSeaHouseBillSwitchResponse, err error)
 	// GetSeaDocumentVersion GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。
 	GetSeaDocumentVersion(ctx context.Context, req *GetSeaDocumentVersionRequest, opts ...http.CallOption) (rsp *GetSeaDocumentVersionResponse, err error)
 	// GetSeaOrderDocuments GetSeaOrderDocuments 获取海运单证聚合信息。
 	GetSeaOrderDocuments(ctx context.Context, req *GetSeaOrderDocumentsRequest, opts ...http.CallOption) (rsp *GetSeaOrderDocumentsResponse, err error)
-	// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+	// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。
 	ListSeaDocumentEvents(ctx context.Context, req *ListSeaDocumentEventsRequest, opts ...http.CallOption) (rsp *ListSeaDocumentEventsResponse, err error)
 	// ListSeaHouseBillVersions ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。
 	ListSeaHouseBillVersions(ctx context.Context, req *ListSeaHouseBillVersionsRequest, opts ...http.CallOption) (rsp *ListSeaHouseBillVersionsResponse, err error)
@@ -440,8 +386,6 @@ type SeaDocumentServiceHTTPClient interface {
 	PreviewSeaDocumentAmendment(ctx context.Context, req *PreviewSeaDocumentAmendmentRequest, opts ...http.CallOption) (rsp *PreviewSeaDocumentAmendmentResponse, err error)
 	// PreviewSeaDocumentVoid PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。
 	PreviewSeaDocumentVoid(ctx context.Context, req *PreviewSeaDocumentVoidRequest, opts ...http.CallOption) (rsp *PreviewSeaDocumentVoidResponse, err error)
-	// PreviewSeaHouseBillSwitch PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
-	PreviewSeaHouseBillSwitch(ctx context.Context, req *PreviewSeaHouseBillSwitchRequest, opts ...http.CallOption) (rsp *PreviewSeaHouseBillSwitchResponse, err error)
 	// UpdateSeaHouseBill UpdateSeaHouseBill 更新海运分单。
 	UpdateSeaHouseBill(ctx context.Context, req *UpdateSeaHouseBillRequest, opts ...http.CallOption) (rsp *UpdateSeaHouseBillResponse, err error)
 	// UpdateSeaMasterBillContent UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
@@ -510,24 +454,6 @@ func (c *SeaDocumentServiceHTTPClientImpl) ExecuteSeaDocumentVoid(ctx context.Co
 	return &out, nil
 }
 
-// ExecuteSeaHouseBillSwitch ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
-func (c *SeaDocumentServiceHTTPClientImpl) ExecuteSeaHouseBillSwitch(ctx context.Context, in *ExecuteSeaHouseBillSwitchRequest, opts ...http.CallOption) (*ExecuteSeaHouseBillSwitchResponse, error) {
-	var out ExecuteSeaHouseBillSwitchResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/house-bill-switches"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaDocumentServiceExecuteSeaHouseBillSwitch),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetSeaDocumentVersion GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。
 func (c *SeaDocumentServiceHTTPClientImpl) GetSeaDocumentVersion(ctx context.Context, in *GetSeaDocumentVersionRequest, opts ...http.CallOption) (*GetSeaDocumentVersionResponse, error) {
 	var out GetSeaDocumentVersionResponse
@@ -562,7 +488,7 @@ func (c *SeaDocumentServiceHTTPClientImpl) GetSeaOrderDocuments(ctx context.Cont
 	return &out, nil
 }
 
-// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+// ListSeaDocumentEvents ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。
 func (c *SeaDocumentServiceHTTPClientImpl) ListSeaDocumentEvents(ctx context.Context, in *ListSeaDocumentEventsRequest, opts ...http.CallOption) (*ListSeaDocumentEventsResponse, error) {
 	var out ListSeaDocumentEventsResponse
 	pattern := "/api/v1/orders/{order_id}/sea-documents/events"
@@ -658,24 +584,6 @@ func (c *SeaDocumentServiceHTTPClientImpl) PreviewSeaDocumentVoid(ctx context.Co
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSeaDocumentServicePreviewSeaDocumentVoid),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// PreviewSeaHouseBillSwitch PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
-func (c *SeaDocumentServiceHTTPClientImpl) PreviewSeaHouseBillSwitch(ctx context.Context, in *PreviewSeaHouseBillSwitchRequest, opts ...http.CallOption) (*PreviewSeaHouseBillSwitchResponse, error) {
-	var out PreviewSeaHouseBillSwitchResponse
-	pattern := "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaDocumentServicePreviewSeaHouseBillSwitch),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

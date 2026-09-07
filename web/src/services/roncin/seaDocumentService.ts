@@ -63,7 +63,7 @@ export async function seaDocumentServicePreviewSeaDocumentAmendment(
   );
 }
 
-/** ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。 GET /api/v1/orders/${param0}/sea-documents/events */
+/** ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。 GET /api/v1/orders/${param0}/sea-documents/events */
 export async function seaDocumentServiceListSeaDocumentEvents(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SeaDocumentServiceListSeaDocumentEventsParams,
@@ -77,50 +77,6 @@ export async function seaDocumentServiceListSeaDocumentEvents(
       params: {
         ...queryParams,
       },
-      ...(options || {}),
-    }
-  );
-}
-
-/** ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。 POST /api/v1/orders/${param0}/sea-documents/house-bill-switches */
-export async function seaDocumentServiceExecuteSeaHouseBillSwitch(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceExecuteSeaHouseBillSwitchParams,
-  body: API.ExecuteSeaHouseBillSwitchRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.ExecuteSeaHouseBillSwitchResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bill-switches`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。 POST /api/v1/orders/${param0}/sea-documents/house-bill-switches/preview */
-export async function seaDocumentServicePreviewSeaHouseBillSwitch(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServicePreviewSeaHouseBillSwitchParams,
-  body: API.PreviewSeaHouseBillSwitchRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.PreviewSeaHouseBillSwitchResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bill-switches/preview`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
       ...(options || {}),
     }
   );

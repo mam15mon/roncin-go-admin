@@ -161,3 +161,47 @@ export async function seaOrderChangeServicePreviewSeaOrderSplit(
     }
   );
 }
+
+/** ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。 POST /api/v1/orders/${param0}/sea-order-change/transport-execution */
+export async function seaOrderChangeServiceExecuteSeaTransportExecutionUpdate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SeaOrderChangeServiceExecuteSeaTransportExecutionUpdateParams,
+  body: API.ExecuteSeaTransportExecutionUpdateRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ExecuteSeaTransportExecutionUpdateResponse>(
+    `/api/v1/orders/${param0}/sea-order-change/transport-execution`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。 POST /api/v1/orders/${param0}/sea-order-change/transport-execution/preview */
+export async function seaOrderChangeServicePreviewSeaTransportExecutionUpdate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SeaOrderChangeServicePreviewSeaTransportExecutionUpdateParams,
+  body: API.PreviewSeaTransportExecutionUpdateRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.PreviewSeaTransportExecutionUpdateResponse>(
+    `/api/v1/orders/${param0}/sea-order-change/transport-execution/preview`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}

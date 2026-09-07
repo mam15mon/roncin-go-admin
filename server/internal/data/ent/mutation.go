@@ -139153,10 +139153,8 @@ type SeaSharedContainerMutation struct {
 	seal_no                    *string
 	package_count              *int
 	addpackage_count           *int
-	gross_weight_kg            *float64
-	addgross_weight_kg         *float64
-	volume_cbm                 *float64
-	addvolume_cbm              *float64
+	gross_weight_kg            *string
+	volume_cbm                 *string
 	status                     *seasharedcontainer.Status
 	confirmed_at               *time.Time
 	note                       *string
@@ -139603,13 +139601,12 @@ func (m *SeaSharedContainerMutation) ResetPackageCount() {
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (m *SeaSharedContainerMutation) SetGrossWeightKg(f float64) {
-	m.gross_weight_kg = &f
-	m.addgross_weight_kg = nil
+func (m *SeaSharedContainerMutation) SetGrossWeightKg(s string) {
+	m.gross_weight_kg = &s
 }
 
 // GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
-func (m *SeaSharedContainerMutation) GrossWeightKg() (r float64, exists bool) {
+func (m *SeaSharedContainerMutation) GrossWeightKg() (r string, exists bool) {
 	v := m.gross_weight_kg
 	if v == nil {
 		return
@@ -139620,7 +139617,7 @@ func (m *SeaSharedContainerMutation) GrossWeightKg() (r float64, exists bool) {
 // OldGrossWeightKg returns the old "gross_weight_kg" field's value of the SeaSharedContainer entity.
 // If the SeaSharedContainer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaSharedContainerMutation) OldGrossWeightKg(ctx context.Context) (v float64, err error) {
+func (m *SeaSharedContainerMutation) OldGrossWeightKg(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
 	}
@@ -139634,38 +139631,18 @@ func (m *SeaSharedContainerMutation) OldGrossWeightKg(ctx context.Context) (v fl
 	return oldValue.GrossWeightKg, nil
 }
 
-// AddGrossWeightKg adds f to the "gross_weight_kg" field.
-func (m *SeaSharedContainerMutation) AddGrossWeightKg(f float64) {
-	if m.addgross_weight_kg != nil {
-		*m.addgross_weight_kg += f
-	} else {
-		m.addgross_weight_kg = &f
-	}
-}
-
-// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
-func (m *SeaSharedContainerMutation) AddedGrossWeightKg() (r float64, exists bool) {
-	v := m.addgross_weight_kg
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
 func (m *SeaSharedContainerMutation) ResetGrossWeightKg() {
 	m.gross_weight_kg = nil
-	m.addgross_weight_kg = nil
 }
 
 // SetVolumeCbm sets the "volume_cbm" field.
-func (m *SeaSharedContainerMutation) SetVolumeCbm(f float64) {
-	m.volume_cbm = &f
-	m.addvolume_cbm = nil
+func (m *SeaSharedContainerMutation) SetVolumeCbm(s string) {
+	m.volume_cbm = &s
 }
 
 // VolumeCbm returns the value of the "volume_cbm" field in the mutation.
-func (m *SeaSharedContainerMutation) VolumeCbm() (r float64, exists bool) {
+func (m *SeaSharedContainerMutation) VolumeCbm() (r string, exists bool) {
 	v := m.volume_cbm
 	if v == nil {
 		return
@@ -139676,7 +139653,7 @@ func (m *SeaSharedContainerMutation) VolumeCbm() (r float64, exists bool) {
 // OldVolumeCbm returns the old "volume_cbm" field's value of the SeaSharedContainer entity.
 // If the SeaSharedContainer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaSharedContainerMutation) OldVolumeCbm(ctx context.Context) (v float64, err error) {
+func (m *SeaSharedContainerMutation) OldVolumeCbm(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
 	}
@@ -139690,28 +139667,9 @@ func (m *SeaSharedContainerMutation) OldVolumeCbm(ctx context.Context) (v float6
 	return oldValue.VolumeCbm, nil
 }
 
-// AddVolumeCbm adds f to the "volume_cbm" field.
-func (m *SeaSharedContainerMutation) AddVolumeCbm(f float64) {
-	if m.addvolume_cbm != nil {
-		*m.addvolume_cbm += f
-	} else {
-		m.addvolume_cbm = &f
-	}
-}
-
-// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
-func (m *SeaSharedContainerMutation) AddedVolumeCbm() (r float64, exists bool) {
-	v := m.addvolume_cbm
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetVolumeCbm resets all changes to the "volume_cbm" field.
 func (m *SeaSharedContainerMutation) ResetVolumeCbm() {
 	m.volume_cbm = nil
-	m.addvolume_cbm = nil
 }
 
 // SetStatus sets the "status" field.
@@ -140324,14 +140282,14 @@ func (m *SeaSharedContainerMutation) SetField(name string, value ent.Value) erro
 		m.SetPackageCount(v)
 		return nil
 	case seasharedcontainer.FieldGrossWeightKg:
-		v, ok := value.(float64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGrossWeightKg(v)
 		return nil
 	case seasharedcontainer.FieldVolumeCbm:
-		v, ok := value.(float64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -140383,12 +140341,6 @@ func (m *SeaSharedContainerMutation) AddedFields() []string {
 	if m.addpackage_count != nil {
 		fields = append(fields, seasharedcontainer.FieldPackageCount)
 	}
-	if m.addgross_weight_kg != nil {
-		fields = append(fields, seasharedcontainer.FieldGrossWeightKg)
-	}
-	if m.addvolume_cbm != nil {
-		fields = append(fields, seasharedcontainer.FieldVolumeCbm)
-	}
 	if m.addversion != nil {
 		fields = append(fields, seasharedcontainer.FieldVersion)
 	}
@@ -140402,10 +140354,6 @@ func (m *SeaSharedContainerMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case seasharedcontainer.FieldPackageCount:
 		return m.AddedPackageCount()
-	case seasharedcontainer.FieldGrossWeightKg:
-		return m.AddedGrossWeightKg()
-	case seasharedcontainer.FieldVolumeCbm:
-		return m.AddedVolumeCbm()
 	case seasharedcontainer.FieldVersion:
 		return m.AddedVersion()
 	}
@@ -140423,20 +140371,6 @@ func (m *SeaSharedContainerMutation) AddField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPackageCount(v)
-		return nil
-	case seasharedcontainer.FieldGrossWeightKg:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGrossWeightKg(v)
-		return nil
-	case seasharedcontainer.FieldVolumeCbm:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddVolumeCbm(v)
 		return nil
 	case seasharedcontainer.FieldVersion:
 		v, ok := value.(int64)
@@ -140696,10 +140630,8 @@ type SeaSharedContainerAllocationMutation struct {
 	updated_at              *time.Time
 	package_count           *int
 	addpackage_count        *int
-	gross_weight_kg         *float64
-	addgross_weight_kg      *float64
-	volume_cbm              *float64
-	addvolume_cbm           *float64
+	gross_weight_kg         *string
+	volume_cbm              *string
 	version                 *uint64
 	addversion              *int64
 	clearedFields           map[string]struct{}
@@ -141131,13 +141063,12 @@ func (m *SeaSharedContainerAllocationMutation) ResetPackageCount() {
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (m *SeaSharedContainerAllocationMutation) SetGrossWeightKg(f float64) {
-	m.gross_weight_kg = &f
-	m.addgross_weight_kg = nil
+func (m *SeaSharedContainerAllocationMutation) SetGrossWeightKg(s string) {
+	m.gross_weight_kg = &s
 }
 
 // GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
-func (m *SeaSharedContainerAllocationMutation) GrossWeightKg() (r float64, exists bool) {
+func (m *SeaSharedContainerAllocationMutation) GrossWeightKg() (r string, exists bool) {
 	v := m.gross_weight_kg
 	if v == nil {
 		return
@@ -141148,7 +141079,7 @@ func (m *SeaSharedContainerAllocationMutation) GrossWeightKg() (r float64, exist
 // OldGrossWeightKg returns the old "gross_weight_kg" field's value of the SeaSharedContainerAllocation entity.
 // If the SeaSharedContainerAllocation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaSharedContainerAllocationMutation) OldGrossWeightKg(ctx context.Context) (v float64, err error) {
+func (m *SeaSharedContainerAllocationMutation) OldGrossWeightKg(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
 	}
@@ -141162,38 +141093,18 @@ func (m *SeaSharedContainerAllocationMutation) OldGrossWeightKg(ctx context.Cont
 	return oldValue.GrossWeightKg, nil
 }
 
-// AddGrossWeightKg adds f to the "gross_weight_kg" field.
-func (m *SeaSharedContainerAllocationMutation) AddGrossWeightKg(f float64) {
-	if m.addgross_weight_kg != nil {
-		*m.addgross_weight_kg += f
-	} else {
-		m.addgross_weight_kg = &f
-	}
-}
-
-// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
-func (m *SeaSharedContainerAllocationMutation) AddedGrossWeightKg() (r float64, exists bool) {
-	v := m.addgross_weight_kg
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
 func (m *SeaSharedContainerAllocationMutation) ResetGrossWeightKg() {
 	m.gross_weight_kg = nil
-	m.addgross_weight_kg = nil
 }
 
 // SetVolumeCbm sets the "volume_cbm" field.
-func (m *SeaSharedContainerAllocationMutation) SetVolumeCbm(f float64) {
-	m.volume_cbm = &f
-	m.addvolume_cbm = nil
+func (m *SeaSharedContainerAllocationMutation) SetVolumeCbm(s string) {
+	m.volume_cbm = &s
 }
 
 // VolumeCbm returns the value of the "volume_cbm" field in the mutation.
-func (m *SeaSharedContainerAllocationMutation) VolumeCbm() (r float64, exists bool) {
+func (m *SeaSharedContainerAllocationMutation) VolumeCbm() (r string, exists bool) {
 	v := m.volume_cbm
 	if v == nil {
 		return
@@ -141204,7 +141115,7 @@ func (m *SeaSharedContainerAllocationMutation) VolumeCbm() (r float64, exists bo
 // OldVolumeCbm returns the old "volume_cbm" field's value of the SeaSharedContainerAllocation entity.
 // If the SeaSharedContainerAllocation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeaSharedContainerAllocationMutation) OldVolumeCbm(ctx context.Context) (v float64, err error) {
+func (m *SeaSharedContainerAllocationMutation) OldVolumeCbm(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
 	}
@@ -141218,28 +141129,9 @@ func (m *SeaSharedContainerAllocationMutation) OldVolumeCbm(ctx context.Context)
 	return oldValue.VolumeCbm, nil
 }
 
-// AddVolumeCbm adds f to the "volume_cbm" field.
-func (m *SeaSharedContainerAllocationMutation) AddVolumeCbm(f float64) {
-	if m.addvolume_cbm != nil {
-		*m.addvolume_cbm += f
-	} else {
-		m.addvolume_cbm = &f
-	}
-}
-
-// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
-func (m *SeaSharedContainerAllocationMutation) AddedVolumeCbm() (r float64, exists bool) {
-	v := m.addvolume_cbm
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetVolumeCbm resets all changes to the "volume_cbm" field.
 func (m *SeaSharedContainerAllocationMutation) ResetVolumeCbm() {
 	m.volume_cbm = nil
-	m.addvolume_cbm = nil
 }
 
 // SetVersion sets the "version" field.
@@ -141628,14 +141520,14 @@ func (m *SeaSharedContainerAllocationMutation) SetField(name string, value ent.V
 		m.SetPackageCount(v)
 		return nil
 	case seasharedcontainerallocation.FieldGrossWeightKg:
-		v, ok := value.(float64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGrossWeightKg(v)
 		return nil
 	case seasharedcontainerallocation.FieldVolumeCbm:
-		v, ok := value.(float64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -141659,12 +141551,6 @@ func (m *SeaSharedContainerAllocationMutation) AddedFields() []string {
 	if m.addpackage_count != nil {
 		fields = append(fields, seasharedcontainerallocation.FieldPackageCount)
 	}
-	if m.addgross_weight_kg != nil {
-		fields = append(fields, seasharedcontainerallocation.FieldGrossWeightKg)
-	}
-	if m.addvolume_cbm != nil {
-		fields = append(fields, seasharedcontainerallocation.FieldVolumeCbm)
-	}
 	if m.addversion != nil {
 		fields = append(fields, seasharedcontainerallocation.FieldVersion)
 	}
@@ -141678,10 +141564,6 @@ func (m *SeaSharedContainerAllocationMutation) AddedField(name string) (ent.Valu
 	switch name {
 	case seasharedcontainerallocation.FieldPackageCount:
 		return m.AddedPackageCount()
-	case seasharedcontainerallocation.FieldGrossWeightKg:
-		return m.AddedGrossWeightKg()
-	case seasharedcontainerallocation.FieldVolumeCbm:
-		return m.AddedVolumeCbm()
 	case seasharedcontainerallocation.FieldVersion:
 		return m.AddedVersion()
 	}
@@ -141699,20 +141581,6 @@ func (m *SeaSharedContainerAllocationMutation) AddField(name string, value ent.V
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPackageCount(v)
-		return nil
-	case seasharedcontainerallocation.FieldGrossWeightKg:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGrossWeightKg(v)
-		return nil
-	case seasharedcontainerallocation.FieldVolumeCbm:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddVolumeCbm(v)
 		return nil
 	case seasharedcontainerallocation.FieldVersion:
 		v, ok := value.(int64)

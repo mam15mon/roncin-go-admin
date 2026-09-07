@@ -22,6 +22,48 @@ func listDocumentPage(page, pageSize int32) (int, int, error) {
 	return listPageValues(page, pageSize, biz.ErrSeaDocumentInvalidArgument)
 }
 
+func seaExternalConfirmationFromAPI(input *v1.SeaExternalConfirmationInput) (*biz.SeaExternalConfirmation, error) {
+	if input == nil {
+		return nil, biz.ErrSeaDocumentInvalidArgument
+	}
+	confirmedAt, err := time.Parse(time.RFC3339, input.GetConfirmedAt())
+	if err != nil {
+		return nil, biz.ErrSeaDocumentInvalidArgument
+	}
+	result := &biz.SeaExternalConfirmation{
+		ConfirmedByParty: input.GetConfirmedByParty(),
+		ConfirmedAt:      confirmedAt,
+		ConfirmationNote: input.GetConfirmationNote(),
+	}
+	if input.ConfirmationAttachmentId != nil {
+		id, err := parseRequiredUUID(*input.ConfirmationAttachmentId)
+		if err != nil {
+			return nil, err
+		}
+		result.ConfirmationAttachmentID = &id
+	}
+	return result, nil
+}
+
+func seaExternalConfirmationToAPI(input *biz.SeaExternalConfirmation) *v1.SeaExternalConfirmationSummary {
+	if input == nil {
+		return nil
+	}
+	result := &v1.SeaExternalConfirmationSummary{
+		ConfirmedByParty: input.ConfirmedByParty,
+		ConfirmedAt:      input.ConfirmedAt.Format(time.RFC3339),
+		ConfirmationNote: input.ConfirmationNote,
+	}
+	if input.ConfirmationAttachmentID != nil {
+		value := input.ConfirmationAttachmentID.String()
+		result.ConfirmationAttachmentId = &value
+	}
+	if input.ConfirmationAttachmentName != "" {
+		result.ConfirmationAttachmentName = &input.ConfirmationAttachmentName
+	}
+	return result
+}
+
 func (s *SeaDocumentService) ListSeaMasterBillVersions(ctx context.Context, req *v1.ListSeaMasterBillVersionsRequest) (*v1.ListSeaMasterBillVersionsResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
@@ -110,7 +152,7 @@ func (s *SeaDocumentService) ListSeaDocumentEvents(ctx context.Context, req *v1.
 	return ok(ctx, &v1.ListSeaDocumentEventsResponse{Data: data, Total: int32(total)}), nil
 }
 
-func amendmentCommandFromAPI(orderID string, documentType v1.SeaDocumentType, documentID string, expectedOrderVersion, expectedDocumentVersion uint64, currentVersionID, reason, key string, input *v1.SeaDocumentAmendmentInput) (*biz.SeaDocumentAmendmentCommand, error) {
+func amendmentCommandFromAPI(orderID string, documentType v1.SeaDocumentType, documentID string, expectedOrderVersion, expectedDocumentVersion uint64, currentVersionID, reason, key string, input *v1.SeaDocumentAmendmentInput, confirmation *v1.SeaExternalConfirmationInput) (*biz.SeaDocumentAmendmentCommand, error) {
 	orderUUID, err := parseRequiredUUID(orderID)
 	if err != nil {
 		return nil, err
@@ -133,10 +175,16 @@ func amendmentCommandFromAPI(orderID string, documentType v1.SeaDocumentType, do
 			}
 		}
 	}
+	if confirmation != nil {
+		result.Confirmation, err = seaExternalConfirmationFromAPI(confirmation)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return result, nil
 }
 
-func voidCommandFromAPI(orderID string, documentType v1.SeaDocumentType, documentID string, expectedOrderVersion, expectedDocumentVersion uint64, currentVersionID, reason, key string) (*biz.SeaDocumentVoidCommand, error) {
+func voidCommandFromAPI(orderID string, documentType v1.SeaDocumentType, documentID string, expectedOrderVersion, expectedDocumentVersion uint64, currentVersionID, reason, key string, confirmation *v1.SeaExternalConfirmationInput) (*biz.SeaDocumentVoidCommand, error) {
 	orderUUID, err := parseRequiredUUID(orderID)
 	if err != nil {
 		return nil, err
@@ -149,31 +197,88 @@ func voidCommandFromAPI(orderID string, documentType v1.SeaDocumentType, documen
 	if err != nil {
 		return nil, err
 	}
-	return &biz.SeaDocumentVoidCommand{OrderID: orderUUID, DocumentType: seaDocumentTypeFromAPI(documentType), DocumentID: docUUID, ExpectedOrderVersion: expectedOrderVersion, ExpectedDocumentVersion: expectedDocumentVersion, ExpectedCurrentVersionID: versionUUID, Reason: reason, IdempotencyKey: key}, nil
-}
-
-func switchCommandFromAPI(orderID, oldHouseID string, expectedOrderVersion, expectedHouseVersion uint64, currentVersionID, reason string, surrenderInfo *string, key string, newHouse *v1.SeaHouseBillInput) (*biz.SeaHouseBillSwitchCommand, error) {
-	orderUUID, err := parseRequiredUUID(orderID)
-	if err != nil {
-		return nil, err
+	result := &biz.SeaDocumentVoidCommand{OrderID: orderUUID, DocumentType: seaDocumentTypeFromAPI(documentType), DocumentID: docUUID, ExpectedOrderVersion: expectedOrderVersion, ExpectedDocumentVersion: expectedDocumentVersion, ExpectedCurrentVersionID: versionUUID, Reason: reason, IdempotencyKey: key}
+	if confirmation != nil {
+		result.Confirmation, err = seaExternalConfirmationFromAPI(confirmation)
+		if err != nil {
+			return nil, err
+		}
 	}
-	oldUUID, err := parseRequiredUUID(oldHouseID)
-	if err != nil {
-		return nil, err
-	}
-	versionUUID, err := parseRequiredUUID(currentVersionID)
-	if err != nil {
-		return nil, err
-	}
-	hb, err := seaHouseBillInputFromAPI(newHouse)
-	if err != nil {
-		return nil, err
-	}
-	return &biz.SeaHouseBillSwitchCommand{OrderID: orderUUID, OldHouseBillID: oldUUID, ExpectedOrderVersion: expectedOrderVersion, ExpectedHouseBillVersion: expectedHouseVersion, ExpectedCurrentVersionID: versionUUID, Reason: reason, SurrenderInfo: surrenderInfo, IdempotencyKey: key, NewHouseBill: hb}, nil
+	return result, nil
 }
 
 func changeAudit(principal *biz.Principal) *biz.AuditEvent {
 	return &biz.AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Result: "success"}
+}
+
+func modeChangeCommandFromAPI(orderID string, expectedOrderVersion, expectedLinkVersion uint64, expectedHouseBillVersion *uint64, expectedCurrentVersionID *string, target v1.SeaDocumentStructure, newHouse *v1.SeaHouseBillInput, reason string, confirmation *v1.SeaExternalConfirmationInput, key string) (*biz.SeaDocumentModeChangeCommand, error) {
+	parsedOrderID, err := parseRequiredUUID(orderID)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.SeaDocumentModeChangeCommand{OrderID: parsedOrderID, ExpectedOrderVersion: expectedOrderVersion, ExpectedLinkVersion: expectedLinkVersion, ExpectedHouseBillVersion: expectedHouseBillVersion, TargetMode: seaDocumentStructureFromAPI(target), Reason: reason, IdempotencyKey: key}
+	if expectedCurrentVersionID != nil {
+		id, err := parseRequiredUUID(*expectedCurrentVersionID)
+		if err != nil {
+			return nil, err
+		}
+		result.ExpectedCurrentVersionID = &id
+	}
+	if newHouse != nil {
+		result.NewHouseBill, err = seaHouseBillInputFromAPI(newHouse)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if confirmation != nil {
+		result.Confirmation, err = seaExternalConfirmationFromAPI(confirmation)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *SeaDocumentService) PreviewChangeSeaDocumentMode(ctx context.Context, req *v1.PreviewChangeSeaDocumentModeRequest) (*v1.PreviewChangeSeaDocumentModeResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	input, err := modeChangeCommandFromAPI(req.GetOrderId(), 0, 0, nil, nil, req.GetTargetMode(), req.GetNewHouseBill(), req.GetReason(), nil, "")
+	if err != nil {
+		return nil, err
+	}
+	preview, err := s.changeUsecase.PreviewModeChange(ctx, principal.Organization.ID, input)
+	if err != nil {
+		return nil, err
+	}
+	docs, err := s.usecase.GetSeaOrderDocuments(ctx, principal.Organization.ID, input.OrderID)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.PreviewChangeSeaDocumentModeResponse{Data: &v1.SeaDocumentModeChangePreview{
+		PreviousMode: seaDocumentStructureToAPI(docs.DocumentStructure), TargetMode: req.GetTargetMode(),
+		Differences: differencesToAPI(preview.Differences), Impacts: impactsToAPI(preview.Impacts), Executable: preview.Executable,
+	}}), nil
+}
+
+func (s *SeaDocumentService) ExecuteChangeSeaDocumentMode(ctx context.Context, req *v1.ExecuteChangeSeaDocumentModeRequest) (*v1.ExecuteChangeSeaDocumentModeResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	input, err := modeChangeCommandFromAPI(req.GetOrderId(), req.GetExpectedOrderVersion(), req.GetExpectedLinkVersion(), req.ExpectedHouseBillVersion, req.ExpectedCurrentVersionId, req.GetTargetMode(), req.GetNewHouseBill(), req.GetReason(), req.GetConfirmation(), req.GetIdempotencyKey())
+	if err != nil {
+		return nil, err
+	}
+	if err = s.changeUsecase.ExecuteModeChange(ctx, principal.Organization.ID, principal.UserID, input, changeAudit(principal)); err != nil {
+		return nil, err
+	}
+	docs, err := s.usecase.GetSeaOrderDocuments(ctx, principal.Organization.ID, input.OrderID)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.ExecuteChangeSeaDocumentModeResponse{Data: seaOrderDocumentsToAPI(docs)}), nil
 }
 
 func (s *SeaDocumentService) PreviewSeaDocumentAmendment(ctx context.Context, req *v1.PreviewSeaDocumentAmendmentRequest) (*v1.PreviewSeaDocumentAmendmentResponse, error) {
@@ -181,7 +286,7 @@ func (s *SeaDocumentService) PreviewSeaDocumentAmendment(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	input, err := amendmentCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), "", req.GetInput())
+	input, err := amendmentCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), "", req.GetInput(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +302,7 @@ func (s *SeaDocumentService) ExecuteSeaDocumentAmendment(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	input, err := amendmentCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.GetIdempotencyKey(), req.GetInput())
+	input, err := amendmentCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.GetIdempotencyKey(), req.GetInput(), req.GetConfirmation())
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +318,7 @@ func (s *SeaDocumentService) PreviewSeaDocumentVoid(ctx context.Context, req *v1
 	if err != nil {
 		return nil, err
 	}
-	input, err := voidCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), "")
+	input, err := voidCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +334,7 @@ func (s *SeaDocumentService) ExecuteSeaDocumentVoid(ctx context.Context, req *v1
 	if err != nil {
 		return nil, err
 	}
-	input, err := voidCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.GetIdempotencyKey())
+	input, err := voidCommandFromAPI(req.GetOrderId(), req.GetDocumentType(), req.GetDocumentId(), req.GetExpectedOrderVersion(), req.GetExpectedDocumentVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.GetIdempotencyKey(), req.GetConfirmation())
 	if err != nil {
 		return nil, err
 	}
@@ -238,38 +343,6 @@ func (s *SeaDocumentService) ExecuteSeaDocumentVoid(ctx context.Context, req *v1
 		return nil, err
 	}
 	return ok(ctx, &v1.ExecuteSeaDocumentVoidResponse{Data: seaDocumentEventToAPI(event)}), nil
-}
-
-func (s *SeaDocumentService) PreviewSeaHouseBillSwitch(ctx context.Context, req *v1.PreviewSeaHouseBillSwitchRequest) (*v1.PreviewSeaHouseBillSwitchResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	input, err := switchCommandFromAPI(req.GetOrderId(), req.GetOldHouseBillId(), req.GetExpectedOrderVersion(), req.GetExpectedHouseBillVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.SurrenderInfo, "", req.GetNewHouseBill())
-	if err != nil {
-		return nil, err
-	}
-	preview, err := s.changeUsecase.PreviewSwitch(ctx, principal.Organization.ID, input)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.PreviewSeaHouseBillSwitchResponse{Data: seaHouseBillSwitchPreviewToAPI(preview)}), nil
-}
-
-func (s *SeaDocumentService) ExecuteSeaHouseBillSwitch(ctx context.Context, req *v1.ExecuteSeaHouseBillSwitchRequest) (*v1.ExecuteSeaHouseBillSwitchResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	input, err := switchCommandFromAPI(req.GetOrderId(), req.GetOldHouseBillId(), req.GetExpectedOrderVersion(), req.GetExpectedHouseBillVersion(), req.GetExpectedCurrentVersionId(), req.GetReason(), req.SurrenderInfo, req.GetIdempotencyKey(), req.GetNewHouseBill())
-	if err != nil {
-		return nil, err
-	}
-	result, err := s.changeUsecase.ExecuteSwitch(ctx, principal.Organization.ID, principal.UserID, input, changeAudit(principal))
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ExecuteSeaHouseBillSwitchResponse{Data: seaDocumentEventToAPI(result.Event), NewHouseBill: seaHouseBillToAPI(result.NewHouseBill)}), nil
 }
 
 func seaDocumentTypeFromAPI(v v1.SeaDocumentType) biz.SeaDocumentType {
@@ -309,7 +382,7 @@ func seaDocumentVersionToAPI(v *biz.SeaDocumentVersion) *v1.SeaDocumentVersion {
 	if v == nil {
 		return nil
 	}
-	result := &v1.SeaDocumentVersion{Id: v.ID.String(), DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentId: v.DocumentID.String(), OrderId: v.OrderID.String(), MasterBillId: v.MasterBillID.String(), VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.DocumentNo, NormalizedDocumentNo: v.NormalizedDocumentNo, Status: v.Status, Source: seaVersionSourceToAPI(v.Source), Reason: v.Reason, IssuerSource: seaHouseBillIssuerSourceToAPI(v.IssuerSource), VesselName: v.VesselName, VoyageNo: v.VoyageNo, Note: v.Note, Content: seaBillContentToAPI(v.Content), CreatedAt: v.CreatedAt.Format(time.RFC3339)}
+	result := &v1.SeaDocumentVersion{Id: v.ID.String(), DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentId: v.DocumentID.String(), OrderId: v.OrderID.String(), MasterBillId: v.MasterBillID.String(), VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.DocumentNo, NormalizedDocumentNo: v.NormalizedDocumentNo, Status: v.Status, Source: seaVersionSourceToAPI(v.Source), Reason: v.Reason, IssuerSource: seaHouseBillIssuerSourceToAPI(v.IssuerSource), VesselName: v.VesselName, VoyageNo: v.VoyageNo, Note: v.Note, Content: seaBillContentToAPI(v.Content), CreatedAt: v.CreatedAt.Format(time.RFC3339), Confirmation: seaExternalConfirmationToAPI(v.Confirmation)}
 	if v.IssuerPartnerID != nil {
 		s := v.IssuerPartnerID.String()
 		result.IssuerPartnerId = &s
@@ -376,12 +449,6 @@ func seaDocumentVoidPreviewToAPI(v *biz.SeaDocumentChangePreview) *v1.SeaDocumen
 	}
 	return &v1.SeaDocumentVoidPreview{BaseVersion: seaDocumentVersionToAPI(v.BaseVersion), Differences: differencesToAPI(v.Differences), Impacts: impactsToAPI(v.Impacts), Executable: v.Executable}
 }
-func seaHouseBillSwitchPreviewToAPI(v *biz.SeaDocumentChangePreview) *v1.SeaHouseBillSwitchPreview {
-	if v == nil {
-		return nil
-	}
-	return &v1.SeaHouseBillSwitchPreview{BaseVersion: seaDocumentVersionToAPI(v.BaseVersion), Differences: differencesToAPI(v.Differences), Impacts: impactsToAPI(v.Impacts), Executable: v.Executable}
-}
 func seaDocumentEventToAPI(v *biz.SeaDocumentEvent) *v1.SeaDocumentEvent {
 	if v == nil {
 		return nil
@@ -395,7 +462,7 @@ func seaDocumentEventToAPI(v *biz.SeaDocumentEvent) *v1.SeaDocumentEvent {
 	case biz.SeaDocumentEventTypeModeChange:
 		eventType = v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE
 	}
-	result := &v1.SeaDocumentEvent{Id: v.ID.String(), EventType: eventType, DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentNo: v.DocumentNo, OldHouseNo: v.OldHouseNo, NewHouseNo: v.NewHouseNo, Reason: v.Reason, ImpactSummary: v.ImpactSummary, SurrenderInfo: v.SurrenderInfo, CreatedAt: v.CreatedAt.Format(time.RFC3339)}
+	result := &v1.SeaDocumentEvent{Id: v.ID.String(), EventType: eventType, DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentNo: v.DocumentNo, Reason: v.Reason, ImpactSummary: v.ImpactSummary, CreatedAt: v.CreatedAt.Format(time.RFC3339), Confirmation: seaExternalConfirmationToAPI(v.Confirmation)}
 	setUUID := func(target **string, id *uuid.UUID) {
 		if id != nil {
 			s := id.String()
@@ -405,13 +472,14 @@ func seaDocumentEventToAPI(v *biz.SeaDocumentEvent) *v1.SeaDocumentEvent {
 	setUUID(&result.DocumentId, v.DocumentID)
 	setUUID(&result.PreviousVersionId, v.PreviousVersionID)
 	setUUID(&result.ResultVersionId, v.ResultVersionID)
-	setUUID(&result.OldHouseBillId, v.OldHouseBillID)
-	setUUID(&result.NewHouseBillId, v.NewHouseBillID)
-	setUUID(&result.ChainId, v.ChainID)
 	setUUID(&result.CreatedBy, v.CreatedBy)
-	if v.Sequence != nil {
-		x := int32(*v.Sequence)
-		result.Sequence = &x
+	if v.PreviousMode != nil {
+		value := seaDocumentStructureToAPI(*v.PreviousMode)
+		result.PreviousMode = &value
+	}
+	if v.TargetMode != nil {
+		value := seaDocumentStructureToAPI(*v.TargetMode)
+		result.TargetMode = &value
 	}
 	return result
 }

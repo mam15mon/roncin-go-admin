@@ -209,13 +209,18 @@ func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID u
 		return nil, err
 	}
 	query := client.Order.Query().Where(orderent.OrganizationIDEQ(organizationID))
-	if check.ReferenceType == biz.OrderReferenceCustomer {
+	switch check.ReferenceType {
+	case biz.OrderReferenceCustomer:
 		query.Where(
 			orderent.CustomerIDEQ(*check.CustomerID),
 			orderent.CustomerReferenceNoEqualFold(check.ReferenceNo),
 		)
-	} else {
+	case biz.OrderReferenceInternal:
 		query.Where(orderent.InternalReferenceNoEqualFold(check.ReferenceNo))
+	case biz.OrderReferenceBooking:
+		query.Where(orderent.BookingNoEqualFold(check.ReferenceNo))
+	default:
+		return nil, biz.ErrOrderInvalidArgument
 	}
 	if check.ExcludeOrderID != nil {
 		query.Where(orderent.IDNEQ(*check.ExcludeOrderID))
@@ -402,7 +407,10 @@ func (r *orderRepo) ListSameBatchOrders(ctx context.Context, organizationID, ord
 			orderent.OrganizationIDEQ(organizationID),
 		).
 		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
-			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
+			q.Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+			)
 		}).
 		Only(ctx)
 	if err != nil {
@@ -471,6 +479,7 @@ func (r *orderRepo) ListSameBatchOrders(ctx context.Context, organizationID, ord
 	if len(activeMblIDs) > 0 {
 		matchedLinks, err := client.SeaMasterBillOrderLink.Query().
 			Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
 				seamasterbillorderlink.MasterBillIDIn(activeMblIDs...),
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 				seamasterbillorderlink.OrderIDNEQ(orderID),
@@ -501,14 +510,18 @@ func (r *orderRepo) ListSameBatchOrders(ctx context.Context, organizationID, ord
 			orderent.IDIn(allMatchedIDs...),
 		).
 		WithSeaMasterBillLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
-			q.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).
-				WithMasterBill()
+			q.Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+			).
+				WithMasterBill(func(mq *ent.SeaMasterBillQuery) {
+					mq.Where(seamasterbill.OrganizationIDEQ(organizationID))
+				})
 		}).
 		WithSeaHouseBills(func(q *ent.SeaHouseBillQuery) {
 			q.Where(seahousebill.StatusNEQ(seahousebill.StatusVOIDED))
 		}).
 		Order(orderent.ByCreatedAt(entsql.OrderDesc())).
-		Limit(200).
 		All(ctx)
 	if err != nil {
 		return nil, err

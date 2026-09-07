@@ -632,6 +632,10 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 	if input.SeaMasterBillInput == nil {
 		return biz.ErrSeaMasterBillInvalidArgument
 	}
+	if input.SeaDocumentInput == nil || input.SeaDocumentInput.DocumentStructure == nil {
+		return biz.ErrSeaDocumentStructureInvalid
+	}
+	documentStructure := seamasterbillorderlink.DocumentStructure(*input.SeaDocumentInput.DocumentStructure)
 	mblInput := input.SeaMasterBillInput
 	if input.ShippingLineID == nil || *input.ShippingLineID == uuid.Nil {
 		return biz.ErrSeaMasterBillInvalidArgument
@@ -663,6 +667,11 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	if mblInput.CandidateID != nil && *mblInput.CandidateID != uuid.Nil {
 		candidateID := *mblInput.CandidateID
+		if mblInput.CandidateTEID == nil || *mblInput.CandidateTEID == uuid.Nil ||
+			mblInput.ExpectedCandidateTEVersion == nil || *mblInput.ExpectedCandidateTEVersion == 0 {
+			return biz.ErrSeaMasterBillInvalidArgument
+		}
+		candidateTEID := *mblInput.CandidateTEID
 		targetMBL, err := tx.SeaMasterBill.Query().
 			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID)).
 			ForUpdate().
@@ -677,23 +686,30 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			return biz.ErrSeaMasterBillStatusConflict
 		}
 
-		activeLink, err := tx.SeaMasterBillOrderLink.Query().
+		activeLinks, err := tx.SeaMasterBillOrderLink.Query().
 			Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
 				seamasterbillorderlink.MasterBillIDEQ(targetMBL.ID),
+				seamasterbillorderlink.TransportExecutionIDEQ(candidateTEID),
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 			).
-			First(ctx)
+			Order(seamasterbillorderlink.ByID()).
+			ForUpdate().
+			All(ctx)
 		if err != nil {
-			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+			return err
+		}
+		if len(activeLinks) == 0 {
+			return biz.ErrSeaMasterBillStatusConflict
 		}
 		targetTE, err := tx.SeaTransportExecution.Query().
-			Where(seatransportexecution.IDEQ(activeLink.TransportExecutionID), seatransportexecution.OrganizationIDEQ(organizationID)).
+			Where(seatransportexecution.IDEQ(candidateTEID), seatransportexecution.OrganizationIDEQ(organizationID)).
 			ForUpdate().
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 		}
-		if targetTE.ShippingLineID != targetMBL.ShippingLineID || targetTE.ShippingLineID != shippingLineID {
+		if targetTE.Version != *mblInput.ExpectedCandidateTEVersion || targetTE.ShippingLineID != targetMBL.ShippingLineID || targetTE.ShippingLineID != shippingLineID {
 			return biz.ErrSeaMasterBillStatusConflict
 		}
 
@@ -724,6 +740,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			SetTransportExecutionID(targetTE.ID).
 			SetOrderID(order.ID).
 			SetStatus(seamasterbillorderlink.StatusACTIVE).
+			SetDocumentStructure(documentStructure).
 			SetStartedAt(time.Now().UTC()).
 			SetVersion(1).
 			Save(ctx)
@@ -731,6 +748,9 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			return mapEntConstraint(err, "idx_sea_mbl_order_links_active_order", biz.ErrOrderStatusConflict)
 		}
 		return nil
+	}
+	if mblInput.CandidateTEID != nil || mblInput.ExpectedCandidateTEVersion != nil {
+		return biz.ErrSeaMasterBillInvalidArgument
 	}
 
 	exists, err := tx.SeaMasterBill.Query().
@@ -796,6 +816,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		SetTransportExecutionID(te.ID).
 		SetOrderID(order.ID).
 		SetStatus(seamasterbillorderlink.StatusACTIVE).
+		SetDocumentStructure(documentStructure).
 		SetStartedAt(time.Now().UTC()).
 		SetVersion(1).
 		Save(ctx)

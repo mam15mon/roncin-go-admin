@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -386,6 +387,10 @@ func (s *SeaOrderChangeService) ExecuteSeaOrderReassignment(ctx context.Context,
 		ExpectedCandidateMBLVersion: request.ExpectedCandidateMblVersion,
 		ExpectedCandidateTEVersion:  request.ExpectedCandidateTeVersion,
 	}
+	input.Confirmation, err = seaExternalConfirmationFromAPI(request.GetConfirmation())
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
 
 	event, err := s.usecase.ExecuteReassignment(ctx, principal.Organization.ID, principal.UserID, input)
 	if err != nil {
@@ -402,6 +407,95 @@ func (s *SeaOrderChangeService) ExecuteSeaOrderReassignment(ctx context.Context,
 			TargetMasterNo:      request.GetTarget().GetMasterNo(),
 		},
 	}), nil
+}
+
+func mapTransportExecutionUpdateInput(input *v1.SeaTransportExecutionUpdateInput) (*biz.SeaTransportExecutionUpdateInput, error) {
+	if input == nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	originID, err := parseOptionalUUIDPointer(input.OriginLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	dischargeID, err := parseOptionalUUIDPointer(input.DischargeLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	transitID, err := parseOptionalUUIDPointer(input.TransitLocationId)
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	parseTime := func(value *string) (*time.Time, error) {
+		if value == nil || strings.TrimSpace(*value) == "" {
+			return nil, nil
+		}
+		parsed, err := time.Parse(time.RFC3339, *value)
+		if err != nil {
+			return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+		}
+		return &parsed, nil
+	}
+	etd, err := parseTime(input.Etd)
+	if err != nil {
+		return nil, err
+	}
+	eta, err := parseTime(input.Eta)
+	if err != nil {
+		return nil, err
+	}
+	return &biz.SeaTransportExecutionUpdateInput{OriginLocationID: originID, DischargeLocationID: dischargeID, TransitLocationID: transitID, VesselName: input.GetVesselName(), VoyageNo: input.GetVoyageNo(), ETD: etd, ETA: eta}, nil
+}
+
+func (s *SeaOrderChangeService) PreviewSeaTransportExecutionUpdate(ctx context.Context, request *v1.PreviewSeaTransportExecutionUpdateRequest) (*v1.PreviewSeaTransportExecutionUpdateResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orderID, err := parseRequiredUUID(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	input, err := mapTransportExecutionUpdateInput(request.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	preview, err := s.usecase.PreviewTransportExecutionUpdate(ctx, principal.Organization.ID, &biz.SeaTransportExecutionUpdateCommand{OrderID: orderID, ExpectedTransportExecutionVersion: request.GetExpectedTransportExecutionVersion(), Input: input, Reason: request.GetReason()})
+	if err != nil {
+		return nil, err
+	}
+	differences := make([]*v1.VoyageDifferenceItem, 0, len(preview.Differences))
+	for _, d := range preview.Differences {
+		differences = append(differences, &v1.VoyageDifferenceItem{FieldName: d.FieldName, Label: d.Label, CurrentValue: d.CurrentValue, TargetValue: d.TargetValue, IsDifferent: d.IsDifferent})
+	}
+	memberIDs := make([]string, 0, len(preview.MemberOrderIDs))
+	for _, id := range preview.MemberOrderIDs {
+		memberIDs = append(memberIDs, id.String())
+	}
+	return ok(ctx, &v1.PreviewSeaTransportExecutionUpdateResponse{Data: &v1.SeaTransportExecutionUpdatePreviewData{TransportExecutionId: preview.TransportExecutionID.String(), TransportExecutionVersion: preview.TransportExecutionVersion, MemberOrderIds: memberIDs, Differences: differences, Impacts: impactsToAPI(preview.Impacts), Executable: preview.Executable}}), nil
+}
+
+func (s *SeaOrderChangeService) ExecuteSeaTransportExecutionUpdate(ctx context.Context, request *v1.ExecuteSeaTransportExecutionUpdateRequest) (*v1.ExecuteSeaTransportExecutionUpdateResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orderID, err := parseRequiredUUID(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	input, err := mapTransportExecutionUpdateInput(request.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	confirmation, err := seaExternalConfirmationFromAPI(request.GetConfirmation())
+	if err != nil {
+		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
+	}
+	result, err := s.usecase.ExecuteTransportExecutionUpdate(ctx, principal.Organization.ID, principal.UserID, &biz.SeaTransportExecutionUpdateCommand{OrderID: orderID, ExpectedTransportExecutionVersion: request.GetExpectedTransportExecutionVersion(), Input: input, Reason: request.GetReason(), Confirmation: confirmation, IdempotencyKey: request.GetIdempotencyKey()})
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.ExecuteSeaTransportExecutionUpdateResponse{TransportExecution: seaTransportExecutionToAPI(result.TransportExecution), VersionId: result.VersionID.String()}), nil
 }
 
 func (s *SeaOrderChangeService) ListSeaOrderChangeEvents(ctx context.Context, request *v1.ListSeaOrderChangeEventsRequest) (*v1.ListSeaOrderChangeEventsResponse, error) {
@@ -467,6 +561,7 @@ func (s *SeaOrderChangeService) ListSeaOrderChangeEvents(ctx context.Context, re
 				ResponsibilityType:     rs.ResponsibilityType,
 				ResponsiblePartnerName: rs.ResponsiblePartnerName,
 				Reason:                 rs.Reason,
+				Confirmation:           seaExternalConfirmationToAPI(rs.Confirmation),
 			}
 		}
 		data = append(data, item)
@@ -542,6 +637,7 @@ func (s *SeaOrderChangeService) GetSeaOrderChangeEvent(ctx context.Context, requ
 			ResponsibilityType:     rs.ResponsibilityType,
 			ResponsiblePartnerName: rs.ResponsiblePartnerName,
 			Reason:                 rs.Reason,
+			Confirmation:           seaExternalConfirmationToAPI(rs.Confirmation),
 		}
 	}
 

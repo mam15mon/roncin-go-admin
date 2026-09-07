@@ -36,14 +36,13 @@ func TestSeaDocumentChangeDTOConversions(t *testing.T) {
 		t.Fatalf("MBL 不可变版本船公司 DTO 映射错误: %+v", masterVersion)
 	}
 
-	oldID, newID, chainID := uuid.New(), uuid.New(), uuid.New()
-	sequence := 2
+	previousMode, targetMode := biz.SeaDocumentStructureHouse, biz.SeaDocumentStructureDirect
 	event := seaDocumentEventToAPI(&biz.SeaDocumentEvent{
 		ID: uuid.New(), EventType: biz.SeaDocumentEventTypeModeChange, DocumentType: biz.SeaDocumentTypeHouseBill,
-		OldHouseBillID: &oldID, NewHouseBillID: &newID, ChainID: &chainID, Sequence: &sequence,
+		PreviousMode: &previousMode, TargetMode: &targetMode,
 		Reason: "模式切换", CreatedAt: now,
 	})
-	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE || event.GetOldHouseBillId() != oldID.String() || event.GetNewHouseBillId() != newID.String() || event.GetSequence() != 2 {
+	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE || event.GetPreviousMode() != v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_HOUSE || event.GetTargetMode() != v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT {
 		t.Fatalf("ModeChange 事件 DTO 映射错误: %+v", event)
 	}
 }

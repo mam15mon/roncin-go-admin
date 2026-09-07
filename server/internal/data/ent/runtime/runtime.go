@@ -7671,11 +7671,11 @@ func init() {
 	// seasharedcontainerDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
 	seasharedcontainerDescGrossWeightKg := seasharedcontainerFields[6].Descriptor()
 	// seasharedcontainer.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
-	seasharedcontainer.GrossWeightKgValidator = seasharedcontainerDescGrossWeightKg.Validators[0].(func(float64) error)
+	seasharedcontainer.GrossWeightKgValidator = seasharedcontainerDescGrossWeightKg.Validators[0].(func(string) error)
 	// seasharedcontainerDescVolumeCbm is the schema descriptor for volume_cbm field.
 	seasharedcontainerDescVolumeCbm := seasharedcontainerFields[7].Descriptor()
 	// seasharedcontainer.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
-	seasharedcontainer.VolumeCbmValidator = seasharedcontainerDescVolumeCbm.Validators[0].(func(float64) error)
+	seasharedcontainer.VolumeCbmValidator = seasharedcontainerDescVolumeCbm.Validators[0].(func(string) error)
 	// seasharedcontainerDescNote is the schema descriptor for note field.
 	seasharedcontainerDescNote := seasharedcontainerFields[11].Descriptor()
 	// seasharedcontainer.NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -7712,11 +7712,11 @@ func init() {
 	// seasharedcontainerallocationDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
 	seasharedcontainerallocationDescGrossWeightKg := seasharedcontainerallocationFields[6].Descriptor()
 	// seasharedcontainerallocation.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
-	seasharedcontainerallocation.GrossWeightKgValidator = seasharedcontainerallocationDescGrossWeightKg.Validators[0].(func(float64) error)
+	seasharedcontainerallocation.GrossWeightKgValidator = seasharedcontainerallocationDescGrossWeightKg.Validators[0].(func(string) error)
 	// seasharedcontainerallocationDescVolumeCbm is the schema descriptor for volume_cbm field.
 	seasharedcontainerallocationDescVolumeCbm := seasharedcontainerallocationFields[7].Descriptor()
 	// seasharedcontainerallocation.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
-	seasharedcontainerallocation.VolumeCbmValidator = seasharedcontainerallocationDescVolumeCbm.Validators[0].(func(float64) error)
+	seasharedcontainerallocation.VolumeCbmValidator = seasharedcontainerallocationDescVolumeCbm.Validators[0].(func(string) error)
 	// seasharedcontainerallocationDescVersion is the schema descriptor for version field.
 	seasharedcontainerallocationDescVersion := seasharedcontainerallocationFields[8].Descriptor()
 	// seasharedcontainerallocation.DefaultVersion holds the default value on creation for the version field.

@@ -17,202 +17,258 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
-const OperationSeaCargoAllocationServiceApplySeaHouseBillAllocationSummary = "/order.v1.SeaCargoAllocationService/ApplySeaHouseBillAllocationSummary"
-const OperationSeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill = "/order.v1.SeaCargoAllocationService/ApplySeaOrderCargoSummaryToMasterBill"
-const OperationSeaCargoAllocationServiceConfirmSeaCargoAllocation = "/order.v1.SeaCargoAllocationService/ConfirmSeaCargoAllocation"
-const OperationSeaCargoAllocationServiceGetSeaCargoAllocation = "/order.v1.SeaCargoAllocationService/GetSeaCargoAllocation"
-const OperationSeaCargoAllocationServiceSaveSeaCargoAllocationDraft = "/order.v1.SeaCargoAllocationService/SaveSeaCargoAllocationDraft"
-const OperationSeaCargoAllocationServiceWithdrawSeaCargoAllocation = "/order.v1.SeaCargoAllocationService/WithdrawSeaCargoAllocation"
+const OperationSeaSharedContainerServiceConfirmSeaSharedContainer = "/order.v1.SeaSharedContainerService/ConfirmSeaSharedContainer"
+const OperationSeaSharedContainerServiceCreateSeaSharedContainer = "/order.v1.SeaSharedContainerService/CreateSeaSharedContainer"
+const OperationSeaSharedContainerServiceDeleteSeaSharedContainer = "/order.v1.SeaSharedContainerService/DeleteSeaSharedContainer"
+const OperationSeaSharedContainerServiceGetSeaSharedContainer = "/order.v1.SeaSharedContainerService/GetSeaSharedContainer"
+const OperationSeaSharedContainerServiceListSeaSharedContainerCandidates = "/order.v1.SeaSharedContainerService/ListSeaSharedContainerCandidates"
+const OperationSeaSharedContainerServiceListSeaSharedContainers = "/order.v1.SeaSharedContainerService/ListSeaSharedContainers"
+const OperationSeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft = "/order.v1.SeaSharedContainerService/SaveSeaSharedContainerAllocationsDraft"
+const OperationSeaSharedContainerServiceUpdateSeaSharedContainer = "/order.v1.SeaSharedContainerService/UpdateSeaSharedContainer"
+const OperationSeaSharedContainerServiceWithdrawSeaSharedContainer = "/order.v1.SeaSharedContainerService/WithdrawSeaSharedContainer"
 
-type SeaCargoAllocationServiceHTTPServer interface {
-	// ApplySeaHouseBillAllocationSummary ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
-	ApplySeaHouseBillAllocationSummary(context.Context, *ApplySeaHouseBillAllocationSummaryRequest) (*ApplySeaHouseBillAllocationSummaryResponse, error)
-	// ApplySeaOrderCargoSummaryToMasterBill ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
-	ApplySeaOrderCargoSummaryToMasterBill(context.Context, *ApplySeaOrderCargoSummaryToMasterBillRequest) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error)
-	// ConfirmSeaCargoAllocation ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
-	ConfirmSeaCargoAllocation(context.Context, *ConfirmSeaCargoAllocationRequest) (*ConfirmSeaCargoAllocationResponse, error)
-	// GetSeaCargoAllocation GetSeaCargoAllocation 获取海运箱货分配聚合信息。
-	GetSeaCargoAllocation(context.Context, *GetSeaCargoAllocationRequest) (*GetSeaCargoAllocationResponse, error)
-	// SaveSeaCargoAllocationDraft SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
-	SaveSeaCargoAllocationDraft(context.Context, *SaveSeaCargoAllocationDraftRequest) (*SaveSeaCargoAllocationDraftResponse, error)
-	// WithdrawSeaCargoAllocation WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
-	WithdrawSeaCargoAllocation(context.Context, *WithdrawSeaCargoAllocationRequest) (*WithdrawSeaCargoAllocationResponse, error)
+type SeaSharedContainerServiceHTTPServer interface {
+	ConfirmSeaSharedContainer(context.Context, *ConfirmSeaSharedContainerRequest) (*ConfirmSeaSharedContainerResponse, error)
+	CreateSeaSharedContainer(context.Context, *CreateSeaSharedContainerRequest) (*CreateSeaSharedContainerResponse, error)
+	DeleteSeaSharedContainer(context.Context, *DeleteSeaSharedContainerRequest) (*DeleteSeaSharedContainerResponse, error)
+	GetSeaSharedContainer(context.Context, *GetSeaSharedContainerRequest) (*GetSeaSharedContainerResponse, error)
+	ListSeaSharedContainerCandidates(context.Context, *ListSeaSharedContainerCandidatesRequest) (*ListSeaSharedContainerCandidatesResponse, error)
+	ListSeaSharedContainers(context.Context, *ListSeaSharedContainersRequest) (*ListSeaSharedContainersResponse, error)
+	SaveSeaSharedContainerAllocationsDraft(context.Context, *SaveSeaSharedContainerAllocationsDraftRequest) (*SaveSeaSharedContainerAllocationsDraftResponse, error)
+	UpdateSeaSharedContainer(context.Context, *UpdateSeaSharedContainerRequest) (*UpdateSeaSharedContainerResponse, error)
+	WithdrawSeaSharedContainer(context.Context, *WithdrawSeaSharedContainerRequest) (*WithdrawSeaSharedContainerResponse, error)
 }
 
-func RegisterSeaCargoAllocationServiceHTTPServer(s *http.Server, srv SeaCargoAllocationServiceHTTPServer) {
+func RegisterSeaSharedContainerServiceHTTPServer(s *http.Server, srv SeaSharedContainerServiceHTTPServer) {
 	r := s.Route("/")
-	r.Handle("GET", "/api/v1/orders/{order_id}/sea-cargo-allocation", _SeaCargoAllocationService_GetSeaCargoAllocation0_HTTP_Handler(srv))
-	r.Handle("PUT", "/api/v1/orders/{order_id}/sea-cargo-allocation/draft", _SeaCargoAllocationService_SaveSeaCargoAllocationDraft0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-cargo-allocation/confirm", _SeaCargoAllocationService_ConfirmSeaCargoAllocation0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-cargo-allocation/withdraw", _SeaCargoAllocationService_WithdrawSeaCargoAllocation0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-cargo-allocation/master-bill/apply-cargo-summary", _SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/sea-cargo-allocation/house-bills/{house_bill_id}/apply-summary", _SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/sea-shared-containers", _SeaSharedContainerService_ListSeaSharedContainers0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/sea-shared-containers/{id}", _SeaSharedContainerService_GetSeaSharedContainer0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/sea-shared-container-candidates", _SeaSharedContainerService_ListSeaSharedContainerCandidates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/sea-shared-containers", _SeaSharedContainerService_CreateSeaSharedContainer0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/orders/sea-shared-containers/{id}", _SeaSharedContainerService_UpdateSeaSharedContainer0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/api/v1/orders/sea-shared-containers/{id}", _SeaSharedContainerService_DeleteSeaSharedContainer0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/orders/sea-shared-containers/{id}/allocations/draft", _SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/sea-shared-containers/{id}/confirm", _SeaSharedContainerService_ConfirmSeaSharedContainer0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/sea-shared-containers/{id}/withdraw", _SeaSharedContainerService_WithdrawSeaSharedContainer0_HTTP_Handler(srv))
 }
 
-func _SeaCargoAllocationService_GetSeaCargoAllocation0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
+func _SeaSharedContainerService_ListSeaSharedContainers0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetSeaCargoAllocationRequest
+		var in ListSeaSharedContainersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceListSeaSharedContainers)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSeaSharedContainers(ctx, req.(*ListSeaSharedContainersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSeaSharedContainersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SeaSharedContainerService_GetSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSeaSharedContainerRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceGetSeaCargoAllocation)
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceGetSeaSharedContainer)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetSeaCargoAllocation(ctx, req.(*GetSeaCargoAllocationRequest))
+			return srv.GetSeaSharedContainer(ctx, req.(*GetSeaSharedContainerRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetSeaCargoAllocationResponse)
+		reply := out.(*GetSeaSharedContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaCargoAllocationService_SaveSeaCargoAllocationDraft0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
+func _SeaSharedContainerService_ListSeaSharedContainerCandidates0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in SaveSeaCargoAllocationDraftRequest
+		var in ListSeaSharedContainerCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceListSeaSharedContainerCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSeaSharedContainerCandidates(ctx, req.(*ListSeaSharedContainerCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSeaSharedContainerCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SeaSharedContainerService_CreateSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateSeaSharedContainerRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceCreateSeaSharedContainer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateSeaSharedContainer(ctx, req.(*CreateSeaSharedContainerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateSeaSharedContainerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SeaSharedContainerService_UpdateSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSeaSharedContainerRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceSaveSeaCargoAllocationDraft)
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceUpdateSeaSharedContainer)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SaveSeaCargoAllocationDraft(ctx, req.(*SaveSeaCargoAllocationDraftRequest))
+			return srv.UpdateSeaSharedContainer(ctx, req.(*UpdateSeaSharedContainerRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*SaveSeaCargoAllocationDraftResponse)
+		reply := out.(*UpdateSeaSharedContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaCargoAllocationService_ConfirmSeaCargoAllocation0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
+func _SeaSharedContainerService_DeleteSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ConfirmSeaCargoAllocationRequest
+		var in DeleteSeaSharedContainerRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceDeleteSeaSharedContainer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteSeaSharedContainer(ctx, req.(*DeleteSeaSharedContainerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteSeaSharedContainerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveSeaSharedContainerAllocationsDraftRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceConfirmSeaCargoAllocation)
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ConfirmSeaCargoAllocation(ctx, req.(*ConfirmSeaCargoAllocationRequest))
+			return srv.SaveSeaSharedContainerAllocationsDraft(ctx, req.(*SaveSeaSharedContainerAllocationsDraftRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ConfirmSeaCargoAllocationResponse)
+		reply := out.(*SaveSeaSharedContainerAllocationsDraftResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaCargoAllocationService_WithdrawSeaCargoAllocation0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
+func _SeaSharedContainerService_ConfirmSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in WithdrawSeaCargoAllocationRequest
+		var in ConfirmSeaSharedContainerRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceWithdrawSeaCargoAllocation)
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceConfirmSeaSharedContainer)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.WithdrawSeaCargoAllocation(ctx, req.(*WithdrawSeaCargoAllocationRequest))
+			return srv.ConfirmSeaSharedContainer(ctx, req.(*ConfirmSeaSharedContainerRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*WithdrawSeaCargoAllocationResponse)
+		reply := out.(*ConfirmSeaSharedContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
+func _SeaSharedContainerService_WithdrawSeaSharedContainer0_HTTP_Handler(srv SeaSharedContainerServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ApplySeaOrderCargoSummaryToMasterBillRequest
+		var in WithdrawSeaSharedContainerRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill)
+		http.SetOperation(ctx, OperationSeaSharedContainerServiceWithdrawSeaSharedContainer)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ApplySeaOrderCargoSummaryToMasterBill(ctx, req.(*ApplySeaOrderCargoSummaryToMasterBillRequest))
+			return srv.WithdrawSeaSharedContainer(ctx, req.(*WithdrawSeaSharedContainerRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ApplySeaOrderCargoSummaryToMasterBillResponse)
+		reply := out.(*WithdrawSeaSharedContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary0_HTTP_Handler(srv SeaCargoAllocationServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ApplySeaHouseBillAllocationSummaryRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeaCargoAllocationServiceApplySeaHouseBillAllocationSummary)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ApplySeaHouseBillAllocationSummary(ctx, req.(*ApplySeaHouseBillAllocationSummaryRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ApplySeaHouseBillAllocationSummaryResponse)
-		return ctx.Result(200, reply)
-	}
+type SeaSharedContainerServiceHTTPClient interface {
+	ConfirmSeaSharedContainer(ctx context.Context, req *ConfirmSeaSharedContainerRequest, opts ...http.CallOption) (rsp *ConfirmSeaSharedContainerResponse, err error)
+	CreateSeaSharedContainer(ctx context.Context, req *CreateSeaSharedContainerRequest, opts ...http.CallOption) (rsp *CreateSeaSharedContainerResponse, err error)
+	DeleteSeaSharedContainer(ctx context.Context, req *DeleteSeaSharedContainerRequest, opts ...http.CallOption) (rsp *DeleteSeaSharedContainerResponse, err error)
+	GetSeaSharedContainer(ctx context.Context, req *GetSeaSharedContainerRequest, opts ...http.CallOption) (rsp *GetSeaSharedContainerResponse, err error)
+	ListSeaSharedContainerCandidates(ctx context.Context, req *ListSeaSharedContainerCandidatesRequest, opts ...http.CallOption) (rsp *ListSeaSharedContainerCandidatesResponse, err error)
+	ListSeaSharedContainers(ctx context.Context, req *ListSeaSharedContainersRequest, opts ...http.CallOption) (rsp *ListSeaSharedContainersResponse, err error)
+	SaveSeaSharedContainerAllocationsDraft(ctx context.Context, req *SaveSeaSharedContainerAllocationsDraftRequest, opts ...http.CallOption) (rsp *SaveSeaSharedContainerAllocationsDraftResponse, err error)
+	UpdateSeaSharedContainer(ctx context.Context, req *UpdateSeaSharedContainerRequest, opts ...http.CallOption) (rsp *UpdateSeaSharedContainerResponse, err error)
+	WithdrawSeaSharedContainer(ctx context.Context, req *WithdrawSeaSharedContainerRequest, opts ...http.CallOption) (rsp *WithdrawSeaSharedContainerResponse, err error)
 }
 
-type SeaCargoAllocationServiceHTTPClient interface {
-	// ApplySeaHouseBillAllocationSummary ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
-	ApplySeaHouseBillAllocationSummary(ctx context.Context, req *ApplySeaHouseBillAllocationSummaryRequest, opts ...http.CallOption) (rsp *ApplySeaHouseBillAllocationSummaryResponse, err error)
-	// ApplySeaOrderCargoSummaryToMasterBill ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
-	ApplySeaOrderCargoSummaryToMasterBill(ctx context.Context, req *ApplySeaOrderCargoSummaryToMasterBillRequest, opts ...http.CallOption) (rsp *ApplySeaOrderCargoSummaryToMasterBillResponse, err error)
-	// ConfirmSeaCargoAllocation ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
-	ConfirmSeaCargoAllocation(ctx context.Context, req *ConfirmSeaCargoAllocationRequest, opts ...http.CallOption) (rsp *ConfirmSeaCargoAllocationResponse, err error)
-	// GetSeaCargoAllocation GetSeaCargoAllocation 获取海运箱货分配聚合信息。
-	GetSeaCargoAllocation(ctx context.Context, req *GetSeaCargoAllocationRequest, opts ...http.CallOption) (rsp *GetSeaCargoAllocationResponse, err error)
-	// SaveSeaCargoAllocationDraft SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
-	SaveSeaCargoAllocationDraft(ctx context.Context, req *SaveSeaCargoAllocationDraftRequest, opts ...http.CallOption) (rsp *SaveSeaCargoAllocationDraftResponse, err error)
-	// WithdrawSeaCargoAllocation WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
-	WithdrawSeaCargoAllocation(ctx context.Context, req *WithdrawSeaCargoAllocationRequest, opts ...http.CallOption) (rsp *WithdrawSeaCargoAllocationResponse, err error)
-}
-
-type SeaCargoAllocationServiceHTTPClientImpl struct {
+type SeaSharedContainerServiceHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewSeaCargoAllocationServiceHTTPClient(client *http.Client) SeaCargoAllocationServiceHTTPClient {
-	return &SeaCargoAllocationServiceHTTPClientImpl{client}
+func NewSeaSharedContainerServiceHTTPClient(client *http.Client) SeaSharedContainerServiceHTTPClient {
+	return &SeaSharedContainerServiceHTTPClientImpl{client}
 }
 
-// ApplySeaHouseBillAllocationSummary ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) ApplySeaHouseBillAllocationSummary(ctx context.Context, in *ApplySeaHouseBillAllocationSummaryRequest, opts ...http.CallOption) (*ApplySeaHouseBillAllocationSummaryResponse, error) {
-	var out ApplySeaHouseBillAllocationSummaryResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation/house-bills/{house_bill_id}/apply-summary"
+func (c *SeaSharedContainerServiceHTTPClientImpl) ConfirmSeaSharedContainer(ctx context.Context, in *ConfirmSeaSharedContainerRequest, opts ...http.CallOption) (*ConfirmSeaSharedContainerResponse, error) {
+	var out ConfirmSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}/confirm"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceApplySeaHouseBillAllocationSummary),
+		http.Operation(OperationSeaSharedContainerServiceConfirmSeaSharedContainer),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -222,15 +278,14 @@ func (c *SeaCargoAllocationServiceHTTPClientImpl) ApplySeaHouseBillAllocationSum
 	return &out, nil
 }
 
-// ApplySeaOrderCargoSummaryToMasterBill ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) ApplySeaOrderCargoSummaryToMasterBill(ctx context.Context, in *ApplySeaOrderCargoSummaryToMasterBillRequest, opts ...http.CallOption) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error) {
-	var out ApplySeaOrderCargoSummaryToMasterBillResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation/master-bill/apply-cargo-summary"
+func (c *SeaSharedContainerServiceHTTPClientImpl) CreateSeaSharedContainer(ctx context.Context, in *CreateSeaSharedContainerRequest, opts ...http.CallOption) (*CreateSeaSharedContainerResponse, error) {
+	var out CreateSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill),
+		http.Operation(OperationSeaSharedContainerServiceCreateSeaSharedContainer),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -240,32 +295,29 @@ func (c *SeaCargoAllocationServiceHTTPClientImpl) ApplySeaOrderCargoSummaryToMas
 	return &out, nil
 }
 
-// ConfirmSeaCargoAllocation ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) ConfirmSeaCargoAllocation(ctx context.Context, in *ConfirmSeaCargoAllocationRequest, opts ...http.CallOption) (*ConfirmSeaCargoAllocationResponse, error) {
-	var out ConfirmSeaCargoAllocationResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation/confirm"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceConfirmSeaCargoAllocation),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetSeaCargoAllocation GetSeaCargoAllocation 获取海运箱货分配聚合信息。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) GetSeaCargoAllocation(ctx context.Context, in *GetSeaCargoAllocationRequest, opts ...http.CallOption) (*GetSeaCargoAllocationResponse, error) {
-	var out GetSeaCargoAllocationResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation"
+func (c *SeaSharedContainerServiceHTTPClientImpl) DeleteSeaSharedContainer(ctx context.Context, in *DeleteSeaSharedContainerRequest, opts ...http.CallOption) (*DeleteSeaSharedContainerResponse, error) {
+	var out DeleteSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceGetSeaCargoAllocation),
+		http.Operation(OperationSeaSharedContainerServiceDeleteSeaSharedContainer),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeaSharedContainerServiceHTTPClientImpl) GetSeaSharedContainer(ctx context.Context, in *GetSeaSharedContainerRequest, opts ...http.CallOption) (*GetSeaSharedContainerResponse, error) {
+	var out GetSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSeaSharedContainerServiceGetSeaSharedContainer),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -275,15 +327,46 @@ func (c *SeaCargoAllocationServiceHTTPClientImpl) GetSeaCargoAllocation(ctx cont
 	return &out, nil
 }
 
-// SaveSeaCargoAllocationDraft SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) SaveSeaCargoAllocationDraft(ctx context.Context, in *SaveSeaCargoAllocationDraftRequest, opts ...http.CallOption) (*SaveSeaCargoAllocationDraftResponse, error) {
-	var out SaveSeaCargoAllocationDraftResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation/draft"
+func (c *SeaSharedContainerServiceHTTPClientImpl) ListSeaSharedContainerCandidates(ctx context.Context, in *ListSeaSharedContainerCandidatesRequest, opts ...http.CallOption) (*ListSeaSharedContainerCandidatesResponse, error) {
+	var out ListSeaSharedContainerCandidatesResponse
+	pattern := "/api/v1/orders/sea-shared-container-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSeaSharedContainerServiceListSeaSharedContainerCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeaSharedContainerServiceHTTPClientImpl) ListSeaSharedContainers(ctx context.Context, in *ListSeaSharedContainersRequest, opts ...http.CallOption) (*ListSeaSharedContainersResponse, error) {
+	var out ListSeaSharedContainersResponse
+	pattern := "/api/v1/orders/sea-shared-containers"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSeaSharedContainerServiceListSeaSharedContainers),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeaSharedContainerServiceHTTPClientImpl) SaveSeaSharedContainerAllocationsDraft(ctx context.Context, in *SaveSeaSharedContainerAllocationsDraftRequest, opts ...http.CallOption) (*SaveSeaSharedContainerAllocationsDraftResponse, error) {
+	var out SaveSeaSharedContainerAllocationsDraftResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}/allocations/draft"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceSaveSeaCargoAllocationDraft),
+		http.Operation(OperationSeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
@@ -293,15 +376,31 @@ func (c *SeaCargoAllocationServiceHTTPClientImpl) SaveSeaCargoAllocationDraft(ct
 	return &out, nil
 }
 
-// WithdrawSeaCargoAllocation WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
-func (c *SeaCargoAllocationServiceHTTPClientImpl) WithdrawSeaCargoAllocation(ctx context.Context, in *WithdrawSeaCargoAllocationRequest, opts ...http.CallOption) (*WithdrawSeaCargoAllocationResponse, error) {
-	var out WithdrawSeaCargoAllocationResponse
-	pattern := "/api/v1/orders/{order_id}/sea-cargo-allocation/withdraw"
+func (c *SeaSharedContainerServiceHTTPClientImpl) UpdateSeaSharedContainer(ctx context.Context, in *UpdateSeaSharedContainerRequest, opts ...http.CallOption) (*UpdateSeaSharedContainerResponse, error) {
+	var out UpdateSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationSeaCargoAllocationServiceWithdrawSeaCargoAllocation),
+		http.Operation(OperationSeaSharedContainerServiceUpdateSeaSharedContainer),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeaSharedContainerServiceHTTPClientImpl) WithdrawSeaSharedContainer(ctx context.Context, in *WithdrawSeaSharedContainerRequest, opts ...http.CallOption) (*WithdrawSeaSharedContainerResponse, error) {
+	var out WithdrawSeaSharedContainerResponse
+	pattern := "/api/v1/orders/sea-shared-containers/{id}/withdraw"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSeaSharedContainerServiceWithdrawSeaSharedContainer),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

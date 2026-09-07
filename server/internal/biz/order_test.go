@@ -160,6 +160,7 @@ func TestOrderCreateAudits(t *testing.T) {
 	customerID := uuid.New()
 	shippingLineID := uuid.New()
 	personnelUserID := uuid.New()
+	directMode := SeaDocumentStructureDirect
 	created, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: customerID, BusinessType: OrderBusinessSE,
 		ShippingLineID:      &shippingLineID,
@@ -167,6 +168,7 @@ func TestOrderCreateAudits(t *testing.T) {
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
 		PersonnelAssignments: []*OrderPersonnel{{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator}},
 		SeaMasterBillInput:   &SeaMasterBillInput{MasterNo: "COSCO123456"},
+		SeaDocumentInput:     &SeaOrderDocumentInput{DocumentStructure: &directMode},
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
@@ -622,6 +624,10 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 
 	input.SeaMasterBillInput = &SeaMasterBillInput{
 		MasterNo: "COSCO123456",
+	}
+	directMode := SeaDocumentStructureDirect
+	input.SeaDocumentInput = &SeaOrderDocumentInput{
+		DocumentStructure: &directMode,
 	}
 	normalized, err := normalizeOrder(input, true)
 	if err != nil {

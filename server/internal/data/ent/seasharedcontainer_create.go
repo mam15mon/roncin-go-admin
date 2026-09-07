@@ -98,13 +98,13 @@ func (_c *SeaSharedContainerCreate) SetPackageCount(v int) *SeaSharedContainerCr
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_c *SeaSharedContainerCreate) SetGrossWeightKg(v float64) *SeaSharedContainerCreate {
+func (_c *SeaSharedContainerCreate) SetGrossWeightKg(v string) *SeaSharedContainerCreate {
 	_c.mutation.SetGrossWeightKg(v)
 	return _c
 }
 
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_c *SeaSharedContainerCreate) SetVolumeCbm(v float64) *SeaSharedContainerCreate {
+func (_c *SeaSharedContainerCreate) SetVolumeCbm(v string) *SeaSharedContainerCreate {
 	_c.mutation.SetVolumeCbm(v)
 	return _c
 }
@@ -430,11 +430,11 @@ func (_c *SeaSharedContainerCreate) createSpec() (*SeaSharedContainer, *sqlgraph
 		_node.PackageCount = value
 	}
 	if value, ok := _c.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldGrossWeightKg, field.TypeString, value)
 		_node.GrossWeightKg = value
 	}
 	if value, ok := _c.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainer.FieldVolumeCbm, field.TypeString, value)
 		_node.VolumeCbm = value
 	}
 	if value, ok := _c.mutation.Status(); ok {

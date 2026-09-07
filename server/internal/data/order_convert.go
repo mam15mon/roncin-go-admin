@@ -107,6 +107,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 			if activeLink.Edges.TransportExecution != nil {
 				te := activeLink.Edges.TransportExecution
 				summary.TransportExecutionID = te.ID
+				summary.TransportExecutionVersion = te.Version
 				summary.OriginLocationID = te.OriginLocationID
 				summary.DischargeLocationID = te.DischargeLocationID
 				summary.TransitLocationID = te.TransitLocationID

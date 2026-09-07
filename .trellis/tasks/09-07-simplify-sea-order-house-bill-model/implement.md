@@ -34,46 +34,46 @@
 
 ## 阶段 3：运输执行版本、共享修改与改配
 
-- [ ] 实现 TransportExecution Version 创建/复用与共享航次 Preview/Execute。
-- [ ] 重构候选关联和改配：同船公司可保留 MBL 换 TE；换船公司必须同时换 MBL/TE；Link 记录
+- [x] 实现 TransportExecution Version 创建/复用与共享航次 Preview/Execute。
+- [x] 重构候选关联和改配：同船公司可保留 MBL 换 TE；换船公司必须同时换 MBL/TE；Link 记录
   当前实际执行。
-- [ ] 在改配/共享修改请求和事件中加入外部确认，附件归属锁内复验。
-- [ ] 更新 Order Lock：锁定时固定 MBL Version + TE Version + 唯一当前 HBL Version。
-- [ ] 调整列表、详情、费用页和锁定历史的 SE 运输投影，删除 Order 上 SE 重复字段的写入依赖。
-- [ ] 覆盖共享成员锁序、成员集合变化、单票甩柜不传播、同 MBL 跨 TE 和锁定历史重现测试。
-- [ ] 提交 `refactor: 解耦海运主单与实际航次`。
+- [x] 在改配/共享修改请求和事件中加入外部确认，附件归属锁内复验。
+- [x] 更新 Order Lock：锁定时固定 MBL Version + TE Version + 唯一当前 HBL Version。
+- [x] 调整列表、详情、费用页和锁定历史的 SE 运输投影，删除 Order 上 SE 重复字段的写入依赖。
+- [x] 覆盖共享成员锁序、成员集合变化、单票甩柜不传播、同 MBL 跨 TE 和锁定历史重现测试。
+- [x] 提交 `refactor: 解耦海运主单与实际航次`。
 
 ## 阶段 4：改单、作废、模式切换与 Switch 删除
 
-- [ ] 给 MBL/HBL amendment、void 和模式切换增加外部确认 DTO、校验、不可变保存和历史输出。
-- [ ] HOUSE→DIRECT 原子作废当前 HBL；DIRECT→HOUSE 原子建立新当前 HBL；两者保留下游事实。
-- [ ] 删除 Switch Proto RPC/消息、领域命令、仓储实现、事件表引用、页面按钮与测试；保留 reserved。
-- [ ] 调整下游影响规则：ETD/离港/财务/放货只提示，不自动改写且不一概阻断；真正结构冲突仍
+- [x] 给 MBL/HBL amendment、void 和模式切换增加外部确认 DTO、校验、不可变保存和历史输出。
+- [x] HOUSE→DIRECT 原子作废当前 HBL；DIRECT→HOUSE 原子建立新当前 HBL；两者保留下游事实。
+- [x] 删除 Switch Proto RPC/消息、领域命令、仓储实现、事件表引用、页面按钮与测试；保留 reserved。
+- [x] 调整下游影响规则：ETD/离港/财务/放货只提示，不自动改写且不一概阻断；真正结构冲突仍
   返回稳定 400/409。
-- [ ] 让携带外部确认的专用变更命令显式绕过普通业务锁门禁，同时保持订单锁定且不改旧快照；
+- [x] 让携带外部确认的专用变更命令显式绕过普通业务锁门禁，同时保持订单锁定且不改旧快照；
   普通订单更新继续被锁阻断。
-- [ ] 验证 Preview 输入变化失效、Execute 锁内重算、确认必填、幂等/并发、历史版本不漂移。
-- [ ] 提交 `refactor: 收敛海运单证变更流程`。
+- [x] 验证 Preview 输入变化失效、Execute 锁内重算、确认必填、幂等/并发、历史版本不漂移。
+- [x] 提交 `refactor: 收敛海运单证变更流程`。
 
 ## 阶段 5：普通箱与共享箱例外
 
-- [ ] 常态订单沿用 OrderContainer 直接归属，移除旧 SeaCargoAllocation 服务、页面和权限入口。
-- [ ] 实现 SharedContainer/Allocation 的 Proto、service、biz、data 和跨订单守恒/版本/锁序。
-- [ ] 新增仅在显式“共享箱/客户拼货”下出现的工作台；按 TE 选择 HOUSE 订单并展示逐票件重尺。
-- [ ] 重构拆票 Preview/Execute 输入和算法为“结果订单 + HBL + 货物/箱/草稿费用显式分配”；共享
+- [x] 常态订单沿用 OrderContainer 直接归属，移除旧 SeaCargoAllocation 服务、页面和权限入口。
+- [x] 实现 SharedContainer/Allocation 的 Proto、service、biz、data 和跨订单守恒/版本/锁序。
+- [x] 新增仅在显式“共享箱/客户拼货”下出现的工作台；按 TE 选择 HOUSE 订单并展示逐票件重尺。
+- [x] 重构拆票 Preview/Execute 输入和算法为“结果订单 + HBL + 货物/箱/草稿费用显式分配”；共享
   物理箱只移动 allocation，不复制箱号。
-- [ ] 覆盖超分、确认守恒、跨组织/跨 TE/DIRECT 拒绝、并发版本、审计失败回滚和拆票守恒测试。
-- [ ] 提交 `refactor: 简化海运箱货分配与拆票`。
+- [x] 覆盖超分、确认守恒、跨组织/跨 TE/DIRECT 拒绝、并发版本、审计失败回滚和拆票守恒测试。
+- [x] 提交 `refactor: 简化海运箱货分配与拆票`。
 
 ## 阶段 6：前端收敛与全链验证
 
-- [ ] 创建页增加 HOUSE/DIRECT 必选、唯一 HBL 和 Booking No.；详情页改为单一分单区块。
-- [ ] 订单列表复合号码筛选增加客户业务号、Booking No.，同批订单区分三种来源且只读。
-- [ ] 重构改配/改单/作废/模式切换弹窗，强制外部确认并展示影响；删除 Switch 和旧分配入口。
-- [ ] Shared Container 工作台只对明确共享箱开放；普通订单维持直接箱号交互。
-- [ ] 补前端交互、payload、失败关闭、缓存失效与生成类型测试。
-- [ ] 运行全量生成幂等、质量门禁和构建，执行 `git diff --check`，核对无用户文件混入。
-- [ ] 提交 `refactor: 简化海运出口单证交互`。
+- [x] 创建页增加 HOUSE/DIRECT 必选、唯一 HBL 和 Booking No.；详情页改为单一分单区块。
+- [x] 订单列表复合号码筛选增加客户业务号、Booking No.，同批订单区分三种来源且只读。
+- [x] 重构改配/改单/作废/模式切换弹窗，强制外部确认并展示影响；删除 Switch 和旧分配入口。
+- [x] Shared Container 工作台只对明确共享箱开放；普通订单维持直接箱号交互。
+- [x] 补前端交互、payload、失败关闭、缓存失效与生成类型测试。
+- [x] 运行全量生成幂等、质量门禁和构建，执行 `git diff --check`，核对无用户文件混入。
+- [x] 提交 `refactor: 简化海运出口单证交互`。
 
 ## 验证命令
 

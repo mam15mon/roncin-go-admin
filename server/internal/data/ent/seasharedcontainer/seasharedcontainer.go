@@ -130,9 +130,9 @@ var (
 	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	PackageCountValidator func(int) error
 	// GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
-	GrossWeightKgValidator func(float64) error
+	GrossWeightKgValidator func(string) error
 	// VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
-	VolumeCbmValidator func(float64) error
+	VolumeCbmValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.

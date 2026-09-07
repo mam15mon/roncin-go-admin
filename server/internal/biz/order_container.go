@@ -2,12 +2,27 @@ package biz
 
 import (
 	"context"
+	"math"
 	"strings"
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
+
+var (
+	ErrOrderContainerShipmentType    = errors.BadRequest("ORDER_CONTAINER_INVALID_ARGUMENT", "仅整箱(FCL)业务允许维护集装箱")
+	ErrOrderContainerNotFound        = errors.NotFound("ORDER_CONTAINER_NOT_FOUND", "订单集装箱不存在")
+	ErrOrderContainerInvalidArgument = errors.BadRequest("ORDER_CONTAINER_INVALID_ARGUMENT", "订单集装箱参数不合法")
+	ErrOrderContainerExists          = errors.Conflict("ORDER_CONTAINER_EXISTS", "该箱号已存在于当前订单")
+	ErrOrderContainerSpecInvalid     = errors.BadRequest("ORDER_CONTAINER_SPEC_INVALID", "集装箱规格不存在或已被禁用")
+	ErrOrderContainerConflict        = errors.Conflict("ORDER_STATUS_CONFLICT", "集装箱已被更新，请刷新后重试")
+)
+
+func validatePositiveFiniteQuantity(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && value > 0
+}
 
 type OrderContainer struct {
 	ID              uuid.UUID
@@ -125,10 +140,10 @@ func normalizeOrderContainer(input *OrderContainer) (*OrderContainer, error) {
 	if input.PackageCount <= 0 {
 		return nil, ErrOrderContainerInvalidArgument
 	}
-	if _, err := ValidateFloatWeight(input.GrossWeightKg, "毛重"); err != nil {
+	if !validatePositiveFiniteQuantity(input.GrossWeightKg) {
 		return nil, ErrOrderContainerInvalidArgument
 	}
-	if _, err := ValidateFloatVolume(input.VolumeCbm, "体积"); err != nil {
+	if !validatePositiveFiniteQuantity(input.VolumeCbm) {
 		return nil, ErrOrderContainerInvalidArgument
 	}
 	var sealNo *string

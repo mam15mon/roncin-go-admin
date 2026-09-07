@@ -130,6 +130,8 @@ describe('buildCreateOrderPayload', () => {
         seaMasterBillMasterNo: 'COSCO999901',
         seaMasterBillCandidateId: 'candidate-mbl-1',
         seaMasterBillExpectedCandidateVersion: 3,
+        seaMasterBillCandidateTeId: 'te-1',
+        seaMasterBillExpectedCandidateTeVersion: 5,
         seaMasterBillCorrectionReason: '更正主单号',
       },
       ORDER_KIND_CONFIGS['sea-export'],
@@ -139,6 +141,8 @@ describe('buildCreateOrderPayload', () => {
       masterNo: 'COSCO999901',
       candidateId: 'candidate-mbl-1',
       expectedCandidateVersion: '3',
+      candidateTeId: 'te-1',
+      expectedCandidateTeVersion: '5',
       correctionReason: '更正主单号',
     });
   });

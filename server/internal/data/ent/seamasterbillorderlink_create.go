@@ -97,14 +97,6 @@ func (_c *SeaMasterBillOrderLinkCreate) SetDocumentStructure(v seamasterbillorde
 	return _c
 }
 
-// SetNillableDocumentStructure sets the "document_structure" field if the given value is not nil.
-func (_c *SeaMasterBillOrderLinkCreate) SetNillableDocumentStructure(v *seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkCreate {
-	if v != nil {
-		_c.SetDocumentStructure(*v)
-	}
-	return _c
-}
-
 // SetStartedAt sets the "started_at" field.
 func (_c *SeaMasterBillOrderLinkCreate) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkCreate {
 	_c.mutation.SetStartedAt(v)
@@ -241,10 +233,6 @@ func (_c *SeaMasterBillOrderLinkCreate) defaults() {
 	if _, ok := _c.mutation.Status(); !ok {
 		v := seamasterbillorderlink.DefaultStatus
 		_c.mutation.SetStatus(v)
-	}
-	if _, ok := _c.mutation.DocumentStructure(); !ok {
-		v := seamasterbillorderlink.DefaultDocumentStructure
-		_c.mutation.SetDocumentStructure(v)
 	}
 	if _, ok := _c.mutation.StartedAt(); !ok {
 		v := seamasterbillorderlink.DefaultStartedAt()

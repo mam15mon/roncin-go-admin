@@ -7,6 +7,7 @@ import {
   Col,
   Form,
   Input,
+  Select,
   Space,
   Tag,
   Tooltip,
@@ -58,6 +59,7 @@ export function SeaMasterBillFields({
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
   const candidateId = Form.useWatch('seaMasterBillCandidateId', form);
+  const candidateTeId = Form.useWatch('seaMasterBillCandidateTeId', form);
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
     preserve: true,
@@ -121,6 +123,8 @@ export function SeaMasterBillFields({
 
     const currentMblVersion = isDetail ? existingMbl?.version : undefined;
     form?.setFieldValue('seaMasterBillCandidateId', undefined);
+    form?.setFieldValue('seaMasterBillCandidateTeId', undefined);
+    form?.setFieldValue('seaMasterBillExpectedCandidateTeVersion', undefined);
     form?.setFieldValue(
       'seaMasterBillExpectedCandidateVersion',
       currentMblVersion,
@@ -154,6 +158,17 @@ export function SeaMasterBillFields({
           setCandidate(resp.candidate);
           setConflicts(resp.conflicts || []);
           setCandidateMatched(true);
+          const availableExecutions = resp.candidate.transportExecutions ?? [];
+          if (availableExecutions.length === 1) {
+            form?.setFieldValue(
+              'seaMasterBillCandidateTeId',
+              availableExecutions[0].id,
+            );
+            form?.setFieldValue(
+              'seaMasterBillExpectedCandidateTeVersion',
+              availableExecutions[0].version,
+            );
+          }
         } else {
           setCandidate(null);
           setConflicts([]);
@@ -195,7 +210,10 @@ export function SeaMasterBillFields({
     form,
   ]);
 
-  const isConfirmed = !!candidateId;
+  const isConfirmed = !!candidateId && !!candidateTeId;
+  const selectedCandidateTe = candidate?.transportExecutions?.find(
+    (item) => item.id === candidateTeId,
+  );
 
   return (
     <>
@@ -203,6 +221,12 @@ export function SeaMasterBillFields({
         <Input type="hidden" />
       </Form.Item>
       <Form.Item name="seaMasterBillExpectedCandidateVersion" hidden>
+        <Input type="hidden" />
+      </Form.Item>
+      <Form.Item name="seaMasterBillCandidateTeId" hidden>
+        <Input type="hidden" />
+      </Form.Item>
+      <Form.Item name="seaMasterBillExpectedCandidateTeVersion" hidden>
         <Input type="hidden" />
       </Form.Item>
 
@@ -293,12 +317,16 @@ export function SeaMasterBillFields({
               >
                 <span style={{ fontWeight: 600, color: '#389e0d' }}>
                   🔍 匹配到已有共享 MBL：{candidate.masterNo} (船公司:{' '}
-                  {candidate.transportExecution?.shippingLineName || '-'} | 版本: v
+                  {candidate.shippingLineName || '-'} | 版本: v
                   {candidate.version} | 成员: {candidate.memberCount} 票)
                 </span>
                 <Checkbox
                   checked={isConfirmed}
-                  disabled={conflicts.length > 0 || isSingleMemberCorrection}
+                  disabled={
+                    conflicts.length > 0 ||
+                    isSingleMemberCorrection ||
+                    !candidateTeId
+                  }
                   onChange={(e) => {
                     if (e.target.checked) {
                       form?.setFieldValue(
@@ -333,24 +361,43 @@ export function SeaMasterBillFields({
                 </Checkbox>
               </div>
 
-              {candidate.transportExecution && (
+              <Select
+                value={candidateTeId}
+                placeholder="请选择本票关联的实际航次"
+                options={(candidate.transportExecutions ?? []).map((te) => ({
+                  value: te.id,
+                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
+                }))}
+                onChange={(value) => {
+                  const te = candidate.transportExecutions?.find(
+                    (item) => item.id === value,
+                  );
+                  form?.setFieldValue('seaMasterBillCandidateTeId', value);
+                  form?.setFieldValue(
+                    'seaMasterBillExpectedCandidateTeVersion',
+                    te?.version,
+                  );
+                }}
+              />
+
+              {selectedCandidateTe && (
                 <div style={{ fontSize: 13, color: '#595959' }}>
                   <span>运输执行：</span>
                   <span>
-                    船名航次: {candidate.transportExecution.vesselName || '-'} /{' '}
-                    {candidate.transportExecution.voyageNo || '-'} |{' '}
+                    船名航次: {selectedCandidateTe.vesselName || '-'} /{' '}
+                    {selectedCandidateTe.voyageNo || '-'} |{' '}
                   </span>
                   <span>
                     起运港:{' '}
-                    {candidate.transportExecution.originLocationName || '-'} |{' '}
+                    {selectedCandidateTe.originLocationName || '-'} |{' '}
                   </span>
                   <span>
                     卸货港:{' '}
-                    {candidate.transportExecution.dischargeLocationName || '-'}{' '}
+                    {selectedCandidateTe.dischargeLocationName || '-'}{' '}
                     |{' '}
                   </span>
-                  <span>ETD: {candidate.transportExecution.etd || '-'} | </span>
-                  <span>ETA: {candidate.transportExecution.eta || '-'}</span>
+                  <span>ETD: {selectedCandidateTe.etd || '-'} | </span>
+                  <span>ETA: {selectedCandidateTe.eta || '-'}</span>
                 </div>
               )}
 

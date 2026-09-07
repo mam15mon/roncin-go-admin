@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SeaOrderChangeService_GetSeaOrderChangeActions_FullMethodName    = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeActions"
-	SeaOrderChangeService_GetSeaOrderSplitContext_FullMethodName     = "/order.v1.SeaOrderChangeService/GetSeaOrderSplitContext"
-	SeaOrderChangeService_PreviewSeaOrderSplit_FullMethodName        = "/order.v1.SeaOrderChangeService/PreviewSeaOrderSplit"
-	SeaOrderChangeService_ExecuteSeaOrderSplit_FullMethodName        = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderSplit"
-	SeaOrderChangeService_PreviewSeaOrderReassignment_FullMethodName = "/order.v1.SeaOrderChangeService/PreviewSeaOrderReassignment"
-	SeaOrderChangeService_ExecuteSeaOrderReassignment_FullMethodName = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderReassignment"
-	SeaOrderChangeService_ListSeaOrderChangeEvents_FullMethodName    = "/order.v1.SeaOrderChangeService/ListSeaOrderChangeEvents"
-	SeaOrderChangeService_GetSeaOrderChangeEvent_FullMethodName      = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeEvent"
+	SeaOrderChangeService_GetSeaOrderChangeActions_FullMethodName           = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeActions"
+	SeaOrderChangeService_GetSeaOrderSplitContext_FullMethodName            = "/order.v1.SeaOrderChangeService/GetSeaOrderSplitContext"
+	SeaOrderChangeService_PreviewSeaOrderSplit_FullMethodName               = "/order.v1.SeaOrderChangeService/PreviewSeaOrderSplit"
+	SeaOrderChangeService_ExecuteSeaOrderSplit_FullMethodName               = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderSplit"
+	SeaOrderChangeService_PreviewSeaOrderReassignment_FullMethodName        = "/order.v1.SeaOrderChangeService/PreviewSeaOrderReassignment"
+	SeaOrderChangeService_ExecuteSeaOrderReassignment_FullMethodName        = "/order.v1.SeaOrderChangeService/ExecuteSeaOrderReassignment"
+	SeaOrderChangeService_PreviewSeaTransportExecutionUpdate_FullMethodName = "/order.v1.SeaOrderChangeService/PreviewSeaTransportExecutionUpdate"
+	SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate_FullMethodName = "/order.v1.SeaOrderChangeService/ExecuteSeaTransportExecutionUpdate"
+	SeaOrderChangeService_ListSeaOrderChangeEvents_FullMethodName           = "/order.v1.SeaOrderChangeService/ListSeaOrderChangeEvents"
+	SeaOrderChangeService_GetSeaOrderChangeEvent_FullMethodName             = "/order.v1.SeaOrderChangeService/GetSeaOrderChangeEvent"
 )
 
 // SeaOrderChangeServiceClient is the client API for SeaOrderChangeService service.
@@ -47,6 +49,10 @@ type SeaOrderChangeServiceClient interface {
 	PreviewSeaOrderReassignment(ctx context.Context, in *PreviewSeaOrderReassignmentRequest, opts ...grpc.CallOption) (*PreviewSeaOrderReassignmentResponse, error)
 	// ExecuteSeaOrderReassignment 执行整体改配。
 	ExecuteSeaOrderReassignment(ctx context.Context, in *ExecuteSeaOrderReassignmentRequest, opts ...grpc.CallOption) (*ExecuteSeaOrderReassignmentResponse, error)
+	// PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+	PreviewSeaTransportExecutionUpdate(ctx context.Context, in *PreviewSeaTransportExecutionUpdateRequest, opts ...grpc.CallOption) (*PreviewSeaTransportExecutionUpdateResponse, error)
+	// ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+	ExecuteSeaTransportExecutionUpdate(ctx context.Context, in *ExecuteSeaTransportExecutionUpdateRequest, opts ...grpc.CallOption) (*ExecuteSeaTransportExecutionUpdateResponse, error)
 	// ListSeaOrderChangeEvents 查询订单拆票与改配事件历史。
 	ListSeaOrderChangeEvents(ctx context.Context, in *ListSeaOrderChangeEventsRequest, opts ...grpc.CallOption) (*ListSeaOrderChangeEventsResponse, error)
 	// GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。
@@ -121,6 +127,26 @@ func (c *seaOrderChangeServiceClient) ExecuteSeaOrderReassignment(ctx context.Co
 	return out, nil
 }
 
+func (c *seaOrderChangeServiceClient) PreviewSeaTransportExecutionUpdate(ctx context.Context, in *PreviewSeaTransportExecutionUpdateRequest, opts ...grpc.CallOption) (*PreviewSeaTransportExecutionUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewSeaTransportExecutionUpdateResponse)
+	err := c.cc.Invoke(ctx, SeaOrderChangeService_PreviewSeaTransportExecutionUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seaOrderChangeServiceClient) ExecuteSeaTransportExecutionUpdate(ctx context.Context, in *ExecuteSeaTransportExecutionUpdateRequest, opts ...grpc.CallOption) (*ExecuteSeaTransportExecutionUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExecuteSeaTransportExecutionUpdateResponse)
+	err := c.cc.Invoke(ctx, SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *seaOrderChangeServiceClient) ListSeaOrderChangeEvents(ctx context.Context, in *ListSeaOrderChangeEventsRequest, opts ...grpc.CallOption) (*ListSeaOrderChangeEventsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSeaOrderChangeEventsResponse)
@@ -159,6 +185,10 @@ type SeaOrderChangeServiceServer interface {
 	PreviewSeaOrderReassignment(context.Context, *PreviewSeaOrderReassignmentRequest) (*PreviewSeaOrderReassignmentResponse, error)
 	// ExecuteSeaOrderReassignment 执行整体改配。
 	ExecuteSeaOrderReassignment(context.Context, *ExecuteSeaOrderReassignmentRequest) (*ExecuteSeaOrderReassignmentResponse, error)
+	// PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+	PreviewSeaTransportExecutionUpdate(context.Context, *PreviewSeaTransportExecutionUpdateRequest) (*PreviewSeaTransportExecutionUpdateResponse, error)
+	// ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+	ExecuteSeaTransportExecutionUpdate(context.Context, *ExecuteSeaTransportExecutionUpdateRequest) (*ExecuteSeaTransportExecutionUpdateResponse, error)
 	// ListSeaOrderChangeEvents 查询订单拆票与改配事件历史。
 	ListSeaOrderChangeEvents(context.Context, *ListSeaOrderChangeEventsRequest) (*ListSeaOrderChangeEventsResponse, error)
 	// GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。
@@ -190,6 +220,12 @@ func (UnimplementedSeaOrderChangeServiceServer) PreviewSeaOrderReassignment(cont
 }
 func (UnimplementedSeaOrderChangeServiceServer) ExecuteSeaOrderReassignment(context.Context, *ExecuteSeaOrderReassignmentRequest) (*ExecuteSeaOrderReassignmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExecuteSeaOrderReassignment not implemented")
+}
+func (UnimplementedSeaOrderChangeServiceServer) PreviewSeaTransportExecutionUpdate(context.Context, *PreviewSeaTransportExecutionUpdateRequest) (*PreviewSeaTransportExecutionUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewSeaTransportExecutionUpdate not implemented")
+}
+func (UnimplementedSeaOrderChangeServiceServer) ExecuteSeaTransportExecutionUpdate(context.Context, *ExecuteSeaTransportExecutionUpdateRequest) (*ExecuteSeaTransportExecutionUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExecuteSeaTransportExecutionUpdate not implemented")
 }
 func (UnimplementedSeaOrderChangeServiceServer) ListSeaOrderChangeEvents(context.Context, *ListSeaOrderChangeEventsRequest) (*ListSeaOrderChangeEventsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSeaOrderChangeEvents not implemented")
@@ -326,6 +362,42 @@ func _SeaOrderChangeService_ExecuteSeaOrderReassignment_Handler(srv interface{},
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SeaOrderChangeService_PreviewSeaTransportExecutionUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewSeaTransportExecutionUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeaOrderChangeServiceServer).PreviewSeaTransportExecutionUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeaOrderChangeService_PreviewSeaTransportExecutionUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeaOrderChangeServiceServer).PreviewSeaTransportExecutionUpdate(ctx, req.(*PreviewSeaTransportExecutionUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteSeaTransportExecutionUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeaOrderChangeServiceServer).ExecuteSeaTransportExecutionUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeaOrderChangeServiceServer).ExecuteSeaTransportExecutionUpdate(ctx, req.(*ExecuteSeaTransportExecutionUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SeaOrderChangeService_ListSeaOrderChangeEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListSeaOrderChangeEventsRequest)
 	if err := dec(in); err != nil {
@@ -392,6 +464,14 @@ var SeaOrderChangeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExecuteSeaOrderReassignment",
 			Handler:    _SeaOrderChangeService_ExecuteSeaOrderReassignment_Handler,
+		},
+		{
+			MethodName: "PreviewSeaTransportExecutionUpdate",
+			Handler:    _SeaOrderChangeService_PreviewSeaTransportExecutionUpdate_Handler,
+		},
+		{
+			MethodName: "ExecuteSeaTransportExecutionUpdate",
+			Handler:    _SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate_Handler,
 		},
 		{
 			MethodName: "ListSeaOrderChangeEvents",

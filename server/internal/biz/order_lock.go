@@ -28,7 +28,6 @@ const (
 
 	VersionSourceOrderLock  = "ORDER_LOCK"
 	VersionSourceAmendment  = "AMENDMENT"
-	VersionSourceSwitch     = "SWITCH"
 	VersionSourceVoid       = "VOID"
 	VersionSourceModeChange = "MODE_CHANGE"
 )

@@ -91,13 +91,13 @@ func (_c *SeaSharedContainerAllocationCreate) SetPackageCount(v int) *SeaSharedC
 }
 
 // SetGrossWeightKg sets the "gross_weight_kg" field.
-func (_c *SeaSharedContainerAllocationCreate) SetGrossWeightKg(v float64) *SeaSharedContainerAllocationCreate {
+func (_c *SeaSharedContainerAllocationCreate) SetGrossWeightKg(v string) *SeaSharedContainerAllocationCreate {
 	_c.mutation.SetGrossWeightKg(v)
 	return _c
 }
 
 // SetVolumeCbm sets the "volume_cbm" field.
-func (_c *SeaSharedContainerAllocationCreate) SetVolumeCbm(v float64) *SeaSharedContainerAllocationCreate {
+func (_c *SeaSharedContainerAllocationCreate) SetVolumeCbm(v string) *SeaSharedContainerAllocationCreate {
 	_c.mutation.SetVolumeCbm(v)
 	return _c
 }
@@ -321,11 +321,11 @@ func (_c *SeaSharedContainerAllocationCreate) createSpec() (*SeaSharedContainerA
 		_node.PackageCount = value
 	}
 	if value, ok := _c.mutation.GrossWeightKg(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldGrossWeightKg, field.TypeString, value)
 		_node.GrossWeightKg = value
 	}
 	if value, ok := _c.mutation.VolumeCbm(); ok {
-		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeFloat64, value)
+		_spec.SetField(seasharedcontainerallocation.FieldVolumeCbm, field.TypeString, value)
 		_node.VolumeCbm = value
 	}
 	if value, ok := _c.mutation.Version(); ok {

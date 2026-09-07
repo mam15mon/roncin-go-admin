@@ -32,10 +32,10 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 	}
 	orderVoyage := &biz.SeaTransportExecution{
 		ShippingLineID: shippingLineID,
-		VesselName: strings.TrimSpace(request.GetVesselName()),
-		VoyageNo:   strings.TrimSpace(request.GetVoyageNo()),
-		ETD:        etd,
-		ETA:        eta,
+		VesselName:     strings.TrimSpace(request.GetVesselName()),
+		VoyageNo:       strings.TrimSpace(request.GetVoyageNo()),
+		ETD:            etd,
+		ETA:            eta,
 	}
 	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
 	if err != nil {
@@ -309,6 +309,8 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 		check.CustomerID = &customerID
 	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_INTERNAL:
 		check.ReferenceType = biz.OrderReferenceInternal
+	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_BOOKING:
+		check.ReferenceType = biz.OrderReferenceBooking
 	default:
 		return nil, biz.ErrOrderInvalidArgument
 	}
