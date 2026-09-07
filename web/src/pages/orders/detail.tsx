@@ -56,7 +56,6 @@ import SeaOrderChangeHistoryDrawer, {
 import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
 import SeaSharedContainerDrawer from './components/drawers/SeaSharedContainerDrawer';
 import SeaTransportExecutionUpdateModal from './components/drawers/SeaTransportExecutionUpdateModal';
-import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
@@ -729,9 +728,17 @@ export default function OrderDetailPage() {
             transportExecutionId={sharedContainerTEId}
             orderId={orderId}
             orderNo={order?.orderNo}
-            canManage={
+            canCreate={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'container.create')
+            }
+            canUpdate={
               !businessWritesDisabled &&
               access.canOrder(config.businessType, 'container.update')
+            }
+            canDelete={
+              !businessWritesDisabled &&
+              access.canOrder(config.businessType, 'container.delete')
             }
             containerSpecOptions={containerSpecOptions}
           />

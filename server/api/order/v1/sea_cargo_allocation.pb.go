@@ -2379,20 +2379,17 @@ const file_order_v1_sea_cargo_allocation_proto_rawDesc = "" +
 	"\x18SeaSharedContainerStatus\x12+\n" +
 	"'SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
 	"!SEA_SHARED_CONTAINER_STATUS_DRAFT\x10\x01\x12)\n" +
-	"%SEA_SHARED_CONTAINER_STATUS_CONFIRMED\x10\x022\xf0\r\n" +
-	"\x19SeaSharedContainerService\x12\xaa\x01\n" +
-	"\x17ListSeaSharedContainers\x12(.order.v1.ListSeaSharedContainersRequest\x1a).order.v1.ListSeaSharedContainersResponse\":\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/sea-shared-containers\x12\xa9\x01\n" +
-	"\x15GetSeaSharedContainer\x12&.order.v1.GetSeaSharedContainerRequest\x1a'.order.v1.GetSeaSharedContainerResponse\"?\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/orders/sea-shared-containers/{id}\x12\xcf\x01\n" +
-	" ListSeaSharedContainerCandidates\x121.order.v1.ListSeaSharedContainerCandidatesRequest\x1a2.order.v1.ListSeaSharedContainerCandidatesResponse\"D\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/orders/sea-shared-container-candidates\x12\xb2\x01\n" +
-	"\x18CreateSeaSharedContainer\x12).order.v1.CreateSeaSharedContainerRequest\x1a*.order.v1.CreateSeaSharedContainerResponse\"?\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/sea-shared-containers\x12\xb7\x01\n" +
-	"\x18UpdateSeaSharedContainer\x12).order.v1.UpdateSeaSharedContainerRequest\x1a*.order.v1.UpdateSeaSharedContainerResponse\"D\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/sea-shared-containers/{id}\x12\xb4\x01\n" +
-	"\x18DeleteSeaSharedContainer\x12).order.v1.DeleteSeaSharedContainerRequest\x1a*.order.v1.DeleteSeaSharedContainerResponse\"A\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/sea-shared-containers/{id}\x12\xf3\x01\n" +
-	"&SaveSeaSharedContainerAllocationsDraft\x127.order.v1.SaveSeaSharedContainerAllocationsDraftRequest\x1a8.order.v1.SaveSeaSharedContainerAllocationsDraftResponse\"V\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/orders/sea-shared-containers/{id}/allocations/draft\x12\xc2\x01\n" +
-	"\x19ConfirmSeaSharedContainer\x12*.order.v1.ConfirmSeaSharedContainerRequest\x1a+.order.v1.ConfirmSeaSharedContainerResponse\"L\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/orders/sea-shared-containers/{id}/confirm\x12\xc6\x01\n" +
-	"\x1aWithdrawSeaSharedContainer\x12+.order.v1.WithdrawSeaSharedContainerRequest\x1a,.order.v1.WithdrawSeaSharedContainerResponse\"M\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/orders/sea-shared-containers/{id}/withdrawB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"%SEA_SHARED_CONTAINER_STATUS_CONFIRMED\x10\x022\xca\x0e\n" +
+	"\x19SeaSharedContainerService\x12\xb4\x01\n" +
+	"\x17ListSeaSharedContainers\x12(.order.v1.ListSeaSharedContainersRequest\x1a).order.v1.ListSeaSharedContainersResponse\"D\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/sea-shared-containers\x12\xb3\x01\n" +
+	"\x15GetSeaSharedContainer\x12&.order.v1.GetSeaSharedContainerRequest\x1a'.order.v1.GetSeaSharedContainerResponse\"I\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/orders/sea-shared-containers/{id}\x12\xd9\x01\n" +
+	" ListSeaSharedContainerCandidates\x121.order.v1.ListSeaSharedContainerCandidatesRequest\x1a2.order.v1.ListSeaSharedContainerCandidatesResponse\"N\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/orders/sea-shared-container-candidates\x12\xbc\x01\n" +
+	"\x18CreateSeaSharedContainer\x12).order.v1.CreateSeaSharedContainerRequest\x1a*.order.v1.CreateSeaSharedContainerResponse\"I\x82\xb5\x18\x16\b\x04\x1a\x10container.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/sea-shared-containers\x12\xc1\x01\n" +
+	"\x18UpdateSeaSharedContainer\x12).order.v1.UpdateSeaSharedContainerRequest\x1a*.order.v1.UpdateSeaSharedContainerResponse\"N\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/sea-shared-containers/{id}\x12\xbe\x01\n" +
+	"\x18DeleteSeaSharedContainer\x12).order.v1.DeleteSeaSharedContainerRequest\x1a*.order.v1.DeleteSeaSharedContainerResponse\"K\x82\xb5\x18\x16\b\x04\x1a\x10container.delete \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/sea-shared-containers/{id}\x12\xfd\x01\n" +
+	"&SaveSeaSharedContainerAllocationsDraft\x127.order.v1.SaveSeaSharedContainerAllocationsDraftRequest\x1a8.order.v1.SaveSeaSharedContainerAllocationsDraftResponse\"`\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/orders/sea-shared-containers/{id}/allocations/draft\x12\xcc\x01\n" +
+	"\x19ConfirmSeaSharedContainer\x12*.order.v1.ConfirmSeaSharedContainerRequest\x1a+.order.v1.ConfirmSeaSharedContainerResponse\"V\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/orders/sea-shared-containers/{id}/confirm\x12\xd0\x01\n" +
+	"\x1aWithdrawSeaSharedContainer\x12+.order.v1.WithdrawSeaSharedContainerRequest\x1a,.order.v1.WithdrawSeaSharedContainerResponse\"W\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/orders/sea-shared-containers/{id}/withdrawB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_sea_cargo_allocation_proto_rawDescOnce sync.Once

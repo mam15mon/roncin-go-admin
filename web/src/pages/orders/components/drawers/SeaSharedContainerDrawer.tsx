@@ -5,6 +5,7 @@ import {
   PlusOutlined,
   RollbackOutlined,
   SaveOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import {
   Alert,
@@ -31,7 +32,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Decimal from 'decimal.js';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   seaSharedContainerServiceConfirmSeaSharedContainer,
   seaSharedContainerServiceCreateSeaSharedContainer,
@@ -44,13 +45,19 @@ import {
 
 const { Text, Title } = Typography;
 
+// 候选订单服务端分页大小；共享箱列表一次取分页上限
+const CANDIDATE_PAGE_SIZE = 20;
+const CONTAINER_PAGE_SIZE = 200;
+
 export type SeaSharedContainerDrawerProps = {
   open: boolean;
   onClose: () => void;
   transportExecutionId?: string;
   orderId?: string;
   orderNo?: string;
-  canManage?: boolean;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
   containerSpecOptions?: { label: string; value: string | number }[];
 };
 
@@ -79,7 +86,9 @@ export default function SeaSharedContainerDrawer({
   transportExecutionId,
   orderId: _currentOrderId,
   orderNo: _currentOrderNo,
-  canManage = true,
+  canCreate = false,
+  canUpdate = false,
+  canDelete = false,
   containerSpecOptions = [],
 }: SeaSharedContainerDrawerProps) {
   const { message } = App.useApp();
@@ -93,6 +102,10 @@ export default function SeaSharedContainerDrawer({
   const [candidates, setCandidates] = useState<
     API.SeaSharedContainerCandidateOrder[]
   >([]);
+  const [candidateKeyword, setCandidateKeyword] = useState('');
+  const [candidateSearching, setCandidateSearching] = useState('');
+  const [candidatePage, setCandidatePage] = useState(1);
+  const [candidateTotal, setCandidateTotal] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createForm] = Form.useForm();
 
@@ -104,32 +117,27 @@ export default function SeaSharedContainerDrawer({
     >
   >({});
 
-  // 加载共享箱列表与候选订单
-  const loadData = async () => {
+  // 加载共享箱列表
+  const loadContainers = useCallback(async () => {
     if (!transportExecutionId) return;
     setLoading(true);
     try {
-      const [containersResp, candidatesResp] = await Promise.all([
-        seaSharedContainerServiceListSeaSharedContainers({
+      const containersResp = await seaSharedContainerServiceListSeaSharedContainers(
+        {
           transportExecutionId,
-          pageSize: 100,
-        }),
-        seaSharedContainerServiceListSeaSharedContainerCandidates({
-          transportExecutionId,
-        }),
-      ]);
-
+          pageSize: CONTAINER_PAGE_SIZE,
+        },
+      );
       const containerList = containersResp?.data || [];
       setContainers(containerList);
-      setCandidates(candidatesResp?.data || []);
 
       if (containerList.length > 0) {
-        if (
-          !selectedContainerId ||
-          !containerList.some((c) => c.id === selectedContainerId)
-        ) {
-          setSelectedContainerId(containerList[0].id || null);
-        }
+        setSelectedContainerId((prev) => {
+          if (prev && containerList.some((c) => c.id === prev)) {
+            return prev;
+          }
+          return containerList[0].id || null;
+        });
       } else {
         setSelectedContainerId(null);
       }
@@ -138,13 +146,47 @@ export default function SeaSharedContainerDrawer({
     } finally {
       setLoading(false);
     }
-  };
+  }, [transportExecutionId, message]);
+
+  // 加载候选订单（服务端关键字过滤 + 分页）
+  const loadCandidates = useCallback(
+    async (keyword: string, page: number) => {
+      if (!transportExecutionId) return;
+      try {
+        const resp = await seaSharedContainerServiceListSeaSharedContainerCandidates(
+          {
+            transportExecutionId,
+            page,
+            pageSize: CANDIDATE_PAGE_SIZE,
+            keyword: keyword || undefined,
+          },
+        );
+        setCandidates(resp?.data || []);
+        setCandidateTotal(Number(resp?.total || 0));
+      } catch (err: unknown) {
+        message.error(
+          err instanceof Error ? err.message : '加载候选订单失败',
+        );
+      }
+    },
+    [transportExecutionId, message],
+  );
 
   useEffect(() => {
     if (open && transportExecutionId) {
-      void loadData();
+      setCandidateKeyword('');
+      setCandidateSearching('');
+      setCandidatePage(1);
+      void loadContainers();
+      void loadCandidates('', 1);
     }
-  }, [open, transportExecutionId]);
+  }, [open, transportExecutionId, loadContainers, loadCandidates]);
+
+  // 候选关键字或页码变化时重新查询服务端
+  useEffect(() => {
+    if (!open || !transportExecutionId) return;
+    void loadCandidates(candidateKeyword, candidatePage);
+  }, [open, transportExecutionId, candidateKeyword, candidatePage, loadCandidates]);
 
   // 当前选中的共享箱
   const selectedContainer = useMemo(() => {
@@ -303,9 +345,13 @@ export default function SeaSharedContainerDrawer({
     }));
   };
 
-  // 构建提交 payload
+  // 构建提交 payload：当前页编辑值 + 未在当前页展示的既有分配原样保留，
+  // 避免候选分页后保存草稿丢失其他页订单的分配。
   const buildAllocationInputs = (): API.SeaSharedContainerAllocationInput[] => {
     const inputs: API.SeaSharedContainerAllocationInput[] = [];
+    const visibleKeys = new Set(
+      flatCargoList.map((r) => `${r.orderId}:${r.cargoItemId}`),
+    );
     for (const record of flatCargoList) {
       const key = `${record.orderId}:${record.cargoItemId}`;
       const alloc = allocationMap[key];
@@ -329,6 +375,34 @@ export default function SeaSharedContainerDrawer({
         });
       }
     }
+    if (selectedContainer?.allocations) {
+      for (const alloc of selectedContainer.allocations) {
+        if (!alloc.orderId || !alloc.cargoItemId || !alloc.houseBillId) continue;
+        const key = `${alloc.orderId}:${alloc.cargoItemId}`;
+        if (visibleKeys.has(key)) continue;
+        const edited = allocationMap[key];
+        if (!edited) continue;
+        if (
+          edited.packageCount <= 0 &&
+          new Decimal(edited.grossWeightKg || 0).lte(0) &&
+          new Decimal(edited.volumeCbm || 0).lte(0)
+        ) {
+          continue;
+        }
+        inputs.push({
+          orderId: alloc.orderId,
+          houseBillId: alloc.houseBillId,
+          cargoItemId: alloc.cargoItemId,
+          packageCount: edited.packageCount,
+          grossWeightKg: edited.grossWeightKg,
+          volumeCbm: edited.volumeCbm,
+          expectedOrderVersion: String(alloc.orderVersion || 1),
+          expectedLinkVersion: String(alloc.linkVersion || 1),
+          expectedHouseBillVersion: String(alloc.houseBillVersion || 1),
+          expectedCargoItemVersion: String(alloc.cargoItemVersion || 1),
+        });
+      }
+    }
     return inputs;
   };
 
@@ -347,7 +421,7 @@ export default function SeaSharedContainerDrawer({
         },
       );
       message.success('共享箱分配草稿已保存');
-      await loadData();
+      await Promise.all([loadContainers(), loadCandidates(candidateKeyword, candidatePage)]);
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '保存草稿失败');
     } finally {
@@ -386,7 +460,7 @@ export default function SeaSharedContainerDrawer({
         },
       );
       message.success('共享箱分配已确认生效');
-      await loadData();
+      await Promise.all([loadContainers(), loadCandidates(candidateKeyword, candidatePage)]);
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '确认分配失败');
     } finally {
@@ -407,7 +481,7 @@ export default function SeaSharedContainerDrawer({
         },
       );
       message.success('已撤回至草稿状态');
-      await loadData();
+      await Promise.all([loadContainers(), loadCandidates(candidateKeyword, candidatePage)]);
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '撤回失败');
     } finally {
@@ -426,7 +500,7 @@ export default function SeaSharedContainerDrawer({
       });
       message.success('共享物理箱已删除');
       setSelectedContainerId(null);
-      await loadData();
+      await loadContainers();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '删除共享箱失败');
     } finally {
@@ -454,7 +528,7 @@ export default function SeaSharedContainerDrawer({
       message.success('共享物理箱已创建');
       setCreateModalOpen(false);
       createForm.resetFields();
-      await loadData();
+      await loadContainers();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '创建共享箱失败');
     } finally {
@@ -503,7 +577,7 @@ export default function SeaSharedContainerDrawer({
           min={0}
           max={record.totalPackageCount}
           value={record.packageCount}
-          disabled={isConfirmed || !canManage}
+          disabled={isConfirmed || !canUpdate}
           onChange={(val) =>
             handleUpdateAllocation(
               record.orderId,
@@ -522,7 +596,7 @@ export default function SeaSharedContainerDrawer({
       render: (_, record) => (
         <Input
           value={record.grossWeightKg}
-          disabled={isConfirmed || !canManage}
+          disabled={isConfirmed || !canUpdate}
           onChange={(e) =>
             handleUpdateAllocation(
               record.orderId,
@@ -541,7 +615,7 @@ export default function SeaSharedContainerDrawer({
       render: (_, record) => (
         <Input
           value={record.volumeCbm}
-          disabled={isConfirmed || !canManage}
+          disabled={isConfirmed || !canUpdate}
           onChange={(e) =>
             handleUpdateAllocation(
               record.orderId,
@@ -558,7 +632,7 @@ export default function SeaSharedContainerDrawer({
       title: '快捷操作',
       width: 110,
       render: (_, record) =>
-        !isConfirmed && canManage ? (
+        !isConfirmed && canUpdate ? (
           <Button
             size="small"
             type="link"
@@ -581,7 +655,7 @@ export default function SeaSharedContainerDrawer({
       destroyOnClose
       extra={
         <Space>
-          {canManage && (
+          {canCreate && (
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -619,7 +693,7 @@ export default function SeaSharedContainerDrawer({
                 description="当前航次暂无共享物理箱"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               >
-                {canManage && (
+                {canCreate && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -731,7 +805,7 @@ export default function SeaSharedContainerDrawer({
                 }
                 extra={
                   <Space>
-                    {!isConfirmed && canManage && (
+                    {!isConfirmed && canUpdate && (
                       <>
                         <Button
                           icon={<SaveOutlined />}
@@ -751,7 +825,7 @@ export default function SeaSharedContainerDrawer({
                         </Button>
                       </>
                     )}
-                    {isConfirmed && canManage && (
+                    {isConfirmed && canUpdate && (
                       <Button
                         icon={<RollbackOutlined />}
                         onClick={handleWithdraw}
@@ -760,7 +834,7 @@ export default function SeaSharedContainerDrawer({
                         撤回至草稿
                       </Button>
                     )}
-                    {!isConfirmed && canManage && (
+                    {!isConfirmed && canDelete && (
                       <Popconfirm
                         title="确定删除此共享物理箱？"
                         description="删除后相关草稿分配将一并清理。"
@@ -800,14 +874,29 @@ export default function SeaSharedContainerDrawer({
                 </Descriptions>
               </Card>
 
-              {/* 跨订单货物分配表格 */}
+              {/* 跨订单货物分配表格：服务端关键字搜索 + 分页 */}
               <Card
-                title={`同航次待分配 HOUSE 订单货物 (${candidates.length} 票)`}
+                title={`同航次待分配 HOUSE 订单货物 (${candidateTotal} 票)`}
                 size="small"
+                extra={
+                  <Input.Search
+                    allowClear
+                    size="small"
+                    style={{ width: 260 }}
+                    placeholder="搜索订单号 / 业务号 / 分单号"
+                    prefix={<SearchOutlined />}
+                    value={candidateSearching}
+                    onChange={(e) => setCandidateSearching(e.target.value)}
+                    onSearch={(value) => {
+                      setCandidateKeyword(value.trim());
+                      setCandidatePage(1);
+                    }}
+                  />
+                }
               >
                 {candidates.length === 0 ? (
                   <Empty
-                    description="本航次暂无其他 HOUSE 订单可供拼箱"
+                    description="未找到符合条件的 HOUSE 订单可供拼箱"
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                   />
                 ) : (
@@ -815,7 +904,14 @@ export default function SeaSharedContainerDrawer({
                     columns={columns}
                     dataSource={flatCargoList}
                     rowKey={(r) => `${r.orderId}:${r.cargoItemId}`}
-                    pagination={false}
+                    pagination={{
+                      current: candidatePage,
+                      pageSize: CANDIDATE_PAGE_SIZE,
+                      total: candidateTotal,
+                      showSizeChanger: false,
+                      showTotal: (total) => `共 ${total} 票`,
+                      onChange: (page) => setCandidatePage(page),
+                    }}
                     size="small"
                     bordered
                   />

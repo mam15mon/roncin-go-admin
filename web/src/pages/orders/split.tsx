@@ -13,6 +13,7 @@ import {
   Card,
   Checkbox,
   Col,
+  Form,
   Input,
   InputNumber,
   Popconfirm,
@@ -42,6 +43,10 @@ import {
 } from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
 import { searchShippingLineOptions } from '@/utils/options';
+import SeaExternalConfirmationFields, {
+  buildSeaExternalConfirmation,
+  type SeaExternalConfirmationFormValues,
+} from './templates/components/sea/SeaExternalConfirmationFields';
 import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
@@ -249,6 +254,7 @@ export default function SeaOrderSplitPage() {
   >({}); // attId -> resultKeys[]
   const initialPreviewTriggeredRef = useRef(false);
   const [note, setNote] = useState<string>('');
+  const [confirmationForm] = Form.useForm<SeaExternalConfirmationFormValues>();
 
   // 预览与校验结果
   const [previewing, setPreviewing] = useState(false);
@@ -806,6 +812,18 @@ export default function SeaOrderSplitPage() {
       );
       return;
     }
+    // 任一结果换入其他母单（含新建）即产生内嵌改配，必须携带外部确认
+    let confirmation: API.SeaExternalConfirmationInput | undefined;
+    if (results.some((r) => r.targetType !== 'CURRENT')) {
+      try {
+        confirmation = buildSeaExternalConfirmation(
+          await confirmationForm.validateFields(),
+        );
+      } catch {
+        message.error('请完整填写承运方外部确认信息后再执行拆票');
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const targets = buildTargets(results);
@@ -830,6 +848,7 @@ export default function SeaOrderSplitPage() {
         results: splitResults,
         note: note ? note.trim() : undefined,
         expectedVersions,
+        confirmation,
       };
       const hash = computeCanonicalSha256(payloadForHash);
       const fingerprint = `split-fp:${hash}`;
@@ -845,6 +864,7 @@ export default function SeaOrderSplitPage() {
           targets,
           results: splitResults,
           expectedVersions,
+          confirmation,
         },
       );
 
@@ -2274,6 +2294,24 @@ export default function SeaOrderSplitPage() {
               onChange={(e) => setNote(e.target.value)}
             />
           </SectionCard>
+
+          {/* 7. 外部确认区块：任一结果换入其他母单（内嵌改配）时必填 */}
+          {results.some((r) => r.targetType !== 'CURRENT') && (
+            <SectionCard
+              title={
+                <Space>
+                  <Text strong>承运方外部确认</Text>
+                  <Text type="danger" style={{ fontSize: 12 }}>
+                    （检测到结果票换入其他母单，将产生内嵌改配，必须记录外部确认）
+                  </Text>
+                </Space>
+              }
+            >
+              <Form form={confirmationForm} layout="vertical">
+                <SeaExternalConfirmationFields orderId={orderId} />
+              </Form>
+            </SectionCard>
+          )}
 
           {/* 7. 实时守恒与重算校验区块 */}
           <SectionCard

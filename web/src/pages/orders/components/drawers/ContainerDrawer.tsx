@@ -18,7 +18,6 @@ import {
   orderContainerServiceRemoveContainer,
   orderContainerServiceUpdateContainer,
 } from '@/services/roncin/orderContainerService';
-import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import SeaSharedContainerDrawer from './SeaSharedContainerDrawer';
 
 const { Text } = Typography;
@@ -256,7 +255,7 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
           </>
         )}
         extraToolbar={(order) => {
-          if (!order || order.businessType !== 1) return []; // 1: BUSINESS_TYPE_SE
+          if (order?.businessType !== 1) return []; // 1: BUSINESS_TYPE_SE
           return [
             <Button
               key="shared-container"
@@ -285,7 +284,9 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
         transportExecutionId={sharedTEId}
         orderId={currentOrder?.id}
         orderNo={currentOrder?.orderNo}
-        canManage={canCreate || canUpdate}
+        canCreate={canCreate}
+        canUpdate={canUpdate}
+        canDelete={canRemove}
         containerSpecOptions={containerSpecOptions}
       />
     </>
