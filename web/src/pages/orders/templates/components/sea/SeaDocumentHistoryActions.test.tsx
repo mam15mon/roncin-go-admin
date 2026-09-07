@@ -164,7 +164,7 @@ describe('SeaDocumentHistoryActions', () => {
     expect(screen.getByRole('button', { name: /版本与事件/ })).toBeEnabled();
     expect(screen.getByRole('button', { name: /单\s*改/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /作废/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Switch B\/L/ })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /Switch B\/L/ })).toBeNull();
   });
 
   it('MBL 不可变版本展开后显示船公司名称', async () => {
