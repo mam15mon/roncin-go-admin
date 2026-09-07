@@ -269,6 +269,13 @@ func (s *SeaOrderChangeService) ExecuteSeaOrderSplit(ctx context.Context, reques
 	}
 	input.IdempotencyKey = request.GetIdempotencyKey()
 	input.RequestFingerprint = request.GetRequestFingerprint()
+	// confirmation 仅在存在非当前母单目标时必填，由用例层校验；未携带时保持 nil
+	if request.GetConfirmation() != nil {
+		input.Confirmation, err = seaExternalConfirmationFromAPI(request.GetConfirmation())
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	event, err := s.usecase.ExecuteSplit(ctx, principal.Organization.ID, principal.UserID, input)
 	if err != nil {

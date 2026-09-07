@@ -405,6 +405,8 @@ message ExecuteSeaOrderSplitRequest {
   repeated SeaOrderSplitTargetInput targets = 5 [(google.api.field_behavior) = REQUIRED];
   repeated SeaOrderSplitResultInput results = 6 [(google.api.field_behavior) = REQUIRED];
   SeaOrderSplitExpectedVersions expected_versions = 7 [(google.api.field_behavior) = REQUIRED];
+  // 任一结果目标不是当前母单（即产生内嵌改配）时必填
+  SeaExternalConfirmationInput confirmation = 8;
 }
 
 message ExecuteSeaOrderSplitResponse {

@@ -21060,6 +21060,14 @@
           },
           "expectedVersions": {
             "$ref": "#/components/schemas/order.v1.SeaOrderSplitExpectedVersions"
+          },
+          "confirmation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.v1.SeaExternalConfirmationInput"
+              }
+            ],
+            "description": "任一结果目标不是当前母单（即产生内嵌改配）时必填"
           }
         }
       },

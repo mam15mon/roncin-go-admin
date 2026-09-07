@@ -889,6 +889,8 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		TradeDirection: "export",
 		TradeTerm:      "FOB",
 		PaymentTerm:    "PREPAID",
+		ShippingLineID: &shippingLine.ID,
+		VesselVoyage:   "UO SHIP / 101",
 		SeaDocumentInput: &biz.SeaOrderDocumentInput{
 			DocumentStructure:   &strDirect,
 			ExpectedLinkVersion: &ver,

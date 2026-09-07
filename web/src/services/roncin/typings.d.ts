@@ -1977,6 +1977,8 @@ declare namespace API {
     targets: SeaOrderSplitTargetInput[];
     results: SeaOrderSplitResultInput[];
     expectedVersions: SeaOrderSplitExpectedVersions;
+    /** 任一结果目标不是当前母单（即产生内嵌改配）时必填 */
+    confirmation?: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaOrderSplitResponse = {

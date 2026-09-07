@@ -11,17 +11,19 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+func u64Ptr(v uint64) *uint64 { return &v }
+
 type mockSeaOrderChangeRepo struct {
-	getActionsFunc           func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderChangeActions, error)
-	getSplitCtxFunc          func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderSplitContext, error)
-	previewSplitFunc         func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error)
-	executeSplitFunc         func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderSplitInput, audit *AuditEvent) (*SeaOrderSplitEvent, error)
-	getSplitEventByIdempFunc func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error)
-	previewReasFunc          func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error)
-	executeReasFunc          func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderReassignmentInput, audit *AuditEvent) (*SeaOrderReassignmentEvent, error)
-	getReasEventByIdempFunc  func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderReassignmentEvent, error)
-	getSplitEventFunc        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderSplitEvent, error)
-	getReassignmentEventFunc func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
+	getActionsFunc                      func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderChangeActions, error)
+	getSplitCtxFunc                     func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderSplitContext, error)
+	previewSplitFunc                    func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error)
+	executeSplitFunc                    func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderSplitInput, audit *AuditEvent) (*SeaOrderSplitEvent, error)
+	getSplitEventByIdempFunc            func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error)
+	previewReasFunc                     func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error)
+	executeReasFunc                     func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderReassignmentInput, audit *AuditEvent) (*SeaOrderReassignmentEvent, error)
+	getReasEventByIdempFunc             func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderReassignmentEvent, error)
+	getSplitEventFunc                   func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderSplitEvent, error)
+	getReassignmentEventFunc            func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
 	listEventsFunc                      func(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
 	getEventFunc                        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
 	previewTransportExecutionUpdateFunc func(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error)
@@ -272,8 +274,9 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 			{ClientResultKey: "res-new-1", ResultRole: ResultRoleCreated, ClientTargetKey: targetKey},
 		},
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
-			OrderVersion: 1,
-			LinkVersion:  1,
+			OrderVersion:      1,
+			LinkVersion:       1,
+			CurrentHBLVersion: u64Ptr(1),
 		},
 	}
 
@@ -356,8 +359,8 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 	input := &SeaOrderReassignmentInput{
 		OrderID: orderID,
 		Target: &SeaOrderReassignmentTargetInput{
-			TargetType:      "NEW",
-			MasterNo:        "NEWMBL",
+			TargetType:     "NEW",
+			MasterNo:       "NEWMBL",
 			ShippingLineID: &partnerID,
 		},
 		Reason:               "客户要求改配",
@@ -483,6 +486,7 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
 			OrderVersion:         1,
 			LinkVersion:          1,
+			CurrentHBLVersion:    u64Ptr(1),
 			CandidateMBLVersions: map[uuid.UUID]uint64{candidateID: candidateVersion},
 		},
 	}
@@ -553,7 +557,7 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 			{ClientResultKey: "original", ResultRole: ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: ResultRoleCreated, ClientTargetKey: "current"},
 		},
-		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
+		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, CurrentHBLVersion: u64Ptr(1)},
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("split recovery must propagate lookup error, got %v", err)
@@ -623,8 +627,9 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 	uc := NewSeaOrderChangeUsecase(repo, &mockTransactor{})
 
 	validExpected := &SeaOrderSplitExpectedVersions{
-		OrderVersion: 1,
-		LinkVersion:  1,
+		OrderVersion:      1,
+		LinkVersion:       1,
+		CurrentHBLVersion: u64Ptr(1),
 		CandidateMBLVersions: map[uuid.UUID]uint64{
 			candMBLID: 2,
 		},
@@ -953,9 +958,9 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 		{
 			name: "合法NEW目标校验成功",
 			target: &SeaOrderReassignmentTargetInput{
-				TargetType:      SplitTargetTypeNew,
-				MasterNo:        "NEWMBL001",
-				ShippingLineID:       &issuerID,
+				TargetType:     SplitTargetTypeNew,
+				MasterNo:       "NEWMBL001",
+				ShippingLineID: &issuerID,
 			},
 			wantError: false,
 		},
@@ -967,7 +972,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateVersion:   u64(candMBLVer),
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
-				ShippingLineID:          &issuerID,
+				ShippingLineID:     &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),

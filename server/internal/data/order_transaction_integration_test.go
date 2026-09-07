@@ -75,7 +75,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		input.SeaDocumentInput = &biz.SeaOrderDocumentInput{
 			DocumentStructure: &structure,
 			HouseBill: &biz.SeaHouseBillInput{
-				HouseNo: "  HBL-AUDIT-001  ", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+				HouseNo: "HBL-AUDIT-001", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 			},
 		}
 		created, err := fixture.newUsecase().Create(context.Background(), fixture.organizationID, fixture.actorID, input)
@@ -156,7 +156,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建草稿订单: %v", err)
 		}
-		first, second := fixture.validInput(), fixture.validInput()
+		first, second := fixture.validUpdateInput(), fixture.validUpdateInput()
 		first.GoodsDescription = "并发修改一"
 		second.GoodsDescription = "并发修改二"
 		results := runOrderWritesConcurrently(
@@ -225,6 +225,20 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		order2Input.SeaMasterBillInput.MasterNo = "COSCO999901"
 		order2Input.SeaMasterBillInput.CandidateID = &matchResult.Candidate.ID
 		order2Input.SeaMasterBillInput.ExpectedCandidateVersion = &matchResult.Candidate.Version
+		order1Link, err := data.db.SeaMasterBillOrderLink.Query().Where(
+			seamasterbillorderlink.OrganizationIDEQ(fixture.organizationID),
+			seamasterbillorderlink.OrderIDEQ(order1.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).Only(ctx)
+		if err != nil {
+			t.Fatalf("读取订单1活动关联失败: %v", err)
+		}
+		order1TE, err := data.db.SeaTransportExecution.Get(ctx, order1Link.TransportExecutionID)
+		if err != nil {
+			t.Fatalf("读取订单1运输执行失败: %v", err)
+		}
+		order2Input.SeaMasterBillInput.CandidateTEID = &order1TE.ID
+		order2Input.SeaMasterBillInput.ExpectedCandidateTEVersion = &order1TE.Version
 		order2, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, order2Input)
 		if err != nil {
 			t.Fatalf("确认关联创建订单2失败: %v", err)
@@ -234,7 +248,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 5. 此时主单有 2 个成员，尝试单票修改主单号 -> 必须被拦截 (ErrSeaMasterBillCorrectionBlocked)
-		order1UpdateAttempt := fixture.validInput()
+		order1UpdateAttempt := fixture.validUpdateInput()
 		order1UpdateAttempt.SeaMasterBillInput.MasterNo = "COSCO999902"
 		order1UpdateAttempt.SeaMasterBillInput.CorrectionReason = "尝试修改共享主单号"
 		_, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, order1.ID, order1.Version, order1UpdateAttempt)
@@ -243,7 +257,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		otherCarrier := fixture.createCarrier(ctx, "SHARED-OTHER-CARRIER-"+fixture.suffix)
-		order1CarrierUpdateAttempt := fixture.validInput()
+		order1CarrierUpdateAttempt := fixture.validUpdateInput()
 		order1CarrierUpdateAttempt.ShippingLineID = &otherCarrier.ID
 		order1CarrierUpdateAttempt.SeaMasterBillInput.MasterNo = "COSCO999901"
 		order1CarrierUpdateAttempt.SeaMasterBillInput.CorrectionReason = "尝试修改共享主单船公司"
@@ -272,7 +286,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 7. 单票 MBL 修改主单号，未填写更正原因 -> 失败
-		order3NoReason := fixture.validInput()
+		order3NoReason := fixture.validUpdateInput()
 		order3NoReason.SeaMasterBillInput.MasterNo = "MSCU888802"
 		order3NoReason.SeaMasterBillInput.ExpectedCandidateVersion = &order3.SeaMasterBill.Version
 		order3NoReason.SeaMasterBillInput.CorrectionReason = ""
@@ -282,7 +296,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 8. 单票 MBL 修改主单号，填写更正原因 -> 成功
-		order3WithReason := fixture.validInput()
+		order3WithReason := fixture.validUpdateInput()
 		order3WithReason.SeaMasterBillInput.MasterNo = "MSCU888802"
 		order3WithReason.SeaMasterBillInput.ExpectedCandidateVersion = &order3.SeaMasterBill.Version
 		order3WithReason.SeaMasterBillInput.CorrectionReason = "输入录入错误更正"
@@ -296,7 +310,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 
 		// 9. 单成员 MBL 更换船公司时，Order、TE、MBL 必须在同一事务内同步。
 		newCarrier := fixture.createCarrier(ctx, "SINGLE-NEW-CARRIER-"+fixture.suffix)
-		order3CarrierUpdate := fixture.validInput()
+		order3CarrierUpdate := fixture.validUpdateInput()
 		order3CarrierUpdate.ShippingLineID = &newCarrier.ID
 		order3CarrierUpdate.SeaMasterBillInput.MasterNo = "MSCU888802"
 		order3CarrierUpdate.SeaMasterBillInput.ExpectedCandidateVersion = &updatedOrder3.SeaMasterBill.Version
@@ -384,9 +398,19 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取第二船公司主单: %v", err)
 		}
+		createdLink, err := data.db.SeaMasterBillOrderLink.Query().Where(
+			seamasterbillorderlink.OrganizationIDEQ(fixture.organizationID),
+			seamasterbillorderlink.OrderIDEQ(created.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).Only(ctx)
+		if err != nil {
+			t.Fatalf("读取已创建订单活动关联失败: %v", err)
+		}
 		_, err = data.db.SeaMasterBillOrderLink.Create().
 			SetOrganizationID(fixture.organizationID).
 			SetMasterBillID(masterBill.ID).
+			SetTransportExecutionID(createdLink.TransportExecutionID).
+			SetDocumentStructure(seamasterbillorderlink.DocumentStructureHOUSE).
 			SetOrderID(created.ID).
 			SetStatus(seamasterbillorderlink.StatusACTIVE).
 			SetStartedAt(time.Now().UTC()).
@@ -422,6 +446,20 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		second.SeaMasterBillInput.MasterNo = masterNo
 		second.SeaMasterBillInput.CandidateID = &order1.SeaMasterBill.MasterBillID
 		second.SeaMasterBillInput.ExpectedCandidateVersion = &order1.SeaMasterBill.Version
+		order1ActiveLink, err := data.db.SeaMasterBillOrderLink.Query().Where(
+			seamasterbillorderlink.OrganizationIDEQ(fixture.organizationID),
+			seamasterbillorderlink.OrderIDEQ(order1.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).Only(ctx)
+		if err != nil {
+			t.Fatalf("读取共享订单1活动关联失败: %v", err)
+		}
+		order1ActiveTE, err := data.db.SeaTransportExecution.Get(ctx, order1ActiveLink.TransportExecutionID)
+		if err != nil {
+			t.Fatalf("读取共享订单1运输执行失败: %v", err)
+		}
+		second.SeaMasterBillInput.CandidateTEID = &order1ActiveTE.ID
+		second.SeaMasterBillInput.ExpectedCandidateTEVersion = &order1ActiveTE.Version
 		second.VesselVoyage = "EVER GIVEN / 001W"
 		second.ETD = "2026-09-10T00:00:00Z"
 		second.ETA = "2026-09-25T00:00:00Z"
@@ -432,7 +470,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 尝试修改订单1的船名航次与共享运输执行冲突 -> 必须阻断
-		conflictUpdate := fixture.validInput()
+		conflictUpdate := fixture.validUpdateInput()
 		conflictUpdate.SeaMasterBillInput.MasterNo = masterNo
 		conflictUpdate.VesselVoyage = "EVER GIVEN / 002E"
 		conflictUpdate.ETD = "2026-09-10T00:00:00Z"
@@ -444,7 +482,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 修改目的地不参与共享航程冲突校验 -> 必须成功
-		destUpdate := fixture.validInput()
+		destUpdate := fixture.validUpdateInput()
 		destUpdate.SeaMasterBillInput.MasterNo = masterNo
 		destUpdate.VesselVoyage = "EVER GIVEN / 001W"
 		destUpdate.ETD = "2026-09-10T00:00:00Z"
@@ -477,7 +515,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 单成员修改航程
-		updateInput := fixture.validInput()
+		updateInput := fixture.validUpdateInput()
 		updateInput.SeaMasterBillInput.MasterNo = masterNo
 		updateInput.VesselVoyage = "VESSEL B / 002"
 		updateInput.ETD = "2026-09-12T00:00:00Z"
@@ -534,7 +572,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 			t.Fatalf("创建已确认分单事实: %v", err)
 		}
 
-		identityUpdate := fixture.validInput()
+		identityUpdate := fixture.validUpdateInput()
 		identityUpdate.SeaMasterBillInput.MasterNo = "NEWDOWN" + strings.ToUpper(fixture.suffix)
 		identityUpdate.SeaMasterBillInput.ExpectedCandidateVersion = &order.SeaMasterBill.Version
 		identityUpdate.SeaMasterBillInput.CorrectionReason = "录入错误"
@@ -544,7 +582,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 			t.Fatalf("存在已确认分单时更正主单身份应被阻断, 实际: %v", err)
 		}
 
-		voyageUpdate := fixture.validInput()
+		voyageUpdate := fixture.validUpdateInput()
 		voyageUpdate.SeaMasterBillInput.MasterNo = input.SeaMasterBillInput.MasterNo
 		voyageUpdate.SeaMasterBillInput.ExpectedCandidateVersion = &order.SeaMasterBill.Version
 		voyageUpdate.VesselVoyage = "VESSEL B / 002"
@@ -727,6 +765,7 @@ func (f *orderPostgresFixture) newUsecase() *biz.OrderUsecase {
 }
 
 func (f *orderPostgresFixture) validInput() *biz.Order {
+	structure := biz.SeaDocumentStructureHouse
 	return &biz.Order{
 		CustomerID:     f.partnerID,
 		ShippingLineID: &f.shippingLineID,
@@ -734,10 +773,25 @@ func (f *orderPostgresFixture) validInput() *biz.Order {
 		TradeDirection: biz.OrderTradeExport,
 		TradeTerm:      biz.OrderTradeFOB,
 		PaymentTerm:    biz.OrderPaymentPrepaid,
+		SeaDocumentInput: &biz.SeaOrderDocumentInput{
+			DocumentStructure: &structure,
+			HouseBill: &biz.SeaHouseBillInput{
+				HouseNo:      "HBL-" + strings.ToUpper(f.suffix[:8]) + strings.ToUpper(uuid.NewString()[:6]),
+				IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+			},
+		},
 		SeaMasterBillInput: &biz.SeaMasterBillInput{
 			MasterNo: "COSCO0001",
 		},
 	}
+}
+
+// validUpdateInput 供 UpdateDraft 使用：HOUSE 结构不携带 HouseBill（HBL 修改必须走专用命令）
+func (f *orderPostgresFixture) validUpdateInput() *biz.Order {
+	// HOUSE 结构调整必须走专用模式切换命令；普通更新不携带单证输入
+	input := f.validInput()
+	input.SeaDocumentInput = nil
+	return input
 }
 
 func runOrderWritesConcurrently(operations ...func(context.Context) (*biz.Order, error)) []orderWriteResult {

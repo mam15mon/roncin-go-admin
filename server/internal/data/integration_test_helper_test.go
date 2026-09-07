@@ -34,6 +34,12 @@ func getIntegrationData(t *testing.T) (*Data, func()) {
 		_ = adminDB.Close()
 		t.Fatalf("连接 PostgreSQL 集成测试数据库失败: %v", err)
 	}
+	// pg_trgm 必须安装在 public：迁移中的 CREATE EXTENSION IF NOT EXISTS 在多个隔离
+	// Schema 并存时会因扩展已存在而跳过，若 opclass 落在某个隔离 Schema 内会导致
+	// 后续 Schema 的 trgm 索引创建失败。失败时回退为各 Schema 内自行安装。
+	if _, err := adminDB.ExecContext(ctx, `CREATE EXTENSION IF NOT EXISTS "pg_trgm" SCHEMA public`); err != nil {
+		t.Logf("在 public 安装 pg_trgm 失败（将由迁移在隔离 Schema 内安装）: %v", err)
+	}
 
 	schemaName := "roncin_test_iso_" + fmt.Sprintf("%x", uuid.New())
 	quotedSchema := `"` + schemaName + `"`

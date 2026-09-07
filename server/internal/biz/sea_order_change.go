@@ -227,6 +227,7 @@ type SeaOrderSplitInput struct {
 	IdempotencyKey     string
 	RequestFingerprint string
 	Note               *string
+	Confirmation       *SeaExternalConfirmation
 	Targets            []*SeaOrderSplitTargetInput
 	Results            []*SeaOrderSplitResultInput
 	ExpectedVersions   *SeaOrderSplitExpectedVersions
@@ -395,7 +396,7 @@ type SeaOrderReassignmentEvent struct {
 	BeforeSnapshot               []byte
 	AfterSnapshot                []byte
 	CreatedBy                    *uuid.UUID
-	Confirmation                *SeaExternalConfirmation
+	Confirmation                 *SeaExternalConfirmation
 }
 
 type SeaTransportExecutionUpdateInput struct {
@@ -713,6 +714,11 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 				return ErrSeaOrderSplitInvalidArgument
 			}
 		}
+		for _, sca := range res.SharedContainerAllocations {
+			if sca == nil || sca.AllocationID == uuid.Nil || sca.PackageCount < 0 || sca.GrossWeightKg.IsNegative() || sca.VolumeCbm.IsNegative() {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
 	}
 	if originalCount != 1 || createdCount < 1 {
 		return ErrSeaOrderSplitInvalidArgument
@@ -792,7 +798,9 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 	}
 	if input.ExpectedVersions == nil ||
 		input.ExpectedVersions.OrderVersion == 0 ||
-		input.ExpectedVersions.LinkVersion == 0 {
+		input.ExpectedVersions.LinkVersion == 0 ||
+		input.ExpectedVersions.CurrentHBLVersion == nil ||
+		*input.ExpectedVersions.CurrentHBLVersion == 0 {
 		return nil, ErrSeaOrderSplitInvalidArgument
 	}
 	if len(input.Results) < 2 {
@@ -800,6 +808,21 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 	}
 	if err := validateSplitTargetsAndResults(input.Targets, input.Results, input.ExpectedVersions); err != nil {
 		return nil, err
+	}
+	// 任一结果目标不是当前母单时，拆票内嵌改配必须携带外部确认
+	needsConfirmation := false
+	for _, target := range input.Targets {
+		if target.TargetType != SplitTargetTypeCurrent {
+			needsConfirmation = true
+			break
+		}
+	}
+	if needsConfirmation {
+		confirmation, err := ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, ErrSeaOrderSplitInvalidArgument
+		}
+		input.Confirmation = confirmation
 	}
 	if input.Note != nil {
 		trimmed := strings.TrimSpace(*input.Note)

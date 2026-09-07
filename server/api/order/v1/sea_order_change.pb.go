@@ -2616,8 +2616,10 @@ type ExecuteSeaOrderSplitRequest struct {
 	Targets            []*SeaOrderSplitTargetInput    `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets,omitempty"`
 	Results            []*SeaOrderSplitResultInput    `protobuf:"bytes,6,rep,name=results,proto3" json:"results,omitempty"`
 	ExpectedVersions   *SeaOrderSplitExpectedVersions `protobuf:"bytes,7,opt,name=expected_versions,json=expectedVersions,proto3" json:"expected_versions,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// 任一结果目标不是当前母单（即产生内嵌改配）时必填
+	Confirmation  *SeaExternalConfirmationInput `protobuf:"bytes,8,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecuteSeaOrderSplitRequest) Reset() {
@@ -2695,6 +2697,13 @@ func (x *ExecuteSeaOrderSplitRequest) GetResults() []*SeaOrderSplitResultInput {
 func (x *ExecuteSeaOrderSplitRequest) GetExpectedVersions() *SeaOrderSplitExpectedVersions {
 	if x != nil {
 		return x.ExpectedVersions
+	}
+	return nil
+}
+
+func (x *ExecuteSeaOrderSplitRequest) GetConfirmation() *SeaExternalConfirmationInput {
+	if x != nil {
+		return x.Confirmation
 	}
 	return nil
 }
@@ -5278,7 +5287,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x0foperation_notes\x18\x0f \x01(\tR\x0eoperationNotes\x12\x1e\n" +
 	"\bhouse_no\x18\x10 \x01(\tH\x01R\ahouseNo\x88\x01\x01B\x18\n" +
 	"\x16_internal_reference_noB\v\n" +
-	"\t_house_no\"\xa4\x03\n" +
+	"\t_house_no\"\xf0\x03\n" +
 	"\x1bExecuteSeaOrderSplitRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12,\n" +
 	"\x0fidempotency_key\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x124\n" +
@@ -5286,7 +5295,8 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x04note\x18\x04 \x01(\tH\x00R\x04note\x88\x01\x01\x12A\n" +
 	"\atargets\x18\x05 \x03(\v2\".order.v1.SeaOrderSplitTargetInputB\x03\xe0A\x02R\atargets\x12A\n" +
 	"\aresults\x18\x06 \x03(\v2\".order.v1.SeaOrderSplitResultInputB\x03\xe0A\x02R\aresults\x12Y\n" +
-	"\x11expected_versions\x18\a \x01(\v2'.order.v1.SeaOrderSplitExpectedVersionsB\x03\xe0A\x02R\x10expectedVersionsB\a\n" +
+	"\x11expected_versions\x18\a \x01(\v2'.order.v1.SeaOrderSplitExpectedVersionsB\x03\xe0A\x02R\x10expectedVersions\x12J\n" +
+	"\fconfirmation\x18\b \x01(\v2&.order.v1.SeaExternalConfirmationInputR\fconfirmationB\a\n" +
 	"\x05_note\"\xb9\x01\n" +
 	"\x1cExecuteSeaOrderSplitResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -5655,57 +5665,58 @@ var file_order_v1_sea_order_change_proto_depIdxs = []int32{
 	14, // 30: order.v1.ExecuteSeaOrderSplitRequest.targets:type_name -> order.v1.SeaOrderSplitTargetInput
 	18, // 31: order.v1.ExecuteSeaOrderSplitRequest.results:type_name -> order.v1.SeaOrderSplitResultInput
 	19, // 32: order.v1.ExecuteSeaOrderSplitRequest.expected_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions
-	28, // 33: order.v1.ExecuteSeaOrderSplitResponse.data:type_name -> order.v1.ExecuteSeaOrderSplitData
-	29, // 34: order.v1.ExecuteSeaOrderSplitData.original_order:type_name -> order.v1.SeaOrderSplitOrderReference
-	30, // 35: order.v1.ExecuteSeaOrderSplitData.created_orders:type_name -> order.v1.SeaOrderSplitCreatedOrder
-	31, // 36: order.v1.PreviewSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
-	34, // 37: order.v1.PreviewSeaOrderReassignmentResponse.data:type_name -> order.v1.SeaOrderReassignmentPreviewData
-	7,  // 38: order.v1.SeaOrderReassignmentPreviewData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
-	7,  // 39: order.v1.SeaOrderReassignmentPreviewData.target_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
-	35, // 40: order.v1.SeaOrderReassignmentPreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
-	31, // 41: order.v1.ExecuteSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
-	60, // 42: order.v1.ExecuteSeaOrderReassignmentRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
-	38, // 43: order.v1.ExecuteSeaOrderReassignmentResponse.data:type_name -> order.v1.ExecuteSeaOrderReassignmentData
-	35, // 44: order.v1.SeaTransportExecutionUpdatePreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
-	61, // 45: order.v1.SeaTransportExecutionUpdatePreviewData.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
-	39, // 46: order.v1.PreviewSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
-	40, // 47: order.v1.PreviewSeaTransportExecutionUpdateResponse.data:type_name -> order.v1.SeaTransportExecutionUpdatePreviewData
-	39, // 48: order.v1.ExecuteSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
-	60, // 49: order.v1.ExecuteSeaTransportExecutionUpdateRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
-	62, // 50: order.v1.ExecuteSeaTransportExecutionUpdateResponse.transport_execution:type_name -> order.v1.SeaTransportExecution
-	47, // 51: order.v1.ListSeaOrderChangeEventsResponse.data:type_name -> order.v1.SeaOrderChangeEventSummary
-	48, // 52: order.v1.SeaOrderChangeEventSummary.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
-	50, // 53: order.v1.SeaOrderChangeEventSummary.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
-	49, // 54: order.v1.SeaOrderSplitEventSummary.results:type_name -> order.v1.SeaOrderSplitResultSummaryItem
-	63, // 55: order.v1.SeaOrderReassignmentEventSummary.confirmation:type_name -> order.v1.SeaExternalConfirmationSummary
-	53, // 56: order.v1.GetSeaOrderChangeEventResponse.data:type_name -> order.v1.SeaOrderChangeEventDetailData
-	48, // 57: order.v1.SeaOrderChangeEventDetailData.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
-	50, // 58: order.v1.SeaOrderChangeEventDetailData.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
-	0,  // 59: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:input_type -> order.v1.GetSeaOrderChangeActionsRequest
-	3,  // 60: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:input_type -> order.v1.GetSeaOrderSplitContextRequest
-	20, // 61: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:input_type -> order.v1.PreviewSeaOrderSplitRequest
-	26, // 62: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:input_type -> order.v1.ExecuteSeaOrderSplitRequest
-	32, // 63: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:input_type -> order.v1.PreviewSeaOrderReassignmentRequest
-	36, // 64: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:input_type -> order.v1.ExecuteSeaOrderReassignmentRequest
-	41, // 65: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:input_type -> order.v1.PreviewSeaTransportExecutionUpdateRequest
-	43, // 66: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:input_type -> order.v1.ExecuteSeaTransportExecutionUpdateRequest
-	45, // 67: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:input_type -> order.v1.ListSeaOrderChangeEventsRequest
-	51, // 68: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:input_type -> order.v1.GetSeaOrderChangeEventRequest
-	1,  // 69: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:output_type -> order.v1.GetSeaOrderChangeActionsResponse
-	4,  // 70: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:output_type -> order.v1.GetSeaOrderSplitContextResponse
-	21, // 71: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:output_type -> order.v1.PreviewSeaOrderSplitResponse
-	27, // 72: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:output_type -> order.v1.ExecuteSeaOrderSplitResponse
-	33, // 73: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:output_type -> order.v1.PreviewSeaOrderReassignmentResponse
-	37, // 74: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:output_type -> order.v1.ExecuteSeaOrderReassignmentResponse
-	42, // 75: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:output_type -> order.v1.PreviewSeaTransportExecutionUpdateResponse
-	44, // 76: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:output_type -> order.v1.ExecuteSeaTransportExecutionUpdateResponse
-	46, // 77: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:output_type -> order.v1.ListSeaOrderChangeEventsResponse
-	52, // 78: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:output_type -> order.v1.GetSeaOrderChangeEventResponse
-	69, // [69:79] is the sub-list for method output_type
-	59, // [59:69] is the sub-list for method input_type
-	59, // [59:59] is the sub-list for extension type_name
-	59, // [59:59] is the sub-list for extension extendee
-	0,  // [0:59] is the sub-list for field type_name
+	60, // 33: order.v1.ExecuteSeaOrderSplitRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	28, // 34: order.v1.ExecuteSeaOrderSplitResponse.data:type_name -> order.v1.ExecuteSeaOrderSplitData
+	29, // 35: order.v1.ExecuteSeaOrderSplitData.original_order:type_name -> order.v1.SeaOrderSplitOrderReference
+	30, // 36: order.v1.ExecuteSeaOrderSplitData.created_orders:type_name -> order.v1.SeaOrderSplitCreatedOrder
+	31, // 37: order.v1.PreviewSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
+	34, // 38: order.v1.PreviewSeaOrderReassignmentResponse.data:type_name -> order.v1.SeaOrderReassignmentPreviewData
+	7,  // 39: order.v1.SeaOrderReassignmentPreviewData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
+	7,  // 40: order.v1.SeaOrderReassignmentPreviewData.target_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
+	35, // 41: order.v1.SeaOrderReassignmentPreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
+	31, // 42: order.v1.ExecuteSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
+	60, // 43: order.v1.ExecuteSeaOrderReassignmentRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	38, // 44: order.v1.ExecuteSeaOrderReassignmentResponse.data:type_name -> order.v1.ExecuteSeaOrderReassignmentData
+	35, // 45: order.v1.SeaTransportExecutionUpdatePreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
+	61, // 46: order.v1.SeaTransportExecutionUpdatePreviewData.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	39, // 47: order.v1.PreviewSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
+	40, // 48: order.v1.PreviewSeaTransportExecutionUpdateResponse.data:type_name -> order.v1.SeaTransportExecutionUpdatePreviewData
+	39, // 49: order.v1.ExecuteSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
+	60, // 50: order.v1.ExecuteSeaTransportExecutionUpdateRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	62, // 51: order.v1.ExecuteSeaTransportExecutionUpdateResponse.transport_execution:type_name -> order.v1.SeaTransportExecution
+	47, // 52: order.v1.ListSeaOrderChangeEventsResponse.data:type_name -> order.v1.SeaOrderChangeEventSummary
+	48, // 53: order.v1.SeaOrderChangeEventSummary.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
+	50, // 54: order.v1.SeaOrderChangeEventSummary.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
+	49, // 55: order.v1.SeaOrderSplitEventSummary.results:type_name -> order.v1.SeaOrderSplitResultSummaryItem
+	63, // 56: order.v1.SeaOrderReassignmentEventSummary.confirmation:type_name -> order.v1.SeaExternalConfirmationSummary
+	53, // 57: order.v1.GetSeaOrderChangeEventResponse.data:type_name -> order.v1.SeaOrderChangeEventDetailData
+	48, // 58: order.v1.SeaOrderChangeEventDetailData.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
+	50, // 59: order.v1.SeaOrderChangeEventDetailData.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
+	0,  // 60: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:input_type -> order.v1.GetSeaOrderChangeActionsRequest
+	3,  // 61: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:input_type -> order.v1.GetSeaOrderSplitContextRequest
+	20, // 62: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:input_type -> order.v1.PreviewSeaOrderSplitRequest
+	26, // 63: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:input_type -> order.v1.ExecuteSeaOrderSplitRequest
+	32, // 64: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:input_type -> order.v1.PreviewSeaOrderReassignmentRequest
+	36, // 65: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:input_type -> order.v1.ExecuteSeaOrderReassignmentRequest
+	41, // 66: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:input_type -> order.v1.PreviewSeaTransportExecutionUpdateRequest
+	43, // 67: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:input_type -> order.v1.ExecuteSeaTransportExecutionUpdateRequest
+	45, // 68: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:input_type -> order.v1.ListSeaOrderChangeEventsRequest
+	51, // 69: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:input_type -> order.v1.GetSeaOrderChangeEventRequest
+	1,  // 70: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:output_type -> order.v1.GetSeaOrderChangeActionsResponse
+	4,  // 71: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:output_type -> order.v1.GetSeaOrderSplitContextResponse
+	21, // 72: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:output_type -> order.v1.PreviewSeaOrderSplitResponse
+	27, // 73: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:output_type -> order.v1.ExecuteSeaOrderSplitResponse
+	33, // 74: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:output_type -> order.v1.PreviewSeaOrderReassignmentResponse
+	37, // 75: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:output_type -> order.v1.ExecuteSeaOrderReassignmentResponse
+	42, // 76: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:output_type -> order.v1.PreviewSeaTransportExecutionUpdateResponse
+	44, // 77: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:output_type -> order.v1.ExecuteSeaTransportExecutionUpdateResponse
+	46, // 78: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:output_type -> order.v1.ListSeaOrderChangeEventsResponse
+	52, // 79: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:output_type -> order.v1.GetSeaOrderChangeEventResponse
+	70, // [70:80] is the sub-list for method output_type
+	60, // [60:70] is the sub-list for method input_type
+	60, // [60:60] is the sub-list for extension type_name
+	60, // [60:60] is the sub-list for extension extendee
+	0,  // [0:60] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_sea_order_change_proto_init() }
