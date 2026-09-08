@@ -7,6 +7,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
+import { TradeTerm } from '@/enums.generated';
 import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
 import {
   shipmentModeOptions,
@@ -230,7 +231,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           />
         </Col>
 
-        {/* 第 5 行：客户业务编号、订舱号、企业内部编号及业务属性 */}
+        {/* 第 5 行：客户业务编号、企业内部编号、订舱号及业务属性 */}
         <Col className="col-5">
           <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
             <Form.Item noStyle name="customerReferenceNo">
@@ -249,13 +250,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                   </Button>
                 }
               />
-            </Form.Item>
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <Form.Item label="订舱号" style={{ marginInline: 8 }}>
-            <Form.Item noStyle name="bookingNo">
-              <TooltipInput placeholder="请输入" maxLength={100} />
             </Form.Item>
           </Form.Item>
         </Col>
@@ -281,12 +275,20 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
         <Col className="col-5">
+          <Form.Item label="订舱号" style={{ marginInline: 8 }}>
+            <Form.Item noStyle name="bookingNo">
+              <TooltipInput placeholder="请输入" maxLength={100} />
+            </Form.Item>
+          </Form.Item>
+        </Col>
+        <Col className="col-5">
           <ProFormSearchableSelect
             name="tradeTerm"
             label="贸易条款"
             rules={[{ required: true, message: '请选择贸易条款' }]}
             options={tradeTermOptions}
             placeholder="请选择"
+            initialValue={TradeTerm.TRADE_TERM_CIF}
           />
         </Col>
         <Col className="col-5">

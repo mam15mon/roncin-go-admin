@@ -8,6 +8,7 @@ import {
   OrderReferenceType,
   ShipmentMode,
   ShipmentType,
+  TradeTerm,
 } from '@/enums.generated';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import OrderPageHeader from './components/OrderPageHeader';
@@ -265,6 +266,7 @@ export default function NewOrderPage() {
               shipmentMode:
                 ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
               shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
+              tradeTerm: TradeTerm.TRADE_TERM_CIF,
               serviceTypeIds: recommendedServiceIDs(
                 serviceTypeOptions,
                 SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,

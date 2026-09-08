@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { App } from 'antd';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { TradeTerm } from '@/enums.generated';
 import NewOrderPage from './new';
 import { useOrderCreateOptions } from './use-order-create-options';
 
@@ -203,5 +204,13 @@ describe('NewOrderPage', () => {
     renderWithApp(<NewOrderPage />);
 
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toBeUndefined();
+  });
+
+  it('海运出口订单默认贸易条款为 CIF', () => {
+    renderWithApp(<NewOrderPage />);
+
+    expect(lastTemplateProps?.initialValues?.tradeTerm).toBe(
+      TradeTerm.TRADE_TERM_CIF,
+    );
   });
 });

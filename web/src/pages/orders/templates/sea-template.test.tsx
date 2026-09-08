@@ -311,6 +311,42 @@ describe('海运订单新增模板', () => {
     expect(currencySelects.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('基本信息中企业内部编号显示在订舱号之前', () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      searchLocations: vi.fn().mockResolvedValue([]),
+      currencyOptions: [],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+    });
+
+    const basicInfo = sections.find((s) => s.key === 'basicInfo');
+    render(
+      <ProForm submitter={false}>
+        <div data-testid="section-basicInfo">{basicInfo?.content}</div>
+      </ProForm>,
+    );
+
+    const internalRefLabel = screen.getByText('企业内部编号');
+    const bookingNoLabel = screen.getByText('订舱号');
+    expect(internalRefLabel).toBeInTheDocument();
+    expect(bookingNoLabel).toBeInTheDocument();
+    expect(
+      internalRefLabel.compareDocumentPosition(bookingNoLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   describe('配舱信息关联分单号只读展示', () => {
     it('尚未建立分单时显示“暂未录入分单号”', () => {
       render(
