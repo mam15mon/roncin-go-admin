@@ -1,6 +1,6 @@
 {"file": "AGENTS.md", "reason": "快速上线、不兼容历史、生成物与提交要求"}
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "工作区状态、页签与草稿命名空间约束"}
-{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "Workspace Context 与 useScopedDraft Hook 设计约束"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "useLatestAsync 与 useAsyncGuard 的职责、依赖和清理约束"}
 {"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "布局容器与业务组件职责边界"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试、类型与门禁要求"}
 {"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "Service、Biz、Data 分层与组织范围解析归属"}

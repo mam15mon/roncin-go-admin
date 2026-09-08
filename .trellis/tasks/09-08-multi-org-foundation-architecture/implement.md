@@ -2,40 +2,28 @@
 
 ## 1. 实施前提
 
-- 本任务当前只完成规划，不运行 `task.py start`，不修改产品代码；
-- 开始实施前，先收尾或暂停当前进行中的
-  `09-08-fix-order-partner-quick-add`，避免同时修改订单模板、草稿和快捷新增组件；
-- 实施时再次检查 `git status`，保留其他任务的未提交改动；
-- 按 Phase 逐组提交，使用 Conventional Commits；
-- 不实现历史兼容、双读双写、灰度开关或全局 Ent 拦截器；
-- 任何清空、重建本地数据库或删除开发数据的命令，执行前取得用户明确授权。
+- 当前只完成规划，不运行 `task.py start`，不修改产品代码；
+- 开始前收尾或暂停进行中的 `09-08-fix-order-partner-quick-add`，避免重叠编辑订单组件；
+- 保留其他未提交改动，按可验证组使用 Conventional Commits；
+- 不实现草稿重构、历史兼容、全局 Ent 拦截器或系统上下文；
+- 清空、重建数据库或删除开发数据前必须单独取得用户授权。
 
-## 2. Phase 1：前端组织工作区
+## 2. Phase 1：前端工作区
 
-### 2.1 建立工作区 Context 与容器
+### 2.1 让页签和页面共享 keyed workspace
 
 目标文件：
 
 - `web/src/app.tsx`
-- `web/src/components/layout/OrganizationWorkspace.tsx`（新增，名称可按目录风格调整）
-- `web/src/components/layout/OrganizationWorkspace.test.tsx`（新增）
-- `web/src/components/layout/index.ts` 或现有导出入口
+- `web/src/components/layout/TagsView.tsx` 及测试
 
-实施内容：
+步骤：
 
-1. 定义只包含 workspace 身份的 Context；
-2. 使用 `userId:organizationId` 生成 `workspaceKey`；
-3. 让同一个 keyed 容器同时包裹 `TagsView` 与路由页面；
-4. 处理未登录或组织缺失时的非持久化上下文；
-5. 测试 key 变化会卸载旧页签和页面实例。
-
-最小验证：
-
-```bash
-pnpm --dir web exec vitest run web/src/components/layout/OrganizationWorkspace.test.tsx
-pnpm --dir web exec biome lint web/src/app.tsx web/src/components/layout/OrganizationWorkspace.tsx
-git diff --check
-```
+1. 从 `initialState.currentUser` 取得用户 ID 与当前组织 ID；
+2. 生成稳定 workspace key；
+3. 用同一个 keyed 容器包住 `TagsView` 和路由页面；
+4. 不新增草稿 Context；
+5. 测试用户或组织变化会卸载旧页签与页面实例。
 
 建议提交：
 
@@ -43,124 +31,28 @@ git diff --check
 feat(web): 建立多组织工作区边界
 ```
 
-### 2.2 接入切换守卫与成功后重定向
+### 2.2 接入组织切换守卫
 
 目标文件：
 
-- `web/src/components/OrganizationSwitcher.tsx`
-- `web/src/components/OrganizationSwitcher.test.tsx`
-- `web/src/components/layout/tabCloseGuard.ts`
-- `web/src/components/layout/tabCloseGuard.test.ts`
-- `web/src/components/layout/TagsView.tsx`
+- `web/src/components/OrganizationSwitcher.tsx` 及测试
+- `web/src/components/layout/tabCloseGuard.ts` 及测试
 
-实施内容：
+步骤：
 
-1. 在现有 guard 模块增加 workspace 级脏状态查询与确认；
-2. `OrganizationSwitcher` 在 API 前执行确认；
-3. 切换期间禁用重复选择；
-4. 失败时保留状态、页签和路由；
-5. 成功后更新 `initialState` 并 `history.replace('/welcome')`；
-6. 确认 keyed remount 清理旧组织页签，不再额外维护旧页签映射。
-
-定向测试必须覆盖：
-
-- 选择相同组织；
-- 无脏状态直接切换；
-- 有脏状态取消；
-- 有脏状态确认；
-- API 失败；
-- API 成功；
-- 快速重复选择只产生一次有效切换。
-
-最小验证：
-
-```bash
-pnpm --dir web exec vitest run web/src/components/OrganizationSwitcher.test.tsx web/src/components/layout/tabCloseGuard.test.ts
-pnpm --dir web exec biome lint web/src/components/OrganizationSwitcher.tsx web/src/components/layout/tabCloseGuard.ts web/src/components/layout/TagsView.tsx
-pnpm --dir web tsc
-git diff --check
-```
-
-建议提交：
-
-```text
-feat(web): 收口组织切换工作区生命周期
-```
-
-### 2.3 复核迟到响应与模块级缓存
-
-重点文件：
-
-- `web/src/utils/order-options-cache.ts`
-- `web/src/pages/orders/components/PartnerQuickAddSelect.tsx`
-- 订单选项 Hook 与直接持有模块级 Map 的文件
-
-实施内容：
-
-1. 列出受影响的模块级缓存，确认 key 包含组织 ID；
-2. 验证旧组织的搜索响应和快捷创建响应不能回填新工作区；
-3. 保留请求序列号、mutation 组织快照或 mounted/generation 防护；
-4. 只删除由 keyed remount 明确取代的手动清理 effect/ref；
-5. 不以批量删代码为目标，不碰与本任务无关的快捷新增行为。
-
-最小验证：运行现有订单模板、快捷新增和选项缓存定向测试，并增加至少一个切换期间迟到
-响应用例。
-
-建议提交：
-
-```text
-refactor(web): 对齐组织工作区异步状态边界
-```
-
-## 3. Phase 2：草稿 Scope 内聚
-
-### 3.1 提供 `useScopedDraft`
-
-目标文件：
-
-- `web/src/components/layout/formDraft.ts`
-- `web/src/components/layout/useScopedDraft.ts`（是否独立文件按现有结构决定）
-- 对应测试文件
-
-实施内容：
-
-1. 从 Workspace Context 获取用户和组织；
-2. 使用 v2 key 生成规则；
-3. 提供 load/save/clear/hasDraft/draftKey；
-4. 无 scope 时不持久化；
-5. 不读取或迁移旧 key；
-6. workspace guard 与 TagsView 复用同一 key/scope 工具。
-
-### 3.2 精简订单模板接口
-
-目标文件：
-
-- `web/src/components/ui/order-template/OrderFormTemplate.tsx`
-- 订单新建、详情页面及模板测试
-- `.trellis/spec/web/frontend/state-management.md`
-
-实施内容：
-
-1. 删除公开 `draftScope` prop；
-2. 模板内部调用 scoped draft；
-3. 一次性更新全部仓库内调用方；
-4. 提交成功仅清当前草稿；
-5. 更新状态管理规范，记录业务组件不得自行拼用户/组织 scope。
+1. 为现有 guard 增加任意已注册 dirty 表单检查；
+2. 选择当前组织时直接结束；
+3. dirty 时弹一次确认，取消不调用 API；
+4. 请求期间锁定切换器；
+5. API 失败时保留旧状态、路由和页签；
+6. 成功后更新 `initialState` 并 `history.replace('/welcome')`；
+7. 由 workspace key 重建页面和页签，不广播多套 reset 事件。
 
 定向验证：
 
-- 两组织草稿互不覆盖；
-- 切回原组织恢复；
-- 新建与详情草稿分离；
-- 提交后只清当前 key；
-- 旧版本 key 不恢复；
-- 页签关闭和组织切换的确认一致。
-
-最小验证：
-
 ```bash
-pnpm --dir web exec vitest run web/src/components/layout/formDraft.test.ts web/src/components/ui/order-template/OrderFormTemplate.test.tsx web/src/components/layout/TagsView.test.tsx
-pnpm --dir web exec biome lint web/src/components/layout/formDraft.ts web/src/components/ui/order-template/OrderFormTemplate.tsx web/src/components/layout/TagsView.tsx
+pnpm --dir web exec vitest run web/src/components/OrganizationSwitcher.test.tsx web/src/components/layout/tabCloseGuard.test.ts web/src/components/layout/TagsView.test.tsx
+pnpm --dir web exec biome lint web/src/app.tsx web/src/components/OrganizationSwitcher.tsx web/src/components/layout/tabCloseGuard.ts web/src/components/layout/TagsView.tsx
 pnpm --dir web tsc
 git diff --check
 ```
@@ -168,46 +60,94 @@ git diff --check
 建议提交：
 
 ```text
-refactor(web): 内聚组织工作区草稿范围
+feat(web): 收口组织切换生命周期
 ```
+
+## 3. Phase 2：通用异步守卫
+
+### 3.1 实现 Hook
+
+建议新增：
+
+- `web/src/hooks/useLatestAsync.ts`
+- `web/src/hooks/useLatestAsync.test.ts`
+- `web/src/hooks/useAsyncGuard.ts`（若共享实现适合放在同一文件，可合并）
+
+步骤：
+
+1. 实现 mounted + sequence + AbortController 的共享内核；
+2. `useLatestAsync` 新调用自动使旧调用失效；
+3. `useAsyncGuard` 在卸载或 invalidate 后使结果失效；
+4. `run(request, apply)` 只在 token 当前时调用 apply，统一返回
+   current/stale/unmounted/aborted 判别；
+5. 当前请求的 400/403/500 等真实错误继续抛出；
+6. 测试乱序完成、卸载、显式取消、不可取消 Promise 和真实错误。
+
+### 3.2 首批替换重复样板
+
+先通过 `rg` 列出 organization ref、request sequence、mounted ref 和组织切换清理 effect，
+逐个判断职责。优先改造：
+
+- `PartnerQuickAddSelect` 的搜索和创建回填；
+- 订单页面中同类远程选项查询；
+- 本任务实际触及且存在等价样板的组件。
+
+删除规则：
+
+- 可删除：与通用 Hook 等价的 sequence/mounted ref；
+- 可删除：workspace 重挂载已覆盖的“组织变化时清空本地 state”代码；
+- 不删除：模块缓存组织 key、提交 loading、服务端组织校验、业务资源 ID 检查；
+- 不做全站机械替换，不改与本次数据流无关的页面。
+
+测试必须证明：
+
+- 连续搜索只有最后一次结果进入 options；
+- 组织切换或组件卸载后，旧创建结果不回填新表单；
+- 当前请求错误仍展示；
+- 创建按钮不能重复提交；
+- 服务端已成功但页面已卸载时，不产生旧工作区 UI 副作用。
+
+定向验证按实际改造文件执行 Vitest、Biome 与 `pnpm --dir web tsc`。
+
+建议提交：
+
+```text
+refactor(web): 统一页面异步竞态保护
+```
+
+### 3.3 草稿只做回归验证
+
+不修改 `formDraft.ts`、不删除 `draftScope`、不增加新 Hook。运行：
+
+```bash
+pnpm --dir web exec vitest run web/src/components/layout/formDraft.test.ts web/src/components/ui/order-template/OrderFormTemplate.test.tsx web/src/components/layout/TagsView.test.tsx
+```
+
+确认真实组织切换不串草稿，切回原组织仍可恢复。若现有行为失败，只修实际缺陷，不扩大为
+草稿架构重构。
 
 ## 4. Phase 3：通用角色组织范围
 
-Phase 3 是原子契约阶段。不得只提交新 Proto 而保留旧前端调用方，也不得通过兼容字段
-拆成长期双模型。可以在本地形成多个工作提交，但阶段验收时必须处于单一新模型。
+本阶段涉及契约，必须原子切换到新模型，不保留长期双字段或双表路径。
 
-### 4.1 替换 Ent 与 Proto 模型
+### 4.1 泛化 Ent 与 Proto
 
 重点文件：
 
 - `server/internal/data/ent/schema/role.go`
 - `server/internal/data/ent/schema/role_order_organization_access.go`
 - `server/api/admin/v1/admin.proto`
-- 角色 Biz、Data、Service 转换与测试
-- Ent / Proto / OpenAPI / Web 生成物
+- 角色 Biz、Data、Service 与测试
+- Ent、Proto、OpenAPI、Web 客户端生成物
 
-实施内容：
+步骤：
 
-1. 将订单专用 schema/type/edge 重命名为通用角色组织访问；
-2. Proto 字段改为 `organization_accesses`；
-3. 删除旧字段和旧类型的代码路径；
-4. 同步角色提权校验和 DTO 转换；
-5. 生成并审阅数据库迁移；
-6. 更新全部生成物，禁止手改；
-7. 不编写旧字段适配器或双表读取。
-
-生成与定向验证：
-
-```bash
-go -C server generate
-make -C server api
-pnpm run generate:web-client
-go -C server test ./internal/biz/... ./internal/data/... ./internal/service/...
-git diff --check
-```
-
-具体生成目标以仓库现有 Makefile 为准，避免无关生成物漂移。若迁移验证需要清空或重建
-当前本地数据库，先暂停并取得用户明确授权。
+1. 将订单专用组织 access 重命名为通用模型；
+2. Proto 改用 `organization_accesses`；
+3. 删除旧字段和旧类型调用；
+4. 更新角色保存、读取和提权校验；
+5. 生成并审阅迁移和所有生成物；
+6. 若需要破坏性数据库操作，暂停并请求用户授权。
 
 建议提交：
 
@@ -215,31 +155,25 @@ git diff --check
 refactor(server): 泛化角色组织访问模型
 ```
 
-### 4.2 建立按权限解析组织范围的 Biz 能力
+### 4.2 实现权限级组织范围 Resolver
 
 重点文件：
 
 - `server/internal/biz/auth.go`
 - `server/internal/biz/admin_role.go`
-- 新增 resolver 文件及测试
 - `server/internal/data/auth.go`
-- 组织目录仓储接口与最小实现
+- 新增 resolver 与定向测试
 
-实施内容：
+步骤：
 
-1. Principal 保留 role grant 来源；
-2. ResolvePrincipal 加载角色权限、data scope 和通用组织访问项；
-3. 建立读取全部启用组织、当前组织树的最小仓储能力；
-4. 实现按权限解析 readable/writable 集合；
+1. Principal 保留 role grant；
+2. ResolvePrincipal 加载权限、data scope 和通用组织 access；
+3. 提供全部启用组织与当前组织树的最小仓储查询；
+4. 解析 readable/writable 组织集合；
 5. 结果去重排序；
-6. 测试角色不串联、四种 scope、停用数据、显式 writable 和无权限场景。
+6. 测试不同角色不串联、四种 scope、停用组织和 writable。
 
-不得做的事：
-
-- 不把 `all` 实现成跳过后续仓储过滤；应解析成明确的启用组织 ID 集合；
-- 不注册 Ent 全局 interceptor/hook；
-- 不引入 `SystemScope`；
-- 不让 Service 复制范围算法。
+不得注册 Ent 全局 interceptor/hook，不引入 `SystemScope`，不在 Service 复制算法。
 
 建议提交：
 
@@ -247,15 +181,14 @@ refactor(server): 泛化角色组织访问模型
 feat(server): 按权限解析角色组织范围
 ```
 
-### 4.3 接入订单聚合
+### 4.3 接入订单
 
-实施内容：
-
-1. 将订单现有专用组织访问读取迁移到通用 resolver；
-2. 列表、详情和写操作使用显式 allowed organization IDs；
-3. 保留业务类型权限、悲观锁、expectedVersion 和状态机；
-4. 直接访问订单的认证路径与新的权限组织范围一致；
-5. 覆盖跨角色不串联、只读追加组织和范围外组织。
+1. 订单列表、详情与写操作使用通用 resolver；
+2. 仓储显式应用 allowed organization IDs；
+3. 保留业务类型权限、锁、版本和状态机；
+4. 增加天津角色 + 北京只读 access 的完整用例；
+5. 增加订单权限不能借用财务角色范围的反例；
+6. `writable=false` 时北京订单写入返回 403。
 
 建议提交：
 
@@ -263,15 +196,12 @@ feat(server): 按权限解析角色组织范围
 refactor(server): 接入订单通用组织范围
 ```
 
-### 4.4 接入往来单位聚合
+### 4.4 接入往来单位
 
-实施内容：
-
-1. 列表默认查询 readable 组织集合；
-2. 详情在主键查询中附带组织集合；
-3. 创建和编辑校验 writable 集合；
-4. 保留组织内代码唯一性、企业角色和税号等现有规则；
-5. 更新相关选择器请求，只传业务筛选，不在前端推导授权组织。
+1. 列表与详情使用 readable 组织集合；
+2. 创建与编辑使用 writable 组织集合；
+3. 保留组织内代码唯一性、企业角色和税号规则；
+4. 前端选择器不自行推导授权组织。
 
 建议提交：
 
@@ -279,16 +209,12 @@ refactor(server): 接入订单通用组织范围
 feat(server): 接入往来单位通用组织范围
 ```
 
-### 4.5 接入财务账单聚合
+### 4.5 接入财务账单
 
-实施内容：
-
-1. 账单列表、详情使用 readable 集合；
+1. 列表、详情使用 readable 集合；
 2. 创建、编辑和状态流转使用 writable 集合；
-3. 保持 `biz.Transactor` 事务边界；
-4. Data 层继续通过 `Data.client(ctx)` 获取客户端；
-5. 多行锁维持固定顺序，版本冲突维持 HTTP 409 语义；
-6. 覆盖只读跨组织查看和禁止跨组织写入场景。
+3. 保持 `biz.Transactor`、`Data.client(ctx)`、锁顺序和 expectedVersion；
+4. 回归只读跨组织查看、禁止写入和版本冲突。
 
 建议提交：
 
@@ -298,19 +224,11 @@ feat(server): 接入账单通用组织范围
 
 ### 4.6 更新角色管理页面
 
-目标文件：
-
-- `web/src/pages/admin/roles.tsx`
-- 角色表单组件与测试
-- OpenAPI 生成客户端调用方
-
-实施内容：
-
-1. 使用 `organization_accesses`；
-2. 文案从“订单组织”改为通用“可访问组织”；
-3. 显示与保存 `writable`；
+1. 使用新生成的 `organization_accesses`；
+2. 文案改为通用“可访问组织”；
+3. 编辑并保存 `writable`；
 4. 删除旧字段 fallback；
-5. 验证加载、编辑、校验、提交和权限只读态。
+5. 测试加载、编辑、提交和权限只读态。
 
 建议提交：
 
@@ -318,26 +236,46 @@ feat(server): 接入账单通用组织范围
 feat(web): 更新通用角色组织范围配置
 ```
 
-## 5. Phase 4：跨层验收与文档收口
+阶段生成与定向检查至少包括：
 
-### 5.1 代码与数据流审查
+```bash
+go -C server generate
+make -C server api
+pnpm run generate:web-client
+go -C server test ./internal/biz/... ./internal/data/... ./internal/service/...
+pnpm --dir web tsc
+git diff --check
+```
 
-逐条检查：
+具体生成命令以仓库 Makefile 为准，避免无关生成漂移。
 
-- Workspace 是否同时包住 Tabs 与页面；
-- 切换失败是否可能提前清状态；
-- 草稿 key 是否只由基础设施生成；
-- async mutation 是否可能在卸载后回填；
+## 5. Phase 4：最终验收
+
+### 5.1 跨层审查
+
+- workspace 是否同时包住页签和页面；
+- 切换失败是否会提前清状态；
+- stale/abort 是否错误吞掉真实业务错误；
+- mutation 是否在卸载后仍回填、跳转或写缓存；
+- 是否误删缓存组织 key 和重复提交保护；
 - Principal 是否保留权限与角色范围关联；
-- read/write 是否使用各自动作权限解析；
-- 订单业务类型权限是否仍与组织范围求交集；
-- 三个仓储是否在数据库谓词中应用组织集合；
-- 生成文件是否完全来自生成命令；
-- 是否意外加入旧字段、双读或全局拦截器。
+- 三个聚合是否在数据库谓词中应用组织集合；
+- 订单业务类型权限是否仍生效；
+- 是否意外加入草稿重构、旧字段兼容或全局拦截器。
 
-### 5.2 最终风险匹配验证
+### 5.2 浏览器抽验
 
-定向检查全部通过后，因本任务包含契约、生成物和跨层权限模型，执行一次完整验收：
+1. 连续搜索制造乱序响应，只展示最后一次结果；
+2. 创建请求进行中切换组织，旧结果不回填新页面；
+3. 组织切换分别验证取消、失败和成功；
+4. 组织 A 草稿切到 B 不出现，切回 A 能恢复；
+5. 天津员工在天津工作区查看北京订单；
+6. 北京只读订单不能编辑或流转；
+7. 两个不同权限范围角色组合后不发生串联。
+
+### 5.3 最终门禁
+
+定向检查全部通过后，因包含契约、生成物和跨层权限变更，执行一次：
 
 ```bash
 pnpm run check:server
@@ -346,42 +284,15 @@ git diff --check
 git status --short
 ```
 
-只有在实现改动涉及生产构建入口、依赖或构建配置时才增加：
-
-```bash
-pnpm run build
-```
-
-记录每条命令、结果和无法执行原因。不得为通过门禁关闭规则或忽略真实错误。
-
-### 5.3 浏览器抽验
-
-使用两个组织和至少两个角色组合验证：
-
-1. 组织 A 新建订单输入内容并形成草稿；
-2. 切换组织，分别验证取消、接口失败和成功；
-3. 成功后确认 `/welcome`、页签清空和组织 B 干净页面；
-4. 切回 A，重新打开页面并恢复草稿；
-5. 总部角色查看多个组织的订单、往来单位和账单；
-6. 只读追加组织可以查看但不能写；
-7. 组合两个权限范围不同的角色，确认权限不串联。
-
-### 5.4 规范与任务收尾
-
-- 若实施中形成可复用的新约束，更新对应 `.trellis/spec/`；
-- 更新任务 PRD 偏差记录，所有偏差须说明事实依据；
-- 按 Trellis finish-work 流程归档；
-- 不在此任务顺手扩展其他业务聚合或全局 Ent 框架。
+只有涉及依赖、构建配置或生产入口时才增加 `pnpm run build`。记录所有结果，不通过关闭
+规则或跳过类型错误来换取绿灯。
 
 ## 6. 阶段退出条件
 
 | 阶段 | 退出条件 |
 | --- | --- |
-| Phase 1 | 切换成功/失败/取消与页签页面重建均有测试，旧响应不污染新工作区 |
-| Phase 2 | 业务调用方不再传 `draftScope`，组织草稿隔离与恢复通过 |
-| Phase 3.1-3.2 | 单一通用契约生成完整，范围解析不跨角色串联 |
-| Phase 3.3-3.5 | 三个聚合的读写路径全部显式应用组织范围 |
-| Phase 3.6 | 角色页面只使用新字段且可配置 writable |
-| Phase 4 | 定向验证、完整门禁和浏览器抽验均有记录，无未解释失败 |
-
-任何阶段未满足退出条件时，不进入下一阶段的扩大接入。
+| Phase 1 | 成功/失败/取消与页签页面重建均有测试 |
+| Phase 2 | latest、卸载失效、错误传播通过；草稿仅完成回归，无新抽象 |
+| Phase 3.1-3.2 | 单一通用契约生成完整，权限范围不跨角色串联 |
+| Phase 3.3-3.6 | 三个聚合和角色页面只使用新模型 |
+| Phase 4 | 定向检查、最终门禁和浏览器抽验均有记录 |
