@@ -22,7 +22,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
@@ -31,7 +31,7 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 			requestmeta.Middleware(),
 			requestmeta.Metrics(),
 			requestmeta.Logging(logger),
-			Authorization(authUsecase, policy, orderUsecase),
+			Authorization(authUsecase, policy, orderUsecase, partnerUsecase),
 			RequiredFieldsValidator(),
 		),
 	}

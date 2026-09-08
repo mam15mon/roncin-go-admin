@@ -22,7 +22,11 @@ func (s *partnerRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, 
 	return nil, ErrPartnerNotFound
 }
 
-func (s *partnerRepoStub) List(_ context.Context, _ uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
+func (s *partnerRepoStub) FindAuthorized(context.Context, uuid.UUID, []uuid.UUID) (*Partner, error) {
+	return nil, ErrPartnerNotFound
+}
+
+func (s *partnerRepoStub) List(_ context.Context, _ []uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
 	return &PartnerList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 

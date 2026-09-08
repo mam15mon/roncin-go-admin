@@ -17,7 +17,11 @@ func NewPartnerAttachmentRepo(data *Data) biz.PartnerAttachmentRepo {
 }
 
 func (r *partnerAttachmentRepo) partner(ctx context.Context, organizationID, partnerID uuid.UUID) error {
-	if _, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := client.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
 		return mapEntError(err, biz.ErrPartnerAttachmentInvalidArgument, nil)
 	}
 	return nil
@@ -27,7 +31,11 @@ func (r *partnerAttachmentRepo) List(ctx context.Context, organizationID, partne
 	if err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.PartnerAttachment.Query().Where(partnerattachmentent.PartnerIDEQ(partnerID)).Order(partnerattachmentent.ByCreatedAt()).All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.PartnerAttachment.Query().Where(partnerattachmentent.PartnerIDEQ(partnerID)).Order(partnerattachmentent.ByCreatedAt()).All(ctx)
 	if err != nil {
 		return nil, err
 	}

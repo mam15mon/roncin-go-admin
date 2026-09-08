@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
 	"github.com/google/uuid"
@@ -44,7 +45,11 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
 	}
-	result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+	organizationIDs, err := partnerOrganizationIDsForPermission(principal, access.PartnerRead, false)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.usecase.List(ctx, organizationIDs, options)
 	if err != nil {
 		return nil, err
 	}
@@ -188,9 +193,13 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
 	}
+	organizationIDs, err := partnerOrganizationIDsForPermission(principal, access.PartnerExport, false)
+	if err != nil {
+		return nil, err
+	}
 	items := make([]*v1.PartnerExportItem, 0)
 	for {
-		result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+		result, err := s.usecase.List(ctx, organizationIDs, options)
 		if err != nil {
 			return nil, err
 		}
@@ -209,6 +218,26 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 		options.Page++
 	}
 	return ok(ctx, &v1.ExportPartnersResponse{Data: items}), nil
+}
+
+// partnerOrganizationIDsForPermission 仅从持有目标权限的角色中解析组织范围；
+// 解析算法由 biz.Principal 统一维护，Service 不自行组合角色或访问项。
+func partnerOrganizationIDsForPermission(principal *biz.Principal, permission string, writable bool) ([]uuid.UUID, error) {
+	if principal == nil {
+		return nil, biz.ErrPermissionDenied
+	}
+	scope, err := principal.ResolvePermissionOrganizationScope(permission)
+	if err != nil {
+		return nil, err
+	}
+	organizationIDs := scope.ReadableOrganizationIDs
+	if writable {
+		organizationIDs = scope.WritableOrganizationIDs
+	}
+	if len(organizationIDs) == 0 {
+		return nil, biz.ErrPermissionDenied
+	}
+	return organizationIDs, nil
 }
 
 func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.ListPartnerAuditLogsResponse, error) {

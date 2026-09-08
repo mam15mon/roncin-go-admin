@@ -19,7 +19,11 @@ type partnerAccountRepo struct{ data *Data }
 func NewPartnerAccountRepo(data *Data) biz.PartnerAccountRepo { return &partnerAccountRepo{data: data} }
 
 func (r *partnerAccountRepo) role(ctx context.Context, organizationID, partnerID uuid.UUID) (*ent.PartnerRole, error) {
-	role, err := r.data.db.PartnerRole.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	role, err := client.PartnerRole.Query().Where(
 		partnerroleent.PartnerIDEQ(partnerID),
 		partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeCustomer),
 		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
@@ -35,7 +39,11 @@ func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID
 	if err != nil {
 		return nil, err
 	}
-	query := r.data.db.PartnerAccount.Query().Where(partneraccountent.PartnerRoleIDEQ(role.ID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.PartnerAccount.Query().Where(partneraccountent.PartnerRoleIDEQ(role.ID))
 	if enabled != nil {
 		status := partneraccountent.StatusInactive
 		if *enabled {
@@ -94,7 +102,11 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 	if err != nil {
 		return nil, err
 	}
-	item, err = r.data.db.PartnerAccount.Get(ctx, item.ID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err = client.PartnerAccount.Get(ctx, item.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +156,11 @@ func NewPartnerContractRepo(data *Data) biz.PartnerContractRepo {
 }
 
 func (r *partnerContractRepo) partner(ctx context.Context, organizationID, partnerID uuid.UUID) (*ent.Partner, error) {
-	item, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrPartnerContractInvalidArgument, nil)
 	}
@@ -155,7 +171,11 @@ func (r *partnerContractRepo) List(ctx context.Context, organizationID, partnerI
 	if _, err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	query := r.data.db.PartnerContract.Query().Where(partnercontractent.PartnerIDEQ(partnerID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.PartnerContract.Query().Where(partnercontractent.PartnerIDEQ(partnerID))
 	if status != nil {
 		query.Where(partnercontractent.StatusEQ(partnercontractent.Status(*status)))
 	}
@@ -171,7 +191,11 @@ func (r *partnerContractRepo) List(ctx context.Context, organizationID, partnerI
 }
 
 func (r *partnerContractRepo) Get(ctx context.Context, organizationID, partnerID, id uuid.UUID) (*biz.PartnerContract, error) {
-	item, err := r.data.db.PartnerContract.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.PartnerContract.Query().Where(
 		partnercontractent.IDEQ(id),
 		partnercontractent.PartnerIDEQ(partnerID),
 		partnercontractent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),

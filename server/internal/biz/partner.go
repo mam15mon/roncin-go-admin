@@ -235,7 +235,8 @@ type PartnerBlacklistResult struct {
 
 type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
-	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
+	FindAuthorized(context.Context, uuid.UUID, []uuid.UUID) (*Partner, error)
+	List(context.Context, []uuid.UUID, PartnerListOptions) (*PartnerList, error)
 	ListAssignmentOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error)
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
@@ -265,15 +266,36 @@ func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID)
 	return uc.repo.Get(ctx, organizationID, id)
 }
 
-func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
-	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
+// FindAuthorized 在仓储查询中同时限制往来单位 ID 和允许组织，供传输鉴权定位
+// 跨组织详情及其子资源的组织上下文使用。禁止先按 ID 全局查询后在内存中判定。
+func (uc *PartnerUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*Partner, error) {
+	if id == uuid.Nil || !validPartnerOrganizationIDs(organizationIDs) {
+		return nil, ErrPartnerNotFound
+	}
+	return uc.repo.FindAuthorized(ctx, id, organizationIDs)
+}
+
+func (uc *PartnerUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
+	if !validPartnerOrganizationIDs(organizationIDs) || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrPartnerInvalidArgument
 	}
 	if options.Role != "" && !options.Role.Valid() {
 		return nil, ErrPartnerInvalidRole
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
-	return uc.repo.List(ctx, organizationID, options)
+	return uc.repo.List(ctx, organizationIDs, options)
+}
+
+func validPartnerOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error) {

@@ -3,12 +3,16 @@ package server
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+
+	"github.com/go-kratos/kratos/v3/transport"
 )
 
 type authorizationOrderRepoStub struct {
@@ -17,6 +21,154 @@ type authorizationOrderRepoStub struct {
 	findCalls int
 	scopes    []biz.OrderOrganizationScope
 	getCalls  int
+}
+
+type authorizationPartnerRepoStub struct {
+	biz.PartnerRepo
+	partner   *biz.Partner
+	findCalls int
+	ids       []uuid.UUID
+}
+
+func (s *authorizationPartnerRepoStub) FindAuthorized(_ context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*biz.Partner, error) {
+	s.findCalls++
+	s.ids = organizationIDs
+	if s.partner != nil && s.partner.ID == id && containsPartnerOrganizationID(organizationIDs, s.partner.OrganizationID) {
+		return s.partner, nil
+	}
+	return nil, biz.ErrPartnerNotFound
+}
+
+func TestPartnerPermissionWritesClassifiesEveryDeclaredPermission(t *testing.T) {
+	tests := map[string]bool{
+		access.PartnerRead:                 false,
+		access.PartnerExport:               false,
+		access.PartnerAccountRead:          false,
+		access.PartnerContractRead:         false,
+		access.PartnerSettlementRuleRead:   false,
+		access.PartnerAttachmentRead:       false,
+		access.PartnerShippingPresetRead:   false,
+		access.PartnerAuditRead:            false,
+		access.PartnerAssignmentOptionRead: false,
+		access.PartnerCreate:               true,
+		access.PartnerUpdate:               true,
+		access.PartnerBlacklist:            true,
+		access.PartnerImport:               true,
+		access.PartnerAccountCreate:        true,
+		access.PartnerAccountUpdate:        true,
+		access.PartnerContractCreate:       true,
+		access.PartnerContractUpdate:       true,
+		access.PartnerSettlementRuleCreate: true,
+		access.PartnerSettlementRuleUpdate: true,
+		access.PartnerAttachmentRegister:   true,
+		access.PartnerShippingPresetCreate: true,
+		access.PartnerShippingPresetUpdate: true,
+	}
+	for permission, wantWritable := range tests {
+		writable, known := partnerPermissionWrites(permission)
+		if !known || writable != wantWritable {
+			t.Errorf("权限 %s 的读写分类 = (%t, %t)，期望 (%t, true)", permission, writable, known, wantWritable)
+		}
+	}
+	if writable, known := partnerPermissionWrites("business.partner.unknown"); known || writable || isPartnerPermission("business.partner.unknown") {
+		t.Fatalf("未知合作伙伴权限不得猜测读写或进入组织范围路径，actual writable=%t known=%t", writable, known)
+	}
+	principal := &biz.Principal{RoleGrants: []biz.RoleGrant{serverRoleGrant("unknown", biz.DataScopeAll, []string{"business.partner.unknown"}, nil)}}
+	if hasPermission(&partnerv1.ListPartnersRequest{}, principal, accessRule{permission: "business.partner.unknown", scope: biz.DataScopeOrganization}) {
+		t.Fatal("未知合作伙伴权限即使意外出现在角色中也必须拒绝")
+	}
+}
+
+func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	partnerID := uuid.New()
+	repo := &authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: beijingID}}
+	usecase := biz.NewPartnerUsecase(repo)
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-reader", biz.DataScopeOrganization,
+			[]string{access.PartnerRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+	}
+
+	partner, direct := requestPartner(t.Context(), &partnerv1.GetPartnerRequest{Id: partnerID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerRead, false))
+	if !direct || partner == nil || partner.ID != partnerID {
+		t.Fatalf("授权查询应定位北京往来单位，actual partner=%#v direct=%v", partner, direct)
+	}
+	if repo.findCalls != 1 || len(repo.ids) != 2 || !containsPartnerOrganizationID(repo.ids, tianjinID) || !containsPartnerOrganizationID(repo.ids, beijingID) {
+		t.Fatalf("授权查询必须把同一 partner.read 角色解析的组织范围传入仓储，actual=%v", repo.ids)
+	}
+}
+
+func TestRequestPartnerRejectsReadOnlyCrossOrganizationWrite(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
+	usecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-editor", biz.DataScopeOrganization,
+			[]string{access.PartnerUpdate}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+	}
+	resolved, direct := requestPartner(t.Context(), &partnerv1.UpdatePartnerRequest{Id: partner.ID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerUpdate, true))
+	if !direct || resolved != nil {
+		t.Fatal("北京只读组织范围不得通过往来单位更新的授权查询")
+	}
+}
+
+func TestRequestPartnerDoesNotBorrowOtherRoleOrganizationAccess(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
+	usecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{
+			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}, nil),
+			serverRoleGrant("finance-reader", biz.DataScopeOrganization, []string{"finance.bill.read"}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+		},
+	}
+	resolved, direct := requestPartner(t.Context(), &partnerv1.GetPartnerRequest{Id: partner.ID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerRead, false))
+	if !direct || resolved != nil {
+		t.Fatal("财务角色的北京访问项不得被往来单位 read 权限借用")
+	}
+}
+
+func TestAuthorizationUsesPartnerOrganizationForDetailSubresource(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("account-reader", biz.DataScopeOrganization,
+			[]string{access.PartnerAccountRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+	}
+	policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
+	authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{
+		session:   &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: tianjinID, ExpiresAt: time.Now().Add(time.Hour)},
+		principal: principal,
+	}, policy, nil, nil, nil)
+	partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
+	called := false
+	organizationID := uuid.Nil
+	middleware := Authorization(authUsecase, policy, nil, partnerUsecase)
+	ctx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/partner.v1.PartnerService/ListPartnerAccounts", cookie: "sid=valid"})
+	_, err := middleware(func(ctx context.Context, _ any) (any, error) {
+		called = true
+		effective, requireErr := biz.RequirePrincipal(ctx)
+		if requireErr != nil {
+			return nil, requireErr
+		}
+		organizationID = effective.Organization.ID
+		return nil, nil
+	})(ctx, &partnerv1.ListPartnerAccountsRequest{PartnerId: partner.ID.String()})
+	if err != nil || !called || organizationID != beijingID {
+		t.Fatalf("跨组织详情子资源应以主档组织执行，err=%v called=%t organization=%s", err, called, organizationID)
+	}
 }
 
 func (s *authorizationOrderRepoStub) FindAuthorized(_ context.Context, _ uuid.UUID, scopes []biz.OrderOrganizationScope) (*biz.Order, error) {

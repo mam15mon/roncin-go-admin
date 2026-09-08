@@ -76,7 +76,7 @@ func newAuthorizationTestMiddleware(t *testing.T, principal *biz.Principal, anch
 	}, policy, nil, nil, nil)
 	orderUC := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil)
 	state := &middlewareHandlerState{}
-	mw := Authorization(authUC, policy, orderUC)
+	mw := Authorization(authUC, policy, orderUC, nil)
 	return func(ctx context.Context, request any) (any, error) {
 		return mw(state.handler)(ctx, request)
 	}, state

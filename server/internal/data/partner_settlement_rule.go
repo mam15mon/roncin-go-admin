@@ -19,7 +19,11 @@ func NewPartnerSettlementRuleRepo(data *Data) biz.PartnerSettlementRuleRepo {
 }
 
 func (r *partnerSettlementRuleRepo) role(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType) (*ent.PartnerRole, error) {
-	role, err := r.data.db.PartnerRole.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	role, err := client.PartnerRole.Query().Where(
 		partnerroleent.PartnerIDEQ(partnerID),
 		partnerroleent.RoleTypeEQ(partnerroleent.RoleType(roleType)),
 		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
@@ -35,7 +39,11 @@ func (r *partnerSettlementRuleRepo) List(ctx context.Context, organizationID, pa
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.PartnerSettlementRule.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.PartnerSettlementRule.Query().Where(
 		partnerfilterent.PartnerRoleIDEQ(role.ID),
 	).Order(partnerfilterent.ByCreatedAt()).All(ctx)
 	if err != nil {
@@ -53,7 +61,11 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSettlementCurrencies(ctx, client.Currency.Query(), input); err != nil {
 		return nil, err
 	}
 	var created *ent.PartnerSettlementRule
@@ -77,7 +89,11 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSettlementCurrencies(ctx, client.Currency.Query(), input); err != nil {
 		return nil, err
 	}
 	var updated *ent.PartnerSettlementRule
