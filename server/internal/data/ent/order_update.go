@@ -506,6 +506,12 @@ func (_u *OrderUpdate) SetNillableTradeTerm(v *order.TradeTerm) *OrderUpdate {
 	return _u
 }
 
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (_u *OrderUpdate) ClearTradeTerm() *OrderUpdate {
+	_u.mutation.ClearTradeTerm()
+	return _u
+}
+
 // SetPaymentTerm sets the "payment_term" field.
 func (_u *OrderUpdate) SetPaymentTerm(v order.PaymentTerm) *OrderUpdate {
 	_u.mutation.SetPaymentTerm(v)
@@ -2849,6 +2855,9 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.TradeTerm(); ok {
 		_spec.SetField(order.FieldTradeTerm, field.TypeEnum, value)
 	}
+	if _u.mutation.TradeTermCleared() {
+		_spec.ClearField(order.FieldTradeTerm, field.TypeEnum)
+	}
 	if value, ok := _u.mutation.PaymentTerm(); ok {
 		_spec.SetField(order.FieldPaymentTerm, field.TypeEnum, value)
 	}
@@ -4971,6 +4980,12 @@ func (_u *OrderUpdateOne) SetNillableTradeTerm(v *order.TradeTerm) *OrderUpdateO
 	if v != nil {
 		_u.SetTradeTerm(*v)
 	}
+	return _u
+}
+
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (_u *OrderUpdateOne) ClearTradeTerm() *OrderUpdateOne {
+	_u.mutation.ClearTradeTerm()
 	return _u
 }
 
@@ -7346,6 +7361,9 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.TradeTerm(); ok {
 		_spec.SetField(order.FieldTradeTerm, field.TypeEnum, value)
+	}
+	if _u.mutation.TradeTermCleared() {
+		_spec.ClearField(order.FieldTradeTerm, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.PaymentTerm(); ok {
 		_spec.SetField(order.FieldPaymentTerm, field.TypeEnum, value)

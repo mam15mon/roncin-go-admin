@@ -2796,7 +2796,7 @@ var (
 		{Name: "received_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "trade_direction", Type: field.TypeEnum, Enums: []string{"export", "import"}},
-		{Name: "trade_term", Type: field.TypeEnum, Enums: []string{"EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"}},
+		{Name: "trade_term", Type: field.TypeEnum, Nullable: true, Enums: []string{"EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"}},
 		{Name: "payment_term", Type: field.TypeEnum, Enums: []string{"PREPAID", "COLLECT"}},
 		{Name: "shipment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"FCL", "LCL", "BREAK_BULK"}},
 		{Name: "container_ownership", Type: field.TypeEnum, Nullable: true, Enums: []string{"COC", "SOC"}},

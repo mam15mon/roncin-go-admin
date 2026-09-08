@@ -89,11 +89,12 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	declarationCutoffAt := "2026-08-22T16:00:00+08:00"
 	shipperShortName := "华东发货人"
 	consigneeShortName := "美西收货人"
+	tradeTerm := v1.TradeTerm_TRADE_TERM_FOB
 
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
 		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
-		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
+		TradeTerm: &tradeTerm, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		CustomerReferenceNo: &referenceNo, ForeignAgentId: &foreignAgentIDString,
 		ContractNo: &contractNo, CargoValue: &cargoValue, CargoCurrency: &cargoCurrency,
 		InternalReferenceNo: &internalReferenceNo, ShippingAgentId: &shippingAgentIDString,
@@ -122,7 +123,7 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
 		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
-		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
+		PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		ShippingDocuments: []*v1.OrderShippingDocumentInput{
 			{HouseNo: "HBL-001"},
 			{HouseNo: "HBL-002"},

@@ -240,7 +240,7 @@ message Order {
   optional string booking_agent_id = 6;
   BusinessType business_type = 7;
   TradeDirection trade_direction = 8;
-  TradeTerm trade_term = 9;
+  optional TradeTerm trade_term = 9;
   PaymentTerm payment_term = 10;
   optional ShipmentType shipment_type = 11;
   optional ContainerOwnership container_ownership = 12;
@@ -495,7 +495,7 @@ message CreateOrderRequest {
   string customer_id = 1 [(google.api.field_behavior) = REQUIRED];
   BusinessType business_type = 2 [(google.api.field_behavior) = REQUIRED];
   TradeDirection trade_direction = 3 [(google.api.field_behavior) = REQUIRED];
-  TradeTerm trade_term = 4 [(google.api.field_behavior) = REQUIRED];
+  optional TradeTerm trade_term = 4;
   PaymentTerm payment_term = 5 [(google.api.field_behavior) = REQUIRED];
   reserved 6;
   reserved "status_template_id";

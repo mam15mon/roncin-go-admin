@@ -1200,7 +1200,7 @@ declare namespace API {
     customerId: string;
     businessType: number;
     tradeDirection: number;
-    tradeTerm: number;
+    tradeTerm?: number;
     paymentTerm: number;
     shippingLineId?: string;
     bookingAgentId?: string;

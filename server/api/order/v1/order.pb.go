@@ -918,7 +918,7 @@ type Order struct {
 	BookingAgentId            *string                  `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
 	BusinessType              BusinessType             `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	TradeDirection            TradeDirection           `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
-	TradeTerm                 TradeTerm                `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
+	TradeTerm                 *TradeTerm               `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm,oneof" json:"trade_term,omitempty"`
 	PaymentTerm               PaymentTerm              `protobuf:"varint,10,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
 	ShipmentType              *ShipmentType            `protobuf:"varint,11,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
 	ContainerOwnership        *ContainerOwnership      `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
@@ -1084,8 +1084,8 @@ func (x *Order) GetTradeDirection() TradeDirection {
 }
 
 func (x *Order) GetTradeTerm() TradeTerm {
-	if x != nil {
-		return x.TradeTerm
+	if x != nil && x.TradeTerm != nil {
+		return *x.TradeTerm
 	}
 	return TradeTerm_TRADE_TERM_UNSPECIFIED
 }
@@ -3047,7 +3047,7 @@ type CreateOrderRequest struct {
 	CustomerId            string                           `protobuf:"bytes,1,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
 	BusinessType          BusinessType                     `protobuf:"varint,2,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
 	TradeDirection        TradeDirection                   `protobuf:"varint,3,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
-	TradeTerm             TradeTerm                        `protobuf:"varint,4,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
+	TradeTerm             *TradeTerm                       `protobuf:"varint,4,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm,oneof" json:"trade_term,omitempty"`
 	PaymentTerm           PaymentTerm                      `protobuf:"varint,5,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
 	ShippingLineId        *string                          `protobuf:"bytes,7,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	BookingAgentId        *string                          `protobuf:"bytes,8,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
@@ -3157,8 +3157,8 @@ func (x *CreateOrderRequest) GetTradeDirection() TradeDirection {
 }
 
 func (x *CreateOrderRequest) GetTradeTerm() TradeTerm {
-	if x != nil {
-		return x.TradeTerm
+	if x != nil && x.TradeTerm != nil {
+		return *x.TradeTerm
 	}
 	return TradeTerm_TRADE_TERM_UNSPECIFIED
 }
@@ -6189,7 +6189,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xa6)\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xba)\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -6199,98 +6199,99 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x10shipping_line_id\x18\x05 \x01(\tH\x00R\x0eshippingLineId\x88\x01\x01\x12-\n" +
 	"\x10booking_agent_id\x18\x06 \x01(\tH\x01R\x0ebookingAgentId\x88\x01\x01\x12;\n" +
 	"\rbusiness_type\x18\a \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessType\x12A\n" +
-	"\x0ftrade_direction\x18\b \x01(\x0e2\x18.order.v1.TradeDirectionR\x0etradeDirection\x122\n" +
+	"\x0ftrade_direction\x18\b \x01(\x0e2\x18.order.v1.TradeDirectionR\x0etradeDirection\x127\n" +
 	"\n" +
-	"trade_term\x18\t \x01(\x0e2\x13.order.v1.TradeTermR\ttradeTerm\x128\n" +
+	"trade_term\x18\t \x01(\x0e2\x13.order.v1.TradeTermH\x02R\ttradeTerm\x88\x01\x01\x128\n" +
 	"\fpayment_term\x18\n" +
 	" \x01(\x0e2\x15.order.v1.PaymentTermR\vpaymentTerm\x12@\n" +
-	"\rshipment_type\x18\v \x01(\x0e2\x16.order.v1.ShipmentTypeH\x02R\fshipmentType\x88\x01\x01\x12R\n" +
-	"\x13container_ownership\x18\f \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x03R\x12containerOwnership\x88\x01\x01\x12@\n" +
-	"\rshipment_mode\x18\r \x01(\x0e2\x16.order.v1.ShipmentModeH\x04R\fshipmentMode\x88\x01\x01\x12:\n" +
+	"\rshipment_type\x18\v \x01(\x0e2\x16.order.v1.ShipmentTypeH\x03R\fshipmentType\x88\x01\x01\x12R\n" +
+	"\x13container_ownership\x18\f \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x04R\x12containerOwnership\x88\x01\x01\x12@\n" +
+	"\rshipment_mode\x18\r \x01(\x0e2\x16.order.v1.ShipmentModeH\x05R\fshipmentMode\x88\x01\x01\x12:\n" +
 	"\vflow_status\x18\x0e \x01(\x0e2\x19.order.v1.OrderFlowStatusR\n" +
 	"flowStatus\x12(\n" +
 	"\x10service_type_ids\x18\x10 \x03(\tR\x0eserviceTypeIds\x12,\n" +
 	"\x12cargo_category_ids\x18\x11 \x03(\tR\x10cargoCategoryIds\x121\n" +
-	"\x12origin_location_id\x18\x12 \x01(\tH\x05R\x10originLocationId\x88\x01\x01\x12;\n" +
-	"\x17destination_location_id\x18\x13 \x01(\tH\x06R\x15destinationLocationId\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\x14 \x01(\tH\aR\x13dischargeLocationId\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\x15 \x01(\tH\bR\x11transitLocationId\x88\x01\x01\x12(\n" +
-	"\rvessel_voyage\x18\x16 \x01(\tH\tR\fvesselVoyage\x88\x01\x01\x12\x15\n" +
-	"\x03etd\x18\x17 \x01(\tH\n" +
-	"R\x03etd\x88\x01\x01\x12\x15\n" +
-	"\x03eta\x18\x18 \x01(\tH\vR\x03eta\x88\x01\x01\x12 \n" +
-	"\tsi_cutoff\x18\x19 \x01(\tH\fR\bsiCutoff\x88\x01\x01\x12\"\n" +
+	"\x12origin_location_id\x18\x12 \x01(\tH\x06R\x10originLocationId\x88\x01\x01\x12;\n" +
+	"\x17destination_location_id\x18\x13 \x01(\tH\aR\x15destinationLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\x14 \x01(\tH\bR\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\x15 \x01(\tH\tR\x11transitLocationId\x88\x01\x01\x12(\n" +
+	"\rvessel_voyage\x18\x16 \x01(\tH\n" +
+	"R\fvesselVoyage\x88\x01\x01\x12\x15\n" +
+	"\x03etd\x18\x17 \x01(\tH\vR\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\x18 \x01(\tH\fR\x03eta\x88\x01\x01\x12 \n" +
+	"\tsi_cutoff\x18\x19 \x01(\tH\rR\bsiCutoff\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"doc_cutoff\x18\x1a \x01(\tH\rR\tdocCutoff\x88\x01\x01\x12*\n" +
-	"\x0ecustoms_cutoff\x18\x1b \x01(\tH\x0eR\rcustomsCutoff\x88\x01\x01\x12\"\n" +
+	"doc_cutoff\x18\x1a \x01(\tH\x0eR\tdocCutoff\x88\x01\x01\x12*\n" +
+	"\x0ecustoms_cutoff\x18\x1b \x01(\tH\x0fR\rcustomsCutoff\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"vgm_cutoff\x18\x1c \x01(\tH\x0fR\tvgmCutoff\x88\x01\x01\x120\n" +
-	"\x11goods_description\x18\x1d \x01(\tH\x10R\x10goodsDescription\x88\x01\x01\x12*\n" +
-	"\x0etotal_packages\x18\x1e \x01(\x05H\x11R\rtotalPackages\x88\x01\x01\x121\n" +
-	"\x12total_package_unit\x18\x1f \x01(\tH\x12R\x10totalPackageUnit\x88\x01\x01\x126\n" +
-	"\x14special_requirements\x18  \x01(\tH\x13R\x13specialRequirements\x88\x01\x01\x12\"\n" +
+	"vgm_cutoff\x18\x1c \x01(\tH\x10R\tvgmCutoff\x88\x01\x01\x120\n" +
+	"\x11goods_description\x18\x1d \x01(\tH\x11R\x10goodsDescription\x88\x01\x01\x12*\n" +
+	"\x0etotal_packages\x18\x1e \x01(\x05H\x12R\rtotalPackages\x88\x01\x01\x121\n" +
+	"\x12total_package_unit\x18\x1f \x01(\tH\x13R\x10totalPackageUnit\x88\x01\x01\x126\n" +
+	"\x14special_requirements\x18  \x01(\tH\x14R\x13specialRequirements\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"order_date\x18! \x01(\tH\x14R\torderDate\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\" \x01(\tH\x15R\x05notes\x88\x01\x01\x12\x1d\n" +
+	"order_date\x18! \x01(\tH\x15R\torderDate\x88\x01\x01\x12\x19\n" +
+	"\x05notes\x18\" \x01(\tH\x16R\x05notes\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"created_at\x18# \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18$ \x01(\tR\tupdatedAt\x127\n" +
-	"\x15customer_reference_no\x18% \x01(\tH\x16R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
-	"\x10foreign_agent_id\x18& \x01(\tH\x17R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
-	"\vcontract_no\x18' \x01(\tH\x18R\n" +
+	"\x15customer_reference_no\x18% \x01(\tH\x17R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
+	"\x10foreign_agent_id\x18& \x01(\tH\x18R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
+	"\vcontract_no\x18' \x01(\tH\x19R\n" +
 	"contractNo\x88\x01\x01\x12$\n" +
-	"\vcargo_value\x18( \x01(\tH\x19R\n" +
+	"\vcargo_value\x18( \x01(\tH\x1aR\n" +
 	"cargoValue\x88\x01\x01\x12*\n" +
-	"\x0ecargo_currency\x18) \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01\x127\n" +
-	"\x15internal_reference_no\x18* \x01(\tH\x1bR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
-	"\x11shipping_agent_id\x18+ \x01(\tH\x1cR\x0fshippingAgentId\x88\x01\x01\x120\n" +
-	"\x11insurance_premium\x18, \x01(\tH\x1dR\x10insurancePremium\x88\x01\x01\x122\n" +
-	"\x12insurance_currency\x18- \x01(\tH\x1eR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
-	"\tun_number\x18. \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
-	"\fhazard_class\x18/ \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
-	"\ffactory_name\x180 \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
-	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12$\n" +
-	"\vreceived_at\x183 \x01(\tH#R\n" +
+	"\x0ecargo_currency\x18) \x01(\tH\x1bR\rcargoCurrency\x88\x01\x01\x127\n" +
+	"\x15internal_reference_no\x18* \x01(\tH\x1cR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
+	"\x11shipping_agent_id\x18+ \x01(\tH\x1dR\x0fshippingAgentId\x88\x01\x01\x120\n" +
+	"\x11insurance_premium\x18, \x01(\tH\x1eR\x10insurancePremium\x88\x01\x01\x122\n" +
+	"\x12insurance_currency\x18- \x01(\tH\x1fR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
+	"\tun_number\x18. \x01(\tH R\bunNumber\x88\x01\x01\x12&\n" +
+	"\fhazard_class\x18/ \x01(\tH!R\vhazardClass\x88\x01\x01\x12&\n" +
+	"\ffactory_name\x180 \x01(\tH\"R\vfactoryName\x88\x01\x01\x12)\n" +
+	"\x0ecargo_ready_at\x181 \x01(\tH#R\fcargoReadyAt\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x183 \x01(\tH$R\n" +
 	"receivedAt\x88\x01\x01\x12+\n" +
 	"\x11organization_name\x184 \x01(\tR\x10organizationName\x12\x1d\n" +
 	"\n" +
 	"can_modify\x185 \x01(\bR\tcanModify\x12(\n" +
-	"\rbooking_notes\x186 \x01(\tH$R\fbookingNotes\x88\x01\x01\x12.\n" +
-	"\x10allocation_notes\x187 \x01(\tH%R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x188 \x01(\tH&R\x0eoperationNotes\x88\x01\x01\x12N\n" +
+	"\rbooking_notes\x186 \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
+	"\x10allocation_notes\x187 \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
+	"\x0foperation_notes\x188 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12N\n" +
 	"\x12shipping_documents\x189 \x03(\v2\x1f.order.v1.OrderShippingDocumentR\x11shippingDocuments\x12N\n" +
 	"\x12container_requests\x18: \x03(\v2\x1f.order.v1.OrderContainerRequestR\x11containerRequests\x127\n" +
-	"\x15declaration_cutoff_at\x18; \x01(\tH'R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
-	"\x15total_gross_weight_kg\x18< \x01(\x01H(R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
-	"\x10total_volume_cbm\x18= \x01(\x01H)R\x0etotalVolumeCbm\x88\x01\x01\x12O\n" +
+	"\x15declaration_cutoff_at\x18; \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
+	"\x15total_gross_weight_kg\x18< \x01(\x01H)R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
+	"\x10total_volume_cbm\x18= \x01(\x01H*R\x0etotalVolumeCbm\x88\x01\x01\x12O\n" +
 	"\x12termination_status\x18> \x01(\x0e2 .order.v1.OrderTerminationStatusR\x11terminationStatus\x12N\n" +
-	"\x10termination_type\x18? \x01(\x0e2\x1e.order.v1.OrderTerminationTypeH*R\x0fterminationType\x88\x01\x01\x122\n" +
-	"\x12termination_reason\x18@ \x01(\tH+R\x11terminationReason\x88\x01\x01\x12(\n" +
-	"\rterminated_at\x18A \x01(\tH,R\fterminatedAt\x88\x01\x01\x12(\n" +
-	"\rterminated_by\x18B \x01(\tH-R\fterminatedBy\x88\x01\x01\x12C\n" +
+	"\x10termination_type\x18? \x01(\x0e2\x1e.order.v1.OrderTerminationTypeH+R\x0fterminationType\x88\x01\x01\x122\n" +
+	"\x12termination_reason\x18@ \x01(\tH,R\x11terminationReason\x88\x01\x01\x12(\n" +
+	"\rterminated_at\x18A \x01(\tH-R\fterminatedAt\x88\x01\x01\x12(\n" +
+	"\rterminated_by\x18B \x01(\tH.R\fterminatedBy\x88\x01\x01\x12C\n" +
 	"\x0eclosure_status\x18C \x01(\x0e2\x1c.order.v1.OrderClosureStatusR\rclosureStatus\x12*\n" +
-	"\x0eclosure_reason\x18D \x01(\tH.R\rclosureReason\x88\x01\x01\x12 \n" +
-	"\tclosed_at\x18E \x01(\tH/R\bclosedAt\x88\x01\x01\x12 \n" +
-	"\tclosed_by\x18F \x01(\tH0R\bclosedBy\x88\x01\x01\x12\x18\n" +
+	"\x0eclosure_reason\x18D \x01(\tH/R\rclosureReason\x88\x01\x01\x12 \n" +
+	"\tclosed_at\x18E \x01(\tH0R\bclosedAt\x88\x01\x01\x12 \n" +
+	"\tclosed_by\x18F \x01(\tH1R\bclosedBy\x88\x01\x01\x12\x18\n" +
 	"\aversion\x18G \x01(\x04R\aversion\x120\n" +
 	"\x14has_active_exception\x18H \x01(\bR\x12hasActiveException\x124\n" +
 	"\x16active_exception_count\x18I \x01(\x05R\x14activeExceptionCount\x12E\n" +
 	"\x0fallowed_actions\x18J \x03(\x0e2\x1c.order.v1.OrderAllowedActionR\x0eallowedActions\x121\n" +
-	"\x12shipper_short_name\x18K \x01(\tH1R\x10shipperShortName\x88\x01\x01\x125\n" +
-	"\x14consignee_short_name\x18L \x01(\tH2R\x12consigneeShortName\x88\x01\x01\x12 \n" +
-	"\tlocked_at\x18M \x01(\tH3R\blockedAt\x88\x01\x01\x12\x1b\n" +
+	"\x12shipper_short_name\x18K \x01(\tH2R\x10shipperShortName\x88\x01\x01\x125\n" +
+	"\x14consignee_short_name\x18L \x01(\tH3R\x12consigneeShortName\x88\x01\x01\x12 \n" +
+	"\tlocked_at\x18M \x01(\tH4R\blockedAt\x88\x01\x01\x12\x1b\n" +
 	"\tis_shared\x18N \x01(\bR\bisShared\x120\n" +
 	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tags\x12Z\n" +
 	"\x1callowed_target_flow_statuses\x18P \x03(\x0e2\x19.order.v1.OrderFlowStatusR\x19allowedTargetFlowStatuses\x12K\n" +
-	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH4R\rseaMasterBill\x88\x01\x01\x12Y\n" +
-	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH5R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
-	"\x19sea_document_link_version\x18S \x01(\x04H6R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
-	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH7R\x12seaDocumentSummary\x88\x01\x01\x12\"\n" +
+	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH5R\rseaMasterBill\x88\x01\x01\x12Y\n" +
+	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH6R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
+	"\x19sea_document_link_version\x18S \x01(\x04H7R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
+	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18U \x01(\tH8R\tbookingNo\x88\x01\x01B\x13\n" +
+	"booking_no\x18U \x01(\tH9R\tbookingNo\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
-	"\x11_booking_agent_idB\x10\n" +
+	"\x11_booking_agent_idB\r\n" +
+	"\v_trade_termB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
 	"\x14_container_ownershipB\x10\n" +
 	"\x0e_shipment_modeB\x15\n" +
@@ -6506,76 +6507,77 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xaa\x1e\n" +
+	"\t_order_no\"\xb9\x1e\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
 	"\rbusiness_type\x18\x02 \x01(\x0e2\x16.order.v1.BusinessTypeB\x03\xe0A\x02R\fbusinessType\x12F\n" +
 	"\x0ftrade_direction\x18\x03 \x01(\x0e2\x18.order.v1.TradeDirectionB\x03\xe0A\x02R\x0etradeDirection\x127\n" +
 	"\n" +
-	"trade_term\x18\x04 \x01(\x0e2\x13.order.v1.TradeTermB\x03\xe0A\x02R\ttradeTerm\x12=\n" +
+	"trade_term\x18\x04 \x01(\x0e2\x13.order.v1.TradeTermH\x00R\ttradeTerm\x88\x01\x01\x12=\n" +
 	"\fpayment_term\x18\x05 \x01(\x0e2\x15.order.v1.PaymentTermB\x03\xe0A\x02R\vpaymentTerm\x12-\n" +
-	"\x10shipping_line_id\x18\a \x01(\tH\x00R\x0eshippingLineId\x88\x01\x01\x12-\n" +
-	"\x10booking_agent_id\x18\b \x01(\tH\x01R\x0ebookingAgentId\x88\x01\x01\x12@\n" +
-	"\rshipment_type\x18\t \x01(\x0e2\x16.order.v1.ShipmentTypeH\x02R\fshipmentType\x88\x01\x01\x12R\n" +
+	"\x10shipping_line_id\x18\a \x01(\tH\x01R\x0eshippingLineId\x88\x01\x01\x12-\n" +
+	"\x10booking_agent_id\x18\b \x01(\tH\x02R\x0ebookingAgentId\x88\x01\x01\x12@\n" +
+	"\rshipment_type\x18\t \x01(\x0e2\x16.order.v1.ShipmentTypeH\x03R\fshipmentType\x88\x01\x01\x12R\n" +
 	"\x13container_ownership\x18\n" +
-	" \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x03R\x12containerOwnership\x88\x01\x01\x12@\n" +
-	"\rshipment_mode\x18\v \x01(\x0e2\x16.order.v1.ShipmentModeH\x04R\fshipmentMode\x88\x01\x01\x12(\n" +
+	" \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x04R\x12containerOwnership\x88\x01\x01\x12@\n" +
+	"\rshipment_mode\x18\v \x01(\x0e2\x16.order.v1.ShipmentModeH\x05R\fshipmentMode\x88\x01\x01\x12(\n" +
 	"\x10service_type_ids\x18\f \x03(\tR\x0eserviceTypeIds\x12,\n" +
 	"\x12cargo_category_ids\x18\r \x03(\tR\x10cargoCategoryIds\x121\n" +
-	"\x12origin_location_id\x18\x0e \x01(\tH\x05R\x10originLocationId\x88\x01\x01\x12;\n" +
-	"\x17destination_location_id\x18\x0f \x01(\tH\x06R\x15destinationLocationId\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\x10 \x01(\tH\aR\x13dischargeLocationId\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\x11 \x01(\tH\bR\x11transitLocationId\x88\x01\x01\x12(\n" +
-	"\rvessel_voyage\x18\x12 \x01(\tH\tR\fvesselVoyage\x88\x01\x01\x12\x15\n" +
-	"\x03etd\x18\x13 \x01(\tH\n" +
-	"R\x03etd\x88\x01\x01\x12\x15\n" +
-	"\x03eta\x18\x14 \x01(\tH\vR\x03eta\x88\x01\x01\x12 \n" +
-	"\tsi_cutoff\x18\x15 \x01(\tH\fR\bsiCutoff\x88\x01\x01\x12\"\n" +
+	"\x12origin_location_id\x18\x0e \x01(\tH\x06R\x10originLocationId\x88\x01\x01\x12;\n" +
+	"\x17destination_location_id\x18\x0f \x01(\tH\aR\x15destinationLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\x10 \x01(\tH\bR\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\x11 \x01(\tH\tR\x11transitLocationId\x88\x01\x01\x12(\n" +
+	"\rvessel_voyage\x18\x12 \x01(\tH\n" +
+	"R\fvesselVoyage\x88\x01\x01\x12\x15\n" +
+	"\x03etd\x18\x13 \x01(\tH\vR\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\x14 \x01(\tH\fR\x03eta\x88\x01\x01\x12 \n" +
+	"\tsi_cutoff\x18\x15 \x01(\tH\rR\bsiCutoff\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"doc_cutoff\x18\x16 \x01(\tH\rR\tdocCutoff\x88\x01\x01\x12*\n" +
-	"\x0ecustoms_cutoff\x18\x17 \x01(\tH\x0eR\rcustomsCutoff\x88\x01\x01\x12\"\n" +
+	"doc_cutoff\x18\x16 \x01(\tH\x0eR\tdocCutoff\x88\x01\x01\x12*\n" +
+	"\x0ecustoms_cutoff\x18\x17 \x01(\tH\x0fR\rcustomsCutoff\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"vgm_cutoff\x18\x18 \x01(\tH\x0fR\tvgmCutoff\x88\x01\x01\x120\n" +
-	"\x11goods_description\x18\x19 \x01(\tH\x10R\x10goodsDescription\x88\x01\x01\x12*\n" +
-	"\x0etotal_packages\x18\x1a \x01(\x05H\x11R\rtotalPackages\x88\x01\x01\x121\n" +
-	"\x12total_package_unit\x18\x1b \x01(\tH\x12R\x10totalPackageUnit\x88\x01\x01\x126\n" +
-	"\x14special_requirements\x18\x1c \x01(\tH\x13R\x13specialRequirements\x88\x01\x01\x12\"\n" +
+	"vgm_cutoff\x18\x18 \x01(\tH\x10R\tvgmCutoff\x88\x01\x01\x120\n" +
+	"\x11goods_description\x18\x19 \x01(\tH\x11R\x10goodsDescription\x88\x01\x01\x12*\n" +
+	"\x0etotal_packages\x18\x1a \x01(\x05H\x12R\rtotalPackages\x88\x01\x01\x121\n" +
+	"\x12total_package_unit\x18\x1b \x01(\tH\x13R\x10totalPackageUnit\x88\x01\x01\x126\n" +
+	"\x14special_requirements\x18\x1c \x01(\tH\x14R\x13specialRequirements\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"order_date\x18\x1d \x01(\tH\x14R\torderDate\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\x1e \x01(\tH\x15R\x05notes\x88\x01\x01\x127\n" +
-	"\x15customer_reference_no\x18\x1f \x01(\tH\x16R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
-	"\x10foreign_agent_id\x18  \x01(\tH\x17R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
-	"\vcontract_no\x18! \x01(\tH\x18R\n" +
+	"order_date\x18\x1d \x01(\tH\x15R\torderDate\x88\x01\x01\x12\x19\n" +
+	"\x05notes\x18\x1e \x01(\tH\x16R\x05notes\x88\x01\x01\x127\n" +
+	"\x15customer_reference_no\x18\x1f \x01(\tH\x17R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
+	"\x10foreign_agent_id\x18  \x01(\tH\x18R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
+	"\vcontract_no\x18! \x01(\tH\x19R\n" +
 	"contractNo\x88\x01\x01\x12$\n" +
-	"\vcargo_value\x18\" \x01(\tH\x19R\n" +
+	"\vcargo_value\x18\" \x01(\tH\x1aR\n" +
 	"cargoValue\x88\x01\x01\x12*\n" +
-	"\x0ecargo_currency\x18# \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01\x127\n" +
-	"\x15internal_reference_no\x18$ \x01(\tH\x1bR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
-	"\x11shipping_agent_id\x18% \x01(\tH\x1cR\x0fshippingAgentId\x88\x01\x01\x120\n" +
-	"\x11insurance_premium\x18& \x01(\tH\x1dR\x10insurancePremium\x88\x01\x01\x122\n" +
-	"\x12insurance_currency\x18' \x01(\tH\x1eR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
-	"\tun_number\x18( \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
-	"\fhazard_class\x18) \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
-	"\ffactory_name\x18* \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
-	"\x0ecargo_ready_at\x18+ \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12$\n" +
-	"\vreceived_at\x18- \x01(\tH#R\n" +
+	"\x0ecargo_currency\x18# \x01(\tH\x1bR\rcargoCurrency\x88\x01\x01\x127\n" +
+	"\x15internal_reference_no\x18$ \x01(\tH\x1cR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
+	"\x11shipping_agent_id\x18% \x01(\tH\x1dR\x0fshippingAgentId\x88\x01\x01\x120\n" +
+	"\x11insurance_premium\x18& \x01(\tH\x1eR\x10insurancePremium\x88\x01\x01\x122\n" +
+	"\x12insurance_currency\x18' \x01(\tH\x1fR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
+	"\tun_number\x18( \x01(\tH R\bunNumber\x88\x01\x01\x12&\n" +
+	"\fhazard_class\x18) \x01(\tH!R\vhazardClass\x88\x01\x01\x12&\n" +
+	"\ffactory_name\x18* \x01(\tH\"R\vfactoryName\x88\x01\x01\x12)\n" +
+	"\x0ecargo_ready_at\x18+ \x01(\tH#R\fcargoReadyAt\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x18- \x01(\tH$R\n" +
 	"receivedAt\x88\x01\x01\x12(\n" +
-	"\rbooking_notes\x18. \x01(\tH$R\fbookingNotes\x88\x01\x01\x12.\n" +
-	"\x10allocation_notes\x18/ \x01(\tH%R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x180 \x01(\tH&R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
+	"\rbooking_notes\x18. \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
+	"\x10allocation_notes\x18/ \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
+	"\x0foperation_notes\x180 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
 	"\x15personnel_assignments\x181 \x03(\v2'.order.v1.OrderPersonnelAssignmentInputR\x14personnelAssignments\x12S\n" +
 	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
 	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequests\x127\n" +
-	"\x15declaration_cutoff_at\x184 \x01(\tH'R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
-	"\x15total_gross_weight_kg\x185 \x01(\x01H(R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
-	"\x10total_volume_cbm\x186 \x01(\x01H)R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
-	"\x12shipper_short_name\x187 \x01(\tH*R\x10shipperShortName\x88\x01\x01\x125\n" +
-	"\x14consignee_short_name\x188 \x01(\tH+R\x12consigneeShortName\x88\x01\x01\x12I\n" +
-	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH,R\rseaMasterBill\x88\x01\x01\x12G\n" +
-	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH-R\vseaDocument\x88\x01\x01\x12\"\n" +
+	"\x15declaration_cutoff_at\x184 \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
+	"\x15total_gross_weight_kg\x185 \x01(\x01H)R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
+	"\x10total_volume_cbm\x186 \x01(\x01H*R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
+	"\x12shipper_short_name\x187 \x01(\tH+R\x10shipperShortName\x88\x01\x01\x125\n" +
+	"\x14consignee_short_name\x188 \x01(\tH,R\x12consigneeShortName\x88\x01\x01\x12I\n" +
+	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01\x12G\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18; \x01(\tH.R\tbookingNo\x88\x01\x01B\x13\n" +
+	"booking_no\x18; \x01(\tH/R\tbookingNo\x88\x01\x01B\r\n" +
+	"\v_trade_termB\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +

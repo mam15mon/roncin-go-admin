@@ -75,7 +75,7 @@ type Order struct {
 	// TradeDirection holds the value of the "trade_direction" field.
 	TradeDirection order.TradeDirection `json:"trade_direction,omitempty"`
 	// TradeTerm holds the value of the "trade_term" field.
-	TradeTerm order.TradeTerm `json:"trade_term,omitempty"`
+	TradeTerm *order.TradeTerm `json:"trade_term,omitempty"`
 	// PaymentTerm holds the value of the "payment_term" field.
 	PaymentTerm order.PaymentTerm `json:"payment_term,omitempty"`
 	// ShipmentType holds the value of the "shipment_type" field.
@@ -748,7 +748,8 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field trade_term", values[i])
 			} else if value.Valid {
-				_m.TradeTerm = order.TradeTerm(value.String)
+				_m.TradeTerm = new(order.TradeTerm)
+				*_m.TradeTerm = order.TradeTerm(value.String)
 			}
 		case order.FieldPaymentTerm:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1308,8 +1309,10 @@ func (_m *Order) String() string {
 	builder.WriteString("trade_direction=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TradeDirection))
 	builder.WriteString(", ")
-	builder.WriteString("trade_term=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TradeTerm))
+	if v := _m.TradeTerm; v != nil {
+		builder.WriteString("trade_term=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("payment_term=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PaymentTerm))

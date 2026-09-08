@@ -39,7 +39,7 @@ func (Order) Fields() []ent.Field {
 		field.String("received_at").Optional().MaxLen(64),
 		field.Enum("business_type").Values("SE", "SI", "AE", "AI", "LAND", "RAIL"),
 		field.Enum("trade_direction").Values("export", "import"),
-		field.Enum("trade_term").Values("EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"),
+		field.Enum("trade_term").Values("EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP").Optional().Nillable(),
 		field.Enum("payment_term").Values("PREPAID", "COLLECT"),
 		field.Enum("shipment_type").Values("FCL", "LCL", "BREAK_BULK").Optional().Nillable(),
 		field.Enum("container_ownership").Values("COC", "SOC").Optional().Nillable(),

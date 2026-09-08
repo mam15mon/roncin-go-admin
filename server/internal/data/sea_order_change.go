@@ -2342,7 +2342,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					SetOrderNo(orderNo).
 					SetBusinessType(sourceOrder.BusinessType).
 					SetTradeDirection(sourceOrder.TradeDirection).
-					SetTradeTerm(sourceOrder.TradeTerm).
+					SetNillableTradeTerm(sourceOrder.TradeTerm).
 					SetPaymentTerm(sourceOrder.PaymentTerm).
 					SetNillableShipmentType(sourceOrder.ShipmentType).
 					SetNillableContainerOwnership(sourceOrder.ContainerOwnership).

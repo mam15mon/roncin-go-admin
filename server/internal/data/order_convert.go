@@ -45,7 +45,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		ShipperShortName: item.ShipperShortName, ConsigneeShortName: item.ConsigneeShortName, LockedAt: item.LockedAt, IsShared: item.IsShared,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt,
 		DeclarationCutoffAt: item.DeclarationCutoffAt, ReceivedAt: item.ReceivedAt,
-		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
+		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: orderTradeTermToBiz(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
 		FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), TerminationReason: orderOptionalStringValue(item.TerminationReason),
 		TerminatedAt: item.TerminatedAt, TerminatedBy: item.TerminatedBy, ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), ClosureReason: orderOptionalStringValue(item.ClosureReason),
 		ClosedAt: item.ClosedAt, ClosedBy: item.ClosedBy, Version: item.Version, HasActiveException: len(item.Edges.AbnormalCases) > 0, ActiveExceptionCount: len(item.Edges.AbnormalCases),
@@ -170,6 +170,11 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 	} else {
 		update.SetShippingLineID(*input.ShippingLineID)
 	}
+	if input.TradeTerm == "" {
+		update.ClearTradeTerm()
+	} else {
+		update.SetTradeTerm(orderent.TradeTerm(input.TradeTerm))
+	}
 	if input.BookingAgentID == nil {
 		update.ClearBookingAgentID()
 	} else {
@@ -270,6 +275,21 @@ func orderShipmentModeToEnt(value *biz.OrderShipmentMode) *orderent.ShipmentMode
 		return nil
 	}
 	result := orderent.ShipmentMode(*value)
+	return &result
+}
+
+func orderTradeTermToBiz(value *orderent.TradeTerm) biz.OrderTradeTerm {
+	if value == nil {
+		return ""
+	}
+	return biz.OrderTradeTerm(*value)
+}
+
+func orderTradeTermToEnt(value biz.OrderTradeTerm) *orderent.TradeTerm {
+	if value == "" {
+		return nil
+	}
+	result := orderent.TradeTerm(value)
 	return &result
 }
 

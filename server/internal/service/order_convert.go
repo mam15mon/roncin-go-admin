@@ -13,7 +13,7 @@ import (
 func orderToAPI(item *biz.Order) *v1.Order {
 	result := &v1.Order{
 		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
-		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
+		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: optionalTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
 		FlowStatus: orderFlowStatusToAPI(item.FlowStatus), TerminationStatus: orderTerminationStatusToAPI(item.TerminationStatus), TerminationType: orderTerminationTypeToAPI(item.TerminationType),
 		TerminationReason: stringPtrIfNotEmpty(item.TerminationReason), TerminatedAt: timePtrToString(item.TerminatedAt), TerminatedBy: uuidStringPtr(item.TerminatedBy),
 		ClosureStatus: orderClosureStatusToAPI(item.ClosureStatus), ClosureReason: stringPtrIfNotEmpty(item.ClosureReason), ClosedAt: timePtrToString(item.ClosedAt), ClosedBy: uuidStringPtr(item.ClosedBy),

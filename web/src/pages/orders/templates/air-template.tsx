@@ -49,7 +49,6 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
             name="tradeTerm"
             label="贸易条款"
-            rules={[{ required: true, message: '请选择贸易条款' }]}
             options={tradeTermOptions}
             placeholder="请选择贸易条款"
           />

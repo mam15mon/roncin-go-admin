@@ -7,7 +7,7 @@ export type CreateOrderFormValues = {
   bookingNo?: string;
   internalReferenceNo?: string;
   customerCode?: string;
-  tradeTerm: number;
+  tradeTerm?: number;
   paymentTerm: number;
   shippingLineId?: string;
   bookingAgentId?: string;
@@ -169,7 +169,10 @@ export function buildCreateOrderPayload(
     internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
     businessType: config.businessType,
     tradeDirection: config.tradeDirection,
-    tradeTerm: Number(values.tradeTerm),
+    tradeTerm:
+      values.tradeTerm !== undefined && values.tradeTerm !== null
+        ? Number(values.tradeTerm)
+        : undefined,
     paymentTerm: Number(values.paymentTerm),
     shippingLineId: values.shippingLineId || undefined,
     bookingAgentId: values.bookingAgentId || undefined,

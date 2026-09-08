@@ -384,6 +384,14 @@ func (_c *OrderCreate) SetTradeTerm(v order.TradeTerm) *OrderCreate {
 	return _c
 }
 
+// SetNillableTradeTerm sets the "trade_term" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableTradeTerm(v *order.TradeTerm) *OrderCreate {
+	if v != nil {
+		_c.SetTradeTerm(*v)
+	}
+	return _c
+}
+
 // SetPaymentTerm sets the "payment_term" field.
 func (_c *OrderCreate) SetPaymentTerm(v order.PaymentTerm) *OrderCreate {
 	_c.mutation.SetPaymentTerm(v)
@@ -1647,9 +1655,6 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "trade_direction", err: fmt.Errorf(`ent: validator failed for field "Order.trade_direction": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.TradeTerm(); !ok {
-		return &ValidationError{Name: "trade_term", err: errors.New(`ent: missing required field "Order.trade_term"`)}
-	}
 	if v, ok := _c.mutation.TradeTerm(); ok {
 		if err := order.TradeTermValidator(v); err != nil {
 			return &ValidationError{Name: "trade_term", err: fmt.Errorf(`ent: validator failed for field "Order.trade_term": %w`, err)}
@@ -1951,7 +1956,7 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.TradeTerm(); ok {
 		_spec.SetField(order.FieldTradeTerm, field.TypeEnum, value)
-		_node.TradeTerm = value
+		_node.TradeTerm = &value
 	}
 	if value, ok := _c.mutation.PaymentTerm(); ok {
 		_spec.SetField(order.FieldPaymentTerm, field.TypeEnum, value)

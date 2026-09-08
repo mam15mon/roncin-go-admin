@@ -274,7 +274,7 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 }
 
 func normalizeOrder(input *Order, creating bool) (*Order, error) {
-	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || !input.TradeTerm.Valid() || !input.PaymentTerm.Valid() {
+	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || (input.TradeTerm != "" && !input.TradeTerm.Valid()) || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
 	if input.BusinessType != OrderBusinessSE || input.TradeDirection != OrderTradeExport {

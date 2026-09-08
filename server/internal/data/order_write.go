@@ -72,7 +72,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetReceivedAt(input.ReceivedAt).
 			SetBusinessType(orderent.BusinessType(input.BusinessType)).
 			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
+			SetNillableTradeTerm(orderTradeTermToEnt(input.TradeTerm)).
 			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
 			SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
 			SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
@@ -396,7 +396,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 			SetReceivedAt(input.ReceivedAt).
 			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
 			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
 			SetVesselVoyage(input.VesselVoyage).
 			SetEtd(input.ETD).

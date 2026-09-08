@@ -285,7 +285,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           <ProFormSearchableSelect
             name="tradeTerm"
             label="贸易条款"
-            rules={[{ required: true, message: '请选择贸易条款' }]}
             options={tradeTermOptions}
             placeholder="请选择"
             initialValue={TradeTerm.TRADE_TERM_CIF}

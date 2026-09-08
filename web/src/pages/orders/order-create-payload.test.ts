@@ -165,4 +165,16 @@ describe('buildCreateOrderPayload', () => {
       masterNo: 'COSCO999902',
     });
   });
+
+  it('未提供 tradeTerm 时 payload 中 tradeTerm 为 undefined', () => {
+    const result = buildCreateOrderPayload(
+      {
+        customerId: 'customer-1',
+        paymentTerm: 1,
+      },
+      ORDER_KIND_CONFIGS['sea-export'],
+    );
+
+    expect(result.tradeTerm).toBeUndefined();
+  });
 });

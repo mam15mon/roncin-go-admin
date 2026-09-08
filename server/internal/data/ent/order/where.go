@@ -1876,6 +1876,16 @@ func TradeTermNotIn(vs ...TradeTerm) predicate.Order {
 	return predicate.Order(sql.FieldNotIn(FieldTradeTerm, vs...))
 }
 
+// TradeTermIsNil applies the IsNil predicate on the "trade_term" field.
+func TradeTermIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTradeTerm))
+}
+
+// TradeTermNotNil applies the NotNil predicate on the "trade_term" field.
+func TradeTermNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTradeTerm))
+}
+
 // PaymentTermEQ applies the EQ predicate on the "payment_term" field.
 func PaymentTermEQ(v PaymentTerm) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldPaymentTerm, v))

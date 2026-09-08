@@ -13061,7 +13061,6 @@ components:
                 - customerId
                 - businessType
                 - tradeDirection
-                - tradeTerm
                 - paymentTerm
             type: object
             properties:

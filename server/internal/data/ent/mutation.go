@@ -62432,7 +62432,7 @@ func (m *OrderMutation) TradeTerm() (r order.TradeTerm, exists bool) {
 // OldTradeTerm returns the old "trade_term" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldTradeTerm(ctx context.Context) (v order.TradeTerm, err error) {
+func (m *OrderMutation) OldTradeTerm(ctx context.Context) (v *order.TradeTerm, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTradeTerm is only allowed on UpdateOne operations")
 	}
@@ -62446,9 +62446,22 @@ func (m *OrderMutation) OldTradeTerm(ctx context.Context) (v order.TradeTerm, er
 	return oldValue.TradeTerm, nil
 }
 
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (m *OrderMutation) ClearTradeTerm() {
+	m.trade_term = nil
+	m.clearedFields[order.FieldTradeTerm] = struct{}{}
+}
+
+// TradeTermCleared returns if the "trade_term" field was cleared in this mutation.
+func (m *OrderMutation) TradeTermCleared() bool {
+	_, ok := m.clearedFields[order.FieldTradeTerm]
+	return ok
+}
+
 // ResetTradeTerm resets all changes to the "trade_term" field.
 func (m *OrderMutation) ResetTradeTerm() {
 	m.trade_term = nil
+	delete(m.clearedFields, order.FieldTradeTerm)
 }
 
 // SetPaymentTerm sets the "payment_term" field.
@@ -67379,6 +67392,9 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldReceivedAt) {
 		fields = append(fields, order.FieldReceivedAt)
 	}
+	if m.FieldCleared(order.FieldTradeTerm) {
+		fields = append(fields, order.FieldTradeTerm)
+	}
 	if m.FieldCleared(order.FieldShipmentType) {
 		fields = append(fields, order.FieldShipmentType)
 	}
@@ -67548,6 +67564,9 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldReceivedAt:
 		m.ClearReceivedAt()
+		return nil
+	case order.FieldTradeTerm:
+		m.ClearTradeTerm()
 		return nil
 	case order.FieldShipmentType:
 		m.ClearShipmentType()

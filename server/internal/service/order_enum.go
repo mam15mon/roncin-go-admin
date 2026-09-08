@@ -220,6 +220,13 @@ func orderTradeTermToAPI(value biz.OrderTradeTerm) v1.TradeTerm {
 		return v1.TradeTerm_TRADE_TERM_UNSPECIFIED
 	}
 }
+func optionalTradeTermToAPI(value biz.OrderTradeTerm) *v1.TradeTerm {
+	if value == "" {
+		return nil
+	}
+	tt := orderTradeTermToAPI(value)
+	return &tt
+}
 func orderPaymentTermFromAPI(value v1.PaymentTerm) biz.OrderPaymentTerm {
 	if value == v1.PaymentTerm_PAYMENT_TERM_PREPAID {
 		return biz.OrderPaymentPrepaid
