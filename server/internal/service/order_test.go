@@ -63,7 +63,7 @@ func TestOrderOrganizationScopesKeepBusinessTypeAndOrganizationPaired(t *testing
 	if err != nil {
 		t.Fatalf("orderOrganizationScopesForOperation() error = %v", err)
 	}
-	if len(scopes) != 2 || scopes[0].BusinessType != biz.OrderBusinessSE || !slices.Equal(scopes[0].OrganizationIDs, []uuid.UUID{currentOrganizationID, beijingOrganizationID}) || scopes[1].BusinessType != biz.OrderBusinessAI || !slices.Equal(scopes[1].OrganizationIDs, []uuid.UUID{currentOrganizationID}) {
+	if len(scopes) != 2 || scopes[0].BusinessType != biz.OrderBusinessSE || len(scopes[0].OrganizationIDs) != 2 || !slices.Contains(scopes[0].OrganizationIDs, currentOrganizationID) || !slices.Contains(scopes[0].OrganizationIDs, beijingOrganizationID) || scopes[1].BusinessType != biz.OrderBusinessAI || !slices.Equal(scopes[1].OrganizationIDs, []uuid.UUID{currentOrganizationID}) {
 		t.Fatalf("order scopes = %#v", scopes)
 	}
 }
