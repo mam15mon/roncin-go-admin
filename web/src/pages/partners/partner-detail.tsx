@@ -1,9 +1,10 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
-import { history, useLocation, useParams } from '@umijs/max';
+import { history, useLocation, useParams, useSearchParams } from '@umijs/max';
 import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import {
   PartnerBusinessType,
   PartnerCustomerType,
@@ -25,7 +26,6 @@ import {
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencyOptions } from '@/utils/options';
-import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
 import BasicInfoSection from './components/BasicInfoSection';
@@ -118,6 +118,13 @@ export default function PartnerDetailPage() {
 
   const partnerId = params.id && params.id !== 'create' ? params.id : undefined;
   const isCreate = !partnerId;
+
+  // 创建模式读取 legalName 查询参数预填（订单表单快捷新增「添加公司详情」携带）；
+  // 编辑模式忽略该参数，不覆盖已加载的公司抬头。
+  const [searchParams] = useSearchParams();
+  const prefillLegalName = isCreate
+    ? (searchParams.get('legalName') ?? '').trim()
+    : '';
 
   // Load auxiliary options
   useEffect(() => {
@@ -296,14 +303,16 @@ export default function PartnerDetailPage() {
         statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
         settlementMethod:
           PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
-        settlementBase:
-          PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
+        settlementBase: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
         settlementDay: 25,
         settlementCurrency: 'CNY',
         creditDays: 30,
+        // 创建默认值跟随当前地址重建：携带 legalName 查询参数时预填公司抬头，
+        // 参数移除或变化时按新地址重建，不残留上一条地址的预填。
+        legalName: prefillLegalName,
       });
     }
-  }, [partnerId, roleType, roleLabel, message]);
+  }, [partnerId, roleType, roleLabel, prefillLegalName, message]);
 
   // User and Organization Select Options
   const userSelectOptions = useMemo(() => {
@@ -548,9 +557,7 @@ export default function PartnerDetailPage() {
       <PageHeaderShell
         title={displayTitle}
         onBack={() => history.push(listUrl)}
-        breadcrumbs={[
-          { label: `${roleLabel}管理`, href: listUrl },
-        ]}
+        breadcrumbs={[{ label: `${roleLabel}管理`, href: listUrl }]}
         tags={
           partner?.code ? (
             <Tag variant="filled" style={{ fontFamily: 'monospace' }}>

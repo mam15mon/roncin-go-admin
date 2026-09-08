@@ -1,6 +1,6 @@
 import { ProForm, ProFormText } from '@ant-design/pro-components';
-import { App } from 'antd';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { App } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { SeaDocumentStructure } from '@/enums.generated';
 import * as orderService from '@/services/roncin/orderService';
@@ -13,7 +13,18 @@ import { getSeaTemplateSections } from './sea-template';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOrder: () => true,
+    canCreatePartners: true,
+  }),
+  useModel: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user-1',
+        currentOrganization: { id: 'org-1', name: '测试组织' },
+      },
+    },
+  }),
 }));
 
 describe('海运订单新增模板', () => {
@@ -160,8 +171,12 @@ describe('海运订单新增模板', () => {
     expect(transportSection).not.toHaveTextContent('主单签发方');
     expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
-    expect(screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: /DIRECT（直接交付 MBL）/ })).toBeTruthy();
+    expect(
+      screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('radio', { name: /DIRECT（直接交付 MBL）/ }),
+    ).toBeTruthy();
     expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
     expect(
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),

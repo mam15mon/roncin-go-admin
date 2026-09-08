@@ -1,5 +1,11 @@
-import { Alert, App, Form, type FormInstance, Modal } from 'antd';
-import React, { useState, type ReactNode } from 'react';
+import { Alert, App, Button, Form, type FormInstance, Modal } from 'antd';
+import React, { type ReactNode, useState } from 'react';
+
+/** 可选附加底部动作：点击不触发表单校验或提交，可读取当前表单实例。 */
+export interface QuickCreateModalExtraAction<TFormValues = any> {
+  text: ReactNode;
+  onClick: (form: FormInstance<TFormValues>) => void;
+}
 
 export interface QuickCreateModalProps<TFormValues = any, TResult = any> {
   title: string | ReactNode;
@@ -14,6 +20,10 @@ export interface QuickCreateModalProps<TFormValues = any, TResult = any> {
   alertType?: 'info' | 'warning' | 'success' | 'error';
   initialValues?: Partial<TFormValues>;
   form?: FormInstance<TFormValues>;
+  /** 附加底部动作；提供后底部按钮顺序为「附加动作 / 取消 / 保存」。 */
+  extraAction?: QuickCreateModalExtraAction<TFormValues>;
+  /** 垂直居中弹窗；默认跟随 Modal 顶部对齐。 */
+  centered?: boolean;
   children: ReactNode | ((form: FormInstance<TFormValues>) => ReactNode);
 }
 
@@ -27,9 +37,11 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
   okText = '保存并选用',
   cancelText = '取消',
   alertText,
-  alertType = 'info',
+  alertType,
   initialValues,
   form: externalForm,
+  extraAction,
+  centered,
   children,
 }: QuickCreateModalProps<TFormValues, TResult>) {
   const [internalForm] = Form.useForm<TFormValues>();
@@ -73,6 +85,24 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
       cancelText={cancelText}
       onOk={() => void handleSave()}
       onCancel={handleCancel}
+      centered={centered}
+      footer={
+        extraAction ? (
+          <>
+            <Button type="primary" onClick={() => extraAction.onClick(form)}>
+              {extraAction.text}
+            </Button>
+            <Button onClick={handleCancel}>{cancelText}</Button>
+            <Button
+              type="primary"
+              loading={saving}
+              onClick={() => void handleSave()}
+            >
+              {okText}
+            </Button>
+          </>
+        ) : undefined
+      }
       destroyOnHidden
       width={width}
     >

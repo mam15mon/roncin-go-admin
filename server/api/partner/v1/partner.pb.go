@@ -2015,8 +2015,9 @@ func (x *ListPartnersRequest) GetEnabled() bool {
 }
 
 type CreatePartnerRequest struct {
-	state                   protoimpl.MessageState    `protogen:"open.v1"`
-	Code                    string                    `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 客商代码；留空时由服务端按组织内唯一规则自动生成。
+	Code                    *string                   `protobuf:"bytes,1,opt,name=code,proto3,oneof" json:"code,omitempty"`
 	LegalName               string                    `protobuf:"bytes,2,opt,name=legal_name,json=legalName,proto3" json:"legal_name,omitempty"`
 	UnifiedSocialCreditCode string                    `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
 	RegisteredAddress       string                    `protobuf:"bytes,4,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
@@ -2060,8 +2061,8 @@ func (*CreatePartnerRequest) Descriptor() ([]byte, []int) {
 }
 
 func (x *CreatePartnerRequest) GetCode() string {
-	if x != nil {
-		return x.Code
+	if x != nil && x.Code != nil {
+		return *x.Code
 	}
 	return ""
 }
@@ -7477,9 +7478,9 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
 	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xe5\x03\n" +
+	"\b_enabled\"\xee\x03\n" +
 	"\x14CreatePartnerRequest\x12\x17\n" +
-	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\"\n" +
+	"\x04code\x18\x01 \x01(\tH\x00R\x04code\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"legal_name\x18\x02 \x01(\tB\x03\xe0A\x02R\tlegalName\x12;\n" +
 	"\x1aunified_social_credit_code\x18\x03 \x01(\tR\x17unifiedSocialCreditCode\x12-\n" +
@@ -7488,7 +7489,8 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\bcontacts\x18\x06 \x03(\v2\x1f.partner.v1.PartnerContactInputR\bcontacts\x127\n" +
 	"\aaliases\x18\a \x03(\v2\x1d.partner.v1.PartnerAliasInputR\aaliases\x124\n" +
 	"\aprofile\x18\b \x01(\v2\x1a.partner.v1.PartnerProfileR\aprofile\x12D\n" +
-	"\vassignments\x18\t \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignments\"\xfb\x03\n" +
+	"\vassignments\x18\t \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignmentsB\a\n" +
+	"\x05_code\"\xfb\x03\n" +
 	"\x14UpdatePartnerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\"\n" +
 	"\n" +
@@ -8376,6 +8378,7 @@ func file_partner_v1_partner_proto_init() {
 		return
 	}
 	file_partner_v1_partner_proto_msgTypes[16].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[17].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[22].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[27].OneofWrappers = []any{
 		(*PartnerShippingPreset_Party)(nil),

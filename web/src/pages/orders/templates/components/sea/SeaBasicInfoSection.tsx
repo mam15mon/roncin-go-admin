@@ -7,13 +7,14 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
-import { TradeTerm } from '@/enums.generated';
 import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
+import { PartnerRoleType, TradeTerm } from '@/enums.generated';
 import {
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../../../common';
+import PartnerQuickAddSelect from '../../../components/PartnerQuickAddSelect';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 import type { SelectOption, TemplateProps } from '../../types';
 
@@ -188,18 +189,16 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
         <Col span={24}>
           <Row gutter={16} align="middle">
             <Col className="col-5">
-              <ProFormSearchableSelect
+              <PartnerQuickAddSelect
                 name="customerId"
-                label="委托单位"
-                rules={[{ required: true, message: '请选择客户单位' }]}
-                fieldProps={{
-                  placeholder: '请选择',
-                  onChange: (_: any, option: any) =>
-                    setCustomerCode((option as SelectOption | undefined)?.code),
-                }}
-                request={async ({ keyWords }: { keyWords?: string }) =>
-                  searchCustomers(keyWords)
-                }
+                displayName="委托单位"
+                role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+                createRoute="/partners/customers/create"
+                searchPartners={searchCustomers}
+                required
+                taxIdentifierRequired
+                disabled={props.readonly}
+                onPartnerChange={(option) => setCustomerCode(option?.code)}
               />
             </Col>
             <Col className="col-5">
@@ -291,23 +290,24 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           />
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
+          <PartnerQuickAddSelect
             name="bookingAgentId"
-            label="订舱代理"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchBookingAgents(keyWords)
-            }
+            displayName="订舱代理"
+            role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
+            createRoute="/partners/suppliers/create"
+            searchPartners={searchBookingAgents}
+            taxIdentifierRequired
+            disabled={props.readonly}
           />
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
+          <PartnerQuickAddSelect
             name="foreignAgentId"
-            label="国外代理"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchForeignAgents(keyWords)
-            }
+            displayName="国外代理"
+            role={PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT}
+            createRoute="/partners/foreign-agents/create"
+            searchPartners={searchForeignAgents}
+            disabled={props.readonly}
           />
         </Col>
 

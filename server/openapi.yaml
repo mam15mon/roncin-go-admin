@@ -17883,12 +17883,12 @@ components:
                     type: string
         partner.v1.CreatePartnerRequest:
             required:
-                - code
                 - legalName
             type: object
             properties:
                 code:
                     type: string
+                    description: 客商代码；留空时由服务端按组织内唯一规则自动生成。
                 legalName:
                     type: string
                 unifiedSocialCreditCode:

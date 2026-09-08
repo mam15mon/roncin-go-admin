@@ -113,6 +113,59 @@ func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
 	}
 }
 
+func TestPartnerCreateGeneratesCodeWhenEmpty(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+
+	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "快捷新建往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if len(created.Code) != 9 || created.Code[0] != 'P' {
+		t.Fatalf("generated code = %q, want P 前缀 9 位", created.Code)
+	}
+	if repo.auditEvent == nil || repo.auditEvent.Details["partner.code"] != created.Code {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
+	}
+}
+
+func TestPartnerCreateRetriesGeneratedCodeOnConflict(t *testing.T) {
+	repo := &conflictPartnerRepoStub{partnerRepoStub: partnerRepoStub{}}
+	usecase := NewPartnerUsecase(repo)
+
+	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "编码冲突往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleSupplier, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if repo.createCalls != 3 {
+		t.Fatalf("create calls = %d, want 3（两次冲突后成功）", repo.createCalls)
+	}
+	if len(created.Code) != 9 || created.Code[0] != 'P' {
+		t.Fatalf("generated code = %q", created.Code)
+	}
+}
+
+type conflictPartnerRepoStub struct {
+	partnerRepoStub
+	createCalls int
+}
+
+func (s *conflictPartnerRepoStub) Create(ctx context.Context, organizationID uuid.UUID, input *Partner, audit *AuditEvent) (*Partner, error) {
+	s.createCalls++
+	if s.createCalls <= 2 {
+		return nil, ErrPartnerCodeExists
+	}
+	return s.partnerRepoStub.Create(ctx, organizationID, input, audit)
+}
+
 func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
 	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()

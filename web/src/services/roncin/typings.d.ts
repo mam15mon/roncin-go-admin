@@ -1338,7 +1338,8 @@ declare namespace API {
   };
 
   type CreatePartnerRequest = {
-    code: string;
+    /** 客商代码；留空时由服务端按组织内唯一规则自动生成。 */
+    code?: string;
     legalName: string;
     unifiedSocialCreditCode?: string;
     registeredAddress?: string;

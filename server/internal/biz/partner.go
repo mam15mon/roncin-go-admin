@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"net/mail"
 	"sort"
@@ -321,18 +322,54 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 		return nil, err
 	}
 	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
-	return uc.repo.Create(ctx, organizationID, normalized, &AuditEvent{
-		OrganizationID: &organizationID,
-		UserID:         &userID,
-		Action:         "partner.create",
-		ResourceType:   "partner",
-		Result:         "success",
-		Details: map[string]string{
-			"partner.code": normalized.Code,
-			"legal_name":   normalized.LegalName,
-			"roles":        FormatPartnerRolesAuditValue(normalized.Roles),
-		},
-	})
+
+	// 客商代码留空时按组织内唯一规则自动生成；冲突由数据库唯一索引兜底并重试。
+	var created *Partner
+	for attempt := 0; ; attempt++ {
+		candidate := *normalized
+		if candidate.Code == "" {
+			generated, genErr := generatePartnerCode()
+			if genErr != nil {
+				return nil, genErr
+			}
+			candidate.Code = generated
+		}
+		audit := &AuditEvent{
+			OrganizationID: &organizationID,
+			UserID:         &userID,
+			Action:         "partner.create",
+			ResourceType:   "partner",
+			Result:         "success",
+			Details: map[string]string{
+				"partner.code": candidate.Code,
+				"legal_name":   candidate.LegalName,
+				"roles":        FormatPartnerRolesAuditValue(candidate.Roles),
+			},
+		}
+		created, err = uc.repo.Create(ctx, organizationID, &candidate, audit)
+		if err == nil || err != ErrPartnerCodeExists || attempt >= 2 {
+			break
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	return created, nil
+}
+
+// generatePartnerCode 生成客商代码候选值（P 前缀 + 8 位大写字母数字）。
+// 唯一性不在此处保证，由 partner_org_code_key 唯一索引兜底并在 Create 中重试。
+func generatePartnerCode() (string, error) {
+	raw := make([]byte, 8)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	code := make([]byte, len(raw))
+	for i, b := range raw {
+		code[i] = alphabet[int(b)%len(alphabet)]
+	}
+	return "P" + string(code), nil
 }
 
 func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {
@@ -406,7 +443,7 @@ func normalizePartner(input *Partner, creating bool) (*Partner, error) {
 	if creating {
 		output.Enabled = true
 	}
-	if (creating && output.Code == "") || utf8.RuneCountInString(output.Code) > 64 || output.LegalName == "" || utf8.RuneCountInString(output.LegalName) > 200 || utf8.RuneCountInString(output.RegisteredAddress) > 500 {
+	if utf8.RuneCountInString(output.Code) > 64 || output.LegalName == "" || utf8.RuneCountInString(output.LegalName) > 200 || utf8.RuneCountInString(output.RegisteredAddress) > 500 {
 		return nil, ErrPartnerInvalidArgument
 	}
 	if output.UnifiedSocialCreditCode != "" && !validUnifiedSocialCreditCode(output.UnifiedSocialCreditCode) {
