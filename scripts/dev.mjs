@@ -127,13 +127,13 @@ function stopExistingDevelopmentServers() {
 async function prepareDatabase() {
   if (!pgIsReadyIsAvailable()) {
     throw new Error(
-      '未找到 pg_isready。请在 WSL 中安装 PostgreSQL 客户端后重试。',
+      '未找到 pg_isready。请在系统环境中安装 PostgreSQL 客户端后重试。',
     );
   }
 
   if (!nativePostgresIsReady()) {
     throw new Error(
-      `本机 PostgreSQL (${postgresHost}:${postgresPort}) 未就绪。请先在 WSL 中启动 PostgreSQL，并确认 DATABASE_SOURCE 对应的数据库和用户可用。`,
+      `本机 PostgreSQL (${postgresHost}:${postgresPort}) 未就绪。请先启动 PostgreSQL 服务，并确认 DATABASE_SOURCE 对应的数据库和用户可用。`,
     );
   }
 

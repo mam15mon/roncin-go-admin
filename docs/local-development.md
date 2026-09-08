@@ -2,20 +2,20 @@
 
 ## 推荐运行方式
 
-本地开发直接在 Linux / WSL 环境下运行 Go 服务、Ant Design Pro 和 PostgreSQL，不依赖 Docker。
+本地开发直接在 Ubuntu / Linux 环境下运行 Go 服务、Ant Design Pro 和 PostgreSQL，不依赖 Docker。
 
 ```text
-WSL / Linux
+Ubuntu / Linux
 ├── Go Kratos 服务：8000（HTTP）、9000（gRPC）
 ├── Ant Design Pro：8001（开发服务器）
-└── PostgreSQL：5432（WSL 本机服务）
+└── PostgreSQL：5432（本机服务）
 ```
 
-所有开发进程均在 Linux / WSL 环境下直接运行。`pnpm dev` 会检查 PostgreSQL 是否就绪，但不会启动或管理数据库服务。
+所有开发进程均在 Ubuntu / Linux 环境下直接运行。`pnpm dev` 会检查 PostgreSQL 是否就绪，但不会启动或管理数据库服务。
 
 ## PostgreSQL 准备
 
-在 WSL 中安装 PostgreSQL 服务端和客户端，并启动服务：
+在 Ubuntu / Linux 中安装 PostgreSQL 服务端和客户端，并启动服务：
 
 ```bash
 sudo apt update
@@ -37,7 +37,7 @@ sudo -u postgres createuser --pwprompt roncin
 sudo -u postgres createdb --owner=roncin roncin_go_admin
 ```
 
-命令中的 `roncin` 和 `roncin_go_admin` 应替换为实际配置值。数据库服务的启停和数据目录由 WSL 的 PostgreSQL 服务管理。
+命令中的 `roncin` 和 `roncin_go_admin` 应替换为实际配置值。数据库服务的启停和数据目录由系统的 PostgreSQL 服务管理。
 
 ## 环境文件
 

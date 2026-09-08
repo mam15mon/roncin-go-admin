@@ -242,7 +242,7 @@ pnpm --dir web biome:lint
 
 ## 配置、数据与部署
 
-- 当前本地开发环境在 WSL 中直接运行 PostgreSQL（监听 `127.0.0.1:5432`）。
+- 当前开发环境在 Ubuntu / Linux 中直接运行 PostgreSQL（监听 `127.0.0.1:5432`）。
   `pnpm dev` 仅检查数据库是否就绪并执行迁移，不会启动或管理数据库服务；运行前
   确保 PostgreSQL 已启动，且具备 `DATABASE_SOURCE` 对应的数据库和用户凭据。
 - 私密配置只通过环境变量注入；仓库只提交 `.env.example` 和不含凭据的示例
