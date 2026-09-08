@@ -27,11 +27,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  clearFormDraft,
-  getFormDraft,
-  getFormDraftKey,
-} from '@/components/layout/formDraft';
+import { clearFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
@@ -93,6 +89,9 @@ export default function OrderDetailPage() {
 
   const [saving, setSaving] = useState(false);
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const pendingExplicitFormRefreshRef = useRef(false);
+  const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
+    useState(0);
 
   const {
     loading,
@@ -255,19 +254,30 @@ export default function OrderDetailPage() {
         )
       : undefined;
 
+  /**
+   * OrderFormTemplate 以草稿键为身份负责首次初始值/草稿回填。
+   * 此处不能重复回填：锁状态和后台加载会更新 readonly/initialValues，
+   * 但不代表用户正在编辑的订单上下文已经切换。
+   */
   useEffect(() => {
-    if (formRef.current && order) {
-      const draft = draftKey
-        ? getFormDraft<Partial<OrderDetailFormValues>>(draftKey)
-        : null;
-      if (draft && !effectiveReadonly) {
-        formRef.current.setFieldsValue({ ...initialValues, ...draft });
-        setIsFormDirty(true);
-      } else {
-        formRef.current.setFieldsValue(initialValues);
-      }
+    if (!pendingExplicitFormRefreshRef.current) return;
+    pendingExplicitFormRefreshRef.current = false;
+    if (!order) return;
+
+    if (draftKey) {
+      clearFormDraft(draftKey);
     }
-  }, [initialValues, draftKey, effectiveReadonly]);
+    formRef.current?.setFieldsValue(initialValues);
+    setIsFormDirty(false);
+  }, [draftKey, explicitFormRefreshVersion, initialValues, order]);
+
+  const refreshOrderDataAndResetForm = useCallback(async () => {
+    await loadData();
+    // loadData 完成后再触发本次显式刷新重置，避免锁状态刷新抢先用旧 initialValues 清表单。
+    pendingExplicitFormRefreshRef.current = true;
+    setExplicitFormRefreshVersion((version) => version + 1);
+  }, [loadData]);
+
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
 
@@ -605,11 +615,7 @@ export default function OrderDetailPage() {
       icon: <ReloadOutlined />,
       label: '刷新数据',
       onClick: () => {
-        if (draftKey) {
-          clearFormDraft(draftKey);
-        }
-        setIsFormDirty(false);
-        void loadData();
+        void refreshOrderDataAndResetForm();
         void refreshLockState();
         void loadChangeActions();
       },

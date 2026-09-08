@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { App } from 'antd';
+import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderAllowedAction } from '@/enums.generated';
@@ -22,6 +22,7 @@ const detailTestState = vi.hoisted(() => ({
   lockState: { isLocked: false } as API.OrderLockStateData | null,
   sectionReadonly: undefined as boolean | undefined,
   templateReadonly: undefined as boolean | undefined,
+  customerReferenceNo: '服务端初始值',
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -42,6 +43,7 @@ vi.mock('./use-order-detail-data', () => ({
           id: orderId,
           orderNo: `ORDER-${orderId}`,
           version: '1',
+          customerReferenceNo: detailTestState.customerReferenceNo,
           allowedActions: detailTestState.allowedActions,
         }
       : undefined,
@@ -54,6 +56,7 @@ vi.mock('./use-order-detail-data', () => ({
     currencyOptions: [],
     containerSpecOptions: [],
     personnelOptions: [],
+    draftScope: 'user-1:org-1',
     loadData: () => detailTestState.loadData(orderId),
   }),
 }));
@@ -76,12 +79,29 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
   OrderFormTemplate: ({
     header,
     readonly,
+    formRef,
+    initialValues,
   }: {
     header: React.ReactNode;
     readonly?: boolean;
+    formRef?: React.MutableRefObject<ReturnType<typeof Form.useForm>[0]>;
+    initialValues?: { customerReferenceNo?: string };
   }) => {
+    const [form] = Form.useForm();
     detailTestState.templateReadonly = readonly;
-    return header;
+    React.useEffect(() => {
+      if (formRef) {
+        formRef.current = form;
+      }
+    }, [form, formRef]);
+    return (
+      <Form form={form} initialValues={initialValues}>
+        <Form.Item name="customerReferenceNo">
+          <Input aria-label="客户参考号" />
+        </Form.Item>
+        {header}
+      </Form>
+    );
   },
 }));
 
@@ -174,6 +194,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     detailTestState.lockState = { isLocked: false } as API.OrderLockStateData;
     detailTestState.sectionReadonly = undefined;
     detailTestState.templateReadonly = undefined;
+    detailTestState.customerReferenceNo = '服务端初始值';
   });
 
   it.each([
@@ -431,5 +452,69 @@ describe('订单详情页拆票与改配动作隔离', () => {
         'B 当前不可拆票',
       );
     });
+  });
+
+  it('锁状态同步和同订单后台加载不会覆盖当前未保存表单值', async () => {
+    const pendingLoad = deferred<void>();
+    detailTestState.loadData.mockImplementation(() => pendingLoad.promise);
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const customerReferenceNo = await screen.findByLabelText('客户参考号');
+    expect(customerReferenceNo).toHaveValue('服务端初始值');
+    fireEvent.change(customerReferenceNo, {
+      target: { value: '尚未保存的修改' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '同步锁单状态' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('尚未保存的修改'),
+    );
+
+    // 模拟同一订单的 loadData 返回新版对象；同步结束后的 rerender 不得把表单重置为服务端值。
+    detailTestState.customerReferenceNo = '同步后的服务端值';
+    await act(async () => {
+      pendingLoad.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('尚未保存的修改'),
+    );
+  });
+
+  it('显式刷新数据在当前加载完成后才用最新服务端值重置表单', async () => {
+    const pendingLoad = deferred<void>();
+    detailTestState.loadData.mockImplementation(() => pendingLoad.promise);
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const customerReferenceNo = await screen.findByLabelText('客户参考号');
+    fireEvent.change(customerReferenceNo, {
+      target: { value: '等待刷新前的修改' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '刷新动作资格' }));
+    expect(screen.getByLabelText('客户参考号')).toHaveValue('等待刷新前的修改');
+
+    detailTestState.customerReferenceNo = '刷新后的服务端值';
+    await act(async () => {
+      pendingLoad.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue(
+        '刷新后的服务端值',
+      ),
+    );
   });
 });
