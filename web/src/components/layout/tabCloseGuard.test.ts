@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getFormDraftKey, getFormDraftScope } from './formDraft';
 import {
   _clearAllTabCloseGuards,
+  confirmIfAnyTabDirty,
   confirmIfTabsDirty,
+  getAnyDirtyTabKey,
   getTabGuardMessage,
   isTabDirty,
   registerTabCloseGuard,
@@ -78,6 +80,62 @@ describe('tabCloseGuard', () => {
     });
 
     expect(getTabGuardMessage('/custom-tab')).toBe('自定义离开提示');
+  });
+
+  it('只从已注册守卫中找到任意 dirty 表单，不扫描持久化草稿', () => {
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    sessionStorage.setItem(
+      getFormDraftKey(
+        '/orders/sea-export',
+        '/orders/sea-export/new',
+        draftScope,
+      ),
+      JSON.stringify({ name: 'draft only' }),
+    );
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+
+    registerTabCloseGuard('/partners/customers', {
+      isDirty: () => true,
+    });
+    expect(getAnyDirtyTabKey()).toBe('/partners/customers');
+  });
+
+  describe('confirmIfAnyTabDirty', () => {
+    it('没有已注册的 dirty 表单时立即切换', () => {
+      const onConfirm = vi.fn();
+      const modal = vi.fn();
+
+      const result = confirmIfAnyTabDirty(onConfirm, modal);
+
+      expect(result).toBe(true);
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+      expect(modal).not.toHaveBeenCalled();
+    });
+
+    it('有 dirty 表单时由确认框控制继续或取消', () => {
+      registerTabCloseGuard('/orders/sea-export', {
+        isDirty: () => true,
+        message: '订单尚未保存',
+      });
+      const onConfirm = vi.fn();
+      const onCancel = vi.fn();
+      const modal = vi.fn();
+
+      const result = confirmIfAnyTabDirty(onConfirm, modal, onCancel);
+
+      expect(result).toBe(false);
+      expect(onConfirm).not.toHaveBeenCalled();
+      expect(modal).toHaveBeenCalledTimes(1);
+      const modalProps = modal.mock.calls[0][0];
+      expect(modalProps.content).toBe('订单尚未保存');
+
+      modalProps.onCancel();
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onConfirm).not.toHaveBeenCalled();
+
+      modalProps.onOk();
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('confirmIfTabsDirty', () => {

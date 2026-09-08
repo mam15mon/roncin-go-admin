@@ -31,6 +31,25 @@ export interface InitialState {
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }
 
+export function getOrganizationWorkspaceKey(
+  currentUser?: API.CurrentUser,
+): string {
+  return `${currentUser?.id ?? 'anonymous'}:${currentUser?.currentOrganization?.id ?? 'no-organization'}`;
+}
+
+export function OrganizationWorkspace({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="roncin-layout-wrapper roncin-organization-workspace">
+      <TagsView />
+      <div className="roncin-layout-main">{children}</div>
+    </div>
+  );
+}
+
 export async function getInitialState(): Promise<InitialState> {
   const fetchUserInfo = async () => {
     try {
@@ -138,11 +157,14 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   },
   unAccessible: <Result status="403" title="403" subTitle="无权访问此页面" />,
   childrenRender: (children) => (
-    <div className="roncin-layout-wrapper">
+    <>
       <AppFeedbackBridge />
-      <TagsView />
-      <div className="roncin-layout-main">{children}</div>
-    </div>
+      <OrganizationWorkspace
+        key={getOrganizationWorkspaceKey(initialState?.currentUser)}
+      >
+        {children}
+      </OrganizationWorkspace>
+    </>
   ),
   ...initialState?.settings,
 });

@@ -43,6 +43,53 @@ export function getTabGuardMessage(tabKey: string): string {
 }
 
 /**
+ * 返回任意一个当前已注册且处于 dirty 状态的页签。
+ *
+ * 组织切换只需要拦截仍挂载的编辑表单；持久化草稿本身已按用户和组织隔离，
+ * 不应为切换扫描全部 sessionStorage 草稿。
+ */
+export function getAnyDirtyTabKey(): string | undefined {
+  for (const [tabKey, guard] of guards) {
+    if (guard.isDirty()) {
+      return tabKey;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 在离开当前组织工作区前检查任意已注册的编辑守卫。
+ *
+ * 返回 true 代表没有 dirty 表单且已同步执行 onConfirm；返回 false 代表已展示确认框，
+ * 由用户确认后再执行 onConfirm。onCancel 用于调用方解除自身的切换意图锁。
+ */
+export function confirmIfAnyTabDirty(
+  onConfirm: () => void,
+  customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
+  onCancel?: () => void,
+): boolean {
+  const dirtyTabKey = getAnyDirtyTabKey();
+  if (!dirtyTabKey) {
+    onConfirm();
+    return true;
+  }
+
+  const confirmFn =
+    customConfirmModal || getAppFeedback().modal?.confirm || Modal.confirm;
+  confirmFn({
+    title: '提示',
+    content: getTabGuardMessage(dirtyTabKey),
+    okText: '确定离开',
+    cancelText: '取消',
+    centered: true,
+    onOk: onConfirm,
+    onCancel,
+  });
+
+  return false;
+}
+
+/**
  * 检查要关闭的 tabKeys 列表中是否存在未保存的脏数据。
  * 如果存在，弹出确认框；用户确认后执行 onConfirm，取消则不执行。
  * 如果不存在，直接执行 onConfirm。
