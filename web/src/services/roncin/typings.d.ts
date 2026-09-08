@@ -153,7 +153,7 @@ declare namespace API {
     permissionKeys?: string[];
     createdAt?: string;
     updatedAt?: string;
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type AdminServiceAuthorizeDingTalkUserParams = {
@@ -1407,7 +1407,7 @@ declare namespace API {
     name: string;
     dataScope: number;
     permissionKeys?: string[];
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type CreateRoleResponse = {
@@ -4072,11 +4072,6 @@ declare namespace API {
     type: string;
   };
 
-  type OrderOrganizationAccess = {
-    organizationId: string;
-    writable?: boolean;
-  };
-
   type OrderPersonnel = {
     id?: string;
     orderId?: string;
@@ -4352,6 +4347,11 @@ declare namespace API {
     code?: string;
     name?: string;
     baseCurrency?: string;
+  };
+
+  type OrganizationAccess = {
+    organizationId: string;
+    writable?: boolean;
   };
 
   type Partner = {
@@ -7061,7 +7061,7 @@ declare namespace API {
     dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type UpdateRoleResponse = {

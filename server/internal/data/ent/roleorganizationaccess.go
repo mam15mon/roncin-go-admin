@@ -12,11 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
-// RoleOrderOrganizationAccess is the model entity for the RoleOrderOrganizationAccess schema.
-type RoleOrderOrganizationAccess struct {
+// RoleOrganizationAccess is the model entity for the RoleOrganizationAccess schema.
+type RoleOrganizationAccess struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -31,13 +31,13 @@ type RoleOrderOrganizationAccess struct {
 	// Writable holds the value of the "writable" field.
 	Writable bool `json:"writable,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the RoleOrderOrganizationAccessQuery when eager-loading is set.
-	Edges        RoleOrderOrganizationAccessEdges `json:"edges"`
+	// The values are being populated by the RoleOrganizationAccessQuery when eager-loading is set.
+	Edges        RoleOrganizationAccessEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// RoleOrderOrganizationAccessEdges holds the relations/edges for other nodes in the graph.
-type RoleOrderOrganizationAccessEdges struct {
+// RoleOrganizationAccessEdges holds the relations/edges for other nodes in the graph.
+type RoleOrganizationAccessEdges struct {
 	// Role holds the value of the role edge.
 	Role *Role `json:"role,omitempty"`
 	// Organization holds the value of the organization edge.
@@ -49,7 +49,7 @@ type RoleOrderOrganizationAccessEdges struct {
 
 // RoleOrErr returns the Role value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e RoleOrderOrganizationAccessEdges) RoleOrErr() (*Role, error) {
+func (e RoleOrganizationAccessEdges) RoleOrErr() (*Role, error) {
 	if e.Role != nil {
 		return e.Role, nil
 	} else if e.loadedTypes[0] {
@@ -60,7 +60,7 @@ func (e RoleOrderOrganizationAccessEdges) RoleOrErr() (*Role, error) {
 
 // OrganizationOrErr returns the Organization value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e RoleOrderOrganizationAccessEdges) OrganizationOrErr() (*Organization, error) {
+func (e RoleOrganizationAccessEdges) OrganizationOrErr() (*Organization, error) {
 	if e.Organization != nil {
 		return e.Organization, nil
 	} else if e.loadedTypes[1] {
@@ -70,15 +70,15 @@ func (e RoleOrderOrganizationAccessEdges) OrganizationOrErr() (*Organization, er
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*RoleOrderOrganizationAccess) scanValues(columns []string) ([]any, error) {
+func (*RoleOrganizationAccess) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case roleorderorganizationaccess.FieldWritable:
+		case roleorganizationaccess.FieldWritable:
 			values[i] = new(sql.NullBool)
-		case roleorderorganizationaccess.FieldCreatedAt, roleorderorganizationaccess.FieldUpdatedAt:
+		case roleorganizationaccess.FieldCreatedAt, roleorganizationaccess.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case roleorderorganizationaccess.FieldID, roleorderorganizationaccess.FieldRoleID, roleorderorganizationaccess.FieldOrganizationID:
+		case roleorganizationaccess.FieldID, roleorganizationaccess.FieldRoleID, roleorganizationaccess.FieldOrganizationID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -88,44 +88,44 @@ func (*RoleOrderOrganizationAccess) scanValues(columns []string) ([]any, error) 
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the RoleOrderOrganizationAccess fields.
-func (_m *RoleOrderOrganizationAccess) assignValues(columns []string, values []any) error {
+// to the RoleOrganizationAccess fields.
+func (_m *RoleOrganizationAccess) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case roleorderorganizationaccess.FieldID:
+		case roleorganizationaccess.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case roleorderorganizationaccess.FieldCreatedAt:
+		case roleorganizationaccess.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case roleorderorganizationaccess.FieldUpdatedAt:
+		case roleorganizationaccess.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case roleorderorganizationaccess.FieldRoleID:
+		case roleorganizationaccess.FieldRoleID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field role_id", values[i])
 			} else if value != nil {
 				_m.RoleID = *value
 			}
-		case roleorderorganizationaccess.FieldOrganizationID:
+		case roleorganizationaccess.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
 			} else if value != nil {
 				_m.OrganizationID = *value
 			}
-		case roleorderorganizationaccess.FieldWritable:
+		case roleorganizationaccess.FieldWritable:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field writable", values[i])
 			} else if value.Valid {
@@ -138,44 +138,44 @@ func (_m *RoleOrderOrganizationAccess) assignValues(columns []string, values []a
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the RoleOrderOrganizationAccess.
+// Value returns the ent.Value that was dynamically selected and assigned to the RoleOrganizationAccess.
 // This includes values selected through modifiers, order, etc.
-func (_m *RoleOrderOrganizationAccess) Value(name string) (ent.Value, error) {
+func (_m *RoleOrganizationAccess) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryRole queries the "role" edge of the RoleOrderOrganizationAccess entity.
-func (_m *RoleOrderOrganizationAccess) QueryRole() *RoleQuery {
-	return NewRoleOrderOrganizationAccessClient(_m.config).QueryRole(_m)
+// QueryRole queries the "role" edge of the RoleOrganizationAccess entity.
+func (_m *RoleOrganizationAccess) QueryRole() *RoleQuery {
+	return NewRoleOrganizationAccessClient(_m.config).QueryRole(_m)
 }
 
-// QueryOrganization queries the "organization" edge of the RoleOrderOrganizationAccess entity.
-func (_m *RoleOrderOrganizationAccess) QueryOrganization() *OrganizationQuery {
-	return NewRoleOrderOrganizationAccessClient(_m.config).QueryOrganization(_m)
+// QueryOrganization queries the "organization" edge of the RoleOrganizationAccess entity.
+func (_m *RoleOrganizationAccess) QueryOrganization() *OrganizationQuery {
+	return NewRoleOrganizationAccessClient(_m.config).QueryOrganization(_m)
 }
 
-// Update returns a builder for updating this RoleOrderOrganizationAccess.
-// Note that you need to call RoleOrderOrganizationAccess.Unwrap() before calling this method if this RoleOrderOrganizationAccess
+// Update returns a builder for updating this RoleOrganizationAccess.
+// Note that you need to call RoleOrganizationAccess.Unwrap() before calling this method if this RoleOrganizationAccess
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *RoleOrderOrganizationAccess) Update() *RoleOrderOrganizationAccessUpdateOne {
-	return NewRoleOrderOrganizationAccessClient(_m.config).UpdateOne(_m)
+func (_m *RoleOrganizationAccess) Update() *RoleOrganizationAccessUpdateOne {
+	return NewRoleOrganizationAccessClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the RoleOrderOrganizationAccess entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the RoleOrganizationAccess entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *RoleOrderOrganizationAccess) Unwrap() *RoleOrderOrganizationAccess {
+func (_m *RoleOrganizationAccess) Unwrap() *RoleOrganizationAccess {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: RoleOrderOrganizationAccess is not a transactional entity")
+		panic("ent: RoleOrganizationAccess is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *RoleOrderOrganizationAccess) String() string {
+func (_m *RoleOrganizationAccess) String() string {
 	var builder strings.Builder
-	builder.WriteString("RoleOrderOrganizationAccess(")
+	builder.WriteString("RoleOrganizationAccess(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
@@ -195,5 +195,5 @@ func (_m *RoleOrderOrganizationAccess) String() string {
 	return builder.String()
 }
 
-// RoleOrderOrganizationAccesses is a parsable slice of RoleOrderOrganizationAccess.
-type RoleOrderOrganizationAccesses []*RoleOrderOrganizationAccess
+// RoleOrganizationAccesses is a parsable slice of RoleOrganizationAccess.
+type RoleOrganizationAccesses []*RoleOrganizationAccess

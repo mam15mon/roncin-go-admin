@@ -123,19 +123,19 @@ type DingTalkLoginResult struct {
 }
 
 type Principal struct {
-	SessionTokenHash          string
-	UserID                    uuid.UUID
-	Username                  string
-	DisplayName               string
-	Email                     *string
-	AvatarURL                 *string
-	IsBootstrapAdmin          bool
-	Organization              Organization
-	Organizations             []Organization
-	Permissions               []string
-	RoleScopes                []RoleScope
-	RolePermissions           map[string]map[string]struct{}
-	OrderOrganizationAccesses []OrderOrganizationAccess
+	SessionTokenHash     string
+	UserID               uuid.UUID
+	Username             string
+	DisplayName          string
+	Email                *string
+	AvatarURL            *string
+	IsBootstrapAdmin     bool
+	Organization         Organization
+	Organizations        []Organization
+	Permissions          []string
+	RoleScopes           []RoleScope
+	RolePermissions      map[string]map[string]struct{}
+	OrganizationAccesses []OrganizationAccess
 }
 
 func (p *Principal) HasPermission(key string) bool {
@@ -166,10 +166,10 @@ func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
 	return false
 }
 
-func (p *Principal) OrderOrganizationIDs() []uuid.UUID {
+func (p *Principal) OrganizationIDs() []uuid.UUID {
 	ids := []uuid.UUID{p.Organization.ID}
 	seen := map[uuid.UUID]struct{}{p.Organization.ID: {}}
-	for _, access := range p.OrderOrganizationAccesses {
+	for _, access := range p.OrganizationAccesses {
 		if _, ok := seen[access.OrganizationID]; ok {
 			continue
 		}
@@ -179,11 +179,11 @@ func (p *Principal) OrderOrganizationIDs() []uuid.UUID {
 	return ids
 }
 
-func (p *Principal) CanAccessOrderOrganization(organizationID uuid.UUID, writable bool) bool {
+func (p *Principal) CanAccessOrganization(organizationID uuid.UUID, writable bool) bool {
 	if organizationID == p.Organization.ID {
 		return true
 	}
-	for _, access := range p.OrderOrganizationAccesses {
+	for _, access := range p.OrganizationAccesses {
 		if access.OrganizationID == organizationID && (!writable || access.Writable) {
 			return true
 		}

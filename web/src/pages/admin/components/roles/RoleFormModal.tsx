@@ -42,7 +42,7 @@ import {
   isPermissionGroupNode,
 } from './permissionTree';
 import {
-  type OrderOrganizationAccess,
+  type OrganizationAccess,
   type PermissionLeafNode,
   type PermissionTreeNode,
   type RoleFormValues,
@@ -64,9 +64,9 @@ interface RoleFormModalProps {
   permissionNameByKey: Record<string, string>;
   selectedPermissionKeys: string[];
   setSelectedPermissionKeys: (keys: string[]) => void;
-  orderOrganizationAccesses: OrderOrganizationAccess[];
-  setOrderOrganizationAccesses: React.Dispatch<
-    React.SetStateAction<OrderOrganizationAccess[]>
+  organizationAccesses: OrganizationAccess[];
+  setOrganizationAccesses: React.Dispatch<
+    React.SetStateAction<OrganizationAccess[]>
   >;
   expandedKeys: React.Key[];
   setExpandedKeys: (keys: React.Key[]) => void;
@@ -90,8 +90,8 @@ export default function RoleFormModal({
   permissionNameByKey,
   selectedPermissionKeys,
   setSelectedPermissionKeys,
-  orderOrganizationAccesses,
-  setOrderOrganizationAccesses,
+  organizationAccesses,
+  setOrganizationAccesses,
   expandedKeys,
   setExpandedKeys,
   autoExpandParent,
@@ -172,7 +172,7 @@ export default function RoleFormModal({
                 dataScope: values.dataScope ?? 2,
                 enabled: values.enabled ?? true,
                 permissionKeys: selectedPermissionKeys,
-                orderOrganizationAccesses,
+                organizationAccesses,
               },
             );
             message.success('角色已成功更新');
@@ -183,7 +183,7 @@ export default function RoleFormModal({
               name: values.name?.trim() ?? '',
               dataScope: values.dataScope ?? 2,
               permissionKeys: selectedPermissionKeys,
-              orderOrganizationAccesses,
+              organizationAccesses,
             });
             message.success('角色已成功创建');
           }
@@ -239,25 +239,25 @@ export default function RoleFormModal({
           padding: 12,
         }}
       >
-        <Text strong>跨公司订单范围</Text>
+        <Text strong>可访问组织</Text>
         <div style={{ marginTop: 8 }}>
           <Text type="secondary">
-            指定公司订单默认仅查看；勾选可修改后，仍需同时拥有对应的订单操作权限。
+            指定组织默认仅查看；勾选可修改后，仍需同时拥有对应的业务操作权限。
           </Text>
         </div>
         <div style={{ marginTop: 12 }}>
-          <Text>可查看的公司</Text>
+          <Text>可查看的组织</Text>
           <Select
             allowClear
             mode="multiple"
             options={companyOptions}
-            placeholder="不选择时仅可访问当前公司订单"
+            placeholder="不选择时仅可访问当前组织"
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={orderOrganizationAccesses.map(
+            value={organizationAccesses.map(
               (access) => access.organizationId,
             )}
             onChange={(organizationIds: string[]) => {
-              setOrderOrganizationAccesses((previous) =>
+              setOrganizationAccesses((previous) =>
                 organizationIds.map((organizationId) => ({
                   organizationId,
                   writable:
@@ -270,23 +270,23 @@ export default function RoleFormModal({
           />
         </div>
         <div style={{ marginTop: 12 }}>
-          <Text>其中允许修改的公司</Text>
+          <Text>其中允许修改的组织</Text>
           <Select
             allowClear
             mode="multiple"
             options={companyOptions.filter((option) =>
-              orderOrganizationAccesses.some(
+              organizationAccesses.some(
                 (access) => access.organizationId === option.value,
               ),
             )}
-            placeholder="不选择时跨公司订单均为仅查看"
+            placeholder="不选择时跨组织均为仅查看"
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={orderOrganizationAccesses
+            value={organizationAccesses
               .filter((access) => access.writable)
               .map((access) => access.organizationId)}
             onChange={(organizationIds: string[]) => {
               const writableOrganizationIDs = new Set(organizationIds);
-              setOrderOrganizationAccesses((previous) =>
+              setOrganizationAccesses((previous) =>
                 previous.map((access) => ({
                   ...access,
                   writable: writableOrganizationIDs.has(

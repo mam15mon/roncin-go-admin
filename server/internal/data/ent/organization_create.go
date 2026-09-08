@@ -52,7 +52,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -245,19 +245,19 @@ func (_c *OrganizationCreate) AddRoles(v ...*Role) *OrganizationCreate {
 	return _c.AddRoleIDs(ids...)
 }
 
-// AddRoleOrderOrganizationAccessIDs adds the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by IDs.
-func (_c *OrganizationCreate) AddRoleOrderOrganizationAccessIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddRoleOrderOrganizationAccessIDs(ids...)
+// AddRoleOrganizationAccessIDs adds the "role_organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
+func (_c *OrganizationCreate) AddRoleOrganizationAccessIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddRoleOrganizationAccessIDs(ids...)
 	return _c
 }
 
-// AddRoleOrderOrganizationAccesses adds the "role_order_organization_accesses" edges to the RoleOrderOrganizationAccess entity.
-func (_c *OrganizationCreate) AddRoleOrderOrganizationAccesses(v ...*RoleOrderOrganizationAccess) *OrganizationCreate {
+// AddRoleOrganizationAccesses adds the "role_organization_accesses" edges to the RoleOrganizationAccess entity.
+func (_c *OrganizationCreate) AddRoleOrganizationAccesses(v ...*RoleOrganizationAccess) *OrganizationCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddRoleOrderOrganizationAccessIDs(ids...)
+	return _c.AddRoleOrganizationAccessIDs(ids...)
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
@@ -1359,15 +1359,15 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.RoleOrderOrganizationAccessesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.RoleOrganizationAccessesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.RoleOrderOrganizationAccessesTable,
-			Columns: []string{organization.RoleOrderOrganizationAccessesColumn},
+			Table:   organization.RoleOrganizationAccessesTable,
+			Columns: []string{organization.RoleOrganizationAccessesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

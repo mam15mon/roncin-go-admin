@@ -1041,16 +1041,16 @@ func (f RoleAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleAssignmentMutation", m)
 }
 
-// The RoleOrderOrganizationAccessFunc type is an adapter to allow the use of ordinary
-// function as RoleOrderOrganizationAccess mutator.
-type RoleOrderOrganizationAccessFunc func(context.Context, *ent.RoleOrderOrganizationAccessMutation) (ent.Value, error)
+// The RoleOrganizationAccessFunc type is an adapter to allow the use of ordinary
+// function as RoleOrganizationAccess mutator.
+type RoleOrganizationAccessFunc func(context.Context, *ent.RoleOrganizationAccessMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f RoleOrderOrganizationAccessFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.RoleOrderOrganizationAccessMutation); ok {
+func (f RoleOrganizationAccessFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleOrganizationAccessMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleOrderOrganizationAccessMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleOrganizationAccessMutation", m)
 }
 
 // The SeaDocumentModeChangeEventFunc type is an adapter to allow the use of ordinary

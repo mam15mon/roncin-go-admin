@@ -12,14 +12,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	roleorderorganizationaccess "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	roleorganizationaccess "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	"github.com/google/uuid"
 )
 
 func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {
-	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().WithOrderOrganizationAccesses().All(ctx)
+	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().WithOrganizationAccesses().All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (
 	item, err := r.data.db.Role.Query().
 		Where(role.IDEQ(id), role.OrganizationIDEQ(organizationID)).
 		WithPermissions().
-		WithOrderOrganizationAccesses().
+		WithOrganizationAccesses().
 		Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminRoleNotFound, nil)
@@ -54,7 +54,7 @@ func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organiza
 		).
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
 			query.WithRole(func(roleQuery *ent.RoleQuery) {
-				roleQuery.Where(role.EnabledEQ(true)).WithPermissions().WithOrderOrganizationAccesses()
+				roleQuery.Where(role.EnabledEQ(true)).WithPermissions().WithOrganizationAccesses()
 			})
 		}).
 		Only(ctx)
@@ -80,7 +80,7 @@ func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationI
 	items, err := r.data.db.Role.Query().
 		Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
 		WithPermissions().
-		WithOrderOrganizationAccesses().
+		WithOrganizationAccesses().
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrAdminRoleCodeExists)
 		}
-		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, created.ID, input.OrderOrganizationAccesses); replaceErr != nil {
+		if replaceErr := replaceRoleOrganizationAccesses(ctx, tx, created.ID, input.OrganizationAccesses); replaceErr != nil {
 			return replaceErr
 		}
 		audit.Details["resource_id"] = created.ID.String()
@@ -116,7 +116,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)
+	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().WithOrganizationAccesses().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 		if saveErr != nil {
 			return mapEntError(saveErr, biz.ErrAdminRoleNotFound, nil)
 		}
-		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); replaceErr != nil {
+		if replaceErr := replaceRoleOrganizationAccesses(ctx, tx, updated.ID, input.OrganizationAccesses); replaceErr != nil {
 			return replaceErr
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -143,7 +143,7 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 	if err != nil {
 		return nil, err
 	}
-	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)
+	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().WithOrganizationAccesses().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -248,12 +248,12 @@ func roleToBiz(item *ent.Role) *biz.AdminRole {
 	for _, permissionItem := range item.Edges.Permissions {
 		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
 	}
-	for _, access := range item.Edges.OrderOrganizationAccesses {
-		result.OrderOrganizationAccesses = append(result.OrderOrganizationAccesses, biz.OrderOrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
+	for _, access := range item.Edges.OrganizationAccesses {
+		result.OrganizationAccesses = append(result.OrganizationAccesses, biz.OrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
 	}
 	sort.Strings(result.PermissionKeys)
-	sort.Slice(result.OrderOrganizationAccesses, func(i, j int) bool {
-		return result.OrderOrganizationAccesses[i].OrganizationID.String() < result.OrderOrganizationAccesses[j].OrganizationID.String()
+	sort.Slice(result.OrganizationAccesses, func(i, j int) bool {
+		return result.OrganizationAccesses[i].OrganizationID.String() < result.OrganizationAccesses[j].OrganizationID.String()
 	})
 	return result
 }
@@ -263,18 +263,18 @@ func roleProfileToBiz(item *ent.Role) *biz.AdminRoleProfile {
 	for _, permissionItem := range item.Edges.Permissions {
 		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
 	}
-	for _, access := range item.Edges.OrderOrganizationAccesses {
-		result.OrderOrganizationAccesses = append(result.OrderOrganizationAccesses, biz.OrderOrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
+	for _, access := range item.Edges.OrganizationAccesses {
+		result.OrganizationAccesses = append(result.OrganizationAccesses, biz.OrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
 	}
 	return result
 }
 
-func replaceRoleOrderOrganizationAccesses(ctx context.Context, tx *ent.Tx, roleID uuid.UUID, accesses []biz.OrderOrganizationAccess) error {
-	if _, err := tx.RoleOrderOrganizationAccess.Delete().Where(roleorderorganizationaccess.RoleIDEQ(roleID)).Exec(ctx); err != nil {
+func replaceRoleOrganizationAccesses(ctx context.Context, tx *ent.Tx, roleID uuid.UUID, accesses []biz.OrganizationAccess) error {
+	if _, err := tx.RoleOrganizationAccess.Delete().Where(roleorganizationaccess.RoleIDEQ(roleID)).Exec(ctx); err != nil {
 		return err
 	}
 	for _, access := range accesses {
-		if _, err := tx.RoleOrderOrganizationAccess.Create().SetRoleID(roleID).SetOrganizationID(access.OrganizationID).SetWritable(access.Writable).Save(ctx); err != nil {
+		if _, err := tx.RoleOrganizationAccess.Create().SetRoleID(roleID).SetOrganizationID(access.OrganizationID).SetWritable(access.Writable).Save(ctx); err != nil {
 			return err
 		}
 	}

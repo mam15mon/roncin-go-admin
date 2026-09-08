@@ -52,8 +52,8 @@ type OrganizationEdges struct {
 	Memberships []*Membership `json:"memberships,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
-	// RoleOrderOrganizationAccesses holds the value of the role_order_organization_accesses edge.
-	RoleOrderOrganizationAccesses []*RoleOrderOrganizationAccess `json:"role_order_organization_accesses,omitempty"`
+	// RoleOrganizationAccesses holds the value of the role_organization_accesses edge.
+	RoleOrganizationAccesses []*RoleOrganizationAccess `json:"role_organization_accesses,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Partners holds the value of the partners edge.
@@ -211,13 +211,13 @@ func (e OrganizationEdges) RolesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "roles"}
 }
 
-// RoleOrderOrganizationAccessesOrErr returns the RoleOrderOrganizationAccesses value or an error if the edge
+// RoleOrganizationAccessesOrErr returns the RoleOrganizationAccesses value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrganizationEdges) RoleOrderOrganizationAccessesOrErr() ([]*RoleOrderOrganizationAccess, error) {
+func (e OrganizationEdges) RoleOrganizationAccessesOrErr() ([]*RoleOrganizationAccess, error) {
 	if e.loadedTypes[4] {
-		return e.RoleOrderOrganizationAccesses, nil
+		return e.RoleOrganizationAccesses, nil
 	}
-	return nil, &NotLoadedError{edge: "role_order_organization_accesses"}
+	return nil, &NotLoadedError{edge: "role_organization_accesses"}
 }
 
 // SessionsOrErr returns the Sessions value or an error if the edge
@@ -858,9 +858,9 @@ func (_m *Organization) QueryRoles() *RoleQuery {
 	return NewOrganizationClient(_m.config).QueryRoles(_m)
 }
 
-// QueryRoleOrderOrganizationAccesses queries the "role_order_organization_accesses" edge of the Organization entity.
-func (_m *Organization) QueryRoleOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
-	return NewOrganizationClient(_m.config).QueryRoleOrderOrganizationAccesses(_m)
+// QueryRoleOrganizationAccesses queries the "role_organization_accesses" edge of the Organization entity.
+func (_m *Organization) QueryRoleOrganizationAccesses() *RoleOrganizationAccessQuery {
+	return NewOrganizationClient(_m.config).QueryRoleOrganizationAccesses(_m)
 }
 
 // QuerySessions queries the "sessions" edge of the Organization entity.

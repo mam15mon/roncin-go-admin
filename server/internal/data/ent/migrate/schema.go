@@ -4971,8 +4971,8 @@ var (
 			},
 		},
 	}
-	// RoleOrderOrganizationAccessesColumns holds the columns for the "role_order_organization_accesses" table.
-	RoleOrderOrganizationAccessesColumns = []*schema.Column{
+	// RoleOrganizationAccessesColumns holds the columns for the "role_organization_accesses" table.
+	RoleOrganizationAccessesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -4980,40 +4980,40 @@ var (
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "role_id", Type: field.TypeUUID},
 	}
-	// RoleOrderOrganizationAccessesTable holds the schema information for the "role_order_organization_accesses" table.
-	RoleOrderOrganizationAccessesTable = &schema.Table{
-		Name:       "role_order_organization_accesses",
-		Columns:    RoleOrderOrganizationAccessesColumns,
-		PrimaryKey: []*schema.Column{RoleOrderOrganizationAccessesColumns[0]},
+	// RoleOrganizationAccessesTable holds the schema information for the "role_organization_accesses" table.
+	RoleOrganizationAccessesTable = &schema.Table{
+		Name:       "role_organization_accesses",
+		Columns:    RoleOrganizationAccessesColumns,
+		PrimaryKey: []*schema.Column{RoleOrganizationAccessesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "role_order_organization_accesses_organizations_role_order_organization_accesses",
-				Columns:    []*schema.Column{RoleOrderOrganizationAccessesColumns[4]},
+				Symbol:     "role_organization_accesses_organizations_role_organization_accesses",
+				Columns:    []*schema.Column{RoleOrganizationAccessesColumns[4]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "role_order_organization_accesses_roles_order_organization_accesses",
-				Columns:    []*schema.Column{RoleOrderOrganizationAccessesColumns[5]},
+				Symbol:     "role_organization_accesses_roles_organization_accesses",
+				Columns:    []*schema.Column{RoleOrganizationAccessesColumns[5]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "roleorderorganizationaccess_updated_at",
+				Name:    "roleorganizationaccess_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[2]},
+				Columns: []*schema.Column{RoleOrganizationAccessesColumns[2]},
 			},
 			{
-				Name:    "roleorderorganizationaccess_role_id_organization_id",
+				Name:    "roleorganizationaccess_role_id_organization_id",
 				Unique:  true,
-				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[5], RoleOrderOrganizationAccessesColumns[4]},
+				Columns: []*schema.Column{RoleOrganizationAccessesColumns[5], RoleOrganizationAccessesColumns[4]},
 			},
 			{
-				Name:    "roleorderorganizationaccess_organization_id",
+				Name:    "roleorganizationaccess_organization_id",
 				Unique:  false,
-				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[4]},
+				Columns: []*schema.Column{RoleOrganizationAccessesColumns[4]},
 			},
 		},
 	}
@@ -6604,7 +6604,7 @@ var (
 		PortsTable,
 		RolesTable,
 		RoleAssignmentsTable,
-		RoleOrderOrganizationAccessesTable,
+		RoleOrganizationAccessesTable,
 		SeaDocumentModeChangeEventsTable,
 		SeaDocumentVoidEventsTable,
 		SeaHouseBillsTable,
@@ -6836,8 +6836,8 @@ func init() {
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
-	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
-	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
+	RoleOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	RoleOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[2].RefTable = OrganizationsTable

@@ -206,7 +206,7 @@ func TestSharedContainerRequestsAuthorizeThroughAnchorOrder(t *testing.T) {
 		if !direct || order == nil || order.ID != anchorOrder.ID {
 			t.Fatalf("%s 应通过 order_id 锚点定位 SE 订单，实际 order=%v direct=%v", tc.name, order, direct)
 		}
-		if !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(tc.operation)) {
+		if !principal.CanAccessOrganization(order.OrganizationID, orderOperationWrites(tc.operation)) {
 			t.Fatalf("%s 锚点订单组织应可访问", tc.name)
 		}
 		if !hasPermission(t.Context(), tc.request, principal, rule, orderUsecase) {
@@ -272,7 +272,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 		RolePermissions: map[string]map[string]struct{}{
 			"operator": {access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead): {}},
 		},
-		OrderOrganizationAccesses: []biz.OrderOrganizationAccess{{OrganizationID: anchorOrg, Writable: true}},
+		OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: anchorOrg, Writable: true}},
 	}
 
 	request := &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrder.ID.String(), TransportExecutionId: uuid.New().String()}
@@ -280,7 +280,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	if !direct || order == nil {
 		t.Fatal("锚点订单应可定位")
 	}
-	if !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(access.OrderContainerRead)) {
+	if !principal.CanAccessOrganization(order.OrganizationID, orderOperationWrites(access.OrderContainerRead)) {
 		t.Fatal("多组织用户应可访问锚点订单组织")
 	}
 	// 锚点组织上下文下权限检查放行
@@ -293,7 +293,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 
 	// 无锚点组织访问权限时拒绝
 	noAccess := &biz.Principal{Organization: biz.Organization{ID: principalOrg}}
-	if noAccess.CanAccessOrderOrganization(anchorOrg, false) {
+	if noAccess.CanAccessOrganization(anchorOrg, false) {
 		t.Fatal("无锚点组织访问权限时应拒绝")
 	}
 }

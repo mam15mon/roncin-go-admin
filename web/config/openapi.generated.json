@@ -10966,10 +10966,10 @@
           "updatedAt": {
             "type": "string"
           },
-          "orderOrganizationAccesses": {
+          "organizationAccesses": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
+              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
             }
           }
         }
@@ -11266,10 +11266,10 @@
               "type": "string"
             }
           },
-          "orderOrganizationAccesses": {
+          "organizationAccesses": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
+              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
             }
           }
         }
@@ -11599,7 +11599,7 @@
           }
         }
       },
-      "admin.v1.OrderOrganizationAccess": {
+      "admin.v1.OrganizationAccess": {
         "required": [
           "organizationId"
         ],
@@ -11747,10 +11747,10 @@
               "type": "string"
             }
           },
-          "orderOrganizationAccesses": {
+          "organizationAccesses": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
+              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
             }
           }
         }

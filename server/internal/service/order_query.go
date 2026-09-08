@@ -214,14 +214,14 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		value := request.GetIsShared()
 		options.IsShared = &value
 	}
-	result, err := s.usecase.List(ctx, principal.OrderOrganizationIDs(), options)
+	result, err := s.usecase.List(ctx, principal.OrganizationIDs(), options)
 	if err != nil {
 		return nil, err
 	}
 	data := make([]*v1.Order, 0, len(result.Items))
 	for _, item := range result.Items {
 		output := orderToAPI(item)
-		output.CanModify = principal.CanAccessOrderOrganization(item.OrganizationID, true)
+		output.CanModify = principal.CanAccessOrganization(item.OrganizationID, true)
 		data = append(data, output)
 	}
 	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil

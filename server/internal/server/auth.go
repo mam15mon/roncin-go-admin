@@ -52,7 +52,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 			effectivePrincipal := principal
 			if rule.mode == accessModeOrderPermission {
 				if order, directOrderRequest := requestOrder(ctx, request, orderUsecase); directOrderRequest {
-					if order == nil || !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(rule.orderOperation)) {
+					if order == nil || !principal.CanAccessOrganization(order.OrganizationID, orderOperationWrites(rule.orderOperation)) {
 						return nil, biz.ErrPermissionDenied
 					}
 					copy := *principal

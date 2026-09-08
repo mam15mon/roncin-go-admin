@@ -47,8 +47,8 @@ type RoleEdges struct {
 	Permissions []*Permission `json:"permissions,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*RoleAssignment `json:"assignments,omitempty"`
-	// OrderOrganizationAccesses holds the value of the order_organization_accesses edge.
-	OrderOrganizationAccesses []*RoleOrderOrganizationAccess `json:"order_organization_accesses,omitempty"`
+	// OrganizationAccesses holds the value of the organization_accesses edge.
+	OrganizationAccesses []*RoleOrganizationAccess `json:"organization_accesses,omitempty"`
 	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
 	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -85,13 +85,13 @@ func (e RoleEdges) AssignmentsOrErr() ([]*RoleAssignment, error) {
 	return nil, &NotLoadedError{edge: "assignments"}
 }
 
-// OrderOrganizationAccessesOrErr returns the OrderOrganizationAccesses value or an error if the edge
+// OrganizationAccessesOrErr returns the OrganizationAccesses value or an error if the edge
 // was not loaded in eager-loading.
-func (e RoleEdges) OrderOrganizationAccessesOrErr() ([]*RoleOrderOrganizationAccess, error) {
+func (e RoleEdges) OrganizationAccessesOrErr() ([]*RoleOrganizationAccess, error) {
 	if e.loadedTypes[3] {
-		return e.OrderOrganizationAccesses, nil
+		return e.OrganizationAccesses, nil
 	}
-	return nil, &NotLoadedError{edge: "order_organization_accesses"}
+	return nil, &NotLoadedError{edge: "organization_accesses"}
 }
 
 // OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
@@ -207,9 +207,9 @@ func (_m *Role) QueryAssignments() *RoleAssignmentQuery {
 	return NewRoleClient(_m.config).QueryAssignments(_m)
 }
 
-// QueryOrderOrganizationAccesses queries the "order_organization_accesses" edge of the Role entity.
-func (_m *Role) QueryOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
-	return NewRoleClient(_m.config).QueryOrderOrganizationAccesses(_m)
+// QueryOrganizationAccesses queries the "organization_accesses" edge of the Role entity.
+func (_m *Role) QueryOrganizationAccesses() *RoleOrganizationAccessQuery {
+	return NewRoleClient(_m.config).QueryOrganizationAccesses(_m)
 }
 
 // QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the Role entity.

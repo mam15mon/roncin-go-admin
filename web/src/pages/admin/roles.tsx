@@ -29,7 +29,7 @@ import {
   filterPermissionTree,
 } from './components/roles/permissionTree';
 import {
-  type OrderOrganizationAccess,
+  type OrganizationAccess,
   dataScopeMap,
   dataScopeOptions,
 } from './components/roles/roleConstants';
@@ -45,8 +45,8 @@ export default function RolesPanel() {
   const [organizations, setOrganizations] = useState<
     API.AdminOrganization[]
   >([]);
-  const [orderOrganizationAccesses, setOrderOrganizationAccesses] = useState<
-    OrderOrganizationAccess[]
+  const [organizationAccesses, setOrganizationAccesses] = useState<
+    OrganizationAccess[]
   >([]);
 
   // Permission tree state inside modal
@@ -116,7 +116,7 @@ export default function RolesPanel() {
   const openCreate = () => {
     setEditing(undefined);
     setSelectedPermissionKeys([]);
-    setOrderOrganizationAccesses([]);
+    setOrganizationAccesses([]);
     setPermissionKeyword('');
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
@@ -126,8 +126,8 @@ export default function RolesPanel() {
   const openEdit = (role: API.AdminRole) => {
     setEditing(role);
     setSelectedPermissionKeys(role.permissionKeys ?? []);
-    setOrderOrganizationAccesses(
-      (role.orderOrganizationAccesses ?? []).map((access) => ({
+    setOrganizationAccesses(
+      (role.organizationAccesses ?? []).map((access) => ({
         organizationId: access.organizationId as string,
         writable: access.writable ?? false,
       })),
@@ -183,13 +183,13 @@ export default function RolesPanel() {
       },
     },
     {
-      title: '跨公司订单范围',
-      dataIndex: 'orderOrganizationAccesses',
+      title: '可访问组织',
+      dataIndex: 'organizationAccesses',
       width: 260,
       render: (_, r) => {
-        const accesses = r.orderOrganizationAccesses ?? [];
+        const accesses = r.organizationAccesses ?? [];
         if (accesses.length === 0) {
-          return <span style={{ color: '#94a3b8', fontSize: 12 }}>仅当前公司</span>;
+          return <span style={{ color: '#94a3b8', fontSize: 12 }}>仅当前组织</span>;
         }
         return (
           <Space size={4} wrap>
@@ -389,8 +389,8 @@ export default function RolesPanel() {
         permissionNameByKey={permissionTree.permissionNameByKey}
         selectedPermissionKeys={selectedPermissionKeys}
         setSelectedPermissionKeys={setSelectedPermissionKeys}
-        orderOrganizationAccesses={orderOrganizationAccesses}
-        setOrderOrganizationAccesses={setOrderOrganizationAccesses}
+        organizationAccesses={organizationAccesses}
+        setOrganizationAccesses={setOrganizationAccesses}
         expandedKeys={expandedKeys}
         setExpandedKeys={setExpandedKeys}
         autoExpandParent={autoExpandParent}

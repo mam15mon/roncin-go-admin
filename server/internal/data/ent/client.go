@@ -102,7 +102,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -301,8 +301,8 @@ type Client struct {
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
-	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
-	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// RoleOrganizationAccess is the client for interacting with the RoleOrganizationAccess builders.
+	RoleOrganizationAccess *RoleOrganizationAccessClient
 	// SeaDocumentModeChangeEvent is the client for interacting with the SeaDocumentModeChangeEvent builders.
 	SeaDocumentModeChangeEvent *SeaDocumentModeChangeEventClient
 	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
@@ -438,7 +438,7 @@ func (c *Client) init() {
 	c.Port = NewPortClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
-	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
+	c.RoleOrganizationAccess = NewRoleOrganizationAccessClient(c.config)
 	c.SeaDocumentModeChangeEvent = NewSeaDocumentModeChangeEventClient(c.config)
 	c.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(c.config)
 	c.SeaHouseBill = NewSeaHouseBillClient(c.config)
@@ -636,7 +636,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Port:                           NewPortClient(cfg),
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		RoleOrganizationAccess:         NewRoleOrganizationAccessClient(cfg),
 		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
 		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
@@ -761,7 +761,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Port:                           NewPortClient(cfg),
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		RoleOrganizationAccess:         NewRoleOrganizationAccessClient(cfg),
 		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
 		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
@@ -836,8 +836,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaDocumentModeChangeEvent,
-		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
 		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
 		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
 		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
@@ -878,8 +878,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaDocumentModeChangeEvent,
-		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
 		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
 		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
 		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
@@ -1065,8 +1065,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *RoleAssignmentMutation:
 		return c.RoleAssignment.mutate(ctx, m)
-	case *RoleOrderOrganizationAccessMutation:
-		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
+	case *RoleOrganizationAccessMutation:
+		return c.RoleOrganizationAccess.mutate(ctx, m)
 	case *SeaDocumentModeChangeEventMutation:
 		return c.SeaDocumentModeChangeEvent.mutate(ctx, m)
 	case *SeaDocumentVoidEventMutation:
@@ -14473,15 +14473,15 @@ func (c *OrganizationClient) QueryRoles(_m *Organization) *RoleQuery {
 	return query
 }
 
-// QueryRoleOrderOrganizationAccesses queries the role_order_organization_accesses edge of a Organization.
-func (c *OrganizationClient) QueryRoleOrderOrganizationAccesses(_m *Organization) *RoleOrderOrganizationAccessQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+// QueryRoleOrganizationAccesses queries the role_organization_accesses edge of a Organization.
+func (c *OrganizationClient) QueryRoleOrganizationAccesses(_m *Organization) *RoleOrganizationAccessQuery {
+	query := (&RoleOrganizationAccessClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrderOrganizationAccessesTable, organization.RoleOrderOrganizationAccessesColumn),
+			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrganizationAccessesTable, organization.RoleOrganizationAccessesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17923,15 +17923,15 @@ func (c *RoleClient) QueryAssignments(_m *Role) *RoleAssignmentQuery {
 	return query
 }
 
-// QueryOrderOrganizationAccesses queries the order_organization_accesses edge of a Role.
-func (c *RoleClient) QueryOrderOrganizationAccesses(_m *Role) *RoleOrderOrganizationAccessQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+// QueryOrganizationAccesses queries the organization_accesses edge of a Role.
+func (c *RoleClient) QueryOrganizationAccesses(_m *Role) *RoleOrganizationAccessQuery {
+	query := (&RoleOrganizationAccessClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(role.Table, role.FieldID, id),
-			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderOrganizationAccessesTable, role.OrderOrganizationAccessesColumn),
+			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.OrganizationAccessesTable, role.OrganizationAccessesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18145,107 +18145,107 @@ func (c *RoleAssignmentClient) mutate(ctx context.Context, m *RoleAssignmentMuta
 	}
 }
 
-// RoleOrderOrganizationAccessClient is a client for the RoleOrderOrganizationAccess schema.
-type RoleOrderOrganizationAccessClient struct {
+// RoleOrganizationAccessClient is a client for the RoleOrganizationAccess schema.
+type RoleOrganizationAccessClient struct {
 	config
 }
 
-// NewRoleOrderOrganizationAccessClient returns a client for the RoleOrderOrganizationAccess from the given config.
-func NewRoleOrderOrganizationAccessClient(c config) *RoleOrderOrganizationAccessClient {
-	return &RoleOrderOrganizationAccessClient{config: c}
+// NewRoleOrganizationAccessClient returns a client for the RoleOrganizationAccess from the given config.
+func NewRoleOrganizationAccessClient(c config) *RoleOrganizationAccessClient {
+	return &RoleOrganizationAccessClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `roleorderorganizationaccess.Hooks(f(g(h())))`.
-func (c *RoleOrderOrganizationAccessClient) Use(hooks ...Hook) {
-	c.hooks.RoleOrderOrganizationAccess = append(c.hooks.RoleOrderOrganizationAccess, hooks...)
+// A call to `Use(f, g, h)` equals to `roleorganizationaccess.Hooks(f(g(h())))`.
+func (c *RoleOrganizationAccessClient) Use(hooks ...Hook) {
+	c.hooks.RoleOrganizationAccess = append(c.hooks.RoleOrganizationAccess, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `roleorderorganizationaccess.Intercept(f(g(h())))`.
-func (c *RoleOrderOrganizationAccessClient) Intercept(interceptors ...Interceptor) {
-	c.inters.RoleOrderOrganizationAccess = append(c.inters.RoleOrderOrganizationAccess, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `roleorganizationaccess.Intercept(f(g(h())))`.
+func (c *RoleOrganizationAccessClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RoleOrganizationAccess = append(c.inters.RoleOrganizationAccess, interceptors...)
 }
 
-// Create returns a builder for creating a RoleOrderOrganizationAccess entity.
-func (c *RoleOrderOrganizationAccessClient) Create() *RoleOrderOrganizationAccessCreate {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpCreate)
-	return &RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a RoleOrganizationAccess entity.
+func (c *RoleOrganizationAccessClient) Create() *RoleOrganizationAccessCreate {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpCreate)
+	return &RoleOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of RoleOrderOrganizationAccess entities.
-func (c *RoleOrderOrganizationAccessClient) CreateBulk(builders ...*RoleOrderOrganizationAccessCreate) *RoleOrderOrganizationAccessCreateBulk {
-	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of RoleOrganizationAccess entities.
+func (c *RoleOrganizationAccessClient) CreateBulk(builders ...*RoleOrganizationAccessCreate) *RoleOrganizationAccessCreateBulk {
+	return &RoleOrganizationAccessCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *RoleOrderOrganizationAccessClient) MapCreateBulk(slice any, setFunc func(*RoleOrderOrganizationAccessCreate, int)) *RoleOrderOrganizationAccessCreateBulk {
+func (c *RoleOrganizationAccessClient) MapCreateBulk(slice any, setFunc func(*RoleOrganizationAccessCreate, int)) *RoleOrganizationAccessCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &RoleOrderOrganizationAccessCreateBulk{err: fmt.Errorf("calling to RoleOrderOrganizationAccessClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &RoleOrganizationAccessCreateBulk{err: fmt.Errorf("calling to RoleOrganizationAccessClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*RoleOrderOrganizationAccessCreate, rv.Len())
+	builders := make([]*RoleOrganizationAccessCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+	return &RoleOrganizationAccessCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Update() *RoleOrderOrganizationAccessUpdate {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdate)
-	return &RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Update() *RoleOrganizationAccessUpdate {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdate)
+	return &RoleOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *RoleOrderOrganizationAccessClient) UpdateOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessUpdateOne {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccess(_m))
-	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *RoleOrganizationAccessClient) UpdateOne(_m *RoleOrganizationAccess) *RoleOrganizationAccessUpdateOne {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrganizationAccess(_m))
+	return &RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RoleOrderOrganizationAccessClient) UpdateOneID(id uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccessID(id))
-	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *RoleOrganizationAccessClient) UpdateOneID(id uuid.UUID) *RoleOrganizationAccessUpdateOne {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrganizationAccessID(id))
+	return &RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Delete() *RoleOrderOrganizationAccessDelete {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpDelete)
-	return &RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Delete() *RoleOrganizationAccessDelete {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpDelete)
+	return &RoleOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *RoleOrderOrganizationAccessClient) DeleteOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessDeleteOne {
+func (c *RoleOrganizationAccessClient) DeleteOne(_m *RoleOrganizationAccess) *RoleOrganizationAccessDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RoleOrderOrganizationAccessClient) DeleteOneID(id uuid.UUID) *RoleOrderOrganizationAccessDeleteOne {
-	builder := c.Delete().Where(roleorderorganizationaccess.ID(id))
+func (c *RoleOrganizationAccessClient) DeleteOneID(id uuid.UUID) *RoleOrganizationAccessDeleteOne {
+	builder := c.Delete().Where(roleorganizationaccess.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &RoleOrderOrganizationAccessDeleteOne{builder}
+	return &RoleOrganizationAccessDeleteOne{builder}
 }
 
-// Query returns a query builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Query() *RoleOrderOrganizationAccessQuery {
-	return &RoleOrderOrganizationAccessQuery{
+// Query returns a query builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Query() *RoleOrganizationAccessQuery {
+	return &RoleOrganizationAccessQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeRoleOrderOrganizationAccess},
+		ctx:    &QueryContext{Type: TypeRoleOrganizationAccess},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a RoleOrderOrganizationAccess entity by its id.
-func (c *RoleOrderOrganizationAccessClient) Get(ctx context.Context, id uuid.UUID) (*RoleOrderOrganizationAccess, error) {
-	return c.Query().Where(roleorderorganizationaccess.ID(id)).Only(ctx)
+// Get returns a RoleOrganizationAccess entity by its id.
+func (c *RoleOrganizationAccessClient) Get(ctx context.Context, id uuid.UUID) (*RoleOrganizationAccess, error) {
+	return c.Query().Where(roleorganizationaccess.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RoleOrderOrganizationAccessClient) GetX(ctx context.Context, id uuid.UUID) *RoleOrderOrganizationAccess {
+func (c *RoleOrganizationAccessClient) GetX(ctx context.Context, id uuid.UUID) *RoleOrganizationAccess {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -18253,15 +18253,15 @@ func (c *RoleOrderOrganizationAccessClient) GetX(ctx context.Context, id uuid.UU
 	return obj
 }
 
-// QueryRole queries the role edge of a RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) QueryRole(_m *RoleOrderOrganizationAccess) *RoleQuery {
+// QueryRole queries the role edge of a RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) QueryRole(_m *RoleOrganizationAccess) *RoleQuery {
 	query := (&RoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.RoleTable, roleorderorganizationaccess.RoleColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.RoleTable, roleorganizationaccess.RoleColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18269,15 +18269,15 @@ func (c *RoleOrderOrganizationAccessClient) QueryRole(_m *RoleOrderOrganizationA
 	return query
 }
 
-// QueryOrganization queries the organization edge of a RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) QueryOrganization(_m *RoleOrderOrganizationAccess) *OrganizationQuery {
+// QueryOrganization queries the organization edge of a RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) QueryOrganization(_m *RoleOrganizationAccess) *OrganizationQuery {
 	query := (&OrganizationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, id),
 			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.OrganizationTable, roleorderorganizationaccess.OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.OrganizationTable, roleorganizationaccess.OrganizationColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18286,27 +18286,27 @@ func (c *RoleOrderOrganizationAccessClient) QueryOrganization(_m *RoleOrderOrgan
 }
 
 // Hooks returns the client hooks.
-func (c *RoleOrderOrganizationAccessClient) Hooks() []Hook {
-	return c.hooks.RoleOrderOrganizationAccess
+func (c *RoleOrganizationAccessClient) Hooks() []Hook {
+	return c.hooks.RoleOrganizationAccess
 }
 
 // Interceptors returns the client interceptors.
-func (c *RoleOrderOrganizationAccessClient) Interceptors() []Interceptor {
-	return c.inters.RoleOrderOrganizationAccess
+func (c *RoleOrganizationAccessClient) Interceptors() []Interceptor {
+	return c.inters.RoleOrganizationAccess
 }
 
-func (c *RoleOrderOrganizationAccessClient) mutate(ctx context.Context, m *RoleOrderOrganizationAccessMutation) (Value, error) {
+func (c *RoleOrganizationAccessClient) mutate(ctx context.Context, m *RoleOrganizationAccessMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&RoleOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown RoleOrderOrganizationAccess mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown RoleOrganizationAccess mutation op: %q", m.Op())
 	}
 }
 
@@ -23603,7 +23603,7 @@ type (
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
 		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		RoleOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
 		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
 		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
 		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
@@ -23635,7 +23635,7 @@ type (
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
 		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		RoleOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
 		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
 		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
 		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,

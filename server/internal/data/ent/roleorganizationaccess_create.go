@@ -13,24 +13,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
-// RoleOrderOrganizationAccessCreate is the builder for creating a RoleOrderOrganizationAccess entity.
-type RoleOrderOrganizationAccessCreate struct {
+// RoleOrganizationAccessCreate is the builder for creating a RoleOrganizationAccess entity.
+type RoleOrganizationAccessCreate struct {
 	config
-	mutation *RoleOrderOrganizationAccessMutation
+	mutation *RoleOrganizationAccessMutation
 	hooks    []Hook
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetCreatedAt(v time.Time) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetCreatedAt(v time.Time) *RoleOrganizationAccessCreate {
 	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *RoleOrderOrganizationAccessCreate) SetNillableCreatedAt(v *time.Time) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetNillableCreatedAt(v *time.Time) *RoleOrganizationAccessCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
 	}
@@ -38,13 +38,13 @@ func (_c *RoleOrderOrganizationAccessCreate) SetNillableCreatedAt(v *time.Time) 
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetUpdatedAt(v time.Time) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetUpdatedAt(v time.Time) *RoleOrganizationAccessCreate {
 	_c.mutation.SetUpdatedAt(v)
 	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *RoleOrderOrganizationAccessCreate) SetNillableUpdatedAt(v *time.Time) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetNillableUpdatedAt(v *time.Time) *RoleOrganizationAccessCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
@@ -52,25 +52,25 @@ func (_c *RoleOrderOrganizationAccessCreate) SetNillableUpdatedAt(v *time.Time) 
 }
 
 // SetRoleID sets the "role_id" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetRoleID(v uuid.UUID) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetRoleID(v uuid.UUID) *RoleOrganizationAccessCreate {
 	_c.mutation.SetRoleID(v)
 	return _c
 }
 
 // SetOrganizationID sets the "organization_id" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetOrganizationID(v uuid.UUID) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessCreate {
 	_c.mutation.SetOrganizationID(v)
 	return _c
 }
 
 // SetWritable sets the "writable" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetWritable(v bool) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetWritable(v bool) *RoleOrganizationAccessCreate {
 	_c.mutation.SetWritable(v)
 	return _c
 }
 
 // SetNillableWritable sets the "writable" field if the given value is not nil.
-func (_c *RoleOrderOrganizationAccessCreate) SetNillableWritable(v *bool) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetNillableWritable(v *bool) *RoleOrganizationAccessCreate {
 	if v != nil {
 		_c.SetWritable(*v)
 	}
@@ -78,13 +78,13 @@ func (_c *RoleOrderOrganizationAccessCreate) SetNillableWritable(v *bool) *RoleO
 }
 
 // SetID sets the "id" field.
-func (_c *RoleOrderOrganizationAccessCreate) SetID(v uuid.UUID) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetID(v uuid.UUID) *RoleOrganizationAccessCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (_c *RoleOrderOrganizationAccessCreate) SetNillableID(v *uuid.UUID) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetNillableID(v *uuid.UUID) *RoleOrganizationAccessCreate {
 	if v != nil {
 		_c.SetID(*v)
 	}
@@ -92,28 +92,28 @@ func (_c *RoleOrderOrganizationAccessCreate) SetNillableID(v *uuid.UUID) *RoleOr
 }
 
 // SetRole sets the "role" edge to the Role entity.
-func (_c *RoleOrderOrganizationAccessCreate) SetRole(v *Role) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetRole(v *Role) *RoleOrganizationAccessCreate {
 	return _c.SetRoleID(v.ID)
 }
 
 // SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *RoleOrderOrganizationAccessCreate) SetOrganization(v *Organization) *RoleOrderOrganizationAccessCreate {
+func (_c *RoleOrganizationAccessCreate) SetOrganization(v *Organization) *RoleOrganizationAccessCreate {
 	return _c.SetOrganizationID(v.ID)
 }
 
-// Mutation returns the RoleOrderOrganizationAccessMutation object of the builder.
-func (_c *RoleOrderOrganizationAccessCreate) Mutation() *RoleOrderOrganizationAccessMutation {
+// Mutation returns the RoleOrganizationAccessMutation object of the builder.
+func (_c *RoleOrganizationAccessCreate) Mutation() *RoleOrganizationAccessMutation {
 	return _c.mutation
 }
 
-// Save creates the RoleOrderOrganizationAccess in the database.
-func (_c *RoleOrderOrganizationAccessCreate) Save(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+// Save creates the RoleOrganizationAccess in the database.
+func (_c *RoleOrganizationAccessCreate) Save(ctx context.Context) (*RoleOrganizationAccess, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *RoleOrderOrganizationAccessCreate) SaveX(ctx context.Context) *RoleOrderOrganizationAccess {
+func (_c *RoleOrganizationAccessCreate) SaveX(ctx context.Context) *RoleOrganizationAccess {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -122,65 +122,65 @@ func (_c *RoleOrderOrganizationAccessCreate) SaveX(ctx context.Context) *RoleOrd
 }
 
 // Exec executes the query.
-func (_c *RoleOrderOrganizationAccessCreate) Exec(ctx context.Context) error {
+func (_c *RoleOrganizationAccessCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *RoleOrderOrganizationAccessCreate) ExecX(ctx context.Context) {
+func (_c *RoleOrganizationAccessCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *RoleOrderOrganizationAccessCreate) defaults() {
+func (_c *RoleOrganizationAccessCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := roleorderorganizationaccess.DefaultCreatedAt()
+		v := roleorganizationaccess.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := roleorderorganizationaccess.DefaultUpdatedAt()
+		v := roleorganizationaccess.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := _c.mutation.Writable(); !ok {
-		v := roleorderorganizationaccess.DefaultWritable
+		v := roleorganizationaccess.DefaultWritable
 		_c.mutation.SetWritable(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
-		v := roleorderorganizationaccess.DefaultID()
+		v := roleorganizationaccess.DefaultID()
 		_c.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *RoleOrderOrganizationAccessCreate) check() error {
+func (_c *RoleOrganizationAccessCreate) check() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "RoleOrderOrganizationAccess.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "RoleOrganizationAccess.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "RoleOrderOrganizationAccess.updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "RoleOrganizationAccess.updated_at"`)}
 	}
 	if _, ok := _c.mutation.RoleID(); !ok {
-		return &ValidationError{Name: "role_id", err: errors.New(`ent: missing required field "RoleOrderOrganizationAccess.role_id"`)}
+		return &ValidationError{Name: "role_id", err: errors.New(`ent: missing required field "RoleOrganizationAccess.role_id"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "RoleOrderOrganizationAccess.organization_id"`)}
+		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "RoleOrganizationAccess.organization_id"`)}
 	}
 	if _, ok := _c.mutation.Writable(); !ok {
-		return &ValidationError{Name: "writable", err: errors.New(`ent: missing required field "RoleOrderOrganizationAccess.writable"`)}
+		return &ValidationError{Name: "writable", err: errors.New(`ent: missing required field "RoleOrganizationAccess.writable"`)}
 	}
 	if len(_c.mutation.RoleIDs()) == 0 {
-		return &ValidationError{Name: "role", err: errors.New(`ent: missing required edge "RoleOrderOrganizationAccess.role"`)}
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required edge "RoleOrganizationAccess.role"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "RoleOrderOrganizationAccess.organization"`)}
+		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "RoleOrganizationAccess.organization"`)}
 	}
 	return nil
 }
 
-func (_c *RoleOrderOrganizationAccessCreate) sqlSave(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+func (_c *RoleOrganizationAccessCreate) sqlSave(ctx context.Context) (*RoleOrganizationAccess, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -203,33 +203,33 @@ func (_c *RoleOrderOrganizationAccessCreate) sqlSave(ctx context.Context) (*Role
 	return _node, nil
 }
 
-func (_c *RoleOrderOrganizationAccessCreate) createSpec() (*RoleOrderOrganizationAccess, *sqlgraph.CreateSpec) {
+func (_c *RoleOrganizationAccessCreate) createSpec() (*RoleOrganizationAccess, *sqlgraph.CreateSpec) {
 	var (
-		_node = &RoleOrderOrganizationAccess{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(roleorderorganizationaccess.Table, sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID))
+		_node = &RoleOrganizationAccess{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(roleorganizationaccess.Table, sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(roleorganizationaccess.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(roleorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if value, ok := _c.mutation.Writable(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldWritable, field.TypeBool, value)
+		_spec.SetField(roleorganizationaccess.FieldWritable, field.TypeBool, value)
 		_node.Writable = value
 	}
 	if nodes := _c.mutation.RoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.RoleTable,
-			Columns: []string{roleorderorganizationaccess.RoleColumn},
+			Table:   roleorganizationaccess.RoleTable,
+			Columns: []string{roleorganizationaccess.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
@@ -245,8 +245,8 @@ func (_c *RoleOrderOrganizationAccessCreate) createSpec() (*RoleOrderOrganizatio
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.OrganizationTable,
-			Columns: []string{roleorderorganizationaccess.OrganizationColumn},
+			Table:   roleorganizationaccess.OrganizationTable,
+			Columns: []string{roleorganizationaccess.OrganizationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
@@ -261,27 +261,27 @@ func (_c *RoleOrderOrganizationAccessCreate) createSpec() (*RoleOrderOrganizatio
 	return _node, _spec
 }
 
-// RoleOrderOrganizationAccessCreateBulk is the builder for creating many RoleOrderOrganizationAccess entities in bulk.
-type RoleOrderOrganizationAccessCreateBulk struct {
+// RoleOrganizationAccessCreateBulk is the builder for creating many RoleOrganizationAccess entities in bulk.
+type RoleOrganizationAccessCreateBulk struct {
 	config
 	err      error
-	builders []*RoleOrderOrganizationAccessCreate
+	builders []*RoleOrganizationAccessCreate
 }
 
-// Save creates the RoleOrderOrganizationAccess entities in the database.
-func (_c *RoleOrderOrganizationAccessCreateBulk) Save(ctx context.Context) ([]*RoleOrderOrganizationAccess, error) {
+// Save creates the RoleOrganizationAccess entities in the database.
+func (_c *RoleOrganizationAccessCreateBulk) Save(ctx context.Context) ([]*RoleOrganizationAccess, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*RoleOrderOrganizationAccess, len(_c.builders))
+	nodes := make([]*RoleOrganizationAccess, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*RoleOrderOrganizationAccessMutation)
+				mutation, ok := m.(*RoleOrganizationAccessMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -324,7 +324,7 @@ func (_c *RoleOrderOrganizationAccessCreateBulk) Save(ctx context.Context) ([]*R
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *RoleOrderOrganizationAccessCreateBulk) SaveX(ctx context.Context) []*RoleOrderOrganizationAccess {
+func (_c *RoleOrganizationAccessCreateBulk) SaveX(ctx context.Context) []*RoleOrganizationAccess {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -333,13 +333,13 @@ func (_c *RoleOrderOrganizationAccessCreateBulk) SaveX(ctx context.Context) []*R
 }
 
 // Exec executes the query.
-func (_c *RoleOrderOrganizationAccessCreateBulk) Exec(ctx context.Context) error {
+func (_c *RoleOrganizationAccessCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *RoleOrderOrganizationAccessCreateBulk) ExecX(ctx context.Context) {
+func (_c *RoleOrganizationAccessCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

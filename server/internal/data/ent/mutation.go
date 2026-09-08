@@ -100,7 +100,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -218,7 +218,7 @@ const (
 	TypePort                           = "Port"
 	TypeRole                           = "Role"
 	TypeRoleAssignment                 = "RoleAssignment"
-	TypeRoleOrderOrganizationAccess    = "RoleOrderOrganizationAccess"
+	TypeRoleOrganizationAccess         = "RoleOrganizationAccess"
 	TypeSeaDocumentModeChangeEvent     = "SeaDocumentModeChangeEvent"
 	TypeSeaDocumentVoidEvent           = "SeaDocumentVoidEvent"
 	TypeSeaHouseBill                   = "SeaHouseBill"
@@ -92669,9 +92669,9 @@ type OrganizationMutation struct {
 	roles                                   map[uuid.UUID]struct{}
 	removedroles                            map[uuid.UUID]struct{}
 	clearedroles                            bool
-	role_order_organization_accesses        map[uuid.UUID]struct{}
-	removedrole_order_organization_accesses map[uuid.UUID]struct{}
-	clearedrole_order_organization_accesses bool
+	role_organization_accesses              map[uuid.UUID]struct{}
+	removedrole_organization_accesses       map[uuid.UUID]struct{}
+	clearedrole_organization_accesses       bool
 	sessions                                map[uuid.UUID]struct{}
 	removedsessions                         map[uuid.UUID]struct{}
 	clearedsessions                         bool
@@ -93491,58 +93491,58 @@ func (m *OrganizationMutation) ResetRoles() {
 	m.removedroles = nil
 }
 
-// AddRoleOrderOrganizationAccessIDs adds the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by ids.
-func (m *OrganizationMutation) AddRoleOrderOrganizationAccessIDs(ids ...uuid.UUID) {
-	if m.role_order_organization_accesses == nil {
-		m.role_order_organization_accesses = make(map[uuid.UUID]struct{})
+// AddRoleOrganizationAccessIDs adds the "role_organization_accesses" edge to the RoleOrganizationAccess entity by ids.
+func (m *OrganizationMutation) AddRoleOrganizationAccessIDs(ids ...uuid.UUID) {
+	if m.role_organization_accesses == nil {
+		m.role_organization_accesses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.role_order_organization_accesses[ids[i]] = struct{}{}
+		m.role_organization_accesses[ids[i]] = struct{}{}
 	}
 }
 
-// ClearRoleOrderOrganizationAccesses clears the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity.
-func (m *OrganizationMutation) ClearRoleOrderOrganizationAccesses() {
-	m.clearedrole_order_organization_accesses = true
+// ClearRoleOrganizationAccesses clears the "role_organization_accesses" edge to the RoleOrganizationAccess entity.
+func (m *OrganizationMutation) ClearRoleOrganizationAccesses() {
+	m.clearedrole_organization_accesses = true
 }
 
-// RoleOrderOrganizationAccessesCleared reports if the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity was cleared.
-func (m *OrganizationMutation) RoleOrderOrganizationAccessesCleared() bool {
-	return m.clearedrole_order_organization_accesses
+// RoleOrganizationAccessesCleared reports if the "role_organization_accesses" edge to the RoleOrganizationAccess entity was cleared.
+func (m *OrganizationMutation) RoleOrganizationAccessesCleared() bool {
+	return m.clearedrole_organization_accesses
 }
 
-// RemoveRoleOrderOrganizationAccessIDs removes the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by IDs.
-func (m *OrganizationMutation) RemoveRoleOrderOrganizationAccessIDs(ids ...uuid.UUID) {
-	if m.removedrole_order_organization_accesses == nil {
-		m.removedrole_order_organization_accesses = make(map[uuid.UUID]struct{})
+// RemoveRoleOrganizationAccessIDs removes the "role_organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
+func (m *OrganizationMutation) RemoveRoleOrganizationAccessIDs(ids ...uuid.UUID) {
+	if m.removedrole_organization_accesses == nil {
+		m.removedrole_organization_accesses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.role_order_organization_accesses, ids[i])
-		m.removedrole_order_organization_accesses[ids[i]] = struct{}{}
+		delete(m.role_organization_accesses, ids[i])
+		m.removedrole_organization_accesses[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedRoleOrderOrganizationAccesses returns the removed IDs of the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity.
-func (m *OrganizationMutation) RemovedRoleOrderOrganizationAccessesIDs() (ids []uuid.UUID) {
-	for id := range m.removedrole_order_organization_accesses {
+// RemovedRoleOrganizationAccesses returns the removed IDs of the "role_organization_accesses" edge to the RoleOrganizationAccess entity.
+func (m *OrganizationMutation) RemovedRoleOrganizationAccessesIDs() (ids []uuid.UUID) {
+	for id := range m.removedrole_organization_accesses {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// RoleOrderOrganizationAccessesIDs returns the "role_order_organization_accesses" edge IDs in the mutation.
-func (m *OrganizationMutation) RoleOrderOrganizationAccessesIDs() (ids []uuid.UUID) {
-	for id := range m.role_order_organization_accesses {
+// RoleOrganizationAccessesIDs returns the "role_organization_accesses" edge IDs in the mutation.
+func (m *OrganizationMutation) RoleOrganizationAccessesIDs() (ids []uuid.UUID) {
+	for id := range m.role_organization_accesses {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetRoleOrderOrganizationAccesses resets all changes to the "role_order_organization_accesses" edge.
-func (m *OrganizationMutation) ResetRoleOrderOrganizationAccesses() {
-	m.role_order_organization_accesses = nil
-	m.clearedrole_order_organization_accesses = false
-	m.removedrole_order_organization_accesses = nil
+// ResetRoleOrganizationAccesses resets all changes to the "role_organization_accesses" edge.
+func (m *OrganizationMutation) ResetRoleOrganizationAccesses() {
+	m.role_organization_accesses = nil
+	m.clearedrole_organization_accesses = false
+	m.removedrole_organization_accesses = nil
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by ids.
@@ -96920,8 +96920,8 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	if m.roles != nil {
 		edges = append(edges, organization.EdgeRoles)
 	}
-	if m.role_order_organization_accesses != nil {
-		edges = append(edges, organization.EdgeRoleOrderOrganizationAccesses)
+	if m.role_organization_accesses != nil {
+		edges = append(edges, organization.EdgeRoleOrganizationAccesses)
 	}
 	if m.sessions != nil {
 		edges = append(edges, organization.EdgeSessions)
@@ -97123,9 +97123,9 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeRoleOrderOrganizationAccesses:
-		ids := make([]ent.Value, 0, len(m.role_order_organization_accesses))
-		for id := range m.role_order_organization_accesses {
+	case organization.EdgeRoleOrganizationAccesses:
+		ids := make([]ent.Value, 0, len(m.role_organization_accesses))
+		for id := range m.role_organization_accesses {
 			ids = append(ids, id)
 		}
 		return ids
@@ -97487,8 +97487,8 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	if m.removedroles != nil {
 		edges = append(edges, organization.EdgeRoles)
 	}
-	if m.removedrole_order_organization_accesses != nil {
-		edges = append(edges, organization.EdgeRoleOrderOrganizationAccesses)
+	if m.removedrole_organization_accesses != nil {
+		edges = append(edges, organization.EdgeRoleOrganizationAccesses)
 	}
 	if m.removedsessions != nil {
 		edges = append(edges, organization.EdgeSessions)
@@ -97686,9 +97686,9 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeRoleOrderOrganizationAccesses:
-		ids := make([]ent.Value, 0, len(m.removedrole_order_organization_accesses))
-		for id := range m.removedrole_order_organization_accesses {
+	case organization.EdgeRoleOrganizationAccesses:
+		ids := make([]ent.Value, 0, len(m.removedrole_organization_accesses))
+		for id := range m.removedrole_organization_accesses {
 			ids = append(ids, id)
 		}
 		return ids
@@ -98053,8 +98053,8 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedroles {
 		edges = append(edges, organization.EdgeRoles)
 	}
-	if m.clearedrole_order_organization_accesses {
-		edges = append(edges, organization.EdgeRoleOrderOrganizationAccesses)
+	if m.clearedrole_organization_accesses {
+		edges = append(edges, organization.EdgeRoleOrganizationAccesses)
 	}
 	if m.clearedsessions {
 		edges = append(edges, organization.EdgeSessions)
@@ -98242,8 +98242,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedmemberships
 	case organization.EdgeRoles:
 		return m.clearedroles
-	case organization.EdgeRoleOrderOrganizationAccesses:
-		return m.clearedrole_order_organization_accesses
+	case organization.EdgeRoleOrganizationAccesses:
+		return m.clearedrole_organization_accesses
 	case organization.EdgeSessions:
 		return m.clearedsessions
 	case organization.EdgePartners:
@@ -98389,8 +98389,8 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 	case organization.EdgeRoles:
 		m.ResetRoles()
 		return nil
-	case organization.EdgeRoleOrderOrganizationAccesses:
-		m.ResetRoleOrderOrganizationAccesses()
+	case organization.EdgeRoleOrganizationAccesses:
+		m.ResetRoleOrganizationAccesses()
 		return nil
 	case organization.EdgeSessions:
 		m.ResetSessions()
@@ -113272,9 +113272,9 @@ type RoleMutation struct {
 	assignments                             map[uuid.UUID]struct{}
 	removedassignments                      map[uuid.UUID]struct{}
 	clearedassignments                      bool
-	order_organization_accesses             map[uuid.UUID]struct{}
-	removedorder_organization_accesses      map[uuid.UUID]struct{}
-	clearedorder_organization_accesses      bool
+	organization_accesses                   map[uuid.UUID]struct{}
+	removedorganization_accesses            map[uuid.UUID]struct{}
+	clearedorganization_accesses            bool
 	order_unlock_approver_candidates        map[uuid.UUID]struct{}
 	removedorder_unlock_approver_candidates map[uuid.UUID]struct{}
 	clearedorder_unlock_approver_candidates bool
@@ -113774,58 +113774,58 @@ func (m *RoleMutation) ResetAssignments() {
 	m.removedassignments = nil
 }
 
-// AddOrderOrganizationAccessIDs adds the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by ids.
-func (m *RoleMutation) AddOrderOrganizationAccessIDs(ids ...uuid.UUID) {
-	if m.order_organization_accesses == nil {
-		m.order_organization_accesses = make(map[uuid.UUID]struct{})
+// AddOrganizationAccessIDs adds the "organization_accesses" edge to the RoleOrganizationAccess entity by ids.
+func (m *RoleMutation) AddOrganizationAccessIDs(ids ...uuid.UUID) {
+	if m.organization_accesses == nil {
+		m.organization_accesses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.order_organization_accesses[ids[i]] = struct{}{}
+		m.organization_accesses[ids[i]] = struct{}{}
 	}
 }
 
-// ClearOrderOrganizationAccesses clears the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity.
-func (m *RoleMutation) ClearOrderOrganizationAccesses() {
-	m.clearedorder_organization_accesses = true
+// ClearOrganizationAccesses clears the "organization_accesses" edge to the RoleOrganizationAccess entity.
+func (m *RoleMutation) ClearOrganizationAccesses() {
+	m.clearedorganization_accesses = true
 }
 
-// OrderOrganizationAccessesCleared reports if the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity was cleared.
-func (m *RoleMutation) OrderOrganizationAccessesCleared() bool {
-	return m.clearedorder_organization_accesses
+// OrganizationAccessesCleared reports if the "organization_accesses" edge to the RoleOrganizationAccess entity was cleared.
+func (m *RoleMutation) OrganizationAccessesCleared() bool {
+	return m.clearedorganization_accesses
 }
 
-// RemoveOrderOrganizationAccessIDs removes the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by IDs.
-func (m *RoleMutation) RemoveOrderOrganizationAccessIDs(ids ...uuid.UUID) {
-	if m.removedorder_organization_accesses == nil {
-		m.removedorder_organization_accesses = make(map[uuid.UUID]struct{})
+// RemoveOrganizationAccessIDs removes the "organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
+func (m *RoleMutation) RemoveOrganizationAccessIDs(ids ...uuid.UUID) {
+	if m.removedorganization_accesses == nil {
+		m.removedorganization_accesses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.order_organization_accesses, ids[i])
-		m.removedorder_organization_accesses[ids[i]] = struct{}{}
+		delete(m.organization_accesses, ids[i])
+		m.removedorganization_accesses[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedOrderOrganizationAccesses returns the removed IDs of the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity.
-func (m *RoleMutation) RemovedOrderOrganizationAccessesIDs() (ids []uuid.UUID) {
-	for id := range m.removedorder_organization_accesses {
+// RemovedOrganizationAccesses returns the removed IDs of the "organization_accesses" edge to the RoleOrganizationAccess entity.
+func (m *RoleMutation) RemovedOrganizationAccessesIDs() (ids []uuid.UUID) {
+	for id := range m.removedorganization_accesses {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// OrderOrganizationAccessesIDs returns the "order_organization_accesses" edge IDs in the mutation.
-func (m *RoleMutation) OrderOrganizationAccessesIDs() (ids []uuid.UUID) {
-	for id := range m.order_organization_accesses {
+// OrganizationAccessesIDs returns the "organization_accesses" edge IDs in the mutation.
+func (m *RoleMutation) OrganizationAccessesIDs() (ids []uuid.UUID) {
+	for id := range m.organization_accesses {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetOrderOrganizationAccesses resets all changes to the "order_organization_accesses" edge.
-func (m *RoleMutation) ResetOrderOrganizationAccesses() {
-	m.order_organization_accesses = nil
-	m.clearedorder_organization_accesses = false
-	m.removedorder_organization_accesses = nil
+// ResetOrganizationAccesses resets all changes to the "organization_accesses" edge.
+func (m *RoleMutation) ResetOrganizationAccesses() {
+	m.organization_accesses = nil
+	m.clearedorganization_accesses = false
+	m.removedorganization_accesses = nil
 }
 
 // AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by ids.
@@ -114127,8 +114127,8 @@ func (m *RoleMutation) AddedEdges() []string {
 	if m.assignments != nil {
 		edges = append(edges, role.EdgeAssignments)
 	}
-	if m.order_organization_accesses != nil {
-		edges = append(edges, role.EdgeOrderOrganizationAccesses)
+	if m.organization_accesses != nil {
+		edges = append(edges, role.EdgeOrganizationAccesses)
 	}
 	if m.order_unlock_approver_candidates != nil {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
@@ -114156,9 +114156,9 @@ func (m *RoleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case role.EdgeOrderOrganizationAccesses:
-		ids := make([]ent.Value, 0, len(m.order_organization_accesses))
-		for id := range m.order_organization_accesses {
+	case role.EdgeOrganizationAccesses:
+		ids := make([]ent.Value, 0, len(m.organization_accesses))
+		for id := range m.organization_accesses {
 			ids = append(ids, id)
 		}
 		return ids
@@ -114181,8 +114181,8 @@ func (m *RoleMutation) RemovedEdges() []string {
 	if m.removedassignments != nil {
 		edges = append(edges, role.EdgeAssignments)
 	}
-	if m.removedorder_organization_accesses != nil {
-		edges = append(edges, role.EdgeOrderOrganizationAccesses)
+	if m.removedorganization_accesses != nil {
+		edges = append(edges, role.EdgeOrganizationAccesses)
 	}
 	if m.removedorder_unlock_approver_candidates != nil {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
@@ -114206,9 +114206,9 @@ func (m *RoleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case role.EdgeOrderOrganizationAccesses:
-		ids := make([]ent.Value, 0, len(m.removedorder_organization_accesses))
-		for id := range m.removedorder_organization_accesses {
+	case role.EdgeOrganizationAccesses:
+		ids := make([]ent.Value, 0, len(m.removedorganization_accesses))
+		for id := range m.removedorganization_accesses {
 			ids = append(ids, id)
 		}
 		return ids
@@ -114234,8 +114234,8 @@ func (m *RoleMutation) ClearedEdges() []string {
 	if m.clearedassignments {
 		edges = append(edges, role.EdgeAssignments)
 	}
-	if m.clearedorder_organization_accesses {
-		edges = append(edges, role.EdgeOrderOrganizationAccesses)
+	if m.clearedorganization_accesses {
+		edges = append(edges, role.EdgeOrganizationAccesses)
 	}
 	if m.clearedorder_unlock_approver_candidates {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
@@ -114253,8 +114253,8 @@ func (m *RoleMutation) EdgeCleared(name string) bool {
 		return m.clearedpermissions
 	case role.EdgeAssignments:
 		return m.clearedassignments
-	case role.EdgeOrderOrganizationAccesses:
-		return m.clearedorder_organization_accesses
+	case role.EdgeOrganizationAccesses:
+		return m.clearedorganization_accesses
 	case role.EdgeOrderUnlockApproverCandidates:
 		return m.clearedorder_unlock_approver_candidates
 	}
@@ -114285,8 +114285,8 @@ func (m *RoleMutation) ResetEdge(name string) error {
 	case role.EdgeAssignments:
 		m.ResetAssignments()
 		return nil
-	case role.EdgeOrderOrganizationAccesses:
-		m.ResetOrderOrganizationAccesses()
+	case role.EdgeOrganizationAccesses:
+		m.ResetOrganizationAccesses()
 		return nil
 	case role.EdgeOrderUnlockApproverCandidates:
 		m.ResetOrderUnlockApproverCandidates()
@@ -114889,8 +114889,8 @@ func (m *RoleAssignmentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown RoleAssignment edge %s", name)
 }
 
-// RoleOrderOrganizationAccessMutation represents an operation that mutates the RoleOrderOrganizationAccess nodes in the graph.
-type RoleOrderOrganizationAccessMutation struct {
+// RoleOrganizationAccessMutation represents an operation that mutates the RoleOrganizationAccess nodes in the graph.
+type RoleOrganizationAccessMutation struct {
 	config
 	op                  Op
 	typ                 string
@@ -114904,21 +114904,21 @@ type RoleOrderOrganizationAccessMutation struct {
 	organization        *uuid.UUID
 	clearedorganization bool
 	done                bool
-	oldValue            func(context.Context) (*RoleOrderOrganizationAccess, error)
-	predicates          []predicate.RoleOrderOrganizationAccess
+	oldValue            func(context.Context) (*RoleOrganizationAccess, error)
+	predicates          []predicate.RoleOrganizationAccess
 }
 
-var _ ent.Mutation = (*RoleOrderOrganizationAccessMutation)(nil)
+var _ ent.Mutation = (*RoleOrganizationAccessMutation)(nil)
 
-// roleorderorganizationaccessOption allows management of the mutation configuration using functional options.
-type roleorderorganizationaccessOption func(*RoleOrderOrganizationAccessMutation)
+// roleorganizationaccessOption allows management of the mutation configuration using functional options.
+type roleorganizationaccessOption func(*RoleOrganizationAccessMutation)
 
-// newRoleOrderOrganizationAccessMutation creates new mutation for the RoleOrderOrganizationAccess entity.
-func newRoleOrderOrganizationAccessMutation(c config, op Op, opts ...roleorderorganizationaccessOption) *RoleOrderOrganizationAccessMutation {
-	m := &RoleOrderOrganizationAccessMutation{
+// newRoleOrganizationAccessMutation creates new mutation for the RoleOrganizationAccess entity.
+func newRoleOrganizationAccessMutation(c config, op Op, opts ...roleorganizationaccessOption) *RoleOrganizationAccessMutation {
+	m := &RoleOrganizationAccessMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeRoleOrderOrganizationAccess,
+		typ:           TypeRoleOrganizationAccess,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -114927,20 +114927,20 @@ func newRoleOrderOrganizationAccessMutation(c config, op Op, opts ...roleorderor
 	return m
 }
 
-// withRoleOrderOrganizationAccessID sets the ID field of the mutation.
-func withRoleOrderOrganizationAccessID(id uuid.UUID) roleorderorganizationaccessOption {
-	return func(m *RoleOrderOrganizationAccessMutation) {
+// withRoleOrganizationAccessID sets the ID field of the mutation.
+func withRoleOrganizationAccessID(id uuid.UUID) roleorganizationaccessOption {
+	return func(m *RoleOrganizationAccessMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *RoleOrderOrganizationAccess
+			value *RoleOrganizationAccess
 		)
-		m.oldValue = func(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+		m.oldValue = func(ctx context.Context) (*RoleOrganizationAccess, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().RoleOrderOrganizationAccess.Get(ctx, id)
+					value, err = m.Client().RoleOrganizationAccess.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -114949,10 +114949,10 @@ func withRoleOrderOrganizationAccessID(id uuid.UUID) roleorderorganizationaccess
 	}
 }
 
-// withRoleOrderOrganizationAccess sets the old RoleOrderOrganizationAccess of the mutation.
-func withRoleOrderOrganizationAccess(node *RoleOrderOrganizationAccess) roleorderorganizationaccessOption {
-	return func(m *RoleOrderOrganizationAccessMutation) {
-		m.oldValue = func(context.Context) (*RoleOrderOrganizationAccess, error) {
+// withRoleOrganizationAccess sets the old RoleOrganizationAccess of the mutation.
+func withRoleOrganizationAccess(node *RoleOrganizationAccess) roleorganizationaccessOption {
+	return func(m *RoleOrganizationAccessMutation) {
+		m.oldValue = func(context.Context) (*RoleOrganizationAccess, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -114961,7 +114961,7 @@ func withRoleOrderOrganizationAccess(node *RoleOrderOrganizationAccess) roleorde
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m RoleOrderOrganizationAccessMutation) Client() *Client {
+func (m RoleOrganizationAccessMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -114969,7 +114969,7 @@ func (m RoleOrderOrganizationAccessMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m RoleOrderOrganizationAccessMutation) Tx() (*Tx, error) {
+func (m RoleOrganizationAccessMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -114979,14 +114979,14 @@ func (m RoleOrderOrganizationAccessMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of RoleOrderOrganizationAccess entities.
-func (m *RoleOrderOrganizationAccessMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of RoleOrganizationAccess entities.
+func (m *RoleOrganizationAccessMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *RoleOrderOrganizationAccessMutation) ID() (id uuid.UUID, exists bool) {
+func (m *RoleOrganizationAccessMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -114997,7 +114997,7 @@ func (m *RoleOrderOrganizationAccessMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *RoleOrderOrganizationAccessMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *RoleOrganizationAccessMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -115006,19 +115006,19 @@ func (m *RoleOrderOrganizationAccessMutation) IDs(ctx context.Context) ([]uuid.U
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().RoleOrderOrganizationAccess.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().RoleOrganizationAccess.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *RoleOrderOrganizationAccessMutation) SetCreatedAt(t time.Time) {
+func (m *RoleOrganizationAccessMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *RoleOrderOrganizationAccessMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *RoleOrganizationAccessMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -115026,10 +115026,10 @@ func (m *RoleOrderOrganizationAccessMutation) CreatedAt() (r time.Time, exists b
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the RoleOrderOrganizationAccess entity.
-// If the RoleOrderOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the RoleOrganizationAccess entity.
+// If the RoleOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleOrderOrganizationAccessMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *RoleOrganizationAccessMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -115044,17 +115044,17 @@ func (m *RoleOrderOrganizationAccessMutation) OldCreatedAt(ctx context.Context) 
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *RoleOrderOrganizationAccessMutation) ResetCreatedAt() {
+func (m *RoleOrganizationAccessMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *RoleOrderOrganizationAccessMutation) SetUpdatedAt(t time.Time) {
+func (m *RoleOrganizationAccessMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *RoleOrderOrganizationAccessMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *RoleOrganizationAccessMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -115062,10 +115062,10 @@ func (m *RoleOrderOrganizationAccessMutation) UpdatedAt() (r time.Time, exists b
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the RoleOrderOrganizationAccess entity.
-// If the RoleOrderOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the RoleOrganizationAccess entity.
+// If the RoleOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleOrderOrganizationAccessMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *RoleOrganizationAccessMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -115080,17 +115080,17 @@ func (m *RoleOrderOrganizationAccessMutation) OldUpdatedAt(ctx context.Context) 
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *RoleOrderOrganizationAccessMutation) ResetUpdatedAt() {
+func (m *RoleOrganizationAccessMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
 // SetRoleID sets the "role_id" field.
-func (m *RoleOrderOrganizationAccessMutation) SetRoleID(u uuid.UUID) {
+func (m *RoleOrganizationAccessMutation) SetRoleID(u uuid.UUID) {
 	m.role = &u
 }
 
 // RoleID returns the value of the "role_id" field in the mutation.
-func (m *RoleOrderOrganizationAccessMutation) RoleID() (r uuid.UUID, exists bool) {
+func (m *RoleOrganizationAccessMutation) RoleID() (r uuid.UUID, exists bool) {
 	v := m.role
 	if v == nil {
 		return
@@ -115098,10 +115098,10 @@ func (m *RoleOrderOrganizationAccessMutation) RoleID() (r uuid.UUID, exists bool
 	return *v, true
 }
 
-// OldRoleID returns the old "role_id" field's value of the RoleOrderOrganizationAccess entity.
-// If the RoleOrderOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
+// OldRoleID returns the old "role_id" field's value of the RoleOrganizationAccess entity.
+// If the RoleOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleOrderOrganizationAccessMutation) OldRoleID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *RoleOrganizationAccessMutation) OldRoleID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRoleID is only allowed on UpdateOne operations")
 	}
@@ -115116,17 +115116,17 @@ func (m *RoleOrderOrganizationAccessMutation) OldRoleID(ctx context.Context) (v 
 }
 
 // ResetRoleID resets all changes to the "role_id" field.
-func (m *RoleOrderOrganizationAccessMutation) ResetRoleID() {
+func (m *RoleOrganizationAccessMutation) ResetRoleID() {
 	m.role = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
-func (m *RoleOrderOrganizationAccessMutation) SetOrganizationID(u uuid.UUID) {
+func (m *RoleOrganizationAccessMutation) SetOrganizationID(u uuid.UUID) {
 	m.organization = &u
 }
 
 // OrganizationID returns the value of the "organization_id" field in the mutation.
-func (m *RoleOrderOrganizationAccessMutation) OrganizationID() (r uuid.UUID, exists bool) {
+func (m *RoleOrganizationAccessMutation) OrganizationID() (r uuid.UUID, exists bool) {
 	v := m.organization
 	if v == nil {
 		return
@@ -115134,10 +115134,10 @@ func (m *RoleOrderOrganizationAccessMutation) OrganizationID() (r uuid.UUID, exi
 	return *v, true
 }
 
-// OldOrganizationID returns the old "organization_id" field's value of the RoleOrderOrganizationAccess entity.
-// If the RoleOrderOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
+// OldOrganizationID returns the old "organization_id" field's value of the RoleOrganizationAccess entity.
+// If the RoleOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleOrderOrganizationAccessMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *RoleOrganizationAccessMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
 	}
@@ -115152,17 +115152,17 @@ func (m *RoleOrderOrganizationAccessMutation) OldOrganizationID(ctx context.Cont
 }
 
 // ResetOrganizationID resets all changes to the "organization_id" field.
-func (m *RoleOrderOrganizationAccessMutation) ResetOrganizationID() {
+func (m *RoleOrganizationAccessMutation) ResetOrganizationID() {
 	m.organization = nil
 }
 
 // SetWritable sets the "writable" field.
-func (m *RoleOrderOrganizationAccessMutation) SetWritable(b bool) {
+func (m *RoleOrganizationAccessMutation) SetWritable(b bool) {
 	m.writable = &b
 }
 
 // Writable returns the value of the "writable" field in the mutation.
-func (m *RoleOrderOrganizationAccessMutation) Writable() (r bool, exists bool) {
+func (m *RoleOrganizationAccessMutation) Writable() (r bool, exists bool) {
 	v := m.writable
 	if v == nil {
 		return
@@ -115170,10 +115170,10 @@ func (m *RoleOrderOrganizationAccessMutation) Writable() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldWritable returns the old "writable" field's value of the RoleOrderOrganizationAccess entity.
-// If the RoleOrderOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
+// OldWritable returns the old "writable" field's value of the RoleOrganizationAccess entity.
+// If the RoleOrganizationAccess object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleOrderOrganizationAccessMutation) OldWritable(ctx context.Context) (v bool, err error) {
+func (m *RoleOrganizationAccessMutation) OldWritable(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWritable is only allowed on UpdateOne operations")
 	}
@@ -115188,25 +115188,25 @@ func (m *RoleOrderOrganizationAccessMutation) OldWritable(ctx context.Context) (
 }
 
 // ResetWritable resets all changes to the "writable" field.
-func (m *RoleOrderOrganizationAccessMutation) ResetWritable() {
+func (m *RoleOrganizationAccessMutation) ResetWritable() {
 	m.writable = nil
 }
 
 // ClearRole clears the "role" edge to the Role entity.
-func (m *RoleOrderOrganizationAccessMutation) ClearRole() {
+func (m *RoleOrganizationAccessMutation) ClearRole() {
 	m.clearedrole = true
-	m.clearedFields[roleorderorganizationaccess.FieldRoleID] = struct{}{}
+	m.clearedFields[roleorganizationaccess.FieldRoleID] = struct{}{}
 }
 
 // RoleCleared reports if the "role" edge to the Role entity was cleared.
-func (m *RoleOrderOrganizationAccessMutation) RoleCleared() bool {
+func (m *RoleOrganizationAccessMutation) RoleCleared() bool {
 	return m.clearedrole
 }
 
 // RoleIDs returns the "role" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // RoleID instead. It exists only for internal usage by the builders.
-func (m *RoleOrderOrganizationAccessMutation) RoleIDs() (ids []uuid.UUID) {
+func (m *RoleOrganizationAccessMutation) RoleIDs() (ids []uuid.UUID) {
 	if id := m.role; id != nil {
 		ids = append(ids, *id)
 	}
@@ -115214,26 +115214,26 @@ func (m *RoleOrderOrganizationAccessMutation) RoleIDs() (ids []uuid.UUID) {
 }
 
 // ResetRole resets all changes to the "role" edge.
-func (m *RoleOrderOrganizationAccessMutation) ResetRole() {
+func (m *RoleOrganizationAccessMutation) ResetRole() {
 	m.role = nil
 	m.clearedrole = false
 }
 
 // ClearOrganization clears the "organization" edge to the Organization entity.
-func (m *RoleOrderOrganizationAccessMutation) ClearOrganization() {
+func (m *RoleOrganizationAccessMutation) ClearOrganization() {
 	m.clearedorganization = true
-	m.clearedFields[roleorderorganizationaccess.FieldOrganizationID] = struct{}{}
+	m.clearedFields[roleorganizationaccess.FieldOrganizationID] = struct{}{}
 }
 
 // OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
-func (m *RoleOrderOrganizationAccessMutation) OrganizationCleared() bool {
+func (m *RoleOrganizationAccessMutation) OrganizationCleared() bool {
 	return m.clearedorganization
 }
 
 // OrganizationIDs returns the "organization" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // OrganizationID instead. It exists only for internal usage by the builders.
-func (m *RoleOrderOrganizationAccessMutation) OrganizationIDs() (ids []uuid.UUID) {
+func (m *RoleOrganizationAccessMutation) OrganizationIDs() (ids []uuid.UUID) {
 	if id := m.organization; id != nil {
 		ids = append(ids, *id)
 	}
@@ -115241,20 +115241,20 @@ func (m *RoleOrderOrganizationAccessMutation) OrganizationIDs() (ids []uuid.UUID
 }
 
 // ResetOrganization resets all changes to the "organization" edge.
-func (m *RoleOrderOrganizationAccessMutation) ResetOrganization() {
+func (m *RoleOrganizationAccessMutation) ResetOrganization() {
 	m.organization = nil
 	m.clearedorganization = false
 }
 
-// Where appends a list predicates to the RoleOrderOrganizationAccessMutation builder.
-func (m *RoleOrderOrganizationAccessMutation) Where(ps ...predicate.RoleOrderOrganizationAccess) {
+// Where appends a list predicates to the RoleOrganizationAccessMutation builder.
+func (m *RoleOrganizationAccessMutation) Where(ps ...predicate.RoleOrganizationAccess) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the RoleOrderOrganizationAccessMutation builder. Using this method,
+// WhereP appends storage-level predicates to the RoleOrganizationAccessMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *RoleOrderOrganizationAccessMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.RoleOrderOrganizationAccess, len(ps))
+func (m *RoleOrganizationAccessMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RoleOrganizationAccess, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -115262,39 +115262,39 @@ func (m *RoleOrderOrganizationAccessMutation) WhereP(ps ...func(*sql.Selector)) 
 }
 
 // Op returns the operation name.
-func (m *RoleOrderOrganizationAccessMutation) Op() Op {
+func (m *RoleOrganizationAccessMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *RoleOrderOrganizationAccessMutation) SetOp(op Op) {
+func (m *RoleOrganizationAccessMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (RoleOrderOrganizationAccess).
-func (m *RoleOrderOrganizationAccessMutation) Type() string {
+// Type returns the node type of this mutation (RoleOrganizationAccess).
+func (m *RoleOrganizationAccessMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *RoleOrderOrganizationAccessMutation) Fields() []string {
+func (m *RoleOrganizationAccessMutation) Fields() []string {
 	fields := make([]string, 0, 5)
 	if m.created_at != nil {
-		fields = append(fields, roleorderorganizationaccess.FieldCreatedAt)
+		fields = append(fields, roleorganizationaccess.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, roleorderorganizationaccess.FieldUpdatedAt)
+		fields = append(fields, roleorganizationaccess.FieldUpdatedAt)
 	}
 	if m.role != nil {
-		fields = append(fields, roleorderorganizationaccess.FieldRoleID)
+		fields = append(fields, roleorganizationaccess.FieldRoleID)
 	}
 	if m.organization != nil {
-		fields = append(fields, roleorderorganizationaccess.FieldOrganizationID)
+		fields = append(fields, roleorganizationaccess.FieldOrganizationID)
 	}
 	if m.writable != nil {
-		fields = append(fields, roleorderorganizationaccess.FieldWritable)
+		fields = append(fields, roleorganizationaccess.FieldWritable)
 	}
 	return fields
 }
@@ -115302,17 +115302,17 @@ func (m *RoleOrderOrganizationAccessMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *RoleOrderOrganizationAccessMutation) Field(name string) (ent.Value, bool) {
+func (m *RoleOrganizationAccessMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case roleorderorganizationaccess.FieldCreatedAt:
+	case roleorganizationaccess.FieldCreatedAt:
 		return m.CreatedAt()
-	case roleorderorganizationaccess.FieldUpdatedAt:
+	case roleorganizationaccess.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case roleorderorganizationaccess.FieldRoleID:
+	case roleorganizationaccess.FieldRoleID:
 		return m.RoleID()
-	case roleorderorganizationaccess.FieldOrganizationID:
+	case roleorganizationaccess.FieldOrganizationID:
 		return m.OrganizationID()
-	case roleorderorganizationaccess.FieldWritable:
+	case roleorganizationaccess.FieldWritable:
 		return m.Writable()
 	}
 	return nil, false
@@ -115321,56 +115321,56 @@ func (m *RoleOrderOrganizationAccessMutation) Field(name string) (ent.Value, boo
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *RoleOrderOrganizationAccessMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *RoleOrganizationAccessMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case roleorderorganizationaccess.FieldCreatedAt:
+	case roleorganizationaccess.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case roleorderorganizationaccess.FieldUpdatedAt:
+	case roleorganizationaccess.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case roleorderorganizationaccess.FieldRoleID:
+	case roleorganizationaccess.FieldRoleID:
 		return m.OldRoleID(ctx)
-	case roleorderorganizationaccess.FieldOrganizationID:
+	case roleorganizationaccess.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
-	case roleorderorganizationaccess.FieldWritable:
+	case roleorganizationaccess.FieldWritable:
 		return m.OldWritable(ctx)
 	}
-	return nil, fmt.Errorf("unknown RoleOrderOrganizationAccess field %s", name)
+	return nil, fmt.Errorf("unknown RoleOrganizationAccess field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *RoleOrderOrganizationAccessMutation) SetField(name string, value ent.Value) error {
+func (m *RoleOrganizationAccessMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case roleorderorganizationaccess.FieldCreatedAt:
+	case roleorganizationaccess.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case roleorderorganizationaccess.FieldUpdatedAt:
+	case roleorganizationaccess.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case roleorderorganizationaccess.FieldRoleID:
+	case roleorganizationaccess.FieldRoleID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRoleID(v)
 		return nil
-	case roleorderorganizationaccess.FieldOrganizationID:
+	case roleorganizationaccess.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrganizationID(v)
 		return nil
-	case roleorderorganizationaccess.FieldWritable:
+	case roleorganizationaccess.FieldWritable:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -115378,94 +115378,94 @@ func (m *RoleOrderOrganizationAccessMutation) SetField(name string, value ent.Va
 		m.SetWritable(v)
 		return nil
 	}
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess field %s", name)
+	return fmt.Errorf("unknown RoleOrganizationAccess field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *RoleOrderOrganizationAccessMutation) AddedFields() []string {
+func (m *RoleOrganizationAccessMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *RoleOrderOrganizationAccessMutation) AddedField(name string) (ent.Value, bool) {
+func (m *RoleOrganizationAccessMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *RoleOrderOrganizationAccessMutation) AddField(name string, value ent.Value) error {
+func (m *RoleOrganizationAccessMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess numeric field %s", name)
+	return fmt.Errorf("unknown RoleOrganizationAccess numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *RoleOrderOrganizationAccessMutation) ClearedFields() []string {
+func (m *RoleOrganizationAccessMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) FieldCleared(name string) bool {
+func (m *RoleOrganizationAccessMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *RoleOrderOrganizationAccessMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess nullable field %s", name)
+func (m *RoleOrganizationAccessMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown RoleOrganizationAccess nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *RoleOrderOrganizationAccessMutation) ResetField(name string) error {
+func (m *RoleOrganizationAccessMutation) ResetField(name string) error {
 	switch name {
-	case roleorderorganizationaccess.FieldCreatedAt:
+	case roleorganizationaccess.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case roleorderorganizationaccess.FieldUpdatedAt:
+	case roleorganizationaccess.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case roleorderorganizationaccess.FieldRoleID:
+	case roleorganizationaccess.FieldRoleID:
 		m.ResetRoleID()
 		return nil
-	case roleorderorganizationaccess.FieldOrganizationID:
+	case roleorganizationaccess.FieldOrganizationID:
 		m.ResetOrganizationID()
 		return nil
-	case roleorderorganizationaccess.FieldWritable:
+	case roleorganizationaccess.FieldWritable:
 		m.ResetWritable()
 		return nil
 	}
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess field %s", name)
+	return fmt.Errorf("unknown RoleOrganizationAccess field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) AddedEdges() []string {
+func (m *RoleOrganizationAccessMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.role != nil {
-		edges = append(edges, roleorderorganizationaccess.EdgeRole)
+		edges = append(edges, roleorganizationaccess.EdgeRole)
 	}
 	if m.organization != nil {
-		edges = append(edges, roleorderorganizationaccess.EdgeOrganization)
+		edges = append(edges, roleorganizationaccess.EdgeOrganization)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) AddedIDs(name string) []ent.Value {
+func (m *RoleOrganizationAccessMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case roleorderorganizationaccess.EdgeRole:
+	case roleorganizationaccess.EdgeRole:
 		if id := m.role; id != nil {
 			return []ent.Value{*id}
 		}
-	case roleorderorganizationaccess.EdgeOrganization:
+	case roleorganizationaccess.EdgeOrganization:
 		if id := m.organization; id != nil {
 			return []ent.Value{*id}
 		}
@@ -115474,36 +115474,36 @@ func (m *RoleOrderOrganizationAccessMutation) AddedIDs(name string) []ent.Value 
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) RemovedEdges() []string {
+func (m *RoleOrganizationAccessMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) RemovedIDs(name string) []ent.Value {
+func (m *RoleOrganizationAccessMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) ClearedEdges() []string {
+func (m *RoleOrganizationAccessMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.clearedrole {
-		edges = append(edges, roleorderorganizationaccess.EdgeRole)
+		edges = append(edges, roleorganizationaccess.EdgeRole)
 	}
 	if m.clearedorganization {
-		edges = append(edges, roleorderorganizationaccess.EdgeOrganization)
+		edges = append(edges, roleorganizationaccess.EdgeOrganization)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *RoleOrderOrganizationAccessMutation) EdgeCleared(name string) bool {
+func (m *RoleOrganizationAccessMutation) EdgeCleared(name string) bool {
 	switch name {
-	case roleorderorganizationaccess.EdgeRole:
+	case roleorganizationaccess.EdgeRole:
 		return m.clearedrole
-	case roleorderorganizationaccess.EdgeOrganization:
+	case roleorganizationaccess.EdgeOrganization:
 		return m.clearedorganization
 	}
 	return false
@@ -115511,30 +115511,30 @@ func (m *RoleOrderOrganizationAccessMutation) EdgeCleared(name string) bool {
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *RoleOrderOrganizationAccessMutation) ClearEdge(name string) error {
+func (m *RoleOrganizationAccessMutation) ClearEdge(name string) error {
 	switch name {
-	case roleorderorganizationaccess.EdgeRole:
+	case roleorganizationaccess.EdgeRole:
 		m.ClearRole()
 		return nil
-	case roleorderorganizationaccess.EdgeOrganization:
+	case roleorganizationaccess.EdgeOrganization:
 		m.ClearOrganization()
 		return nil
 	}
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess unique edge %s", name)
+	return fmt.Errorf("unknown RoleOrganizationAccess unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *RoleOrderOrganizationAccessMutation) ResetEdge(name string) error {
+func (m *RoleOrganizationAccessMutation) ResetEdge(name string) error {
 	switch name {
-	case roleorderorganizationaccess.EdgeRole:
+	case roleorganizationaccess.EdgeRole:
 		m.ResetRole()
 		return nil
-	case roleorderorganizationaccess.EdgeOrganization:
+	case roleorganizationaccess.EdgeOrganization:
 		m.ResetOrganization()
 		return nil
 	}
-	return fmt.Errorf("unknown RoleOrderOrganizationAccess edge %s", name)
+	return fmt.Errorf("unknown RoleOrganizationAccess edge %s", name)
 }
 
 // SeaDocumentModeChangeEventMutation represents an operation that mutates the SeaDocumentModeChangeEvent nodes in the graph.

@@ -15,36 +15,36 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
-// RoleOrderOrganizationAccessUpdate is the builder for updating RoleOrderOrganizationAccess entities.
-type RoleOrderOrganizationAccessUpdate struct {
+// RoleOrganizationAccessUpdate is the builder for updating RoleOrganizationAccess entities.
+type RoleOrganizationAccessUpdate struct {
 	config
 	hooks    []Hook
-	mutation *RoleOrderOrganizationAccessMutation
+	mutation *RoleOrganizationAccessMutation
 }
 
-// Where appends a list predicates to the RoleOrderOrganizationAccessUpdate builder.
-func (_u *RoleOrderOrganizationAccessUpdate) Where(ps ...predicate.RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessUpdate {
+// Where appends a list predicates to the RoleOrganizationAccessUpdate builder.
+func (_u *RoleOrganizationAccessUpdate) Where(ps ...predicate.RoleOrganizationAccess) *RoleOrganizationAccessUpdate {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *RoleOrderOrganizationAccessUpdate) SetUpdatedAt(v time.Time) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetUpdatedAt(v time.Time) *RoleOrganizationAccessUpdate {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetRoleID sets the "role_id" field.
-func (_u *RoleOrderOrganizationAccessUpdate) SetRoleID(v uuid.UUID) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetRoleID(v uuid.UUID) *RoleOrganizationAccessUpdate {
 	_u.mutation.SetRoleID(v)
 	return _u
 }
 
 // SetNillableRoleID sets the "role_id" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdate) SetNillableRoleID(v *uuid.UUID) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetNillableRoleID(v *uuid.UUID) *RoleOrganizationAccessUpdate {
 	if v != nil {
 		_u.SetRoleID(*v)
 	}
@@ -52,13 +52,13 @@ func (_u *RoleOrderOrganizationAccessUpdate) SetNillableRoleID(v *uuid.UUID) *Ro
 }
 
 // SetOrganizationID sets the "organization_id" field.
-func (_u *RoleOrderOrganizationAccessUpdate) SetOrganizationID(v uuid.UUID) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessUpdate {
 	_u.mutation.SetOrganizationID(v)
 	return _u
 }
 
 // SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdate) SetNillableOrganizationID(v *uuid.UUID) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetNillableOrganizationID(v *uuid.UUID) *RoleOrganizationAccessUpdate {
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
@@ -66,13 +66,13 @@ func (_u *RoleOrderOrganizationAccessUpdate) SetNillableOrganizationID(v *uuid.U
 }
 
 // SetWritable sets the "writable" field.
-func (_u *RoleOrderOrganizationAccessUpdate) SetWritable(v bool) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetWritable(v bool) *RoleOrganizationAccessUpdate {
 	_u.mutation.SetWritable(v)
 	return _u
 }
 
 // SetNillableWritable sets the "writable" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdate) SetNillableWritable(v *bool) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetNillableWritable(v *bool) *RoleOrganizationAccessUpdate {
 	if v != nil {
 		_u.SetWritable(*v)
 	}
@@ -80,40 +80,40 @@ func (_u *RoleOrderOrganizationAccessUpdate) SetNillableWritable(v *bool) *RoleO
 }
 
 // SetRole sets the "role" edge to the Role entity.
-func (_u *RoleOrderOrganizationAccessUpdate) SetRole(v *Role) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetRole(v *Role) *RoleOrganizationAccessUpdate {
 	return _u.SetRoleID(v.ID)
 }
 
 // SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *RoleOrderOrganizationAccessUpdate) SetOrganization(v *Organization) *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) SetOrganization(v *Organization) *RoleOrganizationAccessUpdate {
 	return _u.SetOrganizationID(v.ID)
 }
 
-// Mutation returns the RoleOrderOrganizationAccessMutation object of the builder.
-func (_u *RoleOrderOrganizationAccessUpdate) Mutation() *RoleOrderOrganizationAccessMutation {
+// Mutation returns the RoleOrganizationAccessMutation object of the builder.
+func (_u *RoleOrganizationAccessUpdate) Mutation() *RoleOrganizationAccessMutation {
 	return _u.mutation
 }
 
 // ClearRole clears the "role" edge to the Role entity.
-func (_u *RoleOrderOrganizationAccessUpdate) ClearRole() *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) ClearRole() *RoleOrganizationAccessUpdate {
 	_u.mutation.ClearRole()
 	return _u
 }
 
 // ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *RoleOrderOrganizationAccessUpdate) ClearOrganization() *RoleOrderOrganizationAccessUpdate {
+func (_u *RoleOrganizationAccessUpdate) ClearOrganization() *RoleOrganizationAccessUpdate {
 	_u.mutation.ClearOrganization()
 	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (_u *RoleOrderOrganizationAccessUpdate) Save(ctx context.Context) (int, error) {
+func (_u *RoleOrganizationAccessUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *RoleOrderOrganizationAccessUpdate) SaveX(ctx context.Context) int {
+func (_u *RoleOrganizationAccessUpdate) SaveX(ctx context.Context) int {
 	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -122,42 +122,42 @@ func (_u *RoleOrderOrganizationAccessUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (_u *RoleOrderOrganizationAccessUpdate) Exec(ctx context.Context) error {
+func (_u *RoleOrganizationAccessUpdate) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *RoleOrderOrganizationAccessUpdate) ExecX(ctx context.Context) {
+func (_u *RoleOrganizationAccessUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *RoleOrderOrganizationAccessUpdate) defaults() {
+func (_u *RoleOrganizationAccessUpdate) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := roleorderorganizationaccess.UpdateDefaultUpdatedAt()
+		v := roleorganizationaccess.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *RoleOrderOrganizationAccessUpdate) check() error {
+func (_u *RoleOrganizationAccessUpdate) check() error {
 	if _u.mutation.RoleCleared() && len(_u.mutation.RoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RoleOrderOrganizationAccess.role"`)
+		return errors.New(`ent: clearing a required unique edge "RoleOrganizationAccess.role"`)
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RoleOrderOrganizationAccess.organization"`)
+		return errors.New(`ent: clearing a required unique edge "RoleOrganizationAccess.organization"`)
 	}
 	return nil
 }
 
-func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+func (_u *RoleOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(roleorderorganizationaccess.Table, roleorderorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(roleorganizationaccess.Table, roleorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -166,17 +166,17 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 		}
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(roleorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Writable(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldWritable, field.TypeBool, value)
+		_spec.SetField(roleorganizationaccess.FieldWritable, field.TypeBool, value)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.RoleTable,
-			Columns: []string{roleorderorganizationaccess.RoleColumn},
+			Table:   roleorganizationaccess.RoleTable,
+			Columns: []string{roleorganizationaccess.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
@@ -188,8 +188,8 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.RoleTable,
-			Columns: []string{roleorderorganizationaccess.RoleColumn},
+			Table:   roleorganizationaccess.RoleTable,
+			Columns: []string{roleorganizationaccess.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
@@ -204,8 +204,8 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.OrganizationTable,
-			Columns: []string{roleorderorganizationaccess.OrganizationColumn},
+			Table:   roleorganizationaccess.OrganizationTable,
+			Columns: []string{roleorganizationaccess.OrganizationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
@@ -217,8 +217,8 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.OrganizationTable,
-			Columns: []string{roleorderorganizationaccess.OrganizationColumn},
+			Table:   roleorganizationaccess.OrganizationTable,
+			Columns: []string{roleorganizationaccess.OrganizationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
@@ -231,7 +231,7 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{roleorderorganizationaccess.Label}
+			err = &NotFoundError{roleorganizationaccess.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -241,28 +241,28 @@ func (_u *RoleOrderOrganizationAccessUpdate) sqlSave(ctx context.Context) (_node
 	return _node, nil
 }
 
-// RoleOrderOrganizationAccessUpdateOne is the builder for updating a single RoleOrderOrganizationAccess entity.
-type RoleOrderOrganizationAccessUpdateOne struct {
+// RoleOrganizationAccessUpdateOne is the builder for updating a single RoleOrganizationAccess entity.
+type RoleOrganizationAccessUpdateOne struct {
 	config
 	fields   []string
 	hooks    []Hook
-	mutation *RoleOrderOrganizationAccessMutation
+	mutation *RoleOrganizationAccessMutation
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetUpdatedAt(v time.Time) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetUpdatedAt(v time.Time) *RoleOrganizationAccessUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetRoleID sets the "role_id" field.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetRoleID(v uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetRoleID(v uuid.UUID) *RoleOrganizationAccessUpdateOne {
 	_u.mutation.SetRoleID(v)
 	return _u
 }
 
 // SetNillableRoleID sets the "role_id" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableRoleID(v *uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetNillableRoleID(v *uuid.UUID) *RoleOrganizationAccessUpdateOne {
 	if v != nil {
 		_u.SetRoleID(*v)
 	}
@@ -270,13 +270,13 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableRoleID(v *uuid.UUID) 
 }
 
 // SetOrganizationID sets the "organization_id" field.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetOrganizationID(v uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessUpdateOne {
 	_u.mutation.SetOrganizationID(v)
 	return _u
 }
 
 // SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *RoleOrganizationAccessUpdateOne {
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
@@ -284,13 +284,13 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableOrganizationID(v *uui
 }
 
 // SetWritable sets the "writable" field.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetWritable(v bool) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetWritable(v bool) *RoleOrganizationAccessUpdateOne {
 	_u.mutation.SetWritable(v)
 	return _u
 }
 
 // SetNillableWritable sets the "writable" field if the given value is not nil.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableWritable(v *bool) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetNillableWritable(v *bool) *RoleOrganizationAccessUpdateOne {
 	if v != nil {
 		_u.SetWritable(*v)
 	}
@@ -298,53 +298,53 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) SetNillableWritable(v *bool) *Ro
 }
 
 // SetRole sets the "role" edge to the Role entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetRole(v *Role) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetRole(v *Role) *RoleOrganizationAccessUpdateOne {
 	return _u.SetRoleID(v.ID)
 }
 
 // SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SetOrganization(v *Organization) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) SetOrganization(v *Organization) *RoleOrganizationAccessUpdateOne {
 	return _u.SetOrganizationID(v.ID)
 }
 
-// Mutation returns the RoleOrderOrganizationAccessMutation object of the builder.
-func (_u *RoleOrderOrganizationAccessUpdateOne) Mutation() *RoleOrderOrganizationAccessMutation {
+// Mutation returns the RoleOrganizationAccessMutation object of the builder.
+func (_u *RoleOrganizationAccessUpdateOne) Mutation() *RoleOrganizationAccessMutation {
 	return _u.mutation
 }
 
 // ClearRole clears the "role" edge to the Role entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) ClearRole() *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) ClearRole() *RoleOrganizationAccessUpdateOne {
 	_u.mutation.ClearRole()
 	return _u
 }
 
 // ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) ClearOrganization() *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) ClearOrganization() *RoleOrganizationAccessUpdateOne {
 	_u.mutation.ClearOrganization()
 	return _u
 }
 
-// Where appends a list predicates to the RoleOrderOrganizationAccessUpdate builder.
-func (_u *RoleOrderOrganizationAccessUpdateOne) Where(ps ...predicate.RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessUpdateOne {
+// Where appends a list predicates to the RoleOrganizationAccessUpdate builder.
+func (_u *RoleOrganizationAccessUpdateOne) Where(ps ...predicate.RoleOrganizationAccess) *RoleOrganizationAccessUpdateOne {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (_u *RoleOrderOrganizationAccessUpdateOne) Select(field string, fields ...string) *RoleOrderOrganizationAccessUpdateOne {
+func (_u *RoleOrganizationAccessUpdateOne) Select(field string, fields ...string) *RoleOrganizationAccessUpdateOne {
 	_u.fields = append([]string{field}, fields...)
 	return _u
 }
 
-// Save executes the query and returns the updated RoleOrderOrganizationAccess entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) Save(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+// Save executes the query and returns the updated RoleOrganizationAccess entity.
+func (_u *RoleOrganizationAccessUpdateOne) Save(ctx context.Context) (*RoleOrganizationAccess, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *RoleOrderOrganizationAccessUpdateOne) SaveX(ctx context.Context) *RoleOrderOrganizationAccess {
+func (_u *RoleOrganizationAccessUpdateOne) SaveX(ctx context.Context) *RoleOrganizationAccess {
 	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -353,55 +353,55 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) SaveX(ctx context.Context) *Role
 }
 
 // Exec executes the query on the entity.
-func (_u *RoleOrderOrganizationAccessUpdateOne) Exec(ctx context.Context) error {
+func (_u *RoleOrganizationAccessUpdateOne) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *RoleOrderOrganizationAccessUpdateOne) ExecX(ctx context.Context) {
+func (_u *RoleOrganizationAccessUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *RoleOrderOrganizationAccessUpdateOne) defaults() {
+func (_u *RoleOrganizationAccessUpdateOne) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := roleorderorganizationaccess.UpdateDefaultUpdatedAt()
+		v := roleorganizationaccess.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *RoleOrderOrganizationAccessUpdateOne) check() error {
+func (_u *RoleOrganizationAccessUpdateOne) check() error {
 	if _u.mutation.RoleCleared() && len(_u.mutation.RoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RoleOrderOrganizationAccess.role"`)
+		return errors.New(`ent: clearing a required unique edge "RoleOrganizationAccess.role"`)
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RoleOrderOrganizationAccess.organization"`)
+		return errors.New(`ent: clearing a required unique edge "RoleOrganizationAccess.organization"`)
 	}
 	return nil
 }
 
-func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_node *RoleOrderOrganizationAccess, err error) {
+func (_u *RoleOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_node *RoleOrganizationAccess, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(roleorderorganizationaccess.Table, roleorderorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(roleorganizationaccess.Table, roleorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "RoleOrderOrganizationAccess.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "RoleOrganizationAccess.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, roleorderorganizationaccess.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, roleorganizationaccess.FieldID)
 		for _, f := range fields {
-			if !roleorderorganizationaccess.ValidColumn(f) {
+			if !roleorganizationaccess.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != roleorderorganizationaccess.FieldID {
+			if f != roleorganizationaccess.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -414,17 +414,17 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_n
 		}
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(roleorganizationaccess.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Writable(); ok {
-		_spec.SetField(roleorderorganizationaccess.FieldWritable, field.TypeBool, value)
+		_spec.SetField(roleorganizationaccess.FieldWritable, field.TypeBool, value)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.RoleTable,
-			Columns: []string{roleorderorganizationaccess.RoleColumn},
+			Table:   roleorganizationaccess.RoleTable,
+			Columns: []string{roleorganizationaccess.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
@@ -436,8 +436,8 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_n
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.RoleTable,
-			Columns: []string{roleorderorganizationaccess.RoleColumn},
+			Table:   roleorganizationaccess.RoleTable,
+			Columns: []string{roleorganizationaccess.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
@@ -452,8 +452,8 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_n
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.OrganizationTable,
-			Columns: []string{roleorderorganizationaccess.OrganizationColumn},
+			Table:   roleorganizationaccess.OrganizationTable,
+			Columns: []string{roleorganizationaccess.OrganizationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
@@ -465,8 +465,8 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_n
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   roleorderorganizationaccess.OrganizationTable,
-			Columns: []string{roleorderorganizationaccess.OrganizationColumn},
+			Table:   roleorganizationaccess.OrganizationTable,
+			Columns: []string{roleorganizationaccess.OrganizationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
@@ -477,12 +477,12 @@ func (_u *RoleOrderOrganizationAccessUpdateOne) sqlSave(ctx context.Context) (_n
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &RoleOrderOrganizationAccess{config: _u.config}
+	_node = &RoleOrganizationAccess{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{roleorderorganizationaccess.Label}
+			err = &NotFoundError{roleorganizationaccess.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

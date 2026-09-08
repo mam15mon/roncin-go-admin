@@ -184,8 +184,8 @@ type Tx struct {
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
-	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
-	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// RoleOrganizationAccess is the client for interacting with the RoleOrganizationAccess builders.
+	RoleOrganizationAccess *RoleOrganizationAccessClient
 	// SeaDocumentModeChangeEvent is the client for interacting with the SeaDocumentModeChangeEvent builders.
 	SeaDocumentModeChangeEvent *SeaDocumentModeChangeEventClient
 	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
@@ -441,7 +441,7 @@ func (tx *Tx) init() {
 	tx.Port = NewPortClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
-	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
+	tx.RoleOrganizationAccess = NewRoleOrganizationAccessClient(tx.config)
 	tx.SeaDocumentModeChangeEvent = NewSeaDocumentModeChangeEventClient(tx.config)
 	tx.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(tx.config)
 	tx.SeaHouseBill = NewSeaHouseBillClient(tx.config)

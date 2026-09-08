@@ -125,7 +125,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			Permissions:     []string{permission},
 			RoleScopes:      []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeOrganization}},
 			RolePermissions: map[string]map[string]struct{}{"operator": {permission: {}}},
-			OrderOrganizationAccesses: []biz.OrderOrganizationAccess{{
+			OrganizationAccesses: []biz.OrganizationAccess{{
 				OrganizationID: anchorOrg,
 				Writable:       writable,
 			}},
@@ -204,7 +204,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			RolePermissions: map[string]map[string]struct{}{
 				"operator": {permission: {}},
 			},
-			OrderOrganizationAccesses: []biz.OrderOrganizationAccess{
+			OrganizationAccesses: []biz.OrganizationAccess{
 				{OrganizationID: orgB, Writable: true},
 			},
 		}
@@ -229,7 +229,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		}
 
 		// 无锚点组织访问权限时拒绝且不进入 handler
-		principal.OrderOrganizationAccesses = nil
+		principal.OrganizationAccesses = nil
 		denied := runSharedContainerMiddleware(
 			t,
 			"/order.v1.SeaSharedContainerService/ListSeaSharedContainers",
@@ -257,7 +257,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			RolePermissions: map[string]map[string]struct{}{
 				"operator": {permission: {}},
 			},
-			OrderOrganizationAccesses: []biz.OrderOrganizationAccess{
+			OrganizationAccesses: []biz.OrganizationAccess{
 				{OrganizationID: orgB, Writable: true},
 			},
 		}

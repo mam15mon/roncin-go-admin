@@ -16,16 +16,16 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
-// RoleOrderOrganizationAccessQuery is the builder for querying RoleOrderOrganizationAccess entities.
-type RoleOrderOrganizationAccessQuery struct {
+// RoleOrganizationAccessQuery is the builder for querying RoleOrganizationAccess entities.
+type RoleOrganizationAccessQuery struct {
 	config
 	ctx              *QueryContext
-	order            []roleorderorganizationaccess.OrderOption
+	order            []roleorganizationaccess.OrderOption
 	inters           []Interceptor
-	predicates       []predicate.RoleOrderOrganizationAccess
+	predicates       []predicate.RoleOrganizationAccess
 	withRole         *RoleQuery
 	withOrganization *OrganizationQuery
 	modifiers        []func(*sql.Selector)
@@ -34,39 +34,39 @@ type RoleOrderOrganizationAccessQuery struct {
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the RoleOrderOrganizationAccessQuery builder.
-func (_q *RoleOrderOrganizationAccessQuery) Where(ps ...predicate.RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessQuery {
+// Where adds a new predicate for the RoleOrganizationAccessQuery builder.
+func (_q *RoleOrganizationAccessQuery) Where(ps ...predicate.RoleOrganizationAccess) *RoleOrganizationAccessQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *RoleOrderOrganizationAccessQuery) Limit(limit int) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) Limit(limit int) *RoleOrganizationAccessQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *RoleOrderOrganizationAccessQuery) Offset(offset int) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) Offset(offset int) *RoleOrganizationAccessQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *RoleOrderOrganizationAccessQuery) Unique(unique bool) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) Unique(unique bool) *RoleOrganizationAccessQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *RoleOrderOrganizationAccessQuery) Order(o ...roleorderorganizationaccess.OrderOption) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) Order(o ...roleorganizationaccess.OrderOption) *RoleOrganizationAccessQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryRole chains the current query on the "role" edge.
-func (_q *RoleOrderOrganizationAccessQuery) QueryRole() *RoleQuery {
+func (_q *RoleOrganizationAccessQuery) QueryRole() *RoleQuery {
 	query := (&RoleClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -77,9 +77,9 @@ func (_q *RoleOrderOrganizationAccessQuery) QueryRole() *RoleQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, selector),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.RoleTable, roleorderorganizationaccess.RoleColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.RoleTable, roleorganizationaccess.RoleColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,7 +88,7 @@ func (_q *RoleOrderOrganizationAccessQuery) QueryRole() *RoleQuery {
 }
 
 // QueryOrganization chains the current query on the "organization" edge.
-func (_q *RoleOrderOrganizationAccessQuery) QueryOrganization() *OrganizationQuery {
+func (_q *RoleOrganizationAccessQuery) QueryOrganization() *OrganizationQuery {
 	query := (&OrganizationClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -99,9 +99,9 @@ func (_q *RoleOrderOrganizationAccessQuery) QueryOrganization() *OrganizationQue
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, selector),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, selector),
 			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.OrganizationTable, roleorderorganizationaccess.OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.OrganizationTable, roleorganizationaccess.OrganizationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -109,21 +109,21 @@ func (_q *RoleOrderOrganizationAccessQuery) QueryOrganization() *OrganizationQue
 	return query
 }
 
-// First returns the first RoleOrderOrganizationAccess entity from the query.
-// Returns a *NotFoundError when no RoleOrderOrganizationAccess was found.
-func (_q *RoleOrderOrganizationAccessQuery) First(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+// First returns the first RoleOrganizationAccess entity from the query.
+// Returns a *NotFoundError when no RoleOrganizationAccess was found.
+func (_q *RoleOrganizationAccessQuery) First(ctx context.Context) (*RoleOrganizationAccess, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{roleorderorganizationaccess.Label}
+		return nil, &NotFoundError{roleorganizationaccess.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) FirstX(ctx context.Context) *RoleOrderOrganizationAccess {
+func (_q *RoleOrganizationAccessQuery) FirstX(ctx context.Context) *RoleOrganizationAccess {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -131,22 +131,22 @@ func (_q *RoleOrderOrganizationAccessQuery) FirstX(ctx context.Context) *RoleOrd
 	return node
 }
 
-// FirstID returns the first RoleOrderOrganizationAccess ID from the query.
-// Returns a *NotFoundError when no RoleOrderOrganizationAccess ID was found.
-func (_q *RoleOrderOrganizationAccessQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first RoleOrganizationAccess ID from the query.
+// Returns a *NotFoundError when no RoleOrganizationAccess ID was found.
+func (_q *RoleOrganizationAccessQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{roleorderorganizationaccess.Label}
+		err = &NotFoundError{roleorganizationaccess.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *RoleOrganizationAccessQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,10 +154,10 @@ func (_q *RoleOrderOrganizationAccessQuery) FirstIDX(ctx context.Context) uuid.U
 	return id
 }
 
-// Only returns a single RoleOrderOrganizationAccess entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one RoleOrderOrganizationAccess entity is found.
-// Returns a *NotFoundError when no RoleOrderOrganizationAccess entities are found.
-func (_q *RoleOrderOrganizationAccessQuery) Only(ctx context.Context) (*RoleOrderOrganizationAccess, error) {
+// Only returns a single RoleOrganizationAccess entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one RoleOrganizationAccess entity is found.
+// Returns a *NotFoundError when no RoleOrganizationAccess entities are found.
+func (_q *RoleOrganizationAccessQuery) Only(ctx context.Context) (*RoleOrganizationAccess, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -166,14 +166,14 @@ func (_q *RoleOrderOrganizationAccessQuery) Only(ctx context.Context) (*RoleOrde
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{roleorderorganizationaccess.Label}
+		return nil, &NotFoundError{roleorganizationaccess.Label}
 	default:
-		return nil, &NotSingularError{roleorderorganizationaccess.Label}
+		return nil, &NotSingularError{roleorganizationaccess.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) OnlyX(ctx context.Context) *RoleOrderOrganizationAccess {
+func (_q *RoleOrganizationAccessQuery) OnlyX(ctx context.Context) *RoleOrganizationAccess {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -181,10 +181,10 @@ func (_q *RoleOrderOrganizationAccessQuery) OnlyX(ctx context.Context) *RoleOrde
 	return node
 }
 
-// OnlyID is like Only, but returns the only RoleOrderOrganizationAccess ID in the query.
-// Returns a *NotSingularError when more than one RoleOrderOrganizationAccess ID is found.
+// OnlyID is like Only, but returns the only RoleOrganizationAccess ID in the query.
+// Returns a *NotSingularError when more than one RoleOrganizationAccess ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *RoleOrderOrganizationAccessQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *RoleOrganizationAccessQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -193,15 +193,15 @@ func (_q *RoleOrderOrganizationAccessQuery) OnlyID(ctx context.Context) (id uuid
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{roleorderorganizationaccess.Label}
+		err = &NotFoundError{roleorganizationaccess.Label}
 	default:
-		err = &NotSingularError{roleorderorganizationaccess.Label}
+		err = &NotSingularError{roleorganizationaccess.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *RoleOrganizationAccessQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -209,18 +209,18 @@ func (_q *RoleOrderOrganizationAccessQuery) OnlyIDX(ctx context.Context) uuid.UU
 	return id
 }
 
-// All executes the query and returns a list of RoleOrderOrganizationAccesses.
-func (_q *RoleOrderOrganizationAccessQuery) All(ctx context.Context) ([]*RoleOrderOrganizationAccess, error) {
+// All executes the query and returns a list of RoleOrganizationAccesses.
+func (_q *RoleOrganizationAccessQuery) All(ctx context.Context) ([]*RoleOrganizationAccess, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*RoleOrderOrganizationAccess, *RoleOrderOrganizationAccessQuery]()
-	return withInterceptors[[]*RoleOrderOrganizationAccess](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*RoleOrganizationAccess, *RoleOrganizationAccessQuery]()
+	return withInterceptors[[]*RoleOrganizationAccess](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) AllX(ctx context.Context) []*RoleOrderOrganizationAccess {
+func (_q *RoleOrganizationAccessQuery) AllX(ctx context.Context) []*RoleOrganizationAccess {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -228,20 +228,20 @@ func (_q *RoleOrderOrganizationAccessQuery) AllX(ctx context.Context) []*RoleOrd
 	return nodes
 }
 
-// IDs executes the query and returns a list of RoleOrderOrganizationAccess IDs.
-func (_q *RoleOrderOrganizationAccessQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of RoleOrganizationAccess IDs.
+func (_q *RoleOrganizationAccessQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(roleorderorganizationaccess.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(roleorganizationaccess.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *RoleOrganizationAccessQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -250,16 +250,16 @@ func (_q *RoleOrderOrganizationAccessQuery) IDsX(ctx context.Context) []uuid.UUI
 }
 
 // Count returns the count of the given query.
-func (_q *RoleOrderOrganizationAccessQuery) Count(ctx context.Context) (int, error) {
+func (_q *RoleOrganizationAccessQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*RoleOrderOrganizationAccessQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*RoleOrganizationAccessQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) CountX(ctx context.Context) int {
+func (_q *RoleOrganizationAccessQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -268,7 +268,7 @@ func (_q *RoleOrderOrganizationAccessQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *RoleOrderOrganizationAccessQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *RoleOrganizationAccessQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -281,7 +281,7 @@ func (_q *RoleOrderOrganizationAccessQuery) Exist(ctx context.Context) (bool, er
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *RoleOrderOrganizationAccessQuery) ExistX(ctx context.Context) bool {
+func (_q *RoleOrganizationAccessQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -289,18 +289,18 @@ func (_q *RoleOrderOrganizationAccessQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the RoleOrderOrganizationAccessQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the RoleOrganizationAccessQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *RoleOrderOrganizationAccessQuery) Clone() *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) Clone() *RoleOrganizationAccessQuery {
 	if _q == nil {
 		return nil
 	}
-	return &RoleOrderOrganizationAccessQuery{
+	return &RoleOrganizationAccessQuery{
 		config:           _q.config,
 		ctx:              _q.ctx.Clone(),
-		order:            append([]roleorderorganizationaccess.OrderOption{}, _q.order...),
+		order:            append([]roleorganizationaccess.OrderOption{}, _q.order...),
 		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.RoleOrderOrganizationAccess{}, _q.predicates...),
+		predicates:       append([]predicate.RoleOrganizationAccess{}, _q.predicates...),
 		withRole:         _q.withRole.Clone(),
 		withOrganization: _q.withOrganization.Clone(),
 		// clone intermediate query.
@@ -311,7 +311,7 @@ func (_q *RoleOrderOrganizationAccessQuery) Clone() *RoleOrderOrganizationAccess
 
 // WithRole tells the query-builder to eager-load the nodes that are connected to
 // the "role" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *RoleOrderOrganizationAccessQuery) WithRole(opts ...func(*RoleQuery)) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) WithRole(opts ...func(*RoleQuery)) *RoleOrganizationAccessQuery {
 	query := (&RoleClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -322,7 +322,7 @@ func (_q *RoleOrderOrganizationAccessQuery) WithRole(opts ...func(*RoleQuery)) *
 
 // WithOrganization tells the query-builder to eager-load the nodes that are connected to
 // the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *RoleOrderOrganizationAccessQuery) WithOrganization(opts ...func(*OrganizationQuery)) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) WithOrganization(opts ...func(*OrganizationQuery)) *RoleOrganizationAccessQuery {
 	query := (&OrganizationClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -341,15 +341,15 @@ func (_q *RoleOrderOrganizationAccessQuery) WithOrganization(opts ...func(*Organ
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.RoleOrderOrganizationAccess.Query().
-//		GroupBy(roleorderorganizationaccess.FieldCreatedAt).
+//	client.RoleOrganizationAccess.Query().
+//		GroupBy(roleorganizationaccess.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *RoleOrderOrganizationAccessQuery) GroupBy(field string, fields ...string) *RoleOrderOrganizationAccessGroupBy {
+func (_q *RoleOrganizationAccessQuery) GroupBy(field string, fields ...string) *RoleOrganizationAccessGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &RoleOrderOrganizationAccessGroupBy{build: _q}
+	grbuild := &RoleOrganizationAccessGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = roleorderorganizationaccess.Label
+	grbuild.label = roleorganizationaccess.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -363,23 +363,23 @@ func (_q *RoleOrderOrganizationAccessQuery) GroupBy(field string, fields ...stri
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.RoleOrderOrganizationAccess.Query().
-//		Select(roleorderorganizationaccess.FieldCreatedAt).
+//	client.RoleOrganizationAccess.Query().
+//		Select(roleorganizationaccess.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *RoleOrderOrganizationAccessQuery) Select(fields ...string) *RoleOrderOrganizationAccessSelect {
+func (_q *RoleOrganizationAccessQuery) Select(fields ...string) *RoleOrganizationAccessSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &RoleOrderOrganizationAccessSelect{RoleOrderOrganizationAccessQuery: _q}
-	sbuild.label = roleorderorganizationaccess.Label
+	sbuild := &RoleOrganizationAccessSelect{RoleOrganizationAccessQuery: _q}
+	sbuild.label = roleorganizationaccess.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a RoleOrderOrganizationAccessSelect configured with the given aggregations.
-func (_q *RoleOrderOrganizationAccessQuery) Aggregate(fns ...AggregateFunc) *RoleOrderOrganizationAccessSelect {
+// Aggregate returns a RoleOrganizationAccessSelect configured with the given aggregations.
+func (_q *RoleOrganizationAccessQuery) Aggregate(fns ...AggregateFunc) *RoleOrganizationAccessSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) prepareQuery(ctx context.Context) error {
+func (_q *RoleOrganizationAccessQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -391,7 +391,7 @@ func (_q *RoleOrderOrganizationAccessQuery) prepareQuery(ctx context.Context) er
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !roleorderorganizationaccess.ValidColumn(f) {
+		if !roleorganizationaccess.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -405,9 +405,9 @@ func (_q *RoleOrderOrganizationAccessQuery) prepareQuery(ctx context.Context) er
 	return nil
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*RoleOrderOrganizationAccess, error) {
+func (_q *RoleOrganizationAccessQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*RoleOrganizationAccess, error) {
 	var (
-		nodes       = []*RoleOrderOrganizationAccess{}
+		nodes       = []*RoleOrganizationAccess{}
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
 			_q.withRole != nil,
@@ -415,10 +415,10 @@ func (_q *RoleOrderOrganizationAccessQuery) sqlAll(ctx context.Context, hooks ..
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*RoleOrderOrganizationAccess).scanValues(nil, columns)
+		return (*RoleOrganizationAccess).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &RoleOrderOrganizationAccess{config: _q.config}
+		node := &RoleOrganizationAccess{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -437,22 +437,22 @@ func (_q *RoleOrderOrganizationAccessQuery) sqlAll(ctx context.Context, hooks ..
 	}
 	if query := _q.withRole; query != nil {
 		if err := _q.loadRole(ctx, query, nodes, nil,
-			func(n *RoleOrderOrganizationAccess, e *Role) { n.Edges.Role = e }); err != nil {
+			func(n *RoleOrganizationAccess, e *Role) { n.Edges.Role = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *RoleOrderOrganizationAccess, e *Organization) { n.Edges.Organization = e }); err != nil {
+			func(n *RoleOrganizationAccess, e *Organization) { n.Edges.Organization = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) loadRole(ctx context.Context, query *RoleQuery, nodes []*RoleOrderOrganizationAccess, init func(*RoleOrderOrganizationAccess), assign func(*RoleOrderOrganizationAccess, *Role)) error {
+func (_q *RoleOrganizationAccessQuery) loadRole(ctx context.Context, query *RoleQuery, nodes []*RoleOrganizationAccess, init func(*RoleOrganizationAccess), assign func(*RoleOrganizationAccess, *Role)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*RoleOrderOrganizationAccess)
+	nodeids := make(map[uuid.UUID][]*RoleOrganizationAccess)
 	for i := range nodes {
 		fk := nodes[i].RoleID
 		if _, ok := nodeids[fk]; !ok {
@@ -479,9 +479,9 @@ func (_q *RoleOrderOrganizationAccessQuery) loadRole(ctx context.Context, query 
 	}
 	return nil
 }
-func (_q *RoleOrderOrganizationAccessQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*RoleOrderOrganizationAccess, init func(*RoleOrderOrganizationAccess), assign func(*RoleOrderOrganizationAccess, *Organization)) error {
+func (_q *RoleOrganizationAccessQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*RoleOrganizationAccess, init func(*RoleOrganizationAccess), assign func(*RoleOrganizationAccess, *Organization)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*RoleOrderOrganizationAccess)
+	nodeids := make(map[uuid.UUID][]*RoleOrganizationAccess)
 	for i := range nodes {
 		fk := nodes[i].OrganizationID
 		if _, ok := nodeids[fk]; !ok {
@@ -509,7 +509,7 @@ func (_q *RoleOrderOrganizationAccessQuery) loadOrganization(ctx context.Context
 	return nil
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *RoleOrganizationAccessQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	if len(_q.modifiers) > 0 {
 		_spec.Modifiers = _q.modifiers
@@ -521,8 +521,8 @@ func (_q *RoleOrderOrganizationAccessQuery) sqlCount(ctx context.Context) (int, 
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(roleorderorganizationaccess.Table, roleorderorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID))
+func (_q *RoleOrganizationAccessQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(roleorganizationaccess.Table, roleorganizationaccess.Columns, sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -531,17 +531,17 @@ func (_q *RoleOrderOrganizationAccessQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, roleorderorganizationaccess.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, roleorganizationaccess.FieldID)
 		for i := range fields {
-			if fields[i] != roleorderorganizationaccess.FieldID {
+			if fields[i] != roleorganizationaccess.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withRole != nil {
-			_spec.Node.AddColumnOnce(roleorderorganizationaccess.FieldRoleID)
+			_spec.Node.AddColumnOnce(roleorganizationaccess.FieldRoleID)
 		}
 		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(roleorderorganizationaccess.FieldOrganizationID)
+			_spec.Node.AddColumnOnce(roleorganizationaccess.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -567,12 +567,12 @@ func (_q *RoleOrderOrganizationAccessQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *RoleOrderOrganizationAccessQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *RoleOrganizationAccessQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(roleorderorganizationaccess.Table)
+	t1 := builder.Table(roleorganizationaccess.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = roleorderorganizationaccess.Columns
+		columns = roleorganizationaccess.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -605,7 +605,7 @@ func (_q *RoleOrderOrganizationAccessQuery) sqlQuery(ctx context.Context) *sql.S
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (_q *RoleOrderOrganizationAccessQuery) ForUpdate(opts ...sql.LockOption) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) ForUpdate(opts ...sql.LockOption) *RoleOrganizationAccessQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -618,7 +618,7 @@ func (_q *RoleOrderOrganizationAccessQuery) ForUpdate(opts ...sql.LockOption) *R
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (_q *RoleOrderOrganizationAccessQuery) ForShare(opts ...sql.LockOption) *RoleOrderOrganizationAccessQuery {
+func (_q *RoleOrganizationAccessQuery) ForShare(opts ...sql.LockOption) *RoleOrganizationAccessQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -628,28 +628,28 @@ func (_q *RoleOrderOrganizationAccessQuery) ForShare(opts ...sql.LockOption) *Ro
 	return _q
 }
 
-// RoleOrderOrganizationAccessGroupBy is the group-by builder for RoleOrderOrganizationAccess entities.
-type RoleOrderOrganizationAccessGroupBy struct {
+// RoleOrganizationAccessGroupBy is the group-by builder for RoleOrganizationAccess entities.
+type RoleOrganizationAccessGroupBy struct {
 	selector
-	build *RoleOrderOrganizationAccessQuery
+	build *RoleOrganizationAccessQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *RoleOrderOrganizationAccessGroupBy) Aggregate(fns ...AggregateFunc) *RoleOrderOrganizationAccessGroupBy {
+func (_g *RoleOrganizationAccessGroupBy) Aggregate(fns ...AggregateFunc) *RoleOrganizationAccessGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *RoleOrderOrganizationAccessGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *RoleOrganizationAccessGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*RoleOrderOrganizationAccessQuery, *RoleOrderOrganizationAccessGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*RoleOrganizationAccessQuery, *RoleOrganizationAccessGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *RoleOrderOrganizationAccessGroupBy) sqlScan(ctx context.Context, root *RoleOrderOrganizationAccessQuery, v any) error {
+func (_g *RoleOrganizationAccessGroupBy) sqlScan(ctx context.Context, root *RoleOrganizationAccessQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -676,28 +676,28 @@ func (_g *RoleOrderOrganizationAccessGroupBy) sqlScan(ctx context.Context, root 
 	return sql.ScanSlice(rows, v)
 }
 
-// RoleOrderOrganizationAccessSelect is the builder for selecting fields of RoleOrderOrganizationAccess entities.
-type RoleOrderOrganizationAccessSelect struct {
-	*RoleOrderOrganizationAccessQuery
+// RoleOrganizationAccessSelect is the builder for selecting fields of RoleOrganizationAccess entities.
+type RoleOrganizationAccessSelect struct {
+	*RoleOrganizationAccessQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *RoleOrderOrganizationAccessSelect) Aggregate(fns ...AggregateFunc) *RoleOrderOrganizationAccessSelect {
+func (_s *RoleOrganizationAccessSelect) Aggregate(fns ...AggregateFunc) *RoleOrganizationAccessSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *RoleOrderOrganizationAccessSelect) Scan(ctx context.Context, v any) error {
+func (_s *RoleOrganizationAccessSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*RoleOrderOrganizationAccessQuery, *RoleOrderOrganizationAccessSelect](ctx, _s.RoleOrderOrganizationAccessQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*RoleOrganizationAccessQuery, *RoleOrganizationAccessSelect](ctx, _s.RoleOrganizationAccessQuery, _s, _s.inters, v)
 }
 
-func (_s *RoleOrderOrganizationAccessSelect) sqlScan(ctx context.Context, root *RoleOrderOrganizationAccessQuery, v any) error {
+func (_s *RoleOrganizationAccessSelect) sqlScan(ctx context.Context, root *RoleOrganizationAccessQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

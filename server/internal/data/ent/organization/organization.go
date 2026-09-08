@@ -43,8 +43,8 @@ const (
 	EdgeMemberships = "memberships"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
-	// EdgeRoleOrderOrganizationAccesses holds the string denoting the role_order_organization_accesses edge name in mutations.
-	EdgeRoleOrderOrganizationAccesses = "role_order_organization_accesses"
+	// EdgeRoleOrganizationAccesses holds the string denoting the role_organization_accesses edge name in mutations.
+	EdgeRoleOrganizationAccesses = "role_organization_accesses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// EdgePartners holds the string denoting the partners edge name in mutations.
@@ -183,13 +183,13 @@ const (
 	RolesInverseTable = "roles"
 	// RolesColumn is the table column denoting the roles relation/edge.
 	RolesColumn = "organization_id"
-	// RoleOrderOrganizationAccessesTable is the table that holds the role_order_organization_accesses relation/edge.
-	RoleOrderOrganizationAccessesTable = "role_order_organization_accesses"
-	// RoleOrderOrganizationAccessesInverseTable is the table name for the RoleOrderOrganizationAccess entity.
-	// It exists in this package in order to avoid circular dependency with the "roleorderorganizationaccess" package.
-	RoleOrderOrganizationAccessesInverseTable = "role_order_organization_accesses"
-	// RoleOrderOrganizationAccessesColumn is the table column denoting the role_order_organization_accesses relation/edge.
-	RoleOrderOrganizationAccessesColumn = "organization_id"
+	// RoleOrganizationAccessesTable is the table that holds the role_organization_accesses relation/edge.
+	RoleOrganizationAccessesTable = "role_organization_accesses"
+	// RoleOrganizationAccessesInverseTable is the table name for the RoleOrganizationAccess entity.
+	// It exists in this package in order to avoid circular dependency with the "roleorganizationaccess" package.
+	RoleOrganizationAccessesInverseTable = "role_organization_accesses"
+	// RoleOrganizationAccessesColumn is the table column denoting the role_organization_accesses relation/edge.
+	RoleOrganizationAccessesColumn = "organization_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -769,17 +769,17 @@ func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByRoleOrderOrganizationAccessesCount orders the results by role_order_organization_accesses count.
-func ByRoleOrderOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRoleOrganizationAccessesCount orders the results by role_organization_accesses count.
+func ByRoleOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRoleOrderOrganizationAccessesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newRoleOrganizationAccessesStep(), opts...)
 	}
 }
 
-// ByRoleOrderOrganizationAccesses orders the results by role_order_organization_accesses terms.
-func ByRoleOrderOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByRoleOrganizationAccesses orders the results by role_organization_accesses terms.
+func ByRoleOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRoleOrderOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRoleOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1608,11 +1608,11 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
 	)
 }
-func newRoleOrderOrganizationAccessesStep() *sqlgraph.Step {
+func newRoleOrganizationAccessesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RoleOrderOrganizationAccessesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RoleOrderOrganizationAccessesTable, RoleOrderOrganizationAccessesColumn),
+		sqlgraph.To(RoleOrganizationAccessesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RoleOrganizationAccessesTable, RoleOrganizationAccessesColumn),
 	)
 }
 func newSessionsStep() *sqlgraph.Step {
