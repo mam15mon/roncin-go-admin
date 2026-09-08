@@ -1,31 +1,20 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { OrderListTemplate } from '@/components/ui';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
-import { Result } from 'antd';
+import { message, Result } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import AbnormalCasePanel, {
-  type AbnormalCasePanelRef,
-} from './abnormal-case-panel';
-import {
-  paymentTermOptions,
-  parseOrderKind,
-  shipmentTypeOptions,
-  tradeDirectionOptions,
-  tradeTermOptions,
-} from './common';
-import { queryOrderList } from './list-query';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { OrderListTemplate } from '@/components/ui';
+import type { OrderListItem } from '@/components/ui/order-list-template/types';
 import {
   orderTagServiceBatchAssignOrderTags,
   orderTagServiceBatchRemoveOrderTags,
   orderTagServiceListOrderTagOptions,
 } from '@/services/roncin/orderTagService';
-import { message } from 'antd';
-import type { OrderListItem } from '@/components/ui/order-list-template/types';
-import { useOrderListResources } from './list-resources';
-import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
-import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import AbnormalCasePanel, {
+  type AbnormalCasePanelRef,
+} from './abnormal-case-panel';
+import { parseOrderKind } from './common';
 import AttachmentDrawer, {
   type AttachmentDrawerRef,
 } from './components/drawers/AttachmentDrawer';
@@ -47,9 +36,6 @@ import PersonnelDrawer, {
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
-import EditOrderModal, {
-  type EditOrderModalRef,
-} from './components/modals/EditOrderModal';
 import TransitionModal, {
   type TransitionModalRef,
 } from './components/modals/TransitionModal';
@@ -57,13 +43,16 @@ import {
   getDocumentsActionLabel,
   openOrderDocuments,
 } from './list-documents-action';
+import { queryOrderList } from './list-query';
+import { useOrderListResources } from './list-resources';
+import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
+import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 export default function OrderListPage() {
   const location = useLocation();
   const config = parseOrderKind(location.pathname);
 
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const editOrderModalRef = useRef<EditOrderModalRef | null>(null);
   const transitionModalRef = useRef<TransitionModalRef | null>(null);
   const milestoneDrawerRef = useRef<MilestoneDrawerRef | null>(null);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
@@ -71,8 +60,9 @@ export default function OrderListPage() {
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
   const consolidationDrawerRef = useRef<ConsolidationDrawerRef | null>(null);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
-  const shippingDocumentDrawerRef =
-    useRef<ShippingDocumentDrawerRef | null>(null);
+  const shippingDocumentDrawerRef = useRef<ShippingDocumentDrawerRef | null>(
+    null,
+  );
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
@@ -92,7 +82,10 @@ export default function OrderListPage() {
       pageSize: 200,
     }).then((response) => {
       setTagFilterOptions(
-        (response.tags ?? []).map((tag) => ({ label: tag.name ?? '', value: tag.id ?? '' })),
+        (response.tags ?? []).map((tag) => ({
+          label: tag.name ?? '',
+          value: tag.id ?? '',
+        })),
       );
     });
   }, [config?.businessType]);
@@ -103,10 +96,6 @@ export default function OrderListPage() {
     customerMap,
     containerSpecOptions,
     containerSpecMap,
-    serviceTypeOptions,
-    cargoCategoryOptions,
-    locationOptions,
-    searchLocations,
     searchCustomers,
     searchOrderPorts,
     searchOrderCarriers,
@@ -158,9 +147,6 @@ export default function OrderListPage() {
         onViewDetail={(item) =>
           history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)
         }
-        onEditOrder={(item) =>
-          item.rawRecord && editOrderModalRef.current?.open(item.rawRecord)
-        }
         onOpenFees={(item) =>
           item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
         }
@@ -190,8 +176,7 @@ export default function OrderListPage() {
           item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord)
         }
         onOpenConsolidations={(item) =>
-          item.rawRecord &&
-          consolidationDrawerRef.current?.open(item.rawRecord)
+          item.rawRecord && consolidationDrawerRef.current?.open(item.rawRecord)
         }
         onOpenAbnormal={(item) =>
           item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)
@@ -201,21 +186,6 @@ export default function OrderListPage() {
         }
       />
 
-      <EditOrderModal
-        ref={editOrderModalRef}
-        category={config.category}
-        tradeDirectionOptions={tradeDirectionOptions}
-        tradeTermOptions={tradeTermOptions}
-        paymentTermOptions={paymentTermOptions}
-        shipmentTypeOptions={shipmentTypeOptions}
-        locationOptions={locationOptions}
-        searchLocations={searchLocations}
-        serviceTypeOptions={serviceTypeOptions}
-        cargoCategoryOptions={cargoCategoryOptions}
-        containerSpecOptions={containerSpecOptions}
-        searchCustomers={searchCustomers}
-        onSuccess={() => actionRef.current?.reload()}
-      />
       <TransitionModal
         ref={transitionModalRef}
         onSuccess={() => actionRef.current?.reload()}
@@ -229,7 +199,9 @@ export default function OrderListPage() {
           })
         }
         targetCount={tagRows.length}
-        existingTags={tagRows.flatMap((row) => row.rawRecord?.tags ?? row.tags ?? [])}
+        existingTags={tagRows.flatMap(
+          (row) => row.rawRecord?.tags ?? row.tags ?? [],
+        )}
         canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
         onSubmit={async (mode, tagIds) => {
           if (!tagRows.length) return;
