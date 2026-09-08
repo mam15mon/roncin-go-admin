@@ -2,6 +2,8 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { resolveTabKey } from '@/components/layout/routeUtils';
+import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import { SectionCard } from '../page-shell/SectionCard';
 import './OrderFormTemplate.less';
 import type { OrderFormTemplateProps, OrderFormTemplateSection } from './types';
@@ -35,16 +37,44 @@ export function OrderFormTemplate<T>({
   submitText = '提交',
   resetText = '重置',
   footer,
+  tabKey,
+  dirty,
+  onDirtyChange,
+  enableCloseGuard = true,
+  closeGuardMessage,
+  onValuesChange,
+  onReset,
 }: OrderFormTemplateProps<T>) {
   const [submitting, setSubmitting] = useState(false);
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
+  const resolvedTabKey =
+    tabKey ||
+    (typeof window !== 'undefined' && window.location?.pathname
+      ? resolveTabKey(window.location.pathname)
+      : undefined);
+
+  const [internalDirty, setInternalDirty] = useState(false);
+  const isFormDirty = dirty !== undefined ? dirty : internalDirty;
+
+  useTabCloseGuard({
+    tabKey: resolvedTabKey,
+    isDirty: isFormDirty,
+    message: closeGuardMessage,
+    enabled: !readonly && enableCloseGuard,
+  });
+
   const handleFinish = async (values: T) => {
     if (!onFinish) return true;
     setSubmitting(true);
     try {
-      return await onFinish(values);
+      const result = await onFinish(values);
+      if (result !== false) {
+        setInternalDirty(false);
+        onDirtyChange?.(false);
+      }
+      return result;
     } finally {
       setSubmitting(false);
     }
@@ -114,6 +144,18 @@ export function OrderFormTemplate<T>({
           labelWrap={false}
           wrapperCol={{ flex: 'auto' }}
           initialValues={initialValues}
+          onValuesChange={(changedValues, allValues) => {
+            if (!isFormDirty) {
+              setInternalDirty(true);
+              onDirtyChange?.(true);
+            }
+            onValuesChange?.(changedValues, allValues);
+          }}
+          onReset={() => {
+            setInternalDirty(false);
+            onDirtyChange?.(false);
+            onReset?.();
+          }}
           onFinish={handleFinish}
           submitter={
             readonly

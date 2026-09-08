@@ -36,4 +36,18 @@ export interface OrderFormTemplateProps<T> {
   resetText?: string;
   /** 底部额外操作栏插槽 */
   footer?: ReactNode;
+  /** 自定义页签 Key，不传时自动根据当前路由解析 */
+  tabKey?: string;
+  /** 外部受控脏检查状态；若不传则由组件内部自动追踪 */
+  dirty?: boolean;
+  /** 脏检查状态发生变化时的回调 */
+  onDirtyChange?: (dirty: boolean) => void;
+  /** 是否启用页签关闭拦截提示，默认为 true */
+  enableCloseGuard?: boolean;
+  /** 自定义关闭提示文案，默认："修改的信息尚未保存，您确定要离开吗？" */
+  closeGuardMessage?: string;
+  /** 表单值变动回调 */
+  onValuesChange?: (changedValues: any, allValues: T) => void;
+  /** 表单重置回调 */
+  onReset?: () => void;
 }

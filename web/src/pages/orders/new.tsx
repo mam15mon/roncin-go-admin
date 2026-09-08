@@ -16,6 +16,7 @@ import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import {
   PARTNER_ROLES,
   parseOrderKind,
@@ -248,6 +249,7 @@ export default function NewOrderPage() {
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>
+      tabKey={config ? resolveTabKey(`/orders/${config.kind}/new`) : undefined}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}

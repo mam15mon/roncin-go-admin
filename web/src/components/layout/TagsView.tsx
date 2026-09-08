@@ -17,6 +17,7 @@ import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EllipsisTooltip } from '@/components/ui';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
+import { confirmIfTabsDirty } from './tabCloseGuard';
 
 export interface TagItem {
   key: string;
@@ -207,16 +208,22 @@ export const TagsView: React.FC = () => {
     history.push(tag.path);
   };
 
-  const handleClose = (e: React.MouseEvent, tag: TagItem) => {
-    e.stopPropagation();
-    if (!tag.closable) return;
-
+  const executeCloseTag = (tag: TagItem) => {
     const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
     setTags((prev) => prev.filter((t) => t.key !== tag.key));
 
     if (nextPath && nextPath !== fullPath) {
       history.push(nextPath);
     }
+  };
+
+  const handleClose = (e: React.MouseEvent, tag: TagItem) => {
+    e.stopPropagation();
+    if (!tag.closable) return;
+
+    confirmIfTabsDirty([tag.key], () => {
+      executeCloseTag(tag);
+    });
   };
 
   // 右键快捷菜单逻辑
@@ -247,11 +254,9 @@ export const TagsView: React.FC = () => {
         label: '关闭标签页',
         disabled: !tag.closable,
         onClick: () => {
-          const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
-          setTags((prev) => prev.filter((t) => t.key !== tag.key));
-          if (nextPath && nextPath !== fullPath) {
-            history.push(nextPath);
-          }
+          confirmIfTabsDirty([tag.key], () => {
+            executeCloseTag(tag);
+          });
         },
       },
       {
@@ -260,13 +265,21 @@ export const TagsView: React.FC = () => {
         label: '关闭其他标签页',
         disabled: !hasOther,
         onClick: () => {
-          if (tag.key === '/welcome') {
-            setTags([FIXED_TAB]);
-            history.push('/welcome');
-          } else {
-            setTags([FIXED_TAB, tag]);
-            history.push(tag.path);
-          }
+          const closingTags = tags.filter(
+            (t) => t.key !== FIXED_TAB.key && t.key !== tag.key,
+          );
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              if (tag.key === '/welcome') {
+                setTags([FIXED_TAB]);
+                history.push('/welcome');
+              } else {
+                setTags([FIXED_TAB, tag]);
+                history.push(tag.path);
+              }
+            },
+          );
         },
       },
       {
@@ -275,11 +288,17 @@ export const TagsView: React.FC = () => {
         label: '关闭右侧标签页',
         disabled: !hasRight,
         onClick: () => {
-          setTags((prev) => prev.slice(0, currentIndex + 1));
-          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
-          if (currentIndex < activeIndex) {
-            history.push(tag.path);
-          }
+          const closingTags = tags.slice(currentIndex + 1);
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              setTags((prev) => prev.slice(0, currentIndex + 1));
+              const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+              if (currentIndex < activeIndex) {
+                history.push(tag.path);
+              }
+            },
+          );
         },
       },
       {
@@ -288,11 +307,17 @@ export const TagsView: React.FC = () => {
         label: '关闭左侧标签页',
         disabled: !hasLeft,
         onClick: () => {
-          setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
-          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
-          if (activeIndex > 0 && activeIndex < currentIndex) {
-            history.push(tag.path);
-          }
+          const closingTags = tags.slice(1, currentIndex);
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
+              const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+              if (activeIndex > 0 && activeIndex < currentIndex) {
+                history.push(tag.path);
+              }
+            },
+          );
         },
       },
     ];

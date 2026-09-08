@@ -1,7 +1,12 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { Modal } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
+import {
+  _clearAllTabCloseGuards,
+  registerTabCloseGuard,
+} from './tabCloseGuard';
 import {
   FIXED_TAB,
   type TagItem,
@@ -189,12 +194,14 @@ describe('TagsView logic', () => {
 describe('TagsView Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _clearAllTabCloseGuards();
     mockPathname = '/welcome';
     mockSearch = '';
     mockHash = '';
   });
 
   afterEach(() => {
+    _clearAllTabCloseGuards();
     cleanup();
   });
 
@@ -611,5 +618,106 @@ describe('TagsView Component', () => {
     expect(screen.getByText('国外代理')).toBeInTheDocument();
     expect(screen.getAllByRole('tab').length).toBe(3);
     expect(mockPush).toHaveBeenCalledWith('/partners/suppliers');
+  });
+
+  it('关闭已编辑未保存的订单页签时，弹出确认提示并在取消时保留页签', () => {
+    mockPathname = '/orders/sea-export/new';
+    render(<TagsView />);
+
+    // 注册海运出口新建订单处于 dirty 状态
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = vi.spyOn(Modal, 'confirm');
+
+    const closeBtn = screen.getByLabelText('关闭 新增海运出口');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    const modalArgs = modalSpy.mock.calls[0][0];
+    expect(modalArgs.title).toBe('提示');
+    expect(modalArgs.content).toBe('修改的信息尚未保存，您确定要离开吗？');
+    expect(modalArgs.okText).toBe('确定离开');
+    expect(modalArgs.cancelText).toBe('取消');
+
+    // 未执行 onOk，页签依然存在，未跳转
+    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+
+    modalSpy.mockRestore();
+  });
+
+  it('关闭已编辑未保存的订单页签时，用户确认离开后正常关闭页签并跳转', () => {
+    mockPathname = '/orders/sea-export/SE001';
+    render(<TagsView />);
+
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = vi.spyOn(Modal, 'confirm');
+
+    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    const modalArgs = modalSpy.mock.calls[0][0];
+
+    // 模拟用户点击「确定离开」
+    act(() => {
+      modalArgs.onOk?.();
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/welcome');
+    expect(screen.queryByText('海运出口详情')).not.toBeInTheDocument();
+
+    modalSpy.mockRestore();
+  });
+
+  it('右键菜单关闭其他标签页包含已编辑页签时，弹出确认提示', () => {
+    mockPathname = '/orders/sea-export/new';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/customers';
+    rerender(<TagsView />);
+
+    // 此时标签为：工作台、海运出口、客户；海运出口处于 dirty 状态
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = vi.spyOn(Modal, 'confirm');
+
+    // 在客户标签上右键关闭其他标签页（包括海运出口）
+    const customerTab = getTabByText('客户');
+    act(() => {
+      fireEvent.contextMenu(customerTab);
+    });
+    const closeOtherItem = screen.getByText('关闭其他标签页');
+    act(() => {
+      fireEvent.click(closeOtherItem);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    expect(modalSpy.mock.calls[0][0].content).toBe(
+      '修改的信息尚未保存，您确定要离开吗？',
+    );
+
+    // 取消时，海运出口页签依然存在
+    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+
+    // 确认后，其他标签页被关闭
+    act(() => {
+      modalSpy.mock.calls[0][0].onOk?.();
+    });
+    expect(screen.queryByText('新增海运出口')).not.toBeInTheDocument();
+    expect(screen.getByText('客户')).toBeInTheDocument();
+
+    modalSpy.mockRestore();
   });
 });

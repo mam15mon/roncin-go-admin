@@ -28,6 +28,7 @@ import React, {
   useState,
 } from 'react';
 import { StickyFooterBar } from '@/components/ui';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 import {
@@ -86,6 +87,7 @@ export default function OrderDetailPage() {
   const targetOrderId = config ? orderId : undefined;
 
   const [saving, setSaving] = useState(false);
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   const {
     loading,
@@ -141,6 +143,7 @@ export default function OrderDetailPage() {
     setSharedContainerDrawerOpen(false);
     setSharedContainerTEId(undefined);
     setSharedContainerOrderId(undefined);
+    setIsFormDirty(false);
   }, [orderId]);
 
   const loadChangeActions = useCallback(async () => {
@@ -361,6 +364,7 @@ export default function OrderDetailPage() {
       );
       await orderServiceUpdateOrder({ id: orderId }, payload);
       message.success('保存订单成功');
+      setIsFormDirty(false);
       await Promise.all([loadData(), refreshLockState()]);
       return true;
     } catch (error: unknown) {
@@ -569,6 +573,7 @@ export default function OrderDetailPage() {
       icon: <ReloadOutlined />,
       label: '刷新数据',
       onClick: () => {
+        setIsFormDirty(false);
         void loadData();
         void refreshLockState();
         void loadChangeActions();
@@ -579,6 +584,11 @@ export default function OrderDetailPage() {
   return (
     <>
       <OrderFormTemplate<OrderDetailFormValues>
+        tabKey={
+          config && orderId
+            ? resolveTabKey(`/orders/${config.kind}/${orderId}`)
+            : undefined
+        }
         loading={false}
         readonly={
           !hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) ||
@@ -586,6 +596,8 @@ export default function OrderDetailPage() {
         }
         formRef={formRef}
         initialValues={initialValues}
+        dirty={isFormDirty}
+        onDirtyChange={setIsFormDirty}
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader
@@ -663,7 +675,10 @@ export default function OrderDetailPage() {
               !businessWritesDisabled && (
                 <Button
                   icon={<UndoOutlined />}
-                  onClick={() => formRef.current?.setFieldsValue(initialValues)}
+                  onClick={() => {
+                    formRef.current?.setFieldsValue(initialValues);
+                    setIsFormDirty(false);
+                  }}
                 >
                   重置修改
                 </Button>

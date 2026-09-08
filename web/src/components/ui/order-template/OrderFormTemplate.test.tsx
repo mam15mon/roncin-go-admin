@@ -1,10 +1,20 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { ProFormText } from '@ant-design/pro-components';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  _clearAllTabCloseGuards,
+  isTabDirty,
+} from '@/components/layout/tabCloseGuard';
 import { OrderFormTemplate } from './OrderFormTemplate';
 
 describe('OrderFormTemplate Component', () => {
+  beforeEach(() => {
+    _clearAllTabCloseGuards();
+  });
+
   afterEach(() => {
+    _clearAllTabCloseGuards();
     cleanup();
   });
 
@@ -56,5 +66,80 @@ describe('OrderFormTemplate Component', () => {
     expect(screen.getByText('表单内容区')).toBeInTheDocument();
     expect(screen.getByText('创建海运订单')).toBeInTheDocument();
     expect(container.querySelector('form')).toBeInTheDocument();
+  });
+
+  it('表单输入内容发生修改时，触发 onDirtyChange 并注册 tabCloseGuard 为 dirty', async () => {
+    const onDirtyChange = vi.fn();
+
+    render(
+      <OrderFormTemplate
+        tabKey="/orders/sea-export"
+        onDirtyChange={onDirtyChange}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="orderNo"
+                label="订单号"
+                placeholder="请输入订单号"
+              />
+            ),
+          },
+        ]}
+      />,
+    );
+
+    // 初始表单未修改
+    expect(isTabDirty('/orders/sea-export')).toBe(false);
+
+    // 模拟输入修改
+    const input = screen.getByPlaceholderText('请输入订单号');
+    act(() => {
+      fireEvent.change(input, { target: { value: 'SE20260908' } });
+    });
+
+    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(onDirtyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('表单提交成功后，重置 dirty 状态', async () => {
+    const onFinish = vi.fn().mockResolvedValue(true);
+
+    render(
+      <OrderFormTemplate
+        tabKey="/orders/sea-export"
+        submitText="保存订单"
+        onFinish={onFinish}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="orderNo"
+                label="订单号"
+                placeholder="请输入订单号"
+              />
+            ),
+          },
+        ]}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText('请输入订单号');
+    act(() => {
+      fireEvent.change(input, { target: { value: 'SE20260908' } });
+    });
+    expect(isTabDirty('/orders/sea-export')).toBe(true);
+
+    const submitBtn = screen.getByText('保存订单');
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+
+    expect(onFinish).toHaveBeenCalled();
+    expect(isTabDirty('/orders/sea-export')).toBe(false);
   });
 });
