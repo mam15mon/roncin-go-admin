@@ -137,13 +137,19 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() =>
-      expect(partnerServiceCreatePartner).toHaveBeenCalledWith({
-        legalName: '新测试单位',
-        unifiedSocialCreditCode: undefined,
-        roles: [
-          { type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, enabled: true },
-        ],
-      }),
+      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
+        {
+          legalName: '新测试单位',
+          unifiedSocialCreditCode: undefined,
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
     );
 
     // 回填后选中项显示公司抬头（而非裸 ID），下拉中出现新建单位且与远程结果去重
@@ -176,6 +182,23 @@ describe('PartnerQuickAddSelect', () => {
       await screen.findByText('创建结果缺少伙伴 ID，请重试'),
     ).toBeInTheDocument();
     expect(screen.getByLabelText('公司抬头')).toHaveValue('缺 ID 单位');
+  });
+
+  it('当前创建请求失败时仍由 QuickCreateModal 展示原始错误', async () => {
+    vi.mocked(partnerServiceCreatePartner).mockRejectedValue(
+      new Error('无权创建往来单位'),
+    );
+    render(<TestHost />);
+    await openDropdown();
+
+    fireEvent.click(screen.getByText('新增 委托单位'));
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '创建被拒绝单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    expect(await screen.findByText('无权创建往来单位')).toBeInTheDocument();
+    expect(screen.getByLabelText('公司抬头')).toHaveValue('创建被拒绝单位');
   });
 
   it('添加公司详情不触发保存，携带编码后的公司抬头跳转', async () => {
@@ -222,13 +245,19 @@ describe('PartnerQuickAddSelect', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() =>
-      expect(partnerServiceCreatePartner).toHaveBeenCalledWith({
-        legalName: '带税号单位',
-        unifiedSocialCreditCode: '91310000MA1FL7A21Q',
-        roles: [
-          { type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, enabled: true },
-        ],
-      }),
+      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
+        {
+          legalName: '带税号单位',
+          unifiedSocialCreditCode: '91310000MA1FL7A21Q',
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
     );
   });
 
@@ -267,10 +296,6 @@ describe('PartnerQuickAddSelect', () => {
       .mockResolvedValue([{ label: '新组织单位', value: 'partner-new' }]);
 
     const { rerender } = render(<TestHost key="stable" />);
-    fireEvent.mouseDown(screen.getByRole('combobox'));
-    fireEvent.change(screen.getByRole('combobox'), {
-      target: { value: '旧组织' },
-    });
     await waitFor(() => expect(searchPartners).toHaveBeenCalledTimes(1));
 
     organizationId = 'org-2';
@@ -279,18 +304,85 @@ describe('PartnerQuickAddSelect', () => {
       resolveOldSearch([{ label: '旧组织单位', value: 'partner-old' }]);
     });
 
+    // 组织切换会按交互保护关闭下拉；重新展开后验证新组织结果已写入受控 options。
     fireEvent.mouseDown(screen.getByRole('combobox'));
-    fireEvent.change(screen.getByRole('combobox'), {
-      target: { value: '新组织' },
-    });
     await waitFor(
       () => {
-        expect(searchPartners.mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect(searchPartners).toHaveBeenCalledTimes(2);
         expect(screen.getByText('新组织单位')).toBeInTheDocument();
       },
       { timeout: 10000 },
     );
     expect(screen.queryByText('旧组织单位')).not.toBeInTheDocument();
+  });
+
+  it('连续搜索时只显示最后一次请求的候选项', async () => {
+    let resolveFirst!: (options: PartnerSelectOption[]) => void;
+    let resolveSecond!: (options: PartnerSelectOption[]) => void;
+    searchPartners
+      .mockImplementationOnce(
+        () =>
+          new Promise<PartnerSelectOption[]>((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<PartnerSelectOption[]>((resolve) => {
+            resolveSecond = resolve;
+          }),
+      );
+
+    render(<TestHost />);
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '最新关键字' },
+    });
+    await waitFor(() => expect(searchPartners).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      resolveSecond([{ label: '最新关键字单位', value: 'partner-latest' }]);
+    });
+    expect(await screen.findByText('最新关键字单位')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFirst([{ label: '旧单位', value: 'partner-stale' }]);
+    });
+    expect(screen.queryByText('旧单位')).not.toBeInTheDocument();
+  });
+
+  it('组件卸载后创建成功不再回填表单或调用变更回调', async () => {
+    let resolveCreate!: (value: {
+      data: { id: string; legalName: string; code: string };
+    }) => void;
+    vi.mocked(partnerServiceCreatePartner).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve as typeof resolveCreate;
+        }),
+    );
+    const onPartnerChange = vi.fn();
+    const { unmount } = render(<TestHost onPartnerChange={onPartnerChange} />);
+    await openDropdown();
+    fireEvent.click(screen.getByRole('button', { name: '新增 委托单位' }));
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '卸载前新建单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+    await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
+
+    unmount();
+    await act(async () => {
+      resolveCreate({
+        data: {
+          id: 'partner-after-unmount',
+          legalName: '卸载前新建单位',
+          code: 'PUNMOUNT',
+        },
+      });
+    });
+
+    expect(onPartnerChange).not.toHaveBeenCalled();
   });
 
   it('组织切换后丢弃迟到的创建结果', async () => {

@@ -11,6 +11,8 @@ import React, {
 } from 'react';
 import { ProFormSearchableSelect, QuickCreateModal } from '@/components/ui';
 import type { PartnerRoleType } from '@/enums.generated';
+import { useAsyncGuard } from '@/hooks/useAsyncGuard';
+import { useLatestAsync } from '@/hooks/useLatestAsync';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 
 export type PartnerSelectOption = {
@@ -62,8 +64,7 @@ export default function PartnerQuickAddSelect({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
-  // params 版本号：新建选项或组织变化后驱动 ProFormSelect 重新请求。
-  const [optionsRevision, setOptionsRevision] = useState(0);
+  const [options, setOptions] = useState<PartnerSelectOption[]>([]);
   const currentOrganizationId =
     initialState?.currentUser?.currentOrganization?.id;
   const createdOptionsRef = useRef<PartnerSelectOption[]>([]);
@@ -71,73 +72,100 @@ export default function PartnerQuickAddSelect({
     new Map(),
   );
   const optionsOrganizationIdRef = useRef(currentOrganizationId);
-  const searchSequenceRef = useRef(0);
-  const createSequenceRef = useRef(0);
   const organizationIdRef = useRef(currentOrganizationId);
   const previousOrganizationIdRef = useRef(currentOrganizationId);
+  const latestSearch = useLatestAsync();
+  const createGuard = useAsyncGuard();
   organizationIdRef.current = currentOrganizationId;
-
-  // 组织切换：关闭弹窗、清空本地新选项，并让在途请求/创建响应全部失效。
-  useEffect(() => {
-    if (previousOrganizationIdRef.current === currentOrganizationId) return;
-    previousOrganizationIdRef.current = currentOrganizationId;
-    searchSequenceRef.current += 1;
-    createSequenceRef.current += 1;
-    createdOptionsRef.current = [];
-    availableOptionsRef.current.clear();
-    optionsOrganizationIdRef.current = currentOrganizationId;
-    setOptionsRevision((revision) => revision + 1);
-    setSelectOpen(false);
-    setModalOpen(false);
-  }, [currentOrganizationId]);
-
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
 
   useEffect(() => {
     if (canQuickAdd) return;
-    searchSequenceRef.current += 1;
-    createSequenceRef.current += 1;
+    latestSearch.cancel();
+    createGuard.invalidate();
     setSelectOpen(false);
     setModalOpen(false);
-  }, [canQuickAdd]);
+  }, [canQuickAdd, createGuard, latestSearch]);
 
-  const request = useCallback(
-    async ({ keyWords }: { keyWords?: string }) => {
-      const sequence = ++searchSequenceRef.current;
+  const loadOptions = useCallback(
+    (keyWords?: string) => {
       const organizationAtRequest = organizationIdRef.current;
-      if (!organizationAtRequest) return [];
-      let remote: PartnerSelectOption[];
-      try {
-        remote = await searchPartners(keyWords);
-      } catch (error) {
-        if (
-          sequence !== searchSequenceRef.current ||
-          organizationAtRequest !== organizationIdRef.current
-        ) {
-          return [];
-        }
-        throw error;
+      if (!organizationAtRequest) {
+        setOptions([]);
+        return Promise.resolve();
       }
-      if (
-        sequence !== searchSequenceRef.current ||
-        organizationAtRequest !== organizationIdRef.current
-      ) {
-        return [];
-      }
-      const local = createdOptionsRef.current;
-      const localIds = new Set(local.map((option) => option.value));
-      const merged = [
-        ...local,
-        ...remote.filter((option) => !localIds.has(option.value)),
-      ];
-      availableOptionsRef.current = new Map(
-        merged.map((option) => [option.value, option]),
+
+      return latestSearch.run(
+        async () => {
+          try {
+            return {
+              organizationId: organizationAtRequest,
+              remote: await searchPartners(keyWords),
+            };
+          } catch (error) {
+            // 组织已经变化时，旧请求的错误也不能反馈到新工作区。
+            if (organizationAtRequest !== organizationIdRef.current) {
+              return { organizationId: organizationAtRequest, remote: [] };
+            }
+            throw error;
+          }
+        },
+        ({ organizationId, remote }) => {
+          // Hook 负责生命周期和 latest；组织身份仍是业务数据隔离条件。
+          if (organizationId !== organizationIdRef.current) return;
+          const local = createdOptionsRef.current;
+          const localIds = new Set(local.map((option) => option.value));
+          const merged = [
+            ...local,
+            ...remote.filter((option) => !localIds.has(option.value)),
+          ];
+          availableOptionsRef.current = new Map(
+            merged.map((option) => [option.value, option]),
+          );
+          optionsOrganizationIdRef.current = organizationId;
+          setOptions(merged);
+        },
       );
-      optionsOrganizationIdRef.current = organizationAtRequest;
-      return merged;
     },
-    [searchPartners],
+    [latestSearch, searchPartners],
   );
+
+  const triggerLoadOptions = useCallback(
+    (keyWords?: string) => {
+      // requestErrorConfig 负责当前请求的用户提示；这里仅避免 Select 事件留下未处理 Promise。
+      void loadOptions(keyWords).catch(() => undefined);
+    },
+    [loadOptions],
+  );
+
+  // 受控 options 不会像 ProForm 的 request 一样自动在挂载时加载；保留首批
+  // 候选项和已选值标签的原有回显能力。
+  useEffect(() => {
+    triggerLoadOptions();
+  }, [triggerLoadOptions]);
+
+  // 组织切换：清除本地候选项、使在途请求/创建响应失效，并加载新组织首批候选项。
+  useEffect(() => {
+    if (previousOrganizationIdRef.current === currentOrganizationId) return;
+    previousOrganizationIdRef.current = currentOrganizationId;
+    latestSearch.cancel();
+    createGuard.invalidate();
+    createdOptionsRef.current = [];
+    availableOptionsRef.current.clear();
+    optionsOrganizationIdRef.current = currentOrganizationId;
+    setOptions([]);
+    orderForm?.setFieldValue(name, undefined);
+    setSelectOpen(false);
+    setModalOpen(false);
+    triggerLoadOptions();
+  }, [
+    createGuard,
+    currentOrganizationId,
+    latestSearch,
+    name,
+    orderForm,
+    triggerLoadOptions,
+  ]);
 
   const quickAddFooter = useCallback(
     (menu: ReactNode) => (
@@ -181,6 +209,7 @@ export default function PartnerQuickAddSelect({
       popupRender: canQuickAdd ? quickAddFooter : undefined,
       open: selectOpen,
       onOpenChange: setSelectOpen,
+      onSearch: triggerLoadOptions,
       onChange: (value: unknown, option: unknown) => {
         if (value === undefined || value === null) {
           onPartnerChange?.(undefined);
@@ -195,7 +224,13 @@ export default function PartnerQuickAddSelect({
         );
       },
     }),
-    [canQuickAdd, onPartnerChange, quickAddFooter, selectOpen],
+    [
+      canQuickAdd,
+      onPartnerChange,
+      quickAddFooter,
+      selectOpen,
+      triggerLoadOptions,
+    ],
   );
 
   return (
@@ -208,8 +243,7 @@ export default function PartnerQuickAddSelect({
           required ? [{ required: true, message: `请选择${displayName}` }] : []
         }
         placeholder="请选择"
-        params={{ revision: optionsRevision }}
-        request={request}
+        options={options}
         fieldProps={fieldProps}
       />
 
@@ -239,59 +273,55 @@ export default function PartnerQuickAddSelect({
           },
         }}
         onSubmit={async (values) => {
-          const sequence = ++createSequenceRef.current;
           const organizationAtSubmit = organizationIdRef.current;
           if (!organizationAtSubmit) {
             throw new Error('当前组织不可用，请刷新后重试');
           }
-          let response: Awaited<ReturnType<typeof partnerServiceCreatePartner>>;
-          try {
-            response = await partnerServiceCreatePartner({
-              // 客商代码留空由服务端按组织内唯一规则自动生成。
-              legalName: values.legalName.trim(),
-              unifiedSocialCreditCode: values.unifiedSocialCreditCode
-                ?.trim()
-                .toUpperCase(),
-              roles: [{ type: role, enabled: true }],
-            });
-          } catch (error) {
-            if (
-              sequence !== createSequenceRef.current ||
-              organizationAtSubmit !== organizationIdRef.current
-            ) {
-              return undefined;
-            }
-            throw error;
-          }
-          if (
-            sequence !== createSequenceRef.current ||
-            organizationAtSubmit !== organizationIdRef.current
-          ) {
-            return undefined;
-          }
-          const partner = response.data;
-          if (!partner?.id) {
-            throw new Error('创建结果缺少伙伴 ID，请重试');
-          }
-          return {
-            label: partner.legalName ?? values.legalName.trim(),
-            value: partner.id,
-            code: partner.code,
-          };
-        }}
-        onSuccess={(option) => {
-          orderForm?.setFieldValue(name, option.value);
-          createdOptionsRef.current = [
-            option,
-            ...createdOptionsRef.current.filter(
-              (existing) => existing.value !== option.value,
-            ),
-          ];
-          availableOptionsRef.current.set(option.value, option);
-          optionsOrganizationIdRef.current = organizationIdRef.current;
-          setOptionsRevision((revision) => revision + 1);
-          onPartnerChange?.(option);
-          setModalOpen(false);
+          await createGuard.run(
+            ({ signal }) =>
+              partnerServiceCreatePartner(
+                {
+                  // 客商代码留空由服务端按组织内唯一规则自动生成。
+                  legalName: values.legalName.trim(),
+                  unifiedSocialCreditCode: values.unifiedSocialCreditCode
+                    ?.trim()
+                    .toUpperCase(),
+                  roles: [{ type: role, enabled: true }],
+                },
+                { signal },
+              ),
+            (response) => {
+              if (organizationAtSubmit !== organizationIdRef.current) return;
+              const partner = response.data;
+              if (!partner?.id) {
+                throw new Error('创建结果缺少伙伴 ID，请重试');
+              }
+              const option = {
+                label: partner.legalName ?? values.legalName.trim(),
+                value: partner.id,
+                code: partner.code,
+              };
+              orderForm?.setFieldValue(name, option.value);
+              createdOptionsRef.current = [
+                option,
+                ...createdOptionsRef.current.filter(
+                  (existing) => existing.value !== option.value,
+                ),
+              ];
+              availableOptionsRef.current.set(option.value, option);
+              optionsOrganizationIdRef.current = organizationIdRef.current;
+              setOptions((current) => [
+                option,
+                ...current.filter(
+                  (existing) => existing.value !== option.value,
+                ),
+              ]);
+              onPartnerChange?.(option);
+              setModalOpen(false);
+            },
+          );
+          // 回填已在 guard 的同步 apply 内完成，避免 QuickCreateModal 在失效后再执行 onSuccess。
+          return undefined;
         }}
       >
         <Form.Item
