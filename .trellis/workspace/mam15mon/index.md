@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 35
+- **Total Sessions**: 36
 - **Last Active**: 2026-09-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~928 | Active |
+| `journal-1.md` | ~950 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 36 | 2026-09-08 | 统一全站面包屑UI规范与组件 | `6e302495` | `main` |
 | 35 | 2026-09-08 | 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复 | `ef9ae789`, `e273867f`, `f53b4237`, `0b876598`, `8b54f7e6`, `2210d559`, `3cc7fca7` | `main` |
 | 34 | 2026-09-07 | 海运分单模型简化：重构拆票链路并实现共享箱工作台 | `3e0dabf6` | `main` |
 | 33 | 2026-09-07 | 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过 | `372966b0`, `020dfe43`, `09c01592`, `871650c8`, `0fc306ea`, `5ae8e62b`, `c7c63a10`, `092fdef8`, `0eda90d9`, `dc5cfa27`, `c8409caa` | `main` |

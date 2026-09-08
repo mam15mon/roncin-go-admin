@@ -926,3 +926,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 36: 统一全站面包屑UI规范与组件
+<!-- trellis-session: v=2 fp=df438608e4d45253 -->
+
+**Date**: 2026-09-08
+**Task**: 统一全站面包屑UI规范与组件
+**Branch**: `main`
+
+### Summary
+
+排查并收口全站面包屑规范，移除订单模块中无实体的'订单管理'虚拟层级；废弃DocumentDetailLayout自研面包屑；统一页面跳转使用标准Link(href)；同步更新组件规范文档及单元测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6e302495` | refactor(web): 统一全站面包屑规范并移除订单管理等虚拟层级 |
+
+### Status
+
+[OK] **Completed**
