@@ -27,6 +27,20 @@ let mockPathname = '/welcome';
 let mockSearch = '';
 let mockHash = '';
 
+/**
+ * 确认关闭行为只需要读取 Modal.confirm 参数并主动执行 onOk。
+ * 不挂载 Ant Design 的命令式 portal，避免 portal 在 happy-dom 清理后继续调度 React 更新。
+ */
+function spyOnConfirm() {
+  return vi.spyOn(Modal, 'confirm').mockImplementation(
+    () =>
+      ({
+        destroy: vi.fn(),
+        update: vi.fn(),
+      }) as ReturnType<typeof Modal.confirm>,
+  );
+}
+
 vi.mock('@umijs/max', () => ({
   history: {
     push: (path: string) => mockPush(path),
@@ -712,7 +726,7 @@ describe('TagsView Component', () => {
       isDirty: () => true,
     });
 
-    const modalSpy = vi.spyOn(Modal, 'confirm');
+    const modalSpy = spyOnConfirm();
 
     const closeBtn = screen.getByLabelText('关闭 新增海运出口');
     act(() => {
@@ -741,7 +755,7 @@ describe('TagsView Component', () => {
       isDirty: () => true,
     });
 
-    const modalSpy = vi.spyOn(Modal, 'confirm');
+    const modalSpy = spyOnConfirm();
 
     const closeBtn = screen.getByLabelText('关闭 海运出口详情');
     act(() => {
@@ -774,7 +788,7 @@ describe('TagsView Component', () => {
       isDirty: () => true,
     });
 
-    const modalSpy = vi.spyOn(Modal, 'confirm');
+    const modalSpy = spyOnConfirm();
 
     // 在客户标签上右键关闭其他标签页（包括海运出口）
     const customerTab = getTabByText('客户');
@@ -817,7 +831,7 @@ describe('TagsView Component', () => {
     sessionStorage.setItem(draftKey, JSON.stringify({ field: 'value' }));
     expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(true);
 
-    const modalSpy = vi.spyOn(Modal, 'confirm');
+    const modalSpy = spyOnConfirm();
 
     const closeBtn = screen.getByLabelText('关闭 海运出口详情');
     act(() => {
