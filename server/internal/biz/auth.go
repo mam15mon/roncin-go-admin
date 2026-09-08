@@ -270,50 +270,6 @@ func (p *Principal) CanAccessOrganizationForPermission(permission string, organi
 	return containsOrganizationID(ids, organizationID)
 }
 
-// OrganizationIDs 是旧聚合调用点在后续按权限接入前的临时投影。
-// 新的读写路径必须调用 ResolvePermissionOrganizationScope，而不是使用此方法。
-func (p *Principal) OrganizationIDs() []uuid.UUID {
-	nodes := p.organizationScopeNodes()
-	ids := make(map[uuid.UUID]struct{})
-	for _, grant := range p.RoleGrants {
-		for _, organizationID := range p.baseOrganizationIDs(grant.DataScope, nodes) {
-			ids[organizationID] = struct{}{}
-		}
-		for _, access := range grant.OrganizationAccesses {
-			if node, exists := nodes[access.OrganizationID]; exists && !node.Disabled {
-				ids[access.OrganizationID] = struct{}{}
-			}
-		}
-	}
-	if len(ids) == 0 {
-		if node, exists := nodes[p.Organization.ID]; exists && !node.Disabled {
-			ids[p.Organization.ID] = struct{}{}
-		}
-	}
-	return sortedOrganizationIDs(ids)
-}
-
-// CanAccessOrganization 是旧聚合调用点在后续按权限接入前的临时投影。
-// 新的读写路径必须调用 CanAccessOrganizationForPermission。
-func (p *Principal) CanAccessOrganization(organizationID uuid.UUID, writable bool) bool {
-	nodes := p.organizationScopeNodes()
-	for _, grant := range p.RoleGrants {
-		for _, baseID := range p.baseOrganizationIDs(grant.DataScope, nodes) {
-			if baseID == organizationID {
-				return true
-			}
-		}
-		for _, access := range grant.OrganizationAccesses {
-			if access.OrganizationID == organizationID && (!writable || access.Writable) {
-				if node, exists := nodes[organizationID]; exists && !node.Disabled {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 func (p *Principal) organizationScopeNodes() map[uuid.UUID]OrganizationScopeNode {
 	nodes := make(map[uuid.UUID]OrganizationScopeNode, len(p.OrganizationNodes))
 	for _, node := range p.OrganizationNodes {

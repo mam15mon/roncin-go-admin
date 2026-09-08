@@ -35,24 +35,24 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 	return orderToBiz(item), nil
 }
 
-func (r *orderRepo) Find(ctx context.Context, id uuid.UUID) (*biz.Order, error) {
+func (r *orderRepo) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []biz.OrderOrganizationScope) (*biz.Order, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	item, err := withOrderEdges(client.Order.Query().Where(orderent.IDEQ(id))).Only(ctx)
+	item, err := withOrderEdges(client.Order.Query().Where(orderent.IDEQ(id), orderOrganizationScopePredicate(scopes))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	return orderToBiz(item), nil
 }
 
-func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, options biz.OrderListOptions) (*biz.OrderList, error) {
+func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScope, options biz.OrderListOptions) (*biz.OrderList, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	query := client.Order.Query().Where(orderent.OrganizationIDIn(organizationIDs...))
+	query := client.Order.Query().Where(orderOrganizationScopePredicate(scopes))
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
@@ -161,6 +161,17 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
 		return withOrderEdges(query).Order(orderent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
+}
+
+func orderOrganizationScopePredicate(scopes []biz.OrderOrganizationScope) entpredicate.Order {
+	predicates := make([]entpredicate.Order, 0, len(scopes))
+	for _, scope := range scopes {
+		predicates = append(predicates, orderent.And(
+			orderent.BusinessTypeEQ(orderent.BusinessType(scope.BusinessType)),
+			orderent.OrganizationIDIn(scope.OrganizationIDs...),
+		))
+	}
+	return orderent.Or(predicates...)
 }
 
 func orderConsolidatedMasterContainsFold(keyword string) entpredicate.Order {

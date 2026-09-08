@@ -733,20 +733,21 @@ func TestPrincipalOrganizationAccess(t *testing.T) {
 		})},
 	}
 
-	if !principal.CanAccessOrganization(currentOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", currentOrganizationID, true) {
 		t.Fatal("current organization must retain write access")
 	}
-	if !principal.CanAccessOrganization(readOnlyOrganizationID, false) || principal.CanAccessOrganization(readOnlyOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", readOnlyOrganizationID, false) || principal.CanAccessOrganizationForPermission("permission", readOnlyOrganizationID, true) {
 		t.Fatal("read-only organization access was not enforced")
 	}
-	if !principal.CanAccessOrganization(writableOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", writableOrganizationID, true) {
 		t.Fatal("writable organization access was denied")
 	}
-	if principal.CanAccessOrganization(uuid.New(), false) {
+	if principal.CanAccessOrganizationForPermission("permission", uuid.New(), false) {
 		t.Fatal("unassigned organization was accessible")
 	}
-	if got := principal.OrganizationIDs(); !slices.Equal(got, sortedIDs(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID)) {
-		t.Fatalf("OrganizationIDs() = %#v", got)
+	scope, err := principal.ResolvePermissionOrganizationScope("permission")
+	if err != nil || !slices.Equal(scope.ReadableOrganizationIDs, sortedIDs(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID)) {
+		t.Fatalf("ResolvePermissionOrganizationScope() = %#v, %v", scope, err)
 	}
 }
 

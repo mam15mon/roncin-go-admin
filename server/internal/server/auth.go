@@ -50,9 +50,12 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 				return nil, err
 			}
 			effectivePrincipal := principal
+			directOrderRequest := false
 			if rule.mode == accessModeOrderPermission {
-				if order, directOrderRequest := requestOrder(ctx, request, orderUsecase); directOrderRequest {
-					if order == nil || !canAccessOrderOrganization(principal, order, rule.orderOperation, orderOperationWrites(rule.orderOperation)) {
+				var order *biz.Order
+				order, directOrderRequest = requestOrder(ctx, request, orderUsecase, orderOrganizationScopes(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation)))
+				if directOrderRequest {
+					if order == nil {
 						return nil, biz.ErrPermissionDenied
 					}
 					copy := *principal
@@ -60,7 +63,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 					effectivePrincipal = &copy
 				}
 			}
-			if (rule.mode == accessModePermission || rule.mode == accessModeOrderPermission) && !hasPermission(ctx, request, effectivePrincipal, rule, orderUsecase) {
+			if (rule.mode == accessModePermission || rule.mode == accessModeOrderPermission) && !directOrderRequest && !hasPermission(request, effectivePrincipal, rule) {
 				return nil, biz.ErrPermissionDenied
 			}
 			return handler(biz.WithPrincipal(ctx, effectivePrincipal), request)
@@ -68,18 +71,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 	}
 }
 
-func canAccessOrderOrganization(principal *biz.Principal, order *biz.Order, operation access.OrderOperation, writable bool) bool {
-	if principal == nil || order == nil {
-		return false
-	}
-	businessType, ok := orderBusinessTypeFromBiz(order.BusinessType)
-	if !ok {
-		return false
-	}
-	return principal.CanAccessOrganizationForPermission(access.OrderPermission(businessType, operation), order.OrganizationID, writable)
-}
-
-func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase) (*biz.Order, bool) {
+func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase, scopes []biz.OrderOrganizationScope) (*biz.Order, bool) {
 	var orderID string
 	switch value := request.(type) {
 	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest:
@@ -95,7 +87,10 @@ func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUseca
 	if err != nil {
 		return nil, true
 	}
-	order, err := orderUsecase.Find(ctx, id)
+	if orderUsecase == nil || len(scopes) == 0 {
+		return nil, true
+	}
+	order, err := orderUsecase.FindAuthorized(ctx, id, scopes)
 	if err != nil {
 		return nil, true
 	}
@@ -104,40 +99,55 @@ func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUseca
 
 func orderOperationWrites(operation access.OrderOperation) bool {
 	switch operation {
-	case access.OrderRead, access.OrderMilestoneRead, access.OrderAttachmentRead, access.OrderPersonnelRead, access.OrderContainerRead, access.OrderCargoItemRead, access.OrderAbnormalCaseRead, access.OrderReleasePodRead:
+	case access.OrderRead,
+		access.OrderMilestoneRead,
+		access.OrderAttachmentRead,
+		access.OrderPersonnelRead,
+		access.OrderContainerRead,
+		access.OrderCargoItemRead,
+		access.OrderAbnormalCaseRead,
+		access.OrderReleasePodRead,
+		access.OrderFeeRead:
 		return false
 	default:
 		return true
 	}
 }
 
-func hasPermission(ctx context.Context, request any, principal *biz.Principal, rule accessRule, orderUsecase *biz.OrderUsecase) bool {
+func hasPermission(request any, principal *biz.Principal, rule accessRule) bool {
 	if rule.orderOperation == "" {
 		return principal.HasPermissionInScope(rule.permission, rule.scope)
 	}
 	if _, ok := request.(*orderv1.CheckOrderReferenceRequest); ok {
-		return hasAnyOrderPermission(principal, rule.orderOperation, rule.scope)
+		return hasAnyOrderPermissionInCurrentOrganization(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation))
 	}
 	if list, ok := request.(*orderv1.ListOrdersRequest); ok && list.BusinessType == nil {
-		return hasAnyOrderPermission(principal, rule.orderOperation, rule.scope)
+		return hasAnyOrderPermission(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation))
 	}
-	businessType, ok := requestOrderBusinessType(ctx, request, principal.Organization.ID, orderUsecase)
+	businessType, ok := requestOrderBusinessType(request)
 	if !ok {
 		return false
 	}
-	return principal.HasPermissionInScope(access.OrderPermission(businessType, rule.orderOperation), rule.scope)
+	return currentOrganizationInOrderScope(principal, businessType, rule.orderOperation, orderOperationWrites(rule.orderOperation))
 }
 
-func hasAnyOrderPermission(principal *biz.Principal, operation access.OrderOperation, scope biz.DataScope) bool {
+func hasAnyOrderPermission(principal *biz.Principal, operation access.OrderOperation, writable bool) bool {
+	return len(orderOrganizationScopes(principal, operation, writable)) > 0
+}
+
+func hasAnyOrderPermissionInCurrentOrganization(principal *biz.Principal, operation access.OrderOperation, writable bool) bool {
+	if principal == nil {
+		return false
+	}
 	for _, businessType := range access.OrderBusinessTypes() {
-		if principal.HasPermissionInScope(access.OrderPermission(businessType, operation), scope) {
+		if currentOrganizationInOrderScope(principal, businessType, operation, writable) {
 			return true
 		}
 	}
 	return false
 }
 
-func requestOrderBusinessType(ctx context.Context, request any, organizationID uuid.UUID, orderUsecase *biz.OrderUsecase) (access.OrderBusinessType, bool) {
+func requestOrderBusinessType(request any) (access.OrderBusinessType, bool) {
 	switch value := request.(type) {
 	case *orderv1.ListOrdersRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
@@ -151,26 +161,69 @@ func requestOrderBusinessType(ctx context.Context, request any, organizationID u
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.BatchRemoveOrderTagsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.MatchSeaMasterBillCandidateRequest:
+		// 共享主单候选匹配仅适用于海运出口订单，且服务实现只查询当前组织。
+		return access.OrderBusinessSE, true
 	}
 
-	var orderID string
-	switch value := request.(type) {
-	case interface{ GetOrderId() string }:
-		orderID = value.GetOrderId()
-	case interface{ GetId() string }:
-		orderID = value.GetId()
+	return "", false
+}
+
+func orderOrganizationScopes(principal *biz.Principal, operation access.OrderOperation, writable bool) []biz.OrderOrganizationScope {
+	if principal == nil {
+		return nil
+	}
+	scopes := make([]biz.OrderOrganizationScope, 0, len(access.OrderBusinessTypes()))
+	for _, businessType := range access.OrderBusinessTypes() {
+		permission := access.OrderPermission(businessType, operation)
+		if permission == "" {
+			continue
+		}
+		scope, err := principal.ResolvePermissionOrganizationScope(permission)
+		if err != nil {
+			continue
+		}
+		organizationIDs := scope.ReadableOrganizationIDs
+		if writable {
+			organizationIDs = scope.WritableOrganizationIDs
+		}
+		if len(organizationIDs) == 0 {
+			continue
+		}
+		mapped, ok := orderBusinessTypeToBiz(businessType)
+		if !ok {
+			continue
+		}
+		scopes = append(scopes, biz.OrderOrganizationScope{BusinessType: mapped, OrganizationIDs: organizationIDs})
+	}
+	return scopes
+}
+
+func currentOrganizationInOrderScope(principal *biz.Principal, businessType access.OrderBusinessType, operation access.OrderOperation, writable bool) bool {
+	permission := access.OrderPermission(businessType, operation)
+	if permission == "" || principal == nil {
+		return false
+	}
+	return principal.CanAccessOrganizationForPermission(permission, principal.Organization.ID, writable)
+}
+
+func orderBusinessTypeToBiz(value access.OrderBusinessType) (biz.OrderBusinessType, bool) {
+	switch value {
+	case access.OrderBusinessSE:
+		return biz.OrderBusinessSE, true
+	case access.OrderBusinessSI:
+		return biz.OrderBusinessSI, true
+	case access.OrderBusinessAE:
+		return biz.OrderBusinessAE, true
+	case access.OrderBusinessAI:
+		return biz.OrderBusinessAI, true
+	case access.OrderBusinessLand:
+		return biz.OrderBusinessLand, true
+	case access.OrderBusinessRail:
+		return biz.OrderBusinessRail, true
 	default:
 		return "", false
 	}
-	id, err := uuid.Parse(orderID)
-	if err != nil {
-		return "", false
-	}
-	order, err := orderUsecase.Find(ctx, id)
-	if err != nil || order.OrganizationID != organizationID {
-		return "", false
-	}
-	return orderBusinessTypeFromBiz(order.BusinessType)
 }
 
 func orderBusinessTypeFromAPI(value orderv1.BusinessType) (access.OrderBusinessType, bool) {

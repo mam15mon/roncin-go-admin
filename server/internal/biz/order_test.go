@@ -41,11 +41,11 @@ func (s *orderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Order, erro
 	return nil, ErrOrderNotFound
 }
 
-func (s *orderRepoStub) Find(context.Context, uuid.UUID) (*Order, error) {
+func (s *orderRepoStub) FindAuthorized(context.Context, uuid.UUID, []OrderOrganizationScope) (*Order, error) {
 	return nil, ErrOrderNotFound
 }
 
-func (s *orderRepoStub) List(_ context.Context, _ []uuid.UUID, options OrderListOptions) (*OrderList, error) {
+func (s *orderRepoStub) List(_ context.Context, _ []OrderOrganizationScope, options OrderListOptions) (*OrderList, error) {
 	return &OrderList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
@@ -163,7 +163,7 @@ func TestOrderCreateAudits(t *testing.T) {
 	directMode := SeaDocumentStructureDirect
 	created, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: customerID, BusinessType: OrderBusinessSE,
-		ShippingLineID:      &shippingLineID,
+		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
 		PersonnelAssignments: []*OrderPersonnel{{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator}},
@@ -226,7 +226,7 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 	shippingLineID := uuid.New()
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		ShippingLineID:          &shippingLineID,
+		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		CustomerReferenceNo: "  CUST-001  ", InternalReferenceNo: "  INTERNAL-001  ", ContractNo: "  CONTRACT-001  ",
@@ -279,7 +279,7 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 	releaseType := "ORIGINAL"
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		ShippingLineID:          &shippingLineID,
+		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShippingDocuments: []*OrderShippingDocument{
@@ -327,7 +327,7 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 	shippingLineID := uuid.New()
 	base := Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		ShippingLineID:          &shippingLineID,
+		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShipmentType: &breakBulk,
@@ -357,7 +357,7 @@ func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 	shippingLineID := uuid.New()
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		ShippingLineID:          &shippingLineID,
+		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShipmentType: &breakBulk,
@@ -561,7 +561,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	t2 := time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC)
 
 	candidate := &SeaTransportExecution{
-		ShippingLineID:           carrier1,
+		ShippingLineID:      carrier1,
 		OriginLocationID:    pol1,
 		DischargeLocationID: pod1,
 		VesselName:          "EVER GIVEN",
@@ -571,7 +571,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	}
 
 	order := &SeaTransportExecution{
-		ShippingLineID:           carrier1,
+		ShippingLineID:      carrier1,
 		OriginLocationID:    pol1,
 		DischargeLocationID: pod1,
 		VesselName:          "ever given",
@@ -591,7 +591,7 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	}
 
 	orderConflicting := &SeaTransportExecution{
-		ShippingLineID:           carrier2,
+		ShippingLineID:      carrier2,
 		OriginLocationID:    pol2,
 		DischargeLocationID: pod2,
 		VesselName:          "CMA CGM MARCO POLO",

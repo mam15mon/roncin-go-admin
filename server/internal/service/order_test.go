@@ -45,21 +45,49 @@ func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
 	}
 }
 
-func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
+func TestOrderOrganizationScopesKeepBusinessTypeAndOrganizationPaired(t *testing.T) {
+	currentOrganizationID := uuid.New()
+	beijingOrganizationID := uuid.New()
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
-	siCreate := access.OrderPermission(access.OrderBusinessSI, access.OrderCreate)
 	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: currentOrganizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}, {ID: beijingOrganizationID}},
 		RoleGrants: []biz.RoleGrant{
-			{RoleID: uuid.New(), RoleCode: "operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{seRead: {}, siCreate: {}}},
-			{RoleID: uuid.New(), RoleCode: "self", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{aiRead: {}}},
+			{RoleID: uuid.New(), RoleCode: "se-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{seRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingOrganizationID}}},
+			{RoleID: uuid.New(), RoleCode: "ai-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{aiRead: {}}},
 		},
 	}
 
-	got := readableOrderBusinessTypes(principal)
-	want := []biz.OrderBusinessType{biz.OrderBusinessSE}
-	if !slices.Equal(got, want) {
-		t.Fatalf("readableOrderBusinessTypes() = %v, want %v", got, want)
+	scopes, err := orderOrganizationScopesForOperation(principal, access.OrderRead, false, "")
+	if err != nil {
+		t.Fatalf("orderOrganizationScopesForOperation() error = %v", err)
+	}
+	if len(scopes) != 2 || scopes[0].BusinessType != biz.OrderBusinessSE || !slices.Equal(scopes[0].OrganizationIDs, []uuid.UUID{currentOrganizationID, beijingOrganizationID}) || scopes[1].BusinessType != biz.OrderBusinessAI || !slices.Equal(scopes[1].OrganizationIDs, []uuid.UUID{currentOrganizationID}) {
+		t.Fatalf("order scopes = %#v", scopes)
+	}
+}
+
+func TestCanModifyOrderUsesBusinessTypeSpecificUpdateScope(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	orderRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
+	orderUpdate := access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: tianjinID}, {ID: beijingID}},
+		RoleGrants: []biz.RoleGrant{
+			{RoleID: uuid.New(), RoleCode: "order-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID}}},
+			{RoleID: uuid.New(), RoleCode: "order-editor", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderUpdate: {}}},
+			{RoleID: uuid.New(), RoleCode: "finance-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{"finance.bill.read": {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID, Writable: true}}},
+		},
+	}
+
+	if !canModifyOrder(principal, &biz.Order{BusinessType: biz.OrderBusinessSE, OrganizationID: tianjinID}) {
+		t.Fatal("当前组织的订单 update 权限应允许修改")
+	}
+	if canModifyOrder(principal, &biz.Order{BusinessType: biz.OrderBusinessSE, OrganizationID: beijingID}) {
+		t.Fatal("订单 read 的北京范围或财务角色范围不得授予订单 update")
 	}
 }
 

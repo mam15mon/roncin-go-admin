@@ -49,31 +49,18 @@ func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Or
 	return nil
 }
 
-func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) {
-	if id == uuid.Nil {
+// FindAuthorized 在仓储查询中同时限制订单 ID、业务类型和组织范围，供传输鉴权
+// 定位订单锚点使用。它不加载详情扩展数据，避免鉴权路径扩大查询范围。
+func (uc *OrderUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []OrderOrganizationScope) (*Order, error) {
+	if id == uuid.Nil || !validOrderOrganizationScopes(scopes) {
 		return nil, ErrOrderNotFound
 	}
-	order, err := uc.repo.Find(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, order.OrganizationID, order); err != nil {
-		return nil, err
-	}
-	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, order.OrganizationID, order); err != nil {
-		return nil, err
-	}
-	return order, nil
+	return uc.repo.FindAuthorized(ctx, id, scopes)
 }
 
-func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
-	if len(organizationIDs) == 0 || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
+func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScope, options OrderListOptions) (*OrderList, error) {
+	if !validOrderOrganizationScopes(scopes) || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
 		return nil, ErrOrderInvalidArgument
-	}
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return nil, ErrOrderInvalidArgument
-		}
 	}
 	for _, businessType := range options.BusinessTypes {
 		if !businessType.Valid() {
@@ -93,14 +80,14 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	result, err := uc.repo.List(ctx, organizationIDs, options)
+	result, err := uc.repo.List(ctx, scopes, options)
 	if err != nil {
 		return nil, err
 	}
 	if err := attachOrderTags(ctx, uc.tagRepo, result.Items...); err != nil {
 		return nil, err
 	}
-	for _, organizationID := range organizationIDs {
+	for _, organizationID := range orderOrganizationIDs(scopes) {
 		organizationOrders := make([]*Order, 0, len(result.Items))
 		for _, order := range result.Items {
 			if order.OrganizationID == organizationID {
@@ -115,6 +102,33 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 		}
 	}
 	return result, nil
+}
+
+func validOrderOrganizationScopes(scopes []OrderOrganizationScope) bool {
+	if len(scopes) == 0 {
+		return false
+	}
+	for _, scope := range scopes {
+		if !scope.BusinessType.Valid() || len(scope.OrganizationIDs) == 0 {
+			return false
+		}
+		for _, organizationID := range scope.OrganizationIDs {
+			if organizationID == uuid.Nil {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func orderOrganizationIDs(scopes []OrderOrganizationScope) []uuid.UUID {
+	unique := make(map[uuid.UUID]struct{})
+	for _, scope := range scopes {
+		for _, organizationID := range scope.OrganizationIDs {
+			unique[organizationID] = struct{}{}
+		}
+	}
+	return sortedOrganizationIDs(unique)
 }
 
 func attachSeaMasterBillSummaries(ctx context.Context, repo SeaMasterBillRepo, organizationID uuid.UUID, orders ...*Order) error {
@@ -294,7 +308,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.HazardClass = strings.TrimSpace(output.HazardClass)
 	output.FactoryName = strings.TrimSpace(output.FactoryName)
 	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
-		output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
+	output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
 	output.ReceivedAt = strings.TrimSpace(output.ReceivedAt)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)

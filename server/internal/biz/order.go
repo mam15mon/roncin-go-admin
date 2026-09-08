@@ -26,8 +26,8 @@ var (
 // 用例见 order_transition.go。
 type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
-	Find(context.Context, uuid.UUID) (*Order, error)
-	List(context.Context, []uuid.UUID, OrderListOptions) (*OrderList, error)
+	FindAuthorized(context.Context, uuid.UUID, []OrderOrganizationScope) (*Order, error)
+	List(context.Context, []OrderOrganizationScope, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
@@ -39,6 +39,13 @@ type OrderRepo interface {
 	TransitionTermination(context.Context, uuid.UUID, uuid.UUID, uint64, OrderTerminationStatus, *OrderTerminationType, string, uuid.UUID, *OrderLifecycleChangedEvent) (*Order, error)
 	ClosureReadiness(context.Context, uuid.UUID, uuid.UUID) (*OrderClosureReadiness, error)
 	TransitionClosure(context.Context, uuid.UUID, uuid.UUID, uint64, OrderClosureStatus, string, uuid.UUID, *OrderLifecycleChangedEvent) (*Order, error)
+}
+
+// OrderOrganizationScope 把订单业务类型与该类型可访问的组织范围绑定，避免将
+// 多个业务类型和组织集合分别合并后产生未授权的笛卡尔积。
+type OrderOrganizationScope struct {
+	BusinessType    OrderBusinessType
+	OrganizationIDs []uuid.UUID
 }
 
 type OrderUsecase struct {

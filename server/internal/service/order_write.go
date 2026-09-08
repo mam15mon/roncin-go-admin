@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
 	"github.com/google/uuid"
@@ -17,6 +18,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	input, err := orderFromCreateRequest(request)
 	if err != nil {
 		return nil, err
+	}
+	if !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderCreate, true) {
+		return nil, biz.ErrPermissionDenied
 	}
 	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, input)
 	if err != nil {
@@ -164,8 +168,8 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		return nil, err
 	}
 	return &biz.Order{
-		CustomerID: customerID,
-		ShippingLineID:  shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
+		CustomerID:     customerID,
+		ShippingLineID: shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), BookingNo: request.GetBookingNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
