@@ -1,6 +1,6 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
-import { Button, Divider, Space, Typography } from 'antd';
+import { Button, Space, Tooltip, Typography } from 'antd';
 import React from 'react';
 import type { PageHeaderShellProps } from './types';
 
@@ -27,13 +27,6 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: 12,
-        minHeight: 52,
-        padding: '0 16px',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #f0f0f0',
-        marginBottom: 12,
-        borderRadius: 6,
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
         ...(sticky
           ? {
               position: 'sticky',
@@ -45,26 +38,18 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
       }}
     >
       {/* Left: Navigation & Title */}
-      <Space size={8} align="center" style={{ minWidth: 0, flex: 1 }}>
+      <Space size={4} align="center" style={{ minWidth: 0, flex: 1 }}>
         {onBack && (
-          <>
+          <Tooltip title={backText}>
             <Button
               type="text"
               size="small"
+              className="roncin-page-header-back-btn"
               icon={<ArrowLeftOutlined />}
               onClick={onBack}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                fontWeight: 500,
-                color: 'rgba(0, 0, 0, 0.65)',
-                padding: '2px 6px',
-              }}
-            >
-              {backText}
-            </Button>
-            <Divider vertical style={{ margin: '0 4px' }} />
-          </>
+              aria-label={backText}
+            />
+          </Tooltip>
         )}
 
         {breadcrumbs &&
@@ -74,12 +59,7 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
               {crumb.href ? (
                 <Link
                   to={crumb.href}
-                  style={{
-                    color: 'rgba(0, 0, 0, 0.45)',
-                    fontSize: 13,
-                    textDecoration: 'none',
-                    lineHeight: 'normal',
-                  }}
+                  className="roncin-page-header-crumb-link"
                   onClick={crumb.onClick}
                 >
                   {crumb.label}
@@ -88,31 +68,31 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
                 <Button
                   type="link"
                   size="small"
-                  style={{ padding: 0, color: 'rgba(0, 0, 0, 0.45)', height: 'auto' }}
+                  className="roncin-page-header-crumb-btn"
                   onClick={crumb.onClick}
                 >
                   {crumb.label}
                 </Button>
               ) : (
-                <Text type="secondary" style={{ fontSize: 13 }}>
+                <Text className="roncin-page-header-crumb-text">
                   {crumb.label}
                 </Text>
               )}
-              <span style={{ color: 'rgba(0, 0, 0, 0.3)' }}>/</span>
+              <span className="roncin-page-header-crumb-sep">/</span>
             </React.Fragment>
           ))}
 
-        <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
+        <Text strong className="roncin-page-header-title">
           {title}
         </Text>
 
         {subTitle && (
-          <Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
+          <Text className="roncin-page-header-subtitle">
             {subTitle}
           </Text>
         )}
 
-        {tags && <span style={{ marginLeft: 4 }}>{tags}</span>}
+        {tags && <span style={{ marginLeft: 6 }}>{tags}</span>}
       </Space>
 
       {/* Right: Actions */}
