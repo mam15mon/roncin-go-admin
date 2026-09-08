@@ -1,6 +1,7 @@
 import { useModel } from '@umijs/max';
 import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
 import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
 import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
@@ -357,6 +358,10 @@ export function useOrderDetailData(
     currencyOptions: isOrderMatched ? currencyOptions : [],
     containerSpecOptions: isOrderMatched ? containerSpecOptions : [],
     personnelOptions: isOrderMatched ? personnelOptions : [],
+    draftScope: getFormDraftScope(
+      initialState?.currentUser?.id,
+      organizationId,
+    ),
     loadData,
   };
 }

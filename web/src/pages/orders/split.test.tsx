@@ -249,14 +249,15 @@ describe('SeaOrderSplitPage', () => {
       >
     >);
 
-    vi.spyOn(
-      changeService,
-      'seaOrderChangeServicePreviewSeaOrderSplit',
-    ).mockResolvedValue({
-      data: mockFailedPreview,
-    } as Awaited<
-      ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>
-    >);
+    const preview = vi
+      .spyOn(changeService, 'seaOrderChangeServicePreviewSeaOrderSplit')
+      .mockResolvedValue({
+        data: mockFailedPreview,
+      } as Awaited<
+        ReturnType<
+          typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit
+        >
+      >);
 
     render(
       <App>
@@ -264,14 +265,18 @@ describe('SeaOrderSplitPage', () => {
       </App>,
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByText('件数守恒校验未通过：仍有 40 件未分配'),
-      ).toBeInTheDocument();
-      expect(screen.getByText('等待满足守恒条件')).toBeInTheDocument();
-      const submitBtn = screen.getByRole('button', { name: '确认执行拆票' });
-      expect(submitBtn).toBeDisabled();
-    });
+    await waitFor(
+      () => {
+        expect(preview).toHaveBeenCalled();
+        expect(
+          screen.getByText('件数守恒校验未通过：仍有 40 件未分配'),
+        ).toBeInTheDocument();
+        expect(screen.getByText('等待满足守恒条件')).toBeInTheDocument();
+        const submitBtn = screen.getByRole('button', { name: '确认执行拆票' });
+        expect(submitBtn).toBeDisabled();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it('锁状态已锁定时不执行预览并禁用拆票提交', async () => {

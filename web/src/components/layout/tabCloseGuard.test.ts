@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getFormDraftKey, getFormDraftScope } from './formDraft';
 import {
   _clearAllTabCloseGuards,
   confirmIfTabsDirty,
@@ -12,10 +13,12 @@ import {
 describe('tabCloseGuard', () => {
   beforeEach(() => {
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
   });
 
   it('未注册守卫的 tab 默认为非 dirty', () => {
@@ -35,6 +38,33 @@ describe('tabCloseGuard', () => {
 
     unregister();
     expect(isTabDirty('/orders/sea-export')).toBe(false);
+  });
+
+  it('未挂载但存在草稿的 tab 依然判定为 dirty', () => {
+    const tabKey = '/orders/sea-export';
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    expect(isTabDirty(tabKey, draftScope)).toBe(false);
+
+    sessionStorage.setItem(
+      getFormDraftKey(tabKey, '/orders/sea-export/new', draftScope),
+      JSON.stringify({ name: 'test' }),
+    );
+    expect(isTabDirty(tabKey, draftScope)).toBe(true);
+
+    sessionStorage.clear();
+    expect(isTabDirty(tabKey, draftScope)).toBe(false);
+  });
+
+  it('实时守卫尚未更新时，已写入的草稿仍能阻止页签关闭', () => {
+    const tabKey = '/orders/sea-export';
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    registerTabCloseGuard(tabKey, { isDirty: () => false });
+    sessionStorage.setItem(
+      getFormDraftKey(tabKey, '/orders/sea-export/new', draftScope),
+      JSON.stringify({ name: 'test' }),
+    );
+
+    expect(isTabDirty(tabKey, draftScope)).toBe(true);
   });
 
   it('返回默认提示文案，或自定义文案', () => {

@@ -1,19 +1,26 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { Modal } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getFormDraftKey, getFormDraftScope, hasTabDraft } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
+import {
+  computeNextActivePath,
+  FIXED_TAB,
+  shouldIgnorePath,
+  type TagItem,
+  TagsView,
+} from './TagsView';
 import {
   _clearAllTabCloseGuards,
   registerTabCloseGuard,
 } from './tabCloseGuard';
-import {
-  FIXED_TAB,
-  type TagItem,
-  TagsView,
-  computeNextActivePath,
-  shouldIgnorePath,
-} from './TagsView';
 
 const mockPush = vi.fn();
 let mockPathname = '/welcome';
@@ -29,6 +36,14 @@ vi.mock('@umijs/max', () => ({
     search: mockSearch,
     hash: mockHash,
   }),
+  useModel: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user-1',
+        currentOrganization: { id: 'org-1' },
+      },
+    },
+  }),
 }));
 
 describe('routeUtils', () => {
@@ -40,26 +55,42 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
       expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新增海运出口');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe('海运出口详情');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe('海运出口费用录入');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/split')).toBe('海运出口拆票');
+      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe(
+        '海运出口详情',
+      );
+      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe(
+        '海运出口费用录入',
+      );
+      expect(
+        resolveRouteTitle('/orders/sea-export/SE2026082600004/split'),
+      ).toBe('海运出口拆票');
       expect(resolveRouteTitle('/orders/sea-import')).toBe('海运进口订单列表');
       expect(resolveRouteTitle('/orders/sea-import/new')).toBe('新增海运进口');
       expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口订单列表');
       expect(resolveRouteTitle('/orders/air-export/new')).toBe('新增空运出口');
-      expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe('空运出口详情');
-      expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe('空运出口费用录入');
+      expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe(
+        '空运出口详情',
+      );
+      expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe(
+        '空运出口费用录入',
+      );
       expect(resolveRouteTitle('/orders/air-import')).toBe('空运进口订单列表');
       expect(resolveRouteTitle('/orders/air-import/new')).toBe('新增空运进口');
       expect(resolveRouteTitle('/partners/customers')).toBe('客户');
       expect(resolveRouteTitle('/partners/customers/create')).toBe('新建客户');
       expect(resolveRouteTitle('/partners/customers/123')).toBe('客户详情');
       expect(resolveRouteTitle('/partners/suppliers')).toBe('供应商');
-      expect(resolveRouteTitle('/partners/suppliers/create')).toBe('新建供应商');
+      expect(resolveRouteTitle('/partners/suppliers/create')).toBe(
+        '新建供应商',
+      );
       expect(resolveRouteTitle('/partners/suppliers/456')).toBe('供应商详情');
       expect(resolveRouteTitle('/partners/foreign-agents')).toBe('国外代理');
-      expect(resolveRouteTitle('/partners/foreign-agents/create')).toBe('新建国外代理');
-      expect(resolveRouteTitle('/partners/foreign-agents/789')).toBe('国外代理详情');
+      expect(resolveRouteTitle('/partners/foreign-agents/create')).toBe(
+        '新建国外代理',
+      );
+      expect(resolveRouteTitle('/partners/foreign-agents/789')).toBe(
+        '国外代理详情',
+      );
       expect(resolveRouteTitle('/finance/fees')).toBe('集运费用明细');
       expect(resolveRouteTitle('/finance/fees/detail/FEE123')).toBe('费用详情');
       expect(resolveRouteTitle('/master-data')).toBe('主数据');
@@ -88,35 +119,63 @@ describe('routeUtils', () => {
       expect(resolveTabKey('/partners/suppliers/456/audit')).toBe(
         '/partners/suppliers/456/audit',
       );
-      expect(resolveTabKey('/finance/fees/export')).toBe('/finance/fees/export');
+      expect(resolveTabKey('/finance/fees/export')).toBe(
+        '/finance/fees/export',
+      );
     });
     it('海运出口所有子路由归组为 /orders/sea-export', () => {
       expect(resolveTabKey('/orders/sea-export')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/new')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/fees')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/split')).toBe('/orders/sea-export');
+      expect(resolveTabKey('/orders/sea-export/new')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004/fees')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004/split')).toBe(
+        '/orders/sea-export',
+      );
     });
 
     it('客商三类入口各自归组且互不合并', () => {
       expect(resolveTabKey('/partners/customers')).toBe('/partners/customers');
-      expect(resolveTabKey('/partners/customers/create')).toBe('/partners/customers');
-      expect(resolveTabKey('/partners/customers/123')).toBe('/partners/customers');
+      expect(resolveTabKey('/partners/customers/create')).toBe(
+        '/partners/customers',
+      );
+      expect(resolveTabKey('/partners/customers/123')).toBe(
+        '/partners/customers',
+      );
 
       expect(resolveTabKey('/partners/suppliers')).toBe('/partners/suppliers');
-      expect(resolveTabKey('/partners/suppliers/create')).toBe('/partners/suppliers');
-      expect(resolveTabKey('/partners/suppliers/456')).toBe('/partners/suppliers');
+      expect(resolveTabKey('/partners/suppliers/create')).toBe(
+        '/partners/suppliers',
+      );
+      expect(resolveTabKey('/partners/suppliers/456')).toBe(
+        '/partners/suppliers',
+      );
 
-      expect(resolveTabKey('/partners/foreign-agents')).toBe('/partners/foreign-agents');
-      expect(resolveTabKey('/partners/foreign-agents/create')).toBe('/partners/foreign-agents');
-      expect(resolveTabKey('/partners/foreign-agents/789')).toBe('/partners/foreign-agents');
+      expect(resolveTabKey('/partners/foreign-agents')).toBe(
+        '/partners/foreign-agents',
+      );
+      expect(resolveTabKey('/partners/foreign-agents/create')).toBe(
+        '/partners/foreign-agents',
+      );
+      expect(resolveTabKey('/partners/foreign-agents/789')).toBe(
+        '/partners/foreign-agents',
+      );
     });
 
     it('集运费用明细与单票详情归组为 /finance/fees', () => {
       expect(resolveTabKey('/finance/fees')).toBe('/finance/fees');
-      expect(resolveTabKey('/finance/fees/detail/FEE123')).toBe('/finance/fees');
+      expect(resolveTabKey('/finance/fees/detail/FEE123')).toBe(
+        '/finance/fees',
+      );
       // 费用其他设置项不归入费用明细
-      expect(resolveTabKey('/finance/fee-settings')).toBe('/finance/fee-settings');
+      expect(resolveTabKey('/finance/fee-settings')).toBe(
+        '/finance/fee-settings',
+      );
       expect(resolveTabKey('/finance/bills')).toBe('/finance/bills');
     });
 
@@ -147,7 +206,12 @@ describe('TagsView logic', () => {
   it('关闭非当前激活页签时不触发跳转', () => {
     const tags: TagItem[] = [
       FIXED_TAB,
-      { key: '/orders/sea-export', path: '/orders/sea-export', title: '海运出口', closable: true },
+      {
+        key: '/orders/sea-export',
+        path: '/orders/sea-export',
+        title: '海运出口',
+        closable: true,
+      },
       {
         key: '/partners/customers',
         path: '/partners/customers',
@@ -156,7 +220,11 @@ describe('TagsView logic', () => {
       },
     ];
     // 当前稳定 key 为 /orders/sea-export，关闭 /partners/customers
-    const next = computeNextActivePath(tags, '/partners/customers', '/orders/sea-export');
+    const next = computeNextActivePath(
+      tags,
+      '/partners/customers',
+      '/orders/sea-export',
+    );
     expect(next).toBeNull();
   });
 
@@ -177,16 +245,29 @@ describe('TagsView logic', () => {
       },
     ];
     // 当前在客户详情，关闭客户页签后激活海运出口并恢复其最新完整 path
-    const next = computeNextActivePath(tags, '/partners/customers', '/partners/customers');
+    const next = computeNextActivePath(
+      tags,
+      '/partners/customers',
+      '/partners/customers',
+    );
     expect(next).toBe('/orders/sea-export/SE001?tab=fees');
   });
 
   it('关闭列表中唯一可关闭页签时回退到工作台', () => {
     const tags: TagItem[] = [
       FIXED_TAB,
-      { key: '/orders/sea-export', path: '/orders/sea-export', title: '海运出口', closable: true },
+      {
+        key: '/orders/sea-export',
+        path: '/orders/sea-export',
+        title: '海运出口',
+        closable: true,
+      },
     ];
-    const next = computeNextActivePath(tags, '/orders/sea-export', '/orders/sea-export');
+    const next = computeNextActivePath(
+      tags,
+      '/orders/sea-export',
+      '/orders/sea-export',
+    );
     expect(next).toBe('/welcome');
   });
 });
@@ -195,6 +276,7 @@ describe('TagsView Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
     mockPathname = '/welcome';
     mockSearch = '';
     mockHash = '';
@@ -202,6 +284,7 @@ describe('TagsView Component', () => {
 
   afterEach(() => {
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
     cleanup();
   });
 
@@ -717,6 +800,39 @@ describe('TagsView Component', () => {
     });
     expect(screen.queryByText('新增海运出口')).not.toBeInTheDocument();
     expect(screen.getByText('客户')).toBeInTheDocument();
+
+    modalSpy.mockRestore();
+  });
+
+  it('确认关闭已编辑页签后，自动清除该页签在 sessionStorage 中的草稿', () => {
+    mockPathname = '/orders/sea-export/SE001';
+    render(<TagsView />);
+
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    const draftKey = getFormDraftKey(
+      '/orders/sea-export',
+      '/orders/sea-export/SE001',
+      draftScope,
+    );
+    sessionStorage.setItem(draftKey, JSON.stringify({ field: 'value' }));
+    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(true);
+
+    const modalSpy = vi.spyOn(Modal, 'confirm');
+
+    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+
+    // 确认离开
+    act(() => {
+      modalSpy.mock.calls[0][0].onOk?.();
+    });
+
+    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(false);
+    expect(sessionStorage.getItem(draftKey)).toBeNull();
 
     modalSpy.mockRestore();
   });

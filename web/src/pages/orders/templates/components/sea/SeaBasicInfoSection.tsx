@@ -8,7 +8,7 @@ import {
 import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
 import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
-import { PartnerRoleType, TradeTerm } from '@/enums.generated';
+import { PartnerRoleType } from '@/enums.generated';
 import {
   shipmentModeOptions,
   shipmentTypeOptions,
@@ -286,7 +286,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
             label="贸易条款"
             options={tradeTermOptions}
             placeholder="请选择"
-            initialValue={TradeTerm.TRADE_TERM_CIF}
           />
         </Col>
         <Col className="col-5">

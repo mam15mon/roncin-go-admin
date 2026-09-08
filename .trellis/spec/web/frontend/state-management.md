@@ -17,6 +17,73 @@
 - 表单、弹窗开合等 UI 状态留在组件内；跨页面共享的 UI 偏好才考虑全局。
 - 不把接口响应镜像进全局 store 再派生——直接消费服务端状态层。
 
+## 场景：跨页签表单草稿
+
+### 1. 适用范围
+
+- 适用于 `OrderFormTemplate` 等在 `sessionStorage` 暂存未提交表单、并由
+  `TagsView` 在后台页签关闭时继续判断脏状态的场景。
+- 该存储跨组件挂载存在，必须视为用户与组织级业务数据，不能只按路由命名。
+
+### 2. 签名
+
+```ts
+getFormDraftScope(userId?: string, organizationId?: string): string | undefined;
+getFormDraftKey(tabKey?: string, pathname?: string, draftScope?: string): string;
+hasTabDraft(tabKey: string, draftScope?: string): boolean;
+clearTabDrafts(tabKey: string, draftScope?: string): void;
+```
+
+### 3. 契约
+
+- 草稿键必须同时包含用户 ID、当前组织 ID、稳定页签 key 与完整 pathname；缺少用户或组织时
+  禁止持久化草稿。
+- 身份命名空间变化时表单必须重新挂载，先使用新身份的 `initialValues`，再恢复新身份自己的
+  草稿；不得保留旧组织的 Form store。
+- 页签脏状态取“实时 guard 或当前身份持久草稿”，防止 React 状态尚未提交时漏掉已同步写入
+  的草稿。
+- 用户确认关闭后，只清除当前身份、目标页签下的草稿；其他用户或组织的草稿保持不变。
+- 日期反序列化覆盖订单表单使用的 `*Date`、`*Cutoff`、`*At` 以及 `etd`、`eta` 等字段，普通
+  ISO 格式文本不得仅凭值形态被转换。
+
+### 4. 校验与错误矩阵
+
+| 条件 | 行为 |
+| --- | --- |
+| 用户 ID 或组织 ID 缺失 | 不生成草稿键，不读写草稿；实时关闭 guard 仍工作 |
+| 同用户切换组织 | 重建表单，只加载新组织命名空间 |
+| 同组织切换用户 | 不读取原用户草稿 |
+| 存储不可用、超限或 JSON 非法 | 捕获存储异常；读取返回 `null`，不阻断表单 |
+| 实时 guard 为 false、当前身份已有草稿 | 仍判定为 dirty |
+| 用户取消关闭 | 保留页签与草稿 |
+| 用户确认关闭 | 仅清理当前身份与目标页签草稿 |
+
+### 5. Good / Base / Bad
+
+- Good：用户 A 在组织 1 输入后切到组织 2，页面展示组织 2 默认值或其自身草稿；组织 1 草稿
+  留存且不会显示。
+- Base：没有草稿时按当前表单 `initialValues` 渲染，关闭页签不提示。
+- Bad：使用 `roncin:form-draft:${tabKey}:${pathname}`，导致不同用户或组织共享同一个键。
+
+### 6. 必需测试
+
+- 工具测试：同页签、同路径的两个身份命名空间可以独立保存、判断和清理。
+- 模板测试：在同一个组件实例切换 `draftScope`，旧输入消失，新身份默认值或草稿正确显示。
+- 关闭保护测试：实时 guard 暂为 false 但草稿已写入时仍提示；确认后仅清理当前 scope。
+- 日期测试：嵌套对象中的 `cargoReadyAt`、截止时间及 `etd`/`eta` 恢复为 Dayjs，普通文本保持
+  字符串。
+
+### 7. 错误与正确示例
+
+```ts
+// 错误：组织切换后仍命中同一个草稿。
+getFormDraftKey(tabKey, pathname);
+
+// 正确：草稿键绑定当前用户和组织；缺少身份时返回空键并跳过持久化。
+const draftScope = getFormDraftScope(user.id, currentOrganization.id);
+getFormDraftKey(tabKey, pathname, draftScope);
+```
+
 ## 场景：列表筛选驱动的前端 CSV 导出
 
 ### 1. 使用范围

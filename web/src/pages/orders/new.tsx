@@ -4,32 +4,29 @@ import { history, useAccess, useModel, useParams } from '@umijs/max';
 import { App, Button, Card, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
+import { getFormDraftScope } from '@/components/layout/formDraft';
+import { resolveTabKey } from '@/components/layout/routeUtils';
+import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import {
   OrderReferenceType,
   ShipmentMode,
   ShipmentType,
   TradeTerm,
 } from '@/enums.generated';
-import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import OrderPageHeader from './components/OrderPageHeader';
 import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
-import { resolveTabKey } from '@/components/layout/routeUtils';
+import { searchShippingLineOptions } from '@/utils/options';
+import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
+import OrderPageHeader from './components/OrderPageHeader';
 import {
-  PARTNER_ROLES,
-  parseOrderKind,
-  searchPartnersByRole,
-} from './common';
-import {
-  type CreateOrderFormValues,
   buildCreateOrderPayload,
+  type CreateOrderFormValues,
 } from './order-create-payload';
 import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
 import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderCreateOptions } from './use-order-create-options';
-import { searchShippingLineOptions } from '@/utils/options';
 
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
@@ -37,6 +34,10 @@ export default function NewOrderPage() {
   const { message } = App.useApp();
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
+  const draftScope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    initialState?.currentUser?.currentOrganization?.id,
+  );
 
   const config = parseOrderKind(params.kind);
 
@@ -118,13 +119,9 @@ export default function NewOrderPage() {
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: () =>
-        checkOrderReference(
-          OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER,
-        ),
+        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER),
       checkInternalReferenceNo: () =>
-        checkOrderReference(
-          OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL,
-        ),
+        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL),
       personnelOptions,
       creator:
         initialState?.currentUser?.id &&
@@ -250,6 +247,7 @@ export default function NewOrderPage() {
   return (
     <OrderFormTemplate<CreateOrderFormValues>
       tabKey={config ? resolveTabKey(`/orders/${config.kind}/new`) : undefined}
+      draftScope={draftScope}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
@@ -265,8 +263,7 @@ export default function NewOrderPage() {
         orderDate: dayjs(),
         ...(config.category === 'sea'
           ? {
-              shipmentMode:
-                ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
+              shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
               shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
               tradeTerm: TradeTerm.TRADE_TERM_CIF,
               serviceTypeIds: recommendedServiceIDs(

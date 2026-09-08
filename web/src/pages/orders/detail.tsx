@@ -27,8 +27,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StickyFooterBar } from '@/components/ui';
+import {
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 import {
@@ -38,19 +43,20 @@ import {
 } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
+import { searchShippingLineOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
 import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
-import SameBatchOrdersSection from './components/detail/SameBatchOrdersSection';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import {
   buildInitialValues,
   buildUpdatePayload,
   type OrderDetailFormValues,
 } from './components/detail/orderDetailHelpers';
+import SameBatchOrdersSection from './components/detail/SameBatchOrdersSection';
 import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
 } from './components/drawers/SeaOrderChangeHistoryDrawer';
@@ -66,7 +72,6 @@ import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
-import { searchShippingLineOptions } from '@/utils/options';
 import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
@@ -102,6 +107,7 @@ export default function OrderDetailPage() {
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
+    draftScope,
     loadData,
   } = useOrderDetailData(targetOrderId, config);
 
@@ -144,7 +150,7 @@ export default function OrderDetailPage() {
     setSharedContainerTEId(undefined);
     setSharedContainerOrderId(undefined);
     setIsFormDirty(false);
-  }, [orderId]);
+  }, [draftScope, orderId]);
 
   const loadChangeActions = useCallback(async () => {
     const requestOrderId = orderId;
@@ -227,18 +233,41 @@ export default function OrderDetailPage() {
     [order, shippingDocs, personnel],
   );
 
-  useEffect(() => {
-    if (formRef.current && order) {
-      formRef.current.setFieldsValue(initialValues);
-    }
-  }, [initialValues]);
-
   const lockWritePolicy = getOrderBusinessWritePolicy({
     state: lockState,
     loading: lockStateLoading || synchronizingLockChange,
     error: lockStateError,
   });
   const businessWritesDisabled = lockWritePolicy.disabled;
+
+  // 有效只读 = 无编辑动作权限或业务写入关闭；分节构建器与模板壳必须使用同一判定。
+  const effectiveReadonly =
+    order?.allowedActions?.includes(
+      OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT,
+    ) !== true || businessWritesDisabled;
+
+  const draftKey =
+    config && orderId
+      ? getFormDraftKey(
+          resolveTabKey(`/orders/${config.kind}/${orderId}`),
+          `/orders/${config.kind}/${orderId}`,
+          draftScope,
+        )
+      : undefined;
+
+  useEffect(() => {
+    if (formRef.current && order) {
+      const draft = draftKey
+        ? getFormDraft<Partial<OrderDetailFormValues>>(draftKey)
+        : null;
+      if (draft && !effectiveReadonly) {
+        formRef.current.setFieldsValue({ ...initialValues, ...draft });
+        setIsFormDirty(true);
+      } else {
+        formRef.current.setFieldsValue(initialValues);
+      }
+    }
+  }, [initialValues, draftKey, effectiveReadonly]);
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
 
@@ -291,7 +320,7 @@ export default function OrderDetailPage() {
       checkCustomerReferenceNo: async () => {},
       checkInternalReferenceNo: async () => {},
       personnelOptions,
-      readonly: businessWritesDisabled,
+      readonly: effectiveReadonly,
       onOrderDataChanged: loadData,
     }),
     [
@@ -302,7 +331,7 @@ export default function OrderDetailPage() {
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
-      businessWritesDisabled,
+      effectiveReadonly,
       loadData,
     ],
   );
@@ -364,6 +393,9 @@ export default function OrderDetailPage() {
       );
       await orderServiceUpdateOrder({ id: orderId }, payload);
       message.success('保存订单成功');
+      if (draftKey) {
+        clearFormDraft(draftKey);
+      }
       setIsFormDirty(false);
       await Promise.all([loadData(), refreshLockState()]);
       return true;
@@ -573,6 +605,9 @@ export default function OrderDetailPage() {
       icon: <ReloadOutlined />,
       label: '刷新数据',
       onClick: () => {
+        if (draftKey) {
+          clearFormDraft(draftKey);
+        }
         setIsFormDirty(false);
         void loadData();
         void refreshLockState();
@@ -589,15 +624,19 @@ export default function OrderDetailPage() {
             ? resolveTabKey(`/orders/${config.kind}/${orderId}`)
             : undefined
         }
+        draftScope={draftScope}
         loading={false}
-        readonly={
-          !hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) ||
-          businessWritesDisabled
-        }
+        readonly={effectiveReadonly}
         formRef={formRef}
         initialValues={initialValues}
         dirty={isFormDirty}
         onDirtyChange={setIsFormDirty}
+        onReset={() => {
+          if (draftKey) {
+            clearFormDraft(draftKey);
+          }
+          setIsFormDirty(false);
+        }}
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader
@@ -676,6 +715,9 @@ export default function OrderDetailPage() {
                 <Button
                   icon={<UndoOutlined />}
                   onClick={() => {
+                    if (draftKey) {
+                      clearFormDraft(draftKey);
+                    }
                     formRef.current?.setFieldsValue(initialValues);
                     setIsFormDirty(false);
                   }}

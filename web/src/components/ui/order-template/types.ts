@@ -38,6 +38,8 @@ export interface OrderFormTemplateProps<T> {
   footer?: ReactNode;
   /** 自定义页签 Key，不传时自动根据当前路由解析 */
   tabKey?: string;
+  /** 用户与组织组成的草稿命名空间；缺失时不持久化草稿。 */
+  draftScope?: string;
   /** 外部受控脏检查状态；若不传则由组件内部自动追踪 */
   dirty?: boolean;
   /** 脏检查状态发生变化时的回调 */

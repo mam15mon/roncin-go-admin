@@ -1,7 +1,19 @@
 import { ProFormText } from '@ant-design/pro-components';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+  hasTabDraft,
+} from '@/components/layout/formDraft';
 import {
   _clearAllTabCloseGuards,
   isTabDirty,
@@ -9,12 +21,16 @@ import {
 import { OrderFormTemplate } from './OrderFormTemplate';
 
 describe('OrderFormTemplate Component', () => {
+  const draftScope = getFormDraftScope('user-1', 'org-1');
+
   beforeEach(() => {
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
     _clearAllTabCloseGuards();
+    sessionStorage.clear();
     cleanup();
   });
 
@@ -61,7 +77,9 @@ describe('OrderFormTemplate Component', () => {
       />,
     );
 
-    expect(container.querySelector('.roncin-order-form-skeleton')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('.roncin-order-form-skeleton'),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('真实业务信息')).toBeInTheDocument();
     expect(screen.getByText('表单内容区')).toBeInTheDocument();
     expect(screen.getByText('创建海运订单')).toBeInTheDocument();
@@ -141,5 +159,173 @@ describe('OrderFormTemplate Component', () => {
 
     expect(onFinish).toHaveBeenCalled();
     expect(isTabDirty('/orders/sea-export')).toBe(false);
+  });
+
+  it('表单输入内容发生修改时，自动暂存草稿至 sessionStorage', async () => {
+    const tabKey = '/orders/sea-export';
+    render(
+      <OrderFormTemplate
+        tabKey={tabKey}
+        draftScope={draftScope}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="customerReferenceNo"
+                label="客户参考号"
+                placeholder="请输入客户参考号"
+              />
+            ),
+          },
+        ]}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText('请输入客户参考号');
+    act(() => {
+      fireEvent.change(input, { target: { value: 'CR-999' } });
+    });
+
+    expect(hasTabDraft(tabKey, draftScope)).toBe(true);
+    const draft = getFormDraft<{ customerReferenceNo: string }>(
+      getFormDraftKey(tabKey, window.location?.pathname, draftScope),
+    );
+    expect(draft).not.toBeNull();
+    expect(draft?.customerReferenceNo).toBe('CR-999');
+  });
+
+  it('重新挂载（模拟切走后切回）时，自动恢复草稿至表单字段并触发 onDirtyChange', async () => {
+    const tabKey = '/orders/sea-export';
+    const draftKey = getFormDraftKey(
+      tabKey,
+      window.location?.pathname,
+      draftScope,
+    );
+    sessionStorage.setItem(
+      draftKey,
+      JSON.stringify({ customerReferenceNo: 'RESTORED-123' }),
+    );
+
+    const onDirtyChange = vi.fn();
+
+    render(
+      <OrderFormTemplate
+        tabKey={tabKey}
+        draftScope={draftScope}
+        onDirtyChange={onDirtyChange}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="customerReferenceNo"
+                label="客户参考号"
+                placeholder="请输入客户参考号"
+              />
+            ),
+          },
+        ]}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText(
+      '请输入客户参考号',
+    ) as HTMLInputElement;
+    expect(input.value).toBe('RESTORED-123');
+    expect(onDirtyChange).toHaveBeenCalledWith(true);
+    expect(isTabDirty(tabKey)).toBe(true);
+  });
+
+  it('草稿命名空间变化时重建表单，不把原组织输入带入新组织', () => {
+    const tabKey = '/orders/sea-export';
+    const otherDraftScope = getFormDraftScope('user-1', 'org-2');
+    const onDirtyChange = vi.fn();
+    const sections = [
+      {
+        key: 'basic',
+        title: '业务信息',
+        content: (
+          <ProFormText
+            name="customerReferenceNo"
+            label="客户参考号"
+            placeholder="请输入客户参考号"
+          />
+        ),
+      },
+    ];
+    const { rerender } = render(
+      <OrderFormTemplate
+        tabKey={tabKey}
+        draftScope={draftScope}
+        onDirtyChange={onDirtyChange}
+        initialValues={{ customerReferenceNo: 'ORG-1-DEFAULT' }}
+        sections={sections}
+      />,
+    );
+    const input = screen.getByPlaceholderText(
+      '请输入客户参考号',
+    ) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'ORG-1-DRAFT' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+
+    rerender(
+      <OrderFormTemplate
+        tabKey={tabKey}
+        draftScope={otherDraftScope}
+        onDirtyChange={onDirtyChange}
+        initialValues={{ customerReferenceNo: 'ORG-2-DEFAULT' }}
+        sections={sections}
+      />,
+    );
+
+    expect(
+      (screen.getByPlaceholderText('请输入客户参考号') as HTMLInputElement)
+        .value,
+    ).toBe('ORG-2-DEFAULT');
+    expect(hasTabDraft(tabKey, draftScope)).toBe(true);
+    expect(hasTabDraft(tabKey, otherDraftScope)).toBe(false);
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    expect(isTabDirty(tabKey, otherDraftScope)).toBe(false);
+  });
+
+  it('点击重置表单时，清除暂存草稿并重置 dirty 状态', async () => {
+    const tabKey = '/orders/sea-export';
+    render(
+      <OrderFormTemplate
+        tabKey={tabKey}
+        draftScope={draftScope}
+        resetText="重置表单"
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="customerReferenceNo"
+                label="客户参考号"
+                placeholder="请输入客户参考号"
+              />
+            ),
+          },
+        ]}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText('请输入客户参考号');
+    act(() => {
+      fireEvent.change(input, { target: { value: 'TEMP-DATA' } });
+    });
+    expect(hasTabDraft(tabKey, draftScope)).toBe(true);
+
+    const resetBtn = screen.getByText('重置表单');
+    act(() => {
+      fireEvent.click(resetBtn);
+    });
+
+    expect(hasTabDraft(tabKey, draftScope)).toBe(false);
+    expect(isTabDirty(tabKey)).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { Modal } from 'antd';
 import { useEffect, useRef } from 'react';
 import { getAppFeedback } from '@/utils/appFeedback';
+import { hasTabDraft } from './formDraft';
 
 export type TabCloseGuard = {
   isDirty: () => boolean;
@@ -26,10 +27,11 @@ export function registerTabCloseGuard(
 
 /**
  * 检查指定 tabKey 是否处于已编辑未保存（dirty）状态
+ * 同时检查实时状态与持久草稿，避免表单状态更新前的瞬间关闭漏掉已写入的草稿。
  */
-export function isTabDirty(tabKey: string): boolean {
+export function isTabDirty(tabKey: string, draftScope?: string): boolean {
   const guard = guards.get(tabKey);
-  return guard ? Boolean(guard.isDirty()) : false;
+  return Boolean(guard?.isDirty()) || hasTabDraft(tabKey, draftScope);
 }
 
 /**
@@ -49,8 +51,9 @@ export function confirmIfTabsDirty(
   tabKeys: string[],
   onConfirm: () => void,
   customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
+  draftScope?: string,
 ): boolean {
-  const dirtyTabKey = tabKeys.find((key) => isTabDirty(key));
+  const dirtyTabKey = tabKeys.find((key) => isTabDirty(key, draftScope));
   if (!dirtyTabKey) {
     onConfirm();
     return true;
@@ -58,9 +61,7 @@ export function confirmIfTabsDirty(
 
   const message = getTabGuardMessage(dirtyTabKey);
   const confirmFn =
-    customConfirmModal ||
-    getAppFeedback().modal?.confirm ||
-    Modal.confirm;
+    customConfirmModal || getAppFeedback().modal?.confirm || Modal.confirm;
 
   confirmFn({
     title: '提示',

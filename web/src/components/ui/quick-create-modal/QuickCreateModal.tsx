@@ -1,5 +1,5 @@
 import { Alert, App, Button, Form, type FormInstance, Modal } from 'antd';
-import React, { type ReactNode, useState } from 'react';
+import React, { type ReactNode, useRef, useState } from 'react';
 
 /** 可选附加底部动作：点击不触发表单校验或提交，可读取当前表单实例。 */
 export interface QuickCreateModalExtraAction<TFormValues = any> {
@@ -48,16 +48,22 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
   const { message } = App.useApp();
   const form = externalForm || internalForm;
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   const handleSave = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+
     let values: TFormValues;
     try {
       values = await form.validateFields();
     } catch {
+      savingRef.current = false;
+      setSaving(false);
       return;
     }
 
-    setSaving(true);
     try {
       const result = await onSubmit(values);
       if (result !== undefined && result !== null) {
@@ -65,15 +71,22 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
       }
       form.resetFields();
     } catch (error) {
-      message.error((error as Error).message || '保存失败');
+      message.error(error instanceof Error ? error.message : '保存失败');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
+    if (savingRef.current) return;
     form.resetFields();
     onCancel();
+  };
+
+  const handleExtraAction = () => {
+    if (savingRef.current || !extraAction) return;
+    extraAction.onClick(form);
   };
 
   return (
@@ -85,14 +98,24 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
       cancelText={cancelText}
       onOk={() => void handleSave()}
       onCancel={handleCancel}
+      closable={!saving}
+      mask={{ closable: !saving }}
+      keyboard={!saving}
+      cancelButtonProps={{ disabled: saving }}
       centered={centered}
       footer={
         extraAction ? (
           <>
-            <Button type="primary" onClick={() => extraAction.onClick(form)}>
+            <Button
+              type="primary"
+              disabled={saving}
+              onClick={handleExtraAction}
+            >
               {extraAction.text}
             </Button>
-            <Button onClick={handleCancel}>{cancelText}</Button>
+            <Button disabled={saving} onClick={handleCancel}>
+              {cancelText}
+            </Button>
             <Button
               type="primary"
               loading={saving}

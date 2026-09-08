@@ -11,11 +11,12 @@ import {
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { history, useLocation } from '@umijs/max';
+import { history, useLocation, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EllipsisTooltip } from '@/components/ui';
+import { clearTabDrafts, getFormDraftScope } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 import { confirmIfTabsDirty } from './tabCloseGuard';
 
@@ -96,6 +97,11 @@ function getRouteIcon(path: string) {
  */
 export const TagsView: React.FC = () => {
   const location = useLocation();
+  const { initialState } = useModel('@@initialState');
+  const draftScope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    initialState?.currentUser?.currentOrganization?.id,
+  );
   const currentPath = location.pathname;
   const fullPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
   const currentTabKey = resolveTabKey(currentPath);
@@ -209,6 +215,7 @@ export const TagsView: React.FC = () => {
   };
 
   const executeCloseTag = (tag: TagItem) => {
+    clearTabDrafts(tag.key, draftScope);
     const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
     setTags((prev) => prev.filter((t) => t.key !== tag.key));
 
@@ -221,9 +228,14 @@ export const TagsView: React.FC = () => {
     e.stopPropagation();
     if (!tag.closable) return;
 
-    confirmIfTabsDirty([tag.key], () => {
-      executeCloseTag(tag);
-    });
+    confirmIfTabsDirty(
+      [tag.key],
+      () => {
+        executeCloseTag(tag);
+      },
+      undefined,
+      draftScope,
+    );
   };
 
   // 右键快捷菜单逻辑
@@ -254,9 +266,14 @@ export const TagsView: React.FC = () => {
         label: '关闭标签页',
         disabled: !tag.closable,
         onClick: () => {
-          confirmIfTabsDirty([tag.key], () => {
-            executeCloseTag(tag);
-          });
+          confirmIfTabsDirty(
+            [tag.key],
+            () => {
+              executeCloseTag(tag);
+            },
+            undefined,
+            draftScope,
+          );
         },
       },
       {
@@ -271,6 +288,9 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
               if (tag.key === '/welcome') {
                 setTags([FIXED_TAB]);
                 history.push('/welcome');
@@ -279,6 +299,8 @@ export const TagsView: React.FC = () => {
                 history.push(tag.path);
               }
             },
+            undefined,
+            draftScope,
           );
         },
       },
@@ -292,12 +314,19 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
               setTags((prev) => prev.slice(0, currentIndex + 1));
-              const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+              const activeIndex = tags.findIndex(
+                (t) => t.key === currentTabKey,
+              );
               if (currentIndex < activeIndex) {
                 history.push(tag.path);
               }
             },
+            undefined,
+            draftScope,
           );
         },
       },
@@ -311,12 +340,19 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
               setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
-              const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
+              const activeIndex = tags.findIndex(
+                (t) => t.key === currentTabKey,
+              );
               if (activeIndex > 0 && activeIndex < currentIndex) {
                 history.push(tag.path);
               }
             },
+            undefined,
+            draftScope,
           );
         },
       },
@@ -329,8 +365,7 @@ export const TagsView: React.FC = () => {
         {tags.map((tag, index) => {
           const isActive = currentTabKey === tag.key;
           const isNextActive =
-            index < tags.length - 1 &&
-            currentTabKey === tags[index + 1].key;
+            index < tags.length - 1 && currentTabKey === tags[index + 1].key;
 
           return (
             <Dropdown

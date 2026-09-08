@@ -1,16 +1,22 @@
 import { Col, Form, Input, Row, Select } from 'antd';
 import React from 'react';
 import { QuickCreateModal } from '@/components/ui/quick-create-modal';
+import {
+  PartnerRoleType,
+  type PartnerRoleType as PartnerRoleTypeValue,
+} from '@/enums.generated';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
+
+type QuickAddPartnerFormValues = {
+  legalName: string;
+  unifiedSocialCreditCode: string;
+  roles: PartnerRoleTypeValue[];
+};
 
 type QuickAddPartnerModalProps = {
   open: boolean;
   onCancel: () => void;
-  onSuccess: (newPartner: {
-    id: string;
-    name: string;
-    code?: string;
-  }) => void;
+  onSuccess: (newPartner: { id: string; name: string; code?: string }) => void;
 };
 
 export default function QuickAddPartnerModal({
@@ -20,7 +26,7 @@ export default function QuickAddPartnerModal({
 }: QuickAddPartnerModalProps) {
   return (
     <QuickCreateModal<
-      any,
+      QuickAddPartnerFormValues,
       {
         id: string;
         name: string;
@@ -33,23 +39,21 @@ export default function QuickAddPartnerModal({
       onCancel={onCancel}
       onSuccess={onSuccess}
       onSubmit={async (values) => {
-        const roles = (values.roles as string[]).map((r) => ({
-          type: r === 'CUSTOMER' ? 1 : 2,
-        }));
         const res = await partnerServiceCreatePartner({
-          legalName: values.legalName,
-          code: values.code || undefined,
-          unifiedSocialCreditCode: values.unifiedSocialCreditCode || undefined,
-          roles,
+          legalName: values.legalName.trim(),
+          unifiedSocialCreditCode: values.unifiedSocialCreditCode
+            .trim()
+            .toUpperCase(),
+          roles: values.roles.map((type) => ({ type, enabled: true })),
         });
         if (res.data?.id) {
           return {
             id: res.data.id,
-            name: res.data.legalName ?? values.legalName,
+            name: res.data.legalName ?? values.legalName.trim(),
             code: res.data.code,
           };
         }
-        return undefined;
+        throw new Error('创建结果缺少伙伴 ID，请重试');
       }}
     >
       <Row gutter={16}>
@@ -65,20 +69,26 @@ export default function QuickAddPartnerModal({
             <Input placeholder="工商登记全称或客商名称" maxLength={200} />
           </Form.Item>
         </Col>
-        <Col span={12}>
-          <Form.Item name="code" label="客商代码（选填）">
-            <Input
-              placeholder="例如：COSCO、SITC（留空自动生成）"
-              maxLength={50}
-            />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
+        <Col span={24}>
           <Form.Item
             name="unifiedSocialCreditCode"
-            label="统一社会信用代码（选填）"
+            label="统一社会信用代码"
+            normalize={(value) =>
+              typeof value === 'string' ? value.trim().toUpperCase() : value
+            }
+            rules={[
+              {
+                required: true,
+                whitespace: true,
+                message: '请输入统一社会信用代码',
+              },
+              {
+                pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
+                message: '请输入正确的18位统一社会信用代码',
+              },
+            ]}
           >
-            <Input placeholder="18 位税号" maxLength={50} />
+            <Input placeholder="18 位统一社会信用代码" maxLength={18} />
           </Form.Item>
         </Col>
         <Col span={24}>
@@ -90,10 +100,13 @@ export default function QuickAddPartnerModal({
             <Select
               mode="multiple"
               options={[
-                { label: '客户 (委托单位/收发通)', value: 'CUSTOMER' },
+                {
+                  label: '客户 (委托单位/收发通)',
+                  value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+                },
                 {
                   label: '供应商 (船东/车队/报关行/码头)',
-                  value: 'SUPPLIER',
+                  value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
                 },
               ]}
             />

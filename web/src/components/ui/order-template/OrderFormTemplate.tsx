@@ -1,7 +1,13 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import { SectionCard } from '../page-shell/SectionCard';
@@ -38,6 +44,7 @@ export function OrderFormTemplate<T>({
   resetText = '重置',
   footer,
   tabKey,
+  draftScope,
   dirty,
   onDirtyChange,
   enableCloseGuard = true,
@@ -49,14 +56,20 @@ export function OrderFormTemplate<T>({
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
+  const currentPathname =
+    typeof window !== 'undefined' ? window.location?.pathname : undefined;
+
   const resolvedTabKey =
-    tabKey ||
-    (typeof window !== 'undefined' && window.location?.pathname
-      ? resolveTabKey(window.location.pathname)
-      : undefined);
+    tabKey || (currentPathname ? resolveTabKey(currentPathname) : undefined);
+
+  const draftKey =
+    resolvedTabKey && draftScope
+      ? getFormDraftKey(resolvedTabKey, currentPathname, draftScope)
+      : undefined;
 
   const [internalDirty, setInternalDirty] = useState(false);
   const isFormDirty = dirty !== undefined ? dirty : internalDirty;
+  const previousDraftKeyRef = useRef(draftKey);
 
   useTabCloseGuard({
     tabKey: resolvedTabKey,
@@ -65,12 +78,32 @@ export function OrderFormTemplate<T>({
     enabled: !readonly && enableCloseGuard,
   });
 
+  // 挂载时检查并恢复草稿数据
+  useEffect(() => {
+    const draftContextChanged = previousDraftKeyRef.current !== draftKey;
+    previousDraftKeyRef.current = draftKey;
+    if (draftContextChanged) {
+      setInternalDirty(false);
+      onDirtyChange?.(false);
+    }
+    if (readonly || !draftKey || loading) return;
+    const draft = getFormDraft<Partial<T>>(draftKey);
+    if (draft && typeof draft === 'object' && Object.keys(draft).length > 0) {
+      resolvedFormRef.current?.setFieldsValue(draft);
+      setInternalDirty(true);
+      onDirtyChange?.(true);
+    }
+  }, [draftKey, readonly, loading]);
+
   const handleFinish = async (values: T) => {
     if (!onFinish) return true;
     setSubmitting(true);
     try {
       const result = await onFinish(values);
       if (result !== false) {
+        if (draftKey) {
+          clearFormDraft(draftKey);
+        }
         setInternalDirty(false);
         onDirtyChange?.(false);
       }
@@ -81,11 +114,7 @@ export function OrderFormTemplate<T>({
   };
 
   const renderSection = (section: OrderFormTemplateSection) => (
-    <SectionCard
-      key={section.key}
-      title={section.title}
-      extra={section.extra}
-    >
+    <SectionCard key={section.key} title={section.title} extra={section.extra}>
       <Row gutter={16}>{section.content}</Row>
     </SectionCard>
   );
@@ -133,6 +162,7 @@ export function OrderFormTemplate<T>({
         </div>
       ) : (
         <ProForm<T>
+          key={draftKey}
           className="roncin-order-form"
           formRef={resolvedFormRef}
           autoComplete="off"
@@ -149,9 +179,15 @@ export function OrderFormTemplate<T>({
               setInternalDirty(true);
               onDirtyChange?.(true);
             }
+            if (!readonly && draftKey) {
+              saveFormDraft(draftKey, allValues);
+            }
             onValuesChange?.(changedValues, allValues);
           }}
           onReset={() => {
+            if (draftKey) {
+              clearFormDraft(draftKey);
+            }
             setInternalDirty(false);
             onDirtyChange?.(false);
             onReset?.();

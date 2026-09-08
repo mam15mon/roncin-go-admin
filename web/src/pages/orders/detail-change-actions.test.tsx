@@ -8,6 +8,7 @@ import {
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderAllowedAction } from '@/enums.generated';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import OrderDetailPage from './detail';
 
@@ -17,6 +18,10 @@ const routeState = vi.hoisted(() => ({
 
 const detailTestState = vi.hoisted(() => ({
   loadData: vi.fn<(orderId?: string) => Promise<void>>(),
+  allowedActions: [1] as number[],
+  lockState: { isLocked: false } as API.OrderLockStateData | null,
+  sectionReadonly: undefined as boolean | undefined,
+  templateReadonly: undefined as boolean | undefined,
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -33,7 +38,12 @@ vi.mock('./use-order-detail-data', () => ({
   useOrderDetailData: (orderId?: string) => ({
     loading: false,
     order: orderId
-      ? { id: orderId, orderNo: `ORDER-${orderId}`, version: '1' }
+      ? {
+          id: orderId,
+          orderNo: `ORDER-${orderId}`,
+          version: '1',
+          allowedActions: detailTestState.allowedActions,
+        }
       : undefined,
     shippingDocs: [],
     personnel: [],
@@ -54,7 +64,7 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
   return {
     ...actual,
     useOrderLockState: () => ({
-      state: null,
+      state: detailTestState.lockState,
       loading: false,
       error: null,
       refresh: vi.fn().mockResolvedValue(null),
@@ -63,7 +73,27 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
 });
 
 vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
-  OrderFormTemplate: ({ header }: { header: React.ReactNode }) => header,
+  OrderFormTemplate: ({
+    header,
+    readonly,
+  }: {
+    header: React.ReactNode;
+    readonly?: boolean;
+  }) => {
+    detailTestState.templateReadonly = readonly;
+    return header;
+  },
+}));
+
+vi.mock('./templates', () => ({
+  getAirTemplateSections: (props: { readonly?: boolean }) => {
+    detailTestState.sectionReadonly = props.readonly;
+    return [];
+  },
+  getSeaTemplateSections: (props: { readonly?: boolean }) => {
+    detailTestState.sectionReadonly = props.readonly;
+    return [];
+  },
 }));
 
 vi.mock('./components/detail/OrderDetailHeader', () => ({
@@ -138,6 +168,54 @@ describe('订单详情页拆票与改配动作隔离', () => {
     vi.clearAllMocks();
     routeState.params = { kind: 'sea-export', id: 'ord-A' };
     detailTestState.loadData.mockResolvedValue(undefined);
+    detailTestState.allowedActions = [
+      OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT,
+    ];
+    detailTestState.lockState = { isLocked: false } as API.OrderLockStateData;
+    detailTestState.sectionReadonly = undefined;
+    detailTestState.templateReadonly = undefined;
+  });
+
+  it.each([
+    {
+      name: '缺少编辑动作权限',
+      allowedActions: [] as number[],
+      lockState: { isLocked: false } as API.OrderLockStateData,
+    },
+    {
+      name: '订单已锁定',
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
+      lockState: { isLocked: true } as API.OrderLockStateData,
+    },
+  ])(
+    '$name 时模板与分节使用同一完整只读值',
+    ({ allowedActions, lockState }) => {
+      detailTestState.allowedActions = allowedActions;
+      detailTestState.lockState = lockState;
+      mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+      render(
+        <App>
+          <OrderDetailPage />
+        </App>,
+      );
+
+      expect(detailTestState.sectionReadonly).toBe(true);
+      expect(detailTestState.templateReadonly).toBe(true);
+    },
+  );
+
+  it('有编辑动作且未锁单时模板与分节均可编辑', () => {
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    expect(detailTestState.sectionReadonly).toBe(false);
+    expect(detailTestState.templateReadonly).toBe(false);
   });
 
   it('A 与 B 响应逆序返回时，仅展示当前订单 B 的动作资格', async () => {

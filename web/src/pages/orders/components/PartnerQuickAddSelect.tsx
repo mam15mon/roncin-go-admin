@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { history, useAccess, useModel } from '@umijs/max';
-import { Form, Input } from 'antd';
+import { Button, Form, Input } from 'antd';
 import React, {
   type ReactNode,
   useCallback,
@@ -61,42 +61,80 @@ export default function PartnerQuickAddSelect({
   const orderForm = Form.useFormInstance();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectOpen, setSelectOpen] = useState(false);
   // params 版本号：新建选项或组织变化后驱动 ProFormSelect 重新请求。
   const [optionsRevision, setOptionsRevision] = useState(0);
-  const createdOptionsRef = useRef<PartnerSelectOption[]>([]);
-  const requestSequenceRef = useRef(0);
-  const organizationIdRef = useRef(
-    initialState?.currentUser?.currentOrganization?.id,
-  );
   const currentOrganizationId =
     initialState?.currentUser?.currentOrganization?.id;
+  const createdOptionsRef = useRef<PartnerSelectOption[]>([]);
+  const availableOptionsRef = useRef<Map<string | number, PartnerSelectOption>>(
+    new Map(),
+  );
+  const optionsOrganizationIdRef = useRef(currentOrganizationId);
+  const searchSequenceRef = useRef(0);
+  const createSequenceRef = useRef(0);
+  const organizationIdRef = useRef(currentOrganizationId);
+  const previousOrganizationIdRef = useRef(currentOrganizationId);
+  organizationIdRef.current = currentOrganizationId;
 
   // 组织切换：关闭弹窗、清空本地新选项，并让在途请求/创建响应全部失效。
   useEffect(() => {
-    if (organizationIdRef.current === currentOrganizationId) return;
-    organizationIdRef.current = currentOrganizationId;
-    requestSequenceRef.current += 1;
+    if (previousOrganizationIdRef.current === currentOrganizationId) return;
+    previousOrganizationIdRef.current = currentOrganizationId;
+    searchSequenceRef.current += 1;
+    createSequenceRef.current += 1;
     createdOptionsRef.current = [];
+    availableOptionsRef.current.clear();
+    optionsOrganizationIdRef.current = currentOrganizationId;
     setOptionsRevision((revision) => revision + 1);
+    setSelectOpen(false);
     setModalOpen(false);
   }, [currentOrganizationId]);
 
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
 
+  useEffect(() => {
+    if (canQuickAdd) return;
+    searchSequenceRef.current += 1;
+    createSequenceRef.current += 1;
+    setSelectOpen(false);
+    setModalOpen(false);
+  }, [canQuickAdd]);
+
   const request = useCallback(
     async ({ keyWords }: { keyWords?: string }) => {
-      const sequence = ++requestSequenceRef.current;
+      const sequence = ++searchSequenceRef.current;
       const organizationAtRequest = organizationIdRef.current;
-      const remote = await searchPartners(keyWords);
+      if (!organizationAtRequest) return [];
+      let remote: PartnerSelectOption[];
+      try {
+        remote = await searchPartners(keyWords);
+      } catch (error) {
+        if (
+          sequence !== searchSequenceRef.current ||
+          organizationAtRequest !== organizationIdRef.current
+        ) {
+          return [];
+        }
+        throw error;
+      }
       if (
-        sequence !== requestSequenceRef.current ||
+        sequence !== searchSequenceRef.current ||
         organizationAtRequest !== organizationIdRef.current
       ) {
         return [];
       }
       const local = createdOptionsRef.current;
-      const remoteIds = new Set(remote.map((option) => option.value));
-      return [...local.filter((o) => !remoteIds.has(o.value)), ...remote];
+      const localIds = new Set(local.map((option) => option.value));
+      const merged = [
+        ...local,
+        ...remote.filter((option) => !localIds.has(option.value)),
+      ];
+      availableOptionsRef.current = new Map(
+        merged.map((option) => [option.value, option]),
+      );
+      optionsOrganizationIdRef.current = organizationAtRequest;
+      return merged;
     },
     [searchPartners],
   );
@@ -105,17 +143,21 @@ export default function PartnerQuickAddSelect({
     (menu: ReactNode) => (
       <>
         {menu}
-        <div
+        <Button
+          type="text"
+          htmlType="button"
+          block
+          icon={<PlusOutlined />}
+          aria-label={`新增 ${displayName}`}
           style={{
+            justifyContent: 'flex-start',
+            height: 32,
             padding: '6px 12px',
-            cursor: 'pointer',
             color: '#1677ff',
             fontSize: 12,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
             background: '#f6faff',
             borderTop: '1px solid #f0f0f0',
+            borderRadius: 0,
           }}
           onMouseDown={(event) => {
             event.preventDefault();
@@ -123,11 +165,12 @@ export default function PartnerQuickAddSelect({
           }}
           onClick={(event) => {
             event.stopPropagation();
+            setSelectOpen(false);
             setModalOpen(true);
           }}
         >
-          <PlusOutlined /> 新增 {displayName}
-        </div>
+          新增 {displayName}
+        </Button>
       </>
     ),
     [displayName],
@@ -136,11 +179,23 @@ export default function PartnerQuickAddSelect({
   const fieldProps = useMemo(
     () => ({
       popupRender: canQuickAdd ? quickAddFooter : undefined,
-      onChange: (_value: unknown, option: unknown) => {
-        onPartnerChange?.(option as PartnerSelectOption | undefined);
+      open: selectOpen,
+      onOpenChange: setSelectOpen,
+      onChange: (value: unknown, option: unknown) => {
+        if (value === undefined || value === null) {
+          onPartnerChange?.(undefined);
+          return;
+        }
+        if (optionsOrganizationIdRef.current !== organizationIdRef.current) {
+          return;
+        }
+        onPartnerChange?.(
+          availableOptionsRef.current.get(value as string | number) ??
+            (option as PartnerSelectOption),
+        );
       },
     }),
-    [canQuickAdd, quickAddFooter, onPartnerChange],
+    [canQuickAdd, onPartnerChange, quickAddFooter, selectOpen],
   );
 
   return (
@@ -162,6 +217,7 @@ export default function PartnerQuickAddSelect({
         { legalName: string; unifiedSocialCreditCode?: string },
         PartnerSelectOption
       >
+        key={`${currentOrganizationId ?? 'no-organization'}:${canQuickAdd ? 'enabled' : 'disabled'}`}
         centered
         title={`新增 ${displayName}`}
         open={modalOpen}
@@ -183,26 +239,39 @@ export default function PartnerQuickAddSelect({
           },
         }}
         onSubmit={async (values) => {
-          const sequence = requestSequenceRef.current;
+          const sequence = ++createSequenceRef.current;
           const organizationAtSubmit = organizationIdRef.current;
-          const response = await partnerServiceCreatePartner({
-            // 客商代码留空由服务端按组织内唯一规则自动生成。
-            legalName: values.legalName.trim(),
-            unifiedSocialCreditCode: values.unifiedSocialCreditCode
-              ?.trim()
-              .toUpperCase(),
-            roles: [{ type: role, enabled: true }],
-          });
-          const partner = response.data;
-          if (!partner?.id) {
-            throw new Error('创建结果缺少伙伴 ID，请重试');
+          if (!organizationAtSubmit) {
+            throw new Error('当前组织不可用，请刷新后重试');
           }
-          // 组织已切换：丢弃迟到结果，不回填新组织表单。
+          let response: Awaited<ReturnType<typeof partnerServiceCreatePartner>>;
+          try {
+            response = await partnerServiceCreatePartner({
+              // 客商代码留空由服务端按组织内唯一规则自动生成。
+              legalName: values.legalName.trim(),
+              unifiedSocialCreditCode: values.unifiedSocialCreditCode
+                ?.trim()
+                .toUpperCase(),
+              roles: [{ type: role, enabled: true }],
+            });
+          } catch (error) {
+            if (
+              sequence !== createSequenceRef.current ||
+              organizationAtSubmit !== organizationIdRef.current
+            ) {
+              return undefined;
+            }
+            throw error;
+          }
           if (
-            sequence !== requestSequenceRef.current ||
+            sequence !== createSequenceRef.current ||
             organizationAtSubmit !== organizationIdRef.current
           ) {
             return undefined;
+          }
+          const partner = response.data;
+          if (!partner?.id) {
+            throw new Error('创建结果缺少伙伴 ID，请重试');
           }
           return {
             label: partner.legalName ?? values.legalName.trim(),
@@ -218,6 +287,8 @@ export default function PartnerQuickAddSelect({
               (existing) => existing.value !== option.value,
             ),
           ];
+          availableOptionsRef.current.set(option.value, option);
+          optionsOrganizationIdRef.current = organizationIdRef.current;
           setOptionsRevision((revision) => revision + 1);
           onPartnerChange?.(option);
           setModalOpen(false);
@@ -239,7 +310,7 @@ export default function PartnerQuickAddSelect({
             label="纳税人识别号"
             tooltip="客户/供应商往来单位必须有统一社会信用代码（后端业务规则）"
             normalize={(value) =>
-              typeof value === 'string' ? value.toUpperCase() : value
+              typeof value === 'string' ? value.trim().toUpperCase() : value
             }
             rules={[
               {
