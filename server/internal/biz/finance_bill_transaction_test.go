@@ -61,7 +61,7 @@ func (s *financeBillTransactionRepoStub) Create(ctx context.Context, bill *Finan
 	return bill, nil
 }
 
-func (s *financeBillTransactionRepoStub) Get(ctx context.Context, _, _ uuid.UUID) (*FinanceBill, error) {
+func (s *financeBillTransactionRepoStub) Get(ctx context.Context, _ []uuid.UUID, _ uuid.UUID) (*FinanceBill, error) {
 	if active, _ := ctx.Value(financeBillTransactionContextKey{}).(bool); active {
 		return nil, errors.New("完整账单响应不能在写事务内读取")
 	}

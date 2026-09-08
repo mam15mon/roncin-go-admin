@@ -36,8 +36,12 @@ type financeBillVerifiedSummaryRow struct {
 
 func NewFinanceBillRepo(data *Data) biz.FinanceBillRepo { return &financeBillRepo{data: data} }
 
-func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceBillFilter) (*biz.FinanceBillListResult, error) {
-	predicates := []predicate.FinanceBill{financebillent.OrganizationIDEQ(organizationID)}
+func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FinanceBillFilter) (*biz.FinanceBillListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.FinanceBill{financeBillOrganizationScopePredicate(organizationIDs)}
 	if filter.Keyword != "" {
 		predicates = append(predicates, financebillent.Or(
 			financebillent.BillNoContainsFold(filter.Keyword),
@@ -66,7 +70,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	if len(filter.TagIDs) > 0 {
 		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
-	query := r.data.db.FinanceBill.Query().Where(predicates...)
+	query := client.FinanceBill.Query().Where(predicates...)
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -96,7 +100,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 		}
 	}
 	verifiedRows := make([]financeBillVerifiedSummaryRow, 0, 1)
-	if err := r.data.db.FinanceVerificationAllocation.Query().
+	if err := client.FinanceVerificationAllocation.Query().
 		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(predicates...)).
 		GroupBy(verificationallocationent.FieldActive).
 		Aggregate(ent.As(ent.Sum(verificationallocationent.FieldBillBaseAmount), "verified_base_amount")).
@@ -131,13 +135,13 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	return result, nil
 }
 
-func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceBill, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
-		Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).Only(ctx)
+		Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
@@ -206,7 +210,11 @@ func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationI
 }
 
 func (r *financeBillRepo) GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*biz.FinanceBillBatch, error) {
-	item, err := r.financeBillBatchQuery(r.data.db.FinanceBillBatch.Query()).Where(financebillbatchent.OrganizationIDEQ(organizationID), financebillbatchent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillBatchQuery(client.FinanceBillBatch.Query()).Where(financebillbatchent.OrganizationIDEQ(organizationID), financebillbatchent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	}
@@ -224,21 +232,25 @@ func (r *financeBillRepo) financeBillBatchQuery(query *ent.FinanceBillBatchQuery
 	})
 }
 
-func (r *financeBillRepo) getBatch(ctx context.Context, organizationID, batchID uuid.UUID) (*biz.FinanceBillBatch, error) {
-	item, err := r.financeBillBatchQuery(r.data.db.FinanceBillBatch.Query()).Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *financeBillRepo) GetBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID uuid.UUID) (*biz.FinanceBillBatch, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillBatchQuery(client.FinanceBillBatch.Query()).Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
 	return financeBillBatchToBiz(item)
 }
 
-func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		_, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		batch, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
-		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDEQ(organizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
+		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
 		}
@@ -247,6 +259,9 @@ func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batc
 		}
 		now := time.Now().UTC()
 		for _, bill := range bills {
+			if bill.OrganizationID != batch.OrganizationID {
+				return biz.ErrFinanceBillBatchMismatch
+			}
 			expected, exists := expectedVersions[bill.ID]
 			if !exists {
 				return biz.ErrFinanceBillBatchMismatch
@@ -265,7 +280,11 @@ func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batc
 	}); err != nil {
 		return nil, err
 	}
-	return r.getBatch(ctx, organizationID, batchID)
+	return r.GetBatch(ctx, organizationIDs, batchID)
+}
+
+func financeBillOrganizationScopePredicate(organizationIDs []uuid.UUID) predicate.FinanceBill {
+	return financebillent.OrganizationIDIn(organizationIDs...)
 }
 
 func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery) *ent.FinanceBillQuery {
@@ -373,7 +392,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 	if _, transactional := transactionFromContext(ctx); transactional {
 		return bill, nil
 	}
-	return r.Get(ctx, bill.OrganizationID, bill.ID)
+	return r.Get(ctx, []uuid.UUID{bill.OrganizationID}, bill.ID)
 }
 
 func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBillBatch, previewToken string, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
@@ -476,9 +495,9 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 	return r.GetBatchByIdempotencyKey(ctx, batch.OrganizationID, batch.IdempotencyKey)
 }
 
-func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -521,12 +540,12 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, 
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, input.ID)
+	return r.Get(ctx, organizationIDs, input.ID)
 }
 
-func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -544,12 +563,12 @@ func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actor
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationIDs, id)
 }
 
-func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -584,6 +603,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 		for _, line := range lines {
 			feeIDs = append(feeIDs, line.OrderFeeID)
 		}
+		sort.Slice(feeIDs, func(i, j int) bool { return feeIDs[i].String() < feeIDs[j].String() })
 		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).ForUpdate().All(ctx)
 		if err != nil {
 			return err
@@ -614,7 +634,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationIDs, id)
 }
 
 func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {

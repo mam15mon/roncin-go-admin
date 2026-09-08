@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -38,7 +39,11 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
 	filter.TagIDs = tagIDs
-	result, err := s.billUsecase.List(ctx, principal.Organization.ID, filter)
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillRead, false)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.billUsecase.List(ctx, organizationIDs, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +77,11 @@ func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequ
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.billUsecase.Get(ctx, principal.Organization.ID, id)
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillRead, false)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.billUsecase.Get(ctx, organizationIDs, id)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +98,9 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
+		return nil, err
 	}
 	feeIDs := make([]uuid.UUID, 0, len(request.GetFeeIds()))
 	for _, rawID := range request.GetFeeIds() {
@@ -111,6 +123,9 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
+		return nil, err
 	}
 	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
 	if err != nil || request.GetGroupingPolicy() == nil {
@@ -135,6 +150,9 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
+		return nil, err
 	}
 	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
 	if err != nil || request.GetGroupingPolicy() == nil {
@@ -177,7 +195,11 @@ func (s *SettlementService) ConfirmBillBatch(ctx context.Context, request *v1.Co
 		}
 		expectedVersions[billID] = item.GetExpectedVersion()
 	}
-	batch, err := s.billUsecase.ConfirmBatch(ctx, principal.Organization.ID, principal.UserID, batchID, expectedVersions)
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillConfirm, true)
+	if err != nil {
+		return nil, err
+	}
+	batch, err := s.billUsecase.ConfirmBatch(ctx, organizationIDs, principal.UserID, batchID, expectedVersions)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +211,11 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.billUsecase.Update(ctx, principal.Organization.ID, principal.UserID, biz.UpdateFinanceBillInput{
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.billUsecase.Update(ctx, organizationIDs, principal.UserID, biz.UpdateFinanceBillInput{
 		ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(),
 	})
 	if err != nil {
@@ -203,7 +229,11 @@ func (s *SettlementService) ConfirmBill(ctx context.Context, request *v1.Confirm
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.billUsecase.Confirm(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion())
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillConfirm, true)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.billUsecase.Confirm(ctx, organizationIDs, principal.UserID, id, request.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +245,11 @@ func (s *SettlementService) CancelBill(ctx context.Context, request *v1.CancelBi
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.billUsecase.Cancel(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), request.GetReason())
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.billUsecase.Cancel(ctx, organizationIDs, principal.UserID, id, request.GetExpectedVersion(), request.GetReason())
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -33,7 +34,7 @@ type authorizationPartnerRepoStub struct {
 func (s *authorizationPartnerRepoStub) FindAuthorized(_ context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*biz.Partner, error) {
 	s.findCalls++
 	s.ids = organizationIDs
-	if s.partner != nil && s.partner.ID == id && containsPartnerOrganizationID(organizationIDs, s.partner.OrganizationID) {
+	if s.partner != nil && s.partner.ID == id && containsOrganizationID(organizationIDs, s.partner.OrganizationID) {
 		return s.partner, nil
 	}
 	return nil, biz.ErrPartnerNotFound
@@ -79,6 +80,72 @@ func TestPartnerPermissionWritesClassifiesEveryDeclaredPermission(t *testing.T) 
 	}
 }
 
+func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{
+			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("unrelated-writer", biz.DataScopeOrganization, []string{access.FinanceBillUpdate}, []biz.OrganizationAccess{{OrganizationID: beijingID, Writable: true}}),
+		},
+	}
+	readRule := accessRule{permission: access.FinanceBillRead, scope: biz.DataScopeOrganization}
+	updateRule := accessRule{permission: access.FinanceBillUpdate, scope: biz.DataScopeOrganization}
+	if !hasPermission(&financev1.ListBillsRequest{}, principal, readRule) || !hasPermission(&financev1.GetBillRequest{}, principal, readRule) {
+		t.Fatal("账单 read 所在角色的北京只读范围应允许列表与详情粗门")
+	}
+	if !hasPermission(&financev1.UpdateBillRequest{}, principal, updateRule) {
+		t.Fatal("账单 update 所在角色的北京可写范围应允许详情写入粗门")
+	}
+	principal.RoleGrants[1].OrganizationAccesses[0].Writable = false
+	updateIDs := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if len(updateIDs) != 1 || updateIDs[0] != tianjinID {
+		t.Fatalf("北京只读 access 不得进入账单更新的最终 allowed IDs，actual=%v", updateIDs)
+	}
+}
+
+func TestFinanceBillPermissionWritesClassifiesDeclaredPermissions(t *testing.T) {
+	tests := map[string]bool{
+		access.FinanceBillRead:    false,
+		access.FinanceBillCreate:  true,
+		access.FinanceBillUpdate:  true,
+		access.FinanceBillConfirm: true,
+	}
+	for permission, wantWritable := range tests {
+		writable, known := financeBillPermissionWrites(permission)
+		if !known || writable != wantWritable {
+			t.Errorf("权限 %s 的读写分类 = (%t, %t)，期望 (%t, true)", permission, writable, known, wantWritable)
+		}
+	}
+	const unknownPermission = "system.finance.bill.unknown"
+	if writable, known := financeBillPermissionWrites(unknownPermission); known || writable {
+		t.Fatalf("未知账单权限不得猜测读写，actual writable=%t known=%t", writable, known)
+	}
+	principal := &biz.Principal{RoleGrants: []biz.RoleGrant{serverRoleGrant("unknown", biz.DataScopeAll, []string{unknownPermission}, nil)}}
+	if hasPermission(&financev1.ListBillsRequest{}, principal, accessRule{permission: unknownPermission, scope: biz.DataScopeOrganization}) {
+		t.Fatal("未知账单权限即使意外出现在角色中也必须拒绝")
+	}
+}
+
+func TestFinanceBillPermissionDoesNotBorrowOtherDomainScope(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{
+			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}, nil),
+			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+		},
+	}
+	ids := organizationIDsForPermission(principal, access.FinanceBillRead, false)
+	if len(ids) != 1 || ids[0] != tianjinID {
+		t.Fatalf("账单权限不得借用往来单位角色的北京范围，actual=%v", ids)
+	}
+}
+
 func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
@@ -96,7 +163,7 @@ func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	if !direct || partner == nil || partner.ID != partnerID {
 		t.Fatalf("授权查询应定位北京往来单位，actual partner=%#v direct=%v", partner, direct)
 	}
-	if repo.findCalls != 1 || len(repo.ids) != 2 || !containsPartnerOrganizationID(repo.ids, tianjinID) || !containsPartnerOrganizationID(repo.ids, beijingID) {
+	if repo.findCalls != 1 || len(repo.ids) != 2 || !containsOrganizationID(repo.ids, tianjinID) || !containsOrganizationID(repo.ids, beijingID) {
 		t.Fatalf("授权查询必须把同一 partner.read 角色解析的组织范围传入仓储，actual=%v", repo.ids)
 	}
 }

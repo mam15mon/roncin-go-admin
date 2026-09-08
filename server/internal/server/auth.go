@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -217,6 +218,17 @@ func orderOperationWrites(operation access.OrderOperation) bool {
 
 func hasPermission(request any, principal *biz.Principal, rule accessRule) bool {
 	if rule.orderOperation == "" {
+		if strings.HasPrefix(rule.permission, "system.finance.bill.") {
+			writable, known := financeBillPermissionWrites(rule.permission)
+			if !known {
+				return false
+			}
+			organizationIDs := organizationIDsForPermission(principal, rule.permission, writable)
+			if isFinanceBillAnyScopeRequest(request) {
+				return len(organizationIDs) > 0
+			}
+			return containsOrganizationID(organizationIDs, principal.Organization.ID)
+		}
 		if strings.HasPrefix(rule.permission, "business.partner.") {
 			writable, known := partnerPermissionWrites(rule.permission)
 			if !known {
@@ -226,7 +238,7 @@ func hasPermission(request any, principal *biz.Principal, rule accessRule) bool 
 			if isPartnerCollectionRequest(request) {
 				return len(organizationIDs) > 0
 			}
-			return containsPartnerOrganizationID(organizationIDs, principal.Organization.ID)
+			return containsOrganizationID(organizationIDs, principal.Organization.ID)
 		}
 		return principal.HasPermissionInScope(rule.permission, rule.scope)
 	}
@@ -243,7 +255,51 @@ func hasPermission(request any, principal *biz.Principal, rule accessRule) bool 
 	return currentOrganizationInOrderScope(principal, businessType, rule.orderOperation, orderOperationWrites(rule.orderOperation))
 }
 
-func containsPartnerOrganizationID(organizationIDs []uuid.UUID, organizationID uuid.UUID) bool {
+// finance bill 的最终组织授权由 SettlementService 传入具体 permission 的显式
+// allowed IDs 并由仓储执行 ID + OrganizationIDIn 查询。中间件只做已知权限的
+// 粗门：详情和批量对象允许任一范围，以支持当前工作区内的跨组织只读查看。
+func financeBillPermissionWrites(permission string) (bool, bool) {
+	switch permission {
+	case access.FinanceBillRead:
+		return false, true
+	case access.FinanceBillCreate, access.FinanceBillUpdate, access.FinanceBillConfirm:
+		return true, true
+	default:
+		return false, false
+	}
+}
+
+func isFinanceBillAnyScopeRequest(request any) bool {
+	switch request.(type) {
+	case *financev1.ListBillsRequest,
+		*financev1.GetBillRequest,
+		*financev1.UpdateBillRequest,
+		*financev1.ConfirmBillRequest,
+		*financev1.CancelBillRequest,
+		*financev1.ConfirmBillBatchRequest,
+		*financev1.BatchAssignFinanceBillTagsRequest,
+		*financev1.BatchRemoveFinanceBillTagsRequest:
+		return true
+	default:
+		return false
+	}
+}
+
+func organizationIDsForPermission(principal *biz.Principal, permission string, writable bool) []uuid.UUID {
+	if principal == nil {
+		return nil
+	}
+	scope, err := principal.ResolvePermissionOrganizationScope(permission)
+	if err != nil {
+		return nil
+	}
+	if writable {
+		return scope.WritableOrganizationIDs
+	}
+	return scope.ReadableOrganizationIDs
+}
+
+func containsOrganizationID(organizationIDs []uuid.UUID, organizationID uuid.UUID) bool {
 	for _, candidate := range organizationIDs {
 		if candidate == organizationID {
 			return true

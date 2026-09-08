@@ -216,17 +216,18 @@ type FinanceBillBatch struct {
 }
 
 type FinanceBillRepo interface {
-	List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error)
-	Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceBill, error)
+	List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error)
+	Get(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceBill, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBill, error)
 	GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBillBatch, error)
-	ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *AuditEvent) (*FinanceBillBatch, error)
+	GetBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID uuid.UUID) (*FinanceBillBatch, error)
+	ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *AuditEvent) (*FinanceBillBatch, error)
 	LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
 	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent) (*FinanceBillBatch, error)
-	Update(ctx context.Context, organizationID uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
-	Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*FinanceBill, error)
-	Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
+	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
+	Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*FinanceBill, error)
+	Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
 }
 
 type FinanceBillUsecase struct {
@@ -239,10 +240,10 @@ func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUseca
 	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor}
 }
 
-func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
+func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
-	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	if filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable {
@@ -257,14 +258,26 @@ func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID
 	if !validFinanceDateRange(filter.BillDateFrom, filter.BillDateTo) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationID, filter)
+	return uc.repo.List(ctx, organizationIDs, filter)
 }
 
-func (uc *FinanceBillUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceBill, error) {
-	if organizationID == uuid.Nil || id == uuid.Nil {
+func (uc *FinanceBillUsecase) Get(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceBill, error) {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	return uc.repo.Get(ctx, organizationID, id)
+	return uc.repo.Get(ctx, organizationIDs, id)
+}
+
+func validFinanceBillOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (uc *FinanceBillUsecase) PreviewBatch(ctx context.Context, organizationID uuid.UUID, input PreviewFinanceBillBatchInput) (*FinanceBillBatchPreview, error) {
@@ -368,8 +381,8 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 	return nil, err
 }
 
-func (uc *FinanceBillUsecase) ConfirmBatch(ctx context.Context, organizationID, actorID, batchID uuid.UUID, expectedVersions map[uuid.UUID]uint64) (*FinanceBillBatch, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || batchID == uuid.Nil || len(expectedVersions) == 0 || len(expectedVersions) > 500 {
+func (uc *FinanceBillUsecase) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, actorID, batchID uuid.UUID, expectedVersions map[uuid.UUID]uint64) (*FinanceBillBatch, error) {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || batchID == uuid.Nil || len(expectedVersions) == 0 || len(expectedVersions) > 500 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	for billID, version := range expectedVersions {
@@ -377,7 +390,11 @@ func (uc *FinanceBillUsecase) ConfirmBatch(ctx context.Context, organizationID, 
 			return nil, ErrFinanceBillInvalidArgument
 		}
 	}
-	return uc.repo.ConfirmBatch(ctx, organizationID, batchID, actorID, expectedVersions, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.confirm"))
+	batch, err := uc.repo.GetBatch(ctx, organizationIDs, batchID)
+	if err != nil {
+		return nil, err
+	}
+	return uc.repo.ConfirmBatch(ctx, organizationIDs, batchID, actorID, expectedVersions, financeBillBatchAudit(batch.OrganizationID, actorID, batchID, "finance.bill_batch.confirm"))
 }
 
 func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillInput) (*FinanceBill, error) {
@@ -416,7 +433,7 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		return transactionErr
 	})
 	if err == nil {
-		return uc.repo.Get(ctx, organizationID, created.ID)
+		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, created.ID)
 	}
 	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
 	if lookupErr == nil && existing != nil && sameFinanceBillCreateIntent(existing, normalized) {
@@ -448,23 +465,23 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 	return nil
 }
 
-func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationID, actorID uuid.UUID, input UpdateFinanceBillInput) (*FinanceBill, error) {
+func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid.UUID, actorID uuid.UUID, input UpdateFinanceBillInput) (*FinanceBill, error) {
 	input.BillDate = strings.TrimSpace(input.BillDate)
 	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
 	input.Note = normalizedOptionalFinanceString(input.Note)
 	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
 	input.DueDate = normalizedFinanceBillDueDate(input.BillDate, input.DueDate, input.PaymentTermsDays)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	existing, err := uc.repo.Get(ctx, organizationID, input.ID)
+	existing, err := uc.repo.Get(ctx, organizationIDs, input.ID)
 	if err != nil {
 		return nil, err
 	}
 	if uc.exchangeRate == nil {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, BillRateType, existing.Direction, existing.Currency, map[string]string{BillDateStandard: input.BillDate})
+	resolved, err := uc.exchangeRate.Resolve(ctx, existing.OrganizationID, BillRateType, existing.Direction, existing.Currency, map[string]string{BillDateStandard: input.BillDate})
 	if err != nil {
 		return nil, err
 	}
@@ -473,22 +490,30 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationID, actorI
 	input.ExchangeRateDate = resolved.RateDate
 	input.ExchangeRateSettingID = resolved.SettingID
 	input.BaseCurrencyAmount = existing.TotalAmount.Mul(resolved.Rate).RoundBank(8)
-	return uc.repo.Update(ctx, organizationID, input, financeBillAudit(organizationID, actorID, input.ID, "finance.bill.update"))
+	return uc.repo.Update(ctx, organizationIDs, input, financeBillAudit(existing.OrganizationID, actorID, input.ID, "finance.bill.update"))
 }
 
-func (uc *FinanceBillUsecase) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64) (*FinanceBill, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+func (uc *FinanceBillUsecase) Confirm(ctx context.Context, organizationIDs []uuid.UUID, actorID, id uuid.UUID, expectedVersion uint64) (*FinanceBill, error) {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	return uc.repo.Confirm(ctx, organizationID, id, actorID, expectedVersion, financeBillAudit(organizationID, actorID, id, "finance.bill.confirm"))
+	existing, err := uc.repo.Get(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	return uc.repo.Confirm(ctx, organizationIDs, id, actorID, expectedVersion, financeBillAudit(existing.OrganizationID, actorID, id, "finance.bill.confirm"))
 }
 
-func (uc *FinanceBillUsecase) Cancel(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceBill, error) {
+func (uc *FinanceBillUsecase) Cancel(ctx context.Context, organizationIDs []uuid.UUID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceBill, error) {
 	reason = strings.TrimSpace(reason)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	return uc.repo.Cancel(ctx, organizationID, id, actorID, expectedVersion, reason, financeBillAudit(organizationID, actorID, id, "finance.bill.cancel"))
+	existing, err := uc.repo.Get(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	return uc.repo.Cancel(ctx, organizationIDs, id, actorID, expectedVersion, reason, financeBillAudit(existing.OrganizationID, actorID, id, "finance.bill.cancel"))
 }
 
 func normalizeCreateFinanceBill(input CreateFinanceBillInput) (CreateFinanceBillInput, error) {

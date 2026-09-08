@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"entgo.io/ent/dialect"
@@ -16,6 +17,23 @@ import (
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/shopspring/decimal"
 )
+
+func TestFinanceBillOrganizationScopePredicateUsesExplicitOrganizationIDs(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	table := entsql.Table(financebillent.Table)
+	selector := entsql.Dialect(dialect.Postgres).Select(table.C(financebillent.FieldID)).From(table)
+
+	financeBillOrganizationScopePredicate([]uuid.UUID{tianjinID, beijingID})(selector)
+
+	query, args := selector.Query()
+	if !strings.Contains(query, `"finance_bills"."organization_id" IN ($1, $2)`) {
+		t.Fatalf("账单组织谓词应由数据库显式过滤，query=%s", query)
+	}
+	if len(args) != 2 || args[0] != tianjinID || args[1] != beijingID {
+		t.Fatalf("账单组织谓词参数=%v，期望天津和北京组织", args)
+	}
+}
 
 func setupFinanceSummaryData(t *testing.T) (*Data, sqlmock.Sqlmock) {
 	t.Helper()
@@ -77,7 +95,7 @@ func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {
 	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20 OFFSET 20`).
 		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
 
-	result, err := repo.List(context.Background(), uuid.New(), biz.FinanceBillFilter{Page: 2, PageSize: 20})
+	result, err := repo.List(context.Background(), []uuid.UUID{uuid.New()}, biz.FinanceBillFilter{Page: 2, PageSize: 20})
 	if err != nil {
 		t.Fatalf("查询账单列表失败: %v", err)
 	}

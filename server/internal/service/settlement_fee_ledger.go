@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -162,6 +163,9 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
+		return nil, err
+	}
 	policy, err := s.customSettingUsecase.GetBilledFeeEditPolicy(ctx, principal.Organization.ID)
 	if err != nil {
 		return nil, err
@@ -184,6 +188,9 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 			return nil, biz.ErrFinanceCustomSettingInvalidArgument
 		}
 		fields = append(fields, converted)
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true); err != nil {
+		return nil, err
 	}
 	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion().GetValue())
 	if err != nil {
