@@ -92,23 +92,23 @@ type AsyncRunContext = {
   signal: AbortSignal;
 };
 
-type GuardedResult<T> =
-  | { current: true; value: T }
+type GuardedResult =
+  | { current: true }
   | { current: false; reason: 'stale' | 'unmounted' | 'aborted' };
 
 function useLatestAsync(): {
-  run<T, R>(
+  run<T>(
     request: (ctx: AsyncRunContext) => Promise<T>,
-    apply: (value: T) => R | Promise<R>,
-  ): Promise<GuardedResult<R>>;
+    apply: (value: T) => void,
+  ): Promise<GuardedResult>;
   cancel(): void;
 };
 
 function useAsyncGuard(): {
-  run<T, R>(
+  run<T>(
     request: (ctx: AsyncRunContext) => Promise<T>,
-    apply: (value: T) => R | Promise<R>,
-  ): Promise<GuardedResult<R>>;
+    apply: (value: T) => void,
+  ): Promise<GuardedResult>;
   invalidate(): void;
 };
 ```
@@ -154,6 +154,9 @@ const loadOptions = (keyword: string) =>
 优先使用由 Hook 包住 `apply` 的形式，而不是让页面拿到原始结果后自行判断
 `result.current`；这样调用方不会因为漏写一次判断而重新引入竞态。返回状态只用于调用方
 记录请求是否已应用，不携带过期的原始响应。
+
+`apply` 必须是同步 UI 副作用，不允许在其中继续 `await`。若当前结果触发下一次远程请求，
+下一段请求必须重新进入 guarded run；否则组件可能在异步 `apply` 中途卸载。
 
 对于 ProForm/ProSelect 等自行消费 Promise 返回值的组件，不能把 stale 结果返回为空数组
 后任其覆盖新选项。应由受控 `options` state 应用当前结果，或使用组件已验证的 request

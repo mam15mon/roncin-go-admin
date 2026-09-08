@@ -80,8 +80,9 @@ feat(web): 收口组织切换生命周期
 3. `useAsyncGuard` 在卸载或 invalidate 后使结果失效；
 4. `run(request, apply)` 只在 token 当前时调用 apply，统一返回
    current/stale/unmounted/aborted 判别；
-5. 当前请求的 400/403/500 等真实错误继续抛出；
-6. 测试乱序完成、卸载、显式取消、不可取消 Promise 和真实错误。
+5. 限定 apply 为同步副作用，后续异步操作重新进入 guarded run；
+6. 当前请求的 400/403/500 等真实错误继续抛出；
+7. 测试乱序完成、卸载、显式取消、不可取消 Promise 和真实错误。
 
 ### 3.2 首批替换重复样板
 
