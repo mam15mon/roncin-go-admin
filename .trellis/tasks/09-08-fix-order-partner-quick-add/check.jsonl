@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查两个前端入口至服务端仓储的完整创建契约和错误流"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "检查仅自动代码冲突重试、错误原样返回及调用次数"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "检查 Go 测试、vet 与非随机测试有效性"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "检查公共 Modal 兼容、真实按钮语义和详情页模板传参"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "检查组织切换竞态、请求失效、本地远程去重及 customerCode 一致性"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "检查角色 enabled、税号字段、枚举和请求载荷"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "检查 deferred 测试、集成测试、修改文件质量和最终 check:web"}

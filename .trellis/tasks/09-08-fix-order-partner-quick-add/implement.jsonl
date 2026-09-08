@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "复核订单与费用入口到 service、biz、data 的伙伴创建数据流"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "复用现有税号规则、角色枚举和快捷弹窗，避免平行实现"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "自动代码冲突、随机源错误与其他仓储错误的返回和重试边界"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "伙伴 biz 定向测试、全量 Go 测试与 vet 要求"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "QuickCreateModal 公共兼容、订单组件职责与可访问按钮语义"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "组织身份、异步请求世代、本地选项和表单状态边界"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "render 同步 ref、effect 清理与异步回调避免陈旧闭包"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "角色枚举、请求类型、表单字段和 option 类型约束"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "实现后补测试、定向 Vitest、Biome、tsc 与最终门禁规则"}
