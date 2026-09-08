@@ -12,7 +12,6 @@ import {
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import {
   App,
   Button,
@@ -29,6 +28,7 @@ import {
 } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import React from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
@@ -42,11 +42,11 @@ import {
   isPermissionGroupNode,
 } from './permissionTree';
 import {
+  dataScopeOptions,
   type OrganizationAccess,
   type PermissionLeafNode,
   type PermissionTreeNode,
   type RoleFormValues,
-  dataScopeOptions,
 } from './roleConstants';
 
 const { Text } = Typography;
@@ -253,9 +253,7 @@ export default function RoleFormModal({
             options={companyOptions}
             placeholder="不选择时仅可访问当前组织"
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={organizationAccesses.map(
-              (access) => access.organizationId,
-            )}
+            value={organizationAccesses.map((access) => access.organizationId)}
             onChange={(organizationIds: string[]) => {
               setOrganizationAccesses((previous) =>
                 organizationIds.map((organizationId) => ({
@@ -289,9 +287,7 @@ export default function RoleFormModal({
               setOrganizationAccesses((previous) =>
                 previous.map((access) => ({
                   ...access,
-                  writable: writableOrganizationIDs.has(
-                    access.organizationId,
-                  ),
+                  writable: writableOrganizationIDs.has(access.organizationId),
                 })),
               );
             }}
@@ -310,10 +306,7 @@ export default function RoleFormModal({
           }}
         >
           <Space size={8}>
-            <Text
-              strong
-              style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}
-            >
+            <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
               功能权限配置
             </Text>
             <Tag color="blue" variant="filled">
@@ -362,9 +355,7 @@ export default function RoleFormModal({
         >
           <Input
             placeholder="搜索权限名称、权限码或说明..."
-            prefix={
-              <SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
-            }
+            prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
             allowClear
             size="small"
             value={permissionKeyword}
@@ -429,8 +420,7 @@ export default function RoleFormModal({
                           style={{
                             fontSize: 11,
                             fontWeight: 400,
-                            color:
-                              checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
+                            color: checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
                           }}
                         >
                           ({checkedInGroup}/{groupLeafKeys.length})
@@ -524,9 +514,7 @@ export default function RoleFormModal({
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
-                  permissionKeyword
-                    ? '未找到匹配的权限项'
-                    : '暂无可用权限'
+                  permissionKeyword ? '未找到匹配的权限项' : '暂无可用权限'
                 }
                 style={{ margin: '20px 0' }}
               />
