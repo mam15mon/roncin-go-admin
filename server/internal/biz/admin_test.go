@@ -523,13 +523,15 @@ func TestCheckPrivilegeEscalation(t *testing.T) {
 	readOnlyOrganizationID := uuid.New()
 	writableOrganizationID := uuid.New()
 	profile := &AdminPrivilegeProfile{
-		Permissions: map[string]DataScope{
-			"system.user.update": DataScopeOrganization,
-		},
-		OrganizationAccesses: map[uuid.UUID]bool{
-			readOnlyOrganizationID: false,
-			writableOrganizationID: true,
-		},
+		RoleProfiles: []AdminRoleProfile{{
+			Code:           "user_manager",
+			DataScope:      DataScopeOrganization,
+			PermissionKeys: []string{"system.user.update"},
+			OrganizationAccesses: []OrganizationAccess{
+				{OrganizationID: readOnlyOrganizationID},
+				{OrganizationID: writableOrganizationID, Writable: true},
+			},
+		}},
 	}
 	tests := []struct {
 		name           string
@@ -545,9 +547,13 @@ func TestCheckPrivilegeEscalation(t *testing.T) {
 		{name: "拒绝管理员角色", profile: profile, scope: DataScopeOrganization, administrator: true, wantEscalation: true},
 		{name: "拒绝额外权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.role.update"}, wantEscalation: true},
 		{name: "拒绝更大数据范围", profile: profile, scope: DataScopeAll, permissions: []string{"system.user.update"}, wantEscalation: true},
-		{name: "拒绝额外组织访问", profile: profile, scope: DataScopeOrganization, accesses: []OrganizationAccess{{OrganizationID: uuid.New()}}, wantEscalation: true},
-		{name: "拒绝提升组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}, wantEscalation: true},
-		{name: "允许已有组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrganizationAccess{{OrganizationID: writableOrganizationID, Writable: true}}},
+		{name: "拒绝额外组织访问", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: uuid.New()}}, wantEscalation: true},
+		{name: "拒绝提升组织写权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}, wantEscalation: true},
+		{name: "允许已有组织写权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: writableOrganizationID, Writable: true}}},
+		{name: "拒绝借用其他角色的组织访问", profile: &AdminPrivilegeProfile{RoleProfiles: []AdminRoleProfile{
+			{Code: "user_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.update"}},
+			{Code: "finance_viewer", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.finance.bill.read"}, OrganizationAccesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		}}, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}, wantEscalation: true},
 		{name: "管理员允许完整授权", profile: &AdminPrivilegeProfile{IsSuperAdmin: true}, scope: DataScopeAll, permissions: []string{"system.role.update"}, accesses: []OrganizationAccess{{OrganizationID: uuid.New(), Writable: true}}, administrator: true},
 	}
 	for _, test := range tests {
@@ -573,11 +579,17 @@ func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("getActorPrivilegeProfile() error = %v", err)
 	}
-	if profile.Permissions["system.user.read"] != DataScopeOrganization || profile.Permissions["system.user.update"] != DataScopeOrganization {
-		t.Fatalf("permissions = %#v", profile.Permissions)
+	if len(profile.RoleProfiles) != 2 {
+		t.Fatalf("role profiles = %#v", profile.RoleProfiles)
 	}
-	if !profile.OrganizationAccesses[readOnlyOrganizationID] {
-		t.Fatalf("organization accesses = %#v", profile.OrganizationAccesses)
+	if profile.RoleProfiles[0].Code != "viewer" || profile.RoleProfiles[1].Code != "manager" {
+		t.Fatalf("role profiles lost their source identity: %#v", profile.RoleProfiles)
+	}
+	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.update"); len(got) != 1 || got[0].Code != "manager" {
+		t.Fatalf("matching roles = %#v", got)
+	}
+	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.read"); len(got) != 2 {
+		t.Fatalf("matching roles = %#v", got)
 	}
 }
 
