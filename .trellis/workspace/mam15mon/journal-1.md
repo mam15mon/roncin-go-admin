@@ -1043,3 +1043,36 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 41: 落地多组织快速上线薄底座
+<!-- trellis-session: v=2 fp=f24e3d5c493afda8 -->
+
+**Date**: 2026-09-09
+**Task**: 落地多组织快速上线薄底座
+**Branch**: `main`
+
+### Summary
+
+完成组织工作区与异步守卫，泛化角色组织访问并按权限来源解析范围，首批接入订单、往来单位和财务账单，补齐提权校验、规范与验收记录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1c8dfc1c` | feat(web): 建立多组织工作区边界 |
+| `67c81115` | refactor(web): 统一页面异步竞态保护 |
+| `327789ef` | refactor(server): 泛化角色组织访问模型 |
+| `5ed5bc17` | feat(server): 按权限解析角色组织范围 |
+| `b3ca41ee` | refactor(server): 接入订单通用组织范围 |
+| `6c67e1a1` | feat(server): 接入往来单位通用组织范围 |
+| `cfb8cb82` | test(server): 修正订单组织范围随机断言 |
+| `ff2c955b` | feat(server): 接入账单通用组织范围 |
+| `aed9f0af` | fix(server): 保持角色提权校验来源绑定 |
+| `d4349040` | chore(web): 整理角色页面代码格式 |
+| `721d2ff7` | docs(spec): 记录权限级组织范围契约 |
+| `aa2f9dec` | docs(task): 记录多组织薄底座验收结果 |
+
+### Status
+
+[OK] **Completed**
