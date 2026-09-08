@@ -297,3 +297,76 @@ git status --short
 | Phase 3.1-3.2 | 单一通用契约生成完整，权限范围不跨角色串联 |
 | Phase 3.3-3.6 | 三个聚合和角色页面只使用新模型 |
 | Phase 4 | 定向检查、最终门禁和浏览器抽验均有记录 |
+
+## 7. 实施与验收记录（2026-09-09）
+
+### 7.1 已交付
+
+- 前端以 `userId:organizationId` 为 key 的工作区同时包住 `TagsView` 与路由页面；
+  切换取消或失败保留当前工作区，成功后更新身份并回到 `/welcome`。
+- 新增 `useLatestAsync` 与 `useAsyncGuard`，首批替换往来单位快捷选择器的重复
+  sequence/mounted 样板；保留提交 loading、组织缓存分键和服务端校验。
+- 角色组织访问从订单专用模型原子替换为通用 `RoleOrganizationAccess`，新增显式
+  rename migration，并同步 Proto、Ent、OpenAPI、Web 客户端和角色管理页面。
+- Principal 按具体权限所在角色解析 readable/writable 组织集合；角色管理提权校验
+  同样保留角色来源，禁止“角色 A 的权限 + 角色 B 的组织范围”拼接。
+- 订单、往来单位和财务账单的列表、详情与写路径已接入明确组织范围；Data 层继续
+  使用 `Data.client(ctx)` 和显式 Ent 谓词，没有加入全局 interceptor 或兼容分支。
+
+### 7.2 提交记录
+
+```text
+1c8dfc1c feat(web): 建立多组织工作区边界
+67c81115 refactor(web): 统一页面异步竞态保护
+327789ef refactor(server): 泛化角色组织访问模型
+5ed5bc17 feat(server): 按权限解析角色组织范围
+b3ca41ee refactor(server): 接入订单通用组织范围
+6c67e1a1 feat(server): 接入往来单位通用组织范围
+cfb8cb82 test(server): 修正订单组织范围随机断言
+ff2c955b feat(server): 接入账单通用组织范围
+aed9f0af fix(server): 保持角色提权校验来源绑定
+d4349040 chore(web): 整理角色页面代码格式
+```
+
+### 7.3 定向验证
+
+- 前端工作区、组织切换、页签守卫：4 个测试文件、52 个用例通过；
+- 通用异步 Hook 与快捷选择器：乱序、卸载、组织变化、错误传播和重复提交路径通过；
+- 角色管理页面：2 个测试文件、3 个用例通过；
+- Biz、Service、Server 的权限与三个聚合定向测试通过；
+- Data 的订单、往来单位、财务账单显式组织谓词测试通过；
+- 角色提权来源绑定回归测试通过；
+- `make -C server api` 与 `pnpm run generate:web-client` 重跑后没有生成物漂移；
+- `go vet ./...`、`govulncheck ./...`、`git diff --check` 通过。
+
+### 7.4 最终门禁
+
+- `pnpm run check:web`：退出码 0；权限键与 Proto 常量一致，Biome、TypeScript 通过，
+  Vitest 为 95 个测试文件、426 个用例全部通过。Biome 对无读取权限的
+  `.agents/skills/ant-design` 输出一条内部 I/O 提示，但没有形成 lint 失败。
+- `pnpm run check:server`：Proto lint 和绝大多数 Go 包测试通过，但真实 PostgreSQL
+  的既有串行用例 `TestOrderLock_PostgresFlows` 因共享开发库残留的 MBL 航程状态失败；
+  首个错误为 `SEA_MASTER_BILL_VOYAGE_CONFLICT`，随后同一串行场景发生状态冲突连锁
+  失败。按约束未清库、未重跑掩盖结果。该命令因此在进入 vet/漏洞检查前退出；之后已
+  单独补跑 `go vet ./...` 与 `govulncheck ./...`，两者通过且没有可调用漏洞。
+- 本任务新增和修改的权限、组织范围、仓储谓词、事务相关定向测试均已独立通过；上述
+  PostgreSQL 失败路径位于既有订单锁夹具，不由本次多组织变更触发。
+
+### 7.5 浏览器抽验记录
+
+- 当前 `127.0.0.1:8001` 只有 Web 开发服务，API 代理不可用，且当前进程环境未注入
+  `BOOTSTRAP_ADMIN_USERNAME` / `BOOTSTRAP_ADMIN_PASSWORD`；因此没有伪造一次真实
+  多组织浏览器抽验结果。
+- 组织切换的取消、失败、成功和 keyed workspace 卸载由组件级 DOM 测试覆盖；搜索
+  乱序、组织变化后的迟到响应和创建回填由 Hook/组件测试覆盖；天津读取北京只读数据、
+  跨角色不得借权和只读禁止写入由 Biz/Service/Server/Data 跨层测试覆盖。
+- 上线前若配置可登录的双组织验收账号，应再以真实浏览器抽验本节 5.2 的七条路径；
+  这不改变当前实现契约，也不需要补兼容逻辑。
+
+### 7.6 已知上线前提与延期项
+
+- 跨组织账单列表响应只有一个 `base_currency` 汇总字段。当前快速上线要求：允许被同一
+  角色一起查看的组织使用相同本位币；若未来允许跨本位币查看，另立契约任务返回按币种
+  分组的汇总，禁止继续把多币种金额静默相加。
+- 首批只接入订单、往来单位和财务账单；其他业务域继续保持当前组织语义。
+- 通用异步守卫按后续触碰逐页迁移，不做全站机械替换。
