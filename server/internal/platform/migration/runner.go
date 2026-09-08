@@ -32,6 +32,10 @@ var compatibleChecksums = map[string]map[string]struct{}{
 	"20260906120000_sea_shipping_line_identity": {
 		"ead5c151ed263cb4915215a8094eedad4df5077d362c40622029111ed94867fd": {},
 	},
+	"20260907140000_simplify_sea_export_house_bill_model": {
+		"2c0912f6fd7bd3cdd2e893eadce4cb4ded1a31c464c69cb2be5cf2ed9dff112f": {},
+		"c7679c8fea94938daae76f8f9fd041bb54fc973e59dc6a4e0b89754aa9073434": {},
+	},
 }
 
 type file struct {

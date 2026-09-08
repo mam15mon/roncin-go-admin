@@ -110,6 +110,16 @@ func TestPostgresColdStartMigration(t *testing.T) {
 		}
 	}
 
+	var documentStructureDefault sql.NullString
+	if err := db.QueryRowContext(ctx, `SELECT column_default
+		FROM information_schema.columns
+		WHERE table_schema = $1 AND table_name = 'sea_master_bill_order_links' AND column_name = 'document_structure'`,
+		schemaName).Scan(&documentStructureDefault); err != nil {
+		t.Errorf("迁移后缺少 sea_master_bill_order_links.document_structure: %v", err)
+	} else if documentStructureDefault.Valid {
+		t.Errorf("sea_master_bill_order_links.document_structure 不应保留默认值，实际为 %q", documentStructureDefault.String)
+	}
+
 	var checkDefinition string
 	if err := db.QueryRowContext(ctx, `SELECT pg_get_constraintdef(c.oid)
 		FROM pg_constraint c
