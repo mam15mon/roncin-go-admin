@@ -89,6 +89,111 @@ rpc GetCommission(...) returns (...) { option (google.api.http) = {get: "/commis
 - 路由级权限在 HTTP 注册处绑定；新增/改名/删除权限码或调整 `Requires` 后必须
   重新生成前端权限键。
 
+## 场景：按权限解析跨组织读写范围
+
+### 1. 适用范围 / 触发条件
+
+- 业务接口允许当前工作区用户读取或写入其他组织的数据时适用。
+- 新增跨组织能力时必须保留“角色、权限、数据范围、追加组织访问”的来源关系，
+  禁止先把用户全部权限与全部组织访问分别拍平后再组合。
+- 当前采用显式组织谓词的薄底座；不得为了省略参数而增加全局 Ent interceptor、
+  mutation hook 或 `SystemScope` 隐式豁免。
+
+### 2. 签名
+
+```go
+type RoleGrant struct {
+    RoleID               uuid.UUID
+    Permissions          map[string]struct{}
+    DataScope            DataScope
+    OrganizationAccesses []OrganizationAccess
+}
+
+type PermissionOrganizationScope struct {
+    ReadableOrganizationIDs []uuid.UUID
+    WritableOrganizationIDs []uuid.UUID
+}
+
+func (p *Principal) ResolvePermissionOrganizationScope(
+    permission string,
+) (PermissionOrganizationScope, error)
+
+// 普通聚合：ID 与允许组织必须在同一数据库查询中求交。
+FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID)
+
+// 订单还必须保持业务类型与组织集合成对，不能生成笛卡尔积。
+type OrderOrganizationScope struct {
+    BusinessType    OrderBusinessType
+    OrganizationIDs []uuid.UUID
+}
+```
+
+### 3. 契约
+
+- Resolver 只合并持有目标 `permission` 的启用角色；多个匹配角色的结果可取并集，
+  不持有该权限的角色不得贡献 `data_scope` 或追加组织。
+- 基础范围按该角色的 `all`、`organization_tree`、`organization`、`self` 解析；
+  `self` 在组织维度只包含当前组织，业务实体的本人条件仍由对应领域追加。
+- 基础范围同时进入 readable 与 writable；显式组织访问总是进入 readable，只有
+  `writable=true` 才进入 writable；停用组织不进入任何结果。
+- Service 选择当前接口的具体权限码和读/写集合；Biz 接收明确的组织 ID；Data 使用
+  `Data.client(ctx)`，并把实体 ID 与 `OrganizationIDIn(...)` 放在同一 Ent 查询中。
+- 创建、更新、确认、取消、状态流转分别按自己的写权限解析 writable，禁止用 read
+  权限或当前组织猜测写范围；范围外目标不得静默改写为当前组织。
+- 角色新增、编辑和成员角色分配的提权检查必须复用同样的来源绑定语义：对目标角色的
+  每个权限，只能由操作者同样持有该权限的角色共同覆盖数据范围和组织访问。
+- 当前不兼容旧的订单专用角色组织字段，不双读、不双写；契约变化必须同步 Proto、
+  Ent、迁移、OpenAPI、前端客户端和仓库内调用方。
+
+### 4. 校验与错误矩阵
+
+| 条件 | 必须得到的结果 |
+|------|----------------|
+| 没有任何角色持有目标权限 | 返回 `ErrPermissionDenied`，不得回退到当前组织 |
+| 北京访问项为只读，执行列表或详情读取 | readable 包含北京，可正常读取 |
+| 北京访问项为只读，执行更新或状态流转 | writable 不含北京，返回权限错误（HTTP 403） |
+| 角色 A 有权限、角色 B 有北京访问但无该权限 | 北京不得进入该权限的范围 |
+| 目标实体 ID 存在但组织不在允许集合 | 仓储查询不可见，按领域约定映射为无权或不存在 |
+| 追加组织已停用 | readable / writable 都不包含该组织 |
+| 角色管理试图配置操作者无法覆盖的权限或范围 | 返回 `ErrAdminPrivilegeEscalation` |
+| 订单权限覆盖不同业务类型 | 每个业务类型独立绑定组织集合，不得交叉组合 |
+
+### 5. Good / Base / Bad
+
+- Good：天津角色同时拥有 `system.order.sea_export.read` 和北京只读访问，读取范围为
+  天津 + 北京，写范围仍只有天津。
+- Base：没有追加组织时，继续按该角色原有 `data_scope` 访问当前组织、组织树或全部
+  启用组织。
+- Bad：订单角色只有查看权限，财务角色只有北京访问；把两者拍平后允许查看北京订单。
+- Bad：先按 ID 全局读取实体，再在 Service 内存中判断组织；这会扩大数据暴露面，且
+  子资源、预加载或审计很容易在判断前越界。
+
+### 6. 必需测试
+
+- Resolver 单元测试：四种 `data_scope`、停用组织、read/write 差异、无权限拒绝、
+  同权限多角色并集，以及不同权限角色不得借用范围。
+- 角色管理测试：创建、更新和成员角色分配均覆盖跨角色借权反例与只读提升为可写反例。
+- 每个接入聚合至少验证列表、详情、一个写操作的组织集合传递；Data 层断言最终 SQL/Ent
+  谓词同时包含主键（适用时）和显式组织集合。
+- 订单额外验证 `BusinessType + OrganizationIDs` 成对谓词；账单额外回归事务、锁、版本
+  和状态流转没有因组织范围接入而绕过。
+- 跨层验收至少包含“天津工作区读取北京只读资源”和“同一资源写入被拒绝”两条路径。
+
+### 7. 错误与正确示例
+
+```go
+// 错误：权限和组织访问分别拍平，会把不同角色拼成不存在的能力。
+permissions := unionAllRolePermissions(roles)
+organizationIDs := unionAllRoleOrganizations(roles)
+
+// 正确：先按具体权限选择角色，再解析并显式传递组织集合。
+scope, err := principal.ResolvePermissionOrganizationScope(permission)
+if err != nil {
+    return err
+}
+bill, err := repo.Get(ctx, id, scope.ReadableOrganizationIDs)
+```
+
 ## 验证命令（按风险选取最小集）
 
 ```bash
