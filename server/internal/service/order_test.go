@@ -50,14 +50,9 @@ func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
 	siCreate := access.OrderPermission(access.OrderBusinessSI, access.OrderCreate)
 	principal := &biz.Principal{
-		Permissions: []string{seRead, aiRead, siCreate},
-		RoleScopes: []biz.RoleScope{
-			{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
-			{RoleCode: "self", DataScope: biz.DataScopeSelf},
-		},
-		RolePermissions: map[string]map[string]struct{}{
-			"operator": {seRead: {}, siCreate: {}},
-			"self":     {aiRead: {}},
+		RoleGrants: []biz.RoleGrant{
+			{RoleID: uuid.New(), RoleCode: "operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{seRead: {}, siCreate: {}}},
+			{RoleID: uuid.New(), RoleCode: "self", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{aiRead: {}}},
 		},
 	}
 
@@ -100,7 +95,7 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 		InternalReferenceNo: &internalReferenceNo, ShippingAgentId: &shippingAgentIDString,
 		InsurancePremium: &insurancePremium, InsuranceCurrency: &insuranceCurrency,
 		UnNumber: &unNumber, HazardClass: &hazardClass, FactoryName: &factoryName,
-		CargoReadyAt: &cargoReadyAt,
+		CargoReadyAt:        &cargoReadyAt,
 		DeclarationCutoffAt: &declarationCutoffAt, ReceivedAt: &receivedAt,
 		ShipperShortName: &shipperShortName, ConsigneeShortName: &consigneeShortName,
 	})

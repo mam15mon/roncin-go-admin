@@ -350,23 +350,31 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	// 构造 Principals
 	rolePrincipal := &biz.Principal{
-		UserID:           roleUser.ID,
-		DisplayName:      roleUser.DisplayName,
-		IsBootstrapAdmin: false,
-		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"business.order.se.lock", "business.order.se.update"},
+		UserID:            roleUser.ID,
+		DisplayName:       roleUser.DisplayName,
+		IsBootstrapAdmin:  false,
+		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		RoleGrants: []biz.RoleGrant{{
+			RoleID:      seLockRole.ID,
+			RoleCode:    seLockRole.Code,
+			DataScope:   biz.DataScopeOrganization,
+			Permissions: map[string]struct{}{"business.order.se.lock": {}, "business.order.se.update": {}},
+		}},
 	}
 
 	normalPrincipal := &biz.Principal{
-		UserID:           normalUser.ID,
-		DisplayName:      normalUser.DisplayName,
-		IsBootstrapAdmin: false,
-		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"business.order.se.update"},
-		RoleScopes:       []biz.RoleScope{{RoleCode: normalRole.Code, DataScope: biz.DataScopeOrganization}},
-		RolePermissions: map[string]map[string]struct{}{
-			normalRole.Code: {"business.order.se.update": {}},
-		},
+		UserID:            normalUser.ID,
+		DisplayName:       normalUser.DisplayName,
+		IsBootstrapAdmin:  false,
+		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		RoleGrants: []biz.RoleGrant{{
+			RoleID:      normalRole.ID,
+			RoleCode:    normalRole.Code,
+			DataScope:   biz.DataScopeOrganization,
+			Permissions: map[string]struct{}{"business.order.se.update": {}},
+		}},
 	}
 
 	adminPrincipal := &biz.Principal{
@@ -374,7 +382,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		DisplayName:      adminUser.DisplayName,
 		IsBootstrapAdmin: true,
 		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"*"},
 	}
 
 	orderLockRepo := NewOrderLockRepo(data, &conf.Security{Dingtalk: &conf.Security_DingTalk{
@@ -893,7 +900,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipmentType,
-				ShippingLineID:           &routeShippingLineID,
+				ShippingLineID:      &routeShippingLineID,
 				OriginLocationID:    &routeOriginID,
 				DischargeLocationID: &routeDischargeID,
 				TransitLocationID:   &routeTransitID,
@@ -1109,7 +1116,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			TradeTerm:           biz.OrderTradeFOB,
 			PaymentTerm:         biz.OrderPaymentPrepaid,
 			ShipmentType:        &shipType,
-			ShippingLineID:           &routeShippingLineID,
+			ShippingLineID:      &routeShippingLineID,
 			OriginLocationID:    &routeOriginID,
 			DischargeLocationID: &routeDischargeID,
 			TransitLocationID:   &routeTransitID,
@@ -1429,7 +1436,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipType,
-				ShippingLineID:           &routeShippingLineID,
+				ShippingLineID:      &routeShippingLineID,
 				OriginLocationID:    &routeOriginID,
 				DischargeLocationID: &routeDischargeID,
 				TransitLocationID:   &routeTransitID,

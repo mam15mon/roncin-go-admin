@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -697,19 +698,12 @@ func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
 
 func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
 	principal := &Principal{
-		Permissions: []string{"system.user.manage"},
-		RoleScopes:  []RoleScope{{RoleCode: "viewer", DataScope: DataScopeSelf}},
-		RolePermissions: map[string]map[string]struct{}{
-			"viewer": {"system.user.manage": {}},
-		},
+		RoleGrants: []RoleGrant{roleGrant("viewer", DataScopeSelf, []string{"system.user.manage"}, nil)},
 	}
 	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("self-scoped role unexpectedly passed organization authorization")
 	}
-	principal.RoleScopes = []RoleScope{{RoleCode: "manager", DataScope: DataScopeOrganization}}
-	principal.RolePermissions = map[string]map[string]struct{}{
-		"manager": {"system.user.manage": {}},
-	}
+	principal.RoleGrants = []RoleGrant{roleGrant("manager", DataScopeOrganization, []string{"system.user.manage"}, nil)}
 	if !principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("organization-scoped role was denied organization authorization")
 	}
@@ -717,14 +711,9 @@ func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
 		t.Fatal("organization-scoped role unexpectedly passed global authorization")
 	}
 
-	principal.Permissions = []string{"system.platform.access", "system.user.manage"}
-	principal.RoleScopes = []RoleScope{
-		{RoleCode: "platform", DataScope: DataScopeAll},
-		{RoleCode: "operator", DataScope: DataScopeSelf},
-	}
-	principal.RolePermissions = map[string]map[string]struct{}{
-		"platform": {"system.platform.access": {}},
-		"operator": {"system.user.manage": {}},
+	principal.RoleGrants = []RoleGrant{
+		roleGrant("platform", DataScopeAll, []string{"system.platform.access"}, nil),
+		roleGrant("operator", DataScopeSelf, []string{"system.user.manage"}, nil),
 	}
 	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("permission from a self-scoped role was incorrectly widened by another role")
@@ -736,11 +725,12 @@ func TestPrincipalOrganizationAccess(t *testing.T) {
 	readOnlyOrganizationID := uuid.New()
 	writableOrganizationID := uuid.New()
 	principal := &Principal{
-		Organization: Organization{ID: currentOrganizationID},
-		OrganizationAccesses: []OrganizationAccess{
+		Organization:      Organization{ID: currentOrganizationID},
+		OrganizationNodes: scopeNodes(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID),
+		RoleGrants: []RoleGrant{roleGrant("operator", DataScopeOrganization, []string{"permission"}, []OrganizationAccess{
 			{OrganizationID: readOnlyOrganizationID},
 			{OrganizationID: writableOrganizationID, Writable: true},
-		},
+		})},
 	}
 
 	if !principal.CanAccessOrganization(currentOrganizationID, true) {
@@ -755,7 +745,7 @@ func TestPrincipalOrganizationAccess(t *testing.T) {
 	if principal.CanAccessOrganization(uuid.New(), false) {
 		t.Fatal("unassigned organization was accessible")
 	}
-	if got := principal.OrganizationIDs(); len(got) != 3 || got[0] != currentOrganizationID {
+	if got := principal.OrganizationIDs(); !slices.Equal(got, sortedIDs(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID)) {
 		t.Fatalf("OrganizationIDs() = %#v", got)
 	}
 }

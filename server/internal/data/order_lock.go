@@ -513,7 +513,7 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 				state.CanAdminEmergencyUnlock = true
 			} else if isQualifiedBusinessRole {
 				state.CanRoleDirectUnlock = true
-			} else if caller.HasPermissionInScope(updatePermission, biz.DataScopeOrganization) && caller.CanAccessOrganization(order.OrganizationID, true) {
+			} else if caller.HasPermissionInScope(updatePermission, biz.DataScopeOrganization) && caller.CanAccessOrganizationForPermission(updatePermission, order.OrganizationID, true) {
 				if state.ActiveUnlockRequest == nil {
 					state.CanRequestUnlock = true
 				} else {
@@ -969,7 +969,7 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 
 		// 分支 C: 普通订单编辑人发起钉钉审批
 		updatePermission := access.OrderPermission(businessType, access.OrderUpdate)
-		if !caller.HasPermissionInScope(updatePermission, biz.DataScopeOrganization) || !caller.CanAccessOrganization(order.OrganizationID, true) {
+		if !caller.HasPermissionInScope(updatePermission, biz.DataScopeOrganization) || !caller.CanAccessOrganizationForPermission(updatePermission, order.OrganizationID, true) {
 			return biz.ErrOrderLockRoleRequired
 		}
 

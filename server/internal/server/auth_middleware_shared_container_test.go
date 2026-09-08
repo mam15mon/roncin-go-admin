@@ -121,14 +121,12 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 	principalWith := func(op access.OrderOperation, writable bool) *biz.Principal {
 		permission := access.OrderPermission(access.OrderBusinessSE, op)
 		return &biz.Principal{
-			Organization:    biz.Organization{ID: anchorOrg},
-			Permissions:     []string{permission},
-			RoleScopes:      []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeOrganization}},
-			RolePermissions: map[string]map[string]struct{}{"operator": {permission: {}}},
-			OrganizationAccesses: []biz.OrganizationAccess{{
+			Organization:      biz.Organization{ID: anchorOrg},
+			OrganizationNodes: serverOrganizationNodes(anchorOrg),
+			RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission}, []biz.OrganizationAccess{{
 				OrganizationID: anchorOrg,
 				Writable:       writable,
-			}},
+			}})},
 		}
 	}
 
@@ -156,8 +154,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			}
 
 			otherLine := principalWith(tc.operation, true)
-			otherLine.Permissions = []string{access.OrderPermission(access.OrderBusinessSI, tc.operation)}
-			otherLine.RolePermissions = map[string]map[string]struct{}{"operator": {access.OrderPermission(access.OrderBusinessSI, tc.operation): {}}}
+			otherLine.RoleGrants = []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{access.OrderPermission(access.OrderBusinessSI, tc.operation)}, []biz.OrganizationAccess{{OrganizationID: anchorOrg, Writable: true}})}
 			if state := runSharedContainerMiddleware(t, operation, "sid=valid-token", otherLine, anchorOrder, tc.request); state.called {
 				t.Fatalf("%s 仅 SI 权限不应进入 handler", operation)
 			}
@@ -196,17 +193,9 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)
 		principal := &biz.Principal{
 			// 当前主体组织是 A，通过组织访问授权操作锚点订单所在组织 B
-			Organization: biz.Organization{ID: orgA},
-			Permissions:  []string{permission},
-			RoleScopes: []biz.RoleScope{
-				{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
-			},
-			RolePermissions: map[string]map[string]struct{}{
-				"operator": {permission: {}},
-			},
-			OrganizationAccesses: []biz.OrganizationAccess{
-				{OrganizationID: orgB, Writable: true},
-			},
+			Organization:      biz.Organization{ID: orgA},
+			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
+			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission}, []biz.OrganizationAccess{{OrganizationID: orgB, Writable: true}})},
 		}
 
 		request := &orderv1.ListSeaSharedContainersRequest{
@@ -229,7 +218,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		}
 
 		// 无锚点组织访问权限时拒绝且不进入 handler
-		principal.OrganizationAccesses = nil
+		principal.RoleGrants[0].OrganizationAccesses = nil
 		denied := runSharedContainerMiddleware(
 			t,
 			"/order.v1.SeaSharedContainerService/ListSeaSharedContainers",
@@ -249,17 +238,9 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		anchorOrderB := &biz.Order{ID: uuid.New(), OrganizationID: orgB, BusinessType: biz.OrderBusinessSE}
 		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerUpdate)
 		principal := &biz.Principal{
-			Organization: biz.Organization{ID: orgA},
-			Permissions:  []string{permission},
-			RoleScopes: []biz.RoleScope{
-				{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
-			},
-			RolePermissions: map[string]map[string]struct{}{
-				"operator": {permission: {}},
-			},
-			OrganizationAccesses: []biz.OrganizationAccess{
-				{OrganizationID: orgB, Writable: true},
-			},
+			Organization:      biz.Organization{ID: orgA},
+			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
+			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission}, []biz.OrganizationAccess{{OrganizationID: orgB, Writable: true}})},
 		}
 
 		request := &orderv1.ConfirmSeaSharedContainerRequest{

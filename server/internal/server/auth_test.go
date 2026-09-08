@@ -144,10 +144,24 @@ func TestRequestOrderBusinessTypeOnlyLoadsOrderBaseData(t *testing.T) {
 func principalWithOrderPermission(businessType access.OrderBusinessType, operation access.OrderOperation) *biz.Principal {
 	permission := access.OrderPermission(businessType, operation)
 	return &biz.Principal{
-		Permissions:     []string{permission},
-		RoleScopes:      []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeOrganization}},
-		RolePermissions: map[string]map[string]struct{}{"operator": {permission: {}}},
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission}, nil)},
 	}
+}
+
+func serverRoleGrant(code string, scope biz.DataScope, permissions []string, accesses []biz.OrganizationAccess) biz.RoleGrant {
+	permissionSet := make(map[string]struct{}, len(permissions))
+	for _, permission := range permissions {
+		permissionSet[permission] = struct{}{}
+	}
+	return biz.RoleGrant{RoleID: uuid.New(), RoleCode: code, DataScope: scope, Permissions: permissionSet, OrganizationAccesses: accesses}
+}
+
+func serverOrganizationNodes(ids ...uuid.UUID) []biz.OrganizationScopeNode {
+	result := make([]biz.OrganizationScopeNode, 0, len(ids))
+	for _, id := range ids {
+		result = append(result, biz.OrganizationScopeNode{ID: id})
+	}
+	return result
 }
 
 type anchorAwareOrderRepoStub struct {
@@ -266,13 +280,11 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil)
 
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: principalOrg},
-		Permissions:  []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)},
-		RoleScopes:   []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeOrganization}},
-		RolePermissions: map[string]map[string]struct{}{
-			"operator": {access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead): {}},
-		},
-		OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: anchorOrg, Writable: true}},
+		Organization:      biz.Organization{ID: principalOrg},
+		OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg),
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization,
+			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)},
+			[]biz.OrganizationAccess{{OrganizationID: anchorOrg, Writable: true}})},
 	}
 
 	request := &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrder.ID.String(), TransportExecutionId: uuid.New().String()}

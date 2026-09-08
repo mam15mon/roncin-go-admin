@@ -407,11 +407,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 	ctx = biz.WithPrincipal(context.Background(), &biz.Principal{
 		UserID:       actorID,
 		Organization: biz.Organization{ID: orgID},
-		Permissions:  []string{permission},
-		RoleScopes:   []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeSelf}},
-		RolePermissions: map[string]map[string]struct{}{
-			"operator": {permission: {}},
-		},
+		RoleGrants:   []biz.RoleGrant{{RoleID: uuid.New(), RoleCode: "operator", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{permission: {}}}},
 	})
 	_, err = svc.ExecuteSeaOrderSplit(ctx, &v1.ExecuteSeaOrderSplitRequest{
 		OrderId:            orderID.String(),

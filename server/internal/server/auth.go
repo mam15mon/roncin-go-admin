@@ -52,7 +52,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 			effectivePrincipal := principal
 			if rule.mode == accessModeOrderPermission {
 				if order, directOrderRequest := requestOrder(ctx, request, orderUsecase); directOrderRequest {
-					if order == nil || !principal.CanAccessOrganization(order.OrganizationID, orderOperationWrites(rule.orderOperation)) {
+					if order == nil || !canAccessOrderOrganization(principal, order, rule.orderOperation, orderOperationWrites(rule.orderOperation)) {
 						return nil, biz.ErrPermissionDenied
 					}
 					copy := *principal
@@ -66,6 +66,17 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 			return handler(biz.WithPrincipal(ctx, effectivePrincipal), request)
 		}
 	}
+}
+
+func canAccessOrderOrganization(principal *biz.Principal, order *biz.Order, operation access.OrderOperation, writable bool) bool {
+	if principal == nil || order == nil {
+		return false
+	}
+	businessType, ok := orderBusinessTypeFromBiz(order.BusinessType)
+	if !ok {
+		return false
+	}
+	return principal.CanAccessOrganizationForPermission(access.OrderPermission(businessType, operation), order.OrganizationID, writable)
 }
 
 func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase) (*biz.Order, bool) {
