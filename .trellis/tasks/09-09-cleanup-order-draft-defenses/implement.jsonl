@@ -2,3 +2,4 @@
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "工作区生命周期与表单草稿规范"}
 {"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "通用表单模板与组件职责"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试与类型检查规范"}
+{"file": ".trellis/tasks/archive/2026-09/09-08-multi-org-foundation-architecture/design.md", "reason": "确认 keyed workspace 与异步守卫已经建立的真实边界"}

@@ -24,7 +24,9 @@
     "web/src/components/ui/order-template/OrderFormTemplate.tsx",
     "web/src/pages/orders/detail.tsx",
     "web/src/components/ui/order-template/OrderFormTemplate.test.tsx",
-    "web/src/pages/orders/detail-change-actions.test.tsx"
+    "web/src/pages/orders/detail-change-actions.test.tsx",
+    "web/src/pages/orders/detail-draft-lifecycle.test.tsx",
+    ".trellis/spec/web/frontend/state-management.md"
   ],
   "notes": "在工作区 keyed remount 建立后，精简 OrderFormTemplate 与 detail 中的冗余草稿防御逻辑",
   "meta": {}
