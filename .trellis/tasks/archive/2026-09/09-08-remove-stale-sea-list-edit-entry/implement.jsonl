@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "编辑入口移除涉及公共列表模板 OrderListTemplate 的使用方式与页面组件边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试、Biome、tsc 的最小检查集选择依据"}
