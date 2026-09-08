@@ -116,7 +116,7 @@ export default defineConfig({
    */
   title: 'Roncin 货代后台',
   layout: {
-    locale: true,
+    locale: false,
     ...defaultSettings,
   },
   /**

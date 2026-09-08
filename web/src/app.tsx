@@ -82,6 +82,9 @@ export async function getInitialState(): Promise<InitialState> {
 }
 
 export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
+  menu: {
+    locale: false,
+  },
   menuHeaderRender: (logo, title) => (
     <Link
       to="/welcome"

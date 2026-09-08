@@ -1,7 +1,4 @@
-import {
-  LogoutOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons';
+import { LogoutOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import { Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition } from 'react';
@@ -156,10 +153,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   );
 
   return (
-    <HeaderDropdown
-      placement="bottomRight"
-      dropdownRender={() => dropdownContent}
-    >
+    <HeaderDropdown placement="bottomRight" popupRender={() => dropdownContent}>
       <div
         style={{
           display: 'inline-flex',
