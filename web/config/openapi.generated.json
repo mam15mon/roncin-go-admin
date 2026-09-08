@@ -20610,9 +20610,6 @@
           "cargoReadyAt": {
             "type": "string"
           },
-          "loadingTerms": {
-            "type": "string"
-          },
           "receivedAt": {
             "type": "string"
           },
@@ -22326,9 +22323,6 @@
             "type": "string"
           },
           "cargoReadyAt": {
-            "type": "string"
-          },
-          "loadingTerms": {
             "type": "string"
           },
           "receivedAt": {
@@ -27022,9 +27016,6 @@
             "type": "string"
           },
           "cargoReadyAt": {
-            "type": "string"
-          },
-          "loadingTerms": {
             "type": "string"
           },
           "receivedAt": {

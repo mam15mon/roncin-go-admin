@@ -282,7 +282,8 @@ message Order {
   optional string hazard_class = 47;
   optional string factory_name = 48;
   optional string cargo_ready_at = 49;
-  optional string loading_terms = 50;
+  reserved 50;
+  reserved "loading_terms";
   optional string received_at = 51;
   string organization_name = 52;
   bool can_modify = 53;
@@ -535,7 +536,8 @@ message CreateOrderRequest {
   optional string hazard_class = 41;
   optional string factory_name = 42;
   optional string cargo_ready_at = 43;
-  optional string loading_terms = 44;
+  reserved 44;
+  reserved "loading_terms";
   optional string received_at = 45;
   optional string booking_notes = 46;
   optional string allocation_notes = 47;
@@ -599,7 +601,8 @@ message UpdateOrderRequest {
   optional string hazard_class = 42;
   optional string factory_name = 43;
   optional string cargo_ready_at = 44;
-  optional string loading_terms = 45;
+  reserved 45;
+  reserved "loading_terms";
   optional string received_at = 46;
   optional string booking_notes = 47;
   optional string allocation_notes = 48;

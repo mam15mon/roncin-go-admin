@@ -66,8 +66,6 @@ type Order struct {
 	FactoryName string `json:"factory_name,omitempty"`
 	// CargoReadyAt holds the value of the "cargo_ready_at" field.
 	CargoReadyAt string `json:"cargo_ready_at,omitempty"`
-	// LoadingTerms holds the value of the "loading_terms" field.
-	LoadingTerms string `json:"loading_terms,omitempty"`
 	// DeclarationCutoffAt holds the value of the "declaration_cutoff_at" field.
 	DeclarationCutoffAt string `json:"declaration_cutoff_at,omitempty"`
 	// ReceivedAt holds the value of the "received_at" field.
@@ -559,7 +557,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -721,12 +719,6 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field cargo_ready_at", values[i])
 			} else if value.Valid {
 				_m.CargoReadyAt = value.String
-			}
-		case order.FieldLoadingTerms:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field loading_terms", values[i])
-			} else if value.Valid {
-				_m.LoadingTerms = value.String
 			}
 		case order.FieldDeclarationCutoffAt:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1303,9 +1295,6 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cargo_ready_at=")
 	builder.WriteString(_m.CargoReadyAt)
-	builder.WriteString(", ")
-	builder.WriteString("loading_terms=")
-	builder.WriteString(_m.LoadingTerms)
 	builder.WriteString(", ")
 	builder.WriteString("declaration_cutoff_at=")
 	builder.WriteString(_m.DeclarationCutoffAt)

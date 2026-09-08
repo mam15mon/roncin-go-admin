@@ -13161,8 +13161,6 @@ components:
                     type: string
                 cargoReadyAt:
                     type: string
-                loadingTerms:
-                    type: string
                 receivedAt:
                     type: string
                 bookingNotes:
@@ -14331,8 +14329,6 @@ components:
                 factoryName:
                     type: string
                 cargoReadyAt:
-                    type: string
-                loadingTerms:
                     type: string
                 receivedAt:
                     type: string
@@ -17516,8 +17512,6 @@ components:
                 factoryName:
                     type: string
                 cargoReadyAt:
-                    type: string
-                loadingTerms:
                     type: string
                 receivedAt:
                     type: string

@@ -60,7 +60,6 @@ export function buildInitialValues(
     cargoCurrency: order.cargoCurrency || 'USD',
     insurancePremium: order.insurancePremium,
     insuranceCurrency: order.insuranceCurrency || 'CNY',
-    loadingTerms: order.loadingTerms,
     shipmentType: order.shipmentType ?? ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership:
       order.containerOwnership ??
@@ -191,7 +190,6 @@ export function buildUpdatePayload(
     cargoCurrency: values.cargoCurrency || undefined,
     insurancePremium: values.insurancePremium?.trim() || undefined,
     insuranceCurrency: values.insuranceCurrency || undefined,
-    loadingTerms: values.loadingTerms?.trim() || undefined,
     shipmentType:
       values.shipmentType !== undefined
         ? Number(values.shipmentType)

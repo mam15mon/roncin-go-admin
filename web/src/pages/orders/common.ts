@@ -105,16 +105,6 @@ export const shipmentModeOptions = [
   { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
 ];
 
-export const loadingTermsOptions = [
-  { label: 'CY-CY', value: 'CY-CY' },
-  { label: 'CY-CFS', value: 'CY-CFS' },
-  { label: 'CFS-CY', value: 'CFS-CY' },
-  { label: 'CFS-CFS', value: 'CFS-CFS' },
-  { label: 'DOOR-CY', value: 'DOOR-CY' },
-  { label: 'CY-DOOR', value: 'CY-DOOR' },
-  { label: 'DOOR-DOOR', value: 'DOOR-DOOR' },
-];
-
 export const seaServiceTypes = [
   { code: 'BOOKING', name: '订舱' },
   { code: 'TRUCKING', name: '拖车' },

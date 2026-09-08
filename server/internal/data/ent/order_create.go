@@ -338,20 +338,6 @@ func (_c *OrderCreate) SetNillableCargoReadyAt(v *string) *OrderCreate {
 	return _c
 }
 
-// SetLoadingTerms sets the "loading_terms" field.
-func (_c *OrderCreate) SetLoadingTerms(v string) *OrderCreate {
-	_c.mutation.SetLoadingTerms(v)
-	return _c
-}
-
-// SetNillableLoadingTerms sets the "loading_terms" field if the given value is not nil.
-func (_c *OrderCreate) SetNillableLoadingTerms(v *string) *OrderCreate {
-	if v != nil {
-		_c.SetLoadingTerms(*v)
-	}
-	return _c
-}
-
 // SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
 func (_c *OrderCreate) SetDeclarationCutoffAt(v string) *OrderCreate {
 	_c.mutation.SetDeclarationCutoffAt(v)
@@ -1635,11 +1621,6 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "cargo_ready_at", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_ready_at": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.LoadingTerms(); ok {
-		if err := order.LoadingTermsValidator(v); err != nil {
-			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.DeclarationCutoffAt(); ok {
 		if err := order.DeclarationCutoffAtValidator(v); err != nil {
 			return &ValidationError{Name: "declaration_cutoff_at", err: fmt.Errorf(`ent: validator failed for field "Order.declaration_cutoff_at": %w`, err)}
@@ -1951,10 +1932,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.CargoReadyAt(); ok {
 		_spec.SetField(order.FieldCargoReadyAt, field.TypeString, value)
 		_node.CargoReadyAt = value
-	}
-	if value, ok := _c.mutation.LoadingTerms(); ok {
-		_spec.SetField(order.FieldLoadingTerms, field.TypeString, value)
-		_node.LoadingTerms = value
 	}
 	if value, ok := _c.mutation.DeclarationCutoffAt(); ok {
 		_spec.SetField(order.FieldDeclarationCutoffAt, field.TypeString, value)

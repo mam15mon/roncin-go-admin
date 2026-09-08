@@ -22,7 +22,6 @@ export type CreateOrderFormValues = {
   hazardClass?: string;
   factoryName?: string;
   cargoReadyAt?: string | dayjs.Dayjs;
-  loadingTerms?: string;
   declarationCutoffAt?: string | dayjs.Dayjs;
   receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
@@ -187,7 +186,6 @@ export function buildCreateOrderPayload(
     cargoReadyAt: values.cargoReadyAt
       ? dayjs(values.cargoReadyAt).toISOString()
       : undefined,
-    loadingTerms: values.loadingTerms?.trim() || undefined,
     declarationCutoffAt: values.declarationCutoffAt
       ? dayjs(values.declarationCutoffAt).toISOString()
       : undefined,

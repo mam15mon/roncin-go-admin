@@ -1239,7 +1239,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     bookingNotes?: string;
     allocationNotes?: string;
@@ -3642,7 +3641,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     organizationName?: string;
     canModify?: boolean;
@@ -6869,7 +6867,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     bookingNotes?: string;
     allocationNotes?: string;

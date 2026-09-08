@@ -85,7 +85,6 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	hazardClass := "3"
 	factoryName := "测试工厂"
 	cargoReadyAt := "2026-08-23T12:00:00+08:00"
-	loadingTerms := "CY-CY"
 	receivedAt := "2026-08-23T10:00:00+08:00"
 	declarationCutoffAt := "2026-08-22T16:00:00+08:00"
 	shipperShortName := "华东发货人"
@@ -100,19 +99,19 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 		InternalReferenceNo: &internalReferenceNo, ShippingAgentId: &shippingAgentIDString,
 		InsurancePremium: &insurancePremium, InsuranceCurrency: &insuranceCurrency,
 		UnNumber: &unNumber, HazardClass: &hazardClass, FactoryName: &factoryName,
-		CargoReadyAt: &cargoReadyAt, LoadingTerms: &loadingTerms,
+		CargoReadyAt: &cargoReadyAt,
 		DeclarationCutoffAt: &declarationCutoffAt, ReceivedAt: &receivedAt,
 		ShipperShortName: &shipperShortName, ConsigneeShortName: &consigneeShortName,
 	})
 	if err != nil {
 		t.Fatalf("orderFromCreateRequest() error = %v", err)
 	}
-	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.LoadingTerms != loadingTerms || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt || order.ShipperShortName != shipperShortName || order.ConsigneeShortName != consigneeShortName {
+	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt || order.ShipperShortName != shipperShortName || order.ConsigneeShortName != consigneeShortName {
 		t.Fatalf("converted order business fields = %#v", order)
 	}
 
 	apiOrder := orderToAPI(order)
-	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetLoadingTerms() != loadingTerms || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt || apiOrder.GetShipperShortName() != shipperShortName || apiOrder.GetConsigneeShortName() != consigneeShortName {
+	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt || apiOrder.GetShipperShortName() != shipperShortName || apiOrder.GetConsigneeShortName() != consigneeShortName {
 		t.Fatalf("orderToAPI() business fields = %#v", apiOrder)
 	}
 }

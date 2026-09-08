@@ -68,7 +68,6 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetHazardClass(input.HazardClass).
 			SetFactoryName(input.FactoryName).
 			SetCargoReadyAt(input.CargoReadyAt).
-			SetLoadingTerms(input.LoadingTerms).
 			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 			SetReceivedAt(input.ReceivedAt).
 			SetBusinessType(orderent.BusinessType(input.BusinessType)).
@@ -394,7 +393,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			SetHazardClass(input.HazardClass).
 			SetFactoryName(input.FactoryName).
 			SetCargoReadyAt(input.CargoReadyAt).
-			SetLoadingTerms(input.LoadingTerms).
 			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 			SetReceivedAt(input.ReceivedAt).
 			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).

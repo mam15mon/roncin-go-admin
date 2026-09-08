@@ -958,7 +958,6 @@ type Order struct {
 	HazardClass               *string                  `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
 	FactoryName               *string                  `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt              *string                  `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms              *string                  `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	ReceivedAt                *string                  `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	OrganizationName          string                   `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	CanModify                 bool                     `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
@@ -1360,13 +1359,6 @@ func (x *Order) GetFactoryName() string {
 func (x *Order) GetCargoReadyAt() string {
 	if x != nil && x.CargoReadyAt != nil {
 		return *x.CargoReadyAt
-	}
-	return ""
-}
-
-func (x *Order) GetLoadingTerms() string {
-	if x != nil && x.LoadingTerms != nil {
-		return *x.LoadingTerms
 	}
 	return ""
 }
@@ -3094,7 +3086,6 @@ type CreateOrderRequest struct {
 	HazardClass           *string                          `protobuf:"bytes,41,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
 	FactoryName           *string                          `protobuf:"bytes,42,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt          *string                          `protobuf:"bytes,43,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms          *string                          `protobuf:"bytes,44,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	ReceivedAt            *string                          `protobuf:"bytes,45,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	BookingNotes          *string                          `protobuf:"bytes,46,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
 	AllocationNotes       *string                          `protobuf:"bytes,47,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
@@ -3438,13 +3429,6 @@ func (x *CreateOrderRequest) GetCargoReadyAt() string {
 	return ""
 }
 
-func (x *CreateOrderRequest) GetLoadingTerms() string {
-	if x != nil && x.LoadingTerms != nil {
-		return *x.LoadingTerms
-	}
-	return ""
-}
-
 func (x *CreateOrderRequest) GetReceivedAt() string {
 	if x != nil && x.ReceivedAt != nil {
 		return *x.ReceivedAt
@@ -3597,7 +3581,6 @@ type UpdateOrderRequest struct {
 	HazardClass           *string                       `protobuf:"bytes,42,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
 	FactoryName           *string                       `protobuf:"bytes,43,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt          *string                       `protobuf:"bytes,44,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms          *string                       `protobuf:"bytes,45,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	ReceivedAt            *string                       `protobuf:"bytes,46,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	BookingNotes          *string                       `protobuf:"bytes,47,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
 	AllocationNotes       *string                       `protobuf:"bytes,48,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
@@ -3950,13 +3933,6 @@ func (x *UpdateOrderRequest) GetFactoryName() string {
 func (x *UpdateOrderRequest) GetCargoReadyAt() string {
 	if x != nil && x.CargoReadyAt != nil {
 		return *x.CargoReadyAt
-	}
-	return ""
-}
-
-func (x *UpdateOrderRequest) GetLoadingTerms() string {
-	if x != nil && x.LoadingTerms != nil {
-		return *x.LoadingTerms
 	}
 	return ""
 }
@@ -6213,7 +6189,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xcd)\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xa6)\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -6274,46 +6250,45 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\tun_number\x18. \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
 	"\fhazard_class\x18/ \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x180 \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
-	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x182 \x01(\tH#R\floadingTerms\x88\x01\x01\x12$\n" +
-	"\vreceived_at\x183 \x01(\tH$R\n" +
+	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x183 \x01(\tH#R\n" +
 	"receivedAt\x88\x01\x01\x12+\n" +
 	"\x11organization_name\x184 \x01(\tR\x10organizationName\x12\x1d\n" +
 	"\n" +
 	"can_modify\x185 \x01(\bR\tcanModify\x12(\n" +
-	"\rbooking_notes\x186 \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
-	"\x10allocation_notes\x187 \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x188 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12N\n" +
+	"\rbooking_notes\x186 \x01(\tH$R\fbookingNotes\x88\x01\x01\x12.\n" +
+	"\x10allocation_notes\x187 \x01(\tH%R\x0fallocationNotes\x88\x01\x01\x12,\n" +
+	"\x0foperation_notes\x188 \x01(\tH&R\x0eoperationNotes\x88\x01\x01\x12N\n" +
 	"\x12shipping_documents\x189 \x03(\v2\x1f.order.v1.OrderShippingDocumentR\x11shippingDocuments\x12N\n" +
 	"\x12container_requests\x18: \x03(\v2\x1f.order.v1.OrderContainerRequestR\x11containerRequests\x127\n" +
-	"\x15declaration_cutoff_at\x18; \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
-	"\x15total_gross_weight_kg\x18< \x01(\x01H)R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
-	"\x10total_volume_cbm\x18= \x01(\x01H*R\x0etotalVolumeCbm\x88\x01\x01\x12O\n" +
+	"\x15declaration_cutoff_at\x18; \x01(\tH'R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
+	"\x15total_gross_weight_kg\x18< \x01(\x01H(R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
+	"\x10total_volume_cbm\x18= \x01(\x01H)R\x0etotalVolumeCbm\x88\x01\x01\x12O\n" +
 	"\x12termination_status\x18> \x01(\x0e2 .order.v1.OrderTerminationStatusR\x11terminationStatus\x12N\n" +
-	"\x10termination_type\x18? \x01(\x0e2\x1e.order.v1.OrderTerminationTypeH+R\x0fterminationType\x88\x01\x01\x122\n" +
-	"\x12termination_reason\x18@ \x01(\tH,R\x11terminationReason\x88\x01\x01\x12(\n" +
-	"\rterminated_at\x18A \x01(\tH-R\fterminatedAt\x88\x01\x01\x12(\n" +
-	"\rterminated_by\x18B \x01(\tH.R\fterminatedBy\x88\x01\x01\x12C\n" +
+	"\x10termination_type\x18? \x01(\x0e2\x1e.order.v1.OrderTerminationTypeH*R\x0fterminationType\x88\x01\x01\x122\n" +
+	"\x12termination_reason\x18@ \x01(\tH+R\x11terminationReason\x88\x01\x01\x12(\n" +
+	"\rterminated_at\x18A \x01(\tH,R\fterminatedAt\x88\x01\x01\x12(\n" +
+	"\rterminated_by\x18B \x01(\tH-R\fterminatedBy\x88\x01\x01\x12C\n" +
 	"\x0eclosure_status\x18C \x01(\x0e2\x1c.order.v1.OrderClosureStatusR\rclosureStatus\x12*\n" +
-	"\x0eclosure_reason\x18D \x01(\tH/R\rclosureReason\x88\x01\x01\x12 \n" +
-	"\tclosed_at\x18E \x01(\tH0R\bclosedAt\x88\x01\x01\x12 \n" +
-	"\tclosed_by\x18F \x01(\tH1R\bclosedBy\x88\x01\x01\x12\x18\n" +
+	"\x0eclosure_reason\x18D \x01(\tH.R\rclosureReason\x88\x01\x01\x12 \n" +
+	"\tclosed_at\x18E \x01(\tH/R\bclosedAt\x88\x01\x01\x12 \n" +
+	"\tclosed_by\x18F \x01(\tH0R\bclosedBy\x88\x01\x01\x12\x18\n" +
 	"\aversion\x18G \x01(\x04R\aversion\x120\n" +
 	"\x14has_active_exception\x18H \x01(\bR\x12hasActiveException\x124\n" +
 	"\x16active_exception_count\x18I \x01(\x05R\x14activeExceptionCount\x12E\n" +
 	"\x0fallowed_actions\x18J \x03(\x0e2\x1c.order.v1.OrderAllowedActionR\x0eallowedActions\x121\n" +
-	"\x12shipper_short_name\x18K \x01(\tH2R\x10shipperShortName\x88\x01\x01\x125\n" +
-	"\x14consignee_short_name\x18L \x01(\tH3R\x12consigneeShortName\x88\x01\x01\x12 \n" +
-	"\tlocked_at\x18M \x01(\tH4R\blockedAt\x88\x01\x01\x12\x1b\n" +
+	"\x12shipper_short_name\x18K \x01(\tH1R\x10shipperShortName\x88\x01\x01\x125\n" +
+	"\x14consignee_short_name\x18L \x01(\tH2R\x12consigneeShortName\x88\x01\x01\x12 \n" +
+	"\tlocked_at\x18M \x01(\tH3R\blockedAt\x88\x01\x01\x12\x1b\n" +
 	"\tis_shared\x18N \x01(\bR\bisShared\x120\n" +
 	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tags\x12Z\n" +
 	"\x1callowed_target_flow_statuses\x18P \x03(\x0e2\x19.order.v1.OrderFlowStatusR\x19allowedTargetFlowStatuses\x12K\n" +
-	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH5R\rseaMasterBill\x88\x01\x01\x12Y\n" +
-	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH6R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
-	"\x19sea_document_link_version\x18S \x01(\x04H7R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
-	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01\x12\"\n" +
+	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH4R\rseaMasterBill\x88\x01\x01\x12Y\n" +
+	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH5R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
+	"\x19sea_document_link_version\x18S \x01(\x04H6R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
+	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH7R\x12seaDocumentSummary\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18U \x01(\tH9R\tbookingNo\x88\x01\x01B\x13\n" +
+	"booking_no\x18U \x01(\tH8R\tbookingNo\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -6350,8 +6325,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"_un_numberB\x0f\n" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
-	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_termsB\x0e\n" +
+	"\x0f_cargo_ready_atB\x0e\n" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
@@ -6376,7 +6350,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x17_sea_document_structureB\x1c\n" +
 	"\x1a_sea_document_link_versionB\x17\n" +
 	"\x15_sea_document_summaryB\r\n" +
-	"\v_booking_noJ\x04\b\x0f\x10\x10R\x12status_template_id\"z\n" +
+	"\v_booking_noJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
@@ -6532,7 +6506,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xd1\x1e\n" +
+	"\t_order_no\"\xaa\x1e\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -6584,25 +6558,24 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\tun_number\x18( \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
 	"\fhazard_class\x18) \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x18* \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
-	"\x0ecargo_ready_at\x18+ \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x18, \x01(\tH#R\floadingTerms\x88\x01\x01\x12$\n" +
-	"\vreceived_at\x18- \x01(\tH$R\n" +
+	"\x0ecargo_ready_at\x18+ \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x18- \x01(\tH#R\n" +
 	"receivedAt\x88\x01\x01\x12(\n" +
-	"\rbooking_notes\x18. \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
-	"\x10allocation_notes\x18/ \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x180 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
+	"\rbooking_notes\x18. \x01(\tH$R\fbookingNotes\x88\x01\x01\x12.\n" +
+	"\x10allocation_notes\x18/ \x01(\tH%R\x0fallocationNotes\x88\x01\x01\x12,\n" +
+	"\x0foperation_notes\x180 \x01(\tH&R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
 	"\x15personnel_assignments\x181 \x03(\v2'.order.v1.OrderPersonnelAssignmentInputR\x14personnelAssignments\x12S\n" +
 	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
 	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequests\x127\n" +
-	"\x15declaration_cutoff_at\x184 \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
-	"\x15total_gross_weight_kg\x185 \x01(\x01H)R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
-	"\x10total_volume_cbm\x186 \x01(\x01H*R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
-	"\x12shipper_short_name\x187 \x01(\tH+R\x10shipperShortName\x88\x01\x01\x125\n" +
-	"\x14consignee_short_name\x188 \x01(\tH,R\x12consigneeShortName\x88\x01\x01\x12I\n" +
-	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01\x12G\n" +
-	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01\x12\"\n" +
+	"\x15declaration_cutoff_at\x184 \x01(\tH'R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
+	"\x15total_gross_weight_kg\x185 \x01(\x01H(R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
+	"\x10total_volume_cbm\x186 \x01(\x01H)R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
+	"\x12shipper_short_name\x187 \x01(\tH*R\x10shipperShortName\x88\x01\x01\x125\n" +
+	"\x14consignee_short_name\x188 \x01(\tH+R\x12consigneeShortName\x88\x01\x01\x12I\n" +
+	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH,R\rseaMasterBill\x88\x01\x01\x12G\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH-R\vseaDocument\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18; \x01(\tH/R\tbookingNo\x88\x01\x01B\x13\n" +
+	"booking_no\x18; \x01(\tH.R\tbookingNo\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -6639,8 +6612,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"_un_numberB\x0f\n" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
-	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_termsB\x0e\n" +
+	"\x0f_cargo_ready_atB\x0e\n" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
@@ -6652,7 +6624,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x15_consignee_short_nameB\x12\n" +
 	"\x10_sea_master_billB\x0f\n" +
 	"\r_sea_documentB\r\n" +
-	"\v_booking_noJ\x04\b\x06\x10\aR\x12status_template_id\"\xf4\x1e\n" +
+	"\v_booking_noJ\x04\b\x06\x10\aJ\x04\b,\x10-R\x12status_template_idR\rloading_terms\"\xcd\x1e\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12$\n" +
@@ -6706,24 +6678,23 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\tun_number\x18) \x01(\tH$R\bunNumber\x88\x01\x01\x12&\n" +
 	"\fhazard_class\x18* \x01(\tH%R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x18+ \x01(\tH&R\vfactoryName\x88\x01\x01\x12)\n" +
-	"\x0ecargo_ready_at\x18, \x01(\tH'R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x18- \x01(\tH(R\floadingTerms\x88\x01\x01\x12$\n" +
-	"\vreceived_at\x18. \x01(\tH)R\n" +
+	"\x0ecargo_ready_at\x18, \x01(\tH'R\fcargoReadyAt\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x18. \x01(\tH(R\n" +
 	"receivedAt\x88\x01\x01\x12(\n" +
-	"\rbooking_notes\x18/ \x01(\tH*R\fbookingNotes\x88\x01\x01\x12.\n" +
-	"\x10allocation_notes\x180 \x01(\tH+R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x181 \x01(\tH,R\x0eoperationNotes\x88\x01\x01\x12S\n" +
+	"\rbooking_notes\x18/ \x01(\tH)R\fbookingNotes\x88\x01\x01\x12.\n" +
+	"\x10allocation_notes\x180 \x01(\tH*R\x0fallocationNotes\x88\x01\x01\x12,\n" +
+	"\x0foperation_notes\x181 \x01(\tH+R\x0eoperationNotes\x88\x01\x01\x12S\n" +
 	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
 	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequests\x127\n" +
-	"\x15declaration_cutoff_at\x184 \x01(\tH-R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
-	"\x15total_gross_weight_kg\x185 \x01(\x01H.R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
-	"\x10total_volume_cbm\x186 \x01(\x01H/R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
-	"\x12shipper_short_name\x187 \x01(\tH0R\x10shipperShortName\x88\x01\x01\x125\n" +
-	"\x14consignee_short_name\x188 \x01(\tH1R\x12consigneeShortName\x88\x01\x01\x12I\n" +
-	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH2R\rseaMasterBill\x88\x01\x01\x12G\n" +
-	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH3R\vseaDocument\x88\x01\x01\x12\"\n" +
+	"\x15declaration_cutoff_at\x184 \x01(\tH,R\x13declarationCutoffAt\x88\x01\x01\x126\n" +
+	"\x15total_gross_weight_kg\x185 \x01(\x01H-R\x12totalGrossWeightKg\x88\x01\x01\x12-\n" +
+	"\x10total_volume_cbm\x186 \x01(\x01H.R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
+	"\x12shipper_short_name\x187 \x01(\tH/R\x10shipperShortName\x88\x01\x01\x125\n" +
+	"\x14consignee_short_name\x188 \x01(\tH0R\x12consigneeShortName\x88\x01\x01\x12I\n" +
+	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH1R\rseaMasterBill\x88\x01\x01\x12G\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH2R\vseaDocument\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18; \x01(\tH4R\tbookingNo\x88\x01\x01B\x0e\n" +
+	"booking_no\x18; \x01(\tH3R\tbookingNo\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -6765,8 +6736,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"_un_numberB\x0f\n" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
-	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_termsB\x0e\n" +
+	"\x0f_cargo_ready_atB\x0e\n" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
@@ -6778,7 +6748,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x15_consignee_short_nameB\x12\n" +
 	"\x10_sea_master_billB\x0f\n" +
 	"\r_sea_documentB\r\n" +
-	"\v_booking_no\"\xd9\x01\n" +
+	"\v_booking_noJ\x04\b-\x10.R\rloading_terms\"\xd9\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12L\n" +

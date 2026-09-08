@@ -61002,7 +61002,6 @@ type OrderMutation struct {
 	hazard_class                            *string
 	factory_name                            *string
 	cargo_ready_at                          *string
-	loading_terms                           *string
 	declaration_cutoff_at                   *string
 	received_at                             *string
 	business_type                           *order.BusinessType
@@ -62244,55 +62243,6 @@ func (m *OrderMutation) CargoReadyAtCleared() bool {
 func (m *OrderMutation) ResetCargoReadyAt() {
 	m.cargo_ready_at = nil
 	delete(m.clearedFields, order.FieldCargoReadyAt)
-}
-
-// SetLoadingTerms sets the "loading_terms" field.
-func (m *OrderMutation) SetLoadingTerms(s string) {
-	m.loading_terms = &s
-}
-
-// LoadingTerms returns the value of the "loading_terms" field in the mutation.
-func (m *OrderMutation) LoadingTerms() (r string, exists bool) {
-	v := m.loading_terms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLoadingTerms returns the old "loading_terms" field's value of the Order entity.
-// If the Order object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldLoadingTerms(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLoadingTerms is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLoadingTerms requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLoadingTerms: %w", err)
-	}
-	return oldValue.LoadingTerms, nil
-}
-
-// ClearLoadingTerms clears the value of the "loading_terms" field.
-func (m *OrderMutation) ClearLoadingTerms() {
-	m.loading_terms = nil
-	m.clearedFields[order.FieldLoadingTerms] = struct{}{}
-}
-
-// LoadingTermsCleared returns if the "loading_terms" field was cleared in this mutation.
-func (m *OrderMutation) LoadingTermsCleared() bool {
-	_, ok := m.clearedFields[order.FieldLoadingTerms]
-	return ok
-}
-
-// ResetLoadingTerms resets all changes to the "loading_terms" field.
-func (m *OrderMutation) ResetLoadingTerms() {
-	m.loading_terms = nil
-	delete(m.clearedFields, order.FieldLoadingTerms)
 }
 
 // SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
@@ -66292,7 +66242,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 70)
+	fields := make([]string, 0, 69)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -66358,9 +66308,6 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.cargo_ready_at != nil {
 		fields = append(fields, order.FieldCargoReadyAt)
-	}
-	if m.loading_terms != nil {
-		fields = append(fields, order.FieldLoadingTerms)
 	}
 	if m.declaration_cutoff_at != nil {
 		fields = append(fields, order.FieldDeclarationCutoffAt)
@@ -66555,8 +66502,6 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.FactoryName()
 	case order.FieldCargoReadyAt:
 		return m.CargoReadyAt()
-	case order.FieldLoadingTerms:
-		return m.LoadingTerms()
 	case order.FieldDeclarationCutoffAt:
 		return m.DeclarationCutoffAt()
 	case order.FieldReceivedAt:
@@ -66704,8 +66649,6 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldFactoryName(ctx)
 	case order.FieldCargoReadyAt:
 		return m.OldCargoReadyAt(ctx)
-	case order.FieldLoadingTerms:
-		return m.OldLoadingTerms(ctx)
 	case order.FieldDeclarationCutoffAt:
 		return m.OldDeclarationCutoffAt(ctx)
 	case order.FieldReceivedAt:
@@ -66962,13 +66905,6 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCargoReadyAt(v)
-		return nil
-	case order.FieldLoadingTerms:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLoadingTerms(v)
 		return nil
 	case order.FieldDeclarationCutoffAt:
 		v, ok := value.(string)
@@ -67437,9 +67373,6 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldCargoReadyAt) {
 		fields = append(fields, order.FieldCargoReadyAt)
 	}
-	if m.FieldCleared(order.FieldLoadingTerms) {
-		fields = append(fields, order.FieldLoadingTerms)
-	}
 	if m.FieldCleared(order.FieldDeclarationCutoffAt) {
 		fields = append(fields, order.FieldDeclarationCutoffAt)
 	}
@@ -67609,9 +67542,6 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldCargoReadyAt:
 		m.ClearCargoReadyAt()
-		return nil
-	case order.FieldLoadingTerms:
-		m.ClearLoadingTerms()
 		return nil
 	case order.FieldDeclarationCutoffAt:
 		m.ClearDeclarationCutoffAt()
@@ -67797,9 +67727,6 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldCargoReadyAt:
 		m.ResetCargoReadyAt()
-		return nil
-	case order.FieldLoadingTerms:
-		m.ResetLoadingTerms()
 		return nil
 	case order.FieldDeclarationCutoffAt:
 		m.ResetDeclarationCutoffAt()

@@ -16,7 +16,7 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			name:    "Order",
 			message: (&Order{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
-				"loading_terms": 50, "container_requests": 58, "declaration_cutoff_at": 59,
+				"container_requests": 58, "declaration_cutoff_at": 59,
 				"total_gross_weight_kg": 60, "total_volume_cbm": 61,
 			},
 		},
@@ -24,7 +24,7 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			name:    "CreateOrderRequest",
 			message: (&CreateOrderRequest{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
-				"loading_terms": 44, "container_requests": 51, "declaration_cutoff_at": 52,
+				"container_requests": 51, "declaration_cutoff_at": 52,
 				"total_gross_weight_kg": 53, "total_volume_cbm": 54,
 			},
 		},
@@ -32,7 +32,7 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 			name:    "UpdateOrderRequest",
 			message: (&UpdateOrderRequest{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
-				"loading_terms": 45, "container_requests": 51, "declaration_cutoff_at": 52,
+				"container_requests": 51, "declaration_cutoff_at": 52,
 				"total_gross_weight_kg": 53, "total_volume_cbm": 54,
 			},
 		},

@@ -424,26 +424,6 @@ func (_u *OrderUpdate) ClearCargoReadyAt() *OrderUpdate {
 	return _u
 }
 
-// SetLoadingTerms sets the "loading_terms" field.
-func (_u *OrderUpdate) SetLoadingTerms(v string) *OrderUpdate {
-	_u.mutation.SetLoadingTerms(v)
-	return _u
-}
-
-// SetNillableLoadingTerms sets the "loading_terms" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableLoadingTerms(v *string) *OrderUpdate {
-	if v != nil {
-		_u.SetLoadingTerms(*v)
-	}
-	return _u
-}
-
-// ClearLoadingTerms clears the value of the "loading_terms" field.
-func (_u *OrderUpdate) ClearLoadingTerms() *OrderUpdate {
-	_u.mutation.ClearLoadingTerms()
-	return _u
-}
-
 // SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
 func (_u *OrderUpdate) SetDeclarationCutoffAt(v string) *OrderUpdate {
 	_u.mutation.SetDeclarationCutoffAt(v)
@@ -2569,11 +2549,6 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "cargo_ready_at", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_ready_at": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.LoadingTerms(); ok {
-		if err := order.LoadingTermsValidator(v); err != nil {
-			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.DeclarationCutoffAt(); ok {
 		if err := order.DeclarationCutoffAtValidator(v); err != nil {
 			return &ValidationError{Name: "declaration_cutoff_at", err: fmt.Errorf(`ent: validator failed for field "Order.declaration_cutoff_at": %w`, err)}
@@ -2852,12 +2827,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.CargoReadyAtCleared() {
 		_spec.ClearField(order.FieldCargoReadyAt, field.TypeString)
-	}
-	if value, ok := _u.mutation.LoadingTerms(); ok {
-		_spec.SetField(order.FieldLoadingTerms, field.TypeString, value)
-	}
-	if _u.mutation.LoadingTermsCleared() {
-		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
 	}
 	if value, ok := _u.mutation.DeclarationCutoffAt(); ok {
 		_spec.SetField(order.FieldDeclarationCutoffAt, field.TypeString, value)
@@ -4920,26 +4889,6 @@ func (_u *OrderUpdateOne) SetNillableCargoReadyAt(v *string) *OrderUpdateOne {
 // ClearCargoReadyAt clears the value of the "cargo_ready_at" field.
 func (_u *OrderUpdateOne) ClearCargoReadyAt() *OrderUpdateOne {
 	_u.mutation.ClearCargoReadyAt()
-	return _u
-}
-
-// SetLoadingTerms sets the "loading_terms" field.
-func (_u *OrderUpdateOne) SetLoadingTerms(v string) *OrderUpdateOne {
-	_u.mutation.SetLoadingTerms(v)
-	return _u
-}
-
-// SetNillableLoadingTerms sets the "loading_terms" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableLoadingTerms(v *string) *OrderUpdateOne {
-	if v != nil {
-		_u.SetLoadingTerms(*v)
-	}
-	return _u
-}
-
-// ClearLoadingTerms clears the value of the "loading_terms" field.
-func (_u *OrderUpdateOne) ClearLoadingTerms() *OrderUpdateOne {
-	_u.mutation.ClearLoadingTerms()
 	return _u
 }
 
@@ -7081,11 +7030,6 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "cargo_ready_at", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_ready_at": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.LoadingTerms(); ok {
-		if err := order.LoadingTermsValidator(v); err != nil {
-			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.DeclarationCutoffAt(); ok {
 		if err := order.DeclarationCutoffAtValidator(v); err != nil {
 			return &ValidationError{Name: "declaration_cutoff_at", err: fmt.Errorf(`ent: validator failed for field "Order.declaration_cutoff_at": %w`, err)}
@@ -7381,12 +7325,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.CargoReadyAtCleared() {
 		_spec.ClearField(order.FieldCargoReadyAt, field.TypeString)
-	}
-	if value, ok := _u.mutation.LoadingTerms(); ok {
-		_spec.SetField(order.FieldLoadingTerms, field.TypeString, value)
-	}
-	if _u.mutation.LoadingTermsCleared() {
-		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
 	}
 	if value, ok := _u.mutation.DeclarationCutoffAt(); ok {
 		_spec.SetField(order.FieldDeclarationCutoffAt, field.TypeString, value)

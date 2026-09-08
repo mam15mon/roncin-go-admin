@@ -9,7 +9,6 @@ import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
 import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
 import {
-  loadingTermsOptions,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
@@ -446,7 +445,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
 
-        {/* 第 7 行：危险品、运输条款与合规时间 */}
+        {/* 第 7 行：危险品与合规时间（运输条款在提单信息区块维护） */}
         <Col className="col-5">
           <Form.Item
             label="UN NO."
@@ -470,14 +469,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           >
             <TooltipInput placeholder="类别" maxLength={16} />
           </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name="loadingTerms"
-            label="运输条款"
-            options={loadingTermsOptions}
-            placeholder="请选择 CY / CFS / DOOR 条款"
-          />
         </Col>
         <Col className="col-5">
           <ProFormDateTimePicker

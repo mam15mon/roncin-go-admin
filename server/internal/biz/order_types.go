@@ -247,7 +247,6 @@ type Order struct {
 	HazardClass            string
 	FactoryName            string
 	CargoReadyAt           string
-	LoadingTerms           string
 	DeclarationCutoffAt    string
 	ReceivedAt             string
 	BusinessType           OrderBusinessType

@@ -166,11 +166,6 @@ func CargoReadyAt(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCargoReadyAt, v))
 }
 
-// LoadingTerms applies equality check predicate on the "loading_terms" field. It's identical to LoadingTermsEQ.
-func LoadingTerms(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
-}
-
 // DeclarationCutoffAt applies equality check predicate on the "declaration_cutoff_at" field. It's identical to DeclarationCutoffAtEQ.
 func DeclarationCutoffAt(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldDeclarationCutoffAt, v))
@@ -1669,81 +1664,6 @@ func CargoReadyAtEqualFold(v string) predicate.Order {
 // CargoReadyAtContainsFold applies the ContainsFold predicate on the "cargo_ready_at" field.
 func CargoReadyAtContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldCargoReadyAt, v))
-}
-
-// LoadingTermsEQ applies the EQ predicate on the "loading_terms" field.
-func LoadingTermsEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
-}
-
-// LoadingTermsNEQ applies the NEQ predicate on the "loading_terms" field.
-func LoadingTermsNEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldLoadingTerms, v))
-}
-
-// LoadingTermsIn applies the In predicate on the "loading_terms" field.
-func LoadingTermsIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldLoadingTerms, vs...))
-}
-
-// LoadingTermsNotIn applies the NotIn predicate on the "loading_terms" field.
-func LoadingTermsNotIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldLoadingTerms, vs...))
-}
-
-// LoadingTermsGT applies the GT predicate on the "loading_terms" field.
-func LoadingTermsGT(v string) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldLoadingTerms, v))
-}
-
-// LoadingTermsGTE applies the GTE predicate on the "loading_terms" field.
-func LoadingTermsGTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldLoadingTerms, v))
-}
-
-// LoadingTermsLT applies the LT predicate on the "loading_terms" field.
-func LoadingTermsLT(v string) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldLoadingTerms, v))
-}
-
-// LoadingTermsLTE applies the LTE predicate on the "loading_terms" field.
-func LoadingTermsLTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldLoadingTerms, v))
-}
-
-// LoadingTermsContains applies the Contains predicate on the "loading_terms" field.
-func LoadingTermsContains(v string) predicate.Order {
-	return predicate.Order(sql.FieldContains(FieldLoadingTerms, v))
-}
-
-// LoadingTermsHasPrefix applies the HasPrefix predicate on the "loading_terms" field.
-func LoadingTermsHasPrefix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasPrefix(FieldLoadingTerms, v))
-}
-
-// LoadingTermsHasSuffix applies the HasSuffix predicate on the "loading_terms" field.
-func LoadingTermsHasSuffix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasSuffix(FieldLoadingTerms, v))
-}
-
-// LoadingTermsIsNil applies the IsNil predicate on the "loading_terms" field.
-func LoadingTermsIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldLoadingTerms))
-}
-
-// LoadingTermsNotNil applies the NotNil predicate on the "loading_terms" field.
-func LoadingTermsNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldLoadingTerms))
-}
-
-// LoadingTermsEqualFold applies the EqualFold predicate on the "loading_terms" field.
-func LoadingTermsEqualFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldEqualFold(FieldLoadingTerms, v))
-}
-
-// LoadingTermsContainsFold applies the ContainsFold predicate on the "loading_terms" field.
-func LoadingTermsContainsFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldContainsFold(FieldLoadingTerms, v))
 }
 
 // DeclarationCutoffAtEQ applies the EQ predicate on the "declaration_cutoff_at" field.

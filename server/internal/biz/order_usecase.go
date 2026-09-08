@@ -294,8 +294,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.HazardClass = strings.TrimSpace(output.HazardClass)
 	output.FactoryName = strings.TrimSpace(output.FactoryName)
 	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
-	output.LoadingTerms = strings.TrimSpace(output.LoadingTerms)
-	output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
+		output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
 	output.ReceivedAt = strings.TrimSpace(output.ReceivedAt)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)
@@ -316,7 +315,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.BookingNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.BookingNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
