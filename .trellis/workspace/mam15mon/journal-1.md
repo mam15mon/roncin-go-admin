@@ -992,3 +992,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 39: 对齐海运订单表单订舱号输入框UI
+<!-- trellis-session: v=2 fp=37141f34d81502d6 -->
+
+**Date**: 2026-09-08
+**Task**: 对齐海运订单表单订舱号输入框UI
+**Branch**: `main`
+
+### Summary
+
+修复SeaBasicInfoSection中订舱号输入框遗漏marginInline: 8的问题，移除独有的tooltip问号图标，占位符统一为'请输入'，使边距、宽度及Label与整行其他字段完全对齐。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `516b943d` | fix(orders): 对齐海运订单表单订舱号输入框边距与占位符 |
+
+### Status
+
+[OK] **Completed**
