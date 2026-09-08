@@ -898,3 +898,31 @@
 
 - 重写并恢复 3 份被 //go:build ignore 排除的 Data 集成测试 (sea_cargo_allocation_test, sea_document_change_integration_test, sea_order_change_integration_test)
 - 运行全套代码门禁 (check:server, check:web) 并归档任务
+
+
+## Session 35: 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复
+<!-- trellis-session: v=2 fp=56cb3d80cf4ba6e5 -->
+
+**Date**: 2026-09-08
+**Task**: 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复
+**Branch**: `main`
+
+### Summary
+
+完成任务 09-07-simplify-sea-order-house-bill-model 阶段 5/6 剩余工作并经五轮独立 Review 修复后归档。核心变更：拆票资格改为 HOUSE 订单唯一当前 HBL 即可拆票且历史 VOIDED 不阻断；Preview/Execute 增加逐结果逐货物共享箱交叉守恒与独占箱/共享箱版本强校验；三个 //go:build ignore 集成测试按新模型重写并在真实 PostgreSQL 全绿；拆票内嵌改配补外部确认契约（ExecuteSeaOrderSplit 新增 confirmation）；共享箱全部 RPC 增加 order_id 授权锚点并绑定锚点订单与运输执行/共享箱归属，权限收敛为 container.*；工作台完成异步上下文隔离（上下文键重挂载+请求序号防迟到覆盖）、服务端订单分页与货物行解耦、跨页草稿保全、确认单事务化并携带四实体乐观锁；统一 SharedContainer→Allocation 锁序并消除 Update 反向锁序与 TE 可变语义（不可变+锁内锚点校验+提交后私有 reload）；补真实 Authorization 中间件测试（含跨组织读写正向切换）。验证：真实 PostgreSQL 集成测试、go vet、govulncheck、tsc、biome、vitest 350 项、生产构建、生成幂等全部通过。教训：纯内存单测无法发现 NOT NULL 契约缺失与锁序死锁——集成测试必须接真实库；授权锚点与业务资源上下文必须双向绑定，仅中间件鉴权不够。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ef9ae789` | fix: 修复拆票资格与共享箱守恒闭环并恢复集成测试 |
+| `e273867f` | feat: 对齐共享箱细粒度权限并实现候选订单服务端搜索分页 |
+| `f53b4237` | fix: 补齐共享箱授权锚点与工作台异步上下文隔离 |
+| `0b876598` | fix: 补齐共享箱确认乐观锁与锚点业务上下文绑定 |
+| `8b54f7e6` | fix: 共享箱运输执行不可变并修正提交后响应重读 |
+| `2210d559` | fix: 消除共享箱 Update 反向锁序并收敛 Confirm 预读鉴权 |
+| `3cc7fca7` | test: 收紧共享箱 Update 并发测试为恰好一个成功 |
+
+### Status
+
+[OK] **Completed**
