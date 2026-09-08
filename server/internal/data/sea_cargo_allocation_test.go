@@ -610,8 +610,10 @@ func TestSeaSharedContainerUpdateConcurrentMutationLockOrder(t *testing.T) {
 						t.Fatalf("%s 第 %d 轮 %s 返回非预期错误: %v", tc.name, round, result.label, result.err)
 					}
 				}
-				if successes < 1 || successes > 2 {
-					t.Fatalf("%s 第 %d 轮成功操作数异常: %d", tc.name, round, successes)
+				// 双方携带同一 expectedVersion：悲观锁+乐观锁组合下仅先取得共享箱锁的事务成功，
+				// 另一个必须返回版本冲突，成功数恰好为 1
+				if successes != 1 {
+					t.Fatalf("%s 第 %d 轮成功操作数应恰好为 1: %d", tc.name, round, successes)
 				}
 
 				after, err := f.data.db.SeaSharedContainer.Get(ctx, container.ID)
