@@ -1,0 +1,10 @@
+{"file": "AGENTS.md", "reason": "快速上线、不兼容历史、生成物与提交要求"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "工作区状态、页签与草稿命名空间约束"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "Workspace Context 与 useScopedDraft Hook 设计约束"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "布局容器与业务组件职责边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试、类型与门禁要求"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "Service、Biz、Data 分层与组织范围解析归属"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "显式组织谓词、事务、锁与迁移约束"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "越界组织的业务错误与 HTTP 语义"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端定向测试与生成验证要求"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "权限、契约、前后端数据流与生成物检查"}
