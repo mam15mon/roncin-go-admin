@@ -356,7 +356,10 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                 placeholder="金额"
                 maxLength={23}
                 suffix={
-                  <span onMouseDown={(e) => e.stopPropagation()}>
+                  <span
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Form.Item
                       noStyle
                       name="cargoCurrency"
@@ -407,7 +410,10 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                 placeholder="金额"
                 maxLength={23}
                 suffix={
-                  <span onMouseDown={(e) => e.stopPropagation()}>
+                  <span
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Form.Item
                       noStyle
                       name="insuranceCurrency"
