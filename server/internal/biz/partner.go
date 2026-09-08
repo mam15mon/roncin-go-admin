@@ -245,12 +245,17 @@ type PartnerRepo interface {
 }
 
 type PartnerUsecase struct {
-	repo PartnerRepo
-	now  func() time.Time
+	repo                PartnerRepo
+	now                 func() time.Time
+	generatePartnerCode func() (string, error)
 }
 
 func NewPartnerUsecase(repo PartnerRepo) *PartnerUsecase {
-	return &PartnerUsecase{repo: repo, now: time.Now}
+	return &PartnerUsecase{
+		repo:                repo,
+		now:                 time.Now,
+		generatePartnerCode: generatePartnerCode,
+	}
 }
 
 func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*Partner, error) {
@@ -323,17 +328,7 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 	}
 	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 
-	// 客商代码留空时按组织内唯一规则自动生成；冲突由数据库唯一索引兜底并重试。
-	var created *Partner
-	for attempt := 0; ; attempt++ {
-		candidate := *normalized
-		if candidate.Code == "" {
-			generated, genErr := generatePartnerCode()
-			if genErr != nil {
-				return nil, genErr
-			}
-			candidate.Code = generated
-		}
+	create := func(candidate *Partner) (*Partner, error) {
 		audit := &AuditEvent{
 			OrganizationID: &organizationID,
 			UserID:         &userID,
@@ -346,15 +341,27 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 				"roles":        FormatPartnerRolesAuditValue(candidate.Roles),
 			},
 		}
-		created, err = uc.repo.Create(ctx, organizationID, &candidate, audit)
-		if err == nil || err != ErrPartnerCodeExists || attempt >= 2 {
-			break
+		return uc.repo.Create(ctx, organizationID, candidate, audit)
+	}
+
+	if normalized.Code != "" {
+		return create(normalized)
+	}
+
+	// 自动代码冲突时重新生成候选；唯一性仍由数据库索引兜底。
+	for attempt := 0; attempt < 3; attempt++ {
+		generated, genErr := uc.generatePartnerCode()
+		if genErr != nil {
+			return nil, genErr
+		}
+		candidate := *normalized
+		candidate.Code = generated
+		created, createErr := create(&candidate)
+		if createErr == nil || !errors.Is(createErr, ErrPartnerCodeExists) {
+			return created, createErr
 		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	return created, nil
+	return nil, ErrPartnerCodeExists
 }
 
 // generatePartnerCode 生成客商代码候选值（P 前缀 + 8 位大写字母数字）。

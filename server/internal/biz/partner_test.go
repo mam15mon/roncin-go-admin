@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	stderrors "errors"
 	"testing"
 	"time"
 
@@ -116,6 +117,7 @@ func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
 func TestPartnerCreateGeneratesCodeWhenEmpty(t *testing.T) {
 	repo := &partnerRepoStub{}
 	usecase := NewPartnerUsecase(repo)
+	usecase.generatePartnerCode = func() (string, error) { return "P00000001", nil }
 
 	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
 		LegalName:               "快捷新建往来单位",
@@ -125,8 +127,8 @@ func TestPartnerCreateGeneratesCodeWhenEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
-	if len(created.Code) != 9 || created.Code[0] != 'P' {
-		t.Fatalf("generated code = %q, want P 前缀 9 位", created.Code)
+	if created.Code != "P00000001" {
+		t.Fatalf("generated code = %q, want P00000001", created.Code)
 	}
 	if repo.auditEvent == nil || repo.auditEvent.Details["partner.code"] != created.Code {
 		t.Fatalf("audit event = %#v", repo.auditEvent)
@@ -134,8 +136,14 @@ func TestPartnerCreateGeneratesCodeWhenEmpty(t *testing.T) {
 }
 
 func TestPartnerCreateRetriesGeneratedCodeOnConflict(t *testing.T) {
-	repo := &conflictPartnerRepoStub{partnerRepoStub: partnerRepoStub{}}
+	repo := &conflictPartnerRepoStub{partnerRepoStub: partnerRepoStub{}, conflicts: 2}
 	usecase := NewPartnerUsecase(repo)
+	candidates := []string{"P00000001", "P00000002", "P00000003"}
+	usecase.generatePartnerCode = func() (string, error) {
+		candidate := candidates[0]
+		candidates = candidates[1:]
+		return candidate, nil
+	}
 
 	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
 		LegalName:               "编码冲突往来单位",
@@ -148,22 +156,114 @@ func TestPartnerCreateRetriesGeneratedCodeOnConflict(t *testing.T) {
 	if repo.createCalls != 3 {
 		t.Fatalf("create calls = %d, want 3（两次冲突后成功）", repo.createCalls)
 	}
-	if len(created.Code) != 9 || created.Code[0] != 'P' {
-		t.Fatalf("generated code = %q", created.Code)
+	if created.Code != "P00000003" {
+		t.Fatalf("generated code = %q, want P00000003", created.Code)
+	}
+	wantCodes := []string{"P00000001", "P00000002", "P00000003"}
+	for index, wantCode := range wantCodes {
+		if repo.codes[index] != wantCode {
+			t.Fatalf("codes[%d] = %q, want %q", index, repo.codes[index], wantCode)
+		}
 	}
 }
 
 type conflictPartnerRepoStub struct {
 	partnerRepoStub
 	createCalls int
+	conflicts   int
+	err         error
+	codes       []string
 }
 
 func (s *conflictPartnerRepoStub) Create(ctx context.Context, organizationID uuid.UUID, input *Partner, audit *AuditEvent) (*Partner, error) {
 	s.createCalls++
-	if s.createCalls <= 2 {
+	s.codes = append(s.codes, input.Code)
+	if s.err != nil {
+		return nil, s.err
+	}
+	if s.createCalls <= s.conflicts {
 		return nil, ErrPartnerCodeExists
 	}
 	return s.partnerRepoStub.Create(ctx, organizationID, input, audit)
+}
+
+func TestPartnerCreateStopsAfterThreeGeneratedCodeConflicts(t *testing.T) {
+	repo := &conflictPartnerRepoStub{conflicts: 3}
+	usecase := NewPartnerUsecase(repo)
+	candidates := []string{"P00000001", "P00000002", "P00000003"}
+	usecase.generatePartnerCode = func() (string, error) {
+		candidate := candidates[0]
+		candidates = candidates[1:]
+		return candidate, nil
+	}
+
+	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "三次冲突往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	})
+	if !stderrors.Is(err, ErrPartnerCodeExists) {
+		t.Fatalf("Create() error = %v, want ErrPartnerCodeExists", err)
+	}
+	if repo.createCalls != 3 {
+		t.Fatalf("create calls = %d, want 3", repo.createCalls)
+	}
+}
+
+func TestPartnerCreateDoesNotRetryExplicitCodeConflict(t *testing.T) {
+	repo := &conflictPartnerRepoStub{conflicts: 3}
+	usecase := NewPartnerUsecase(repo)
+
+	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		Code:                    "EXPLICIT",
+		LegalName:               "显式编码冲突往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleSupplier, Enabled: true}},
+	})
+	if !stderrors.Is(err, ErrPartnerCodeExists) {
+		t.Fatalf("Create() error = %v, want ErrPartnerCodeExists", err)
+	}
+	if repo.createCalls != 1 {
+		t.Fatalf("create calls = %d, want 1", repo.createCalls)
+	}
+}
+
+func TestPartnerCreateDoesNotRetryOtherErrors(t *testing.T) {
+	repoErr := stderrors.New("create failed")
+	repo := &conflictPartnerRepoStub{err: repoErr}
+	usecase := NewPartnerUsecase(repo)
+	usecase.generatePartnerCode = func() (string, error) { return "P00000001", nil }
+
+	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "仓储失败往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	})
+	if !stderrors.Is(err, repoErr) {
+		t.Fatalf("Create() error = %v, want %v", err, repoErr)
+	}
+	if repo.createCalls != 1 {
+		t.Fatalf("create calls = %d, want 1", repo.createCalls)
+	}
+}
+
+func TestPartnerCreateReturnsCodeGeneratorError(t *testing.T) {
+	generateErr := stderrors.New("random source failed")
+	repo := &conflictPartnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	usecase.generatePartnerCode = func() (string, error) { return "", generateErr }
+
+	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "随机源失败往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleSupplier, Enabled: true}},
+	})
+	if !stderrors.Is(err, generateErr) {
+		t.Fatalf("Create() error = %v, want %v", err, generateErr)
+	}
+	if repo.createCalls != 0 {
+		t.Fatalf("create calls = %d, want 0", repo.createCalls)
+	}
 }
 
 func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
