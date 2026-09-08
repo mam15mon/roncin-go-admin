@@ -329,9 +329,8 @@ export default function FinanceFeeDetailPage() {
         breadcrumbs={[
           {
             label: '费用明细',
-            onClick: () => history.push('/finance/fees'),
+            href: '/finance/fees',
           },
-          { label: '费用详情' },
         ]}
         extra={
           <div style={{ display: 'flex', gap: 8 }}>

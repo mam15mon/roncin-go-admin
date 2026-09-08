@@ -1,4 +1,3 @@
-import { history } from '@umijs/max';
 import { Space } from 'antd';
 import React, { type ReactNode } from 'react';
 
@@ -8,8 +7,11 @@ export interface DocumentDetailBreadcrumbItem {
 }
 
 export interface DocumentDetailLayoutProps {
+  /** @deprecated 面包屑统一由 PageHeaderShell 提供，此处不再渲染 */
   breadcrumbs?: DocumentDetailBreadcrumbItem[];
+  /** @deprecated 单号由 PageHeaderShell title 提供 */
   code?: string;
+  /** @deprecated 面包屑扩展项已废弃 */
   extraBreadcrumb?: ReactNode;
   actions?: ReactNode;
   timeline?: ReactNode;
@@ -19,9 +21,6 @@ export interface DocumentDetailLayoutProps {
 }
 
 export function DocumentDetailLayout({
-  breadcrumbs = [],
-  code,
-  extraBreadcrumb,
   actions,
   timeline,
   statusSection,
@@ -30,51 +29,6 @@ export function DocumentDetailLayout({
 }: DocumentDetailLayoutProps) {
   return (
     <div style={{ marginBottom: 24 }}>
-      {/* 顶部面包屑 */}
-      {breadcrumbs.length > 0 && (
-        <div style={{ padding: '8px 16px', fontSize: 13, color: '#64748b' }}>
-          <Space size={6}>
-            {breadcrumbs.map((item, index) => {
-              const isLast = index === breadcrumbs.length - 1;
-              return (
-                <React.Fragment key={item.label}>
-                  {index > 0 && <span>&gt;</span>}
-                  {item.path && !isLast ? (
-                    <a
-                      style={{ color: '#64748b' }}
-                      onClick={() => history.push(item.path as string)}
-                    >
-                      {item.label}
-                    </a>
-                  ) : (
-                    <span
-                      style={{
-                        color: isLast ? '#1677ff' : '#64748b',
-                        fontWeight: isLast ? 500 : 400,
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                  )}
-                </React.Fragment>
-              );
-            })}
-            {code && (
-              <span
-                style={{
-                  color: '#0f172a',
-                  fontWeight: 600,
-                  marginLeft: 8,
-                  fontFamily: 'monospace',
-                }}
-              >
-                ({code})
-              </span>
-            )}
-            {extraBreadcrumb}
-          </Space>
-        </div>
-      )}
 
       {/* 顶部操作工具栏 */}
       {actions && (

@@ -31,7 +31,6 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
   const orderIdentifier = orderNo || orderId || '订单详情';
 
   const breadcrumbs: Array<{ label: string; href?: string }> = [
-    { label: '订单管理', href: '/orders' },
     { label: navTitle, href: listPath },
   ];
 

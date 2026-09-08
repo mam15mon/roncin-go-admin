@@ -549,7 +549,7 @@ export default function PartnerDetailPage() {
         title={displayTitle}
         onBack={() => history.push(listUrl)}
         breadcrumbs={[
-          { label: `${roleLabel}管理`, onClick: () => history.push(listUrl) },
+          { label: `${roleLabel}管理`, href: listUrl },
         ]}
         tags={
           partner?.code ? (

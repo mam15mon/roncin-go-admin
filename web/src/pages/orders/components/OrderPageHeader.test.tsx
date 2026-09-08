@@ -42,9 +42,8 @@ describe('OrderPageHeader', () => {
       />,
     );
 
-    // 面包屑上级链接
-    const rootLink = screen.getByText('订单管理');
-    expect(rootLink).toHaveAttribute('href', '/orders');
+    // 面包屑上级链接（移除非实体菜单“订单管理”）
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
 
     const menuLink = screen.getByText('海运出口');
     expect(menuLink).toHaveAttribute('href', '/orders/sea-export');
@@ -69,7 +68,7 @@ describe('OrderPageHeader', () => {
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',
@@ -91,7 +90,7 @@ describe('OrderPageHeader', () => {
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',
@@ -120,7 +119,7 @@ describe('OrderPageHeader', () => {
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',

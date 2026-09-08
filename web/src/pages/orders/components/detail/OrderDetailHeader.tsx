@@ -101,7 +101,6 @@ export default function OrderDetailHeader({
         }
       />
       <DocumentDetailLayout
-        breadcrumbs={[]}
         actions={
         <>
           <OrderLockControl
