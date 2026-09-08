@@ -12,6 +12,7 @@ import {
 import React from 'react';
 import { SectionCard } from '@/components/ui';
 import { formatDate } from '@/utils/format';
+import { tradeTermOptions } from '../../common';
 import type { OrderBusinessWritePolicy } from '../../use-order-lock-state';
 
 type OrderFeeHeaderProps = {
@@ -95,9 +96,10 @@ export default function OrderFeeHeader({
             {customerName || order.customerId || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="业务类型">{configTitle}</Descriptions.Item>
-          <Descriptions.Item label="贸易条款">
-            {order.tradeTerm ? 'FOB / CIF' : '-'}
-          </Descriptions.Item>
+              <Descriptions.Item label="贸易条款">
+                {tradeTermOptions.find((o) => o.value === order.tradeTerm)
+                  ?.label ?? '-'}
+              </Descriptions.Item>
           <Descriptions.Item label="主单号 (MBL)">
             {order.seaMasterBill?.masterNo || '-'}
           </Descriptions.Item>
