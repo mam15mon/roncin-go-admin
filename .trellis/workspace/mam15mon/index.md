@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 37
+- **Total Sessions**: 38
 - **Last Active**: 2026-09-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~972 | Active |
+| `journal-1.md` | ~994 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 38 | 2026-09-08 | 重构页头为标准上下双层结构 | `525b133c` | `main` |
 | 37 | 2026-09-08 | 美化页头面包屑为现代紧凑微交互流 | `37bc9414` | `main` |
 | 36 | 2026-09-08 | 统一全站面包屑UI规范与组件 | `6e302495` | `main` |
 | 35 | 2026-09-08 | 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复 | `ef9ae789`, `e273867f`, `f53b4237`, `0b876598`, `8b54f7e6`, `2210d559`, `3cc7fca7` | `main` |

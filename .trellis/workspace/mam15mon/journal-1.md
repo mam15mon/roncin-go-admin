@@ -970,3 +970,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 38: 重构页头为标准上下双层结构
+<!-- trellis-session: v=2 fp=68dc25a0f9650611 -->
+
+**Date**: 2026-09-08
+**Task**: 重构页头为标准上下双层结构
+**Branch**: `main`
+
+### Summary
+
+将PageHeaderShell重构为标准上下双层页头：顶层为12px纯净标准面包屑路径，底层为醒目独立的大标题行与操作栏，彻底根除单行生硬拼接和冗余回退箭头问题。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `525b133c` | style(ui): 重构页头为标准上下双层结构 |
+
+### Status
+
+[OK] **Completed**
