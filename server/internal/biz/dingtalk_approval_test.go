@@ -59,6 +59,7 @@ func (*dingTalkApprovalRepoStub) ApplyApproved(context.Context, *DingTalkApprova
 }
 
 type dingTalkApprovalGatewayStub struct {
+	enabled       bool
 	createCalls   int
 	createCommand *DingTalkApprovalCreateCommand
 	createResult  *DingTalkApprovalCreateResult
@@ -66,6 +67,8 @@ type dingTalkApprovalGatewayStub struct {
 	queryResult   *DingTalkApprovalQueryResult
 	queryErr      error
 }
+
+func (s *dingTalkApprovalGatewayStub) Enabled() bool { return s.enabled }
 
 func (s *dingTalkApprovalGatewayStub) Create(_ context.Context, command *DingTalkApprovalCreateCommand) (*DingTalkApprovalCreateResult, error) {
 	s.createCalls++
@@ -93,6 +96,18 @@ func (dingTalkApprovalCodecStub) Decode(string, string, string, string) (*DingTa
 
 func (dingTalkApprovalCodecStub) EncodeSuccess(string, string) (string, string, error) {
 	return "", "", errors.New("测试未启用回调")
+}
+
+func TestDingTalkApprovalEnabledFollowsGateway(t *testing.T) {
+	gateway := &dingTalkApprovalGatewayStub{}
+	usecase := NewDingTalkApprovalUsecase(nil, nil, gateway, dingTalkApprovalCodecStub{})
+	if usecase.Enabled() {
+		t.Fatal("网关关闭时审批用例不应启用")
+	}
+	gateway.enabled = true
+	if !usecase.Enabled() {
+		t.Fatal("网关启用时审批用例应启用")
+	}
 }
 
 func TestDingTalkApprovalPendingAuthorityResultIsRetried(t *testing.T) {

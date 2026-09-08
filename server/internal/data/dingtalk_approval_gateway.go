@@ -40,6 +40,10 @@ func NewDingTalkApprovalGateway(provider *dingTalkIdentityProvider) biz.DingTalk
 	}
 }
 
+func (g *dingTalkApprovalGateway) Enabled() bool {
+	return g != nil && g.tokens != nil && g.tokens.Enabled()
+}
+
 type dingTalkStartProcessRequest struct {
 	ProcessCode         string                              `json:"processCode"`
 	OriginatorUserID    string                              `json:"originatorUserId"`

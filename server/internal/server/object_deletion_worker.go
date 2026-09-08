@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	objectDeletionPollInterval  = 5 * time.Second
-	objectDeletionLeaseDuration = 60 * time.Second
-	objectDeletionSendTimeout   = 30 * time.Second
+	objectDeletionInitialPollInterval = 5 * time.Second
+	objectDeletionLeaseDuration       = 60 * time.Second
+	objectDeletionSendTimeout         = 30 * time.Second
 )
 
 // ObjectDeletionWorker 通过 Kratos Server 生命周期消费对象存储删除任务。
@@ -39,6 +39,7 @@ func (w *ObjectDeletionWorker) Start(context.Context) error {
 		return nil
 	}
 	w.logger.Info("object deletion worker started", slog.String("storage", "OBJECT_STORAGE"))
+	backoff := newWorkerPollBackoff(objectDeletionInitialPollInterval, backgroundWorkerMaxPollInterval)
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -52,16 +53,11 @@ func (w *ObjectDeletionWorker) Start(context.Context) error {
 			w.logger.Error("process object deletion", slog.String("storage", "OBJECT_STORAGE"), slog.Any("error", err))
 		}
 		if err == nil {
+			backoff.Reset()
 			continue
 		}
-		timer := time.NewTimer(objectDeletionPollInterval)
-		select {
-		case <-w.ctx.Done():
-			if !timer.Stop() {
-				<-timer.C
-			}
+		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
 			return nil
-		case <-timer.C:
 		}
 	}
 }

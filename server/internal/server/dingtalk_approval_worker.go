@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	dingTalkApprovalPollInterval  = 2 * time.Second
-	dingTalkApprovalLeaseDuration = 45 * time.Second
-	dingTalkApprovalCallTimeout   = 20 * time.Second
+	dingTalkApprovalInitialPollInterval = 2 * time.Second
+	dingTalkApprovalLeaseDuration       = 45 * time.Second
+	dingTalkApprovalCallTimeout         = 20 * time.Second
 )
 
 // DingTalkApprovalWorker 通过 Kratos Server 生命周期可靠派发原生 OA 审批。
@@ -33,7 +33,14 @@ func NewDingTalkApprovalWorker(usecase *biz.DingTalkApprovalUsecase, logger *slo
 
 func (w *DingTalkApprovalWorker) Start(context.Context) error {
 	defer close(w.done)
-	w.logger.Info("dingtalk approval worker started")
+	if !w.usecase.Enabled() {
+		w.logger.Info("dingtalk approval worker disabled")
+		<-w.ctx.Done()
+		return nil
+	}
+	callbackEnabled := w.usecase.CallbackEnabled()
+	w.logger.Info("dingtalk approval worker started", slog.Bool("callback_enabled", callbackEnabled))
+	backoff := newWorkerPollBackoff(dingTalkApprovalInitialPollInterval, backgroundWorkerMaxPollInterval)
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -42,18 +49,16 @@ func (w *DingTalkApprovalWorker) Start(context.Context) error {
 		}
 
 		dispatchErr := w.processDispatch()
-		inboxErr := w.processInbox()
+		var inboxErr error = biz.ErrBackgroundTaskNoTask
+		if callbackEnabled {
+			inboxErr = w.processInbox()
+		}
 		if dispatchErr == nil || inboxErr == nil {
+			backoff.Reset()
 			continue
 		}
-		timer := time.NewTimer(dingTalkApprovalPollInterval)
-		select {
-		case <-w.ctx.Done():
-			if !timer.Stop() {
-				<-timer.C
-			}
+		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
 			return nil
-		case <-timer.C:
 		}
 	}
 }
