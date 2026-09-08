@@ -231,7 +231,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           />
         </Col>
 
-        {/* 第 5 行：客户业务编号、Booking No、企业内部编号及业务属性 */}
+        {/* 第 5 行：客户业务编号、订舱号、企业内部编号及业务属性 */}
         <Col className="col-5">
           <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
             <Form.Item noStyle name="customerReferenceNo">
@@ -254,8 +254,12 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
         <Col className="col-5">
-          <Form.Item label="Booking No" name="bookingNo">
-            <TooltipInput placeholder="请输入" maxLength={100} />
+          <Form.Item
+            label="订舱号"
+            name="bookingNo"
+            tooltip="Booking No.，船公司或订舱代理确认舱位后提供的业务编号"
+          >
+            <TooltipInput placeholder="请输入订舱号" maxLength={100} />
           </Form.Item>
         </Col>
         <Col className="col-5">

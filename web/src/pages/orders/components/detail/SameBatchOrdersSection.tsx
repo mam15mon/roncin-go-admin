@@ -7,7 +7,7 @@ import { orderServiceListSameBatchOrders } from '@/services/roncin/orderService'
 
 const matchSourceLabels: Record<string, string> = {
   CUSTOMER_REFERENCE: '同客户业务号',
-  BOOKING: '同 Booking No.',
+  BOOKING: '同订舱号',
   MASTER: '同 MBL',
 };
 
@@ -16,7 +16,7 @@ type SameBatchOrdersSectionProps = {
   orderKind: string;
 };
 
-/** 展示由客户业务号、Booking No. 或真实 MBL 关系命中的同批订单。 */
+/** 展示由客户业务号、订舱号或真实 MBL 关系命中的同批订单。 */
 export default function SameBatchOrdersSection({
   orderId,
   orderKind,
@@ -101,7 +101,7 @@ export default function SameBatchOrdersSection({
           ),
         },
         { title: '客户业务号', dataIndex: 'customerReferenceNo' },
-        { title: 'Booking No.', dataIndex: 'bookingNo' },
+        { title: '订舱号', dataIndex: 'bookingNo' },
         { title: 'MBL', dataIndex: 'masterNo' },
         { title: 'HBL', dataIndex: 'houseNo' },
         {

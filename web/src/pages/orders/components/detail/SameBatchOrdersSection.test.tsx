@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SameBatchOrdersSection from './SameBatchOrdersSection';
 
@@ -34,9 +40,7 @@ describe('SameBatchOrdersSection', () => {
       ],
     });
 
-    render(
-      <SameBatchOrdersSection orderId="current" orderKind="sea-export" />,
-    );
+    render(<SameBatchOrdersSection orderId="current" orderKind="sea-export" />);
 
     await waitFor(() => {
       expect(screen.getByText('SE-RELATED')).toBeInTheDocument();
@@ -44,21 +48,17 @@ describe('SameBatchOrdersSection', () => {
     expect(screen.queryByText('SE-CURRENT')).not.toBeInTheDocument();
     expect(screen.queryByText('SE-DUPLICATE')).not.toBeInTheDocument();
     expect(screen.getByText('同客户业务号')).toBeInTheDocument();
-    expect(screen.getByText('同 Booking No.')).toBeInTheDocument();
+    expect(screen.getByText('同订舱号')).toBeInTheDocument();
     expect(screen.getByText('同 MBL')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /SE-RELATED/ }));
-    expect(historyPushMock).toHaveBeenCalledWith(
-      '/orders/sea-export/related',
-    );
+    expect(historyPushMock).toHaveBeenCalledWith('/orders/sea-export/related');
   });
 
   it('没有关联订单时展示空状态', async () => {
     listSameBatchOrdersMock.mockResolvedValue({ data: [] });
 
-    render(
-      <SameBatchOrdersSection orderId="current" orderKind="sea-export" />,
-    );
+    render(<SameBatchOrdersSection orderId="current" orderKind="sea-export" />);
 
     expect(await screen.findByText('暂无同批订单')).toBeInTheDocument();
   });
