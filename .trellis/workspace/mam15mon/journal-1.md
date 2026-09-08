@@ -1014,3 +1014,32 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 40: 收口订单伙伴快捷新增与草稿边界
+<!-- trellis-session: v=2 fp=0743855a8f36e620 -->
+
+**Date**: 2026-09-09
+**Task**: 收口订单伙伴快捷新增与草稿边界
+**Branch**: `main`
+
+### Summary
+
+完成伙伴自动编码冲突重试、订单伙伴快捷新增与费用面板修复，审核并纳入组织草稿、页签保护、品牌和 Linux 文档；修复锁状态同步覆盖表单与 TagsView 测试 Portal 泄漏；前后端完整门禁及生产构建通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `566177f6` | fix(server): 修正伙伴自动编码冲突重试 |
+| `d5709b85` | fix(server): 避免重复尝试伙伴自动编码 |
+| `f15e5063` | fix(web): 完善订单草稿与伙伴快捷新增边界 |
+| `d8f8ce1c` | chore(web): 更新后台品牌资源与菜单配置 |
+| `8a7178de` | docs: 统一 Ubuntu Linux 开发环境说明 |
+| `9523bddb` | fix(web): 避免锁状态同步覆盖订单表单 |
+| `d3b7702a` | test(web): 隔离页签确认弹窗生命周期 |
+| `7221e15f` | docs(task): 收口伙伴快捷新增验收 |
+
+### Status
+
+[OK] **Completed**
