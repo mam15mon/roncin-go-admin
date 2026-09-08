@@ -167,6 +167,38 @@ func TestPartnerCreateRetriesGeneratedCodeOnConflict(t *testing.T) {
 	}
 }
 
+func TestPartnerCreateDoesNotRetryDuplicateGeneratedCode(t *testing.T) {
+	repo := &conflictPartnerRepoStub{partnerRepoStub: partnerRepoStub{}, conflicts: 1}
+	usecase := NewPartnerUsecase(repo)
+	candidates := []string{"P00000001", "P00000001", "P00000002"}
+	usecase.generatePartnerCode = func() (string, error) {
+		candidate := candidates[0]
+		candidates = candidates[1:]
+		return candidate, nil
+	}
+
+	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &Partner{
+		LegalName:               "重复候选往来单位",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles:                   []*PartnerRole{{Type: PartnerRoleSupplier, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if repo.createCalls != 2 {
+		t.Fatalf("create calls = %d, want 2（重复候选不写入仓储）", repo.createCalls)
+	}
+	wantCodes := []string{"P00000001", "P00000002"}
+	for index, wantCode := range wantCodes {
+		if repo.codes[index] != wantCode {
+			t.Fatalf("codes[%d] = %q, want %q", index, repo.codes[index], wantCode)
+		}
+	}
+	if created.Code != "P00000002" {
+		t.Fatalf("generated code = %q, want P00000002", created.Code)
+	}
+}
+
 type conflictPartnerRepoStub struct {
 	partnerRepoStub
 	createCalls int

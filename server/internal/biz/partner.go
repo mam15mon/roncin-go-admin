@@ -349,11 +349,16 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 	}
 
 	// 自动代码冲突时重新生成候选；唯一性仍由数据库索引兜底。
+	seenCodes := make(map[string]struct{}, 3)
 	for attempt := 0; attempt < 3; attempt++ {
 		generated, genErr := uc.generatePartnerCode()
 		if genErr != nil {
 			return nil, genErr
 		}
+		if _, duplicate := seenCodes[generated]; duplicate {
+			continue
+		}
+		seenCodes[generated] = struct{}{}
 		candidate := *normalized
 		candidate.Code = generated
 		created, createErr := create(&candidate)
