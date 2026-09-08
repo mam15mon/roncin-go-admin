@@ -137,4 +137,22 @@ data 层。仓储 stub 记录每次收到的代码，证明每次重试确实使
 
 开发阶段先跑受影响的 Vitest、biz 包测试、修改文件 Biome 和 `git diff --check`；跨层逻辑稳定
 后运行前端 tsc、`go test ./...`、`go vet ./...`。任务最终验收只运行一次 `pnpm run check:web`。
-不运行 build，因为本任务不修改构建、依赖或生产入口。
+追加授权纳入运行时布局配置与静态品牌资源，因此最终验收增加一次 `pnpm run build`。
+
+## 10. 追加授权：草稿隔离与品牌审核
+
+订单表单草稿仍由 `OrderFormTemplate` 统一保存和恢复，但键名增加用户与当前组织组成的
+`draftScope`。`TagsView` 使用同一 scope 判断、确认和清理后台页签草稿；实时 guard 与持久
+草稿取逻辑或，避免表单变更同步写入 storage 后、React dirty state 尚未提交的窗口漏拦截。
+`draftScope` 变化时以草稿键作为 ProForm 的 React key 重建表单，确保旧组织 Form store 不会
+残留。日期恢复除既有 `Date`、`Cutoff`、`etd`、`eta` 外覆盖订单使用的 `*At` 时间字段。
+
+详情页不得再对 `initialValues`、`effectiveReadonly` 变化做通用 `setFieldsValue`：锁状态同步会先
+关闭写入，再请求同一订单，二者都不是新的表单上下文。首次初始值和草稿由 `OrderFormTemplate`
+按草稿 key 接管；详情页只为用户明确点击“刷新数据”设置一次 reset intent，并在 `loadData` 完成
+后的下一次渲染用最新 `initialValues` 清草稿、重置 Form。加载失败且订单为空时消费该 intent，
+不清除原输入或草稿。
+
+运行时菜单关闭 locale 查找，但菜单头继续使用 Umi `Link`，避免 div 丢失键盘/新标签语义，
+也避免内层 click 与 `onMenuHeaderClick` 冒泡造成双重跳转。品牌二进制资源核对文件类型、尺寸
+和透明通道；HeaderDropdown 切换到 `popupRender`，兼容参数只在公共包装组件内收口。
