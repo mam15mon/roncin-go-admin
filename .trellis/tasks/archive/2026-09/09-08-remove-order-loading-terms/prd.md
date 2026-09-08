@@ -45,9 +45,8 @@
 
 ## Acceptance Criteria
 
-- [ ] 仓库内 `loadingTerms` / `loading_terms` 无残留引用（proto reserved 声明与迁移
-  SQL 中的 DROP COLUMN 除外）。
-- [ ] `go -C server build ./...`、`go -C server vet ./...`、`go -C server test ./...` 通过。
-- [ ] `pnpm run migrate:server` 在本地库执行成功，`orders.loading_terms` 列已删除。
-- [ ] 前端相关定向测试通过，`pnpm --dir web tsc` 无新增错误，涉及文件 Biome 通过。
-- [ ] 新建/详情页「业务信息」不再展示运输条款字段；提单信息「运输条款」行为不变。
+- [x] 仓库内 `loadingTerms` / `loading_terms` 无残留引用（proto reserved 声明、迁移 SQL 的 DROP COLUMN、pb 描述符对 reserved 名的编码字节除外）。
+- [x] `go -C server build ./...`、`go -C server vet ./...`、`go -C server test ./...` 通过（全量）。
+- [x] `pnpm run migrate:server` 在本地库执行成功，`information_schema` 查询确认 `orders.loading_terms` 列已删除。
+- [x] 前端相关定向测试通过（4 个文件 22 例），`pnpm --dir web tsc` 无错误，涉及文件 Biome 通过。
+- [x] 浏览器抽验新建页：业务信息不再有 CY/CFS/DOOR 运输条款下拉（placeholder 计数为 0）；提单信息 MBL 正文「运输条款」字段仍可见。
