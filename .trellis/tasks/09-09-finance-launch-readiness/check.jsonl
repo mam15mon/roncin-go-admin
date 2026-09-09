@@ -1,0 +1,17 @@
+{"file":"AGENTS.md","reason":"检查实现范围、生成顺序、事务规范、最小验证和提交要求"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查跨仓储事务、Data.client、锁顺序、版本和约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查财务冲突、权限与校验错误未被吞掉或泛化"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查服务端领域、数据层和 PostgreSQL 验收覆盖"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查叶子表单状态、预览令牌和迟到响应不会错配"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查生成契约和页面类型没有 any 绕过"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查 Vitest、Biome、tsc 与风险匹配门禁记录"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查账户、汇率、组织、金额从数据库到 UI 完整往返"}
+{"file":".trellis/tasks/09-09-finance-launch-readiness/prd.md","reason":"逐项核对 R0-R9 与 AC0-AC28，无固定公司或角色规则"}
+{"file":".trellis/tasks/09-09-finance-launch-readiness/design.md","reason":"检查领域边界、事务模型、分组算法和迁移没有漂移"}
+{"file":".trellis/tasks/09-09-finance-launch-readiness/implement.md","reason":"检查阶段依赖、提交粒度和验证命令全部执行"}
+{"file":".trellis/tasks/archive/2026-09/09-01-foreign-currency-finance-e2e/research/acceptance-report.md","reason":"对照既有验收证据，确认应付、发放、权限和双组织缺口已补齐"}
+{"file":"server/internal/biz/finance_bill_transaction_test.go","reason":"检查批量建账事务、幂等与失败回滚回归"}
+{"file":"server/internal/data/finance_bill_transaction_integration_test.go","reason":"检查真实数据库锁与原子批量创建"}
+{"file":"server/internal/data/finance_verification_transaction_integration_test.go","reason":"检查核销余额与反转未被对冲、发票改动破坏"}
+{"file":"web/src/pages/finance/bills/components/BillCreationWorkbench.tsx","reason":"检查混合方向限制、层级标签、按 key 状态和整批校验"}
+{"file":"web/src/pages/finance/invoices/components/InvoiceCreateModal.tsx","reason":"检查明细部分分摊、实际开票日汇率和剩余可开金额"}

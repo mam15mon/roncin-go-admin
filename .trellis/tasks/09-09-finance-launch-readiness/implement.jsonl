@@ -1,0 +1,20 @@
+{"file":"AGENTS.md","reason":"快速上线、不兼容历史、事务并发、生成物、验证和提交总约束"}
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"财务 Service、Biz、Data 与 Ent 分层边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、Data.client、稳定加锁、版本和唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"混合方向、缺汇率、超额分摊和越权错误语义"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端定向测试、集成测试与生成验证"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"批量建账工作台层级导航与表单组件职责"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"按 group_key 保存叶子配置及异步预览失效边界"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成 API 类型和财务表单类型约束"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome、tsc 与最终门禁"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Proto 到页面的金额、权限、汇率和组织字段完整数据流"}
+{"file":".trellis/tasks/archive/2026-09/09-01-foreign-currency-finance-e2e/research/acceptance-report.md","reason":"复用既有 CNY 与应收外币验收证据并补齐缺口"}
+{"file":"server/api/finance/v1/settlement.proto","reason":"账单、发票、资金、核销、提成和批量建账契约真相源"}
+{"file":"server/api/partner/v1/partner.proto","reason":"往来单位结算账户契约真相源"}
+{"file":"server/internal/biz/finance_bill.go","reason":"现有确定性分组、预览令牌、账单汇率与事务入口"}
+{"file":"server/internal/biz/finance_invoice.go","reason":"现有整账单发票关联和实际开票汇率逻辑"}
+{"file":"server/internal/biz/finance_verification.go","reason":"现有多对多核销、余额与汇兑损益范本"}
+{"file":"server/internal/service/organization_scope.go","reason":"按权限解析组织读取与写入范围的现有入口"}
+{"file":"server/internal/data/ent/schema/partner_account.go","reason":"账户从角色归属调整为往来单位归属的源结构"}
+{"file":"web/src/pages/finance/bills/components/BillCreationWorkbench.tsx","reason":"现有批量选择、预览、逐组表单与保存主工作台"}
+{"file":"web/src/pages/finance/bills/components/BillSplitStrategyCards.tsx","reason":"现有分订单和分税率开关，扩展分币种与固定边界"}
