@@ -2,6 +2,12 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { App } from 'antd';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getFormDraftKey,
+  getFormDraftScope,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
+import { _clearAllTabCloseGuards } from '@/components/layout/tabCloseGuard';
 import { TradeTerm } from '@/enums.generated';
 import NewOrderPage from './new';
 import { useOrderCreateOptions } from './use-order-create-options';
@@ -57,6 +63,8 @@ describe('NewOrderPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
+    _clearAllTabCloseGuards();
     lastTemplateProps = null;
     mockUseOptions.mockReturnValue({
       loading: false,
@@ -76,6 +84,8 @@ describe('NewOrderPage', () => {
   });
 
   afterEach(() => {
+    sessionStorage.clear();
+    _clearAllTabCloseGuards();
     cleanup();
   });
 
@@ -212,5 +222,27 @@ describe('NewOrderPage', () => {
     expect(lastTemplateProps?.initialValues?.tradeTerm).toBe(
       TradeTerm.TRADE_TERM_CIF,
     );
+  });
+
+  it('传入规范草稿身份并从规范路径键恢复新建页草稿', async () => {
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    saveFormDraft(
+      getFormDraftKey(
+        '/orders/sea-export',
+        '/orders/sea-export/new',
+        draftScope,
+      ),
+      { customerReferenceNo: 'NEW-PAGE-DRAFT' },
+    );
+
+    renderWithApp(<NewOrderPage />);
+
+    expect(lastTemplateProps?.tabKey).toBe('/orders/sea-export');
+    expect(lastTemplateProps?.draftPathname).toBe('/orders/sea-export/new');
+    expect(lastTemplateProps?.draftScope).toBe('user-1:org-1');
+
+    const label = await screen.findByText('客户业务编号');
+    const input = label.closest('.ant-form-item')?.querySelector('input');
+    expect(input?.value).toBe('NEW-PAGE-DRAFT');
   });
 });

@@ -1,14 +1,18 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   clearFormDraft,
   getFormDraft,
   getFormDraftKey,
   saveFormDraft,
 } from '@/components/layout/formDraft';
-import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import { SectionCard } from '../page-shell/SectionCard';
 import './OrderFormTemplate.less';
@@ -44,9 +48,9 @@ export function OrderFormTemplate<T>({
   resetText = '重置',
   footer,
   tabKey,
+  draftPathname,
   draftScope,
-  dirty,
-  onDirtyChange,
+  actionsRef,
   enableCloseGuard = true,
   closeGuardMessage,
   onValuesChange,
@@ -56,38 +60,54 @@ export function OrderFormTemplate<T>({
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
-  const currentPathname =
-    typeof window !== 'undefined' ? window.location?.pathname : undefined;
-
-  const resolvedTabKey =
-    tabKey || (currentPathname ? resolveTabKey(currentPathname) : undefined);
-
+  // 完整草稿身份（tabKey + draftPathname + draftScope）只能由调用方显式提供；
+  // 任一缺失时不生成草稿键，也不读写持久草稿。
   const draftKey =
-    resolvedTabKey && draftScope
-      ? getFormDraftKey(resolvedTabKey, currentPathname, draftScope)
+    tabKey && draftPathname && draftScope
+      ? getFormDraftKey(tabKey, draftPathname, draftScope)
       : undefined;
 
   const [internalDirty, setInternalDirty] = useState(false);
-  const isFormDirty = dirty !== undefined ? dirty : internalDirty;
 
   useTabCloseGuard({
-    tabKey: resolvedTabKey,
-    isDirty: isFormDirty,
+    tabKey,
+    isDirty: internalDirty,
     message: closeGuardMessage,
     enabled: !readonly && enableCloseGuard,
   });
 
   // 草稿恢复：draftKey 在模板挂载期内恒定，组织与单据身份变化分别由 OrganizationWorkspace 和调用方 key 负责卸载重挂载。
-  // 此处保留 loading/readonly 变化时的重新判定，便于异步主数据加载完成或只读态解除后安全恢复草稿。
-  useEffect(() => {
-    if (readonly || !draftKey || loading) return;
+  // 一个模板身份只在首次同时满足「非 loading、非 readonly、身份完整」时恢复一次；
+  // 初始 loading/readonly 时等待首次合法时机，后续锁状态往返不再覆盖内存中的表单值。
+  const draftRestoreAttemptedRef = useRef(false);
+  useLayoutEffect(() => {
+    if (loading || readonly || !draftKey) return;
+    if (draftRestoreAttemptedRef.current) return;
+    draftRestoreAttemptedRef.current = true;
     const draft = getFormDraft<Partial<T>>(draftKey);
     if (draft && typeof draft === 'object' && Object.keys(draft).length > 0) {
       resolvedFormRef.current?.setFieldsValue(draft);
       setInternalDirty(true);
-      onDirtyChange?.(true);
     }
-  }, [draftKey, readonly, loading]);
+  }, [draftKey, loading, readonly]);
+
+  useImperativeHandle(
+    actionsRef,
+    () => ({
+      resetTo: (values?: Partial<T>) => {
+        if (draftKey) {
+          clearFormDraft(draftKey);
+        }
+        // 先清 Form store 再回填最新快照，移除服务端新值中已不存在的旧字段。
+        resolvedFormRef.current?.resetFields();
+        if (values) {
+          resolvedFormRef.current?.setFieldsValue(values);
+        }
+        setInternalDirty(false);
+      },
+    }),
+    [draftKey, resolvedFormRef],
+  );
 
   const handleFinish = async (values: T) => {
     if (!onFinish) return true;
@@ -99,7 +119,6 @@ export function OrderFormTemplate<T>({
           clearFormDraft(draftKey);
         }
         setInternalDirty(false);
-        onDirtyChange?.(false);
       }
       return result;
     } finally {
@@ -168,9 +187,8 @@ export function OrderFormTemplate<T>({
           wrapperCol={{ flex: 'auto' }}
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
-            if (!isFormDirty) {
+            if (!internalDirty) {
               setInternalDirty(true);
-              onDirtyChange?.(true);
             }
             if (!readonly && draftKey) {
               saveFormDraft(draftKey, allValues);
@@ -182,7 +200,6 @@ export function OrderFormTemplate<T>({
               clearFormDraft(draftKey);
             }
             setInternalDirty(false);
-            onDirtyChange?.(false);
             onReset?.();
           }}
           onFinish={handleFinish}

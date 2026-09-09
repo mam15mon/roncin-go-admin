@@ -32,22 +32,43 @@ getFormDraftScope(userId?: string, organizationId?: string): string | undefined;
 getFormDraftKey(tabKey?: string, pathname?: string, draftScope?: string): string;
 hasTabDraft(tabKey: string, draftScope?: string): boolean;
 clearTabDrafts(tabKey: string, draftScope?: string): void;
+
+// OrderFormTemplate 动作接口：页面外部清理草稿与脏状态只能经由该接口。
+interface OrderFormTemplateActions<T> {
+  resetTo: (values?: Partial<T>) => void;
+}
 ```
 
 ### 3. 契约
 
 - 草稿键必须同时包含用户 ID、当前组织 ID、稳定页签 key 与完整 pathname；缺少用户或组织时
   禁止持久化草稿。
+- 草稿身份由页面显式提供：`OrderFormTemplate` 只接收调用方传入的
+  `tabKey + draftPathname + draftScope`（如 `/orders/:kind/new`、`/orders/:kind/:id`），
+  不读取 `window.location`，也不从当前路由猜测 tabKey；任一身份输入缺失时不生成草稿键、
+  不读写持久草稿。
+- 完整 `draftKey` 只允许在 `OrderFormTemplate` 内通过 `getFormDraftKey` 计算；页面不得
+  自行计算草稿键或直接调用草稿清理函数。
+- 脏状态与草稿生命周期由模板独占：模板维护 `internalDirty` 并注册 `useTabCloseGuard`，
+  不再提供受控 `dirty/onDirtyChange` props。页面级显式刷新成功、底部「重置修改」等外部
+  动作只能调用 `actionsRef.resetTo(values)`（清当前草稿 → 重置 Form store → 回填最新值 →
+  清 dirty）。
+- 草稿恢复由模板在首次同时满足「非 loading、非 readonly、草稿身份完整」时通过浏览器绘制
+  前的 layout effect 执行一次；初始只读或加载中的页面不读取草稿，首次变为可编辑时仍可恢复，
+  同身份后续锁状态往返不得覆盖内存中的表单值。
 - 身份重建由双层边界保证：用户与组织身份由 `OrganizationWorkspace` key 管理（切换时整体卸载
   页签与页面），页面内资源身份（如业务类型或记录 ID）由调用方在模板边界提供对应 React `key`
   （如 `key={`${config.kind}:${orderId}`}`）。
-- 模板挂载期间 `(draftScope, resolvedTabKey, pathname)` 必须保持同一身份，模板内部不再进行
+- 模板挂载期间 `(draftScope, tabKey, draftPathname)` 必须保持同一身份，模板内部不再进行
   多重身份探测；只要页面内资源身份可能变化，调用方就必须在模板边界提供对应 key。
 - 新 identity key 挂载新表单实例时，先使用新身份的 `initialValues`，再恢复新身份自己的
   草稿；不得保留旧组织的 Form store 与 dirty 状态。
 - 页签脏状态取“实时 guard 或当前身份持久草稿”，防止 React 状态尚未提交时漏掉已同步写入
   的草稿。
 - 用户确认关闭后，只清除当前身份、目标页签下的草稿；其他用户或组织的草稿保持不变。
+- 订单保存的成功/失败只由订单更新接口决定；更新成功由模板统一清草稿与 dirty，详情与锁状态
+  的后台刷新是 best-effort 任务，不得把已落库的保存改判为失败。显式刷新标记必须携带发起时
+  的订单身份，A 的迟到刷新不得清 B 的草稿或重置 B 的表单。
 - 日期反序列化覆盖订单表单使用的 `*Date`、`*Cutoff`、`*At` 以及 `etd`、`eta` 等字段，普通
   ISO 格式文本不得仅凭值形态被转换。
 
@@ -73,8 +94,15 @@ clearTabDrafts(tabKey: string, draftScope?: string): void;
 ### 6. 必需测试
 
 - 工具测试：同页签、同路径的两个身份命名空间可以独立保存、判断和清理。
-- 模板测试：只读挂载不恢复草稿、提交成功清草稿、提交失败保留草稿、重置清草稿；新 identity key 触发新实例挂载，新实例先使用自己的 initialValues，再恢复自己的草稿。
-- 详情生命周期测试：详情 A 原地导航到 B 后模板实例被重建，B 不显示 A 的 Form store 与 dirty 状态。
+- 模板测试：缺少任一草稿身份输入（tabKey / draftPathname / draftScope）时不持久化，完整
+  输入只命中唯一规范路径键；只读挂载不恢复草稿、初始只读在首次解除后只恢复一次且后续
+  readonly 往返不覆盖内存编辑值；提交成功清草稿、提交失败保留草稿、原生重置清草稿；
+  `resetTo` 清当前草稿、清旧 Form store、回填新值并清 internal dirty。
+- 详情生命周期测试：详情 A 原地导航到 B 后模板实例被重建，B 不显示 A 的 Form store 与
+  dirty 状态；A 的迟到显式刷新不得重置 B 的表单与 dirty；保存成功立即清草稿，后台刷新
+  失败不改判保存结果；底部重置修改与显式刷新成功经由 `actionsRef.resetTo` 生效。
+- 新建页测试：页面向模板传入规范 `tabKey + draftPathname + draftScope`，并从规范路径键
+  恢复新建草稿。
 - 关闭保护测试：实时 guard 暂为 false 但草稿已写入时仍提示；确认后仅清理当前 scope。
 - 日期测试：嵌套对象中的 `cargoReadyAt`、截止时间及 `etd`/`eta` 恢复为 Dayjs，普通文本保持
   字符串。
@@ -85,9 +113,20 @@ clearTabDrafts(tabKey: string, draftScope?: string): void;
 // 错误：组织切换后仍命中同一个草稿。
 getFormDraftKey(tabKey, pathname);
 
-// 正确：草稿键绑定当前用户和组织；缺少身份时返回空键并跳过持久化。
-const draftScope = getFormDraftScope(user.id, currentOrganization.id);
-getFormDraftKey(tabKey, pathname, draftScope);
+// 错误：页面自行计算草稿键并直接清理，绕过模板生命周期所有权。
+const draftKey = getFormDraftKey(tabKey, pathname, draftScope);
+clearFormDraft(draftKey);
+
+// 正确：页面只提供规范身份，模板独占草稿键与清理动作。
+<OrderFormTemplate
+  tabKey={resolveTabKey(`/orders/${kind}/${orderId}`)}
+  draftPathname={`/orders/${kind}/${orderId}`}
+  draftScope={getFormDraftScope(user.id, currentOrganization.id)}
+  actionsRef={templateActionsRef}
+/>;
+
+// 需要外部重置表单时，经由模板动作接口执行。
+templateActionsRef.current?.resetTo(initialValues);
 ```
 
 ## 场景：列表筛选驱动的前端 CSV 导出

@@ -80,11 +80,15 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
     header,
     readonly,
     formRef,
+    actionsRef,
     initialValues,
   }: {
     header: React.ReactNode;
     readonly?: boolean;
     formRef?: React.MutableRefObject<ReturnType<typeof Form.useForm>[0]>;
+    actionsRef?: React.MutableRefObject<{
+      resetTo: (values?: { customerReferenceNo?: string }) => void;
+    } | null>;
     initialValues?: { customerReferenceNo?: string };
   }) => {
     const [form] = Form.useForm();
@@ -94,6 +98,16 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
         formRef.current = form;
       }
     }, [form, formRef]);
+    React.useImperativeHandle(
+      actionsRef,
+      () => ({
+        resetTo: (values?: { customerReferenceNo?: string }) => {
+          form.resetFields();
+          if (values) form.setFieldsValue(values);
+        },
+      }),
+      [form],
+    );
     return (
       <Form form={form} initialValues={initialValues}>
         <Form.Item name="customerReferenceNo">

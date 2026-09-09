@@ -27,11 +27,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { clearFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
+import type {
+  OrderFormTemplateActions,
+  OrderFormTemplateSection,
+} from '@/components/ui/order-template/types';
 import {
   OrderAllowedAction,
   OrderClosureStatus,
@@ -78,6 +80,9 @@ const { Text } = Typography;
 export default function OrderDetailPage() {
   const params = useParams<{ kind: string; id: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const templateActionsRef = useRef<
+    OrderFormTemplateActions<OrderDetailFormValues> | undefined
+  >(undefined);
   const { message, modal } = App.useApp();
   const access = useAccess();
 
@@ -90,31 +95,10 @@ export default function OrderDetailPage() {
     config && orderId ? `${config.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
-  const [formDirtyState, setFormDirtyState] = useState<{
-    identity: string | undefined;
-    dirty: boolean;
-  }>({ identity: orderFormIdentity, dirty: false });
-  const activeOrderFormIdentityRef = useRef(orderFormIdentity);
-  activeOrderFormIdentityRef.current = orderFormIdentity;
-  const isFormDirty =
-    formDirtyState.identity === orderFormIdentity && formDirtyState.dirty;
-  const setIsFormDirty = useCallback(
-    (dirty: boolean) => {
-      const sourceIdentity = orderFormIdentity;
-      setFormDirtyState((current) => {
-        // 旧订单的异步保存/恢复回调不得覆盖当前订单的脏状态。
-        if (activeOrderFormIdentityRef.current !== sourceIdentity) {
-          return current;
-        }
-        if (current.identity === sourceIdentity && current.dirty === dirty) {
-          return current;
-        }
-        return { identity: sourceIdentity, dirty };
-      });
-    },
-    [orderFormIdentity],
-  );
-  const pendingExplicitFormRefreshRef = useRef(false);
+  // 显式刷新标记携带发起时的订单身份，A 的迟到刷新不得操作 B 的模板。
+  const pendingExplicitFormRefreshRef = useRef<{
+    identity: string;
+  } | null>(null);
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
 
@@ -269,48 +253,32 @@ export default function OrderDetailPage() {
       OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT,
     ) !== true || businessWritesDisabled;
 
-  const draftKey =
-    config && orderId
-      ? getFormDraftKey(
-          resolveTabKey(`/orders/${config.kind}/${orderId}`),
-          `/orders/${config.kind}/${orderId}`,
-          draftScope,
-        )
-      : undefined;
-
   /**
-   * OrderFormTemplate 以草稿键为身份负责首次初始值/草稿回填。
-   * 此处不能重复回填：锁状态和后台加载会更新 readonly/initialValues，
-   * 但不代表用户正在编辑的订单上下文已经切换。
+   * OrderFormTemplate 独占草稿与脏状态生命周期；显式刷新成功后由页面
+   * 通过模板动作接口 resetTo 回填最新服务端值。刷新完成必须校验发起身份：
+   * A 的迟到刷新不得清 B 的草稿或重置 B 的表单。
    */
   useEffect(() => {
-    if (!pendingExplicitFormRefreshRef.current) return;
-    pendingExplicitFormRefreshRef.current = false;
-    if (!order) return;
-
-    if (draftKey) {
-      clearFormDraft(draftKey);
-    }
-    formRef.current?.setFieldsValue(initialValues);
-    setIsFormDirty(false);
-  }, [
-    draftKey,
-    explicitFormRefreshVersion,
-    initialValues,
-    order,
-    setIsFormDirty,
-  ]);
+    const pending = pendingExplicitFormRefreshRef.current;
+    if (!pending) return;
+    pendingExplicitFormRefreshRef.current = null;
+    // 刷新后无当前订单（如详情加载失败被清空）时保留草稿与脏状态。
+    if (pending.identity !== orderFormIdentity || !order) return;
+    templateActionsRef.current?.resetTo(initialValues);
+  }, [explicitFormRefreshVersion, initialValues, order, orderFormIdentity]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
+    const requestedIdentity = orderFormIdentity;
+    if (!requestedIdentity) return;
     try {
       await loadData();
-      // loadData 完成后再触发本次显式刷新重置，避免锁状态刷新抢先用旧 initialValues 清表单。
-      pendingExplicitFormRefreshRef.current = true;
+      // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
+      pendingExplicitFormRefreshRef.current = { identity: requestedIdentity };
       setExplicitFormRefreshVersion((version) => version + 1);
     } catch {
       // 刷新失败保留草稿与当前表单，不触发显式重置
     }
-  }, [loadData]);
+  }, [loadData, orderFormIdentity]);
 
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
@@ -425,7 +393,7 @@ export default function OrderDetailPage() {
     [config?.category, order, orderId],
   );
 
-  // 6. 保存修改提交处理
+  // 6. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
     if (!orderId || !ensureBusinessWriteAllowed()) return false;
     setSaving(true);
@@ -437,11 +405,12 @@ export default function OrderDetailPage() {
       );
       await orderServiceUpdateOrder({ id: orderId }, payload);
       message.success('保存订单成功');
-      if (draftKey) {
-        clearFormDraft(draftKey);
-      }
-      setIsFormDirty(false);
-      await Promise.all([loadData(), refreshLockState()]);
+      // 详情与锁状态刷新是 best-effort 后台任务：不阻塞成功返回，
+      // 也不把已落库的保存改判为失败；Hook 已呈现普通请求错误，
+      // 这里只兜底意外泄漏的 reject。
+      Promise.all([loadData(), refreshLockState()]).catch(() => {
+        message.warning('订单已保存，但最新数据刷新失败，请手动刷新');
+      });
       return true;
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : '保存订单失败');
@@ -665,13 +634,15 @@ export default function OrderDetailPage() {
             ? resolveTabKey(`/orders/${config.kind}/${orderId}`)
             : undefined
         }
+        draftPathname={
+          config && orderId ? `/orders/${config.kind}/${orderId}` : undefined
+        }
         draftScope={draftScope}
         loading={false}
         readonly={effectiveReadonly}
         formRef={formRef}
+        actionsRef={templateActionsRef}
         initialValues={initialValues}
-        dirty={isFormDirty}
-        onDirtyChange={setIsFormDirty}
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader
@@ -749,13 +720,9 @@ export default function OrderDetailPage() {
               !businessWritesDisabled && (
                 <Button
                   icon={<UndoOutlined />}
-                  onClick={() => {
-                    if (draftKey) {
-                      clearFormDraft(draftKey);
-                    }
-                    formRef.current?.setFieldsValue(initialValues);
-                    setIsFormDirty(false);
-                  }}
+                  onClick={() =>
+                    templateActionsRef.current?.resetTo(initialValues)
+                  }
                 >
                   重置修改
                 </Button>
