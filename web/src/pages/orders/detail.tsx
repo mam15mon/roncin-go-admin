@@ -114,9 +114,11 @@ export default function OrderDetailPage() {
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
+  const orderFormIdentity =
+    config && orderId ? `${config.kind}:${orderId}` : undefined;
   const changeActionsTargetKey =
     orderId && config?.category === 'sea'
-      ? `${config.kind}:${orderId}`
+      ? orderFormIdentity
       : undefined;
   const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
   activeChangeActionsTargetRef.current = changeActionsTargetKey;
@@ -142,14 +144,14 @@ export default function OrderDetailPage() {
     string | undefined
   >(undefined);
 
-  // 路由切换到其他订单时立即关闭共享箱工作台并清空旧运输执行，
-  // 防止“新订单 + 旧运输执行”形成错误业务上下文
+  // 路由切换到其他业务类型或记录时立即关闭共享箱工作台并清空旧运输执行，
+  // 防止“新订单 + 旧运输执行”形成错误业务上下文；工作区切换由上层 OrganizationWorkspace 卸载兜底。
   useEffect(() => {
     setSharedContainerDrawerOpen(false);
     setSharedContainerTEId(undefined);
     setSharedContainerOrderId(undefined);
     setIsFormDirty(false);
-  }, [draftScope, orderId]);
+  }, [orderFormIdentity]);
 
   const loadChangeActions = useCallback(async () => {
     const requestOrderId = orderId;
@@ -272,10 +274,14 @@ export default function OrderDetailPage() {
   }, [draftKey, explicitFormRefreshVersion, initialValues, order]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
-    await loadData();
-    // loadData 完成后再触发本次显式刷新重置，避免锁状态刷新抢先用旧 initialValues 清表单。
-    pendingExplicitFormRefreshRef.current = true;
-    setExplicitFormRefreshVersion((version) => version + 1);
+    try {
+      await loadData();
+      // loadData 完成后再触发本次显式刷新重置，避免锁状态刷新抢先用旧 initialValues 清表单。
+      pendingExplicitFormRefreshRef.current = true;
+      setExplicitFormRefreshVersion((version) => version + 1);
+    } catch {
+      // 刷新失败保留草稿与当前表单，不触发显式重置
+    }
   }, [loadData]);
 
   const businessWritePolicyRef = useRef(lockWritePolicy);
@@ -625,6 +631,7 @@ export default function OrderDetailPage() {
   return (
     <>
       <OrderFormTemplate<OrderDetailFormValues>
+        key={orderFormIdentity}
         tabKey={
           config && orderId
             ? resolveTabKey(`/orders/${config.kind}/${orderId}`)
@@ -637,12 +644,6 @@ export default function OrderDetailPage() {
         initialValues={initialValues}
         dirty={isFormDirty}
         onDirtyChange={setIsFormDirty}
-        onReset={() => {
-          if (draftKey) {
-            clearFormDraft(draftKey);
-          }
-          setIsFormDirty(false);
-        }}
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader

@@ -69,7 +69,6 @@ export function OrderFormTemplate<T>({
 
   const [internalDirty, setInternalDirty] = useState(false);
   const isFormDirty = dirty !== undefined ? dirty : internalDirty;
-  const previousDraftKeyRef = useRef(draftKey);
 
   useTabCloseGuard({
     tabKey: resolvedTabKey,
@@ -78,14 +77,9 @@ export function OrderFormTemplate<T>({
     enabled: !readonly && enableCloseGuard,
   });
 
-  // 挂载时检查并恢复草稿数据
+  // 草稿恢复：draftKey 在模板挂载期内恒定，组织与单据身份变化分别由 OrganizationWorkspace 和调用方 key 负责卸载重挂载。
+  // 此处保留 loading/readonly 变化时的重新判定，便于异步主数据加载完成或只读态解除后安全恢复草稿。
   useEffect(() => {
-    const draftContextChanged = previousDraftKeyRef.current !== draftKey;
-    previousDraftKeyRef.current = draftKey;
-    if (draftContextChanged) {
-      setInternalDirty(false);
-      onDirtyChange?.(false);
-    }
     if (readonly || !draftKey || loading) return;
     const draft = getFormDraft<Partial<T>>(draftKey);
     if (draft && typeof draft === 'object' && Object.keys(draft).length > 0) {
@@ -162,7 +156,6 @@ export function OrderFormTemplate<T>({
         </div>
       ) : (
         <ProForm<T>
-          key={draftKey}
           className="roncin-order-form"
           formRef={resolvedFormRef}
           autoComplete="off"

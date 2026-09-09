@@ -239,56 +239,99 @@ describe('OrderFormTemplate Component', () => {
     expect(isTabDirty(tabKey)).toBe(true);
   });
 
-  it('草稿命名空间变化时重建表单，不把原组织输入带入新组织', () => {
+  it('只读挂载时不读取持久草稿，展示服务端 initialValues', () => {
     const tabKey = '/orders/sea-export';
-    const otherDraftScope = getFormDraftScope('user-1', 'org-2');
-    const onDirtyChange = vi.fn();
-    const sections = [
-      {
-        key: 'basic',
-        title: '业务信息',
-        content: (
-          <ProFormText
-            name="customerReferenceNo"
-            label="客户参考号"
-            placeholder="请输入客户参考号"
-          />
-        ),
-      },
-    ];
-    const { rerender } = render(
+    const draftKey = getFormDraftKey(
+      tabKey,
+      window.location?.pathname,
+      draftScope,
+    );
+    sessionStorage.setItem(
+      draftKey,
+      JSON.stringify({ customerReferenceNo: 'DRAFT-DIRTY' }),
+    );
+
+    render(
       <OrderFormTemplate
         tabKey={tabKey}
         draftScope={draftScope}
-        onDirtyChange={onDirtyChange}
-        initialValues={{ customerReferenceNo: 'ORG-1-DEFAULT' }}
-        sections={sections}
+        readonly={true}
+        initialValues={{ customerReferenceNo: 'SERVER-ORIGINAL' }}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="customerReferenceNo"
+                label="客户参考号"
+                placeholder="请输入客户参考号"
+              />
+            ),
+          },
+        ]}
       />,
     );
-    const input = screen.getByPlaceholderText(
-      '请输入客户参考号',
-    ) as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'ORG-1-DRAFT' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
 
-    rerender(
+    expect(screen.getByText('SERVER-ORIGINAL')).toBeInTheDocument();
+    expect(screen.queryByText('DRAFT-DIRTY')).not.toBeInTheDocument();
+    expect(isTabDirty(tabKey)).toBe(false);
+  });
+
+  it('成功提交时清除当前草稿，提交返回 false 时保留草稿', async () => {
+    const tabKey = '/orders/sea-export';
+    const draftKey = getFormDraftKey(
+      tabKey,
+      window.location?.pathname,
+      draftScope,
+    );
+    sessionStorage.setItem(
+      draftKey,
+      JSON.stringify({ customerReferenceNo: 'TO-SUBMIT' }),
+    );
+
+    let submitResult = false;
+    const onFinish = vi.fn().mockImplementation(async () => submitResult);
+
+    render(
       <OrderFormTemplate
         tabKey={tabKey}
-        draftScope={otherDraftScope}
-        onDirtyChange={onDirtyChange}
-        initialValues={{ customerReferenceNo: 'ORG-2-DEFAULT' }}
-        sections={sections}
+        draftScope={draftScope}
+        submitText="保存订单"
+        onFinish={onFinish}
+        sections={[
+          {
+            key: 'basic',
+            title: '业务信息',
+            content: (
+              <ProFormText
+                name="customerReferenceNo"
+                label="客户参考号"
+                placeholder="请输入客户参考号"
+              />
+            ),
+          },
+        ]}
       />,
     );
 
-    expect(
-      (screen.getByPlaceholderText('请输入客户参考号') as HTMLInputElement)
-        .value,
-    ).toBe('ORG-2-DEFAULT');
+    const submitBtn = screen.getByText('保存订单');
+
+    // 1. 提交返回 false，草稿保留
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+    expect(onFinish).toHaveBeenCalledTimes(1);
     expect(hasTabDraft(tabKey, draftScope)).toBe(true);
-    expect(hasTabDraft(tabKey, otherDraftScope)).toBe(false);
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
-    expect(isTabDirty(tabKey, otherDraftScope)).toBe(false);
+
+    // 2. 提交返回 true，草稿清除
+    submitResult = true;
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+    expect(onFinish).toHaveBeenCalledTimes(2);
+    expect(hasTabDraft(tabKey, draftScope)).toBe(false);
+    expect(isTabDirty(tabKey)).toBe(false);
   });
 
   it('点击重置表单时，清除暂存草稿并重置 dirty 状态', async () => {

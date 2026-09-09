@@ -38,8 +38,13 @@ clearTabDrafts(tabKey: string, draftScope?: string): void;
 
 - 草稿键必须同时包含用户 ID、当前组织 ID、稳定页签 key 与完整 pathname；缺少用户或组织时
   禁止持久化草稿。
-- 身份命名空间变化时表单必须重新挂载，先使用新身份的 `initialValues`，再恢复新身份自己的
-  草稿；不得保留旧组织的 Form store。
+- 身份重建由双层边界保证：用户与组织身份由 `OrganizationWorkspace` key 管理（切换时整体卸载
+  页签与页面），页面内资源身份（如业务类型或记录 ID）由调用方在模板边界提供对应 React `key`
+  （如 `key={`${config.kind}:${orderId}`}`）。
+- 模板挂载期间 `(draftScope, resolvedTabKey, pathname)` 必须保持同一身份，模板内部不再进行
+  多重身份探测；只要页面内资源身份可能变化，调用方就必须在模板边界提供对应 key。
+- 新 identity key 挂载新表单实例时，先使用新身份的 `initialValues`，再恢复新身份自己的
+  草稿；不得保留旧组织的 Form store 与 dirty 状态。
 - 页签脏状态取“实时 guard 或当前身份持久草稿”，防止 React 状态尚未提交时漏掉已同步写入
   的草稿。
 - 用户确认关闭后，只清除当前身份、目标页签下的草稿；其他用户或组织的草稿保持不变。
@@ -68,7 +73,8 @@ clearTabDrafts(tabKey: string, draftScope?: string): void;
 ### 6. 必需测试
 
 - 工具测试：同页签、同路径的两个身份命名空间可以独立保存、判断和清理。
-- 模板测试：在同一个组件实例切换 `draftScope`，旧输入消失，新身份默认值或草稿正确显示。
+- 模板测试：只读挂载不恢复草稿、提交成功清草稿、提交失败保留草稿、重置清草稿；新 identity key 触发新实例挂载，新实例先使用自己的 initialValues，再恢复自己的草稿。
+- 详情生命周期测试：详情 A 原地导航到 B 后模板实例被重建，B 不显示 A 的 Form store 与 dirty 状态。
 - 关闭保护测试：实时 guard 暂为 false 但草稿已写入时仍提示；确认后仅清理当前 scope。
 - 日期测试：嵌套对象中的 `cargoReadyAt`、截止时间及 `etd`/`eta` 恢复为 Dayjs，普通文本保持
   字符串。
