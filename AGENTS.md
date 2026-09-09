@@ -119,8 +119,8 @@ scripts/                  根目录开发与构建辅助脚本
 - 事务一律通过 `internal/data` 提供的统一封装调用（`WithTx(ctx, fn)` 风格，
   封装内部负责 Begin、出错自动 Rollback、panic 安全回滚、成功 Commit）；
   禁止在仓储中手写 `db.Tx(ctx)` 加逐点 `tx.Rollback()` 再 `tx.Commit()`
-  的分散模板，禁止混用 `sqlDB.BeginTx` 原生事务。存量手写事务在触碰
-  相关文件时迁移到封装，迁移进度见根目录 `TODO.md`。
+  的分散模板，禁止混用 `sqlDB.BeginTx` 原生事务（存量手写事务已全部
+  迁移到封装，触碰旧写法时直接改写为封装调用）。
 - 跨仓储共享事务统一由 `biz.Transactor` 的 `WithinTransaction` 建立
   （实现见 `internal/data/transaction.go`）：用例在回调内取得 `txCtx`，
   多个仓储在同一事务中读写；嵌套 `WithinTransaction` 与 `WithTx` 自动
