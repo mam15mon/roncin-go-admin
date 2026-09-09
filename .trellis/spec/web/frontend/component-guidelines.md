@@ -82,8 +82,10 @@ if (
 注册契约：
 
 - 注册项以 `satisfies Record<OrderKind, OrderKindDefinition>` 穷尽约束；只注册已真实交付的类型（当前仅 `sea-export`），不提前注册 SI/AE/AI/LAND/RAIL 占位。
-- `getOrderKindDefinition(kindOrPath?)` 接受直接 kind 或 `/orders/<kind>` 路径；空值、未知、未注册类型一律返回 `undefined`，页面据此展示 404，禁止默认 Sea/Air 兜底，未知类型不得进入数据 Hook 或发起请求。
+- `getOrderKindDefinition(kindOrPath?)` 接受直接 kind 或 `/orders/<kind>` 路径；空值、未知、未注册类型一律返回 `undefined`，页面据此展示 404，禁止默认 Sea/Air 兜底，未知类型不得进入数据 Hook 或发起请求。API 只返回业务枚举时使用 `getOrderKindDefinitionByBusinessType` 反查已注册定义（如财务费用详情的订单链接），不得在各页维护数字枚举到路由的第二套映射。
 - 页面（列表/新建/详情/费用）与列表查询、资源 Hook 只消费注册定义；`common.ts` 只保留跨类型共享的选项、搜索与主数据工具，不再维护类型字典。
+- 运输方式（`OrderTransportMode`）相关的地点主数据、站点装载与候选项选择必须穷尽分发（如 `searchOrderLocations`、`fetchOrderMasterData`、`resolveOrderLocationOptions`）；land/rail 显式抛「尚未开放」，不得静默落入机场/空运分支。
+- 通用 layout（`routeUtils`）不得维护订单 kind 字典：订单动态路由页签用中性占位标题，真实标题由订单页加载后经 `roncin:update-tab-title` 回填。
 - 公共 `OrderListTemplate` 不反向依赖页面注册表：删除其本地 kind 联合与 kindMap，业务类型列只消费页面查询已映射好的 `businessType` 文案。
 
 有状态类型详情扩展（`OrderKindDefinition.DetailFeatures`）：

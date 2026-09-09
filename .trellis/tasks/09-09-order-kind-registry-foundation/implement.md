@@ -217,3 +217,14 @@ git status --short
 - Step 2 只改变 SE 表单适配入口，可独立回滚；
 - Step 3 只改变详情专属 UI 所有权，可独立回滚；
 - 不得以恢复旧兼容桥、增加 fallback、清空用户草稿或跳过断言作为回滚方案。
+
+## 8. 独立复核修复记录（2026-09-09，复核模型 Terra）
+
+首轮实现后独立复核提出 4 个 P2 与 1 个 P3，已全部修复并分别提交：
+
+- [x] `28358fe2` fix(web)：`useOrderListResources(undefined)` fail-closed（递增请求序号、清空资源、五类搜索全部以注册定义为前提），列表行业务类型列恢复 `navigationTitle`「海运出口」并锁定断言，新增列表页 404 零请求页面级测试。
+- [x] `c86723cb` fix(web)：`searchOrderLocations`/`fetchOrderMasterData` 断言收窄 sea/air、land/rail 显式抛「尚未开放」；新增 `resolveOrderLocationOptions` 穷尽选择地点候选，创建/详情 Hook 与 ShippingDocumentDrawer 不再「非 sea 即 air」。
+- [x] `a623eb90` fix(web)：注册表新增 `getOrderKindDefinitionByBusinessType` 只遍历已注册定义；财务费用详情删除 `businessRoutes` 第二映射；routeUtils 删除 `KIND_NAMES` 与未注册类型标题，订单动态页签改中性占位并由订单页（含补齐事件的拆票页）回填真实标题。
+- [x] `18e9f159` test(web)：创建、详情初始值、更新三个方向各补完整固定夹具到完整输出的逐字段 `toEqual` 等价断言。
+
+修复后重跑定向 19 个测试文件 176 个用例、`pnpm --dir web tsc`、修改文件 Biome 与最终 `pnpm run check:web`（483 用例）全部通过。
