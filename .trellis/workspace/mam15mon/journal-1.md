@@ -1112,3 +1112,33 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 43: 收拢订单模板草稿生命周期
+<!-- trellis-session: v=2 fp=c0c9b48c77f681e7 -->
+
+**Date**: 2026-09-09
+**Task**: 收拢订单模板草稿生命周期
+**Branch**: `main`
+
+### Summary
+
+将订单草稿键、dirty、恢复与清理统一收归 OrderFormTemplate，并以显式草稿身份和统一单调刷新令牌覆盖同订单乱序、A/B 切换与 ABA；独立复核无 P1/P2/P3，check:web 96 个文件 445 个用例通过后完成归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f95cccc5` | docs(task): 规划订单模板草稿生命周期收拢 |
+| `66fad7df` | refactor(web): 收拢订单模板草稿生命周期 |
+| `12b2c3da` | fix(web): 显式刷新补单调请求序号门禁 |
+| `6ee5cc1b` | fix(web): 显式刷新令牌覆盖 ABA 身份往返场景 |
+| `752475b5` | refactor(web): 显式刷新令牌改为 layout effect 作废并双端复核 |
+| `1216d858` | refactor(web): 拆分订单详情业务容器并以身份作为 key 消除 ABA 竞态 |
+| `9f5168b6` | refactor(web): 统一显式刷新令牌架构定稿 |
+| `76348514` | refactor(web): 收紧 formDraft 工具层 pathname 为必传 |
+| `f264a215` | docs(task): 记录订单草稿生命周期验收 |
+
+### Status
+
+[OK] **Completed**
