@@ -40,6 +40,9 @@ describe('formDraft', () => {
         'roncin:form-draft:user-1:org-1:/orders/sea-export:/orders/sea-export/123',
       );
       expect(getFormDraftKey('/orders/sea-export', '/orders/new')).toBe('');
+      expect(getFormDraftKey('/orders/sea-export', undefined, draftScope)).toBe(
+        '',
+      );
     });
   });
 

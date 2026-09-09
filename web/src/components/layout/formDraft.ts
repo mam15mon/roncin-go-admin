@@ -66,11 +66,11 @@ export function getFormDraftKey(
   pathname?: string,
   draftScope?: string,
 ): string {
-  if (!tabKey || !draftScope) return '';
-  const currentPath =
-    pathname ||
-    (typeof window !== 'undefined' ? window.location?.pathname || '' : '');
-  return `${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:${tabKey}:${currentPath}`;
+  if (!tabKey || !pathname || !draftScope) {
+    return '';
+  }
+
+  return `${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:${tabKey}:${pathname}`;
 }
 
 /**
