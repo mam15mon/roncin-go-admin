@@ -120,10 +120,6 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
 }));
 
 vi.mock('./templates', () => ({
-  getAirTemplateSections: (props: { readonly?: boolean }) => {
-    detailTestState.sectionReadonly = props.readonly;
-    return [];
-  },
   getSeaTemplateSections: (props: { readonly?: boolean }) => {
     detailTestState.sectionReadonly = props.readonly;
     return [];

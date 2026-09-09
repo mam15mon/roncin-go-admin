@@ -44,18 +44,6 @@ vi.mock('@/services/roncin/orderShippingDocumentService', () => ({
     .mockResolvedValue({ data: [] }),
 }));
 
-vi.mock('@/services/roncin/orderContainerService', () => ({
-  orderContainerServiceListContainers: vi.fn().mockResolvedValue({ data: [] }),
-}));
-
-vi.mock('@/services/roncin/orderCargoItemService', () => ({
-  orderCargoItemServiceListCargoItems: vi.fn().mockResolvedValue({ data: [] }),
-}));
-
-vi.mock('@/services/roncin/orderMilestoneService', () => ({
-  orderMilestoneServiceListMilestones: vi.fn().mockResolvedValue({ data: [] }),
-}));
-
 vi.mock('@/services/roncin/orderPersonnelService', () => ({
   orderPersonnelServiceListPersonnel: vi.fn().mockResolvedValue({ data: [] }),
 }));

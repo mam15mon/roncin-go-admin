@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   act,
   fireEvent,
@@ -6,8 +8,6 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App, Form, Input } from 'antd';
-import fs from 'node:fs';
-import path from 'node:path';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -166,19 +166,19 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
             )
           : '';
 
-        React.useImperativeHandle(
-          props.actionsRef,
-          () => ({
-            resetTo: (values?: { customerReferenceNo?: string }) => {
-              templateLifecycleState.resetToCalls += 1;
-              formDraft.clearFormDraft(draftKey);
-              form.resetFields();
-              if (values) form.setFieldsValue(values);
-              setInternalDirty(false);
-            },
-          }),
-          [form, draftKey],
-        );
+      React.useImperativeHandle(
+        props.actionsRef,
+        () => ({
+          resetTo: (values?: { customerReferenceNo?: string }) => {
+            templateLifecycleState.resetToCalls += 1;
+            formDraft.clearFormDraft(draftKey);
+            form.resetFields();
+            if (values) form.setFieldsValue(values);
+            setInternalDirty(false);
+          },
+        }),
+        [form, draftKey],
+      );
 
       // 模拟真实模板：首次可编辑时机恢复本身份草稿并标记 dirty。
       React.useEffect(() => {
@@ -222,10 +222,6 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
 });
 
 vi.mock('./templates', () => ({
-  getAirTemplateSections: (props: { readonly?: boolean }) => {
-    detailTestState.sectionReadonly = props.readonly;
-    return [];
-  },
   getSeaTemplateSections: (props: { readonly?: boolean }) => {
     detailTestState.sectionReadonly = props.readonly;
     return [];
@@ -570,9 +566,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
     await waitFor(() => {
       expect(templateLifecycleState.resetToCalls).toBe(1);
-      expect(screen.getByLabelText('客户参考号')).toHaveValue(
-        'B-服务端初始值',
-      );
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('B-服务端初始值');
     });
 
     // A 的旧刷新最后完成：不得再次重置 B
@@ -580,9 +574,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       loadA.resolve();
     });
 
-    expect(screen.getByLabelText('客户参考号')).toHaveValue(
-      'B-服务端初始值',
-    );
+    expect(screen.getByLabelText('客户参考号')).toHaveValue('B-服务端初始值');
     expect(templateLifecycleState.resetToCalls).toBe(1);
   });
 
@@ -625,9 +617,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       pendingLoad.resolve();
     });
 
-    expect(screen.getByLabelText('客户参考号')).toHaveValue(
-      'A-往返后的新输入',
-    );
+    expect(screen.getByLabelText('客户参考号')).toHaveValue('A-往返后的新输入');
     expect(templateLifecycleState.internalDirty).toBe(true);
     expect(templateLifecycleState.resetToCalls).toBe(0);
   });

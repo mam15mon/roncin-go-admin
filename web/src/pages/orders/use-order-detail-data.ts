@@ -3,9 +3,6 @@ import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
-import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
-import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
-import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
@@ -54,9 +51,8 @@ export function useOrderDetailData(
   const [loadedOrganizationId, setLoadedOrganizationId] = useState<
     string | undefined
   >();
-  const [loadedTransportMode, setLoadedTransportMode] = useState<
-    typeof transportMode
-  >();
+  const [loadedTransportMode, setLoadedTransportMode] =
+    useState<typeof transportMode>();
   const [loadedBusinessType, setLoadedBusinessType] = useState<number>();
   const [errorState, setErrorState] = useState<DetailErrorState | null>(null);
   const activeOrderIdRef = useRef(orderId);
@@ -65,9 +61,6 @@ export function useOrderDetailData(
   const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
     [],
   );
-  const [_containers, setContainers] = useState<API.OrderContainer[]>([]);
-  const [_cargoItems, setCargoItems] = useState<API.OrderCargoItem[]>([]);
-  const [_milestones, setMilestones] = useState<API.OrderMilestone[]>([]);
   const [personnel, setPersonnel] = useState<API.OrderPersonnel[]>([]);
 
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
@@ -95,9 +88,6 @@ export function useOrderDetailData(
       setLoadedBusinessType(undefined);
       setErrorState(null);
       setShippingDocs([]);
-      setContainers([]);
-      setCargoItems([]);
-      setMilestones([]);
       setPersonnel([]);
       setLoading(false);
       return;
@@ -112,9 +102,6 @@ export function useOrderDetailData(
       setLoadedBusinessType(undefined);
       setErrorState(null);
       setShippingDocs([]);
-      setContainers([]);
-      setCargoItems([]);
-      setMilestones([]);
       setPersonnel([]);
       setLoading(false);
       return;
@@ -135,27 +122,16 @@ export function useOrderDetailData(
     setLoading(true);
     setErrorState(null);
     try {
-      const [
-        masterData,
-        personnelOptRes,
-        orderRes,
-        docsRes,
-        cntrsRes,
-        cargoRes,
-        milestonesRes,
-        personnelRes,
-      ] = await Promise.all([
-        fetchOrderMasterData(organizationId, definition.transportMode),
-        transportMode === 'sea'
-          ? getOrderPersonnelOptions(organizationId, businessType)
-          : Promise.resolve([]),
-        orderServiceGetOrder({ id: orderId }),
-        orderShippingDocumentServiceListShippingDocuments({ orderId }),
-        orderContainerServiceListContainers({ orderId }),
-        orderCargoItemServiceListCargoItems({ orderId }),
-        orderMilestoneServiceListMilestones({ orderId }),
-        orderPersonnelServiceListPersonnel({ orderId }),
-      ]);
+      const [masterData, personnelOptRes, orderRes, docsRes, personnelRes] =
+        await Promise.all([
+          fetchOrderMasterData(organizationId, definition.transportMode),
+          transportMode === 'sea'
+            ? getOrderPersonnelOptions(organizationId, businessType)
+            : Promise.resolve([]),
+          orderServiceGetOrder({ id: orderId }),
+          orderShippingDocumentServiceListShippingDocuments({ orderId }),
+          orderPersonnelServiceListPersonnel({ orderId }),
+        ]);
 
       if (
         currentRequestId !== requestIdRef.current ||
@@ -202,9 +178,6 @@ export function useOrderDetailData(
       setLoadedBusinessType(currentBusinessType);
       setErrorState(null);
       setShippingDocs(unwrapList(docsRes));
-      setContainers(unwrapList(cntrsRes));
-      setCargoItems(unwrapList(cargoRes));
-      setMilestones(unwrapList(milestonesRes));
       setPersonnel(unwrapList(personnelRes));
     } catch (err: any) {
       if (
@@ -227,9 +200,6 @@ export function useOrderDetailData(
           error: err instanceof Error ? err : new Error(String(err)),
         });
         setShippingDocs([]);
-        setContainers([]);
-        setCargoItems([]);
-        setMilestones([]);
         setPersonnel([]);
         message.error(err.message || '加载订单数据失败');
       }
