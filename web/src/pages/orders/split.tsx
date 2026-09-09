@@ -421,6 +421,20 @@ export default function SeaOrderSplitPage() {
     loadContext();
   }, [orderId]);
 
+  // 页签占位标题为中性「订单拆票」，加载成功后回填带单号的真实标题。
+  useEffect(() => {
+    if (splitContext?.orderNo && orderId && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: `/orders/sea-export/${orderId}/split`,
+            title: `${splitContext.orderNo}_拆票`,
+          },
+        }),
+      );
+    }
+  }, [splitContext?.orderNo, orderId]);
+
   // 构造母单目标
   const buildTargets = (
     currentResults = results,

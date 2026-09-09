@@ -29,3 +29,18 @@ export function getOrderKindDefinition(
   if (!match) return undefined;
   return lookupRegistryKey(match[1]);
 }
+
+/**
+ * 按业务枚举反查注册定义：只遍历已注册类型，未注册的
+ * SI/AE/AI/LAND/RAIL 返回 `undefined`，调用方不得为其生成业务链接。
+ */
+export function getOrderKindDefinitionByBusinessType(
+  businessType: number,
+): OrderKindDefinition | undefined {
+  for (const definition of Object.values(ORDER_KIND_REGISTRY)) {
+    if (definition.businessType === businessType) {
+      return definition;
+    }
+  }
+  return undefined;
+}

@@ -69,27 +69,29 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
       expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新增海运出口');
+      // 订单动态路由统一使用中性占位标题，具体订单页加载后回填真实标题
       expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe(
-        '海运出口详情',
+        '订单详情',
       );
       expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe(
-        '海运出口费用录入',
+        '订单费用录入',
       );
       expect(
         resolveRouteTitle('/orders/sea-export/SE2026082600004/split'),
-      ).toBe('海运出口拆票');
-      expect(resolveRouteTitle('/orders/sea-import')).toBe('海运进口订单列表');
-      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('新增海运进口');
-      expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口订单列表');
-      expect(resolveRouteTitle('/orders/air-export/new')).toBe('新增空运出口');
+      ).toBe('订单拆票');
+      // 未注册订单类型不再伪装成已知业务，回落到订单管理中性标题
+      expect(resolveRouteTitle('/orders/sea-import')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export/new')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe(
-        '空运出口详情',
+        '订单详情',
       );
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe(
-        '空运出口费用录入',
+        '订单费用录入',
       );
-      expect(resolveRouteTitle('/orders/air-import')).toBe('空运进口订单列表');
-      expect(resolveRouteTitle('/orders/air-import/new')).toBe('新增空运进口');
+      expect(resolveRouteTitle('/orders/air-import')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-import/new')).toBe('订单管理');
       expect(resolveRouteTitle('/partners/customers')).toBe('客户');
       expect(resolveRouteTitle('/partners/customers/create')).toBe('新建客户');
       expect(resolveRouteTitle('/partners/customers/123')).toBe('客户详情');
@@ -248,7 +250,7 @@ describe('TagsView logic', () => {
       {
         key: '/orders/sea-export',
         path: '/orders/sea-export/SE001?tab=fees',
-        title: '海运出口详情',
+        title: '订单详情',
         closable: true,
       },
       {
@@ -337,13 +339,13 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE2026082600004';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 跳转至费用录入
     mockPathname = '/orders/sea-export/SE2026082600004/fees';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('海运出口费用录入')).toBeInTheDocument();
+    expect(screen.getByText('订单费用录入')).toBeInTheDocument();
 
     // 返回列表
     mockPathname = '/orders/sea-export';
@@ -366,7 +368,7 @@ describe('TagsView Component', () => {
     mockPathname = '/welcome';
     rerender(<TagsView />);
 
-    const orderTab = screen.getByText('海运出口详情');
+    const orderTab = screen.getByText('订单详情');
     fireEvent.click(orderTab);
     expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/SE002');
   });
@@ -403,7 +405,7 @@ describe('TagsView Component', () => {
     // 保留费用页签，并建立海运出口页签，共 3 个页签
     expect(screen.getAllByRole('tab').length).toBe(3);
     expect(screen.getByText('费用详情')).toBeInTheDocument();
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 点击费用页签应能回到费用详情
     fireEvent.click(screen.getByText('费用详情'));
@@ -432,7 +434,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
 
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 异步加载完成，发送动态标题事件
     act(() => {
@@ -473,11 +475,11 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     render(<TagsView />);
 
-    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
     fireEvent.click(closeBtn);
 
     expect(mockPush).toHaveBeenCalledWith('/welcome');
-    expect(screen.queryByText('海运出口详情')).not.toBeInTheDocument();
+    expect(screen.queryByText('订单详情')).not.toBeInTheDocument();
   });
 
   it('直接访问重定向入口 /orders 时只产生一个业务页签', () => {
@@ -499,7 +501,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
 
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 快速切换至订单 SE002
     mockPathname = '/orders/sea-export/SE002';
@@ -518,7 +520,7 @@ describe('TagsView Component', () => {
     });
 
     expect(screen.queryByText('SE001 (海运出口)')).not.toBeInTheDocument();
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // SE002 的标题更新事件正常到达，页签标题更新为 SE002
     act(() => {
@@ -757,7 +759,7 @@ describe('TagsView Component', () => {
 
     const modalSpy = spyOnConfirm();
 
-    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
     act(() => {
       fireEvent.click(closeBtn);
     });
@@ -771,7 +773,7 @@ describe('TagsView Component', () => {
     });
 
     expect(mockPush).toHaveBeenCalledWith('/welcome');
-    expect(screen.queryByText('海运出口详情')).not.toBeInTheDocument();
+    expect(screen.queryByText('订单详情')).not.toBeInTheDocument();
 
     modalSpy.mockRestore();
   });
@@ -833,7 +835,7 @@ describe('TagsView Component', () => {
 
     const modalSpy = spyOnConfirm();
 
-    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
     act(() => {
       fireEvent.click(closeBtn);
     });

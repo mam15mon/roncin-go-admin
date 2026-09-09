@@ -28,13 +28,7 @@ import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
-
-const businessRoutes: Record<number, string> = {
-  1: 'sea-export',
-  2: 'sea-import',
-  3: 'air-export',
-  4: 'air-import',
-};
+import { getOrderKindDefinitionByBusinessType } from '@/pages/orders/order-kinds/registry';
 
 export default function FinanceFeeDetailPage() {
   const params = useParams<{ orderId: string }>();
@@ -319,7 +313,10 @@ export default function FinanceFeeDetailPage() {
     </SectionCard>
   );
 
-  const route = businessRoutes[order?.businessType || 0];
+  // 订单链接只对已注册订单类型生成；未注册类型不产生进入 404 的入口。
+  const orderDefinition = getOrderKindDefinitionByBusinessType(
+    order?.businessType ?? 0,
+  );
 
   return (
     <Spin spinning={loading}>
@@ -337,11 +334,13 @@ export default function FinanceFeeDetailPage() {
             <Button key="refresh" onClick={loadData}>
               刷新数据
             </Button>
-            {route && (
+            {orderDefinition && (
               <Button
                 key="to-order"
                 type="primary"
-                onClick={() => history.push(`/orders/${route}/${orderId}`)}
+                onClick={() =>
+                  history.push(`/orders/${orderDefinition.kind}/${orderId}`)
+                }
               >
                 查看业务订单
               </Button>
@@ -368,10 +367,14 @@ export default function FinanceFeeDetailPage() {
             }}
           >
             <Descriptions.Item label="订单编号">
-              {route ? (
+              {orderDefinition ? (
                 <a
                   style={{ fontWeight: 600 }}
-                  onClick={() => history.push(`/orders/${route}/${orderId}`)}
+                  onClick={() =>
+                    history.push(
+                      `/orders/${orderDefinition.kind}/${orderId}`,
+                    )
+                  }
                 >
                   {order?.orderNo || orderId}
                 </a>
