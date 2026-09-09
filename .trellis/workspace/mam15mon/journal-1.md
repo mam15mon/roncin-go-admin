@@ -1076,3 +1076,39 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 42: 清理订单草稿冗余防御代码
+<!-- trellis-session: v=2 fp=1027abfcd45da847 -->
+
+**Date**: 2026-09-09
+**Task**: 清理订单草稿冗余防御代码
+**Branch**: `main`
+
+### Summary
+
+在 OrganizationWorkspace 建立后，精简 OrderFormTemplate 与 OrderDetailPage 内部冗余的草稿探测与双重 key，建立双层挂载身份模型，前端全量门禁 check:web 通过
+
+### Main Changes
+
+- 精简 OrderFormTemplate：移除 previousDraftKeyRef、draftContextChanged 与内部 <ProForm key={draftKey}>
+- 精简 OrderDetailPage：定义 orderFormIdentity，资源切换 effect 移除 draftScope，传递 key={orderFormIdentity} 并删除重复 onReset 回调
+- 新增独立测试 detail-draft-lifecycle.test.tsx，全面验证 A->B 原地导航重挂载、更新失败保留、更新成功后立即清理、显式刷新失败保留与成功清理等时序
+- 同步更新 .trellis/spec/web/frontend/state-management.md 契约规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `823be6d8` | refactor(web): 清理订单草稿冗余防御代码 |
+| `917f460b` | chore(task): archive 09-09-cleanup-order-draft-defenses |
+
+### Testing
+
+- [OK] 运行 OrderFormTemplate、detail-change-actions、detail-draft-lifecycle、TagsView、formDraft 等定向测试全部通过
+- [OK] 执行 pnpm run check:web 全绿（96 个测试文件、433 个用例全部通过，Biome / tsc 0 错误）
+- [OK] git diff --check 0 错误
+
+### Status
+
+[OK] **Completed**
