@@ -29,6 +29,8 @@
 
 ```ts
 getFormDraftScope(userId?: string, organizationId?: string): string | undefined;
+// pathname 必传：tabKey、pathname、draftScope 任一缺失时返回空串，
+// 不再回退 window.location，也不生成有效草稿键。
 getFormDraftKey(tabKey?: string, pathname?: string, draftScope?: string): string;
 hasTabDraft(tabKey: string, draftScope?: string): boolean;
 clearTabDrafts(tabKey: string, draftScope?: string): void;
