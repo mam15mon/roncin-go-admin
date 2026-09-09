@@ -205,8 +205,18 @@ export function isUnimplementedTransportMode(
 function assertTransportStationsSupported(
   transportMode: OrderTransportMode,
 ): asserts transportMode is 'sea' | 'air' {
-  if (isUnimplementedTransportMode(transportMode)) {
-    throw new Error('陆运与铁路订单的地点主数据尚未开放');
+  switch (transportMode) {
+    case 'sea':
+    case 'air':
+      return;
+    case 'land':
+    case 'rail':
+      throw new Error('陆运与铁路订单的地点主数据尚未开放');
+    default: {
+      // 新运输方式加入 OrderTransportMode 时未更新本分发会在此编译报错。
+      const unsupported: never = transportMode;
+      throw new Error(`未支持的运输方式：${String(unsupported)}`);
+    }
   }
 }
 

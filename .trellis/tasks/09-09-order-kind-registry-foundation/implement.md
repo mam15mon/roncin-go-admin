@@ -228,3 +228,18 @@ git status --short
 - [x] `18e9f159` test(web)：创建、详情初始值、更新三个方向各补完整固定夹具到完整输出的逐字段 `toEqual` 等价断言。
 
 修复后重跑定向 19 个测试文件 176 个用例、`pnpm --dir web tsc`、修改文件 Biome 与最终 `pnpm run check:web`（483 用例）全部通过。
+
+## 9. 第二轮复核修复记录（2026-09-09）
+
+第二轮复核发现上一节「全部修复」结论不成立：仍有 1 个 P2 与 1 个 P3，已修复：
+
+- [x] P2（存量缺陷，旧 orderDetailHelpers 同样遗漏）：SE 详情回填与更新请求补齐
+  `unNumber`、`hazardClass`、`factoryName`、`cargoReadyAt`、`declarationCutoffAt`、
+  `receivedAt`、`specialRequirements` 七个表单字段；详情夹具与更新夹具同步扩展，
+  覆盖字符串 trim、日期字符串转 Dayjs、Dayjs 转 ISO 与空值转 undefined。
+- [x] P3：`useOrderListResources` 对 land/rail 运输方式在资源 Effect 入口显式关闭
+  （不请求主数据/港口/机场/客户），港口联想仅海运可用；
+  `assertTransportStationsSupported` 升级为 `never` 兜底的穷尽 switch，
+  新运输方式加入联合而未更新分发时编译期即报错。
+- [x] 复核建议的 `unsupportedTransportMode`/`resourceError` 状态字段当前无 UI 需求，
+  暂不增加；列表页在 land/rail 注册前由注册表 fail-closed 兜底。

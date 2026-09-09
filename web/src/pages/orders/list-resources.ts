@@ -13,6 +13,7 @@ import {
 } from '@/utils/order-options-cache';
 import {
   isMasterDataKind,
+  isUnimplementedTransportMode,
   MASTER_DATA_KINDS,
   searchOrderLocations,
 } from './common';
@@ -42,8 +43,13 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   >(null);
 
   useEffect(() => {
-    // 未注册订单类型 fail-closed：不发任何主数据请求，清空已加载资源。
-    if (!organizationId || !definition) {
+    // 未注册订单类型与未开放运输方式 fail-closed：不发任何主数据请求，
+    // 清空已加载资源；后续真实接入 land/rail 时在此接入其专属主数据装载。
+    if (
+      !organizationId ||
+      !definition ||
+      isUnimplementedTransportMode(definition.transportMode)
+    ) {
       requestIdRef.current += 1;
       setLoadedOrganizationId(null);
       setMasterOptions([]);
@@ -203,7 +209,12 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchOrderPorts = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId || !definition) {
+    // 港口联想只属于海运运输方式，其余类型直接关闭。
+    if (
+      !requestOrgId ||
+      !definition ||
+      definition.transportMode !== 'sea'
+    ) {
       return [];
     }
     const response = await masterDataServiceListPorts({

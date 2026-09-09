@@ -182,6 +182,46 @@ describe('useOrderListResources', () => {
     expect(result.current.ports).toEqual([]);
   });
 
+  it.each(['land', 'rail'] as const)(
+    '列表资源对 %s 运输方式显式关闭，不请求主数据、港口、机场与客户',
+    (transportMode) => {
+      const unimplementedDefinition = {
+        ...seaConfig,
+        transportMode,
+      } as typeof seaConfig;
+
+      const { result } = renderHook(
+        () => useOrderListResources(unimplementedDefinition),
+        { wrapper },
+      );
+
+      expect(result.current.masterOptions).toEqual([]);
+      expect(result.current.ports).toEqual([]);
+      expect(result.current.airports).toEqual([]);
+      expect(mockGetMasterData).not.toHaveBeenCalled();
+      expect(mockGetPorts).not.toHaveBeenCalled();
+      expect(mockGetAirports).not.toHaveBeenCalled();
+      expect(mockSearchPartners).not.toHaveBeenCalled();
+    },
+  );
+
+  it('空运定义下港口联想直接关闭，不请求港口接口', async () => {
+    const airConfig = {
+      ...seaConfig,
+      transportMode: 'air',
+    } as typeof seaConfig;
+
+    const { result } = renderHook(() => useOrderListResources(airConfig), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.airports).toHaveLength(1));
+    await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
+    expect(mockSearchPorts).not.toHaveBeenCalledWith(
+      expect.objectContaining({ keyword: '港口' }),
+    );
+  });
+
   it('未注册订单类型时 fail-closed：不发起任何主数据请求，候选项全为空', async () => {
     const { result } = renderHook(() => useOrderListResources(undefined), {
       wrapper,

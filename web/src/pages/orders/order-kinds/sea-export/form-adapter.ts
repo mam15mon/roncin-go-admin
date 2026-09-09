@@ -375,6 +375,14 @@ export function buildSeaExportDetailInitialValues(
     cargoCurrency: order.cargoCurrency || 'USD',
     insurancePremium: order.insurancePremium,
     insuranceCurrency: order.insuranceCurrency || 'CNY',
+    unNumber: order.unNumber,
+    hazardClass: order.hazardClass,
+    factoryName: order.factoryName,
+    cargoReadyAt: order.cargoReadyAt ? dayjs(order.cargoReadyAt) : undefined,
+    declarationCutoffAt: order.declarationCutoffAt
+      ? dayjs(order.declarationCutoffAt)
+      : undefined,
+    receivedAt: order.receivedAt ? dayjs(order.receivedAt) : undefined,
     shipmentType: order.shipmentType ?? ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership:
       order.containerOwnership ?? ContainerOwnership.CONTAINER_OWNERSHIP_COC,
@@ -396,6 +404,7 @@ export function buildSeaExportDetailInitialValues(
       : undefined,
     vgmCutoff: order.vgmCutoff ? dayjs(order.vgmCutoff) : undefined,
     goodsDescription: order.goodsDescription,
+    specialRequirements: order.specialRequirements,
     totalPackages: order.totalPackages,
     totalGrossWeightKg: order.totalGrossWeightKg,
     totalVolumeCbm: order.totalVolumeCbm,
@@ -492,6 +501,18 @@ export function buildSeaExportUpdatePayload(
     cargoCurrency: values.cargoCurrency || undefined,
     insurancePremium: values.insurancePremium?.trim() || undefined,
     insuranceCurrency: values.insuranceCurrency || undefined,
+    unNumber: values.unNumber?.trim() || undefined,
+    hazardClass: values.hazardClass?.trim() || undefined,
+    factoryName: values.factoryName?.trim() || undefined,
+    cargoReadyAt: values.cargoReadyAt
+      ? dayjs(values.cargoReadyAt).toISOString()
+      : undefined,
+    declarationCutoffAt: values.declarationCutoffAt
+      ? dayjs(values.declarationCutoffAt).toISOString()
+      : undefined,
+    receivedAt: values.receivedAt
+      ? dayjs(values.receivedAt).toISOString()
+      : undefined,
     shipmentType:
       values.shipmentType !== undefined
         ? Number(values.shipmentType)
@@ -524,6 +545,7 @@ export function buildSeaExportUpdatePayload(
       ? dayjs(values.vgmCutoff).toISOString()
       : undefined,
     goodsDescription: values.goodsDescription?.trim() || undefined,
+    specialRequirements: values.specialRequirements?.trim() || undefined,
     totalPackages:
       values.totalPackages !== undefined
         ? Number(values.totalPackages)
