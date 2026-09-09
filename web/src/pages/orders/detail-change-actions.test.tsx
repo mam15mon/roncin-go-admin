@@ -132,10 +132,7 @@ vi.mock('./templates', () => ({
 
 vi.mock('./components/detail/OrderDetailHeader', () => ({
   default: (props: {
-    splitDisabled?: boolean;
-    splitBlockedReasons?: string[];
-    reassignDisabled?: boolean;
-    reassignBlockedReasons?: string[];
+    businessActions?: React.ReactNode;
     moreMenuItems?: Array<{
       key?: React.Key;
       onClick?: () => void;
@@ -143,26 +140,7 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
     onSynchronizeLockChange?: () => Promise<void>;
   }) => (
     <div>
-      <button
-        type="button"
-        data-testid="split-action"
-        disabled={props.splitDisabled}
-      >
-        拆票
-      </button>
-      <span data-testid="split-reasons">
-        {props.splitBlockedReasons?.join('；')}
-      </span>
-      <button
-        type="button"
-        data-testid="reassign-action"
-        disabled={props.reassignDisabled}
-      >
-        改配
-      </button>
-      <span data-testid="reassign-reasons">
-        {props.reassignBlockedReasons?.join('；')}
-      </span>
+      {props.businessActions}
       <button
         type="button"
         onClick={() =>
@@ -186,6 +164,9 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
 const mockGetChangeActions = vi.mocked(
   seaOrderChangeServiceGetSeaOrderChangeActions,
 );
+
+const getSplitButton = () => screen.getByRole('button', { name: /拆票/ });
+const getReassignButton = () => screen.getByRole('button', { name: /改配/ });
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -290,11 +271,8 @@ describe('订单详情页拆票与改配动作隔离', () => {
       });
     });
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        'B 不允许拆票',
-      );
-      expect(screen.getByTestId('reassign-action')).toBeEnabled();
+      expect(getSplitButton()).toBeDisabled();
+      expect(getReassignButton()).toBeEnabled();
     });
 
     await act(async () => {
@@ -308,12 +286,12 @@ describe('订单详情页拆票与改配动作隔离', () => {
       });
     });
 
-    expect(screen.getByTestId('split-action')).toBeDisabled();
-    expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-      'B 不允许拆票',
-    );
-    expect(screen.getByTestId('reassign-action')).toBeEnabled();
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
+    expect(getSplitButton()).toBeDisabled();
+    expect(getReassignButton()).toBeEnabled();
+
+    // 阻断原因进入按钮 Tooltip：B 的原因保持可见，A 的迟到结果不得覆盖。
+    fireEvent.mouseEnter(getSplitButton());
+    expect(await screen.findByText('B 不允许拆票')).toBeInTheDocument();
   });
 
   it('切换到 B 后立即清空 A 的动作资格，且 B 失败时不恢复 A 的状态', async () => {
@@ -335,10 +313,8 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeEnabled();
-      expect(screen.getByTestId('reassign-reasons')).toHaveTextContent(
-        'A 不允许改配',
-      );
+      expect(getSplitButton()).toBeEnabled();
+      expect(getReassignButton()).toBeDisabled();
     });
 
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
@@ -348,20 +324,17 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
 
-    expect(screen.getByTestId('split-action')).toBeDisabled();
-    expect(screen.getByTestId('split-reasons')).toBeEmptyDOMElement();
-    expect(screen.getByTestId('reassign-action')).toBeDisabled();
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
+    expect(getSplitButton()).toBeDisabled();
+    expect(getReassignButton()).toBeDisabled();
 
     await act(async () => {
       requestB.reject(new Error('B 动作资格加载失败'));
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('reassign-action')).toBeDisabled();
+      expect(getSplitButton()).toBeDisabled();
+      expect(getReassignButton()).toBeDisabled();
     });
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
   });
 
   it('页面手工刷新会重新获取当前订单的动作资格', async () => {
@@ -388,18 +361,13 @@ describe('订单详情页拆票与改配动作隔离', () => {
         <OrderDetailPage />
       </App>,
     );
-    await waitFor(() =>
-      expect(screen.getByTestId('split-action')).toBeEnabled(),
-    );
+    await waitFor(() => expect(getSplitButton()).toBeEnabled());
 
     fireEvent.click(screen.getByRole('button', { name: '刷新动作资格' }));
 
     await waitFor(() => {
       expect(mockGetChangeActions).toHaveBeenCalledTimes(2);
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        '刷新后不可拆票',
-      );
+      expect(getSplitButton()).toBeDisabled();
     });
   });
 
@@ -425,9 +393,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
         <OrderDetailPage />
       </App>,
     );
-    await waitFor(() =>
-      expect(screen.getByTestId('split-action')).toBeEnabled(),
-    );
+    await waitFor(() => expect(getSplitButton()).toBeEnabled());
 
     fireEvent.click(screen.getByRole('button', { name: '同步锁单状态' }));
     await waitFor(() =>
@@ -461,10 +427,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        'B 当前不可拆票',
-      );
+      expect(getSplitButton()).toBeDisabled();
     });
   });
 

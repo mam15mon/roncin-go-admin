@@ -1,4 +1,5 @@
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import SeaExportDetailFeatures from './SeaExportDetailFeatures';
 import { seaExportFormAdapter } from './form-adapter';
 import type { OrderKindDefinition } from '../types';
 
@@ -11,4 +12,5 @@ export const seaExportDefinition: OrderKindDefinition = {
   title: '海运出口订单',
   navigationTitle: '海运出口',
   form: seaExportFormAdapter,
+  DetailFeatures: SeaExportDetailFeatures,
 };

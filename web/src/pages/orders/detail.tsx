@@ -2,9 +2,7 @@ import {
   CheckOutlined,
   CopyOutlined,
   DollarOutlined,
-  HistoryOutlined,
   ReloadOutlined,
-  ShareAltOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -41,7 +39,6 @@ import {
   OrderTerminationStatus,
 } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
-import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import { searchShippingLineOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
@@ -50,20 +47,17 @@ import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
-import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
-import SameBatchOrdersSection from './components/detail/SameBatchOrdersSection';
-import SeaOrderChangeHistoryDrawer, {
-  SeaOrderChangeHistorySection,
-} from './components/drawers/SeaOrderChangeHistoryDrawer';
-import SeaOrderReassignmentModal from './components/drawers/SeaOrderReassignmentModal';
-import SeaSharedContainerDrawer from './components/drawers/SeaSharedContainerDrawer';
-import SeaTransportExecutionUpdateModal from './components/drawers/SeaTransportExecutionUpdateModal';
 import OrderPageHeader from './components/OrderPageHeader';
+import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
+import { getOrderKindDefinition } from './order-kinds/registry';
+import type {
+  OrderDetailFeaturesContext,
+  OrderDetailFeaturesProps,
+} from './order-kinds/types';
 import {
   confirmOrderClosure,
   confirmOrderTermination,
 } from './order-detail-transitions';
-import { getOrderKindDefinition } from './order-kinds/registry';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { useOrderDetailData } from './use-order-detail-data';
@@ -73,6 +67,11 @@ import {
 } from './use-order-lock-state';
 
 const { Text } = Typography;
+
+/** 未提供类型扩展时，详情页只渲染通用布局。 */
+const EmptyDetailFeatures: React.ComponentType<OrderDetailFeaturesProps> = ({
+  children,
+}) => <>{children({})}</>;
 
 export default function OrderDetailPage() {
   const params = useParams<{ kind: string; id: string }>();
@@ -137,79 +136,6 @@ export default function OrderDetailPage() {
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
-  const changeActionsTargetKey =
-    orderId && definition?.transportMode === 'sea' ? orderFormIdentity : undefined;
-  const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
-  activeChangeActionsTargetRef.current = changeActionsTargetKey;
-  const changeActionsRequestIdRef = useRef(0);
-  const [changeActionsState, setChangeActionsState] = useState<{
-    targetKey: string;
-    data: API.SeaOrderChangeActionsData;
-  } | null>(null);
-  const changeActions =
-    changeActionsState &&
-    changeActionsState.targetKey === changeActionsTargetKey
-      ? changeActionsState.data
-      : null;
-  const [reassignModalOpen, setReassignModalOpen] = useState(false);
-  const [voyageUpdateModalOpen, setVoyageUpdateModalOpen] = useState(false);
-  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
-  const [sharedContainerDrawerOpen, setSharedContainerDrawerOpen] =
-    useState(false);
-  const [sharedContainerTEId, setSharedContainerTEId] = useState<
-    string | undefined
-  >(undefined);
-  const [sharedContainerOrderId, setSharedContainerOrderId] = useState<
-    string | undefined
-  >(undefined);
-
-  // 路由切换到其他业务类型或记录时立即关闭共享箱工作台并清空旧运输执行，
-  // 防止“新订单 + 旧运输执行”形成错误业务上下文；工作区切换由上层 OrganizationWorkspace 卸载兜底。
-  useEffect(() => {
-    setSharedContainerDrawerOpen(false);
-    setSharedContainerTEId(undefined);
-    setSharedContainerOrderId(undefined);
-  }, [orderFormIdentity]);
-
-  const loadChangeActions = useCallback(async () => {
-    const requestOrderId = orderId;
-    const requestTargetKey = changeActionsTargetKey;
-    if (!requestOrderId || !requestTargetKey) {
-      changeActionsRequestIdRef.current += 1;
-      setChangeActionsState(null);
-      return;
-    }
-    // 等待其他刷新任务结束的旧闭包不得使当前订单请求失效。
-    if (requestTargetKey !== activeChangeActionsTargetRef.current) return;
-    const requestId = ++changeActionsRequestIdRef.current;
-    try {
-      const resp = await seaOrderChangeServiceGetSeaOrderChangeActions({
-        orderId: requestOrderId,
-      });
-      if (
-        requestId !== changeActionsRequestIdRef.current ||
-        requestTargetKey !== activeChangeActionsTargetRef.current
-      ) {
-        return;
-      }
-
-      setChangeActionsState(
-        resp?.data ? { targetKey: requestTargetKey, data: resp.data } : null,
-      );
-    } catch (error: unknown) {
-      if (
-        requestId !== changeActionsRequestIdRef.current ||
-        requestTargetKey !== activeChangeActionsTargetRef.current
-      ) {
-        return;
-      }
-      setChangeActionsState(null);
-      message.error(
-        error instanceof Error ? error.message : '加载拆票与改配动作失败',
-      );
-    }
-  }, [changeActionsTargetKey, message, orderId]);
-
   const {
     state: lockState,
     loading: lockStateLoading,
@@ -217,15 +143,6 @@ export default function OrderDetailPage() {
     refresh: refreshLockState,
   } = useOrderLockState(targetOrderId);
   const [synchronizingLockChange, setSynchronizingLockChange] = useState(false);
-
-  useEffect(() => {
-    setChangeActionsState(null);
-    void loadChangeActions();
-
-    return () => {
-      changeActionsRequestIdRef.current += 1;
-    };
-  }, [loadChangeActions, order?.version]);
 
   useEffect(() => {
     if (
@@ -318,24 +235,6 @@ export default function OrderDetailPage() {
     return false;
   };
 
-  const synchronizeLockChange = async () => {
-    setSynchronizingLockChange(true);
-    try {
-      await Promise.all([loadData(), refreshLockState()]);
-      if (definition?.transportMode === 'sea') {
-        await loadChangeActions();
-      }
-    } finally {
-      setSynchronizingLockChange(false);
-    }
-  };
-
-  useEffect(() => {
-    if (businessWritesDisabled) {
-      setReassignModalOpen(false);
-    }
-  }, [businessWritesDisabled]);
-
   // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
   const templateProps = useMemo(
     () => ({
@@ -387,36 +286,10 @@ export default function OrderDetailPage() {
     [order],
   );
 
-  // 5. 后置区块：拆票/改配历史与操作记录日志
+  // 5. 通用后置区块：操作记录日志（类型专属区块由详情扩展贡献并置于其前）
   const appendSections: OrderFormTemplateSection[] = useMemo(
-    () => [
-      ...(definition?.transportMode === 'sea' && orderId
-        ? [
-            {
-              key: 'same-batch-orders',
-              title: '同批订单',
-              content: (
-                <SameBatchOrdersSection
-                  orderId={orderId}
-                  orderKind={definition.kind}
-                />
-              ),
-            },
-            {
-              key: 'sea-order-change-history',
-              title: '拆票与改配记录',
-              content: (
-                <SeaOrderChangeHistorySection
-                  orderId={orderId}
-                  onOpenAll={() => setHistoryDrawerOpen(true)}
-                />
-              ),
-            },
-          ]
-        : []),
-      buildOrderAuditTimelineSection(order),
-    ],
-    [definition?.transportMode, order, orderId],
+    () => [buildOrderAuditTimelineSection(order)],
+    [order],
   );
 
   // 6. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
@@ -584,277 +457,199 @@ export default function OrderDetailPage() {
     );
   };
 
-  const moreMenuItems: MenuProps['items'] = [
-    ...(definition.transportMode === 'sea' &&
-    access.canOrder(definition.businessType, 'reassign')
-      ? [
-          {
-            key: 'shared-voyage-update',
-            icon: <ReloadOutlined />,
-            label: '共享航次调整',
-            onClick: () => setVoyageUpdateModalOpen(true),
-          },
-        ]
-      : []),
-    ...(definition.transportMode === 'sea'
-      ? [
-          {
-            key: 'shared-container-workbench',
-            icon: <ShareAltOutlined />,
-            label: '跨订单共享箱工作台',
-            disabled: !access.canOrder(
-              definition.businessType,
-              'container.read',
-            ),
-            onClick: () => {
-              const teId = order.seaMasterBill?.transportExecutionId;
-              if (!teId) {
-                message.warning(
-                  '当前订单尚未关联实际运输执行，无法开展跨订单拼箱',
-                );
-                return;
-              }
-              setSharedContainerTEId(teId);
-              setSharedContainerOrderId(orderId);
-              setSharedContainerDrawerOpen(true);
-            },
-          },
-        ]
-      : []),
-    {
-      key: 'fees-drawer',
-      icon: <DollarOutlined />,
-      label: '快速费用抽屉',
-      disabled: !access.canOrder(definition.businessType, 'fee.read'),
-      onClick: () => orderFeePanelRef.current?.open(order),
+  // 类型详情扩展以同一订单身份重挂载：扩展持有自己的请求与本地状态，
+  // 只通过 context 读取业务输入与通用刷新命令。
+  const DetailFeatures = definition.DetailFeatures ?? EmptyDetailFeatures;
+  const detailFeaturesContext: OrderDetailFeaturesContext = {
+    kind: definition.kind,
+    orderId: orderId || '',
+    order,
+    orderFormIdentity: orderFormIdentity || '',
+    businessWritesDisabled,
+    businessWriteBlockedReason: lockWritePolicy.reason,
+    canOrder: (operation) => access.canOrder(definition.businessType, operation),
+    searchShippingLines: templateProps.searchShippingLines,
+    searchLocations: templateProps.searchLocations,
+    containerSpecOptions,
+    refreshOrderAndLock: async () => {
+      await Promise.all([loadData(), refreshLockState()]);
     },
-    {
-      key: 'copy-orderno',
-      icon: <CopyOutlined />,
-      label: '复制订单号',
-      onClick: () => {
-        if (order.orderNo) {
-          navigator.clipboard.writeText(order.orderNo);
-          message.success('已复制订单号');
-        }
-      },
-    },
-    {
-      key: 'change-history',
-      icon: <HistoryOutlined />,
-      label: '拆票与改配历史',
-      onClick: () => setHistoryDrawerOpen(true),
-    },
-    {
-      key: 'reload-data',
-      icon: <ReloadOutlined />,
-      label: '刷新数据',
-      onClick: () => {
-        void refreshOrderDataAndResetForm();
-        void refreshLockState();
-        void loadChangeActions();
-      },
-    },
-  ];
+    ensureBusinessWriteAllowed,
+  };
 
   return (
-    <>
-      <OrderFormTemplate<OrderDetailFormValues>
-        key={orderFormIdentity}
-        tabKey={
-          definition && orderId
-            ? resolveTabKey(`/orders/${definition.kind}/${orderId}`)
-            : undefined
-        }
-        draftPathname={
-          definition && orderId
-            ? `/orders/${definition.kind}/${orderId}`
-            : undefined
-        }
-        draftScope={draftScope}
-        loading={false}
-        readonly={effectiveReadonly}
-        formRef={formRef}
-        actionsRef={templateActionsRef}
-        initialValues={initialValues}
-        onFinish={handleSaveEdit}
-        header={
-          <OrderDetailHeader
-            kind={definition.kind}
-            navigationTitle={definition.navigationTitle}
-            orderId={orderId || ''}
-            configTitle={definition.title}
-            order={order}
-            saving={saving}
-            canManageFee={access.canOrder(definition.businessType, 'fee.read')}
-            canCreatePod={access.canOrder(
-              definition.businessType,
-              'release_pod.create',
-            )}
-            canCreateAbnormal={access.canOrder(
-              definition.businessType,
-              'abnormal_case.create',
-            )}
-            canSplit={
-              definition.transportMode === 'sea' &&
-              access.canOrder(definition.businessType, 'split')
-            }
-            canReassign={
-              definition.transportMode === 'sea' &&
-              access.canOrder(definition.businessType, 'reassign')
-            }
-            splitDisabled={!changeActions?.canSplit}
-            splitBlockedReasons={changeActions?.splitBlockedReasons}
-            reassignDisabled={!changeActions?.canReassign}
-            reassignBlockedReasons={changeActions?.reassignBlockedReasons}
-            moreMenuItems={moreMenuItems}
-            hasAction={hasAction}
-            onSave={() => formRef.current?.submit()}
-            onConfirmTermination={confirmTermination}
-            onConfirmClosure={confirmClosure}
-            onOpenReleasePod={() => {
-              if (ensureBusinessWriteAllowed()) {
-                releasePodPanelRef.current?.open(order);
+    <DetailFeatures key={orderFormIdentity} context={detailFeaturesContext}>
+      {(features) => {
+        const synchronizeLockChange = async () => {
+          setSynchronizingLockChange(true);
+          try {
+            await Promise.all([loadData(), refreshLockState()]);
+            await features.refreshTypeState?.();
+          } finally {
+            setSynchronizingLockChange(false);
+          }
+        };
+
+        const moreMenuItems: MenuProps['items'] = [
+          ...(features.moreMenuItems ?? []),
+          {
+            key: 'fees-drawer',
+            icon: <DollarOutlined />,
+            label: '快速费用抽屉',
+            disabled: !access.canOrder(definition.businessType, 'fee.read'),
+            onClick: () => orderFeePanelRef.current?.open(order),
+          },
+          {
+            key: 'copy-orderno',
+            icon: <CopyOutlined />,
+            label: '复制订单号',
+            onClick: () => {
+              if (order.orderNo) {
+                navigator.clipboard.writeText(order.orderNo);
+                message.success('已复制订单号');
               }
-            }}
-            onOpenAbnormalCase={() => {
-              if (ensureBusinessWriteAllowed()) {
-                abnormalCasePanelRef.current?.open(order);
+            },
+          },
+          {
+            key: 'reload-data',
+            icon: <ReloadOutlined />,
+            label: '刷新数据',
+            onClick: () => {
+              void refreshOrderDataAndResetForm();
+              void refreshLockState();
+              void features.refreshTypeState?.();
+            },
+          },
+        ];
+
+        return (
+          <>
+            <OrderFormTemplate<OrderDetailFormValues>
+              key={orderFormIdentity}
+              tabKey={
+                definition && orderId
+                  ? resolveTabKey(`/orders/${definition.kind}/${orderId}`)
+                  : undefined
               }
-            }}
-            onOpenSplit={() => {
-              if (ensureBusinessWriteAllowed()) {
-                history.push(`/orders/sea-export/${orderId}/split`);
+              draftPathname={
+                definition && orderId
+                  ? `/orders/${definition.kind}/${orderId}`
+                  : undefined
               }
-            }}
-            onOpenReassign={() => {
-              setReassignModalOpen(true);
-            }}
-            lockState={lockState}
-            lockStateLoading={lockStateLoading || synchronizingLockChange}
-            lockStateError={lockStateError}
-            businessWritesDisabled={businessWritesDisabled}
-            businessWriteBlockedReason={lockWritePolicy.reason}
-            onRetryLockState={refreshLockState}
-            onSynchronizeLockChange={synchronizeLockChange}
-          />
-        }
-        prependSections={prependSections}
-        sections={formSections}
-        appendSections={appendSections}
-        footer={
-          <StickyFooterBar
-            info={
-              <Space>
-                <Text strong>{order.orderNo}</Text>
-                <Text type="secondary">{progressStage}</Text>
-              </Space>
-            }
-          >
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
-              !businessWritesDisabled && (
-                <Button
-                  icon={<UndoOutlined />}
-                  onClick={() =>
-                    templateActionsRef.current?.resetTo(initialValues)
+              draftScope={draftScope}
+              loading={false}
+              readonly={effectiveReadonly}
+              formRef={formRef}
+              actionsRef={templateActionsRef}
+              initialValues={initialValues}
+              onFinish={handleSaveEdit}
+              header={
+                <OrderDetailHeader
+                  kind={definition.kind}
+                  navigationTitle={definition.navigationTitle}
+                  orderId={orderId || ''}
+                  order={order}
+                  saving={saving}
+                  canManageFee={access.canOrder(
+                    definition.businessType,
+                    'fee.read',
+                  )}
+                  canCreatePod={access.canOrder(
+                    definition.businessType,
+                    'release_pod.create',
+                  )}
+                  canCreateAbnormal={access.canOrder(
+                    definition.businessType,
+                    'abnormal_case.create',
+                  )}
+                  businessActions={features.headerActions}
+                  moreMenuItems={moreMenuItems}
+                  hasAction={hasAction}
+                  onSave={() => formRef.current?.submit()}
+                  onConfirmTermination={confirmTermination}
+                  onConfirmClosure={confirmClosure}
+                  onOpenReleasePod={() => {
+                    if (ensureBusinessWriteAllowed()) {
+                      releasePodPanelRef.current?.open(order);
+                    }
+                  }}
+                  onOpenAbnormalCase={() => {
+                    if (ensureBusinessWriteAllowed()) {
+                      abnormalCasePanelRef.current?.open(order);
+                    }
+                  }}
+                  lockState={lockState}
+                  lockStateLoading={lockStateLoading || synchronizingLockChange}
+                  lockStateError={lockStateError}
+                  businessWritesDisabled={businessWritesDisabled}
+                  businessWriteBlockedReason={lockWritePolicy.reason}
+                  onRetryLockState={refreshLockState}
+                  onSynchronizeLockChange={synchronizeLockChange}
+                />
+              }
+              prependSections={prependSections}
+              sections={formSections}
+              appendSections={[
+                ...(features.appendSections ?? []),
+                ...appendSections,
+              ]}
+              footer={
+                <StickyFooterBar
+                  info={
+                    <Space>
+                      <Text strong>{order.orderNo}</Text>
+                      <Text type="secondary">{progressStage}</Text>
+                    </Space>
                   }
                 >
-                  重置修改
-                </Button>
-              )}
-            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
-              !businessWritesDisabled && (
-                <Button
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  loading={saving}
-                  onClick={() => formRef.current?.submit()}
-                >
-                  保存修改
-                </Button>
-              )}
-          </StickyFooterBar>
-        }
-      />
+                  {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+                    !businessWritesDisabled && (
+                      <Button
+                        icon={<UndoOutlined />}
+                        onClick={() =>
+                          templateActionsRef.current?.resetTo(initialValues)
+                        }
+                      >
+                        重置修改
+                      </Button>
+                    )}
+                  {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+                    !businessWritesDisabled && (
+                      <Button
+                        type="primary"
+                        icon={<CheckOutlined />}
+                        loading={saving}
+                        onClick={() => formRef.current?.submit()}
+                      >
+                        保存修改
+                      </Button>
+                    )}
+                </StickyFooterBar>
+              }
+            />
 
-      {/* 挂载功能弹窗 */}
-      <ReleasePodPanel
-        ref={releasePodPanelRef}
-        canManage={
-          !businessWritesDisabled &&
-          access.canOrder(definition.businessType, 'release_pod.create')
-        }
-      />
-      <OrderFeePanel ref={orderFeePanelRef} />
-      <AbnormalCasePanel
-        ref={abnormalCasePanelRef}
-        canManage={
-          !businessWritesDisabled &&
-          access.canOrder(definition.businessType, 'abnormal_case.create')
-        }
-        masterOptions={[]}
-      />
+            {features.overlays}
 
-      {orderId && (
-        <>
-          <SeaOrderReassignmentModal
-            orderId={orderId}
-            orderNo={order?.orderNo}
-            open={reassignModalOpen}
-            disabled={changeActions?.canReassign === false}
-            disabledReason={changeActions?.reassignBlockedReasons?.join('；')}
-            onClose={() => setReassignModalOpen(false)}
-            onSuccess={async () => {
-              await Promise.all([loadData(), refreshLockState()]);
-              await loadChangeActions();
-            }}
-            searchShippingLines={templateProps.searchShippingLines}
-            searchLocations={templateProps.searchLocations}
-            initialShippingLineId={order.shippingLineId}
-            initialShippingLineName={order.seaMasterBill?.shippingLineName}
-          />
-          <SeaTransportExecutionUpdateModal
-            order={order}
-            open={voyageUpdateModalOpen}
-            onClose={() => setVoyageUpdateModalOpen(false)}
-            onSuccess={async () => {
-              await Promise.all([loadData(), refreshLockState()]);
-              await loadChangeActions();
-            }}
-            searchLocations={templateProps.searchLocations}
-          />
-          <SeaOrderChangeHistoryDrawer
-            orderId={orderId}
-            open={historyDrawerOpen}
-            onClose={() => setHistoryDrawerOpen(false)}
-          />
-          <SeaSharedContainerDrawer
-            key={`shared-container:${orderId}:${sharedContainerTEId ?? ''}`}
-            open={
-              sharedContainerDrawerOpen &&
-              sharedContainerOrderId === orderId &&
-              !!sharedContainerTEId
-            }
-            onClose={() => setSharedContainerDrawerOpen(false)}
-            transportExecutionId={sharedContainerTEId}
-            orderId={orderId}
-            orderNo={order?.orderNo}
-            canCreate={
-              !businessWritesDisabled &&
-              access.canOrder(definition.businessType, 'container.create')
-            }
-            canUpdate={
-              !businessWritesDisabled &&
-              access.canOrder(definition.businessType, 'container.update')
-            }
-            canDelete={
-              !businessWritesDisabled &&
-              access.canOrder(definition.businessType, 'container.delete')
-            }
-            containerSpecOptions={containerSpecOptions}
-          />
-        </>
-      )}
-    </>
+            {/* 挂载通用功能弹窗 */}
+            <ReleasePodPanel
+              ref={releasePodPanelRef}
+              canManage={
+                !businessWritesDisabled &&
+                access.canOrder(definition.businessType, 'release_pod.create')
+              }
+            />
+            <OrderFeePanel ref={orderFeePanelRef} />
+            <AbnormalCasePanel
+              ref={abnormalCasePanelRef}
+              canManage={
+                !businessWritesDisabled &&
+                access.canOrder(definition.businessType, 'abnormal_case.create')
+              }
+              masterOptions={[]}
+            />
+          </>
+        );
+      }}
+    </DetailFeatures>
   );
 }
