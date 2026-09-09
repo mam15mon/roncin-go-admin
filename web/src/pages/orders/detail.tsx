@@ -23,7 +23,6 @@ import {
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -46,7 +45,12 @@ import { searchShippingLineOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
-import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
+import {
+  type OrderKindConfig,
+  PARTNER_ROLES,
+  parseOrderKind,
+  searchPartnersByRole,
+} from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
@@ -78,8 +82,19 @@ import {
 
 const { Text } = Typography;
 
-export default function OrderDetailPage() {
-  const params = useParams<{ kind: string; id: string }>();
+export interface OrderDetailContentProps {
+  kind?: string;
+  orderId?: string;
+  config?: OrderKindConfig;
+  orderFormIdentity?: string;
+}
+
+export function OrderDetailContent({
+  kind,
+  orderId,
+  config,
+  orderFormIdentity,
+}: OrderDetailContentProps) {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const templateActionsRef = useRef<
     OrderFormTemplateActions<OrderDetailFormValues> | undefined
@@ -87,23 +102,20 @@ export default function OrderDetailPage() {
   const { message, modal } = App.useApp();
   const access = useAccess();
 
-  const kind = params.kind;
-  const orderId = params.id;
-  const config = parseOrderKind(kind);
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const targetOrderId = config ? orderId : undefined;
-  const orderFormIdentity =
-    config && orderId ? `${config.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
-  // 显式刷新标记携带发起时的订单身份与令牌；A 的迟到刷新不得操作 B 的模板。
-  const pendingExplicitFormRefreshRef = useRef<{
-    identity: string;
-    token: number;
-  } | null>(null);
-  // 统一显式刷新令牌：发起时递增；订单身份提交变化时再递增一次，
-  // 使旧身份的全部在途刷新立即失效（覆盖 A→B 与 A→B→回 A 往返）。
-  const explicitRefreshTokenRef = useRef(0);
+  // 显式刷新标记：由 loadData 成功后置 true，并在 effect 中触发模板 resetTo
+  const pendingExplicitFormRefreshRef = useRef(false);
+  // 同一订单连续发起刷新时用单调请求序号丢弃旧刷新的迟到完成
+  const explicitRefreshSeqRef = useRef(0);
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
 
@@ -124,26 +136,12 @@ export default function OrderDetailPage() {
     loadData,
   } = useOrderDetailData(targetOrderId, config);
 
-  // 订单身份提交变化时同步作废旧身份的全部在途刷新。在 layout effect 中
-  // 执行而非渲染期：render 可能被并发模式重试或放弃，试探性渲染不得作废
-  // 真实请求；layout effect 先于消费 passive effect 运行，可一并清掉已写入
-  // 的 pending，堵住「完成写入 pending 后、消费前身份已切换」的间隙。
-  const previousOrderFormIdentityRef = useRef(orderFormIdentity);
-  useLayoutEffect(() => {
-    if (previousOrderFormIdentityRef.current === orderFormIdentity) return;
-    previousOrderFormIdentityRef.current = orderFormIdentity;
-    explicitRefreshTokenRef.current += 1;
-    pendingExplicitFormRefreshRef.current = null;
-  }, [orderFormIdentity]);
-
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const changeActionsTargetKey =
-    orderId && config?.category === 'sea'
-      ? orderFormIdentity
-      : undefined;
+    orderId && config?.category === 'sea' ? orderFormIdentity : undefined;
   const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
   activeChangeActionsTargetRef.current = changeActionsTargetKey;
   const changeActionsRequestIdRef = useRef(0);
@@ -177,6 +175,7 @@ export default function OrderDetailPage() {
   }, [orderFormIdentity]);
 
   const loadChangeActions = useCallback(async () => {
+    if (!isMountedRef.current) return;
     const requestOrderId = orderId;
     const requestTargetKey = changeActionsTargetKey;
     if (!requestOrderId || !requestTargetKey) {
@@ -272,44 +271,30 @@ export default function OrderDetailPage() {
 
   /**
    * OrderFormTemplate 独占草稿与脏状态生命周期；显式刷新成功后由页面
-   * 通过模板动作接口 resetTo 回填最新服务端值。刷新完成必须校验发起身份：
-   * A 的迟到刷新不得清 B 的草稿或重置 B 的表单。
+   * 通过模板动作接口 resetTo 回填最新服务端值。
    */
   useEffect(() => {
-    const pending = pendingExplicitFormRefreshRef.current;
-    if (!pending) return;
-    pendingExplicitFormRefreshRef.current = null;
-    // 令牌与身份双重复核：覆盖「完成写入 pending 后、消费 effect 运行前」
-    // 又有刷新发起或身份切换的窗口；刷新后无当前订单（如详情加载失败被
-    // 清空）时同样保留草稿与脏状态。
-    if (
-      pending.token !== explicitRefreshTokenRef.current ||
-      pending.identity !== orderFormIdentity ||
-      !order
-    ) {
-      return;
-    }
+    if (!pendingExplicitFormRefreshRef.current) return;
+    pendingExplicitFormRefreshRef.current = false;
+    // 刷新后无当前订单（如详情加载失败被清空）时保留草稿与脏状态。
+    if (!order) return;
     templateActionsRef.current?.resetTo(initialValues);
-  }, [explicitFormRefreshVersion, initialValues, order, orderFormIdentity]);
+  }, [explicitFormRefreshVersion, initialValues, order]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
-    const requestedIdentity = orderFormIdentity;
-    if (!requestedIdentity) return;
-    const token = ++explicitRefreshTokenRef.current;
+    const seq = ++explicitRefreshSeqRef.current;
     try {
       await loadData();
-      // 后续刷新发起或订单身份提交变化都会使当前令牌失效。
-      if (token !== explicitRefreshTokenRef.current) return;
-      // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
-      pendingExplicitFormRefreshRef.current = {
-        identity: requestedIdentity,
-        token,
-      };
+      if (!isMountedRef.current) return;
+      // 同一订单已有更新的刷新发起时，本次旧刷新的迟到完成直接丢弃，
+      // 不得回填并覆盖用户在新刷新之后输入的内容。
+      if (seq !== explicitRefreshSeqRef.current) return;
+      pendingExplicitFormRefreshRef.current = true;
       setExplicitFormRefreshVersion((version) => version + 1);
     } catch {
       // 刷新失败保留草稿与当前表单，不触发显式重置
     }
-  }, [loadData, orderFormIdentity]);
+  }, [loadData]);
 
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
@@ -325,11 +310,14 @@ export default function OrderDetailPage() {
     setSynchronizingLockChange(true);
     try {
       await Promise.all([loadData(), refreshLockState()]);
+      if (!isMountedRef.current) return;
       if (config?.category === 'sea') {
         await loadChangeActions();
       }
     } finally {
-      setSynchronizingLockChange(false);
+      if (isMountedRef.current) {
+        setSynchronizingLockChange(false);
+      }
     }
   };
 
@@ -457,7 +445,7 @@ export default function OrderDetailPage() {
         <Result
           status="404"
           title="业务类型不存在"
-          subTitle={`未知的业务类型路径 "${params.kind || ''}"，请选择有效业务入口。`}
+          subTitle={`未知的业务类型路径 "${kind || ''}"，请选择有效业务入口。`}
           extra={
             <Button
               type="primary"
@@ -852,5 +840,25 @@ export default function OrderDetailPage() {
         </>
       )}
     </>
+  );
+}
+
+export default function OrderDetailPage() {
+  const params = useParams<{ kind: string; id: string }>();
+  const kind = params.kind;
+  const orderId = params.id;
+  const config = parseOrderKind(kind);
+
+  const orderFormIdentity =
+    config && orderId ? `${config.kind}:${orderId}` : 'empty';
+
+  return (
+    <OrderDetailContent
+      key={orderFormIdentity}
+      kind={kind}
+      orderId={orderId}
+      config={config}
+      orderFormIdentity={config && orderId ? orderFormIdentity : undefined}
+    />
   );
 }
