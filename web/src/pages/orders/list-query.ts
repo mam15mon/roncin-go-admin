@@ -122,7 +122,7 @@ export async function queryOrderList(
       id: order.id || '',
       orderNo: order.orderNo || '',
       orderKind: definition.kind,
-      businessType: definition.title,
+      businessType: definition.navigationTitle,
       stage:
         order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
           ? '已完结'

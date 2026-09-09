@@ -182,17 +182,28 @@ describe('useOrderListResources', () => {
     expect(result.current.ports).toEqual([]);
   });
 
-  it('未指定 category 时同时拉取港口与机场', async () => {
+  it('未注册订单类型时 fail-closed：不发起任何主数据请求，候选项全为空', async () => {
     const { result } = renderHook(() => useOrderListResources(undefined), {
       wrapper,
     });
 
-    await waitFor(() => {
-      expect(result.current.ports).toHaveLength(1);
-      expect(result.current.airports).toHaveLength(1);
-    });
-    expect(mockGetPorts).toHaveBeenCalledWith('org-1');
-    expect(mockGetAirports).toHaveBeenCalledWith('org-1');
+    expect(result.current.masterOptions).toEqual([]);
+    expect(result.current.ports).toEqual([]);
+    expect(result.current.airports).toEqual([]);
+    expect(result.current.customerMap).toEqual({});
+    expect(mockGetMasterData).not.toHaveBeenCalled();
+    expect(mockGetPorts).not.toHaveBeenCalled();
+    expect(mockGetAirports).not.toHaveBeenCalled();
+    expect(mockSearchPartners).not.toHaveBeenCalled();
+
+    await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
+    await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
+    await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
+    await expect(
+      result.current.searchOrderPersonnel('人员'),
+    ).resolves.toEqual([]);
+    expect(mockSearchLocations).not.toHaveBeenCalled();
+    expect(mockSearchPersonnel).not.toHaveBeenCalled();
   });
 
   it('组织切换竞态：组织 A 的迟到响应不得覆盖组织 B 的最新数据', async () => {

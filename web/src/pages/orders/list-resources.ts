@@ -1,7 +1,7 @@
 import { useModel } from '@umijs/max';
 import { App } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
+import { PartnerRoleType } from '@/enums.generated';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { unwrapList } from '@/utils/api';
@@ -25,11 +25,10 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
-  const locationTransportMode = definition?.transportMode ?? 'sea';
+  const locationTransportMode = definition?.transportMode;
   const activeTransportModeRef = useRef(locationTransportMode);
   activeTransportModeRef.current = locationTransportMode;
-  const personnelBusinessType =
-    definition?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE;
+  const personnelBusinessType = definition?.businessType;
   const activeBusinessTypeRef = useRef(personnelBusinessType);
   activeBusinessTypeRef.current = personnelBusinessType;
   const requestIdRef = useRef(0);
@@ -43,7 +42,9 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   >(null);
 
   useEffect(() => {
-    if (!organizationId) {
+    // 未注册订单类型 fail-closed：不发任何主数据请求，清空已加载资源。
+    if (!organizationId || !definition) {
+      requestIdRef.current += 1;
       setLoadedOrganizationId(null);
       setMasterOptions([]);
       setPorts([]);
@@ -54,10 +55,8 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrgId = organizationId;
-    const shouldLoadPorts =
-      !definition?.transportMode || definition.transportMode === 'sea';
-    const shouldLoadAirports =
-      !definition?.transportMode || definition.transportMode === 'air';
+    const shouldLoadPorts = definition.transportMode === 'sea';
+    const shouldLoadAirports = definition.transportMode === 'air';
 
     void Promise.all([
       getMasterDataOptions(organizationId),
@@ -97,7 +96,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
         setLoadedOrganizationId(null);
         message.error(error.message || '订单主数据加载失败');
       });
-  }, [definition?.transportMode, message, organizationId]);
+  }, [definition, message, organizationId]);
 
   const isOrgMatched = Boolean(
     organizationId && loadedOrganizationId === organizationId,
@@ -182,7 +181,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchCustomers = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId) {
+    if (!requestOrgId || !definition) {
       return [];
     }
     const options = await searchPartnerOptions(keyword, {
@@ -204,7 +203,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchOrderPorts = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId) {
+    if (!requestOrgId || !definition) {
       return [];
     }
     const response = await masterDataServiceListPorts({
@@ -235,7 +234,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const searchLocations = async (keyword?: string) => {
     const requestOrgId = organizationId;
     const requestTransportMode = locationTransportMode;
-    if (!requestOrgId) {
+    if (!requestOrgId || !requestTransportMode) {
       return [];
     }
     const options = await searchOrderLocations(requestTransportMode, keyword);
@@ -247,7 +246,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchOrderCarriers = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId) {
+    if (!requestOrgId || !definition) {
       return [];
     }
     const options = await searchShippingLineOptions(keyword);
@@ -257,7 +256,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const searchOrderPersonnel = async (keyword?: string) => {
     const requestOrgId = organizationId;
     const requestBusinessType = personnelBusinessType;
-    if (!requestOrgId) {
+    if (!requestOrgId || requestBusinessType === undefined) {
       return [];
     }
     const response = await orderServiceListPersonnelOptions({

@@ -120,6 +120,8 @@ describe('queryOrderList', () => {
           id: 'order-1',
           orderNo: 'SE-001',
           customerName: '示例客户 (CUS001)',
+          orderKind: 'sea-export',
+          businessType: '海运出口',
           originPortName: '上海港',
           originPortCode: 'CNSHA',
           destinationPortName: '洛杉矶机场',
@@ -134,5 +136,19 @@ describe('queryOrderList', () => {
       total: 1,
       success: true,
     });
+  });
+
+  it('业务类型列展示注册定义的导航标题而非页面主标题', async () => {
+    listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
+
+    const result = await queryOrderList(
+      { page: 1, pageSize: 20 },
+      seaExportDefinition,
+      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+    );
+
+    expect(result.data).toEqual([]);
+    expect(seaExportDefinition.title).toBe('海运出口订单');
+    expect(seaExportDefinition.navigationTitle).toBe('海运出口');
   });
 });
