@@ -38,3 +38,54 @@ if (requestedOrganizationId !== activeOrganizationIdRef.current) {
 setOptions(options);
 return options;
 ```
+
+### 组织级资源的多维身份
+
+- 候选或资源若同时依赖组织、运输方式、业务类型等维度，加载身份和迟到响应门禁必须覆盖
+  所有会影响结果的维度；不能只比较 `organizationId`。
+- 身份任一维度变化时，渲染阶段必须同步隐藏旧 state；不能等下一拍 `useEffect` 清空，否则
+  新身份首帧仍会暴露旧候选。
+- 未注册或未开放运输方式的所有公开查询入口统一 fail-closed：不发请求、返回 `[]`、不设置
+  UI 错误状态。
+
+```ts
+// 错误：只检查组织，sea 请求完成后可能把结果写入同组织的 air 页面。
+const requestedIdentity = { organizationId };
+const result = await searchPorts(keyword);
+if (requestedIdentity.organizationId === activeOrganizationIdRef.current) {
+  setPorts(result);
+}
+
+// 正确：结果依赖的每个身份维度都参与即时隐藏和迟到门禁。
+const requestedResourceIdentity = `${organizationId}:${transportMode}`;
+const currentResourceIdentity = `${organizationId ?? ''}:${transportMode ?? ''}`;
+const visible =
+  Boolean(organizationId && transportMode) &&
+  loadedResourceIdentity === currentResourceIdentity;
+const ports = visible ? loadedPorts : [];
+const result = await searchPorts(keyword);
+const activeResourceIdentity = [
+  activeOrganizationIdRef.current ?? '',
+  activeTransportModeRef.current ?? '',
+].join(':');
+if (requestedResourceIdentity !== activeResourceIdentity) {
+  return [];
+}
+setPorts(result);
+return toOptions(result);
+```
+
+对未开放类型，公开的每个入口都应走同一 fail-closed 语义：
+
+```ts
+if (!definition || definition.transportMode === 'land' || definition.transportMode === 'rail') {
+  return [];
+}
+```
+
+测试至少断言：
+
+- 同组织 `sea → air` 后旧 ports/location options 在当前 render 立即为空；
+- 旧 sea 请求最后完成时返回 `[]`，且不调用 `setPorts`、不污染当前候选；
+- land/rail 对主数据 Effect、客户、港口、地点、承运人和人员等全部公开查询入口均为零请求、
+  返回 `[]`，且不触发 UI 错误。

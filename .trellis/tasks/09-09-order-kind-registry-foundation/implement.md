@@ -1,6 +1,6 @@
 # 订单类型注册薄底座实施计划
 
-> 本任务为纯前端 SE 行为等价重构。任务激活前不得实施。
+> 本任务为纯前端 SE 行为等价重构（除已批准的七字段存量缺陷修复外）。任务激活前不得实施。
 
 ## 1. 实施前检查
 
@@ -243,3 +243,40 @@ git status --short
   新运输方式加入联合而未更新分发时编译期即报错。
 - [x] 复核建议的 `unsupportedTransportMode`/`resourceError` 状态字段当前无 UI 需求，
   暂不增加；列表页在 land/rail 注册前由注册表 fail-closed 兜底。
+
+## 10. 本轮独立复核收尾（2026-09-09）
+
+本轮只修复 `useOrderListResources`、相关测试夹具和本轮收尾文档，未实现后续订单类型，未扩展
+到其他产品模块：
+
+- [x] land/rail 的资源 Effect、客户、港口、地点、船公司、人员五类搜索均 fail-closed，
+  零请求、返回空数组且不设置 UI 错误状态；
+- [x] 资源有效身份统一按 `organizationId + transportMode` 判断；同组织 sea → air 时旧
+  港口和地点选项立即隐藏；
+- [x] `searchOrderPorts` 完成时同时复核发起组织和运输方式，旧海运迟到响应返回空数组且
+  不污染当前 ports/locationOptions；原有 requestId 门禁保留；
+- [x] 完整 SE 详情/更新夹具使用非空 `receivedAt` 并断言 ISO/Dayjs 转换，另以
+  `toHaveProperty('receivedAt', undefined)` 覆盖空值；产品适配器未在本轮修改；
+- [x] 文档明确：除独立复核批准的七字段存量缺陷修复外，其余 SE 行为等价；
+- [x] 本轮实际检查为下列四个测试文件的定向 Vitest、修改 TS 文件 Biome、Web tsc 和
+  `git diff --check`。
+
+主会话已在最终验收阶段执行 `pnpm run check:web` 并通过：permission keys 295、Proto
+constants 64 enums/7 reason domains、Biome 462 files（`.agents/skills/ant-design` 的权限
+诊断未导致失败）、tsc 通过，Vitest 98 files/488 tests passed，耗时 69.66s。
+
+实际命令：
+
+```bash
+pnpm --dir web exec vitest run \
+  src/pages/orders/list-resources.test.ts \
+  src/pages/orders/order-kinds/sea-export/form-adapter.test.ts \
+  src/pages/orders/common.test.ts \
+  src/pages/orders/orders.test.ts
+pnpm --dir web exec biome lint \
+  src/pages/orders/list-resources.ts \
+  src/pages/orders/list-resources.test.ts \
+  src/pages/orders/order-kinds/sea-export/form-adapter.test.ts
+pnpm --dir web tsc
+git diff --check
+```

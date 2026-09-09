@@ -2,7 +2,7 @@
   "id": "order-kind-registry-foundation",
   "name": "order-kind-registry-foundation",
   "title": "订单类型注册薄底座",
-  "description": "在 OrderFormTemplate 与页面容器间建立 OrderKindRegistry 薄注册与业务适配层，先迁移海运出口（SE）并保证现有行为 100% 不变，为后续独立接入海运进口（SI）等品类做好解耦准备。",
+  "description": "在 OrderFormTemplate 与页面容器间建立 OrderKindRegistry 薄注册与业务适配层，先迁移海运出口（SE）并保持除已批准的七字段存量缺陷修复外的行为等价，为后续独立接入海运进口（SI）等品类做好解耦准备。",
   "status": "in_progress",
   "dev_type": null,
   "scope": "web",
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "本轮独立复核唯一批准的行为偏离是补齐 SE 详情/更新转换遗漏的 unNumber、hazardClass、factoryName、cargoReadyAt、declarationCutoffAt、receivedAt、specialRequirements 七字段；其余 SE 业务行为保持等价。land/rail 资源继续 fail-closed，仅修复未开放类型的请求边界与竞态测试。最终 check:web 已由主会话执行并通过。",
   "meta": {}
 }
