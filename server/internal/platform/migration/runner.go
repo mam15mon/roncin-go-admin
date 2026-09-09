@@ -36,6 +36,9 @@ var compatibleChecksums = map[string]map[string]struct{}{
 		"2c0912f6fd7bd3cdd2e893eadce4cb4ded1a31c464c69cb2be5cf2ed9dff112f": {},
 		"c7679c8fea94938daae76f8f9fd041bb54fc973e59dc6a4e0b89754aa9073434": {},
 	},
+	"20260909090000_rename_role_organization_accesses": {
+		"ae3d0d7c58cda9fc7b1655847541fee565d83009f0d204c33b55c7192dcfb1d3": {},
+	},
 }
 
 type file struct {

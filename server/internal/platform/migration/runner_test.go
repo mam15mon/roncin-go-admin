@@ -160,6 +160,7 @@ func TestCompatibleChecksumOnlyAcceptsRegisteredHistoricalRepair(t *testing.T) {
 	const seaShippingLineOldChecksum = "ead5c151ed263cb4915215a8094eedad4df5077d362c40622029111ed94867fd"
 	const seaHouseBillModelInitialChecksum = "2c0912f6fd7bd3cdd2e893eadce4cb4ded1a31c464c69cb2be5cf2ed9dff112f"
 	const seaHouseBillModelIntermediateChecksum = "c7679c8fea94938daae76f8f9fd041bb54fc973e59dc6a4e0b89754aa9073434"
+	const roleOrganizationAccessesRenameChecksum = "ae3d0d7c58cda9fc7b1655847541fee565d83009f0d204c33b55c7192dcfb1d3"
 	if !isCompatibleChecksum("20260824043000_global_exchange_rates", oldChecksum) {
 		t.Fatal("已登记的共享汇率迁移旧校验和应被接受")
 	}
@@ -178,6 +179,9 @@ func TestCompatibleChecksumOnlyAcceptsRegisteredHistoricalRepair(t *testing.T) {
 	if !isCompatibleChecksum("20260907140000_simplify_sea_export_house_bill_model", seaHouseBillModelIntermediateChecksum) {
 		t.Fatal("已登记的海运主分单模型中间迁移校验和应被接受")
 	}
+	if !isCompatibleChecksum("20260909090000_rename_role_organization_accesses", roleOrganizationAccessesRenameChecksum) {
+		t.Fatal("已登记的角色组织授权改名迁移旧校验和应被接受")
+	}
 	if isCompatibleChecksum("20260829003000_dingtalk_user_authorized_notification", "unknown") {
 		t.Fatal("未知钉钉授权通知迁移校验和不应被接受")
 	}
@@ -186,6 +190,9 @@ func TestCompatibleChecksumOnlyAcceptsRegisteredHistoricalRepair(t *testing.T) {
 	}
 	if isCompatibleChecksum("20260907140000_simplify_sea_export_house_bill_model", "unknown") {
 		t.Fatal("未知海运主分单模型迁移校验和不应被接受")
+	}
+	if isCompatibleChecksum("20260909090000_rename_role_organization_accesses", "unknown") {
+		t.Fatal("未知角色组织授权改名迁移校验和不应被接受")
 	}
 	if isCompatibleChecksum("20260824043000_global_exchange_rates", "unknown") {
 		t.Fatal("未知共享汇率迁移校验和不应被接受")
