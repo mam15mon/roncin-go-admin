@@ -4,11 +4,11 @@
 
 ## 1. 实施前检查
 
-- [ ] 检查 `git status`，确认没有与订单页面、模板或当前任务重叠的并行改动；
-- [ ] 完整读取 `prd.md`、`design.md`、本文件、根 `AGENTS.md`、`implement.jsonl` 及引用；
-- [ ] 记录重构前 SE 创建/更新请求夹具、详情初始值和详情操作按钮顺序；
-- [ ] 确认最终范围不包含后端、契约、数据库、权限生成物和未来订单类型；
-- [ ] 开发阶段只运行受影响的定向检查，不重复运行全量门禁。
+- [x] 检查 `git status`，确认没有与订单页面、模板或当前任务重叠的并行改动；
+- [x] 完整读取 `prd.md`、`design.md`、本文件、根 `AGENTS.md`、`implement.jsonl` 及引用；
+- [x] 记录重构前 SE 创建/更新请求夹具、详情初始值和详情操作按钮顺序；
+- [x] 确认最终范围不包含后端、契约、数据库、权限生成物和未来订单类型；
+- [x] 开发阶段只运行受影响的定向检查，不重复运行全量门禁。
 
 ## 2. Step 1：建立唯一注册表并迁移静态消费者
 
@@ -30,13 +30,13 @@
 
 实施内容：
 
-- [ ] 定义 `OrderKindDefinition`、`OrderKindFormAdapter`、创建默认值上下文和详情扩展契约；
-- [ ] 只注册 `sea-export`，实现直接 kind/路径解析和未知类型 fail-closed；
-- [ ] 迁移列表、费用、Header、查询及资源 Hook 到注册定义；
-- [ ] 将 `category` 语义改名为 `transportMode`，删除 Sea/Air 默认分支；
-- [ ] 删除 `common.ts` 的旧类型、字典与解析函数，不保留 alias 或桥接；
-- [ ] 删除 `OrderListTemplate` 的重复 `OrderKind`/`kindMap` 和“未知即海运出口”兜底；
-- [ ] 清理相关 `as any`，未知类型不得进入 Hook 或发请求。
+- [x] 定义 `OrderKindDefinition`、`OrderKindFormAdapter`、创建默认值上下文和详情扩展契约；
+- [x] 只注册 `sea-export`，实现直接 kind/路径解析和未知类型 fail-closed；
+- [x] 迁移列表、费用、Header、查询及资源 Hook 到注册定义；
+- [x] 将 `category` 语义改名为 `transportMode`，删除 Sea/Air 默认分支；
+- [x] 删除 `common.ts` 的旧类型、字典与解析函数，不保留 alias 或桥接；
+- [x] 删除 `OrderListTemplate` 的重复 `OrderKind`/`kindMap` 和“未知即海运出口”兜底；
+- [x] 清理相关 `as any`，未知类型不得进入 Hook 或发请求。
 
 定向验证：
 
@@ -73,13 +73,13 @@ refactor(web): 建立订单类型唯一注册入口
 
 实施内容：
 
-- [ ] 将海运 Sections 选择接入 `definition.form.buildSections`；
-- [ ] 把订单日期、运输模式、FCL、CIF、推荐服务、普货和创建人默认值移入纯默认值函数；
-- [ ] 将创建请求转换改为明确 SE 函数，删除 config 参数、`businessType === 1` 与 `isSea`；
-- [ ] 将详情初始值和更新请求转换改为明确 SE 函数，删除字段存在性类型猜测；
-- [ ] 新建与详情页只调用当前注册定义的表单适配器；
-- [ ] 删除旧导出与旧测试入口，不保留包装兼容；
-- [ ] 用固定夹具断言创建请求、详情值和更新请求的完整等价结果。
+- [x] 将海运 Sections 选择接入 `definition.form.buildSections`；
+- [x] 把订单日期、运输模式、FCL、CIF、推荐服务、普货和创建人默认值移入纯默认值函数；
+- [x] 将创建请求转换改为明确 SE 函数，删除 config 参数、`businessType === 1` 与 `isSea`；
+- [x] 将详情初始值和更新请求转换改为明确 SE 函数，删除字段存在性类型猜测；
+- [x] 新建与详情页只调用当前注册定义的表单适配器；
+- [x] 删除旧导出与旧测试入口，不保留包装兼容；
+- [x] 用固定夹具断言创建请求、详情值和更新请求的完整等价结果。
 
 定向验证：
 
@@ -114,14 +114,14 @@ refactor(web): 由 SE 适配器统一订单表单转换
 
 实施内容：
 
-- [ ] 将 change-actions 数据、请求序号、身份门禁和错误呈现移入 SE 扩展；
-- [ ] 将改配、共享航次、历史、共享箱的开关、ref、目标 ID 和订单切换清理移入扩展；
-- [ ] 通过 render-prop 贡献 header actions、more menu、append sections、overlays 和类型刷新命令；
-- [ ] `OrderDetailHeader` 用通用 `businessActions` 插槽替代 split/reassign 命名 props；
-- [ ] 保持拆票与改配按钮位置、顺序、样式、禁用原因和权限/锁单判断；
-- [ ] `detail.tsx` 删除 Sea 覆盖层、同批订单、历史组件和 sea change service 的直接 import；
-- [ ] 扩展普通刷新不调用模板 `resetTo`，显式刷新 token 仍完全留在通用详情页；
-- [ ] 以 `orderFormIdentity` 重挂载扩展并保留 change-actions 迟到响应门禁。
+- [x] 将 change-actions 数据、请求序号、身份门禁和错误呈现移入 SE 扩展；
+- [x] 将改配、共享航次、历史、共享箱的开关、ref、目标 ID 和订单切换清理移入扩展；
+- [x] 通过 render-prop 贡献 header actions、more menu、append sections、overlays 和类型刷新命令；
+- [x] `OrderDetailHeader` 用通用 `businessActions` 插槽替代 split/reassign 命名 props；
+- [x] 保持拆票与改配按钮位置、顺序、样式、禁用原因和权限/锁单判断；
+- [x] `detail.tsx` 删除 Sea 覆盖层、同批订单、历史组件和 sea change service 的直接 import；
+- [x] 扩展普通刷新不调用模板 `resetTo`，显式刷新 token 仍完全留在通用详情页；
+- [x] 以 `orderFormIdentity` 重挂载扩展并保留 change-actions 迟到响应门禁。
 
 定向验证：
 
@@ -144,7 +144,7 @@ refactor(web): 抽离海运出口详情业务扩展
 
 ## 5. Step 4：清理旧真相并同步规范
 
-- [ ] 全仓搜索并确认以下符号在产品代码中归零：
+- [x] 全仓搜索并确认以下符号在产品代码中归零：
 
 ```text
 ORDER_KIND_CONFIGS
@@ -155,11 +155,11 @@ category === 'air'
 businessType === 1
 ```
 
-- [ ] 搜索 `SeaOrder`、`seaOrderChangeService` 等依赖，确认通用 `detail.tsx` 不再直接引用；
-- [ ] 搜索 `as any`，确认订单类型迁移没有残留强转；
-- [ ] 更新 `.trellis/spec/web/frontend/component-guidelines.md` 或
+- [x] 搜索 `SeaOrder`、`seaOrderChangeService` 等依赖，确认通用 `detail.tsx` 不再直接引用；
+- [x] 搜索 `as any`，确认订单类型迁移没有残留强转；
+- [x] 更新 `.trellis/spec/web/frontend/component-guidelines.md` 或
   `.trellis/spec/web/frontend/state-management.md`，记录注册、权限和生命周期三类真相边界；
-- [ ] 核对任务 PRD AC，无历史兼容分支、无未来类型占位注册。
+- [x] 核对任务 PRD AC，无历史兼容分支、无未来类型占位注册。
 
 定向验证：
 
