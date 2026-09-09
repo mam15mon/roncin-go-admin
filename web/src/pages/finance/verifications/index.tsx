@@ -1,14 +1,18 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Descriptions, Drawer, Space, Table, Tag } from 'antd';
-import { useRef, useState } from 'react';
-import { FinanceVerificationStatus } from '@/enums.generated';
+import { App, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
+import { useEffect, useRef, useState } from 'react';
 import {
-  FinanceLedgerTemplate,
   type FinanceLedgerMetricCard,
+  FinanceLedgerTemplate,
 } from '@/components/ui';
 import {
+  FinanceOrganizationPurpose,
+  FinanceVerificationStatus,
+} from '@/enums.generated';
+import {
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
@@ -22,12 +26,26 @@ export default function FinanceVerificationsPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<API.FinanceVerification>();
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ,
+    }).then((response) => setOrganizationOptions(response.data ?? []));
+  }, []);
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
-    receivableTotal: 0,
-    payableTotal: 0,
-    baseCurrency: '',
+    amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
   });
+  const formatBaseCurrencyAmounts = (
+    field: 'receivableBaseAmount' | 'payableBaseAmount',
+  ) =>
+    metricStats.amountsByBaseCurrency
+      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
   const verificationActions = makeVersionActions<API.FinanceVerification>({
@@ -37,13 +55,15 @@ export default function FinanceVerificationsPage() {
   const reverse = (r: API.FinanceVerification) => {
     verificationActions.confirm(
       r,
-      '反核销该批分配？',
+      `反核销 ${r.organizationName || '所属公司未标识'} 的该批分配？`,
       async ({ id, expectedVersion }, reason) => {
         await settlementServiceReverseVerification(
           { id },
           { id, expectedVersion, reason },
         );
-        message.success('反核销成功；相关未支付提成已自动取消，资金与账单余额已释放');
+        message.success(
+          '反核销成功；相关未支付提成已自动取消，资金与账单余额已释放',
+        );
         reload();
       },
       {
@@ -63,22 +83,25 @@ export default function FinanceVerificationsPage() {
     {
       key: 'rec-verifications',
       title: '应收核销总金额',
-      value: metricStats.receivableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-verifications',
       title: '应付核销总金额',
-      value: metricStats.payableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
   ];
 
   const columns: ProColumns<API.FinanceVerification>[] = [
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
     {
       title: '序号',
       dataIndex: 'index',
@@ -161,8 +184,8 @@ export default function FinanceVerificationsPage() {
           r.exchangeRateSource === 'MANUAL'
             ? '手工'
             : r.exchangeRateSource === 'BASE_CURRENCY'
-            ? '本币'
-            : '系统';
+              ? '本币'
+              : '系统';
         const sourceColor =
           r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
@@ -183,7 +206,11 @@ export default function FinanceVerificationsPage() {
       search: false,
       render: (_, r) =>
         r.baseAmount ? (
-          <strong style={{ color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16' }}>
+          <strong
+            style={{
+              color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
+            }}
+          >
             {r.baseAmount} {r.baseCurrency}
           </strong>
         ) : (
@@ -199,12 +226,24 @@ export default function FinanceVerificationsPage() {
       render: (_, r) => {
         const val = Number(r.exchangeGainLoss || 0);
         if (val > 0) {
-          return <Tag color="green">+{r.exchangeGainLoss} {r.baseCurrency || 'CNY'}</Tag>;
+          return (
+            <Tag color="green">
+              +{r.exchangeGainLoss} {r.baseCurrency || 'CNY'}
+            </Tag>
+          );
         }
         if (val < 0) {
-          return <Tag color="red">{r.exchangeGainLoss} {r.baseCurrency || 'CNY'}</Tag>;
+          return (
+            <Tag color="red">
+              {r.exchangeGainLoss} {r.baseCurrency || 'CNY'}
+            </Tag>
+          );
         }
-        return <span style={{ color: '#8c8c8c' }}>0.00 {r.baseCurrency || 'CNY'}</span>;
+        return (
+          <span style={{ color: '#8c8c8c' }}>
+            0.00 {r.baseCurrency || 'CNY'}
+          </span>
+        );
       },
     },
     {
@@ -242,7 +281,11 @@ export default function FinanceVerificationsPage() {
         access.canReverseFinanceVerifications &&
         r.status ===
           FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE ? (
-          <a key="reverse" onClick={() => reverse(r)} style={{ color: '#ff4d4f' }}>
+          <a
+            key="reverse"
+            onClick={() => reverse(r)}
+            style={{ color: '#ff4d4f' }}
+          >
             <RollbackOutlined /> 反核销
           </a>
         ) : null,
@@ -252,6 +295,22 @@ export default function FinanceVerificationsPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 12 }}>
+        <Select
+          allowClear
+          placeholder="所属公司"
+          style={{ minWidth: 220 }}
+          value={organizationId}
+          options={organizationOptions.map((item) => ({
+            value: item.id,
+            label: item.name ?? item.code ?? item.id,
+          }))}
+          onChange={(value) => {
+            setOrganizationId(value);
+            actionRef.current?.reload();
+          }}
+        />
+      </div>
       <FinanceLedgerTemplate<API.FinanceVerification>
         headerTitle="核销台账管理"
         actionRef={actionRef}
@@ -269,13 +328,12 @@ export default function FinanceVerificationsPage() {
             pageSize: p.pageSize,
             keyword: p.keyword,
             status: p.status ? Number(p.status) : undefined,
+            organizationId,
           });
           const page = unwrapPage(r);
           setMetricStats({
             totalCount: page.total,
-            receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
-            payableTotal: Number(r.summary?.payableBaseAmount || 0),
-            baseCurrency: r.summary?.baseCurrency || '',
+            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
           });
           return { ...toTableRequest(r), total: page.total };
         }}
@@ -294,7 +352,15 @@ export default function FinanceVerificationsPage() {
       >
         {detail && (
           <>
-            <Descriptions bordered size="small" column={2} style={{ marginBottom: 16 }}>
+            <Descriptions
+              bordered
+              size="small"
+              column={2}
+              style={{ marginBottom: 16 }}
+            >
+              <Descriptions.Item label="所属公司">
+                {detail.organizationName || '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="核销状态">
                 <Tag
                   color={
@@ -327,10 +393,14 @@ export default function FinanceVerificationsPage() {
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="账单账面本币">
-                {detail.billBaseAmount ? `${detail.billBaseAmount} ${detail.baseCurrency}` : '-'}
+                {detail.billBaseAmount
+                  ? `${detail.billBaseAmount} ${detail.baseCurrency}`
+                  : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="资金折算本币">
-                {detail.cashflowBaseAmount ? `${detail.cashflowBaseAmount} ${detail.baseCurrency}` : '-'}
+                {detail.cashflowBaseAmount
+                  ? `${detail.cashflowBaseAmount} ${detail.baseCurrency}`
+                  : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="核销汇率">
                 {detail.exchangeRate ? (
@@ -341,15 +411,15 @@ export default function FinanceVerificationsPage() {
                         detail.exchangeRateSource === 'MANUAL'
                           ? 'purple'
                           : detail.exchangeRateSource === 'BASE_CURRENCY'
-                          ? 'default'
-                          : 'blue'
+                            ? 'default'
+                            : 'blue'
                       }
                     >
                       {detail.exchangeRateSource === 'MANUAL'
                         ? '手工'
                         : detail.exchangeRateSource === 'BASE_CURRENCY'
-                        ? '本币'
-                        : '系统'}
+                          ? '本币'
+                          : '系统'}
                     </Tag>
                   </Space>
                 ) : (
@@ -360,10 +430,18 @@ export default function FinanceVerificationsPage() {
                 {(() => {
                   const val = Number(detail.exchangeGainLoss || 0);
                   if (val > 0) {
-                    return <Tag color="green">+{detail.exchangeGainLoss} {detail.baseCurrency} (收益)</Tag>;
+                    return (
+                      <Tag color="green">
+                        +{detail.exchangeGainLoss} {detail.baseCurrency} (收益)
+                      </Tag>
+                    );
                   }
                   if (val < 0) {
-                    return <Tag color="red">{detail.exchangeGainLoss} {detail.baseCurrency} (损失)</Tag>;
+                    return (
+                      <Tag color="red">
+                        {detail.exchangeGainLoss} {detail.baseCurrency} (损失)
+                      </Tag>
+                    );
                   }
                   return <span>0.00 {detail.baseCurrency}</span>;
                 })()}
@@ -410,13 +488,15 @@ export default function FinanceVerificationsPage() {
                   title: '账单账面本币',
                   dataIndex: 'billBaseAmount',
                   align: 'right',
-                  render: (val) => (val ? `${val} ${detail.baseCurrency}` : '-'),
+                  render: (val) =>
+                    val ? `${val} ${detail.baseCurrency}` : '-',
                 },
                 {
                   title: '资金实收付本币',
                   dataIndex: 'cashflowBaseAmount',
                   align: 'right',
-                  render: (val) => (val ? `${val} ${detail.baseCurrency}` : '-'),
+                  render: (val) =>
+                    val ? `${val} ${detail.baseCurrency}` : '-',
                 },
                 {
                   title: '分摊汇兑损益',

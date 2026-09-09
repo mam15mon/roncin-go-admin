@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -60,6 +61,7 @@ const (
 type FinanceCommissionAdjustment struct {
 	ID, OrganizationID, CommissionID, OrderID, EmployeeID             uuid.UUID
 	AdjustmentNo, IdempotencyKey, CommissionNo, OrderNo, EmployeeName string
+	OrganizationName                                                  string
 	Direction                                                         CommissionAdjustmentDirection
 	SourceType                                                        CommissionAdjustmentSourceType
 	SourceVerificationID                                              *uuid.UUID
@@ -172,6 +174,7 @@ type CommissionCalculation struct {
 type FinanceCommission struct {
 	ID, OrganizationID, VerificationID, EmployeeID, RuleID     uuid.UUID
 	CommissionNo, IdempotencyKey, VerificationNo, EmployeeName string
+	OrganizationName                                           string
 	RuleName                                                   string
 	PersonnelRole                                              CommissionPersonnelRole
 	CalculationBasis                                           CommissionCalculationBasis
@@ -311,6 +314,7 @@ type CommissionCandidateListResult struct {
 type FinanceCommissionRule struct {
 	ID, OrganizationID               uuid.UUID
 	Name                             string
+	OrganizationName                 string
 	PersonnelRole                    CommissionPersonnelRole
 	CalculationBasis                 CommissionCalculationBasis
 	RatePercent                      decimal.Decimal
@@ -366,31 +370,43 @@ type CommissionGenerationContext struct {
 
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
+	ListScoped(context.Context, []uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	Count(context.Context, uuid.UUID, CommissionFilter) (int64, error)
+	CountScoped(context.Context, []uuid.UUID, CommissionFilter) (int64, error)
 	ExportBatch(context.Context, uuid.UUID, CommissionFilter) ([]*FinanceCommission, error)
+	ExportBatchScoped(context.Context, []uuid.UUID, CommissionFilter) ([]*FinanceCommission, error)
 	SaveExportAudit(context.Context, *AuditEvent) error
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
+	GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommission, error)
 	ListEmployees(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
+	ListEmployeesScoped(context.Context, []uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
 	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
 	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
+	ListRulesScoped(context.Context, []uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
+	GetRuleScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionRule, error)
 	CreateRule(context.Context, uuid.UUID, *FinanceCommissionRule, *AuditEvent) (*FinanceCommissionRule, error)
 	UpdateRule(context.Context, uuid.UUID, UpdateCommissionRuleInput, *AuditEvent) (*FinanceCommissionRule, error)
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceCommission, error)
 	Create(context.Context, uuid.UUID, *FinanceCommission, *CommissionCNYSnapshot, *AuditEvent) error
 	Transition(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommission, error)
 	GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error)
+	GetAdjustmentScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionAdjustment, error)
 	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
 	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }
 
 func (u *CommissionUsecase) ListEmployees(ctx context.Context, org uuid.UUID, options SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error) {
+	return u.ListEmployeesScoped(ctx, []uuid.UUID{org}, options)
+}
+
+func (u *CommissionUsecase) ListEmployeesScoped(ctx context.Context, organizationIDs []uuid.UUID, options SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error) {
 	options.Keyword = strings.TrimSpace(options.Keyword)
-	if org == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) || utf8.RuneCountInString(options.Keyword) > 100 {
+	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(options.Page, options.PageSize) || utf8.RuneCountInString(options.Keyword) > 100 {
 		return nil, ErrCommissionInvalid
 	}
-	return u.repo.ListEmployees(ctx, org, options)
+	return u.repo.ListEmployeesScoped(ctx, organizationIDs, options)
 }
 func (u *CommissionUsecase) ListCandidates(ctx context.Context, org uuid.UUID, f CommissionCandidateFilter) (*CommissionCandidateListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
@@ -412,13 +428,33 @@ func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase, excha
 }
 
 func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
+	return u.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+func (u *CommissionUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	f.CommissionDateFrom = strings.TrimSpace(f.CommissionDateFrom)
 	f.CommissionDateTo = strings.TrimSpace(f.CommissionDateTo)
-	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
+	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
 		return nil, ErrCommissionInvalid
 	}
-	return u.repo.List(ctx, org, f)
+	return u.repo.ListScoped(ctx, organizationIDs, f)
+}
+
+func validCommissionOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	seen := map[uuid.UUID]struct{}{}
+	for _, id := range organizationIDs {
+		if id == uuid.Nil {
+			return false
+		}
+		if _, exists := seen[id]; exists {
+			return false
+		}
+		seen[id] = struct{}{}
+	}
+	return true
 }
 
 // Export 按与列表一致的筛选、排序和 CNY 口径同步导出提成：先按同一谓词计数，
@@ -426,13 +462,17 @@ func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f Commissio
 // 全部数据读取后、返回响应前写入成功导出审计，审计失败时整体失败，避免
 // 数据成功返回却没有审计。
 func (u *CommissionUsecase) Export(ctx context.Context, org, actor uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
+	return u.ExportScoped(ctx, []uuid.UUID{org}, actor, f)
+}
+
+func (u *CommissionUsecase) ExportScoped(ctx context.Context, organizationIDs []uuid.UUID, actor uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	f.CommissionDateFrom = strings.TrimSpace(f.CommissionDateFrom)
 	f.CommissionDateTo = strings.TrimSpace(f.CommissionDateTo)
-	if org == uuid.Nil || actor == uuid.Nil || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
+	if !validCommissionOrganizationIDs(organizationIDs) || actor == uuid.Nil || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
 		return nil, ErrCommissionInvalid
 	}
-	total, err := u.repo.Count(ctx, org, f)
+	total, err := u.repo.CountScoped(ctx, organizationIDs, f)
 	if err != nil {
 		return nil, err
 	}
@@ -442,13 +482,13 @@ func (u *CommissionUsecase) Export(ctx context.Context, org, actor uuid.UUID, f 
 	items := make([]*FinanceCommission, 0, total)
 	for offset := 0; offset < int(total); offset += commissionExportBatchSize {
 		f.Page, f.PageSize = offset/commissionExportBatchSize+1, commissionExportBatchSize
-		batch, batchErr := u.repo.ExportBatch(ctx, org, f)
+		batch, batchErr := u.repo.ExportBatchScoped(ctx, organizationIDs, f)
 		if batchErr != nil {
 			return nil, batchErr
 		}
 		items = append(items, batch...)
 	}
-	if err := u.repo.SaveExportAudit(ctx, commissionExportAudit(org, actor, f, len(items))); err != nil {
+	if err := u.repo.SaveExportAudit(ctx, commissionExportAudit(organizationIDs, actor, f, len(items))); err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -456,8 +496,17 @@ func (u *CommissionUsecase) Export(ctx context.Context, org, actor uuid.UUID, f 
 
 // commissionExportAudit 构造成功导出审计：记录操作人、组织、规范化筛选摘要与
 // 最终行数，不保存导出内容。
-func commissionExportAudit(org, actor uuid.UUID, f CommissionFilter, rowCount int) *AuditEvent {
-	details := map[string]string{"row_count": strconv.Itoa(rowCount)}
+func commissionExportAudit(organizationIDs []uuid.UUID, actor uuid.UUID, f CommissionFilter, rowCount int) *AuditEvent {
+	organizationIDStrings := make([]string, 0, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		organizationIDStrings = append(organizationIDStrings, organizationID.String())
+	}
+	sort.Strings(organizationIDStrings)
+	details := map[string]string{"row_count": strconv.Itoa(rowCount), "organization_count": strconv.Itoa(len(organizationIDStrings)), "organization_ids": strings.Join(organizationIDStrings, ",")}
+	var organizationID *uuid.UUID
+	if len(organizationIDs) == 1 {
+		organizationID = &organizationIDs[0]
+	}
 	if f.Keyword != "" {
 		details["keyword"] = f.Keyword
 	}
@@ -470,14 +519,24 @@ func commissionExportAudit(org, actor uuid.UUID, f CommissionFilter, rowCount in
 	if f.CommissionDateTo != "" {
 		details["commission_date_to"] = f.CommissionDateTo
 	}
-	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: "finance.commission.export", Result: "success", ResourceType: "finance_commission", Details: details}
+	return &AuditEvent{OrganizationID: organizationID, UserID: &actor, Action: "finance.commission.export", Result: "success", ResourceType: "finance_commission", Details: details}
 }
 
 func (u *CommissionUsecase) Get(ctx context.Context, org, id uuid.UUID) (*FinanceCommission, error) {
-	if org == uuid.Nil || id == uuid.Nil {
+	return u.GetScoped(ctx, []uuid.UUID{org}, id)
+}
+func (u *CommissionUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCommission, error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrCommissionInvalid
 	}
-	return u.repo.Get(ctx, org, id)
+	return u.repo.GetScoped(ctx, organizationIDs, id)
+}
+
+func (u *CommissionUsecase) GetAdjustmentScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCommissionAdjustment, error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || id == uuid.Nil {
+		return nil, ErrCommissionAdjustmentInvalid
+	}
+	return u.repo.GetAdjustmentScoped(ctx, organizationIDs, id)
 }
 
 func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
@@ -509,11 +568,21 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, em
 }
 
 func (u *CommissionUsecase) ListRules(ctx context.Context, org uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
+	return u.ListRulesScoped(ctx, []uuid.UUID{org}, f)
+}
+func (u *CommissionUsecase) ListRulesScoped(ctx context.Context, organizationIDs []uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.PersonnelRole != "" && !validCommissionPersonnelRole(f.PersonnelRole)) {
+	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.PersonnelRole != "" && !validCommissionPersonnelRole(f.PersonnelRole)) {
 		return nil, ErrCommissionRuleInvalid
 	}
-	return u.repo.ListRules(ctx, org, f)
+	return u.repo.ListRulesScoped(ctx, organizationIDs, f)
+}
+
+func (u *CommissionUsecase) GetRuleScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCommissionRule, error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || id == uuid.Nil {
+		return nil, ErrCommissionRuleInvalid
+	}
+	return u.repo.GetRuleScoped(ctx, organizationIDs, id)
 }
 func (u *CommissionUsecase) CreateRule(ctx context.Context, org, actor uuid.UUID, in CreateCommissionRuleInput) (*FinanceCommissionRule, error) {
 	normalized, err := normalizeCommissionRuleInput(in)

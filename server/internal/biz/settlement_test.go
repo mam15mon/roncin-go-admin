@@ -12,9 +12,25 @@ type settlementRepoStub struct {
 	filter FeeLedgerFilter
 }
 
-func (stub *settlementRepoStub) ListFeeLedger(_ context.Context, _ uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error) {
+func (stub *settlementRepoStub) ListFeeLedger(_ context.Context, _ []uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error) {
 	stub.filter = filter
 	return &FeeLedgerResult{}, nil
+}
+
+func (*settlementRepoStub) GetFeeLedgerOrderDetail(context.Context, []uuid.UUID, uuid.UUID) (*FeeLedgerOrderDetail, error) {
+	return nil, nil
+}
+
+func (*settlementRepoStub) ListFinanceOrganizations(context.Context, []uuid.UUID, string) ([]*FinanceOrganizationOption, error) {
+	return nil, nil
+}
+
+func (*settlementRepoStub) ListFinanceSettlementParties(context.Context, uuid.UUID, string, int, int) ([]*FinanceSettlementPartyOption, int64, error) {
+	return nil, 0, nil
+}
+
+func (*settlementRepoStub) ResolveFeeLedgerOrganization(_ context.Context, organizationIDs, _ []uuid.UUID) (uuid.UUID, error) {
+	return organizationIDs[0], nil
 }
 
 func TestResolveFeeLedgerFinancialProgressCoversSevenStates(t *testing.T) {
@@ -48,7 +64,7 @@ func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 	repo := &settlementRepoStub{}
 	usecase := NewSettlementUsecase(repo)
 	financeLocked := true
-	_, err := usecase.ListFeeLedger(context.Background(), uuid.Must(uuid.NewV7()), FeeLedgerFilter{
+	_, err := usecase.ListFeeLedger(context.Background(), []uuid.UUID{uuid.Must(uuid.NewV7())}, FeeLedgerFilter{
 		Page:              1,
 		PageSize:          200,
 		FinancialProgress: "completed",
@@ -71,7 +87,7 @@ func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 
 func TestListFeeLedgerRejectsInvalidFinancialProgress(t *testing.T) {
 	usecase := NewSettlementUsecase(&settlementRepoStub{})
-	_, err := usecase.ListFeeLedger(context.Background(), uuid.Must(uuid.NewV7()), FeeLedgerFilter{
+	_, err := usecase.ListFeeLedger(context.Background(), []uuid.UUID{uuid.Must(uuid.NewV7())}, FeeLedgerFilter{
 		Page:              1,
 		PageSize:          20,
 		FinancialProgress: "PAID",

@@ -2032,6 +2032,59 @@
         }
       }
     },
+    "/api/v1/finance/bill-tag-assignment-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。",
+        "operationId": "SettlementService_ListFinanceBillTagAssignmentOptions",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceBillTagAssignmentOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/bill-tag-options": {
       "get": {
         "tags": [
@@ -2060,6 +2113,13 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -2352,6 +2412,13 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2389,6 +2456,65 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.CreateBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bills/creation-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListBillCreationCandidates",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListBillCreationCandidatesResponse"
                 }
               }
             }
@@ -2598,6 +2724,13 @@
           },
           {
             "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -2889,6 +3022,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3024,6 +3164,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3111,6 +3258,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3152,6 +3306,13 @@
           },
           {
             "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -3207,6 +3368,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3246,6 +3414,118 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.PreviewCommissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commissions/rule-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。",
+        "operationId": "SettlementService_ListCommissionRuleCandidates",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "personnelRole",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionRuleCandidatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commissions/verification-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListCommissionVerificationCandidates",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionVerificationCandidatesResponse"
                 }
               }
             }
@@ -3965,6 +4245,59 @@
         }
       }
     },
+    "/api/v1/finance/fee-tag-assignment-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。",
+        "operationId": "SettlementService_ListFinanceFeeTagAssignmentOptions",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceFeeTagAssignmentOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/fee-tag-options": {
       "get": {
         "tags": [
@@ -3993,6 +4326,13 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -4189,6 +4529,13 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4198,6 +4545,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ListFeeLedgerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/fees/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_GetFeeLedgerOrderDetail",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetFeeLedgerOrderDetailResponse"
                 }
               }
             }
@@ -4327,6 +4704,13 @@
               "type": "integer",
               "format": "enum"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4364,6 +4748,108 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.CreateInvoiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/creation-bills": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListInvoiceCreationBills",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListInvoiceCreationBillsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/creation-profiles": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListInvoiceProfilesForBill",
+        "parameters": [
+          {
+            "name": "billId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForBillResponse"
                 }
               }
             }
@@ -4514,6 +5000,103 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.RedFlushInvoiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/organization-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListFinanceOrganizationOptions",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceOrganizationOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/settlement-party-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListFinanceSettlementPartyOptions",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceSettlementPartyOptionsResponse"
                 }
               }
             }
@@ -4691,6 +5274,13 @@
               "type": "integer",
               "format": "enum"
             }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4728,6 +5318,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.CreateVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/verifications/creation-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListVerificationCreationCandidates",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListVerificationCreationCandidatesResponse"
                 }
               }
             }
@@ -13510,7 +14150,8 @@
       "finance.v1.BatchAssignFinanceFeeTagsRequest": {
         "required": [
           "feeIds",
-          "tagIds"
+          "tagIds",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
@@ -13525,6 +14166,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "organizationId": {
+            "type": "string"
           }
         }
       },
@@ -13576,7 +14220,8 @@
       "finance.v1.BatchRemoveFinanceFeeTagsRequest": {
         "required": [
           "feeIds",
-          "tagIds"
+          "tagIds",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
@@ -13591,6 +14236,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "organizationId": {
+            "type": "string"
           }
         }
       },
@@ -14173,6 +14821,12 @@
           },
           "cnyEffectiveCommissionAmount": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         },
         "description": "CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，\n CNY 调整与有效金额为与列表一致的动态汇总。"
@@ -14511,7 +15165,8 @@
           "groupingPolicy",
           "groups",
           "previewToken",
-          "idempotencyKey"
+          "idempotencyKey",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
@@ -14534,6 +15189,9 @@
             "type": "string"
           },
           "idempotencyKey": {
+            "type": "string"
+          },
+          "organizationId": {
             "type": "string"
           }
         }
@@ -14667,7 +15325,8 @@
           "transactionDate",
           "ourAccount",
           "paymentMethod",
-          "idempotencyKey"
+          "idempotencyKey",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
@@ -14708,6 +15367,9 @@
             "type": "string"
           },
           "idempotencyKey": {
+            "type": "string"
+          },
+          "organizationId": {
             "type": "string"
           }
         }
@@ -14837,12 +15499,16 @@
       },
       "finance.v1.CreateCommissionRuleRequest": {
         "required": [
-          "rule"
+          "rule",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
           "rule": {
             "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
+          },
+          "organizationId": {
+            "type": "string"
           }
         }
       },
@@ -15387,6 +16053,23 @@
           }
         }
       },
+      "finance.v1.FeeLedgerBaseCurrencyAmount": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "receivableBaseAmount": {
+            "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "profitBaseAmount": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.FeeLedgerColumnPreference": {
         "required": [
           "fieldKey"
@@ -15504,6 +16187,47 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
             }
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FeeLedgerOrderDetail": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "businessType": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeLedgerItem"
+            }
+          },
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount"
+            }
           }
         }
       },
@@ -15581,17 +16305,11 @@
           "activeCount": {
             "type": "string"
           },
-          "receivableBaseAmount": {
-            "type": "string"
-          },
-          "payableBaseAmount": {
-            "type": "string"
-          },
-          "profitBaseAmount": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount"
+            }
           }
         }
       },
@@ -15657,6 +16375,23 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceBaseCurrencyAmount": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "receivableBaseAmount": {
+            "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "unverifiedBaseAmount": {
             "type": "string"
           }
         }
@@ -15780,6 +16515,12 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
             }
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         }
       },
@@ -15885,17 +16626,11 @@
       "finance.v1.FinanceBillSummary": {
         "type": "object",
         "properties": {
-          "receivableBaseAmount": {
-            "type": "string"
-          },
-          "payableBaseAmount": {
-            "type": "string"
-          },
-          "unverifiedBaseAmount": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBaseCurrencyAmount"
+            }
           }
         }
       },
@@ -15986,23 +16721,23 @@
           },
           "exchangeRateSettingId": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         }
       },
       "finance.v1.FinanceCashflowSummary": {
         "type": "object",
         "properties": {
-          "receivableBaseAmount": {
-            "type": "string"
-          },
-          "payableBaseAmount": {
-            "type": "string"
-          },
-          "unverifiedBaseAmount": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBaseCurrencyAmount"
+            }
           }
         }
       },
@@ -16147,6 +16882,12 @@
           },
           "cnyEffectiveCommissionAmount": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         }
       },
@@ -16221,6 +16962,12 @@
             "type": "string"
           },
           "sourceVerificationId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
             "type": "string"
           }
         }
@@ -16346,6 +17093,12 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
             "type": "string"
           }
         }
@@ -16480,6 +17233,12 @@
           },
           "baseCurrencyAmount": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         }
       },
@@ -16543,19 +17302,84 @@
           }
         }
       },
+      "finance.v1.FinanceInvoiceProfileOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invoiceTitle": {
+            "type": "string"
+          },
+          "taxpayerIdentificationNo": {
+            "type": "string"
+          },
+          "defaultInvoiceType": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceProfilesForBill": {
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoiceProfileOption"
+            }
+          }
+        }
+      },
       "finance.v1.FinanceInvoiceSummary": {
         "type": "object",
         "properties": {
-          "receivableBaseAmount": {
-            "type": "string"
-          },
-          "payableBaseAmount": {
-            "type": "string"
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBaseCurrencyAmount"
+            }
           },
           "issuedCount": {
             "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceOrganizationOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           },
           "baseCurrency": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceSettlementPartyOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           }
         }
@@ -16638,6 +17462,12 @@
           },
           "exchangeGainLoss": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
           }
         }
       },
@@ -16682,14 +17512,11 @@
       "finance.v1.FinanceVerificationSummary": {
         "type": "object",
         "properties": {
-          "receivableBaseAmount": {
-            "type": "string"
-          },
-          "payableBaseAmount": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
+          "amountsByBaseCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBaseCurrencyAmount"
+            }
           }
         }
       },
@@ -16732,6 +17559,10 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "canUpdate": {
+            "type": "boolean",
+            "description": "can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。"
           }
         }
       },
@@ -16792,6 +17623,27 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.ExchangeRateImportBatch"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.GetFeeLedgerOrderDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FeeLedgerOrderDetail"
           },
           "traceId": {
             "type": "string"
@@ -16878,6 +17730,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListBillCreationCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeLedgerItem"
+            }
+          },
+          "total": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"
@@ -17050,6 +17929,33 @@
           }
         }
       },
+      "finance.v1.ListCommissionRuleCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.ListCommissionRulesResponse": {
         "type": "object",
         "properties": {
@@ -17067,6 +17973,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListCommissionVerificationCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceVerification"
             }
           },
           "total": {
@@ -17221,7 +18154,41 @@
           }
         }
       },
+      "finance.v1.ListFinanceBillTagAssignmentOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.ListFinanceBillTagOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListFinanceFeeTagAssignmentOptionsResponse": {
         "type": "object",
         "properties": {
           "tags": {
@@ -17249,6 +18216,105 @@
           },
           "total": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListFinanceOrganizationOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceOrganizationOption"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListFinanceSettlementPartyOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceSettlementPartyOption"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListInvoiceCreationBillsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBill"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListInvoiceProfilesForBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoiceProfilesForBill"
           },
           "traceId": {
             "type": "string"
@@ -17318,6 +18384,27 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "finance.v1.ListVerificationCreationCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.VerificationCreationCandidates"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -17426,7 +18513,8 @@
       "finance.v1.PreviewBillBatchRequest": {
         "required": [
           "feeIds",
-          "groupingPolicy"
+          "groupingPolicy",
+          "organizationId"
         ],
         "type": "object",
         "properties": {
@@ -17438,6 +18526,9 @@
           },
           "groupingPolicy": {
             "$ref": "#/components/schemas/finance.v1.BillGroupingPolicy"
+          },
+          "organizationId": {
+            "type": "string"
           }
         }
       },
@@ -18308,6 +19399,23 @@
           },
           "amount": {
             "type": "string"
+          }
+        }
+      },
+      "finance.v1.VerificationCreationCandidates": {
+        "type": "object",
+        "properties": {
+          "cashflows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCashflow"
+            }
+          },
+          "bills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBill"
+            }
           }
         }
       },

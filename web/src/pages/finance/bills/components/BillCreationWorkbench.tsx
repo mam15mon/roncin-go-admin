@@ -14,6 +14,7 @@ import {
   Drawer,
   Form,
   Row,
+  Select,
   Space,
   Steps,
   Switch,
@@ -28,21 +29,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { FinanceOrganizationPurpose, OrderFeeStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
-import { OrderFeeStatus } from '@/enums.generated';
-import {
-  partnerServiceCreatePartnerInvoiceProfile,
-  partnerServiceListPartnerInvoiceProfiles,
-} from '@/services/roncin/partnerService';
 import {
   settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
-  settlementServiceListFeeLedger,
+  settlementServiceListBillCreationCandidates,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapList } from '@/utils/api';
-import { generateUUID } from '@/utils/uuid';
 import { longRequestOptions } from '@/utils/requestTimeout';
+import { generateUUID } from '@/utils/uuid';
 import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
@@ -50,7 +48,6 @@ import {
   getPreviewFeeColumns,
   selectionFeeColumns,
 } from './billWorkbenchFeeColumns';
-import QuickAddInvoiceProfileModal from './QuickAddInvoiceProfileModal';
 
 const { Text } = Typography;
 
@@ -65,17 +62,6 @@ type WorkbenchFormValue = {
   groups: GroupFormValue[];
 };
 
-type QuickAddInvoiceProfileFormValue = {
-  invoiceTitle: string;
-  taxpayerIdentificationNo: string;
-  defaultInvoiceType: 'NORMAL' | 'SPECIAL';
-  bankName?: string;
-  bankAccount?: string;
-  registeredAddress?: string;
-  registeredPhone?: string;
-  isDefault?: boolean;
-};
-
 type RequestError = Error & {
   data?: { reason?: string; message?: string };
   response?: { data?: { reason?: string; message?: string } };
@@ -84,6 +70,8 @@ type RequestError = Error & {
 export type BillCreationWorkbenchProps = {
   open: boolean;
   initialFeeIds?: string[];
+  initialOrganizationId?: string;
+  initialOrganizationName?: string;
   sourceLabel?: string;
   onClose: () => void;
   onCreated?: (batch: API.FinanceBillBatch) => void;
@@ -118,38 +106,34 @@ function requestMessage(error: RequestError, fallback: string) {
 export default function BillCreationWorkbench({
   open,
   initialFeeIds = [],
+  initialOrganizationId,
+  initialOrganizationName,
   sourceLabel,
   onClose,
   onCreated,
 }: BillCreationWorkbenchProps) {
   const { message } = App.useApp();
   const [form] = Form.useForm<WorkbenchFormValue>();
-  const [quickAddForm] = Form.useForm<QuickAddInvoiceProfileFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
   const [splitByOrder, setSplitByOrder] = useState(false);
   const [splitByTaxRate, setSplitByTaxRate] = useState(false);
   const [preview, setPreview] = useState<API.PreviewBillBatchResponse>();
-  const [invoiceProfilesMap, setInvoiceProfilesMap] = useState<
-    Record<string, API.PartnerInvoiceProfile[]>
-  >({});
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
   const [result, setResult] = useState<API.FinanceBillBatch>();
   const [loading, setLoading] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [confirming, setConfirming] = useState(false);
   const previewInitKeyRef = useRef<string | undefined>(undefined);
   const previewErrorKeyRef = useRef<string | undefined>(undefined);
+  const previewRequestTokenRef = useRef(0);
   const previewPendingRef = useRef<{
     key: string;
     promise: Promise<boolean>;
   } | null>(null);
-
-  // 就地快捷新增客商开票抬头状态
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [quickAddGroupIndex, setQuickAddGroupIndex] = useState(0);
-  const [quickAddPartnerId, setQuickAddPartnerId] = useState('');
-  const [quickAddPartnerName, setQuickAddPartnerName] = useState('');
-  const [quickAddSaving, setQuickAddSaving] = useState(false);
 
   const initialFeeKey = useMemo(
     () => (initialFeeIds || []).filter(Boolean).join('|'),
@@ -157,31 +141,62 @@ export default function BillCreationWorkbench({
   );
   const fixedSelection = initialFeeKey.length > 0;
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
+    })
+      .then((response) => {
+        if (!cancelled) setOrganizationOptions(response.data ?? []);
+      })
+      .catch((error: any) => {
+        if (!cancelled) {
+          setOrganizationOptions([]);
+          message.error(error.message || '加载可建账所属公司失败');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [message, open]);
+
   const selectedIds = useMemo(
     () => selectedFeeIds.map(String).filter(Boolean),
     [selectedFeeIds],
   );
 
   const selectedIdsRef = useRef<string[]>([]);
+  const organizationIdRef = useRef<string | undefined>(undefined);
   const splitByOrderRef = useRef(splitByOrder);
   const splitByTaxRateRef = useRef(splitByTaxRate);
 
   useEffect(() => {
     selectedIdsRef.current = selectedIds;
+    organizationIdRef.current = organizationId;
     splitByOrderRef.current = splitByOrder;
     splitByTaxRateRef.current = splitByTaxRate;
-  }, [selectedIds, splitByOrder, splitByTaxRate]);
+  }, [organizationId, selectedIds, splitByOrder, splitByTaxRate]);
 
   const loadPreview = useCallback(
     async (
       overrideIds?: string[],
       policyOverride?: { splitByOrder: boolean; splitByTaxRate: boolean },
+      organizationIdOverride?: string,
     ) => {
       const ids = overrideIds ?? selectedIdsRef.current;
+      const requestedOrganizationId =
+        organizationIdOverride ?? organizationIdRef.current;
+      if (!requestedOrganizationId) {
+        message.warning('请先选择可建账所属公司');
+        return false;
+      }
       if (ids.length === 0) {
         message.warning('请至少选择一笔已确认且未建立账单的费用');
         return false;
       }
+      const requestToken = ++previewRequestTokenRef.current;
       setLoading(true);
       try {
         const policy = policyOverride ?? {
@@ -192,9 +207,16 @@ export default function BillCreationWorkbench({
           {
             feeIds: ids,
             groupingPolicy: policy,
+            organizationId: requestedOrganizationId,
           },
           { ...longRequestOptions, skipErrorHandler: true },
         );
+        if (
+          requestToken !== previewRequestTokenRef.current ||
+          requestedOrganizationId !== organizationIdRef.current
+        ) {
+          return false;
+        }
         const groups = unwrapList(response);
         if (!response.previewToken || groups.length === 0) {
           throw new Error('服务端未返回有效的拆单预览');
@@ -202,39 +224,10 @@ export default function BillCreationWorkbench({
         previewErrorKeyRef.current = undefined;
         setPreview(response);
 
-        // 异步批量查询各结算单位维护的全部开票抬头资料
-        const uniquePartyIds = Array.from(
-          new Set(
-            groups
-              .map((g) => g.settlementPartyId)
-              .filter((id): id is string => Boolean(id)),
-          ),
-        );
-        const profilesMap: Record<string, API.PartnerInvoiceProfile[]> = {};
-        await Promise.all(
-          uniquePartyIds.map(async (partyId) => {
-            try {
-              const res = await partnerServiceListPartnerInvoiceProfiles(
-                { partnerId: partyId },
-                { skipErrorHandler: true },
-              );
-              profilesMap[partyId] = unwrapList(res);
-            } catch {
-              profilesMap[partyId] = [];
-            }
-          }),
-        );
-        setInvoiceProfilesMap(profilesMap);
-
         form.setFieldsValue({
           groups: groups.map((group) => {
-            const profiles = profilesMap[group.settlementPartyId || ''] || [];
-            const defaultProfile =
-              profiles.find((p) => p.isDefault && p.enabled !== false) ||
-              profiles.find((p) => p.enabled !== false);
             return {
-              statementTitle:
-                defaultProfile?.invoiceTitle || group.settlementPartyName || '',
+              statementTitle: group.settlementPartyName || '',
               billDate: dayjs(),
               paymentTermsDays: undefined,
               note: undefined,
@@ -243,15 +236,23 @@ export default function BillCreationWorkbench({
         });
         return true;
       } catch (rawError: unknown) {
+        if (
+          requestToken !== previewRequestTokenRef.current ||
+          requestedOrganizationId !== organizationIdRef.current
+        ) {
+          return false;
+        }
         const error = rawError as RequestError;
-        const errorKey = `${ids.join('|')}:${requestReason(error) || requestMessage(error, '拆单预览失败')}`;
+        const errorKey = `${requestedOrganizationId}:${ids.join('|')}:${requestReason(error) || requestMessage(error, '拆单预览失败')}`;
         if (previewErrorKeyRef.current !== errorKey) {
           previewErrorKeyRef.current = errorKey;
           message.error(requestMessage(error, '拆单预览失败'));
         }
         return false;
       } finally {
-        setLoading(false);
+        if (requestToken === previewRequestTokenRef.current) {
+          setLoading(false);
+        }
       }
     },
     [form, message],
@@ -260,6 +261,7 @@ export default function BillCreationWorkbench({
   // 初始化或当从业务页面进入时，自动快速预览并直达账单资料页
   useEffect(() => {
     if (!open) {
+      previewRequestTokenRef.current += 1;
       previewInitKeyRef.current = undefined;
       previewErrorKeyRef.current = undefined;
       previewPendingRef.current = null;
@@ -268,7 +270,7 @@ export default function BillCreationWorkbench({
     const initialIds = initialFeeKey
       ? initialFeeKey.split('|').filter(Boolean)
       : [];
-    const initKey = `${initialFeeKey}:${open ? 'open' : 'closed'}`;
+    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${open ? 'open' : 'closed'}`;
     let cancelled = false;
     const pending = previewPendingRef.current;
     if (previewInitKeyRef.current === initKey && pending?.key === initKey) {
@@ -281,7 +283,12 @@ export default function BillCreationWorkbench({
       };
     }
     previewInitKeyRef.current = initKey;
+    previewRequestTokenRef.current += 1;
     setSelectedFeeIds(initialIds);
+    const nextOrganizationId =
+      initialIds.length > 0 ? initialOrganizationId : undefined;
+    organizationIdRef.current = nextOrganizationId;
+    setOrganizationId(nextOrganizationId);
     setSplitByOrder(false);
     setSplitByTaxRate(false);
     setPreview(undefined);
@@ -291,12 +298,16 @@ export default function BillCreationWorkbench({
     setIdempotencyKey(generateUUID());
     form.resetFields();
 
-    if (initialIds.length > 0) {
+    if (initialIds.length > 0 && initialOrganizationId) {
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
-      const previewPromise = loadPreview(initialIds, {
-        splitByOrder: false,
-        splitByTaxRate: false,
-      });
+      const previewPromise = loadPreview(
+        initialIds,
+        {
+          splitByOrder: false,
+          splitByTaxRate: false,
+        },
+        initialOrganizationId,
+      );
       previewPendingRef.current = { key: initKey, promise: previewPromise };
       void previewPromise.then((ok) => {
         if (cancelled) return;
@@ -313,7 +324,7 @@ export default function BillCreationWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [open, initialFeeKey, form, loadPreview]);
+  }, [open, initialFeeKey, initialOrganizationId, form, loadPreview]);
 
   // 从预览明细中即时剔除误选行
   const handleRemoveFee = async (feeId?: string) => {
@@ -331,90 +342,12 @@ export default function BillCreationWorkbench({
     await loadPreview(nextIds);
   };
 
-  // 打开快捷新增客商抬头弹窗
-  const handleOpenQuickAddProfile = (
-    groupIndex: number,
-    partnerId?: string,
-    partnerName?: string,
-  ) => {
-    if (!partnerId) {
-      message.warning('当前账单缺少结算单位关联，无法维护抬头');
-      return;
-    }
-    setQuickAddGroupIndex(groupIndex);
-    setQuickAddPartnerId(partnerId);
-    setQuickAddPartnerName(partnerName || '');
-    quickAddForm.resetFields();
-    quickAddForm.setFieldsValue({
-      invoiceTitle: partnerName || '',
-      taxpayerIdentificationNo: '',
-      defaultInvoiceType: 'NORMAL',
-      isDefault: true,
-    });
-    setQuickAddOpen(true);
-  };
-
-  // 提交保存快捷开票抬头
-  const handleSaveQuickAddProfile = async () => {
-    const values = await quickAddForm.validateFields();
-    setQuickAddSaving(true);
-    try {
-      const res = await partnerServiceCreatePartnerInvoiceProfile(
-        { partnerId: quickAddPartnerId },
-        {
-          partnerId: quickAddPartnerId,
-          invoiceTitle: values.invoiceTitle.trim(),
-          taxpayerIdentificationNo: values.taxpayerIdentificationNo
-            .trim()
-            .toUpperCase(),
-          bankName: values.bankName?.trim() || undefined,
-          bankAccount: values.bankAccount?.trim() || undefined,
-          registeredAddress: values.registeredAddress?.trim() || undefined,
-          registeredPhone: values.registeredPhone?.trim() || undefined,
-          defaultInvoiceType: values.defaultInvoiceType,
-          isDefault: values.isDefault ?? false,
-        },
-        { skipErrorHandler: true },
-      );
-      const created = res.data;
-      if (!created) throw new Error('服务端未返回新增抬头数据');
-
-      // 更新客商开票资料缓存
-      setInvoiceProfilesMap((prev) => {
-        const existing = prev[quickAddPartnerId] || [];
-        return {
-          ...prev,
-          [quickAddPartnerId]: [
-            created,
-            ...existing.map((profile) =>
-              created.isDefault ? { ...profile, isDefault: false } : profile,
-            ),
-          ],
-        };
-      });
-
-      // 自动回显并选中到当前账单的 statementTitle 表单字段
-      const currentGroups = form.getFieldValue('groups') || [];
-      if (currentGroups[quickAddGroupIndex]) {
-        currentGroups[quickAddGroupIndex] = {
-          ...currentGroups[quickAddGroupIndex],
-          statementTitle: created.invoiceTitle || '',
-        };
-        form.setFieldsValue({ groups: [...currentGroups] });
-      }
-
-      message.success(`已为【${quickAddPartnerName}】新增开票抬头并自动选中`);
-      setQuickAddOpen(false);
-    } catch (rawError: unknown) {
-      const error = rawError as RequestError;
-      message.error(requestMessage(error, '新增开票抬头失败'));
-    } finally {
-      setQuickAddSaving(false);
-    }
-  };
-
   const next = async () => {
     if (current === 0) {
+      if (!organizationId) {
+        message.warning('请先选择可建账所属公司');
+        return;
+      }
       if (selectedIds.length === 0) {
         message.warning('请至少选择一笔已确认且未建立账单的费用');
         return;
@@ -428,6 +361,10 @@ export default function BillCreationWorkbench({
   };
 
   const createBatch = async () => {
+    if (!organizationId) {
+      message.warning('请先选择可建账所属公司');
+      return;
+    }
     if (!preview?.previewToken || !preview.data?.length) {
       message.warning('账单预览快照已失效或为空，请重新预览');
       return;
@@ -441,6 +378,7 @@ export default function BillCreationWorkbench({
           groupingPolicy: { splitByOrder, splitByTaxRate },
           previewToken: preview.previewToken,
           idempotencyKey,
+          organizationId,
           groups: preview.data.map((group, index) => {
             const value = values.groups[index];
             return {
@@ -539,40 +477,70 @@ export default function BillCreationWorkbench({
   );
 
   return (
-    <>
-      <Drawer
-        title="费用批量转账单"
-        open={open}
-        size="min(1280px, 96vw)"
-        destroyOnHidden
-        mask={{ closable: false }}
-        footer={footer}
-        onClose={onClose}
-      >
-        <Steps
-          current={current}
-          size="small"
-          style={{ marginBottom: 24 }}
-          items={[
-            { title: '选择费用' },
-            { title: '拆单策略' },
-            { title: '账单资料' },
-            { title: '生成完成' },
-          ]}
-        />
+    <Drawer
+      title="费用批量转账单"
+      open={open}
+      size="min(1280px, 96vw)"
+      destroyOnHidden
+      mask={{ closable: false }}
+      footer={footer}
+      onClose={onClose}
+    >
+      <Steps
+        current={current}
+        size="small"
+        style={{ marginBottom: 24 }}
+        items={[
+          { title: '选择费用' },
+          { title: '拆单策略' },
+          { title: '账单资料' },
+          { title: '生成完成' },
+        ]}
+      />
 
-        {current === 0 &&
-          (fixedSelection ? (
-            <Card>
-              <Alert
-                type="info"
-                showIcon
-                title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
-                description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
-              />
-            </Card>
-          ) : (
+      {current === 0 &&
+        (fixedSelection ? (
+          <Card>
+            <Alert
+              type="info"
+              showIcon
+              title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
+              description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
+            />
+            <div style={{ marginTop: 12 }}>
+              来源公司：
+              {initialOrganizationName ||
+                organizationOptions.find(
+                  (item) => item.id === initialOrganizationId,
+                )?.name ||
+                initialOrganizationId ||
+                '-'}
+            </div>
+          </Card>
+        ) : (
+          <>
+            <Select
+              aria-label="所属公司"
+              allowClear
+              placeholder="请先选择可建账所属公司"
+              style={{ width: 260, marginBottom: 12 }}
+              value={organizationId}
+              options={organizationOptions.map((item) => ({
+                value: item.id,
+                label: item.name || item.code || item.id,
+              }))}
+              onChange={(value) => {
+                previewRequestTokenRef.current += 1;
+                organizationIdRef.current = value;
+                setOrganizationId(value);
+                setSelectedFeeIds([]);
+                setPreview(undefined);
+                setResult(undefined);
+                setCurrent(0);
+              }}
+            />
             <ProTable<API.FeeLedgerItem>
+              key={organizationId || 'no-organization'}
               rowKey="id"
               headerTitle="选择待结算费用"
               columns={selectionFeeColumns}
@@ -603,125 +571,115 @@ export default function BillCreationWorkbench({
                 <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>
               )}
               request={async (params) => {
-                const response = await settlementServiceListFeeLedger({
-                  page: params.current,
-                  pageSize: params.pageSize,
-                  keyword: params.keyword,
-                  direction: params.direction,
-                  status: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
-                });
+                if (!organizationId)
+                  return { data: [], success: true, total: 0 };
+                const response =
+                  await settlementServiceListBillCreationCandidates({
+                    page: params.current,
+                    pageSize: params.pageSize,
+                    keyword: params.keyword,
+                    direction: params.direction,
+                    organizationId,
+                  });
                 return toTableRequest(response);
               }}
             />
-          ))}
+          </>
+        ))}
 
-        {current === 1 && (
-          <BillSplitStrategyCards
-            splitByOrder={splitByOrder}
-            setSplitByOrder={setSplitByOrder}
-            splitByTaxRate={splitByTaxRate}
-            setSplitByTaxRate={setSplitByTaxRate}
-            selectedCount={selectedIds.length}
-          />
-        )}
+      {current === 1 && (
+        <BillSplitStrategyCards
+          splitByOrder={splitByOrder}
+          setSplitByOrder={setSplitByOrder}
+          splitByTaxRate={splitByTaxRate}
+          setSplitByTaxRate={setSplitByTaxRate}
+          selectedCount={selectedIds.length}
+        />
+      )}
 
-        {current === 2 && preview?.data && (
-          <Form form={form} layout="vertical">
-            <Card
-              size="small"
-              style={{
-                marginBottom: 16,
-                background: '#fafafa',
-                border: '1px solid #f0f0f0',
-              }}
-            >
-              <Row justify="space-between" align="middle" gutter={[16, 8]}>
-                <Col xs={24} md={16}>
-                  <Space size="large" wrap>
-                    <Space>
-                      <SettingOutlined style={{ color: '#1677ff' }} />
-                      <Text strong>拆单策略微调：</Text>
-                    </Space>
-                    <Space>
-                      <Text type="secondary">按订单拆分：</Text>
-                      <Switch
-                        size="small"
-                        checked={splitByOrder}
-                        onChange={async (checked) => {
-                          setSplitByOrder(checked);
-                          await loadPreview(undefined, {
-                            splitByOrder: checked,
-                            splitByTaxRate,
-                          });
-                        }}
-                      />
-                    </Space>
-                    <Space>
-                      <Text type="secondary">按税率拆分：</Text>
-                      <Switch
-                        size="small"
-                        checked={splitByTaxRate}
-                        onChange={async (checked) => {
-                          setSplitByTaxRate(checked);
-                          await loadPreview(undefined, {
-                            splitByOrder,
-                            splitByTaxRate: checked,
-                          });
-                        }}
-                      />
-                    </Space>
-                  </Space>
-                </Col>
-                <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+      {current === 2 && preview?.data && (
+        <Form form={form} layout="vertical">
+          <Card
+            size="small"
+            style={{
+              marginBottom: 16,
+              background: '#fafafa',
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <Row justify="space-between" align="middle" gutter={[16, 8]}>
+              <Col xs={24} md={16}>
+                <Space size="large" wrap>
                   <Space>
-                    <Tag color="blue">
-                      共 {preview.data.length} 张拟生成账单
-                    </Tag>
-                    <Button
-                      size="small"
-                      icon={<ReloadOutlined />}
-                      loading={loading}
-                      onClick={() => void loadPreview()}
-                    >
-                      刷新快照
-                    </Button>
+                    <SettingOutlined style={{ color: '#1677ff' }} />
+                    <Text strong>拆单策略微调：</Text>
                   </Space>
-                </Col>
-              </Row>
-            </Card>
+                  <Space>
+                    <Text type="secondary">按订单拆分：</Text>
+                    <Switch
+                      size="small"
+                      checked={splitByOrder}
+                      onChange={async (checked) => {
+                        setSplitByOrder(checked);
+                        await loadPreview(undefined, {
+                          splitByOrder: checked,
+                          splitByTaxRate,
+                        });
+                      }}
+                    />
+                  </Space>
+                  <Space>
+                    <Text type="secondary">按税率拆分：</Text>
+                    <Switch
+                      size="small"
+                      checked={splitByTaxRate}
+                      onChange={async (checked) => {
+                        setSplitByTaxRate(checked);
+                        await loadPreview(undefined, {
+                          splitByOrder,
+                          splitByTaxRate: checked,
+                        });
+                      }}
+                    />
+                  </Space>
+                </Space>
+              </Col>
+              <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                <Space>
+                  <Tag color="blue">共 {preview.data.length} 张拟生成账单</Tag>
+                  <Button
+                    size="small"
+                    icon={<ReloadOutlined />}
+                    loading={loading}
+                    onClick={() => void loadPreview()}
+                  >
+                    刷新快照
+                  </Button>
+                </Space>
+              </Col>
+            </Row>
+          </Card>
 
-            {preview.data.map((group, index) => (
-              <BillGroupCard
-                key={group.groupKey}
-                group={group}
-                index={index}
-                invoiceProfilesMap={invoiceProfilesMap}
-                feeColumns={getPreviewFeeColumns(handleRemoveFee)}
-                directionText={directionText}
-                onOpenQuickAddProfile={handleOpenQuickAddProfile}
-              />
-            ))}
-          </Form>
-        )}
+          {preview.data.map((group, index) => (
+            <BillGroupCard
+              key={group.groupKey}
+              group={group}
+              index={index}
+              feeColumns={getPreviewFeeColumns(handleRemoveFee)}
+              directionText={directionText}
+            />
+          ))}
+        </Form>
+      )}
 
-        {current === 3 && (
-          <BillCreationResultTable
-            result={result}
-            confirming={confirming}
-            onConfirmBatch={() => void confirmBatch()}
-            directionText={directionText}
-          />
-        )}
-      </Drawer>
-
-      <QuickAddInvoiceProfileModal
-        open={quickAddOpen}
-        partnerName={quickAddPartnerName}
-        saving={quickAddSaving}
-        form={quickAddForm}
-        onOk={() => void handleSaveQuickAddProfile()}
-        onCancel={() => setQuickAddOpen(false)}
-      />
-    </>
+      {current === 3 && (
+        <BillCreationResultTable
+          result={result}
+          confirming={confirming}
+          onConfirmBatch={() => void confirmBatch()}
+          directionText={directionText}
+        />
+      )}
+    </Drawer>
   );
 }

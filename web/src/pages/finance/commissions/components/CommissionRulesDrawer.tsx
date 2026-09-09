@@ -9,14 +9,16 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { App, Button, Drawer, Tag } from 'antd';
+import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCreateCommissionRule,
   settlementServiceListCommissionRules,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
@@ -46,8 +48,57 @@ export default function CommissionRulesDrawer({
   const ruleActionRef = useRef<ActionType | undefined>(undefined);
   const [ruleFormOpen, setRuleFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<API.FinanceCommissionRule>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  const [readOrganizationOptions, setReadOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  const [organizationId, setOrganizationId] = useState<string>();
+
+  useEffect(() => {
+    if (!open || !canManage) return;
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE,
+    })
+      .then((response) => {
+        if (!cancelled) setOrganizationOptions(response.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) message.warning('提成规则可管理公司候选加载失败');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [canManage, message, open]);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
+    })
+      .then((response) => {
+        if (!cancelled) setReadOrganizationOptions(response.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) message.warning('提成规则公司候选加载失败');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [message, open]);
 
   const ruleColumns: ProColumns<API.FinanceCommissionRule>[] = [
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
     {
       title: '规则名称',
       dataIndex: 'name',
@@ -137,6 +188,22 @@ export default function CommissionRulesDrawer({
   return (
     <>
       <Drawer title="提成考核规则" size={980} open={open} onClose={onClose}>
+        <div style={{ marginBottom: 12 }}>
+          <Select
+            allowClear
+            placeholder="所属公司"
+            style={{ minWidth: 220 }}
+            value={organizationId}
+            options={readOrganizationOptions.map((item) => ({
+              value: item.id,
+              label: item.name ?? item.code ?? item.id,
+            }))}
+            onChange={(value) => {
+              setOrganizationId(value);
+              ruleActionRef.current?.reload();
+            }}
+          />
+        </div>
         <ProTable<API.FinanceCommissionRule>
           actionRef={ruleActionRef}
           rowKey="id"
@@ -168,6 +235,7 @@ export default function CommissionRulesDrawer({
               keyword: params.name,
               personnelRole: params.personnelRole,
               enabled: params.enabled,
+              organizationId,
             });
             return toTableRequest(response);
           }}
@@ -199,6 +267,7 @@ export default function CommissionRulesDrawer({
               : undefined,
           enabled: editingRule?.enabled ?? true,
           note: editingRule?.note,
+          organizationId: editingRule?.organizationId,
         }}
         onFinish={async (values) => {
           const rule = {
@@ -223,7 +292,14 @@ export default function CommissionRulesDrawer({
               );
               message.success('考核规则已更新');
             } else {
-              await settlementServiceCreateCommissionRule({ rule });
+              if (!values.organizationId) {
+                message.error('请选择所属公司');
+                return false;
+              }
+              await settlementServiceCreateCommissionRule({
+                organizationId: values.organizationId,
+                rule,
+              });
               message.success('考核规则已创建');
             }
             setRuleFormOpen(false);
@@ -245,6 +321,17 @@ export default function CommissionRulesDrawer({
           }
         }}
       >
+        {!editingRule && (
+          <ProFormSearchableSelect
+            name="organizationId"
+            label="所属公司"
+            rules={[{ required: true, message: '请选择所属公司' }]}
+            options={organizationOptions.map((item) => ({
+              value: item.id ?? '',
+              label: item.name ?? item.code ?? item.id ?? '',
+            }))}
+          />
+        )}
         <ProFormText
           name="name"
           label="规则名称"

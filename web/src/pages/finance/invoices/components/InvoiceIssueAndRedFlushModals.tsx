@@ -5,6 +5,7 @@ interface InvoiceIssueModalProps {
   open: boolean;
   submitting: boolean;
   issueForm: FormInstance;
+  issueTarget?: API.FinanceInvoice;
   onCancel: () => void;
   onOk: () => Promise<void>;
 }
@@ -13,12 +14,13 @@ export function InvoiceIssueModal({
   open,
   submitting,
   issueForm,
+  issueTarget,
   onCancel,
   onOk,
 }: InvoiceIssueModalProps) {
   return (
     <Modal
-      title="确认开具发票"
+      title={`确认开具 ${issueTarget?.organizationName || '所属公司未标识'} 的发票`}
       open={open}
       confirmLoading={submitting}
       onCancel={onCancel}
@@ -63,7 +65,7 @@ export function InvoiceRedFlushModal({
 }: InvoiceRedFlushModalProps) {
   return (
     <Modal
-      title={`红冲发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
+      title={`红冲 ${redFlushTarget?.organizationName || '所属公司未标识'} 的发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
       open={open}
       confirmLoading={submitting}
       okButtonProps={{ danger: true }}

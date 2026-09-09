@@ -15,6 +15,7 @@ import { FinanceCommissionStatus } from '@/enums.generated';
 const serviceMocks = vi.hoisted(() => ({
   exportCommissions: vi.fn(),
   listCommissions: vi.fn(),
+  listFinanceOrganizationOptions: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 const componentProps = vi.hoisted(() => ({
@@ -53,6 +54,8 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceExportCommissions: serviceMocks.exportCommissions,
   settlementServiceGetCommission: vi.fn(),
   settlementServiceListCommissions: serviceMocks.listCommissions,
+  settlementServiceListFinanceOrganizationOptions:
+    serviceMocks.listFinanceOrganizationOptions,
   settlementServiceMarkCommissionAdjustmentPaid: vi.fn(),
   settlementServiceMarkCommissionPaid: vi.fn(),
 }));
@@ -79,6 +82,8 @@ describe('提成导出按钮', () => {
     vi.restoreAllMocks();
     serviceMocks.exportCommissions.mockReset();
     serviceMocks.listCommissions.mockReset();
+    serviceMocks.listFinanceOrganizationOptions.mockReset();
+    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
   });
 
   it('有导出权限时显示按钮', () => {

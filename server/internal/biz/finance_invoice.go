@@ -42,6 +42,7 @@ type FinanceInvoice struct {
 	ID, OrganizationID, SettlementPartyID  uuid.UUID
 	InvoiceProfileID                       *uuid.UUID
 	RecordNo, IdempotencyKey               string
+	OrganizationName                       string
 	Direction                              OrderFeeDirection
 	Status                                 FinanceInvoiceStatus
 	InvoiceType                            FinanceInvoiceType
@@ -99,10 +100,26 @@ type FinanceInvoiceListResult struct {
 }
 
 type FinanceInvoiceSummary struct {
-	ReceivableBaseAmount decimal.Decimal
-	PayableBaseAmount    decimal.Decimal
-	IssuedCount          int64
-	BaseCurrency         string
+	AmountsByBaseCurrency []FinanceBaseCurrencyAmount
+	IssuedCount           int64
+}
+
+type FinanceInvoiceCreationBillFilter struct {
+	Page, PageSize    int
+	Keyword           string
+	Direction         OrderFeeDirection
+	SettlementPartyID *uuid.UUID
+	Currency          string
+}
+
+type FinanceInvoiceCreationBillListResult struct {
+	Items []*FinanceBill
+	Total int64
+}
+
+type FinanceInvoiceProfilesForBill struct {
+	OrganizationID, SettlementPartyID uuid.UUID
+	Items                             []*PartnerInvoiceProfile
 }
 
 type CreateFinanceInvoiceInput struct {
@@ -123,9 +140,14 @@ type FinanceInvoiceIssueInput struct {
 
 type FinanceInvoiceRepo interface {
 	List(context.Context, uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
+	ListScoped(context.Context, []uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceInvoice, error)
+	GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceInvoice, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceInvoice, error)
 	LoadBills(context.Context, uuid.UUID, []uuid.UUID) ([]*FinanceBill, error)
+	LoadBillsScoped(context.Context, []uuid.UUID, []uuid.UUID) ([]*FinanceBill, error)
+	ListCreationBills(context.Context, uuid.UUID, FinanceInvoiceCreationBillFilter) (*FinanceInvoiceCreationBillListResult, error)
+	ListProfilesForBill(context.Context, []uuid.UUID, uuid.UUID) (*FinanceInvoiceProfilesForBill, error)
 	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
 	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
 	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, FinanceInvoiceIssueInput, *AuditEvent) (*FinanceInvoice, error)
@@ -144,11 +166,34 @@ func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecas
 }
 
 func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
+	return uc.ListScoped(ctx, []uuid.UUID{organizationID}, filter)
+}
+
+func (uc *FinanceInvoiceUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
-	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
+	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationID, filter)
+	return uc.repo.ListScoped(ctx, organizationIDs, filter)
+}
+
+func (uc *FinanceInvoiceUsecase) ListCreationBills(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceCreationBillFilter) (*FinanceInvoiceCreationBillListResult, error) {
+	filter.Keyword = strings.TrimSpace(filter.Keyword)
+	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 ||
+		(filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) ||
+		(filter.SettlementPartyID != nil && *filter.SettlementPartyID == uuid.Nil) ||
+		(filter.Currency != "" && !financeBillCurrencyPattern.MatchString(filter.Currency)) {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	return uc.repo.ListCreationBills(ctx, organizationID, filter)
+}
+
+func (uc *FinanceInvoiceUsecase) ListProfilesForBill(ctx context.Context, organizationIDs []uuid.UUID, billID uuid.UUID) (*FinanceInvoiceProfilesForBill, error) {
+	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || billID == uuid.Nil {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	return uc.repo.ListProfilesForBill(ctx, organizationIDs, billID)
 }
 
 func (uc *FinanceInvoiceUsecase) RedFlush(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, redInvoiceNo, redInvoiceDate, reason string) (*FinanceInvoice, error) {
@@ -160,10 +205,31 @@ func (uc *FinanceInvoiceUsecase) RedFlush(ctx context.Context, organizationID, a
 }
 
 func (uc *FinanceInvoiceUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceInvoice, error) {
-	if organizationID == uuid.Nil || id == uuid.Nil {
+	return uc.GetScoped(ctx, []uuid.UUID{organizationID}, id)
+}
+
+func (uc *FinanceInvoiceUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceInvoice, error) {
+	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
-	return uc.repo.Get(ctx, organizationID, id)
+	return uc.repo.GetScoped(ctx, organizationIDs, id)
+}
+
+func validFinanceInvoiceOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+		if _, exists := seen[organizationID]; exists {
+			return false
+		}
+		seen[organizationID] = struct{}{}
+	}
+	return true
 }
 
 func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
@@ -228,6 +294,27 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 		return nil, err
 	}
 	return uc.repo.Create(ctx, invoice, financeInvoiceAudit(organizationID, actorID, invoice.ID, "finance.invoice.create"))
+}
+
+// CreateScoped 先在创建权限的组织集合内定位全部来源账单，避免先全局读取后再做内存权限判断。
+func (uc *FinanceInvoiceUsecase) CreateScoped(ctx context.Context, organizationIDs []uuid.UUID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
+	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || actorID == uuid.Nil || len(input.BillIDs) == 0 {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	bills, err := uc.repo.LoadBillsScoped(ctx, organizationIDs, input.BillIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(bills) != len(input.BillIDs) || len(bills) == 0 {
+		return nil, ErrFinanceInvoiceBillInvalid
+	}
+	organizationID := bills[0].OrganizationID
+	for _, bill := range bills[1:] {
+		if bill.OrganizationID != organizationID {
+			return nil, ErrFinanceInvoiceBillMismatch
+		}
+	}
+	return uc.Create(ctx, organizationID, actorID, input)
 }
 
 func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, taxInvoiceNo, invoiceDate string) (*FinanceInvoice, error) {

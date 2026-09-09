@@ -7,25 +7,28 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Space, Tag } from 'antd';
+import { App, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
-import { FinanceInvoiceStatus } from '@/enums.generated';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
 } from '@/components/ui';
+import {
+  FinanceInvoiceStatus,
+  FinanceOrganizationPurpose,
+} from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
-import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
   settlementServiceGetInvoice,
   settlementServiceIssueInvoice,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
@@ -60,58 +63,34 @@ export default function FinanceInvoicesPage() {
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
-  const [availableProfiles, setAvailableProfiles] = useState<
-    API.PartnerInvoiceProfile[]
-  >([]);
-  const [selectedProfile, setSelectedProfile] =
-    useState<API.PartnerInvoiceProfile>();
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
+    }).then((response) => setOrganizationOptions(response.data ?? []));
+  }, []);
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
-    receivableTotal: 0,
-    payableTotal: 0,
     issuedCount: 0,
-    baseCurrency: '',
+    amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
   });
+  const formatBaseCurrencyAmounts = (
+    field: 'receivableBaseAmount' | 'payableBaseAmount',
+  ) =>
+    metricStats.amountsByBaseCurrency
+      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .join(' / ') || '-';
   const reload = () => actionRef.current?.reload();
   const invoiceActions = makeVersionActions<API.FinanceInvoice>({
     modal,
     message,
   });
-
-  const loadSelectedProfiles = async (partnerId?: string) => {
-    if (!partnerId) {
-      setAvailableProfiles([]);
-      setSelectedProfile(undefined);
-      createForm.setFieldValue('invoiceProfileId', undefined);
-      return;
-    }
-    try {
-      const response = await partnerServiceListPartnerInvoiceProfiles(
-        { partnerId },
-        { skipErrorHandler: true },
-      );
-      const profiles = unwrapList(response).filter((item) => item.enabled);
-      setAvailableProfiles(profiles);
-      const selected = profiles.find((item) => item.isDefault) || profiles[0];
-      setSelectedProfile(selected);
-      createForm.setFieldValue('invoiceProfileId', selected?.id);
-      if (selected?.defaultInvoiceType) {
-        createForm.setFieldValue('invoiceType', selected.defaultInvoiceType);
-      }
-      if (!selected) {
-        message.warning(
-          '该结算单位尚未配置可用开票抬头，请先到往来单位档案维护',
-        );
-      }
-    } catch (rawError: any) {
-      setAvailableProfiles([]);
-      setSelectedProfile(undefined);
-      createForm.setFieldValue('invoiceProfileId', undefined);
-      message.error(rawError.message || '加载开票抬头失败');
-    }
-  };
 
   const showDetail = async (row: API.FinanceInvoice) => {
     if (!row.id) return;
@@ -179,7 +158,7 @@ export default function FinanceInvoicesPage() {
   const cancelInvoice = (row: API.FinanceInvoice) => {
     invoiceActions.confirm(
       row,
-      '取消开票记录并释放账单？',
+      `取消 ${row.organizationName || '所属公司未标识'} 的开票记录并释放账单？`,
       async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelInvoice(
           { id },
@@ -223,6 +202,13 @@ export default function FinanceInvoicesPage() {
 
   const columns: ProColumns<API.FinanceInvoice>[] = [
     {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
+    {
       title: '关键词',
       dataIndex: 'keyword',
       hideInTable: true,
@@ -256,9 +242,10 @@ export default function FinanceInvoicesPage() {
         Object.entries(invoiceStates).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
-        const v = invoiceStates[
-          r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
-        ];
+        const v =
+          invoiceStates[
+            r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
+          ];
         return <Tag color={v?.color}>{v?.text}</Tag>;
       },
     },
@@ -296,7 +283,8 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) => {
         if (!r.exchangeRate) {
-          return r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
+          return r.status ===
+            FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
             <span style={{ color: '#8c8c8c' }}>开票时确定</span>
           ) : (
             '-'
@@ -422,17 +410,13 @@ export default function FinanceInvoicesPage() {
     {
       key: 'rec-invoices',
       title: '销项发票金额',
-      value: metricStats.receivableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-invoices',
       title: '进项发票金额',
-      value: metricStats.payableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
@@ -446,6 +430,22 @@ export default function FinanceInvoicesPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 12 }}>
+        <Select
+          allowClear
+          placeholder="所属公司"
+          style={{ minWidth: 220 }}
+          value={organizationId}
+          options={organizationOptions.map((item) => ({
+            value: item.id,
+            label: item.name ?? item.code ?? item.id,
+          }))}
+          onChange={(value) => {
+            setOrganizationId(value);
+            actionRef.current?.reload();
+          }}
+        />
+      </div>
       <FinanceLedgerTemplate<API.FinanceInvoice>
         headerTitle="发票明细管理"
         actionRef={actionRef}
@@ -459,8 +459,6 @@ export default function FinanceInvoicesPage() {
         onPrimaryAction={() => {
           setSelectedIDs([]);
           setSelectedBills([]);
-          setAvailableProfiles([]);
-          setSelectedProfile(undefined);
           createForm.resetFields();
           setCreateOpen(true);
         }}
@@ -471,14 +469,13 @@ export default function FinanceInvoicesPage() {
             keyword: p.keyword,
             direction: p.direction,
             status: p.status ? Number(p.status) : undefined,
+            organizationId,
           });
           const page = unwrapPage(r);
           setMetricStats({
             totalCount: page.total,
-            receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
-            payableTotal: Number(r.summary?.payableBaseAmount || 0),
             issuedCount: Number(r.summary?.issuedCount || 0),
-            baseCurrency: r.summary?.baseCurrency || '',
+            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
           });
           return { ...toTableRequest(r), total: page.total };
         }}
@@ -493,10 +490,6 @@ export default function FinanceInvoicesPage() {
         selectedIDs={selectedIDs}
         setSelectedIDs={setSelectedIDs}
         setSelectedBills={setSelectedBills}
-        availableProfiles={availableProfiles}
-        selectedProfile={selectedProfile}
-        setSelectedProfile={setSelectedProfile}
-        loadSelectedProfiles={loadSelectedProfiles}
         onOk={createInvoice}
       />
 
@@ -504,6 +497,7 @@ export default function FinanceInvoicesPage() {
         open={Boolean(issueTarget)}
         submitting={submitting}
         issueForm={issueForm}
+        issueTarget={issueTarget}
         onCancel={() => setIssueTarget(undefined)}
         onOk={issueInvoice}
       />

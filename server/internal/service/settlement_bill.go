@@ -39,7 +39,7 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
 	filter.TagIDs = tagIDs
-	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillRead, false)
+	organizationIDs, err := organizationIDsForRequestedOrganization(principal, access.FinanceBillRead, false, request.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +63,51 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 	}
 	return okList(ctx, &v1.ListBillsResponse{
 		Data: data, Total: result.Total,
-		Summary: &v1.FinanceBillSummary{
-			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
-			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
-			UnverifiedBaseAmount: result.Summary.UnverifiedBaseAmount.StringFixed(8),
-			BaseCurrency:         result.Summary.BaseCurrency,
-		},
+		Summary: financeBillSummaryToAPI(result.Summary),
 	}), nil
+}
+
+func (s *SettlementService) ListBillCreationCandidates(ctx context.Context, request *v1.ListBillCreationCandidatesRequest) (*v1.ListBillCreationCandidatesResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rawOrganizationID := strings.TrimSpace(request.GetOrganizationId())
+	if rawOrganizationID == "" {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	organizationIDs, err := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &rawOrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.billUsecase.ListCreationCandidates(ctx, organizationIDs[0], biz.FinanceBillCreationCandidateFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FeeLedgerItem, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, financeBillableFeeToAPI(item))
+	}
+	return okList(ctx, &v1.ListBillCreationCandidatesResponse{Data: data, Total: result.Total}), nil
+}
+
+func financeBillSummaryToAPI(summary biz.FinanceBillSummary) *v1.FinanceBillSummary {
+	return &v1.FinanceBillSummary{AmountsByBaseCurrency: financeBaseCurrencyAmountsToAPI(summary.AmountsByBaseCurrency)}
+}
+
+func financeBaseCurrencyAmountsToAPI(items []biz.FinanceBaseCurrencyAmount) []*v1.FinanceBaseCurrencyAmount {
+	data := make([]*v1.FinanceBaseCurrencyAmount, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.FinanceBaseCurrencyAmount{BaseCurrency: item.BaseCurrency, ReceivableBaseAmount: item.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: item.PayableBaseAmount.StringFixed(8), UnverifiedBaseAmount: item.UnverifiedBaseAmount.StringFixed(8)})
+	}
+	return data
 }
 
 func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequest) (*v1.GetBillResponse, error) {
@@ -99,9 +137,6 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
-		return nil, err
-	}
 	feeIDs := make([]uuid.UUID, 0, len(request.GetFeeIds()))
 	for _, rawID := range request.GetFeeIds() {
 		id, err := uuid.Parse(strings.TrimSpace(rawID))
@@ -110,7 +145,15 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 		}
 		feeIDs = append(feeIDs, id)
 	}
-	item, err := s.billUsecase.Create(ctx, principal.Organization.ID, principal.UserID, biz.CreateFinanceBillInput{
+	organizationIDs, scopeErr := organizationIDsForPermission(principal, access.FinanceBillCreate, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	organizationID, scopeErr := s.billUsecase.ResolveBillableFeeOrganization(ctx, organizationIDs, feeIDs)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	item, err := s.billUsecase.Create(ctx, organizationID, principal.UserID, biz.CreateFinanceBillInput{
 		FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(),
 	})
 	if err != nil {
@@ -124,14 +167,24 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
-		return nil, err
-	}
 	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
-	if err != nil || request.GetGroupingPolicy() == nil {
+	requestedOrganizationID, organizationErr := uuid.Parse(strings.TrimSpace(request.GetOrganizationId()))
+	if err != nil || organizationErr != nil || request.GetGroupingPolicy() == nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
-	preview, err := s.billUsecase.PreviewBatch(ctx, principal.Organization.ID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy())})
+	requestedOrganization := requestedOrganizationID.String()
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	organizationID, scopeErr := s.billUsecase.ResolveBillableFeeOrganization(ctx, organizationIDs, feeIDs)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if organizationID != requestedOrganizationID {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	preview, err := s.billUsecase.PreviewBatch(ctx, organizationID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy())})
 	if err != nil {
 		return nil, err
 	}
@@ -151,11 +204,9 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillCreate, true); err != nil {
-		return nil, err
-	}
 	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
-	if err != nil || request.GetGroupingPolicy() == nil {
+	requestedOrganizationID, organizationErr := uuid.Parse(strings.TrimSpace(request.GetOrganizationId()))
+	if err != nil || organizationErr != nil || request.GetGroupingPolicy() == nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
 	groups := make([]biz.CreateFinanceBillBatchGroupInput, 0, len(request.GetGroups()))
@@ -165,7 +216,19 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 		}
 		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note})
 	}
-	batch, err := s.billUsecase.CreateBatch(ctx, principal.Organization.ID, principal.UserID, biz.CreateFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, PreviewToken: request.GetPreviewToken(), IdempotencyKey: request.GetIdempotencyKey()})
+	requestedOrganization := requestedOrganizationID.String()
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	organizationID, scopeErr := s.billUsecase.ResolveBillableFeeOrganization(ctx, organizationIDs, feeIDs)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if organizationID != requestedOrganizationID {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	batch, err := s.billUsecase.CreateBatch(ctx, organizationID, principal.UserID, biz.CreateFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, PreviewToken: request.GetPreviewToken(), IdempotencyKey: request.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -273,6 +336,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 	}
 	return &v1.FinanceBill{
 		Id: item.ID.String(), BillNo: item.BillNo, Direction: string(item.Direction), Status: financeBillStatusToAPI(item.Status),
+		OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: item.TotalAmount.StringFixed(8), NetAmount: item.NetAmount.StringFixed(8),
 		TaxAmount: item.TaxAmount.StringFixed(8), BaseCurrencyAmount: item.BaseCurrencyAmount.StringFixed(8), FeeCount: int32(item.FeeCount),
@@ -303,5 +367,5 @@ func financeBillGroupingPolicyFromAPI(value *v1.BillGroupingPolicy) biz.FinanceB
 
 func financeBillableFeeToAPI(item *biz.FinanceBillableFee) *v1.FeeLedgerItem {
 	fee := item.Fee
-	return &v1.FeeLedgerItem{Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.BusinessType, Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit, Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), TaxRate: financeDecimalPointer(fee.TaxRate, 4), Currency: fee.Currency, ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version, CreatedAt: fee.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: fee.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.FeeLedgerItem{Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.BusinessType, OrganizationId: item.OrganizationID.String(), Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit, Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), TaxRate: financeDecimalPointer(fee.TaxRate, 4), Currency: fee.Currency, ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version, CreatedAt: fee.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: fee.UpdatedAt.UTC().Format(time.RFC3339)}
 }

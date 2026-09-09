@@ -186,47 +186,32 @@ export default function access(
       has(permissions.financeFeeSettingCreate) && inOrganization,
     canUpdateFeeSettings:
       has(permissions.financeFeeSettingUpdate) && inOrganization,
-    canAccessFinanceManagement:
-      inOrganization &&
-      [
-        permissions.financeFeeRead,
-        permissions.financeBillRead,
-        permissions.financeInvoiceRead,
-        permissions.financeCashflowRead,
-        permissions.financeVerificationRead,
-        permissions.financeCommissionRead,
-      ].some(has),
-    canReadFinanceFees: has(permissions.financeFeeRead) && inOrganization,
-    canManageFinanceFeeTags: has(permissions.financeFeeTag) && inOrganization,
-    canReadFinanceBills: has(permissions.financeBillRead) && inOrganization,
-    canCreateFinanceBills: has(permissions.financeBillCreate) && inOrganization,
-    canUpdateFinanceBills: has(permissions.financeBillUpdate) && inOrganization,
-    canConfirmFinanceBills:
-      has(permissions.financeBillConfirm) && inOrganization,
-    canReadFinanceInvoices:
-      has(permissions.financeInvoiceRead) && inOrganization,
-    canCreateFinanceInvoices:
-      has(permissions.financeInvoiceCreate) && inOrganization,
-    canUpdateFinanceInvoices:
-      has(permissions.financeInvoiceUpdate) && inOrganization,
-    canReadFinanceCashflows:
-      has(permissions.financeCashflowRead) && inOrganization,
-    canCreateFinanceCashflows:
-      has(permissions.financeCashflowCreate) && inOrganization,
-    canUpdateFinanceCashflows:
-      has(permissions.financeCashflowUpdate) && inOrganization,
-    canReadFinanceVerifications:
-      has(permissions.financeVerificationRead) && inOrganization,
-    canCreateFinanceVerifications:
-      has(permissions.financeVerificationCreate) && inOrganization,
-    canReverseFinanceVerifications:
-      has(permissions.financeVerificationReverse) && inOrganization,
-    canReadFinanceCommissions:
-      has(permissions.financeCommissionRead) && inOrganization,
-    canManageFinanceCommissions:
-      has(permissions.financeCommissionManage) && inOrganization,
-    canExportFinanceCommissions:
-      has(permissions.financeCommissionExport) && inOrganization,
+    canAccessFinanceManagement: [
+      permissions.financeFeeRead,
+      permissions.financeBillRead,
+      permissions.financeInvoiceRead,
+      permissions.financeCashflowRead,
+      permissions.financeVerificationRead,
+      permissions.financeCommissionRead,
+    ].some(has),
+    canReadFinanceFees: has(permissions.financeFeeRead),
+    canManageFinanceFeeTags: has(permissions.financeFeeTag),
+    canReadFinanceBills: has(permissions.financeBillRead),
+    canCreateFinanceBills: has(permissions.financeBillCreate),
+    canUpdateFinanceBills: has(permissions.financeBillUpdate),
+    canConfirmFinanceBills: has(permissions.financeBillConfirm),
+    canReadFinanceInvoices: has(permissions.financeInvoiceRead),
+    canCreateFinanceInvoices: has(permissions.financeInvoiceCreate),
+    canUpdateFinanceInvoices: has(permissions.financeInvoiceUpdate),
+    canReadFinanceCashflows: has(permissions.financeCashflowRead),
+    canCreateFinanceCashflows: has(permissions.financeCashflowCreate),
+    canUpdateFinanceCashflows: has(permissions.financeCashflowUpdate),
+    canReadFinanceVerifications: has(permissions.financeVerificationRead),
+    canCreateFinanceVerifications: has(permissions.financeVerificationCreate),
+    canReverseFinanceVerifications: has(permissions.financeVerificationReverse),
+    canReadFinanceCommissions: has(permissions.financeCommissionRead),
+    canManageFinanceCommissions: has(permissions.financeCommissionManage),
+    canExportFinanceCommissions: has(permissions.financeCommissionExport),
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canReadEnterpriseResources:
       has(permissions.enterpriseResourceRead) && inOrganization,

@@ -19,57 +19,68 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName                = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_GetFeeLedgerPreference_FullMethodName       = "/finance.v1.SettlementService/GetFeeLedgerPreference"
-	SettlementService_UpdateFeeLedgerPreference_FullMethodName    = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
-	SettlementService_ResetFeeLedgerPreference_FullMethodName     = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
-	SettlementService_GetBilledFeeEditPolicy_FullMethodName       = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
-	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName    = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
-	SettlementService_ListBills_FullMethodName                    = "/finance.v1.SettlementService/ListBills"
-	SettlementService_GetBill_FullMethodName                      = "/finance.v1.SettlementService/GetBill"
-	SettlementService_ListFinanceBillTagOptions_FullMethodName    = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
-	SettlementService_BatchAssignFinanceBillTags_FullMethodName   = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
-	SettlementService_BatchRemoveFinanceBillTags_FullMethodName   = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
-	SettlementService_ListFinanceFeeTagOptions_FullMethodName     = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
-	SettlementService_BatchAssignFinanceFeeTags_FullMethodName    = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
-	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName    = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
-	SettlementService_CreateBill_FullMethodName                   = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_PreviewBillBatch_FullMethodName             = "/finance.v1.SettlementService/PreviewBillBatch"
-	SettlementService_CreateBillBatch_FullMethodName              = "/finance.v1.SettlementService/CreateBillBatch"
-	SettlementService_ConfirmBillBatch_FullMethodName             = "/finance.v1.SettlementService/ConfirmBillBatch"
-	SettlementService_UpdateBill_FullMethodName                   = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName                  = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName                   = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName                 = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_GetInvoice_FullMethodName                   = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName                = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName                 = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName                = "/finance.v1.SettlementService/CancelInvoice"
-	SettlementService_RedFlushInvoice_FullMethodName              = "/finance.v1.SettlementService/RedFlushInvoice"
-	SettlementService_ListCashflows_FullMethodName                = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_CreateCashflow_FullMethodName               = "/finance.v1.SettlementService/CreateCashflow"
-	SettlementService_ConfirmCashflow_FullMethodName              = "/finance.v1.SettlementService/ConfirmCashflow"
-	SettlementService_CancelCashflow_FullMethodName               = "/finance.v1.SettlementService/CancelCashflow"
-	SettlementService_ListVerifications_FullMethodName            = "/finance.v1.SettlementService/ListVerifications"
-	SettlementService_CreateVerification_FullMethodName           = "/finance.v1.SettlementService/CreateVerification"
-	SettlementService_ReverseVerification_FullMethodName          = "/finance.v1.SettlementService/ReverseVerification"
-	SettlementService_ListCommissions_FullMethodName              = "/finance.v1.SettlementService/ListCommissions"
-	SettlementService_ExportCommissions_FullMethodName            = "/finance.v1.SettlementService/ExportCommissions"
-	SettlementService_ListCommissionEmployees_FullMethodName      = "/finance.v1.SettlementService/ListCommissionEmployees"
-	SettlementService_ListCommissionCandidates_FullMethodName     = "/finance.v1.SettlementService/ListCommissionCandidates"
-	SettlementService_GetCommission_FullMethodName                = "/finance.v1.SettlementService/GetCommission"
-	SettlementService_ListCommissionRules_FullMethodName          = "/finance.v1.SettlementService/ListCommissionRules"
-	SettlementService_CreateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/CreateCommissionRule"
-	SettlementService_UpdateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/UpdateCommissionRule"
-	SettlementService_PreviewCommission_FullMethodName            = "/finance.v1.SettlementService/PreviewCommission"
-	SettlementService_CreateCommission_FullMethodName             = "/finance.v1.SettlementService/CreateCommission"
-	SettlementService_ConfirmCommission_FullMethodName            = "/finance.v1.SettlementService/ConfirmCommission"
-	SettlementService_MarkCommissionPaid_FullMethodName           = "/finance.v1.SettlementService/MarkCommissionPaid"
-	SettlementService_CancelCommission_FullMethodName             = "/finance.v1.SettlementService/CancelCommission"
-	SettlementService_CreateCommissionAdjustment_FullMethodName   = "/finance.v1.SettlementService/CreateCommissionAdjustment"
-	SettlementService_ConfirmCommissionAdjustment_FullMethodName  = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
-	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
-	SettlementService_CancelCommissionAdjustment_FullMethodName   = "/finance.v1.SettlementService/CancelCommissionAdjustment"
+	SettlementService_ListFeeLedger_FullMethodName                        = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_GetFeeLedgerOrderDetail_FullMethodName              = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
+	SettlementService_GetFeeLedgerPreference_FullMethodName               = "/finance.v1.SettlementService/GetFeeLedgerPreference"
+	SettlementService_UpdateFeeLedgerPreference_FullMethodName            = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
+	SettlementService_ResetFeeLedgerPreference_FullMethodName             = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
+	SettlementService_GetBilledFeeEditPolicy_FullMethodName               = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
+	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName            = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
+	SettlementService_ListBills_FullMethodName                            = "/finance.v1.SettlementService/ListBills"
+	SettlementService_ListBillCreationCandidates_FullMethodName           = "/finance.v1.SettlementService/ListBillCreationCandidates"
+	SettlementService_GetBill_FullMethodName                              = "/finance.v1.SettlementService/GetBill"
+	SettlementService_ListFinanceBillTagOptions_FullMethodName            = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
+	SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName  = "/finance.v1.SettlementService/ListFinanceBillTagAssignmentOptions"
+	SettlementService_BatchAssignFinanceBillTags_FullMethodName           = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
+	SettlementService_BatchRemoveFinanceBillTags_FullMethodName           = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
+	SettlementService_ListFinanceFeeTagOptions_FullMethodName             = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
+	SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName   = "/finance.v1.SettlementService/ListFinanceFeeTagAssignmentOptions"
+	SettlementService_BatchAssignFinanceFeeTags_FullMethodName            = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
+	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName            = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
+	SettlementService_CreateBill_FullMethodName                           = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_PreviewBillBatch_FullMethodName                     = "/finance.v1.SettlementService/PreviewBillBatch"
+	SettlementService_CreateBillBatch_FullMethodName                      = "/finance.v1.SettlementService/CreateBillBatch"
+	SettlementService_ConfirmBillBatch_FullMethodName                     = "/finance.v1.SettlementService/ConfirmBillBatch"
+	SettlementService_UpdateBill_FullMethodName                           = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName                          = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName                           = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName                         = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_ListInvoiceCreationBills_FullMethodName             = "/finance.v1.SettlementService/ListInvoiceCreationBills"
+	SettlementService_ListInvoiceProfilesForBill_FullMethodName           = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
+	SettlementService_GetInvoice_FullMethodName                           = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName                        = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName                         = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName                        = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_RedFlushInvoice_FullMethodName                      = "/finance.v1.SettlementService/RedFlushInvoice"
+	SettlementService_ListCashflows_FullMethodName                        = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_ListFinanceOrganizationOptions_FullMethodName       = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
+	SettlementService_ListFinanceSettlementPartyOptions_FullMethodName    = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
+	SettlementService_CreateCashflow_FullMethodName                       = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName                      = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName                       = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListVerificationCreationCandidates_FullMethodName   = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
+	SettlementService_ListVerifications_FullMethodName                    = "/finance.v1.SettlementService/ListVerifications"
+	SettlementService_ListCommissionVerificationCandidates_FullMethodName = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
+	SettlementService_CreateVerification_FullMethodName                   = "/finance.v1.SettlementService/CreateVerification"
+	SettlementService_ReverseVerification_FullMethodName                  = "/finance.v1.SettlementService/ReverseVerification"
+	SettlementService_ListCommissions_FullMethodName                      = "/finance.v1.SettlementService/ListCommissions"
+	SettlementService_ExportCommissions_FullMethodName                    = "/finance.v1.SettlementService/ExportCommissions"
+	SettlementService_ListCommissionEmployees_FullMethodName              = "/finance.v1.SettlementService/ListCommissionEmployees"
+	SettlementService_ListCommissionCandidates_FullMethodName             = "/finance.v1.SettlementService/ListCommissionCandidates"
+	SettlementService_ListCommissionRuleCandidates_FullMethodName         = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
+	SettlementService_GetCommission_FullMethodName                        = "/finance.v1.SettlementService/GetCommission"
+	SettlementService_ListCommissionRules_FullMethodName                  = "/finance.v1.SettlementService/ListCommissionRules"
+	SettlementService_CreateCommissionRule_FullMethodName                 = "/finance.v1.SettlementService/CreateCommissionRule"
+	SettlementService_UpdateCommissionRule_FullMethodName                 = "/finance.v1.SettlementService/UpdateCommissionRule"
+	SettlementService_PreviewCommission_FullMethodName                    = "/finance.v1.SettlementService/PreviewCommission"
+	SettlementService_CreateCommission_FullMethodName                     = "/finance.v1.SettlementService/CreateCommission"
+	SettlementService_ConfirmCommission_FullMethodName                    = "/finance.v1.SettlementService/ConfirmCommission"
+	SettlementService_MarkCommissionPaid_FullMethodName                   = "/finance.v1.SettlementService/MarkCommissionPaid"
+	SettlementService_CancelCommission_FullMethodName                     = "/finance.v1.SettlementService/CancelCommission"
+	SettlementService_CreateCommissionAdjustment_FullMethodName           = "/finance.v1.SettlementService/CreateCommissionAdjustment"
+	SettlementService_ConfirmCommissionAdjustment_FullMethodName          = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
+	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName         = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
+	SettlementService_CancelCommissionAdjustment_FullMethodName           = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -80,6 +91,7 @@ const (
 type SettlementServiceClient interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, in *ListFeeLedgerRequest, opts ...grpc.CallOption) (*ListFeeLedgerResponse, error)
+	GetFeeLedgerOrderDetail(ctx context.Context, in *GetFeeLedgerOrderDetailRequest, opts ...grpc.CallOption) (*GetFeeLedgerOrderDetailResponse, error)
 	// GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*GetFeeLedgerPreferenceResponse, error)
 	// UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
@@ -91,11 +103,16 @@ type SettlementServiceClient interface {
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
+	ListBillCreationCandidates(ctx context.Context, in *ListBillCreationCandidatesRequest, opts ...grpc.CallOption) (*ListBillCreationCandidatesResponse, error)
 	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
 	ListFinanceBillTagOptions(ctx context.Context, in *ListFinanceBillTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagOptionsResponse, error)
+	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+	ListFinanceBillTagAssignmentOptions(ctx context.Context, in *ListFinanceBillTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagAssignmentOptionsResponse, error)
 	BatchAssignFinanceBillTags(ctx context.Context, in *BatchAssignFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceBillTagsResponse, error)
 	BatchRemoveFinanceBillTags(ctx context.Context, in *BatchRemoveFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceBillTagsResponse, error)
 	ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagOptionsResponse, error)
+	// ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+	ListFinanceFeeTagAssignmentOptions(ctx context.Context, in *ListFinanceFeeTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagAssignmentOptionsResponse, error)
 	BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceFeeTagsResponse, error)
 	BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
@@ -106,22 +123,30 @@ type SettlementServiceClient interface {
 	ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error)
 	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
+	ListInvoiceCreationBills(ctx context.Context, in *ListInvoiceCreationBillsRequest, opts ...grpc.CallOption) (*ListInvoiceCreationBillsResponse, error)
+	ListInvoiceProfilesForBill(ctx context.Context, in *ListInvoiceProfilesForBillRequest, opts ...grpc.CallOption) (*ListInvoiceProfilesForBillResponse, error)
 	GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...grpc.CallOption) (*GetInvoiceResponse, error)
 	CreateInvoice(ctx context.Context, in *CreateInvoiceRequest, opts ...grpc.CallOption) (*CreateInvoiceResponse, error)
 	IssueInvoice(ctx context.Context, in *IssueInvoiceRequest, opts ...grpc.CallOption) (*IssueInvoiceResponse, error)
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
 	RedFlushInvoice(ctx context.Context, in *RedFlushInvoiceRequest, opts ...grpc.CallOption) (*RedFlushInvoiceResponse, error)
 	ListCashflows(ctx context.Context, in *ListCashflowsRequest, opts ...grpc.CallOption) (*ListCashflowsResponse, error)
+	ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...grpc.CallOption) (*ListFinanceOrganizationOptionsResponse, error)
+	ListFinanceSettlementPartyOptions(ctx context.Context, in *ListFinanceSettlementPartyOptionsRequest, opts ...grpc.CallOption) (*ListFinanceSettlementPartyOptionsResponse, error)
 	CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error)
 	ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error)
 	CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...grpc.CallOption) (*CancelCashflowResponse, error)
+	ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error)
+	ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionVerificationCandidatesResponse, error)
 	CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error)
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	ExportCommissions(ctx context.Context, in *ExportCommissionsRequest, opts ...grpc.CallOption) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
 	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidatesResponse, error)
+	// ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+	ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionRuleCandidatesResponse, error)
 	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error)
 	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CreateCommissionRuleResponse, error)
@@ -149,6 +174,16 @@ func (c *settlementServiceClient) ListFeeLedger(ctx context.Context, in *ListFee
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListFeeLedgerResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListFeeLedger_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetFeeLedgerOrderDetail(ctx context.Context, in *GetFeeLedgerOrderDetailRequest, opts ...grpc.CallOption) (*GetFeeLedgerOrderDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFeeLedgerOrderDetailResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetFeeLedgerOrderDetail_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,6 +250,16 @@ func (c *settlementServiceClient) ListBills(ctx context.Context, in *ListBillsRe
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListBillCreationCandidates(ctx context.Context, in *ListBillCreationCandidatesRequest, opts ...grpc.CallOption) (*ListBillCreationCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBillCreationCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListBillCreationCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBillResponse)
@@ -229,6 +274,16 @@ func (c *settlementServiceClient) ListFinanceBillTagOptions(ctx context.Context,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListFinanceBillTagOptionsResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListFinanceBillTagOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListFinanceBillTagAssignmentOptions(ctx context.Context, in *ListFinanceBillTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagAssignmentOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFinanceBillTagAssignmentOptionsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -259,6 +314,16 @@ func (c *settlementServiceClient) ListFinanceFeeTagOptions(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListFinanceFeeTagOptionsResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListFinanceFeeTagOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListFinanceFeeTagAssignmentOptions(ctx context.Context, in *ListFinanceFeeTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagAssignmentOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFinanceFeeTagAssignmentOptionsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -365,6 +430,26 @@ func (c *settlementServiceClient) ListInvoices(ctx context.Context, in *ListInvo
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListInvoiceCreationBills(ctx context.Context, in *ListInvoiceCreationBillsRequest, opts ...grpc.CallOption) (*ListInvoiceCreationBillsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInvoiceCreationBillsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListInvoiceCreationBills_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListInvoiceProfilesForBill(ctx context.Context, in *ListInvoiceProfilesForBillRequest, opts ...grpc.CallOption) (*ListInvoiceProfilesForBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInvoiceProfilesForBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListInvoiceProfilesForBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...grpc.CallOption) (*GetInvoiceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetInvoiceResponse)
@@ -425,6 +510,26 @@ func (c *settlementServiceClient) ListCashflows(ctx context.Context, in *ListCas
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...grpc.CallOption) (*ListFinanceOrganizationOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFinanceOrganizationOptionsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListFinanceOrganizationOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListFinanceSettlementPartyOptions(ctx context.Context, in *ListFinanceSettlementPartyOptionsRequest, opts ...grpc.CallOption) (*ListFinanceSettlementPartyOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFinanceSettlementPartyOptionsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListFinanceSettlementPartyOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateCashflowResponse)
@@ -455,10 +560,30 @@ func (c *settlementServiceClient) CancelCashflow(ctx context.Context, in *Cancel
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCreationCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVerificationCreationCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListVerificationCreationCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListVerificationsResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListVerifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionVerificationCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionVerificationCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionVerificationCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -519,6 +644,16 @@ func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCommissionCandidatesResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListCommissionCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionRuleCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionRuleCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionRuleCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -663,6 +798,7 @@ func (c *settlementServiceClient) CancelCommissionAdjustment(ctx context.Context
 type SettlementServiceServer interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
+	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
 	// GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	// UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
@@ -674,11 +810,16 @@ type SettlementServiceServer interface {
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
+	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error)
+	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+	ListFinanceBillTagAssignmentOptions(context.Context, *ListFinanceBillTagAssignmentOptionsRequest) (*ListFinanceBillTagAssignmentOptionsResponse, error)
 	BatchAssignFinanceBillTags(context.Context, *BatchAssignFinanceBillTagsRequest) (*BatchAssignFinanceBillTagsResponse, error)
 	BatchRemoveFinanceBillTags(context.Context, *BatchRemoveFinanceBillTagsRequest) (*BatchRemoveFinanceBillTagsResponse, error)
 	ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error)
+	// ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+	ListFinanceFeeTagAssignmentOptions(context.Context, *ListFinanceFeeTagAssignmentOptionsRequest) (*ListFinanceFeeTagAssignmentOptionsResponse, error)
 	BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error)
 	BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
@@ -689,22 +830,30 @@ type SettlementServiceServer interface {
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
+	ListInvoiceProfilesForBill(context.Context, *ListInvoiceProfilesForBillRequest) (*ListInvoiceProfilesForBillResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
+	ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error)
+	ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
+	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
+	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
+	// ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+	ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error)
@@ -731,6 +880,9 @@ type UnimplementedSettlementServiceServer struct{}
 func (UnimplementedSettlementServiceServer) ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFeeLedger not implemented")
 }
+func (UnimplementedSettlementServiceServer) GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFeeLedgerOrderDetail not implemented")
+}
 func (UnimplementedSettlementServiceServer) GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFeeLedgerPreference not implemented")
 }
@@ -749,11 +901,17 @@ func (UnimplementedSettlementServiceServer) UpdateBilledFeeEditPolicy(context.Co
 func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBills not implemented")
 }
+func (UnimplementedSettlementServiceServer) ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBillCreationCandidates not implemented")
+}
 func (UnimplementedSettlementServiceServer) GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBill not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFinanceBillTagOptions not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListFinanceBillTagAssignmentOptions(context.Context, *ListFinanceBillTagAssignmentOptionsRequest) (*ListFinanceBillTagAssignmentOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFinanceBillTagAssignmentOptions not implemented")
 }
 func (UnimplementedSettlementServiceServer) BatchAssignFinanceBillTags(context.Context, *BatchAssignFinanceBillTagsRequest) (*BatchAssignFinanceBillTagsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchAssignFinanceBillTags not implemented")
@@ -763,6 +921,9 @@ func (UnimplementedSettlementServiceServer) BatchRemoveFinanceBillTags(context.C
 }
 func (UnimplementedSettlementServiceServer) ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFinanceFeeTagOptions not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListFinanceFeeTagAssignmentOptions(context.Context, *ListFinanceFeeTagAssignmentOptionsRequest) (*ListFinanceFeeTagAssignmentOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFinanceFeeTagAssignmentOptions not implemented")
 }
 func (UnimplementedSettlementServiceServer) BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchAssignFinanceFeeTags not implemented")
@@ -794,6 +955,12 @@ func (UnimplementedSettlementServiceServer) CancelBill(context.Context, *CancelB
 func (UnimplementedSettlementServiceServer) ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListInvoices not implemented")
 }
+func (UnimplementedSettlementServiceServer) ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInvoiceCreationBills not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListInvoiceProfilesForBill(context.Context, *ListInvoiceProfilesForBillRequest) (*ListInvoiceProfilesForBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInvoiceProfilesForBill not implemented")
+}
 func (UnimplementedSettlementServiceServer) GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInvoice not implemented")
 }
@@ -812,6 +979,12 @@ func (UnimplementedSettlementServiceServer) RedFlushInvoice(context.Context, *Re
 func (UnimplementedSettlementServiceServer) ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCashflows not implemented")
 }
+func (UnimplementedSettlementServiceServer) ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFinanceOrganizationOptions not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFinanceSettlementPartyOptions not implemented")
+}
 func (UnimplementedSettlementServiceServer) CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCashflow not implemented")
 }
@@ -821,8 +994,14 @@ func (UnimplementedSettlementServiceServer) ConfirmCashflow(context.Context, *Co
 func (UnimplementedSettlementServiceServer) CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCashflow not implemented")
 }
+func (UnimplementedSettlementServiceServer) ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVerificationCreationCandidates not implemented")
+}
 func (UnimplementedSettlementServiceServer) ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListVerifications not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionVerificationCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateVerification not implemented")
@@ -841,6 +1020,9 @@ func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Cont
 }
 func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionRuleCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCommission not implemented")
@@ -916,6 +1098,24 @@ func _SettlementService_ListFeeLedger_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListFeeLedger(ctx, req.(*ListFeeLedgerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetFeeLedgerOrderDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeeLedgerOrderDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetFeeLedgerOrderDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetFeeLedgerOrderDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetFeeLedgerOrderDetail(ctx, req.(*GetFeeLedgerOrderDetailRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1028,6 +1228,24 @@ func _SettlementService_ListBills_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListBillCreationCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillCreationCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListBillCreationCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListBillCreationCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListBillCreationCandidates(ctx, req.(*ListBillCreationCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_GetBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetBillRequest)
 	if err := dec(in); err != nil {
@@ -1060,6 +1278,24 @@ func _SettlementService_ListFinanceBillTagOptions_Handler(srv interface{}, ctx c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListFinanceBillTagOptions(ctx, req.(*ListFinanceBillTagOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListFinanceBillTagAssignmentOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFinanceBillTagAssignmentOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListFinanceBillTagAssignmentOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListFinanceBillTagAssignmentOptions(ctx, req.(*ListFinanceBillTagAssignmentOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1114,6 +1350,24 @@ func _SettlementService_ListFinanceFeeTagOptions_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListFinanceFeeTagOptions(ctx, req.(*ListFinanceFeeTagOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListFinanceFeeTagAssignmentOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFinanceFeeTagAssignmentOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListFinanceFeeTagAssignmentOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListFinanceFeeTagAssignmentOptions(ctx, req.(*ListFinanceFeeTagAssignmentOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1298,6 +1552,42 @@ func _SettlementService_ListInvoices_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListInvoiceCreationBills_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvoiceCreationBillsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListInvoiceCreationBills(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListInvoiceCreationBills_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListInvoiceCreationBills(ctx, req.(*ListInvoiceCreationBillsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListInvoiceProfilesForBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvoiceProfilesForBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListInvoiceProfilesForBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListInvoiceProfilesForBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListInvoiceProfilesForBill(ctx, req.(*ListInvoiceProfilesForBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_GetInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInvoiceRequest)
 	if err := dec(in); err != nil {
@@ -1406,6 +1696,42 @@ func _SettlementService_ListCashflows_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListFinanceOrganizationOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFinanceOrganizationOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListFinanceOrganizationOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListFinanceOrganizationOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListFinanceOrganizationOptions(ctx, req.(*ListFinanceOrganizationOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListFinanceSettlementPartyOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFinanceSettlementPartyOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListFinanceSettlementPartyOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListFinanceSettlementPartyOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListFinanceSettlementPartyOptions(ctx, req.(*ListFinanceSettlementPartyOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_CreateCashflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCashflowRequest)
 	if err := dec(in); err != nil {
@@ -1460,6 +1786,24 @@ func _SettlementService_CancelCashflow_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListVerificationCreationCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVerificationCreationCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListVerificationCreationCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListVerificationCreationCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListVerificationCreationCandidates(ctx, req.(*ListVerificationCreationCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_ListVerifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListVerificationsRequest)
 	if err := dec(in); err != nil {
@@ -1474,6 +1818,24 @@ func _SettlementService_ListVerifications_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListVerifications(ctx, req.(*ListVerificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListCommissionVerificationCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionVerificationCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionVerificationCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionVerificationCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionVerificationCandidates(ctx, req.(*ListCommissionVerificationCandidatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1582,6 +1944,24 @@ func _SettlementService_ListCommissionCandidates_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListCommissionCandidates(ctx, req.(*ListCommissionCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListCommissionRuleCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionRuleCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionRuleCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionRuleCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionRuleCandidates(ctx, req.(*ListCommissionRuleCandidatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1832,6 +2212,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ListFeeLedger_Handler,
 		},
 		{
+			MethodName: "GetFeeLedgerOrderDetail",
+			Handler:    _SettlementService_GetFeeLedgerOrderDetail_Handler,
+		},
+		{
 			MethodName: "GetFeeLedgerPreference",
 			Handler:    _SettlementService_GetFeeLedgerPreference_Handler,
 		},
@@ -1856,12 +2240,20 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ListBills_Handler,
 		},
 		{
+			MethodName: "ListBillCreationCandidates",
+			Handler:    _SettlementService_ListBillCreationCandidates_Handler,
+		},
+		{
 			MethodName: "GetBill",
 			Handler:    _SettlementService_GetBill_Handler,
 		},
 		{
 			MethodName: "ListFinanceBillTagOptions",
 			Handler:    _SettlementService_ListFinanceBillTagOptions_Handler,
+		},
+		{
+			MethodName: "ListFinanceBillTagAssignmentOptions",
+			Handler:    _SettlementService_ListFinanceBillTagAssignmentOptions_Handler,
 		},
 		{
 			MethodName: "BatchAssignFinanceBillTags",
@@ -1874,6 +2266,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFinanceFeeTagOptions",
 			Handler:    _SettlementService_ListFinanceFeeTagOptions_Handler,
+		},
+		{
+			MethodName: "ListFinanceFeeTagAssignmentOptions",
+			Handler:    _SettlementService_ListFinanceFeeTagAssignmentOptions_Handler,
 		},
 		{
 			MethodName: "BatchAssignFinanceFeeTags",
@@ -1916,6 +2312,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ListInvoices_Handler,
 		},
 		{
+			MethodName: "ListInvoiceCreationBills",
+			Handler:    _SettlementService_ListInvoiceCreationBills_Handler,
+		},
+		{
+			MethodName: "ListInvoiceProfilesForBill",
+			Handler:    _SettlementService_ListInvoiceProfilesForBill_Handler,
+		},
+		{
 			MethodName: "GetInvoice",
 			Handler:    _SettlementService_GetInvoice_Handler,
 		},
@@ -1940,6 +2344,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ListCashflows_Handler,
 		},
 		{
+			MethodName: "ListFinanceOrganizationOptions",
+			Handler:    _SettlementService_ListFinanceOrganizationOptions_Handler,
+		},
+		{
+			MethodName: "ListFinanceSettlementPartyOptions",
+			Handler:    _SettlementService_ListFinanceSettlementPartyOptions_Handler,
+		},
+		{
 			MethodName: "CreateCashflow",
 			Handler:    _SettlementService_CreateCashflow_Handler,
 		},
@@ -1952,8 +2364,16 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_CancelCashflow_Handler,
 		},
 		{
+			MethodName: "ListVerificationCreationCandidates",
+			Handler:    _SettlementService_ListVerificationCreationCandidates_Handler,
+		},
+		{
 			MethodName: "ListVerifications",
 			Handler:    _SettlementService_ListVerifications_Handler,
+		},
+		{
+			MethodName: "ListCommissionVerificationCandidates",
+			Handler:    _SettlementService_ListCommissionVerificationCandidates_Handler,
 		},
 		{
 			MethodName: "CreateVerification",
@@ -1978,6 +2398,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommissionCandidates",
 			Handler:    _SettlementService_ListCommissionCandidates_Handler,
+		},
+		{
+			MethodName: "ListCommissionRuleCandidates",
+			Handler:    _SettlementService_ListCommissionRuleCandidates_Handler,
 		},
 		{
 			MethodName: "GetCommission",

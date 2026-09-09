@@ -35,7 +35,9 @@ interface BusinessTagModalProps {
   }) => Promise<
     | API.ListOrderTagOptionsResponse
     | API.ListFinanceFeeTagOptionsResponse
+    | API.ListFinanceFeeTagAssignmentOptionsResponse
     | API.ListFinanceBillTagOptionsResponse
+    | API.ListFinanceBillTagAssignmentOptionsResponse
   >;
   /** 提交选中标签 ID，由调用方执行对应领域的批量接口 */
   onSubmit: (mode: BusinessTagModalMode, tagIds: string[]) => Promise<void>;

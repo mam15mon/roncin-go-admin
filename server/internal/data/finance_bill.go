@@ -17,6 +17,8 @@ import (
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
 )
@@ -27,11 +29,6 @@ type financeBillSummaryRow struct {
 	Direction    string `json:"direction"`
 	BaseCurrency string `json:"base_currency"`
 	BaseAmount   string `json:"base_amount"`
-}
-
-type financeBillVerifiedSummaryRow struct {
-	Active             bool   `json:"active"`
-	VerifiedBaseAmount string `json:"verified_base_amount"`
 }
 
 func NewFinanceBillRepo(data *Data) biz.FinanceBillRepo { return &financeBillRepo{data: data} }
@@ -82,41 +79,46 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		Scan(ctx, &summaryRows); err != nil {
 		return nil, err
 	}
-	summary := biz.FinanceBillSummary{
-		ReceivableBaseAmount: decimal.Zero,
-		PayableBaseAmount:    decimal.Zero,
-		UnverifiedBaseAmount: decimal.Zero,
-	}
+	summary := biz.FinanceBillSummary{}
+	amountsByBaseCurrency := make(map[string]*biz.FinanceBaseCurrencyAmount, len(summaryRows))
 	for _, row := range summaryRows {
-		amount, parseErr := decimalOf(row.BaseAmount)
+		value, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		summary.BaseCurrency = row.BaseCurrency
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
 		if row.Direction == string(financebillent.DirectionRECEIVABLE) {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(value)
 		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(value)
 		}
 	}
-	verifiedRows := make([]financeBillVerifiedSummaryRow, 0, 1)
-	if err := client.FinanceVerificationAllocation.Query().
+	for _, bucket := range amountsByBaseCurrency {
+		bucket.UnverifiedBaseAmount = bucket.ReceivableBaseAmount.Add(bucket.PayableBaseAmount)
+	}
+	allocations, err := client.FinanceVerificationAllocation.Query().
 		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(predicates...)).
-		GroupBy(verificationallocationent.FieldActive).
-		Aggregate(ent.As(ent.Sum(verificationallocationent.FieldBillBaseAmount), "verified_base_amount")).
-		Scan(ctx, &verifiedRows); err != nil {
+		WithBill(func(query *ent.FinanceBillQuery) {
+			query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+		}).All(ctx)
+	if err != nil {
 		return nil, err
 	}
-	verifiedBaseAmount := decimal.Zero
-	if len(verifiedRows) > 0 {
-		verifiedBaseAmount, err = decimalOf(verifiedRows[0].VerifiedBaseAmount)
-		if err != nil {
-			return nil, err
+	for _, allocation := range allocations {
+		amount, parseErr := decimalOf(allocation.BillBaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
 		}
+		bill, edgeErr := allocation.Edges.BillOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
 	}
-	summary.UnverifiedBaseAmount = summary.ReceivableBaseAmount.Add(summary.PayableBaseAmount).Sub(verifiedBaseAmount)
+	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
 
-	items, err := query.WithBatch().Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
+	items, err := query.WithBatch().WithOrganization().Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
@@ -140,7 +142,7 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
+	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query().WithOrganization()).
 		Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -198,7 +200,7 @@ func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
+	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query().WithOrganization()).
 		Where(financebillent.OrganizationIDEQ(organizationID), financebillent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
@@ -226,7 +228,7 @@ func (r *financeBillRepo) GetBatchByIdempotencyKey(ctx context.Context, organiza
 
 func (r *financeBillRepo) financeBillBatchQuery(query *ent.FinanceBillBatchQuery) *ent.FinanceBillBatchQuery {
 	return query.WithBills(func(query *ent.FinanceBillQuery) {
-		query.WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
+		query.WithOrganization().WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
 			lineQuery.WithOrder().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
 		}).Order(financebillent.ByCreatedAt(), financebillent.ByID())
 	})
@@ -294,12 +296,16 @@ func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery)
 }
 
 func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
+	return r.LoadBillableFeesScoped(ctx, []uuid.UUID{organizationID}, feeIDs)
+}
+
+func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	items, err := client.OrderFee.Query().
-		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).
+		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDIn(organizationIDs...))).
 		WithSettlementParty().WithOrder().All(ctx)
 	if err != nil {
 		return nil, err
@@ -314,7 +320,43 @@ func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID u
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
+		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
+	}
+	return result, nil
+}
+
+func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceBillCreationCandidateFilter) (*biz.FinanceBillCreationCandidateResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.OrderFee{orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(financebilllineent.ActiveEQ(true)))}
+	if filter.Keyword != "" {
+		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
+	}
+	if filter.Direction != "" {
+		predicates = append(predicates, orderfeeent.DirectionEQ(orderfeeent.Direction(filter.Direction)))
+	}
+	query := client.OrderFee.Query().Where(predicates...)
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.WithSettlementParty().WithOrder().Order(orderfeeent.ByExpenseDate(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.FinanceBillCreationCandidateResult{Items: make([]*biz.FinanceBillableFee, 0, len(items)), Total: int64(total)}
+	for _, item := range items {
+		fee, e := orderFeeToBiz(item)
+		if e != nil {
+			return nil, e
+		}
+		order, e := item.Edges.OrderOrErr()
+		if e != nil {
+			return nil, e
+		}
+		result.Items = append(result.Items, &biz.FinanceBillableFee{Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType)})
 	}
 	return result, nil
 }
@@ -668,6 +710,9 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 		Version: item.Version, ConfirmedAt: item.ConfirmedAt, ConfirmedBy: item.ConfirmedBy, CancelledAt: item.CancelledAt,
 		CancelledBy: item.CancelledBy, CancellationReason: item.CancellationReason, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
 		Lines: make([]*biz.FinanceBillLine, 0, len(item.Edges.Lines)),
+	}
+	if organization, edgeErr := item.Edges.OrganizationOrErr(); edgeErr == nil {
+		result.OrganizationName = organization.Name
 	}
 	if batchItem, edgeErr := item.Edges.BatchOrErr(); edgeErr == nil {
 		result.BatchNo = batchItem.BatchNo

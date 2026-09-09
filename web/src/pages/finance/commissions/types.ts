@@ -9,6 +9,7 @@ export type CreateValues = {
 };
 
 export type RuleValues = {
+  organizationId?: string;
   name: string;
   personnelRole: 'SALES' | 'OPERATOR' | 'CUSTOMER_SERVICE';
   calculationBasis: 'REALIZED_PROFIT' | 'REALIZED_REVENUE';
@@ -30,10 +31,22 @@ export const commissionStatusMeta: Record<
   number,
   { text: string; color: string }
 > = {
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: { text: '草稿', color: 'processing' },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: { text: '已确认', color: 'success' },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: { text: '已发放', color: 'blue' },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: { text: '已取消', color: 'default' },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: {
+    text: '草稿',
+    color: 'processing',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: {
+    text: '已确认',
+    color: 'success',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: {
+    text: '已发放',
+    color: 'blue',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: {
+    text: '已取消',
+    color: 'default',
+  },
 };
 
 export const personnelRoleMeta: Record<string, string> = {
@@ -69,10 +82,7 @@ export const calculationSignature = (values: Partial<CreateValues>) =>
 
 export function getBusinessReason(error: any): string {
   return (
-    error?.data?.reason ??
-    error?.response?.data?.reason ??
-    error?.reason ??
-    ''
+    error?.data?.reason ?? error?.response?.data?.reason ?? error?.reason ?? ''
   );
 }
 
@@ -83,30 +93,56 @@ export function getAdjustmentStatusInfo(
   const isDecrease = adjustment.direction === 'DECREASE';
 
   if (isReversal) {
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED
+    )
       return { text: '待追回', color: 'warning' };
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID
+    )
       return { text: '已追回', color: 'purple' };
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED
+    )
       return { text: '已取消', color: 'default' };
     return { text: '反核销草稿', color: 'processing' };
   }
 
   if (isDecrease) {
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+    )
       return { text: '冲减草稿', color: 'processing' };
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED
+    )
       return { text: '待扣回', color: 'warning' };
-    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
+    if (
+      adjustment.status ===
+      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID
+    )
       return { text: '已扣回', color: 'purple' };
     return { text: '已取消', color: 'default' };
   }
 
-  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT)
+  if (
+    adjustment.status ===
+    FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+  )
     return { text: '增提草稿', color: 'processing' };
-  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
+  if (
+    adjustment.status ===
+    FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED
+  )
     return { text: '待发放', color: 'success' };
-  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
+  if (
+    adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID
+  )
     return { text: '已发放', color: 'blue' };
   return { text: '已取消', color: 'default' };
 }

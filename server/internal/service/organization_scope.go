@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
@@ -25,6 +27,23 @@ func organizationIDsForPermission(principal *biz.Principal, permission string, w
 	return organizationIDs, nil
 }
 
+// organizationIDsForRequestedOrganization 将前端可选的单一组织限定在当前动作的权限范围内。
+// 未指定时保留该动作全部范围，任何越权 ID 一律失败，不回退到当前工作区。
+func organizationIDsForRequestedOrganization(principal *biz.Principal, permission string, writable bool, rawID *string) ([]uuid.UUID, error) {
+	organizationIDs, err := organizationIDsForPermission(principal, permission, writable)
+	if err != nil || rawID == nil || strings.TrimSpace(*rawID) == "" {
+		return organizationIDs, err
+	}
+	organizationID, parseErr := uuid.Parse(strings.TrimSpace(*rawID))
+	if parseErr != nil {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	if !uuidIn(organizationID, organizationIDs) {
+		return nil, biz.ErrPermissionDenied
+	}
+	return []uuid.UUID{organizationID}, nil
+}
+
 func currentOrganizationAllowedForPermission(principal *biz.Principal, permission string, writable bool) error {
 	organizationIDs, err := organizationIDsForPermission(principal, permission, writable)
 	if err != nil {
@@ -36,4 +55,13 @@ func currentOrganizationAllowedForPermission(principal *biz.Principal, permissio
 		}
 	}
 	return biz.ErrPermissionDenied
+}
+
+func uuidIn(target uuid.UUID, values []uuid.UUID) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }

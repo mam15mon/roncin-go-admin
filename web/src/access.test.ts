@@ -34,10 +34,10 @@ describe('提成导出权限', () => {
     ).toBe(false);
   });
 
-  it('拥有导出权限但没有组织范围时不允许显示导出按钮', () => {
+  it('本人范围在组织维度覆盖当前组织时允许显示导出按钮', () => {
     expect(
       access(currentUserWithSelfScope(['system.finance.commission.export']))
         .canExportFinanceCommissions,
-    ).toBe(false);
+    ).toBe(true);
   });
 });

@@ -1,20 +1,15 @@
-import { PlusOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import {
-  AutoComplete,
-  Button,
   Card,
   Col,
   DatePicker,
-  Divider,
   Form,
   Input,
   InputNumber,
   Row,
   Space,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd';
 import React from 'react';
@@ -24,63 +19,16 @@ const { Text } = Typography;
 type BillGroupCardProps = {
   group: API.BillBatchPreviewGroup;
   index: number;
-  invoiceProfilesMap: Record<string, API.PartnerInvoiceProfile[]>;
   feeColumns: ProColumns<API.FeeLedgerItem>[];
   directionText: (dir?: string) => string;
-  onOpenQuickAddProfile: (
-    index: number,
-    partnerId?: string,
-    partnerName?: string,
-  ) => void;
 };
 
 export default function BillGroupCard({
   group,
   index,
-  invoiceProfilesMap,
   feeColumns,
   directionText,
-  onOpenQuickAddProfile,
 }: BillGroupCardProps) {
-  const profileOptions = (() => {
-    const profiles = (
-      invoiceProfilesMap[group.settlementPartyId || ''] || []
-    ).filter((p) => p.enabled !== false);
-    const list = profiles.map((p) => ({
-      value: p.invoiceTitle || '',
-      label: (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontWeight: 500 }}>{p.invoiceTitle}</span>
-          <Space size="small">
-            {p.isDefault && (
-              <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
-                默认
-              </Tag>
-            )}
-            {p.taxpayerIdentificationNo && (
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                税号: {p.taxpayerIdentificationNo}
-              </Text>
-            )}
-          </Space>
-        </div>
-      ),
-    }));
-    if (!list.some((opt) => opt.value === group.settlementPartyName)) {
-      list.unshift({
-        value: group.settlementPartyName || '',
-        label: <span>{group.settlementPartyName}（结算单位全称）</span>,
-      });
-    }
-    return list;
-  })();
-
   return (
     <Card
       key={group.groupKey}
@@ -92,9 +40,7 @@ export default function BillGroupCard({
       }}
       title={
         <Space wrap>
-          <Tag
-            color={group.direction === 'RECEIVABLE' ? 'green' : 'volcano'}
-          >
+          <Tag color={group.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
             {directionText(group.direction)}
           </Tag>
           <span style={{ fontWeight: 600 }}>{group.settlementPartyName}</span>
@@ -115,40 +61,7 @@ export default function BillGroupCard({
         <Col xs={24} md={8}>
           <Form.Item
             name={['groups', index, 'statementTitle']}
-            label={
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                }}
-              >
-                <span>对账抬头</span>
-                <Tooltip title="为该结算单位新增开票抬头并自动选中">
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    style={{
-                      padding: 0,
-                      height: 'auto',
-                      fontSize: 12,
-                      fontWeight: 'normal',
-                    }}
-                    onClick={() =>
-                      onOpenQuickAddProfile(
-                        index,
-                        group.settlementPartyId,
-                        group.settlementPartyName,
-                      )
-                    }
-                  >
-                    新增抬头
-                  </Button>
-                </Tooltip>
-              </div>
-            }
+            label="对账抬头"
             rules={[
               {
                 required: true,
@@ -158,39 +71,7 @@ export default function BillGroupCard({
               { max: 200, message: '对账抬头不能超过 200 字' },
             ]}
           >
-            <AutoComplete
-              options={profileOptions}
-              popupRender={(menu) => (
-                <>
-                  {menu}
-                  <Divider style={{ margin: '4px 0' }} />
-                  <div
-                    style={{
-                      padding: '6px 12px',
-                      cursor: 'pointer',
-                      color: '#1677ff',
-                      fontSize: 12,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      background: '#f6faff',
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onOpenQuickAddProfile(
-                        index,
-                        group.settlementPartyId,
-                        group.settlementPartyName,
-                      );
-                    }}
-                  >
-                    <PlusOutlined /> 为【{group.settlementPartyName}】新增开票抬头
-                  </div>
-                </>
-              )}
-              placeholder="输入或下拉选择对账抬头"
-            />
+            <Input placeholder="默认使用结算单位名称，可编辑" />
           </Form.Item>
         </Col>
         <Col xs={24} md={5}>

@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	organization "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 	"github.com/shopspring/decimal"
 )
@@ -359,6 +360,8 @@ func TestCommissionRepoExportBatchUsesStableOrderingAndDynamicCNY(t *testing.T) 
 	// 第二批读取：固定排序 + LIMIT 200 OFFSET 200，末尾锚定防止误加锁。
 	mock.ExpectQuery(`SELECT "finance_commissions".*ORDER BY "finance_commissions"\."commission_date" DESC, "finance_commissions"\."created_at" DESC, "finance_commissions"\."id" DESC LIMIT 200 OFFSET 200$`).
 		WillReturnRows(sqlmock.NewRows(commission.Columns).AddRow(commissionExportScanRow(t, org)...))
+	mock.ExpectQuery(`SELECT "organizations".*FROM "organizations" WHERE "organizations"\."id" IN`).
+		WillReturnRows(sqlmock.NewRows(organization.Columns).AddRow(org, time.Now(), time.Now(), "ORG", "测试组织", "COMPANY", nil, true, "CNY", ""))
 	mock.ExpectQuery(`SELECT "finance_commission_adjustments".*FROM "finance_commission_adjustments".*ORDER BY "finance_commission_adjustments"\."created_at"`).
 		WillReturnRows(sqlmock.NewRows(adjustment.Columns))
 

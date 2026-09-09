@@ -35,6 +35,33 @@ type verificationTransactionRepoStub struct {
 	responseReads    int
 }
 
+type verificationCandidateRepoStub struct {
+	VerificationRepo
+	organizationID uuid.UUID
+	filter         VerificationCreationCandidateFilter
+	result         *VerificationCreationCandidates
+	err            error
+}
+
+type verificationListRepoStub struct {
+	VerificationRepo
+	organizationIDs []uuid.UUID
+	filter          VerificationFilter
+	err             error
+}
+
+func (s *verificationListRepoStub) ListScoped(_ context.Context, organizationIDs []uuid.UUID, filter VerificationFilter) (*VerificationListResult, error) {
+	s.organizationIDs = organizationIDs
+	s.filter = filter
+	return &VerificationListResult{}, s.err
+}
+
+func (s *verificationCandidateRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return s.result, s.err
+}
+
 func (s *verificationTransactionRepoStub) GetByKey(ctx context.Context, _ uuid.UUID, _ string) (*FinanceVerification, error) {
 	if err := requireVerificationTransaction(ctx); err != nil {
 		return nil, err
@@ -192,6 +219,49 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 	}
 	if exchangeRepo.transactionCalls != 4 {
 		t.Fatalf("汇率仓储事务内调用次数 = %d，期望 4", exchangeRepo.transactionCalls)
+	}
+}
+
+func TestVerificationCreationCandidatesUseOneExplicitOrganizationAndPreserveRepositoryError(t *testing.T) {
+	organizationID := uuid.New()
+	partyID := uuid.New()
+	expected := errors.New("候选查询失败")
+	repo := &verificationCandidateRepoStub{err: expected}
+	usecase := NewVerificationUsecase(repo, nil, nil)
+
+	_, err := usecase.ListCreationCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{
+		Direction:         OrderFeeReceivable,
+		SettlementPartyID: partyID,
+		Currency:          " usd ",
+	})
+	if !errors.Is(err, expected) {
+		t.Fatalf("候选查询错误 = %v，期望原样返回 %v", err, expected)
+	}
+	if repo.organizationID != organizationID || repo.filter.Direction != OrderFeeReceivable || repo.filter.SettlementPartyID != partyID || repo.filter.Currency != "USD" {
+		t.Fatalf("候选组织或筛选条件未完整传递: org=%s filter=%+v", repo.organizationID, repo.filter)
+	}
+	if _, err := usecase.ListCreationCandidates(context.Background(), uuid.Nil, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, SettlementPartyID: partyID, Currency: "USD"}); err != ErrVerificationInvalid {
+		t.Fatalf("空组织错误 = %v，期望 %v", err, ErrVerificationInvalid)
+	}
+	if _, err := usecase.ListCreationCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, Currency: "USD"}); err != ErrVerificationInvalid {
+		t.Fatalf("空结算单位错误 = %v，期望 %v", err, ErrVerificationInvalid)
+	}
+}
+
+func TestVerificationListScopedValidatesDirectionAndPreservesRepositoryError(t *testing.T) {
+	organizationID := uuid.New()
+	expected := errors.New("核销列表查询失败")
+	repo := &verificationListRepoStub{err: expected}
+	usecase := NewVerificationUsecase(repo, nil, nil)
+	filter := VerificationFilter{Page: 1, PageSize: 20, Direction: OrderFeeReceivable}
+	if _, err := usecase.ListScoped(context.Background(), []uuid.UUID{organizationID}, filter); !errors.Is(err, expected) {
+		t.Fatalf("列表错误 = %v，期望原样返回 %v", err, expected)
+	}
+	if len(repo.organizationIDs) != 1 || repo.organizationIDs[0] != organizationID || repo.filter.Direction != OrderFeeReceivable {
+		t.Fatalf("组织或方向未完整传给仓储: ids=%v filter=%+v", repo.organizationIDs, repo.filter)
+	}
+	if _, err := usecase.ListScoped(context.Background(), []uuid.UUID{organizationID}, VerificationFilter{Page: 1, PageSize: 20, Direction: OrderFeeDirection("OTHER")}); !errors.Is(err, ErrVerificationInvalid) {
+		t.Fatalf("非法方向错误 = %v，期望 %v", err, ErrVerificationInvalid)
 	}
 }
 

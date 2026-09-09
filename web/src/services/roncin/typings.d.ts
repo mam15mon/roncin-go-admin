@@ -417,6 +417,7 @@ declare namespace API {
   type BatchAssignFinanceFeeTagsRequest = {
     feeIds: string[];
     tagIds: string[];
+    organizationId: string;
   };
 
   type BatchAssignFinanceFeeTagsResponse = {
@@ -511,6 +512,7 @@ declare namespace API {
   type BatchRemoveFinanceFeeTagsRequest = {
     feeIds: string[];
     tagIds: string[];
+    organizationId: string;
   };
 
   type BatchRemoveFinanceFeeTagsResponse = {
@@ -755,6 +757,8 @@ declare namespace API {
     cnyAdjustmentAmount?: string;
     effectiveCommissionAmount?: string;
     cnyEffectiveCommissionAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type CommissionFeeDetail = {
@@ -966,6 +970,7 @@ declare namespace API {
     groups: CreateBillBatchGroupInput[];
     previewToken: string;
     idempotencyKey: string;
+    organizationId: string;
   };
 
   type CreateBillBatchResponse = {
@@ -1023,6 +1028,7 @@ declare namespace API {
     bankReferenceNo?: string;
     note?: string;
     idempotencyKey: string;
+    organizationId: string;
   };
 
   type CreateCashflowResponse = {
@@ -1069,6 +1075,7 @@ declare namespace API {
 
   type CreateCommissionRuleRequest = {
     rule: CommissionRuleInput;
+    organizationId: string;
   };
 
   type CreateCommissionRuleResponse = {
@@ -2059,6 +2066,13 @@ declare namespace API {
     id: string;
   };
 
+  type FeeLedgerBaseCurrencyAmount = {
+    baseCurrency?: string;
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    profitBaseAmount?: string;
+  };
+
   type FeeLedgerColumnPreference = {
     fieldKey: string;
     visible?: boolean;
@@ -2097,6 +2111,19 @@ declare namespace API {
     billNo?: string;
     financeLocked?: boolean;
     tags?: BusinessTagSummary[];
+    organizationId?: string;
+    organizationName?: string;
+  };
+
+  type FeeLedgerOrderDetail = {
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    customerName?: string;
+    organizationId?: string;
+    organizationName?: string;
+    fees?: FeeLedgerItem[];
+    amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
   };
 
   type FeeLedgerPreference = {
@@ -2122,10 +2149,7 @@ declare namespace API {
 
   type FeeLedgerSummary = {
     activeCount?: string;
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    profitBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
   };
 
   type FeeSetting = {
@@ -2149,6 +2173,13 @@ declare namespace API {
     sortOrder?: number;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type FinanceBaseCurrencyAmount = {
+    baseCurrency?: string;
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    unverifiedBaseAmount?: string;
   };
 
   type FinanceBill = {
@@ -2188,6 +2219,8 @@ declare namespace API {
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
     tags?: BusinessTagSummary[];
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceBillBatch = {
@@ -2225,10 +2258,7 @@ declare namespace API {
   };
 
   type FinanceBillSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    unverifiedBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type FinanceCashflow = {
@@ -2260,13 +2290,12 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceCashflowSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    unverifiedBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type FinanceCommission = {
@@ -2313,6 +2342,8 @@ declare namespace API {
     cnyCommissionAmount?: string;
     cnyAdjustmentAmount?: string;
     cnyEffectiveCommissionAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -2339,6 +2370,8 @@ declare namespace API {
     updatedAt?: string;
     sourceType?: string;
     sourceVerificationId?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceCommissionLine = {
@@ -2382,6 +2415,8 @@ declare namespace API {
     version?: string;
     createdAt?: string;
     updatedAt?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceInvoice = {
@@ -2425,6 +2460,8 @@ declare namespace API {
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
     baseCurrencyAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceInvoiceBill = {
@@ -2449,11 +2486,36 @@ declare namespace API {
     sourceLineCount?: number;
   };
 
+  type FinanceInvoiceProfileOption = {
+    id?: string;
+    invoiceTitle?: string;
+    taxpayerIdentificationNo?: string;
+    defaultInvoiceType?: string;
+    isDefault?: boolean;
+  };
+
+  type FinanceInvoiceProfilesForBill = {
+    organizationId?: string;
+    settlementPartyId?: string;
+    data?: FinanceInvoiceProfileOption[];
+  };
+
   type FinanceInvoiceSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
     issuedCount?: string;
+  };
+
+  type FinanceOrganizationOption = {
+    id?: string;
+    code?: string;
+    name?: string;
     baseCurrency?: string;
+  };
+
+  type FinanceSettlementPartyOption = {
+    id?: string;
+    code?: string;
+    name?: string;
   };
 
   type FinanceVerification = {
@@ -2481,6 +2543,8 @@ declare namespace API {
     billBaseAmount?: string;
     cashflowBaseAmount?: string;
     exchangeGainLoss?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceVerificationAllocation = {
@@ -2498,9 +2562,7 @@ declare namespace API {
   };
 
   type FinanceVerificationSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type GetBackgroundTaskResponse = {
@@ -2517,6 +2579,8 @@ declare namespace API {
     message?: string;
     data?: BilledFeeEditPolicy;
     traceId?: string;
+    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。 */
+    canUpdate?: boolean;
   };
 
   type GetBillResponse = {
@@ -2584,6 +2648,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateImportBatch;
+    traceId?: string;
+  };
+
+  type GetFeeLedgerOrderDetailResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerOrderDetail;
     traceId?: string;
   };
 
@@ -2809,6 +2881,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListBillCreationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerItem[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListBillingUnitsResponse = {
     success?: boolean;
     code?: number;
@@ -2870,6 +2951,15 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type ListCommissionRuleCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListCommissionRulesResponse = {
     success?: boolean;
     code?: number;
@@ -2884,6 +2974,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommission[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListCommissionVerificationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceVerification[];
     total?: string;
     traceId?: string;
   };
@@ -3000,7 +3099,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListFinanceBillTagAssignmentOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListFinanceBillTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceFeeTagAssignmentOptionsResponse = {
     tags?: BusinessTagSummary[];
     total?: string;
     traceId?: string;
@@ -3009,6 +3120,40 @@ declare namespace API {
   type ListFinanceFeeTagOptionsResponse = {
     tags?: BusinessTagSummary[];
     total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceOrganizationOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceOrganizationOption[];
+    traceId?: string;
+  };
+
+  type ListFinanceSettlementPartyOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementPartyOption[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListInvoiceCreationBillsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListInvoiceProfilesForBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoiceProfilesForBill;
     traceId?: string;
   };
 
@@ -3366,6 +3511,14 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListVerificationCreationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: VerificationCreationCandidates;
     traceId?: string;
   };
 
@@ -4791,6 +4944,7 @@ declare namespace API {
   type PreviewBillBatchRequest = {
     feeIds: string[];
     groupingPolicy: BillGroupingPolicy;
+    organizationId: string;
   };
 
   type PreviewBillBatchResponse = {
@@ -6226,6 +6380,7 @@ declare namespace API {
     status?: number;
     commissionDateFrom?: string;
     commissionDateTo?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceGetBillParams = {
@@ -6236,12 +6391,24 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceGetFeeLedgerOrderDetailParams = {
+    orderId: string;
+  };
+
   type SettlementServiceGetInvoiceParams = {
     id: string;
   };
 
   type SettlementServiceIssueInvoiceParams = {
     id: string;
+  };
+
+  type SettlementServiceListBillCreationCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
   };
 
   type SettlementServiceListBillsParams = {
@@ -6255,6 +6422,7 @@ declare namespace API {
     billDateFrom?: string;
     billDateTo?: string;
     tagIds?: string[];
+    organizationId?: string;
   };
 
   type SettlementServiceListCashflowsParams = {
@@ -6265,6 +6433,7 @@ declare namespace API {
     status?: number;
     settlementPartyId?: string;
     currency?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionCandidatesParams = {
@@ -6273,12 +6442,22 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionEmployeesParams = {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionRuleCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    personnelRole?: string;
   };
 
   type SettlementServiceListCommissionRulesParams = {
@@ -6287,6 +6466,7 @@ declare namespace API {
     keyword?: string;
     personnelRole?: string;
     enabled?: boolean;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionsParams = {
@@ -6296,6 +6476,14 @@ declare namespace API {
     status?: number;
     commissionDateFrom?: string;
     commissionDateTo?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionVerificationCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type SettlementServiceListFeeLedgerParams = {
@@ -6314,9 +6502,25 @@ declare namespace API {
     billNo?: string;
     financeLocked?: boolean;
     tagIds?: string[];
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceBillTagAssignmentOptionsParams = {
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type SettlementServiceListFinanceBillTagOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceFeeTagAssignmentOptionsParams = {
+    organizationId?: string;
     keyword?: string;
     page?: number;
     pageSize?: number;
@@ -6326,6 +6530,34 @@ declare namespace API {
     keyword?: string;
     page?: number;
     pageSize?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceOrganizationOptionsParams = {
+    purpose?: number;
+    keyword?: string;
+  };
+
+  type SettlementServiceListFinanceSettlementPartyOptionsParams = {
+    purpose?: number;
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SettlementServiceListInvoiceCreationBillsParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+  };
+
+  type SettlementServiceListInvoiceProfilesForBillParams = {
+    billId?: string;
   };
 
   type SettlementServiceListInvoicesParams = {
@@ -6334,6 +6566,14 @@ declare namespace API {
     keyword?: string;
     direction?: string;
     status?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListVerificationCreationCandidatesParams = {
+    organizationId?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
   };
 
   type SettlementServiceListVerificationsParams = {
@@ -6341,6 +6581,7 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     status?: number;
+    organizationId?: string;
   };
 
   type SettlementServiceMarkCommissionAdjustmentPaidParams = {
@@ -7208,6 +7449,11 @@ declare namespace API {
     cashflowId: string;
     billId: string;
     amount: string;
+  };
+
+  type VerificationCreationCandidates = {
+    cashflows?: FinanceCashflow[];
+    bills?: FinanceBill[];
   };
 
   type VoyageDifferenceItem = {

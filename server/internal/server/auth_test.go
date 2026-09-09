@@ -106,26 +106,61 @@ func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
 	}
 }
 
-func TestFinanceBillPermissionWritesClassifiesDeclaredPermissions(t *testing.T) {
+func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testing.T) {
 	tests := map[string]bool{
-		access.FinanceBillRead:    false,
-		access.FinanceBillCreate:  true,
-		access.FinanceBillUpdate:  true,
-		access.FinanceBillConfirm: true,
+		access.FinanceFeeRead:             false,
+		access.FinanceBillRead:            false,
+		access.FinanceInvoiceRead:         false,
+		access.FinanceCashflowRead:        false,
+		access.FinanceVerificationRead:    false,
+		access.FinanceCommissionRead:      false,
+		access.FinanceCommissionExport:    false,
+		access.FinanceBillCreate:          true,
+		access.FinanceBillUpdate:          true,
+		access.FinanceBillConfirm:         true,
+		access.FinanceInvoiceCreate:       true,
+		access.FinanceInvoiceUpdate:       true,
+		access.FinanceCashflowCreate:      true,
+		access.FinanceCashflowUpdate:      true,
+		access.FinanceVerificationCreate:  true,
+		access.FinanceVerificationReverse: true,
+		access.FinanceCommissionManage:    true,
+		access.FinanceFeeTag:              true,
 	}
 	for permission, wantWritable := range tests {
-		writable, known := financeBillPermissionWrites(permission)
+		writable, known := scopedFinancePermissionWrites(permission)
 		if !known || writable != wantWritable {
 			t.Errorf("权限 %s 的读写分类 = (%t, %t)，期望 (%t, true)", permission, writable, known, wantWritable)
 		}
 	}
 	const unknownPermission = "system.finance.bill.unknown"
-	if writable, known := financeBillPermissionWrites(unknownPermission); known || writable {
-		t.Fatalf("未知账单权限不得猜测读写，actual writable=%t known=%t", writable, known)
+	if writable, known := scopedFinancePermissionWrites(unknownPermission); known || writable {
+		t.Fatalf("未知财务权限不得猜测读写，actual writable=%t known=%t", writable, known)
 	}
-	principal := &biz.Principal{RoleGrants: []biz.RoleGrant{serverRoleGrant("unknown", biz.DataScopeAll, []string{unknownPermission}, nil)}}
+	principal := &biz.Principal{}
 	if hasPermission(&financev1.ListBillsRequest{}, principal, accessRule{permission: unknownPermission, scope: biz.DataScopeOrganization}) {
 		t.Fatal("未知账单权限即使意外出现在角色中也必须拒绝")
+	}
+}
+
+func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
+	currentOrganizationID := uuid.New()
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: currentOrganizationID},
+		OrganizationNodes: serverOrganizationNodes(currentOrganizationID),
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("rate-reader", biz.DataScopeOrganization,
+			[]string{access.FinanceExchangeRateRead}, nil)},
+	}
+	rule := accessRule{permission: access.FinanceExchangeRateRead, scope: biz.DataScopeOrganization}
+	if isScopedFinancePermission(access.FinanceExchangeRateRead) {
+		t.Fatal("未迁移汇率权限不得进入任意授权组织的财务粗门")
+	}
+	if !hasPermission(&financev1.ListBillsRequest{}, principal, rule) {
+		t.Fatal("未迁移汇率权限覆盖当前组织时应沿用通用 HasPermissionInScope")
+	}
+	principal.RoleGrants[0].DataScope = biz.DataScopeSelf
+	if hasPermission(&financev1.ListBillsRequest{}, principal, rule) {
+		t.Fatal("未迁移汇率权限的 self 范围不得通过组织级通用粗门")
 	}
 }
 

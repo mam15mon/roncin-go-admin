@@ -12,6 +12,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const serviceMocks = vi.hoisted(() => ({
   createCommission: vi.fn(),
   previewCommission: vi.fn(),
+  listFinanceOrganizationOptions: vi.fn(),
+  listCommissionVerificationCandidates: vi.fn(),
+  listCommissionRuleCandidates: vi.fn(),
 }));
 
 const modalState = vi.hoisted(() => ({
@@ -36,14 +39,52 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', () => ({
-  ProFormSearchableSelect: () => null,
+  ProFormSearchableSelect: (props: Record<string, any>) => {
+    const [options, setOptions] = React.useState<any[]>([]);
+    return (
+      <div>
+        {props.label === '所属公司' && (
+          <>
+            <button
+              type="button"
+              onClick={() => props.fieldProps?.onChange?.('org-a')}
+            >
+              选择公司 A
+            </button>
+            <button
+              type="button"
+              onClick={() => props.fieldProps?.onChange?.('org-b')}
+            >
+              选择公司 B
+            </button>
+          </>
+        )}
+        {props.request && (
+          <button
+            type="button"
+            onClick={async () => setOptions(await props.request())}
+          >
+            加载{props.label}
+          </button>
+        )}
+        {options.map((option) => (
+          <span key={option.value}>{option.label}</span>
+        ))}
+      </div>
+    );
+  },
 }));
 
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateCommission: serviceMocks.createCommission,
   settlementServiceListCommissionCandidates: vi.fn(),
+  settlementServiceListCommissionRuleCandidates:
+    serviceMocks.listCommissionRuleCandidates,
   settlementServiceListCommissionRules: vi.fn(),
-  settlementServiceListVerifications: vi.fn(),
+  settlementServiceListFinanceOrganizationOptions:
+    serviceMocks.listFinanceOrganizationOptions,
+  settlementServiceListCommissionVerificationCandidates:
+    serviceMocks.listCommissionVerificationCandidates,
   settlementServicePreviewCommission: serviceMocks.previewCommission,
 }));
 
@@ -59,6 +100,10 @@ describe('提成预览 CNY 快照', () => {
     modalState.props = undefined;
     serviceMocks.createCommission.mockReset();
     serviceMocks.previewCommission.mockReset();
+    serviceMocks.listFinanceOrganizationOptions.mockReset();
+    serviceMocks.listCommissionVerificationCandidates.mockReset();
+    serviceMocks.listCommissionRuleCandidates.mockReset();
+    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
     serviceMocks.previewCommission.mockResolvedValue({
       data: {
         employeeName: '张三',
@@ -133,6 +178,107 @@ describe('提成预览 CNY 快照', () => {
     );
     expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
       'cnyCommissionAmount',
+    );
+  });
+
+  it('未选公司不请求核销候选，慢 A 响应不会污染已切换的 B 公司', async () => {
+    let resolveA: (value: unknown) => void = () => undefined;
+    const slowA = new Promise((resolve) => {
+      resolveA = resolve;
+    });
+    serviceMocks.listCommissionVerificationCandidates.mockImplementation(
+      ({ organizationId }: { organizationId: string }) =>
+        organizationId === 'org-a'
+          ? slowA
+          : Promise.resolve({
+              data: [
+                {
+                  id: 'verification-b',
+                  verificationNo: 'VR-B',
+                  settlementPartyName: 'B单位',
+                  amount: '100',
+                  currency: 'CNY',
+                },
+              ],
+            }),
+    );
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    expect(
+      serviceMocks.listCommissionVerificationCandidates,
+    ).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    fireEvent.click(screen.getByRole('button', { name: '加载有效应收核销' }));
+    await waitFor(() =>
+      expect(
+        serviceMocks.listCommissionVerificationCandidates,
+      ).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+      }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
+    fireEvent.click(screen.getByRole('button', { name: '加载有效应收核销' }));
+    expect(await screen.findByText('VR-B｜B单位｜100 CNY')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveA({
+        data: [
+          {
+            id: 'verification-a',
+            verificationNo: 'VR-A',
+            settlementPartyName: 'A单位',
+            amount: '200',
+            currency: 'CNY',
+          },
+        ],
+      });
+      await slowA;
+    });
+    expect(screen.queryByText('VR-A｜A单位｜200 CNY')).not.toBeInTheDocument();
+  });
+
+  it('考核规则候选携带当前公司，并使用提成管理专用接口', async () => {
+    serviceMocks.listCommissionRuleCandidates.mockResolvedValue({
+      data: [
+        {
+          id: 'rule-b',
+          name: 'B公司销售提成',
+          personnelRole: 'SALES',
+          calculationBasis: 'REALIZED_PROFIT',
+          ratePercent: '2.5',
+        },
+      ],
+    });
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
+    fireEvent.click(screen.getByRole('button', { name: '加载考核规则' }));
+
+    await waitFor(() =>
+      expect(serviceMocks.listCommissionRuleCandidates).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-b',
+      }),
     );
   });
 });

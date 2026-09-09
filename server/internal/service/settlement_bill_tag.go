@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
@@ -15,18 +16,51 @@ func (s *SettlementService) ListFinanceBillTagOptions(ctx context.Context, reque
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
+	if err != nil {
 		return nil, err
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillRead, false, request.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrBusinessTagInvalidArgument
+	}
+	items, total, err := s.tagUsecase.ListTagOptions(ctx, organizationIDs[0], request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListFinanceBillTagOptionsResponse{Tags: businessTagSummariesToFinanceAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+// ListFinanceBillTagAssignmentOptions 只为账单标签写入提供候选。读取筛选继续复用
+// ListFinanceBillTagOptions 的 bill.read 范围，不能借此接口扩大写入范围。
+func (s *SettlementService) ListFinanceBillTagAssignmentOptions(ctx context.Context, request *v1.ListFinanceBillTagAssignmentOptionsRequest) (*v1.ListFinanceBillTagAssignmentOptionsResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
-	items, total, err := s.tagUsecase.ListTagOptions(ctx, principal.Organization.ID, request.GetKeyword(), page, pageSize)
+	rawOrganizationID := request.GetOrganizationId()
+	if rawOrganizationID == "" {
+		return nil, biz.ErrBusinessTagInvalidArgument
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillUpdate, true, &rawOrganizationID)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrBusinessTagInvalidArgument
+	}
+	items, total, err := s.tagUsecase.ListTagOptions(ctx, organizationIDs[0], request.GetKeyword(), page, pageSize)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListFinanceBillTagOptionsResponse{Tags: businessTagSummariesToFinanceAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListFinanceBillTagAssignmentOptionsResponse{Tags: businessTagSummariesToFinanceAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *SettlementService) BatchAssignFinanceBillTags(ctx context.Context, request *v1.BatchAssignFinanceBillTagsRequest) (*v1.BatchAssignFinanceBillTagsResponse, error) {

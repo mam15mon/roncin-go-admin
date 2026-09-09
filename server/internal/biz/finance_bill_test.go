@@ -1,12 +1,27 @@
 package biz
 
 import (
+	"context"
+	"errors"
 	"slices"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type billCreationCandidateRepoStub struct {
+	FinanceBillRepo
+	organizationID uuid.UUID
+	filter         FinanceBillCreationCandidateFilter
+	err            error
+}
+
+func (s *billCreationCandidateRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return &FinanceBillCreationCandidateResult{}, s.err
+}
 
 func TestBuildFinanceBillAggregatesExactSnapshots(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
@@ -141,6 +156,25 @@ func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	inconsistent := "2026-09-24"
 	if _, err = normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", DueDate: &inconsistent, PaymentTermsDays: &terms, IdempotencyKey: "bad-terms"}); err != ErrFinanceBillInvalidArgument {
 		t.Fatalf("账期与到期日不一致应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestBillCreationCandidatesNormalizeAndRejectInvalid(t *testing.T) {
+	repo := &billCreationCandidateRepoStub{}
+	uc := NewFinanceBillUsecase(repo, nil, nil)
+	org := uuid.New()
+	if _, err := uc.ListCreationCandidates(context.Background(), org, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20, Keyword: "  海运  ", Direction: OrderFeeReceivable}); err != nil {
+		t.Fatal(err)
+	}
+	if repo.organizationID != org || repo.filter.Keyword != "海运" {
+		t.Fatalf("候选参数未规范化: %+v", repo.filter)
+	}
+	if _, err := uc.ListCreationCandidates(context.Background(), uuid.Nil, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("非法组织错误=%v", err)
+	}
+	repo.err = errors.New("db")
+	if _, err := uc.ListCreationCandidates(context.Background(), org, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20}); !errors.Is(err, repo.err) {
+		t.Fatalf("错误未透传:%v", err)
 	}
 }
 

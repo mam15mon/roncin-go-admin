@@ -8,10 +8,7 @@ import {
   statusTag,
   statusText,
 } from '@/constants/statusMeta';
-import {
-  FeeLedgerFinancialProgress,
-  OrderFeeStatus,
-} from '@/enums.generated';
+import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 import { searchPartnerOptions } from '@/utils/options';
 
@@ -45,31 +42,36 @@ export const financialProgressLabels: Record<
     color: 'gold',
     key: 'unbilled',
   },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]: {
-    text: '未核销未开票',
-    color: 'orange',
-    key: 'unverifiedUninvoiced',
-  },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED]: {
-    text: '已开票未核销',
-    color: 'blue',
-    key: 'invoicedUnverified',
-  },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED]: {
-    text: '已开票部分核销',
-    color: 'cyan',
-    key: 'invoicedPartiallyVerified',
-  },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED]: {
-    text: '部分核销未开票',
-    color: 'geekblue',
-    key: 'partiallyVerifiedUninvoiced',
-  },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED]: {
-    text: '已核销未开票',
-    color: 'purple',
-    key: 'verifiedUninvoiced',
-  },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]:
+    {
+      text: '未核销未开票',
+      color: 'orange',
+      key: 'unverifiedUninvoiced',
+    },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED]:
+    {
+      text: '已开票未核销',
+      color: 'blue',
+      key: 'invoicedUnverified',
+    },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED]:
+    {
+      text: '已开票部分核销',
+      color: 'cyan',
+      key: 'invoicedPartiallyVerified',
+    },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED]:
+    {
+      text: '部分核销未开票',
+      color: 'geekblue',
+      key: 'partiallyVerifiedUninvoiced',
+    },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED]:
+    {
+      text: '已核销未开票',
+      color: 'purple',
+      key: 'verifiedUninvoiced',
+    },
   [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED]: {
     text: '已完成',
     color: 'green',
@@ -89,7 +91,7 @@ export function formatRate(value?: any): string {
 }
 
 export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
-  return   [
+  return [
     // --- 0. 全局综合关键字搜索（表格内隐藏，固定在搜索栏首位） ---
     {
       title: '综合搜索',
@@ -116,22 +118,31 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 140,
       search: false,
       render: (_, row) =>
-        row.tags?.length ? (
-          row.tags.map((tag) => (
-            <Tag
-              key={tag.id}
-              style={
-                tag.groupColor
-                  ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
-                  : { marginInlineEnd: 4 }
-              }
-            >
-              {tag.name}
-            </Tag>
-          ))
-        ) : (
-          '-'
-        ),
+        row.tags?.length
+          ? row.tags.map((tag) => (
+              <Tag
+                key={tag.id}
+                style={
+                  tag.groupColor
+                    ? {
+                        color: tag.groupColor,
+                        borderColor: tag.groupColor,
+                        marginInlineEnd: 4,
+                      }
+                    : { marginInlineEnd: 4 }
+                }
+              >
+                {tag.name}
+              </Tag>
+            ))
+          : '-',
+    },
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '属性',

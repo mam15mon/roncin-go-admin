@@ -11,9 +11,12 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, Button, DatePicker, Space, Tag, Typography } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
-import { FinanceCommissionStatus } from '@/enums.generated';
+import {
+  FinanceCommissionStatus,
+  FinanceOrganizationPurpose,
+} from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCancelCommission,
@@ -23,6 +26,7 @@ import {
   settlementServiceExportCommissions,
   settlementServiceGetCommission,
   settlementServiceListCommissions,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceMarkCommissionAdjustmentPaid,
   settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
@@ -64,6 +68,16 @@ export default function FinanceCommissionsPage() {
   const [detail, setDetail] = useState<API.FinanceCommission>();
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
+    }).then((response) => setOrganizationOptions(response.data ?? []));
+  }, []);
 
   const reload = () => actionRef.current?.reload();
 
@@ -161,7 +175,7 @@ export default function FinanceCommissionsPage() {
 
     modal.confirm({
       title: `${action} ${record.adjustmentNo}？`,
-      content,
+      content: `所属公司：${record.organizationName || '所属公司未标识'}。${content}`,
       onOk: async () => {
         try {
           const body = { id: adjustmentID, expectedVersion: adjustmentVersion };
@@ -206,7 +220,7 @@ export default function FinanceCommissionsPage() {
   const cancelAdjustment = (record: API.FinanceCommissionAdjustment) => {
     adjustmentActions.confirm(
       record,
-      `取消调整 ${record.adjustmentNo}？`,
+      `取消 ${record.organizationName || '所属公司未标识'} 的调整 ${record.adjustmentNo}？`,
       async ({ id, expectedVersion }, reason) => {
         try {
           await settlementServiceCancelCommissionAdjustment(
@@ -235,7 +249,7 @@ export default function FinanceCommissionsPage() {
     const version = record.version;
     const action = target === 'CONFIRMED' ? '确认' : '标记已发放';
     modal.confirm({
-      title: `${action}提成 ${record.commissionNo}？`,
+      title: `${action} ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
       content:
         target === 'CONFIRMED'
           ? '系统会重新核对核销、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
@@ -289,7 +303,7 @@ export default function FinanceCommissionsPage() {
   const cancel = (record: API.FinanceCommission) => {
     commissionActions.confirm(
       record,
-      `取消提成 ${record.commissionNo}？`,
+      `取消 ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
       async ({ id, expectedVersion }, reason) => {
         try {
           await settlementServiceCancelCommission(
@@ -313,6 +327,13 @@ export default function FinanceCommissionsPage() {
   };
 
   const columns: ProColumns<API.FinanceCommission>[] = [
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
     {
       title: '关键词',
       dataIndex: 'keyword',
@@ -583,6 +604,17 @@ export default function FinanceCommissionsPage() {
                 style={{ width: '100%' }}
               />
             ),
+          },
+          {
+            name: 'organizationId',
+            label: '所属公司',
+            type: 'select',
+            placeholder: '全部公司',
+            span: 4,
+            options: organizationOptions.map((item) => ({
+              value: item.id ?? '',
+              label: item.name ?? item.code ?? item.id ?? '',
+            })),
           },
         ]}
         onSearch={(values) => {

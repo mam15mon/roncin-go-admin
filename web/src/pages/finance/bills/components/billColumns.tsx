@@ -34,22 +34,24 @@ export function getFinanceBillColumns({
       dataIndex: 'tags',
       width: 140,
       render: (_, row) =>
-        row.tags?.length ? (
-          row.tags.map((tag) => (
-            <Tag
-              key={tag.id}
-              style={
-                tag.groupColor
-                  ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
-                  : { marginInlineEnd: 4 }
-              }
-            >
-              {tag.name}
-            </Tag>
-          ))
-        ) : (
-          '-'
-        ),
+        row.tags?.length
+          ? row.tags.map((tag) => (
+              <Tag
+                key={tag.id}
+                style={
+                  tag.groupColor
+                    ? {
+                        color: tag.groupColor,
+                        borderColor: tag.groupColor,
+                        marginInlineEnd: 4,
+                      }
+                    : { marginInlineEnd: 4 }
+                }
+              >
+                {tag.name}
+              </Tag>
+            ))
+          : '-',
     },
     {
       title: '序号',
@@ -86,9 +88,10 @@ export function getFinanceBillColumns({
         ]),
       ),
       render: (_, row) => {
-        const value = statusOptions[
-          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
-        ];
+        const value =
+          statusOptions[
+            row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
+          ];
         return (
           <Tag color={value?.color} style={{ margin: 0 }}>
             {value?.text}
@@ -107,6 +110,13 @@ export function getFinanceBillColumns({
           {val}
         </a>
       ),
+    },
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '建单批次',
@@ -238,9 +248,7 @@ export function getFinanceBillColumns({
       width: 160,
       search: false,
       render: (_, row) =>
-        row.createdAt
-          ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm')
-          : '-',
+        row.createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm') : '-',
     },
     {
       title: '操作',
@@ -261,7 +269,7 @@ export function getFinanceBillColumns({
         row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
-            title="确认该账单？确认后将锁定对账金额并进入开票与核销"
+            title={`确认 ${row.organizationName || '所属公司未标识'} 的该账单？确认后将锁定对账金额并进入开票与核销`}
             onConfirm={() => void onConfirmBill(row)}
           >
             <a>

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import {
   FeeLedgerFinancialProgress,
+  FinanceOrganizationPurpose,
   OrderFeeStatus,
 } from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
@@ -25,7 +26,9 @@ import {
   settlementServiceBatchRemoveFinanceFeeTags,
   settlementServiceGetFeeLedgerPreference,
   settlementServiceListFeeLedger,
+  settlementServiceListFinanceFeeTagAssignmentOptions,
   settlementServiceListFinanceFeeTagOptions,
+  settlementServiceListFinanceOrganizationOptions,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import {
@@ -39,15 +42,60 @@ import {
   getBaseFeeLedgerColumns,
 } from './components/feeLedgerColumns';
 
+export function resolveSingleBillCreationOrganization(
+  rows: API.FeeLedgerItem[],
+) {
+  const ids = Array.from(
+    new Set(rows.map((row) => row.organizationId).filter(Boolean)),
+  );
+  return rows.length > 0 &&
+    rows.every((row) => Boolean(row.organizationId)) &&
+    ids.length === 1
+    ? ids[0]
+    : undefined;
+}
+
+// 费用标签写入以当前筛选的单一公司为边界；跨组织选择应在请求候选和提交前拦截。
+export function feeRowsBelongToOrganization(
+  rows: API.FeeLedgerItem[],
+  organizationId: string | undefined,
+) {
+  return Boolean(organizationId) &&
+    rows.length > 0 &&
+    rows.every((row) => row.organizationId === organizationId);
+}
+
 export default function FinanceFeeLedgerPage() {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
+  const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
+    useState<string>();
   const [columnConfigOpen, setColumnConfigOpen] = useState(false);
   const [preference, setPreference] = useState<API.FeeLedgerPreference>();
   const [filterParams, setFilterParams] = useState<FeeLedgerFilterParams>({});
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose: FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
+    })
+      .then((response) => {
+        if (!cancelled) setOrganizationOptions(response.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) message.warning('所属公司候选加载失败');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [message]);
 
   const handleSearch = (values: FeeLedgerFilterParams) => {
     setFilterParams(values);
@@ -62,7 +110,7 @@ export default function FinanceFeeLedgerPage() {
   const canCreateBill = (row: API.FeeLedgerItem) =>
     row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED && !row.billNo;
 
-  const handleBatchConfirm = async (
+  const confirmDraftRows = async (
     _keys: React.Key[],
     rows: API.FeeLedgerItem[],
   ) => {
@@ -104,9 +152,20 @@ export default function FinanceFeeLedgerPage() {
     }
   };
 
+  const handleBatchConfirm = (keys: React.Key[], rows: API.FeeLedgerItem[]) => {
+    const organizations = [
+      ...new Set(rows.map((row) => row.organizationName || '-')),
+    ];
+    modal.confirm({
+      title: '确认勾选费用？',
+      content: `所属公司：${organizations.join('、')}。费用确认仍按订单费用权限校验。`,
+      onOk: () => confirmDraftRows(keys, rows),
+    });
+  };
+
   // 加载当前用户云端表头偏好配置
   useEffect(() => {
-    settlementServiceGetFeeLedgerPreference({ skipErrorHandler: true })
+    settlementServiceGetFeeLedgerPreference({})
       .then((res) => {
         if (res.data) {
           setPreference(res.data);
@@ -117,6 +176,12 @@ export default function FinanceFeeLedgerPage() {
       });
   }, [message]);
 
+  const formatAmounts = (
+    field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
+  ) =>
+    summary?.amountsByBaseCurrency
+      ?.map((item) => `${amount(item[field])} ${item.baseCurrency || '-'}`)
+      .join(' / ') || '-';
   const metricCards: FinanceLedgerMetricCard[] = [
     {
       key: 'active-count',
@@ -127,27 +192,24 @@ export default function FinanceFeeLedgerPage() {
     {
       key: 'receivable-base',
       title: '应收折本币总池',
-      value: amount(summary?.receivableBaseAmount),
-      precision: 2,
-      suffix: summary?.baseCurrency || 'CNY',
+      value: formatAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'payable-base',
       title: '应付折本币总池',
-      value: amount(summary?.payableBaseAmount),
-      precision: 2,
-      suffix: summary?.baseCurrency || 'CNY',
+      value: formatAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'profit-base',
       title: '确认综合毛利',
-      value: amount(summary?.profitBaseAmount),
-      precision: 2,
-      suffix: summary?.baseCurrency || 'CNY',
-      valueColor:
-        amount(summary?.profitBaseAmount) >= 0 ? '#52c41a' : '#ff4d4f',
+      value: formatAmounts('profitBaseAmount'),
+      valueColor: (summary?.amountsByBaseCurrency ?? []).every(
+        (item) => amount(item.profitBaseAmount) >= 0,
+      )
+        ? '#52c41a'
+        : '#ff4d4f',
     },
   ];
 
@@ -164,6 +226,10 @@ export default function FinanceFeeLedgerPage() {
 
   const loadTagFilterOptions = useCallback(
     async (keyword?: string, selectedIds: string[] = []) => {
+      if (!organizationId) {
+        setTagOptions([]);
+        return;
+      }
       const requestSequence = ++tagFilterRequestRef.current;
       setTagOptionsLoading(true);
       try {
@@ -171,6 +237,7 @@ export default function FinanceFeeLedgerPage() {
           page: 1,
           pageSize: 50,
           keyword: keyword?.trim() || undefined,
+          organizationId,
         });
         if (requestSequence !== tagFilterRequestRef.current) return;
         setTagOptions((current) => {
@@ -193,15 +260,23 @@ export default function FinanceFeeLedgerPage() {
         }
       }
     },
-    [],
+    [organizationId],
   );
 
   useEffect(() => {
-    void loadTagFilterOptions();
+    if (organizationId) void loadTagFilterOptions();
   }, [loadTagFilterOptions]);
 
   const openTagModal = (_keys: React.Key[], rows: API.FeeLedgerItem[]) => {
+    if (!organizationId) {
+      message.warning('请先选择所属公司后再维护费用标签');
+      return;
+    }
     if (!rows.length) return;
+    if (!feeRowsBelongToOrganization(rows, organizationId)) {
+      message.warning('只能维护当前所属公司的费用标签');
+      return;
+    }
     setTagFeeIds(rows.map((row) => row.id ?? '').filter(Boolean));
     const seen = new Map<string, API.BusinessTagSummary>();
     for (const row of rows)
@@ -242,11 +317,31 @@ export default function FinanceFeeLedgerPage() {
             placeholder="命中任一标签即返回"
             options={tagOptions}
             value={tagFilterIds}
+            disabled={!organizationId}
             onSearch={(keyword) =>
               void loadTagFilterOptions(keyword, tagFilterIds)
             }
             onChange={(value) => {
               setTagFilterIds(value.length ? value : undefined);
+              actionRef.current?.reload();
+            }}
+          />
+          <Select
+            allowClear
+            placeholder="所属公司"
+            style={{ minWidth: 220 }}
+            value={organizationId}
+            options={organizationOptions.map((item) => ({
+              value: item.id,
+              label: item.name ?? item.code ?? item.id,
+            }))}
+            onChange={(value) => {
+              // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
+              tagFilterRequestRef.current += 1;
+              setTagOptionsLoading(false);
+              setOrganizationId(value);
+              setTagFilterIds(undefined);
+              setTagOptions([]);
               actionRef.current?.reload();
             }}
           />
@@ -266,7 +361,9 @@ export default function FinanceFeeLedgerPage() {
         }
         scrollX={3200}
         search={false}
-        primaryActionText="创建账单"
+        primaryActionText={
+          access.canCreateFinanceBills ? '创建账单' : undefined
+        }
         primaryActionRequiresSelection
         onPrimaryAction={(keys, rows) => {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
@@ -276,7 +373,14 @@ export default function FinanceFeeLedgerPage() {
             );
             return;
           }
+          const selectedOrganizationID =
+            resolveSingleBillCreationOrganization(rows);
+          if (!selectedOrganizationID) {
+            message.warning('所选费用缺少所属公司或跨公司，不能创建账单');
+            return;
+          }
           setSelectedFeeIds(keys.map(String));
+          setSelectedBillOrganizationId(selectedOrganizationID);
           setBillWorkbenchOpen(true);
         }}
         batchActions={[
@@ -285,7 +389,7 @@ export default function FinanceFeeLedgerPage() {
             label: '批量确认勾选费用',
             onClick: handleBatchConfirm,
           },
-          ...(access.canManageFinanceFeeTags
+          ...(access.canManageFinanceFeeTags && organizationId
             ? [
                 {
                   key: 'manage-tags',
@@ -301,9 +405,7 @@ export default function FinanceFeeLedgerPage() {
         rowColors={preference?.rowColors}
         getRowStatusColorKey={getRowStatusColorKey}
         onRowClick={(row) => {
-          if (row.orderId) {
-            history.push(`/finance/fees/detail/${row.orderId}`);
-          }
+          if (row.orderId) history.push(`/finance/fees/detail/${row.orderId}`);
         }}
         request={async (params) => {
           const expenseDateFrom = filterParams.expenseDateRange?.[0]
@@ -347,6 +449,7 @@ export default function FinanceFeeLedgerPage() {
             expenseDateFrom,
             expenseDateTo,
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
+            organizationId,
           });
           setSummary(response.summary);
           const page = unwrapPage(response);
@@ -362,11 +465,18 @@ export default function FinanceFeeLedgerPage() {
       <BillCreationWorkbench
         open={billWorkbenchOpen}
         initialFeeIds={selectedFeeIds}
+        initialOrganizationId={selectedBillOrganizationId}
+        initialOrganizationName={
+          organizationOptions.find(
+            (item) => item.id === selectedBillOrganizationId,
+          )?.name
+        }
         sourceLabel={`从费用明细勾选的 ${selectedFeeIds.length} 笔费用`}
         onClose={() => setBillWorkbenchOpen(false)}
         onCreated={() => {
           setBillWorkbenchOpen(false);
           setSelectedFeeIds([]);
+          setSelectedBillOrganizationId(undefined);
           actionRef.current?.reload();
         }}
       />
@@ -385,18 +495,33 @@ export default function FinanceFeeLedgerPage() {
         open={tagModalOpen}
         targetCount={tagFeeIds.length}
         existingTags={tagExisting}
-        canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
-        loadOptions={settlementServiceListFinanceFeeTagOptions}
+        // 跨组织财务标签写入不支持在此快捷新建，避免新标签误归当前工作区。
+        canQuickCreate={false}
+        loadOptions={(params) => {
+          if (!organizationId) {
+            return Promise.resolve({ tags: [], total: '0' });
+          }
+          return settlementServiceListFinanceFeeTagAssignmentOptions({
+            ...params,
+            organizationId,
+          });
+        }}
         onSubmit={async (mode, tagIds) => {
+          if (!organizationId) {
+            message.warning('请先选择所属公司后再维护费用标签');
+            return;
+          }
           if (mode === 'assign') {
             await settlementServiceBatchAssignFinanceFeeTags({
               feeIds: tagFeeIds,
               tagIds,
+              organizationId,
             });
           } else {
             await settlementServiceBatchRemoveFinanceFeeTags({
               feeIds: tagFeeIds,
               tagIds,
+              organizationId,
             });
           }
           actionRef.current?.reload();

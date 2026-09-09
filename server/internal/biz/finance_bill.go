@@ -43,6 +43,7 @@ const (
 type FinanceBill struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
+	OrganizationName      string
 	BatchID               *uuid.UUID
 	BatchNo               string
 	BillNo                string
@@ -105,9 +106,10 @@ type FinanceBillLine struct {
 }
 
 type FinanceBillableFee struct {
-	Fee          *OrderFee
-	OrderNo      string
-	BusinessType string
+	Fee            *OrderFee
+	OrganizationID uuid.UUID
+	OrderNo        string
+	BusinessType   string
 }
 
 type FinanceBillFilter struct {
@@ -123,6 +125,16 @@ type FinanceBillFilter struct {
 	TagIDs            []uuid.UUID
 }
 
+type FinanceBillCreationCandidateFilter struct {
+	Page, PageSize int
+	Keyword        string
+	Direction      OrderFeeDirection
+}
+type FinanceBillCreationCandidateResult struct {
+	Items []*FinanceBillableFee
+	Total int64
+}
+
 type FinanceBillListResult struct {
 	Items   []*FinanceBill
 	Total   int64
@@ -130,10 +142,15 @@ type FinanceBillListResult struct {
 }
 
 type FinanceBillSummary struct {
+	AmountsByBaseCurrency []FinanceBaseCurrencyAmount
+}
+
+// FinanceBaseCurrencyAmount 保持本位币边界；跨组织聚合不得直接相加不同币种金额。
+type FinanceBaseCurrencyAmount struct {
+	BaseCurrency         string
 	ReceivableBaseAmount decimal.Decimal
 	PayableBaseAmount    decimal.Decimal
 	UnverifiedBaseAmount decimal.Decimal
-	BaseCurrency         string
 }
 
 type CreateFinanceBillInput struct {
@@ -223,6 +240,8 @@ type FinanceBillRepo interface {
 	GetBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID uuid.UUID) (*FinanceBillBatch, error)
 	ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *AuditEvent) (*FinanceBillBatch, error)
 	LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
+	LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
+	ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
 	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent) (*FinanceBillBatch, error)
 	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
@@ -268,6 +287,14 @@ func (uc *FinanceBillUsecase) Get(ctx context.Context, organizationIDs []uuid.UU
 	return uc.repo.Get(ctx, organizationIDs, id)
 }
 
+func (uc *FinanceBillUsecase) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error) {
+	filter.Keyword = strings.TrimSpace(filter.Keyword)
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	return uc.repo.ListCreationCandidates(ctx, organizationID, filter)
+}
+
 func validFinanceBillOrganizationIDs(organizationIDs []uuid.UUID) bool {
 	if len(organizationIDs) == 0 {
 		return false
@@ -293,6 +320,29 @@ func (uc *FinanceBillUsecase) PreviewBatch(ctx context.Context, organizationID u
 		return nil, ErrFinanceBillFeeInvalid
 	}
 	return BuildFinanceBillBatchPreview(organizationID, fees, input.GroupingPolicy)
+}
+
+func (uc *FinanceBillUsecase) ResolveBillableFeeOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error) {
+	if len(organizationIDs) == 0 || len(feeIDs) == 0 {
+		return uuid.Nil, ErrFinanceBillInvalidArgument
+	}
+	fees, err := uc.repo.LoadBillableFeesScoped(ctx, organizationIDs, feeIDs)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if len(fees) != len(feeIDs) {
+		return uuid.Nil, ErrFinanceBillInvalidArgument
+	}
+	organizationID := fees[0].OrganizationID
+	if organizationID == uuid.Nil {
+		return uuid.Nil, ErrFinanceBillInvalidArgument
+	}
+	for _, fee := range fees[1:] {
+		if fee.OrganizationID != organizationID {
+			return uuid.Nil, ErrFinanceBillInvalidArgument
+		}
+	}
+	return organizationID, nil
 }
 
 func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput) (*FinanceBillBatch, error) {

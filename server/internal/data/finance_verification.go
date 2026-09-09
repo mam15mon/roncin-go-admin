@@ -35,14 +35,24 @@ func (r *verificationRepo) withAll(q *ent.FinanceVerificationQuery) *ent.Finance
 	return q.WithAllocations(func(x *ent.FinanceVerificationAllocationQuery) { x.Order(alloc.ByCreatedAt()) })
 }
 func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.VerificationFilter) (*biz.VerificationListResult, error) {
-	p := []predicate.FinanceVerification{ver.OrganizationIDEQ(org)}
+	return r.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+func (r *verificationRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.VerificationFilter) (*biz.VerificationListResult, error) {
+	p := []predicate.FinanceVerification{ver.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
 		p = append(p, ver.Or(ver.VerificationNoContainsFold(f.Keyword), ver.SettlementPartyNameContainsFold(f.Keyword), ver.HasAllocationsWith(alloc.Or(alloc.BillNoContainsFold(f.Keyword), alloc.CashflowNoContainsFold(f.Keyword)))))
 	}
 	if f.Status != "" {
 		p = append(p, ver.StatusEQ(ver.Status(f.Status)))
 	}
-	q := r.data.db.FinanceVerification.Query().Where(p...)
+	if f.Direction != "" {
+		p = append(p, ver.DirectionEQ(ver.Direction(f.Direction)))
+	}
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return nil, clientErr
+	}
+	q := client.FinanceVerification.Query().WithOrganization().Where(p...)
 	n, e := q.Clone().Count(ctx)
 	if e != nil {
 		return nil, e
@@ -54,19 +64,21 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 		Scan(ctx, &summaryRows); e != nil {
 		return nil, e
 	}
-	summary := biz.VerificationSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
+	summary := biz.VerificationSummary{}
+	amountsByBaseCurrency := make(map[string]*biz.FinanceBaseCurrencyAmount, len(summaryRows))
 	for _, row := range summaryRows {
-		amount, parseErr := decimalOf(row.BaseAmount)
+		value, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		summary.BaseCurrency = row.BaseCurrency
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
 		if row.Direction == string(ver.DirectionRECEIVABLE) {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(value)
 		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(value)
 		}
 	}
+	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
 	xs, e := r.withAll(q).Order(ver.ByVerificationDate(entsql.OrderDesc()), ver.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if e != nil {
 		return nil, e
@@ -82,11 +94,14 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 	return out, nil
 }
 func (r *verificationRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceVerification, error) {
+	return r.GetScoped(ctx, []uuid.UUID{org}, id)
+}
+func (r *verificationRepo) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceVerification, error) {
 	client, e := r.data.client(ctx)
 	if e != nil {
 		return nil, e
 	}
-	x, e := r.withAll(client.FinanceVerification.Query()).Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).Only(ctx)
+	x, e := r.withAll(client.FinanceVerification.Query().WithOrganization()).Where(ver.IDEQ(id), ver.OrganizationIDIn(organizationIDs...)).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrVerificationNotFound, nil)
 	}
@@ -97,7 +112,7 @@ func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key stri
 	if e != nil {
 		return nil, e
 	}
-	x, e := r.withAll(client.FinanceVerification.Query()).Where(ver.OrganizationIDEQ(org), ver.IdempotencyKeyEQ(key)).Only(ctx)
+	x, e := r.withAll(client.FinanceVerification.Query().WithOrganization()).Where(ver.OrganizationIDEQ(org), ver.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(e) {
 		return nil, nil
 	}
@@ -107,15 +122,60 @@ func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key stri
 	return verificationToBiz(x)
 }
 func (r *verificationRepo) LoadCashflowContext(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
+	return r.LoadCashflowContextScoped(ctx, []uuid.UUID{org}, id)
+}
+func (r *verificationRepo) LoadCashflowContextScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCashflow, error) {
 	client, e := r.data.client(ctx)
 	if e != nil {
 		return nil, e
 	}
-	x, e := client.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
+	x, e := client.FinanceCashflow.Query().WithOrganization().Where(cash.IDEQ(id), cash.OrganizationIDIn(organizationIDs...)).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrFinanceCashflowNotFound, nil)
 	}
 	return cashflowToBiz(x)
+}
+
+// ListCreationCandidates 复用账单和资金流水仓储的组织谓词与有效核销余额计算。
+// 候选只服务于工作台体验；创建事务仍会重新读取并加锁校验所有来源。
+func (r *verificationRepo) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.VerificationCreationCandidates, error) {
+	cashflowResult, err := (&financeCashflowRepo{data: r.data}).ListScoped(ctx, []uuid.UUID{organizationID}, biz.FinanceCashflowFilter{
+		Page:              1,
+		PageSize:          biz.MaxListPageSize,
+		Direction:         filter.Direction,
+		Status:            biz.FinanceCashflowConfirmed,
+		SettlementPartyID: &filter.SettlementPartyID,
+		Currency:          filter.Currency,
+	})
+	if err != nil {
+		return nil, err
+	}
+	billResult, err := (&financeBillRepo{data: r.data}).List(ctx, []uuid.UUID{organizationID}, biz.FinanceBillFilter{
+		Page:              1,
+		PageSize:          biz.MaxListPageSize,
+		Direction:         filter.Direction,
+		Status:            biz.FinanceBillConfirmed,
+		SettlementPartyID: &filter.SettlementPartyID,
+		Currency:          filter.Currency,
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.VerificationCreationCandidates{
+		Cashflows: make([]*biz.FinanceCashflow, 0, len(cashflowResult.Items)),
+		Bills:     make([]*biz.FinanceBill, 0, len(billResult.Items)),
+	}
+	for _, cashflow := range cashflowResult.Items {
+		if cashflow.UnverifiedAmount.IsPositive() {
+			result.Cashflows = append(result.Cashflows, cashflow)
+		}
+	}
+	for _, bill := range billResult.Items {
+		if bill.UnverifiedAmount.IsPositive() {
+			result.Bills = append(result.Bills, bill)
+		}
+	}
+	return result, nil
 }
 func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *biz.FinanceVerification, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	var e error
@@ -402,6 +462,9 @@ func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, er
 		return nil, e
 	}
 	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseAmount: baseAmount, BillBaseAmount: billBaseAmount, CashflowBaseAmount: cashflowBaseAmount, ExchangeGainLoss: exchangeGainLoss, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
+	if organization, edgeErr := x.Edges.OrganizationOrErr(); edgeErr == nil {
+		v.OrganizationName = organization.Name
+	}
 	for _, a := range x.Edges.Allocations {
 		z, e := decimalOf(a.Amount)
 		if e != nil {

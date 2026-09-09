@@ -17,6 +17,10 @@ service SettlementService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fees"};
   }
+  rpc GetFeeLedgerOrderDetail(GetFeeLedgerOrderDetailRequest) returns (GetFeeLedgerOrderDetailResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fees/orders/{order_id}"};
+  }
 
   // GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
   rpc GetFeeLedgerPreference(GetFeeLedgerPreferenceRequest) returns (GetFeeLedgerPreferenceResponse) {
@@ -52,6 +56,10 @@ service SettlementService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/bills"};
   }
+  rpc ListBillCreationCandidates(ListBillCreationCandidatesRequest) returns (ListBillCreationCandidatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bills/creation-candidates"};
+  }
 
   rpc GetBill(GetBillRequest) returns (GetBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -61,6 +69,11 @@ service SettlementService {
   rpc ListFinanceBillTagOptions(ListFinanceBillTagOptionsRequest) returns (ListFinanceBillTagOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/bill-tag-options"};
+  }
+  // ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+  rpc ListFinanceBillTagAssignmentOptions(ListFinanceBillTagAssignmentOptionsRequest) returns (ListFinanceBillTagAssignmentOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bill-tag-assignment-options"};
   }
   rpc BatchAssignFinanceBillTags(BatchAssignFinanceBillTagsRequest) returns (BatchAssignFinanceBillTagsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
@@ -74,6 +87,11 @@ service SettlementService {
   rpc ListFinanceFeeTagOptions(ListFinanceFeeTagOptionsRequest) returns (ListFinanceFeeTagOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fee-tag-options"};
+  }
+  // ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+  rpc ListFinanceFeeTagAssignmentOptions(ListFinanceFeeTagAssignmentOptionsRequest) returns (ListFinanceFeeTagAssignmentOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.tag" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fee-tag-assignment-options"};
   }
   rpc BatchAssignFinanceFeeTags(BatchAssignFinanceFeeTagsRequest) returns (BatchAssignFinanceFeeTagsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.tag" scope: DATA_SCOPE_ORGANIZATION};
@@ -119,22 +137,30 @@ service SettlementService {
     option (google.api.http) = {post: "/api/v1/finance/bills/{id}/cancel" body: "*"};
   }
   rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices"}; }
+  rpc ListInvoiceCreationBills(ListInvoiceCreationBillsRequest) returns (ListInvoiceCreationBillsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/creation-bills"}; }
+  rpc ListInvoiceProfilesForBill(ListInvoiceProfilesForBillRequest) returns (ListInvoiceProfilesForBillResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/creation-profiles"}; }
   rpc GetInvoice(GetInvoiceRequest) returns (GetInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/{id}"}; }
   rpc CreateInvoice(CreateInvoiceRequest) returns (CreateInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices" body: "*"}; }
   rpc IssueInvoice(IssueInvoiceRequest) returns (IssueInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/issue" body: "*"}; }
   rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/cancel" body: "*"}; }
   rpc RedFlushInvoice(RedFlushInvoiceRequest) returns (RedFlushInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/red-flush" body: "*"}; }
   rpc ListCashflows(ListCashflowsRequest) returns (ListCashflowsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/cashflows"}; }
+  rpc ListFinanceOrganizationOptions(ListFinanceOrganizationOptionsRequest) returns (ListFinanceOrganizationOptionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED}; option (google.api.http) = {get: "/api/v1/finance/organization-options"}; }
+  rpc ListFinanceSettlementPartyOptions(ListFinanceSettlementPartyOptionsRequest) returns (ListFinanceSettlementPartyOptionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED}; option (google.api.http) = {get: "/api/v1/finance/settlement-party-options"}; }
   rpc CreateCashflow(CreateCashflowRequest) returns (CreateCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows" body: "*"}; }
   rpc ConfirmCashflow(ConfirmCashflowRequest) returns (ConfirmCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/confirm" body: "*"}; }
   rpc CancelCashflow(CancelCashflowRequest) returns (CancelCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/cancel" body: "*"}; }
+  rpc ListVerificationCreationCandidates(ListVerificationCreationCandidatesRequest) returns (ListVerificationCreationCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications/creation-candidates"}; }
   rpc ListVerifications(ListVerificationsRequest) returns (ListVerificationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications"}; }
+  rpc ListCommissionVerificationCandidates(ListCommissionVerificationCandidatesRequest) returns (ListCommissionVerificationCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/verification-candidates"}; }
   rpc CreateVerification(CreateVerificationRequest) returns (CreateVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications" body: "*"}; }
   rpc ReverseVerification(ReverseVerificationRequest) returns (ReverseVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications/{id}/reverse" body: "*"}; }
   rpc ListCommissions(ListCommissionsRequest) returns (ListCommissionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions"}; }
   rpc ExportCommissions(ExportCommissionsRequest) returns (ExportCommissionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.export" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/export"}; }
   rpc ListCommissionEmployees(ListCommissionEmployeesRequest) returns (ListCommissionEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/employees"}; }
-  rpc ListCommissionCandidates(ListCommissionCandidatesRequest) returns (ListCommissionCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/candidates"}; }
+  rpc ListCommissionCandidates(ListCommissionCandidatesRequest) returns (ListCommissionCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/candidates"}; }
+  // ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+  rpc ListCommissionRuleCandidates(ListCommissionRuleCandidatesRequest) returns (ListCommissionRuleCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/rule-candidates"}; }
   rpc GetCommission(GetCommissionRequest) returns (GetCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/{id}"}; }
   rpc ListCommissionRules(ListCommissionRulesRequest) returns (ListCommissionRulesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-rules"}; }
   rpc CreateCommissionRule(CreateCommissionRuleRequest) returns (CreateCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules" body: "*"}; }
@@ -213,6 +239,7 @@ message ListFeeLedgerRequest {
   optional string bill_no = 13;
   optional bool finance_locked = 14;
   repeated string tag_ids = 15;
+  optional string organization_id = 16;
 }
 
 message FeeLedgerItem {
@@ -248,15 +275,15 @@ message FeeLedgerItem {
   optional string bill_no = 30;
   bool finance_locked = 31;
   repeated finance.v1.BusinessTagSummary tags = 34;
+  string organization_id = 35;
+  string organization_name = 36;
   reserved 32 to 33;
 }
 
+message FeeLedgerBaseCurrencyAmount { string base_currency = 1; string receivable_base_amount = 2; string payable_base_amount = 3; string profit_base_amount = 4; }
 message FeeLedgerSummary {
   int64 active_count = 1;
-  string receivable_base_amount = 2;
-  string payable_base_amount = 3;
-  string profit_base_amount = 4;
-  string base_currency = 5;
+  repeated FeeLedgerBaseCurrencyAmount amounts_by_base_currency = 2;
 }
 
 message ListFeeLedgerResponse {
@@ -268,6 +295,9 @@ message ListFeeLedgerResponse {
   FeeLedgerSummary summary = 6;
   string trace_id = 7;
 }
+message GetFeeLedgerOrderDetailRequest { string order_id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message FeeLedgerOrderDetail { string order_id = 1; string order_no = 2; string business_type = 3; string customer_name = 4; string organization_id = 5; string organization_name = 6; repeated FeeLedgerItem fees = 7; repeated FeeLedgerBaseCurrencyAmount amounts_by_base_currency = 8; }
+message GetFeeLedgerOrderDetailResponse { bool success = 1; int32 code = 2; string message = 3; FeeLedgerOrderDetail data = 4; string trace_id = 5; }
 
 message GetFeeLedgerPreferenceRequest {}
 
@@ -362,6 +392,8 @@ message GetBilledFeeEditPolicyResponse {
   string message = 3;
   BilledFeeEditPolicy data = 4;
   string trace_id = 5;
+  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+  bool can_update = 6;
 }
 
 message UpdateBilledFeeEditPolicyRequest {
@@ -389,7 +421,10 @@ message ListBillsRequest {
   optional string bill_date_from = 8;
   optional string bill_date_to = 9;
   repeated string tag_ids = 10;
+  optional string organization_id = 11;
 }
+message ListBillCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; }
+message ListBillCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeLedgerItem data = 4; int64 total = 5; string trace_id = 6; }
 
 message GetBillRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
@@ -484,6 +519,8 @@ message FinanceBill {
   string exchange_rate_date = 34;
   optional string exchange_rate_setting_id = 35;
   repeated finance.v1.BusinessTagSummary tags = 36;
+  string organization_id = 37;
+  string organization_name = 38;
 }
 
 message BillGroupingPolicy {
@@ -494,6 +531,7 @@ message BillGroupingPolicy {
 message PreviewBillBatchRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
   BillGroupingPolicy grouping_policy = 2 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BillBatchPreviewGroup {
@@ -537,6 +575,7 @@ message CreateBillBatchRequest {
   repeated CreateBillBatchGroupInput groups = 3 [(google.api.field_behavior) = REQUIRED];
   string preview_token = 4 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
 message FinanceBillBatch {
@@ -588,12 +627,14 @@ message ListBillsResponse {
   FinanceBillSummary summary = 7;
 }
 
-message FinanceBillSummary {
-  string receivable_base_amount = 1;
-  string payable_base_amount = 2;
-  string unverified_base_amount = 3;
-  string base_currency = 4;
+message FinanceBaseCurrencyAmount {
+  string base_currency = 1;
+  string receivable_base_amount = 2;
+  string payable_base_amount = 3;
+  string unverified_base_amount = 4;
 }
+
+message FinanceBillSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency = 1; }
 
 message GetBillResponse {
   bool success = 1;
@@ -635,7 +676,7 @@ message CancelBillResponse {
   string trace_id = 5;
 }
 
-message ListInvoicesRequest { int32 page = 1; int32 page_size = 2; optional string keyword = 3; optional string direction = 4; optional FinanceInvoiceStatus status = 5; }
+message ListInvoicesRequest { int32 page = 1; int32 page_size = 2; optional string keyword = 3; optional string direction = 4; optional FinanceInvoiceStatus status = 5; optional string organization_id = 6; }
 message GetInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message CreateInvoiceRequest { repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; optional string note = 3; string idempotency_key = 4 [(google.api.field_behavior) = REQUIRED]; string invoice_profile_id = 5 [(google.api.field_behavior) = REQUIRED]; }
 message IssueInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; }
@@ -643,45 +684,58 @@ message CancelInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQU
 message RedFlushInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string red_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string red_invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; string reason = 5 [(google.api.field_behavior) = REQUIRED]; }
 message FinanceInvoiceBill { string id = 1; string bill_id = 2; string bill_no = 3; string amount = 4; string tax_amount = 5; bool active = 6; }
 message FinanceInvoiceLine { string id = 1; int32 line_no = 2; string item_code = 3; string item_name = 4; string tax_rate = 5; string net_amount = 6; string tax_amount = 7; string total_amount = 8; string currency = 9; int32 source_line_count = 10; }
-message FinanceInvoice { string id = 1; string record_no = 2; string direction = 3; FinanceInvoiceStatus status = 4; string invoice_type = 5; string settlement_party_id = 6; string settlement_party_name = 7; string currency = 8; string total_amount = 9; string tax_amount = 10; int32 bill_count = 11; optional string tax_invoice_no = 12; optional string invoice_date = 13; optional string note = 14; uint64 version = 15; optional string issued_at = 16; optional string cancelled_at = 17; optional string cancellation_reason = 18; repeated FinanceInvoiceBill bill_links = 19; string created_at = 20; string updated_at = 21; optional string red_invoice_no = 22; optional string red_invoice_date = 23; optional string red_flushed_at = 24; optional string red_flush_reason = 25; string net_amount = 26; optional string invoice_profile_id = 27; optional string invoice_title = 28; optional string taxpayer_identification_no = 29; optional string registered_address = 30; optional string registered_phone = 31; optional string bank_name = 32; optional string bank_account = 33; repeated FinanceInvoiceLine lines = 34; string base_currency = 35; optional string exchange_rate = 36; optional string exchange_rate_source = 37; optional string exchange_rate_date = 38; optional string exchange_rate_setting_id = 39; optional string base_currency_amount = 40; }
+message FinanceInvoice { string id = 1; string record_no = 2; string direction = 3; FinanceInvoiceStatus status = 4; string invoice_type = 5; string settlement_party_id = 6; string settlement_party_name = 7; string currency = 8; string total_amount = 9; string tax_amount = 10; int32 bill_count = 11; optional string tax_invoice_no = 12; optional string invoice_date = 13; optional string note = 14; uint64 version = 15; optional string issued_at = 16; optional string cancelled_at = 17; optional string cancellation_reason = 18; repeated FinanceInvoiceBill bill_links = 19; string created_at = 20; string updated_at = 21; optional string red_invoice_no = 22; optional string red_invoice_date = 23; optional string red_flushed_at = 24; optional string red_flush_reason = 25; string net_amount = 26; optional string invoice_profile_id = 27; optional string invoice_title = 28; optional string taxpayer_identification_no = 29; optional string registered_address = 30; optional string registered_phone = 31; optional string bank_name = 32; optional string bank_account = 33; repeated FinanceInvoiceLine lines = 34; string base_currency = 35; optional string exchange_rate = 36; optional string exchange_rate_source = 37; optional string exchange_rate_date = 38; optional string exchange_rate_setting_id = 39; optional string base_currency_amount = 40; string organization_id = 41; string organization_name = 42; }
 message ListInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; int64 total = 5; string trace_id = 6; FinanceInvoiceSummary summary = 7; }
-message FinanceInvoiceSummary { string receivable_base_amount = 1; string payable_base_amount = 2; int64 issued_count = 3; string base_currency = 4; }
+message FinanceInvoiceSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency = 1; int64 issued_count = 2; }
+message ListInvoiceCreationBillsRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; optional string settlement_party_id = 6; optional string currency = 7; }
+message ListInvoiceCreationBillsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceBill data = 4; int64 total = 5; string trace_id = 6; }
+message FinanceInvoiceProfileOption { string id = 1; string invoice_title = 2; string taxpayer_identification_no = 3; string default_invoice_type = 4; bool is_default = 5; }
+message FinanceInvoiceProfilesForBill { string organization_id = 1; string settlement_party_id = 2; repeated FinanceInvoiceProfileOption data = 3; }
+message ListInvoiceProfilesForBillRequest { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message ListInvoiceProfilesForBillResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoiceProfilesForBill data = 4; string trace_id = 5; }
 message GetInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message CreateInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message IssueInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message CancelInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message RedFlushInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
-message ListCashflowsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string direction=4; optional FinanceCashflowStatus status=5; optional string settlement_party_id=6; optional string currency=7; }
-message CreateCashflowRequest { string direction=1 [(google.api.field_behavior)=REQUIRED]; string settlement_party_id=2 [(google.api.field_behavior)=REQUIRED]; string currency=3 [(google.api.field_behavior)=REQUIRED]; string amount=4 [(google.api.field_behavior)=REQUIRED]; optional string exchange_rate=5; string base_currency=6; string transaction_date=7 [(google.api.field_behavior)=REQUIRED]; string our_account=8 [(google.api.field_behavior)=REQUIRED]; optional string counterparty_account=9; string payment_method=10 [(google.api.field_behavior)=REQUIRED]; optional string bank_reference_no=11; optional string note=12; string idempotency_key=13 [(google.api.field_behavior)=REQUIRED]; }
+message ListCashflowsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string direction=4; optional FinanceCashflowStatus status=5; optional string settlement_party_id=6; optional string currency=7; optional string organization_id=8; }
+message CreateCashflowRequest { string direction=1 [(google.api.field_behavior)=REQUIRED]; string settlement_party_id=2 [(google.api.field_behavior)=REQUIRED]; string currency=3 [(google.api.field_behavior)=REQUIRED]; string amount=4 [(google.api.field_behavior)=REQUIRED]; optional string exchange_rate=5; string base_currency=6; string transaction_date=7 [(google.api.field_behavior)=REQUIRED]; string our_account=8 [(google.api.field_behavior)=REQUIRED]; optional string counterparty_account=9; string payment_method=10 [(google.api.field_behavior)=REQUIRED]; optional string bank_reference_no=11; optional string note=12; string idempotency_key=13 [(google.api.field_behavior)=REQUIRED]; string organization_id=14 [(google.api.field_behavior)=REQUIRED]; }
 message ConfirmCashflowRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
 message CancelCashflowRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
-message FinanceCashflow { string id=1; string flow_no=2; string direction=3; FinanceCashflowStatus status=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string exchange_rate=9; string base_currency=10; string base_amount=11; string transaction_date=12; string our_account=13; optional string counterparty_account=14; string payment_method=15; optional string bank_reference_no=16; optional string note=17; uint64 version=18; optional string confirmed_at=19; optional string cancelled_at=20; optional string cancellation_reason=21; string created_at=22; string updated_at=23; string verified_amount=24; string unverified_amount=25; string exchange_rate_source=26; string exchange_rate_date=27; optional string exchange_rate_setting_id=28; }
+message FinanceCashflow { string id=1; string flow_no=2; string direction=3; FinanceCashflowStatus status=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string exchange_rate=9; string base_currency=10; string base_amount=11; string transaction_date=12; string our_account=13; optional string counterparty_account=14; string payment_method=15; optional string bank_reference_no=16; optional string note=17; uint64 version=18; optional string confirmed_at=19; optional string cancelled_at=20; optional string cancellation_reason=21; string created_at=22; string updated_at=23; string verified_amount=24; string unverified_amount=25; string exchange_rate_source=26; string exchange_rate_date=27; optional string exchange_rate_setting_id=28; string organization_id=29; string organization_name=30; }
 message ListCashflowsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCashflow data=4; int64 total=5; string trace_id=6; FinanceCashflowSummary summary=7; }
-message FinanceCashflowSummary { string receivable_base_amount=1; string payable_base_amount=2; string unverified_base_amount=3; string base_currency=4; }
+message FinanceCashflowSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency=1; }
 message CreateCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message ConfirmCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message CancelCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message VerificationAllocationInput { string cashflow_id=1 [(google.api.field_behavior)=REQUIRED]; string bill_id=2 [(google.api.field_behavior)=REQUIRED]; string amount=3 [(google.api.field_behavior)=REQUIRED]; }
-message ListVerificationsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceVerificationStatus status=4; }
+message ListVerificationsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceVerificationStatus status=4; optional string organization_id=5; }
+message ListCommissionVerificationCandidatesRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; int32 page=2; int32 page_size=3; optional string keyword=4; }
+message ListCommissionVerificationCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; }
+message VerificationCreationCandidates { repeated FinanceCashflow cashflows = 1; repeated FinanceBill bills = 2; }
+message ListVerificationCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; string direction = 2 [(google.api.field_behavior) = REQUIRED]; string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED]; string currency = 4 [(google.api.field_behavior) = REQUIRED]; }
+message ListVerificationCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; VerificationCreationCandidates data = 4; string trace_id = 5; }
 message CreateVerificationRequest { repeated VerificationAllocationInput allocations=1 [(google.api.field_behavior)=REQUIRED]; string verification_date=2 [(google.api.field_behavior)=REQUIRED]; optional string note=3; string idempotency_key=4 [(google.api.field_behavior)=REQUIRED]; }
 message ReverseVerificationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
 message FinanceVerificationAllocation { string id=1; string cashflow_id=2; string bill_id=3; string cashflow_no=4; string bill_no=5; string amount=6; bool active=7; string bill_base_amount=8; string cashflow_base_amount=9; string write_off_base_amount=10; string exchange_gain_loss=11; }
-message FinanceVerification { string id=1; string verification_no=2; FinanceVerificationStatus status=3; string direction=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string verification_date=9; optional string note=10; uint64 version=11; optional string reversed_at=12; optional string reversal_reason=13; repeated FinanceVerificationAllocation allocations=14; string created_at=15; string base_currency=16; string exchange_rate=17; string exchange_rate_source=18; string exchange_rate_date=19; optional string exchange_rate_setting_id=20; string base_amount=21; string bill_base_amount=22; string cashflow_base_amount=23; string exchange_gain_loss=24; }
+message FinanceVerification { string id=1; string verification_no=2; FinanceVerificationStatus status=3; string direction=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string verification_date=9; optional string note=10; uint64 version=11; optional string reversed_at=12; optional string reversal_reason=13; repeated FinanceVerificationAllocation allocations=14; string created_at=15; string base_currency=16; string exchange_rate=17; string exchange_rate_source=18; string exchange_rate_date=19; optional string exchange_rate_setting_id=20; string base_amount=21; string bill_base_amount=22; string cashflow_base_amount=23; string exchange_gain_loss=24; string organization_id=25; string organization_name=26; }
 message ListVerificationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; FinanceVerificationSummary summary=7; }
-message FinanceVerificationSummary { string receivable_base_amount=1; string payable_base_amount=2; string base_currency=3; }
+message FinanceVerificationSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency=1; }
 message CreateVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
 message ReverseVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
-message ListCommissionsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceCommissionStatus status=4; optional string commission_date_from=5; optional string commission_date_to=6; }
+message ListCommissionsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceCommissionStatus status=4; optional string commission_date_from=5; optional string commission_date_to=6; optional string organization_id=7; }
 message GetCommissionRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
-message ListCommissionEmployeesRequest { int32 page=1; int32 page_size=2; optional string keyword=3; }
-message ListCommissionCandidatesRequest { string verification_id=1 [(google.api.field_behavior)=REQUIRED]; string rule_id=2 [(google.api.field_behavior)=REQUIRED]; int32 page=3; int32 page_size=4; optional string keyword=5; }
+message ListCommissionEmployeesRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string organization_id=4; }
+message ListCommissionCandidatesRequest { string verification_id=1 [(google.api.field_behavior)=REQUIRED]; string rule_id=2 [(google.api.field_behavior)=REQUIRED]; int32 page=3; int32 page_size=4; optional string keyword=5; optional string organization_id=6; }
 message CommissionEmployeeOption { string id=1; string display_name=2; }
 message ListCommissionEmployeesResponse { bool success=1; int32 code=2; string message=3; repeated CommissionEmployeeOption data=4; string trace_id=5; int64 total=6; int32 page=7; int32 page_size=8; }
-message ListCommissionRulesRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string personnel_role=4; optional bool enabled=5; }
+message ListCommissionRulesRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string personnel_role=4; optional bool enabled=5; optional string organization_id=6; }
+message ListCommissionRuleCandidatesRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; int32 page=2; int32 page_size=3; optional string keyword=4; optional string personnel_role=5; }
+message ListCommissionRuleCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommissionRule data=4; int64 total=5; string trace_id=6; }
 message CommissionRuleInput { string name=1 [(google.api.field_behavior)=REQUIRED]; string personnel_role=2 [(google.api.field_behavior)=REQUIRED]; string calculation_basis=3 [(google.api.field_behavior)=REQUIRED]; string rate_percent=4 [(google.api.field_behavior)=REQUIRED]; optional string effective_from=5; optional string effective_to=6; bool enabled=7; optional string note=8; }
-message CreateCommissionRuleRequest { CommissionRuleInput rule=1 [(google.api.field_behavior)=REQUIRED]; }
+message CreateCommissionRuleRequest { CommissionRuleInput rule=1 [(google.api.field_behavior)=REQUIRED]; string organization_id=2 [(google.api.field_behavior)=REQUIRED]; }
 message UpdateCommissionRuleRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; CommissionRuleInput rule=2 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=3 [(google.api.field_behavior)=REQUIRED]; }
-message FinanceCommissionRule { string id=1; string name=2; string personnel_role=3; string calculation_basis=4; string rate_percent=5; optional string effective_from=6; optional string effective_to=7; bool enabled=8; optional string note=9; uint64 version=10; string created_at=11; string updated_at=12; }
+message FinanceCommissionRule { string id=1; string name=2; string personnel_role=3; string calculation_basis=4; string rate_percent=5; optional string effective_from=6; optional string effective_to=7; bool enabled=8; optional string note=9; uint64 version=10; string created_at=11; string updated_at=12; string organization_id=13; string organization_name=14; }
 message ListCommissionRulesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommissionRule data=4; int64 total=5; string trace_id=6; }
 message CreateCommissionRuleResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionRule data=4; string trace_id=5; }
 message UpdateCommissionRuleResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionRule data=4; string trace_id=5; }
@@ -699,12 +753,33 @@ message FinanceCommissionLine { string id=1; string order_id=2; string order_no=
 message CommissionCalculation { string verification_id=1; string verification_no=2; string employee_id=3; string employee_name=4; string rule_id=5; string rule_name=6; string personnel_role=7; string calculation_basis=8; uint64 rule_version=9; string calculation_version=10; string base_currency=11; string realized_revenue=12; string allocated_cost=13; string realized_profit=14; string rate_percent=15; string commission_amount=16; repeated FinanceCommissionLine lines=17; int32 customer_count=18; int32 order_count=19; int32 fee_count=20; string commission_base_amount=21; string cny_exchange_rate=22; string cny_exchange_rate_source=23; string cny_exchange_rate_date=24; optional string cny_exchange_rate_setting_id=25; string cny_commission_amount=26; }
 message CommissionCandidateSummary { string employee_id=1; string employee_name=2; string personnel_role=3; int32 customer_count=4; int32 order_count=5; int32 fee_count=6; string base_currency=7; string realized_revenue=8; string allocated_cost=9; string realized_profit=10; string commission_base_amount=11; string rate_percent=12; string commission_amount=13; string id=14 [deprecated=true]; string display_name=15 [deprecated=true]; }
 message ListCommissionCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated CommissionCandidateSummary data=4; int64 total=5; string trace_id=6; int32 page=7; int32 page_size=8; }
-message FinanceCommissionAdjustment { string id=1; string adjustment_no=2; string commission_id=3; string commission_no=4; string order_id=5; string order_no=6; string employee_id=7; string employee_name=8; string direction=9; FinanceCommissionStatus status=10; string base_currency=11; string amount=12; string reason=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; string source_type=22; optional string source_verification_id=23; }
-message FinanceCommission { string id=1; string commission_no=2; string verification_id=3; string verification_no=4; string employee_id=5; string employee_name=6; FinanceCommissionStatus status=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; optional string rule_id=22; optional string rule_name=23; optional string personnel_role=24; optional string calculation_basis=25; uint64 rule_version=26; string calculation_version=27; repeated FinanceCommissionLine lines=28; repeated FinanceCommissionAdjustment adjustments=29; string adjustment_amount=30; string effective_commission_amount=31; int32 customer_count=32; int32 order_count=33; int32 fee_count=34; string commission_base_amount=35; string commission_date=36; string cny_exchange_rate=37; string cny_exchange_rate_source=38; string cny_exchange_rate_date=39; optional string cny_exchange_rate_setting_id=40; string cny_commission_amount=41; string cny_adjustment_amount=42; string cny_effective_commission_amount=43; }
-message ExportCommissionsRequest { optional string keyword=1; optional FinanceCommissionStatus status=2; optional string commission_date_from=3; optional string commission_date_to=4; }
+message FinanceCommissionAdjustment { string id=1; string adjustment_no=2; string commission_id=3; string commission_no=4; string order_id=5; string order_no=6; string employee_id=7; string employee_name=8; string direction=9; FinanceCommissionStatus status=10; string base_currency=11; string amount=12; string reason=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; string source_type=22; optional string source_verification_id=23; string organization_id=24; string organization_name=25; }
+
+enum FinanceOrganizationPurpose {
+  FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED = 0;
+  FINANCE_ORGANIZATION_PURPOSE_BILL_READ = 1;
+  FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ = 2;
+  FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ = 3;
+  FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE = 4;
+  FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ = 5;
+  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ = 6;
+  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE = 7;
+  FINANCE_ORGANIZATION_PURPOSE_FEE_READ = 8;
+  FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE = 9;
+  FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE = 10;
+  FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE = 11;
+}
+message FinanceOrganizationOption { string id = 1; string code = 2; string name = 3; string base_currency = 4; }
+message ListFinanceOrganizationOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 2; }
+message ListFinanceOrganizationOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceOrganizationOption data = 4; string trace_id = 5; }
+message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; }
+message ListFinanceSettlementPartyOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; string organization_id = 2 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 3; int32 page = 4; int32 page_size = 5; }
+message ListFinanceSettlementPartyOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementPartyOption data = 4; int64 total = 5; string trace_id = 6; }
+message FinanceCommission { string id=1; string commission_no=2; string verification_id=3; string verification_no=4; string employee_id=5; string employee_name=6; FinanceCommissionStatus status=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; optional string rule_id=22; optional string rule_name=23; optional string personnel_role=24; optional string calculation_basis=25; uint64 rule_version=26; string calculation_version=27; repeated FinanceCommissionLine lines=28; repeated FinanceCommissionAdjustment adjustments=29; string adjustment_amount=30; string effective_commission_amount=31; int32 customer_count=32; int32 order_count=33; int32 fee_count=34; string commission_base_amount=35; string commission_date=36; string cny_exchange_rate=37; string cny_exchange_rate_source=38; string cny_exchange_rate_date=39; optional string cny_exchange_rate_setting_id=40; string cny_commission_amount=41; string cny_adjustment_amount=42; string cny_effective_commission_amount=43; string organization_id=44; string organization_name=45; }
+message ExportCommissionsRequest { optional string keyword=1; optional FinanceCommissionStatus status=2; optional string commission_date_from=3; optional string commission_date_to=4; optional string organization_id=5; }
 // CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，
 // CNY 调整与有效金额为与列表一致的动态汇总。
-message CommissionExportItem { string commission_no=1; FinanceCommissionStatus status=2; string verification_no=3; string commission_date=4; string employee_name=5; string personnel_role=6; string rule_name=7; string calculation_basis=8; string rate_percent=9; string base_currency=10; string created_at=11; string commission_amount=12; string cny_commission_amount=13; string adjustment_amount=14; string cny_adjustment_amount=15; string effective_commission_amount=16; string cny_effective_commission_amount=17; }
+message CommissionExportItem { string commission_no=1; FinanceCommissionStatus status=2; string verification_no=3; string commission_date=4; string employee_name=5; string personnel_role=6; string rule_name=7; string calculation_basis=8; string rate_percent=9; string base_currency=10; string created_at=11; string commission_amount=12; string cny_commission_amount=13; string adjustment_amount=14; string cny_adjustment_amount=15; string effective_commission_amount=16; string cny_effective_commission_amount=17; string organization_id=18; string organization_name=19; }
 message ExportCommissionsResponse { bool success=1; int32 code=2; string message=3; repeated CommissionExportItem data=4; string trace_id=5; }
 message ListCommissionsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommission data=4; int64 total=5; string trace_id=6; }
 message PreviewCommissionResponse { bool success=1; int32 code=2; string message=3; CommissionCalculation data=4; string trace_id=5; }
@@ -731,6 +806,7 @@ message ListFinanceFeeTagOptionsRequest {
   string keyword = 1;
   int32 page = 2;
   int32 page_size = 3;
+  optional string organization_id = 4;
 }
 
 message ListFinanceFeeTagOptionsResponse {
@@ -739,9 +815,23 @@ message ListFinanceFeeTagOptionsResponse {
   string trace_id = 3;
 }
 
+message ListFinanceFeeTagAssignmentOptionsRequest {
+  string organization_id = 1 [(google.api.field_behavior)=REQUIRED];
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListFinanceFeeTagAssignmentOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
 message BatchAssignFinanceFeeTagsRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
   repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BatchAssignFinanceFeeTagsResponse {
@@ -752,6 +842,7 @@ message BatchAssignFinanceFeeTagsResponse {
 message BatchRemoveFinanceFeeTagsRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
   repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BatchRemoveFinanceFeeTagsResponse {
@@ -763,9 +854,23 @@ message ListFinanceBillTagOptionsRequest {
   string keyword = 1;
   int32 page = 2;
   int32 page_size = 3;
+  optional string organization_id = 4;
 }
 
 message ListFinanceBillTagOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
+message ListFinanceBillTagAssignmentOptionsRequest {
+  string organization_id = 1 [(google.api.field_behavior)=REQUIRED];
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListFinanceBillTagAssignmentOptionsResponse {
   repeated BusinessTagSummary tags = 1;
   int64 total = 2;
   string trace_id = 3;

@@ -10,28 +10,34 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useAccess } from '@umijs/max';
+import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
   ProFormSearchableSelect,
-  type FinanceLedgerMetricCard,
 } from '@/components/ui';
-import { useAccess } from '@umijs/max';
-import { App, Popconfirm, Space, Tag } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
-import { FinanceCashflowStatus } from '@/enums.generated';
+import {
+  FinanceCashflowStatus,
+  FinanceOrganizationPurpose,
+} from '@/enums.generated';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
+  settlementServiceListFinanceOrganizationOptions,
+  settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
-import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
+import { getCurrencyOptions } from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
 type Values = {
+  organizationId: string;
   direction: string;
   settlementPartyId: string;
   currency: string;
@@ -46,9 +52,18 @@ type Values = {
   note?: string;
 };
 const states: Record<number, { text: string; color: string }> = {
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: { text: '草稿', color: 'gold' },
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED]: { text: '已确认', color: 'green' },
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED]: { text: '已取消', color: 'default' },
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: {
+    text: '草稿',
+    color: 'gold',
+  },
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED]: {
+    text: '已确认',
+    color: 'green',
+  },
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED]: {
+    text: '已取消',
+    color: 'default',
+  },
 };
 const decimalRule = {
   pattern: /^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$/,
@@ -59,14 +74,53 @@ export default function FinanceCashflowsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  const [readOrganizationOptions, setReadOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  const [organizationId, setOrganizationId] = useState<string>();
+
+  useEffect(() => {
+    if (!access.canCreateFinanceCashflows) return;
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
+    })
+      .then((response) => {
+        if (!cancelled) setOrganizationOptions(response.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) message.warning('资金登记公司候选加载失败');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [access.canCreateFinanceCashflows, message]);
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
+    }).then((response) => setReadOrganizationOptions(response.data ?? []));
+  }, []);
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
-    incomeBase: 0,
-    payoutBase: 0,
-    unverifiedBase: 0,
-    baseCurrency: '',
+    amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
   });
+
+  const formatBaseCurrencyAmounts = (
+    field:
+      | 'receivableBaseAmount'
+      | 'payableBaseAmount'
+      | 'unverifiedBaseAmount',
+  ) =>
+    metricStats.amountsByBaseCurrency
+      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
   const cashflowActions = makeVersionActions<API.FinanceCashflow>({
@@ -86,7 +140,7 @@ export default function FinanceCashflowsPage() {
   const cancel = (r: API.FinanceCashflow) => {
     cashflowActions.confirm(
       r,
-      '取消资金流水？',
+      `取消 ${r.organizationName || '所属公司未标识'} 的资金流水？`,
       async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelCashflow(
           { id },
@@ -113,30 +167,31 @@ export default function FinanceCashflowsPage() {
     {
       key: 'income-cashflows',
       title: '收款流水折本币',
-      value: metricStats.incomeBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'payout-cashflows',
       title: '付款流水折本币',
-      value: metricStats.payoutBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'unverified-cashflows',
       title: '未核销可用资金',
-      value: metricStats.unverifiedBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: '#52c41a',
     },
   ];
 
   const columns: ProColumns<API.FinanceCashflow>[] = [
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
     {
       title: '序号',
       dataIndex: 'index',
@@ -169,9 +224,10 @@ export default function FinanceCashflowsPage() {
         Object.entries(states).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
-        const v = states[
-          r.status ?? FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT
-        ];
+        const v =
+          states[
+            r.status ?? FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT
+          ];
         return (
           <Tag color={v.color} style={{ margin: 0 }}>
             {v.text}
@@ -217,8 +273,8 @@ export default function FinanceCashflowsPage() {
           r.exchangeRateSource === 'MANUAL'
             ? '手工'
             : r.exchangeRateSource === 'BASE_CURRENCY'
-            ? '本币'
-            : '系统';
+              ? '本币'
+              : '系统';
         const sourceColor =
           r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
@@ -238,7 +294,11 @@ export default function FinanceCashflowsPage() {
       align: 'right',
       search: false,
       render: (_, r) => (
-        <strong style={{ color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16' }}>
+        <strong
+          style={{
+            color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
+          }}
+        >
           {r.baseAmount} {r.baseCurrency}
         </strong>
       ),
@@ -303,7 +363,7 @@ export default function FinanceCashflowsPage() {
         r.status === FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
-            title="确认该笔真实资金流水？"
+            title={`确认 ${r.organizationName || '所属公司未标识'} 的真实资金流水？`}
             onConfirm={() => void confirm(r)}
           >
             <a>
@@ -327,6 +387,22 @@ export default function FinanceCashflowsPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 12 }}>
+        <Select
+          allowClear
+          placeholder="所属公司"
+          style={{ minWidth: 220 }}
+          value={organizationId}
+          options={readOrganizationOptions.map((item) => ({
+            value: item.id,
+            label: item.name ?? item.code ?? item.id,
+          }))}
+          onChange={(value) => {
+            setOrganizationId(value);
+            actionRef.current?.reload();
+          }}
+        />
+      </div>
       <FinanceLedgerTemplate<API.FinanceCashflow>
         headerTitle="资金流水管理"
         actionRef={actionRef}
@@ -345,13 +421,11 @@ export default function FinanceCashflowsPage() {
             keyword: p.keyword,
             direction: p.direction,
             status: p.status ? Number(p.status) : undefined,
+            organizationId,
           });
           setMetricStats({
             totalCount: Number(r.total ?? 0),
-            incomeBase: Number(r.summary?.receivableBaseAmount ?? 0),
-            payoutBase: Number(r.summary?.payableBaseAmount ?? 0),
-            unverifiedBase: Number(r.summary?.unverifiedBaseAmount ?? 0),
-            baseCurrency: r.summary?.baseCurrency ?? '',
+            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
           });
           return { ...toTableRequest(r), total: Number(r.total ?? 0) };
         }}
@@ -359,6 +433,7 @@ export default function FinanceCashflowsPage() {
       <ModalForm<Values>
         title="登记资金流水"
         open={open}
+        form={form}
         width={760}
         modalProps={{ destroyOnHidden: true, onCancel: () => setOpen(false) }}
         initialValues={{
@@ -370,6 +445,7 @@ export default function FinanceCashflowsPage() {
         onFinish={async (v) => {
           try {
             await settlementServiceCreateCashflow({
+              organizationId: v.organizationId,
               direction: v.direction,
               settlementPartyId: v.settlementPartyId,
               currency: v.currency,
@@ -394,6 +470,18 @@ export default function FinanceCashflowsPage() {
         }}
       >
         <ProFormSearchableSelect
+          name="organizationId"
+          label="所属公司"
+          rules={[{ required: true, message: '请选择所属公司' }]}
+          options={organizationOptions.map((item) => ({
+            value: item.id ?? '',
+            label: item.name ?? item.code ?? item.id ?? '',
+          }))}
+          fieldProps={{
+            onChange: () => form.setFieldValue('settlementPartyId', undefined),
+          }}
+        />
+        <ProFormSearchableSelect
           name="direction"
           label="流水方向"
           rules={[{ required: true }]}
@@ -406,9 +494,28 @@ export default function FinanceCashflowsPage() {
           name="settlementPartyId"
           label="往来结算单位"
           rules={[{ required: true }]}
-          request={({ keyWords }) =>
-            searchPartnerOptions(keyWords, { enabled: true })
-          }
+          request={({ keyWords }) => {
+            const selectedOrganizationID = form.getFieldValue('organizationId');
+            if (!selectedOrganizationID) return Promise.resolve([]);
+            return settlementServiceListFinanceSettlementPartyOptions({
+              purpose:
+                FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
+              organizationId: selectedOrganizationID,
+              keyword: keyWords,
+              page: 1,
+              pageSize: 50,
+            }).then((response) =>
+              (response.data ?? [])
+                .filter((item) => item.id)
+                .map((item) => ({
+                  value: item.id as string,
+                  label:
+                    item.name && item.code
+                      ? `${item.name} (${item.code})`
+                      : item.name || item.code || item.id || '',
+                })),
+            );
+          }}
         />
         <ProFormSearchableSelect
           name="currency"
@@ -431,7 +538,9 @@ export default function FinanceCashflowsPage() {
               validator: (_, val) => {
                 if (!val) return Promise.resolve();
                 if (!decimalRule.pattern.test(val)) {
-                  return Promise.reject(new Error('请输入大于 0 且最多 8 位小数的汇率'));
+                  return Promise.reject(
+                    new Error('请输入大于 0 且最多 8 位小数的汇率'),
+                  );
                 }
                 return Promise.resolve();
               },

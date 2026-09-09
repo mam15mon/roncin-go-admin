@@ -57,6 +57,24 @@ export async function settlementServicePreviewBillBatch(
   );
 }
 
+/** ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。 GET /api/v1/finance/bill-tag-assignment-options */
+export async function settlementServiceListFinanceBillTagAssignmentOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceBillTagAssignmentOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceBillTagAssignmentOptionsResponse>(
+    "/api/v1/finance/bill-tag-assignment-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/bill-tag-options */
 export async function settlementServiceListFinanceBillTagOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -213,6 +231,24 @@ export async function settlementServiceConfirmBill(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/bills/creation-candidates */
+export async function settlementServiceListBillCreationCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListBillCreationCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListBillCreationCandidatesResponse>(
+    "/api/v1/finance/bills/creation-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
       ...(options || {}),
     }
   );
@@ -623,6 +659,42 @@ export async function settlementServicePreviewCommission(
   );
 }
 
+/** ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。 GET /api/v1/finance/commissions/rule-candidates */
+export async function settlementServiceListCommissionRuleCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCommissionRuleCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCommissionRuleCandidatesResponse>(
+    "/api/v1/finance/commissions/rule-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/commissions/verification-candidates */
+export async function settlementServiceListCommissionVerificationCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCommissionVerificationCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCommissionVerificationCandidatesResponse>(
+    "/api/v1/finance/commissions/verification-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。 GET /api/v1/finance/custom-settings/billed-fee-edit-policy */
 export async function settlementServiceGetBilledFeeEditPolicy(options?: {
   [key: string]: any;
@@ -649,6 +721,24 @@ export async function settlementServiceUpdateBilledFeeEditPolicy(
         "Content-Type": "application/json",
       },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。 GET /api/v1/finance/fee-tag-assignment-options */
+export async function settlementServiceListFinanceFeeTagAssignmentOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceFeeTagAssignmentOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceFeeTagAssignmentOptionsResponse>(
+    "/api/v1/finance/fee-tag-assignment-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
       ...(options || {}),
     }
   );
@@ -721,6 +811,23 @@ export async function settlementServiceListFeeLedger(
     },
     ...(options || {}),
   });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/fees/orders/${param0} */
+export async function settlementServiceGetFeeLedgerOrderDetail(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceGetFeeLedgerOrderDetailParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.GetFeeLedgerOrderDetailResponse>(
+    `/api/v1/finance/fees/orders/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
 }
 
 /** GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。 GET /api/v1/finance/fees/preference */
@@ -882,6 +989,78 @@ export async function settlementServiceRedFlushInvoice(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/invoices/creation-bills */
+export async function settlementServiceListInvoiceCreationBills(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListInvoiceCreationBillsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListInvoiceCreationBillsResponse>(
+    "/api/v1/finance/invoices/creation-bills",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/invoices/creation-profiles */
+export async function settlementServiceListInvoiceProfilesForBill(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListInvoiceProfilesForBillParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListInvoiceProfilesForBillResponse>(
+    "/api/v1/finance/invoices/creation-profiles",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/organization-options */
+export async function settlementServiceListFinanceOrganizationOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceOrganizationOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceOrganizationOptionsResponse>(
+    "/api/v1/finance/organization-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/settlement-party-options */
+export async function settlementServiceListFinanceSettlementPartyOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceSettlementPartyOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceSettlementPartyOptionsResponse>(
+    "/api/v1/finance/settlement-party-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/verifications */
 export async function settlementServiceListVerifications(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -935,6 +1114,24 @@ export async function settlementServiceReverseVerification(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/verifications/creation-candidates */
+export async function settlementServiceListVerificationCreationCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListVerificationCreationCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListVerificationCreationCandidatesResponse>(
+    "/api/v1/finance/verifications/creation-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
       ...(options || {}),
     }
   );

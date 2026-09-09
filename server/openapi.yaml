@@ -1225,6 +1225,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ConfirmBillBatchResponse'
+    /api/v1/finance/bill-tag-assignment-options:
+        get:
+            tags:
+                - SettlementService
+            description: ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+            operationId: SettlementService_ListFinanceBillTagAssignmentOptions
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFinanceBillTagAssignmentOptionsResponse'
     /api/v1/finance/bill-tag-options:
         get:
             tags:
@@ -1245,6 +1277,10 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1419,6 +1455,10 @@ paths:
                     type: array
                     items:
                         type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1443,6 +1483,41 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateBillResponse'
+    /api/v1/finance/bills/creation-candidates:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListBillCreationCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListBillCreationCandidatesResponse'
     /api/v1/finance/bills/{id}:
         get:
             tags:
@@ -1566,6 +1641,10 @@ paths:
                   schema:
                     type: string
                 - name: currency
+                  in: query
+                  schema:
+                    type: string
+                - name: organizationId
                   in: query
                   schema:
                     type: string
@@ -1741,6 +1820,10 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1822,6 +1905,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1874,6 +1961,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1898,6 +1989,10 @@ paths:
                     type: integer
                     format: int32
                 - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: organizationId
                   in: query
                   schema:
                     type: string
@@ -1931,6 +2026,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1956,6 +2055,73 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.PreviewCommissionResponse'
+    /api/v1/finance/commissions/rule-candidates:
+        get:
+            tags:
+                - SettlementService
+            description: ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+            operationId: SettlementService_ListCommissionRuleCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: personnelRole
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionRuleCandidatesResponse'
+    /api/v1/finance/commissions/verification-candidates:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListCommissionVerificationCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionVerificationCandidatesResponse'
     /api/v1/finance/commissions/{commissionId}/adjustments:
         post:
             tags:
@@ -2387,6 +2553,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.UpdateFeeSettingResponse'
+    /api/v1/finance/fee-tag-assignment-options:
+        get:
+            tags:
+                - SettlementService
+            description: ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+            operationId: SettlementService_ListFinanceFeeTagAssignmentOptions
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFinanceFeeTagAssignmentOptionsResponse'
     /api/v1/finance/fee-tag-options:
         get:
             tags:
@@ -2407,6 +2605,10 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2523,6 +2725,10 @@ paths:
                     type: array
                     items:
                         type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2530,6 +2736,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ListFeeLedgerResponse'
+    /api/v1/finance/fees/orders/{orderId}:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_GetFeeLedgerOrderDetail
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.GetFeeLedgerOrderDetailResponse'
     /api/v1/finance/fees/preference:
         get:
             tags:
@@ -2607,6 +2831,10 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2631,6 +2859,66 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateInvoiceResponse'
+    /api/v1/finance/invoices/creation-bills:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListInvoiceCreationBills
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: string
+                - name: settlementPartyId
+                  in: query
+                  schema:
+                    type: string
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListInvoiceCreationBillsResponse'
+    /api/v1/finance/invoices/creation-profiles:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListInvoiceProfilesForBill
+            parameters:
+                - name: billId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListInvoiceProfilesForBillResponse'
     /api/v1/finance/invoices/{id}:
         get:
             tags:
@@ -2721,6 +3009,64 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.RedFlushInvoiceResponse'
+    /api/v1/finance/organization-options:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListFinanceOrganizationOptions
+            parameters:
+                - name: purpose
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFinanceOrganizationOptionsResponse'
+    /api/v1/finance/settlement-party-options:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListFinanceSettlementPartyOptions
+            parameters:
+                - name: purpose
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFinanceSettlementPartyOptionsResponse'
     /api/v1/finance/taxable-services:
         get:
             tags:
@@ -2826,6 +3172,10 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2850,6 +3200,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateVerificationResponse'
+    /api/v1/finance/verifications/creation-candidates:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListVerificationCreationCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: string
+                - name: settlementPartyId
+                  in: query
+                  schema:
+                    type: string
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListVerificationCreationCandidatesResponse'
     /api/v1/finance/verifications/{id}/reverse:
         post:
             tags:
@@ -8344,6 +8723,7 @@ components:
             required:
                 - feeIds
                 - tagIds
+                - organizationId
             type: object
             properties:
                 feeIds:
@@ -8354,6 +8734,8 @@ components:
                     type: array
                     items:
                         type: string
+                organizationId:
+                    type: string
         finance.v1.BatchAssignFinanceFeeTagsResponse:
             type: object
             properties:
@@ -8388,6 +8770,7 @@ components:
             required:
                 - feeIds
                 - tagIds
+                - organizationId
             type: object
             properties:
                 feeIds:
@@ -8398,6 +8781,8 @@ components:
                     type: array
                     items:
                         type: string
+                organizationId:
+                    type: string
         finance.v1.BatchRemoveFinanceFeeTagsResponse:
             type: object
             properties:
@@ -8788,6 +9173,10 @@ components:
                     type: string
                 cnyEffectiveCommissionAmount:
                     type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
             description: |-
                 CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，
                  CNY 调整与有效金额为与列表一致的动态汇总。
@@ -9018,6 +9407,7 @@ components:
                 - groups
                 - previewToken
                 - idempotencyKey
+                - organizationId
             type: object
             properties:
                 feeIds:
@@ -9033,6 +9423,8 @@ components:
                 previewToken:
                     type: string
                 idempotencyKey:
+                    type: string
+                organizationId:
                     type: string
         finance.v1.CreateBillBatchResponse:
             type: object
@@ -9125,6 +9517,7 @@ components:
                 - ourAccount
                 - paymentMethod
                 - idempotencyKey
+                - organizationId
             type: object
             properties:
                 direction:
@@ -9152,6 +9545,8 @@ components:
                 note:
                     type: string
                 idempotencyKey:
+                    type: string
+                organizationId:
                     type: string
         finance.v1.CreateCashflowResponse:
             type: object
@@ -9240,10 +9635,13 @@ components:
         finance.v1.CreateCommissionRuleRequest:
             required:
                 - rule
+                - organizationId
             type: object
             properties:
                 rule:
                     $ref: '#/components/schemas/finance.v1.CommissionRuleInput'
+                organizationId:
+                    type: string
         finance.v1.CreateCommissionRuleResponse:
             type: object
             properties:
@@ -9614,6 +10012,17 @@ components:
                         $ref: '#/components/schemas/finance.v1.CommissionExportItem'
                 traceId:
                     type: string
+        finance.v1.FeeLedgerBaseCurrencyAmount:
+            type: object
+            properties:
+                baseCurrency:
+                    type: string
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                profitBaseAmount:
+                    type: string
         finance.v1.FeeLedgerColumnPreference:
             required:
                 - fieldKey
@@ -9694,6 +10103,33 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+        finance.v1.FeeLedgerOrderDetail:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                businessType:
+                    type: string
+                customerName:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                fees:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerItem'
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount'
         finance.v1.FeeLedgerPreference:
             type: object
             properties:
@@ -9746,14 +10182,10 @@ components:
             properties:
                 activeCount:
                     type: string
-                receivableBaseAmount:
-                    type: string
-                payableBaseAmount:
-                    type: string
-                profitBaseAmount:
-                    type: string
-                baseCurrency:
-                    type: string
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount'
         finance.v1.FeeSetting:
             type: object
             properties:
@@ -9797,6 +10229,17 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+        finance.v1.FinanceBaseCurrencyAmount:
+            type: object
+            properties:
+                baseCurrency:
+                    type: string
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                unverifiedBaseAmount:
                     type: string
         finance.v1.FinanceBill:
             type: object
@@ -9880,6 +10323,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
         finance.v1.FinanceBillBatch:
             type: object
             properties:
@@ -9949,14 +10396,10 @@ components:
         finance.v1.FinanceBillSummary:
             type: object
             properties:
-                receivableBaseAmount:
-                    type: string
-                payableBaseAmount:
-                    type: string
-                unverifiedBaseAmount:
-                    type: string
-                baseCurrency:
-                    type: string
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
         finance.v1.FinanceCashflow:
             type: object
             properties:
@@ -10017,17 +10460,17 @@ components:
                     type: string
                 exchangeRateSettingId:
                     type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
         finance.v1.FinanceCashflowSummary:
             type: object
             properties:
-                receivableBaseAmount:
-                    type: string
-                payableBaseAmount:
-                    type: string
-                unverifiedBaseAmount:
-                    type: string
-                baseCurrency:
-                    type: string
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
         finance.v1.FinanceCommission:
             type: object
             properties:
@@ -10125,6 +10568,10 @@ components:
                     type: string
                 cnyEffectiveCommissionAmount:
                     type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
         finance.v1.FinanceCommissionAdjustment:
             type: object
             properties:
@@ -10174,6 +10621,10 @@ components:
                 sourceType:
                     type: string
                 sourceVerificationId:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
                     type: string
         finance.v1.FinanceCommissionLine:
             type: object
@@ -10257,6 +10708,10 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
                     type: string
         finance.v1.FinanceInvoice:
             type: object
@@ -10347,6 +10802,10 @@ components:
                     type: string
                 baseCurrencyAmount:
                     type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
         finance.v1.FinanceInvoiceBill:
             type: object
             properties:
@@ -10387,16 +10846,58 @@ components:
                 sourceLineCount:
                     type: integer
                     format: int32
+        finance.v1.FinanceInvoiceProfileOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                invoiceTitle:
+                    type: string
+                taxpayerIdentificationNo:
+                    type: string
+                defaultInvoiceType:
+                    type: string
+                isDefault:
+                    type: boolean
+        finance.v1.FinanceInvoiceProfilesForBill:
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                settlementPartyId:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceInvoiceProfileOption'
         finance.v1.FinanceInvoiceSummary:
             type: object
             properties:
-                receivableBaseAmount:
-                    type: string
-                payableBaseAmount:
-                    type: string
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
                 issuedCount:
                     type: string
+        finance.v1.FinanceOrganizationOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
                 baseCurrency:
+                    type: string
+        finance.v1.FinanceSettlementPartyOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
                     type: string
         finance.v1.FinanceVerification:
             type: object
@@ -10452,6 +10953,10 @@ components:
                     type: string
                 exchangeGainLoss:
                     type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
         finance.v1.FinanceVerificationAllocation:
             type: object
             properties:
@@ -10480,12 +10985,10 @@ components:
         finance.v1.FinanceVerificationSummary:
             type: object
             properties:
-                receivableBaseAmount:
-                    type: string
-                payableBaseAmount:
-                    type: string
-                baseCurrency:
-                    type: string
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
         finance.v1.GetBillResponse:
             type: object
             properties:
@@ -10514,6 +11017,9 @@ components:
                     $ref: '#/components/schemas/finance.v1.BilledFeeEditPolicy'
                 traceId:
                     type: string
+                canUpdate:
+                    type: boolean
+                    description: can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
         finance.v1.GetCommissionResponse:
             type: object
             properties:
@@ -10554,6 +11060,20 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.ExchangeRateImportBatch'
+                traceId:
+                    type: string
+        finance.v1.GetFeeLedgerOrderDetailResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FeeLedgerOrderDetail'
                 traceId:
                     type: string
         finance.v1.GetFeeLedgerPreferenceResponse:
@@ -10612,6 +11132,24 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.ListBillCreationCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerItem'
+                total:
+                    type: string
                 traceId:
                     type: string
         finance.v1.ListBillingUnitsResponse:
@@ -10727,6 +11265,24 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.ListCommissionRuleCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                total:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.ListCommissionRulesResponse:
             type: object
             properties:
@@ -10741,6 +11297,24 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListCommissionVerificationCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceVerification'
                 total:
                     type: string
                 traceId:
@@ -10842,7 +11416,29 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.ListFinanceBillTagAssignmentOptionsResponse:
+            type: object
+            properties:
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
+                total:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.ListFinanceBillTagOptionsResponse:
+            type: object
+            properties:
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListFinanceFeeTagAssignmentOptionsResponse:
             type: object
             properties:
                 tags:
@@ -10862,6 +11458,72 @@ components:
                         $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
                 total:
                     type: string
+                traceId:
+                    type: string
+        finance.v1.ListFinanceOrganizationOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceOrganizationOption'
+                traceId:
+                    type: string
+        finance.v1.ListFinanceSettlementPartyOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceSettlementPartyOption'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListInvoiceCreationBillsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBill'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListInvoiceProfilesForBillResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceInvoiceProfilesForBill'
                 traceId:
                     type: string
         finance.v1.ListInvoicesResponse:
@@ -10909,6 +11571,20 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.ListVerificationCreationCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.VerificationCreationCandidates'
+                traceId:
+                    type: string
         finance.v1.ListVerificationsResponse:
             type: object
             properties:
@@ -10981,6 +11657,7 @@ components:
             required:
                 - feeIds
                 - groupingPolicy
+                - organizationId
             type: object
             properties:
                 feeIds:
@@ -10989,6 +11666,8 @@ components:
                         type: string
                 groupingPolicy:
                     $ref: '#/components/schemas/finance.v1.BillGroupingPolicy'
+                organizationId:
+                    type: string
         finance.v1.PreviewBillBatchResponse:
             type: object
             properties:
@@ -11580,6 +12259,17 @@ components:
                     type: string
                 amount:
                     type: string
+        finance.v1.VerificationCreationCandidates:
+            type: object
+            properties:
+                cashflows:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCashflow'
+                bills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBill'
         masterdata.v1.AdministrativeRegion:
             type: object
             properties:

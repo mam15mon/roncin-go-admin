@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -18,7 +19,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	orderfeeenterprisetag "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partneralias "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
 )
@@ -94,8 +97,139 @@ func NewSettlementRepo(data *Data) biz.SettlementRepo {
 	return &settlementRepo{data: data}
 }
 
-func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.UUID, filter biz.FeeLedgerFilter) (*biz.FeeLedgerResult, error) {
-	predicates := []predicate.OrderFee{orderfee.HasOrderWith(order.OrganizationIDEQ(organizationID))}
+func (r *settlementRepo) ListFinanceOrganizations(ctx context.Context, organizationIDs []uuid.UUID, keyword string) ([]*biz.FinanceOrganizationOption, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.Organization{organizationent.IDIn(organizationIDs...), organizationent.EnabledEQ(true)}
+	if keyword != "" {
+		predicates = append(predicates, organizationent.Or(organizationent.NameContainsFold(keyword), organizationent.CodeContainsFold(keyword), organizationent.SearchKeywordsContainsFold(keyword)))
+	}
+	items, err := client.Organization.Query().Where(predicates...).Order(organizationent.ByCode(), organizationent.ByID()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.FinanceOrganizationOption, 0, len(items))
+	for _, item := range items {
+		baseCurrency := ""
+		if item.BaseCurrency != nil {
+			baseCurrency = *item.BaseCurrency
+		}
+		result = append(result, &biz.FinanceOrganizationOption{ID: item.ID, Code: item.Code, Name: item.Name, BaseCurrency: baseCurrency})
+	}
+	return result, nil
+}
+
+func (r *settlementRepo) ListFinanceSettlementParties(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.FinanceSettlementPartyOption, int64, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := client.Partner.Query().Where(partner.OrganizationIDEQ(organizationID), partner.EnabledEQ(true))
+	if keyword != "" {
+		query.Where(partner.Or(
+			partner.CodeContainsFold(keyword),
+			partner.LegalNameContainsFold(keyword),
+			partner.SearchKeywordsContainsFold(keyword),
+			partner.HasAliasesWith(partneralias.Or(partneralias.AliasNameContainsFold(keyword), partneralias.SearchKeywordsContainsFold(keyword))),
+		))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	items, err := query.Order(partner.ByLegalName(), partner.ByID()).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	result := make([]*biz.FinanceSettlementPartyOption, 0, len(items))
+	for _, item := range items {
+		result = append(result, &biz.FinanceSettlementPartyOption{ID: item.ID.String(), Code: item.Code, Name: item.LegalName})
+	}
+	return result, int64(total), nil
+}
+
+func (r *settlementRepo) ResolveFeeLedgerOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	items, err := client.OrderFee.Query().Where(orderfee.IDIn(feeIDs...), orderfee.HasOrderWith(order.OrganizationIDIn(organizationIDs...))).WithOrder().All(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if len(items) != len(feeIDs) {
+		return uuid.Nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	organizationID := items[0].Edges.Order.OrganizationID
+	for _, item := range items[1:] {
+		if item.Edges.Order.OrganizationID != organizationID {
+			return uuid.Nil, biz.ErrFinanceLedgerInvalidArgument
+		}
+	}
+	return organizationID, nil
+}
+
+func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizationIDs []uuid.UUID, orderID uuid.UUID) (*biz.FeeLedgerOrderDetail, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Order.Query().
+		Where(order.IDEQ(orderID), order.OrganizationIDIn(organizationIDs...)).
+		WithOrganization().
+		WithCustomer().
+		WithFees(func(query *ent.OrderFeeQuery) {
+			query.WithSettlementParty().Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByID())
+		}).
+		Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrFinanceLedgerInvalidArgument, nil)
+	}
+	organization, err := item.Edges.OrganizationOrErr()
+	if err != nil {
+		return nil, err
+	}
+	customer, err := item.Edges.CustomerOrErr()
+	if err != nil {
+		return nil, err
+	}
+	detail := &biz.FeeLedgerOrderDetail{OrderID: item.ID.String(), OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerName: customer.LegalName, OrganizationID: item.OrganizationID, OrganizationName: organization.Name}
+	buckets := make(map[string]*biz.FeeLedgerBaseCurrencyAmount)
+	for _, feeEntity := range item.Edges.Fees {
+		fee, convertErr := orderFeeToBiz(feeEntity)
+		if convertErr != nil {
+			return nil, convertErr
+		}
+		detail.Items = append(detail.Items, &biz.FeeLedgerItem{Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName})
+		bucket := buckets[fee.BaseCurrency]
+		if bucket == nil {
+			bucket = &biz.FeeLedgerBaseCurrencyAmount{BaseCurrency: fee.BaseCurrency}
+			buckets[fee.BaseCurrency] = bucket
+		}
+		if fee.Direction == biz.OrderFeeReceivable {
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(fee.BaseCurrencyAmount)
+		} else {
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(fee.BaseCurrencyAmount)
+		}
+	}
+	for _, bucket := range buckets {
+		bucket.ProfitBaseAmount = bucket.ReceivableBaseAmount.Sub(bucket.PayableBaseAmount)
+		detail.AmountsByBaseCurrency = append(detail.AmountsByBaseCurrency, *bucket)
+	}
+	sort.Slice(detail.AmountsByBaseCurrency, func(i, j int) bool {
+		return detail.AmountsByBaseCurrency[i].BaseCurrency < detail.AmountsByBaseCurrency[j].BaseCurrency
+	})
+	return detail, nil
+}
+
+func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FeeLedgerFilter) (*biz.FeeLedgerResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.OrderFee{orderfee.HasOrderWith(order.OrganizationIDIn(organizationIDs...))}
 	if filter.Keyword != "" {
 		predicates = append(predicates, orderfee.Or(
 			orderfee.FeeCodeContainsFold(filter.Keyword),
@@ -162,7 +296,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		)
 	}
 
-	baseQuery := r.data.db.OrderFee.Query().Where(predicates...)
+	baseQuery := client.OrderFee.Query().Where(predicates...)
 	total, err := baseQuery.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -178,29 +312,38 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		Scan(ctx, &summaryRows); err != nil {
 		return nil, err
 	}
-	summary := biz.FeeLedgerSummary{
-		ReceivableBaseAmount: decimal.Zero,
-		PayableBaseAmount:    decimal.Zero,
-	}
+	summary := biz.FeeLedgerSummary{}
+	buckets := make(map[string]*biz.FeeLedgerBaseCurrencyAmount, len(summaryRows))
 	for _, row := range summaryRows {
 		amount, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
 		summary.ActiveCount += row.ActiveCount
-		summary.BaseCurrency = row.BaseCurrency
+		bucket := buckets[row.BaseCurrency]
+		if bucket == nil {
+			bucket = &biz.FeeLedgerBaseCurrencyAmount{BaseCurrency: row.BaseCurrency}
+			buckets[row.BaseCurrency] = bucket
+		}
 		if row.Direction == string(orderfee.DirectionRECEIVABLE) {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(amount)
 		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(amount)
 		}
 	}
-	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
+	for _, bucket := range buckets {
+		bucket.ProfitBaseAmount = bucket.ReceivableBaseAmount.Sub(bucket.PayableBaseAmount)
+		summary.AmountsByBaseCurrency = append(summary.AmountsByBaseCurrency, *bucket)
+	}
+	sort.Slice(summary.AmountsByBaseCurrency, func(i, j int) bool {
+		return summary.AmountsByBaseCurrency[i].BaseCurrency < summary.AmountsByBaseCurrency[j].BaseCurrency
+	})
 
 	items, err := baseQuery.Clone().
 		WithSettlementParty().
 		WithOrder(func(query *ent.OrderQuery) {
 			query.
+				WithOrganization().
 				WithCustomer().
 				WithFinanceCommissionLines(func(lineQuery *ent.FinanceCommissionLineQuery) {
 					lineQuery.Where(
@@ -255,12 +398,18 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		}
 		ledgerItem := &biz.FeeLedgerItem{
 			Fee:               fee,
+			OrganizationID:    businessOrder.OrganizationID,
 			OrderNo:           businessOrder.OrderNo,
 			Business:          string(businessOrder.BusinessType),
 			CustomerID:        customer.ID,
 			CustomerName:      customer.LegalName,
 			FinancialProgress: biz.FeeLedgerUnbilled,
 		}
+		organization, organizationErr := businessOrder.Edges.OrganizationOrErr()
+		if organizationErr != nil {
+			return nil, organizationErr
+		}
+		ledgerItem.OrganizationName = organization.Name
 		financeLockLines, edgeErr := businessOrder.Edges.FinanceCommissionLinesOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr

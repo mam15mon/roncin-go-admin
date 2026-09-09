@@ -43,19 +43,30 @@ const OperationSettlementServiceExportCommissions = "/finance.v1.SettlementServi
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetBilledFeeEditPolicy = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
 const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/GetCommission"
+const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
 const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
+const OperationSettlementServiceListBillCreationCandidates = "/finance.v1.SettlementService/ListBillCreationCandidates"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
 const OperationSettlementServiceListCommissionEmployees = "/finance.v1.SettlementService/ListCommissionEmployees"
+const OperationSettlementServiceListCommissionRuleCandidates = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
 const OperationSettlementServiceListCommissionRules = "/finance.v1.SettlementService/ListCommissionRules"
+const OperationSettlementServiceListCommissionVerificationCandidates = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
 const OperationSettlementServiceListCommissions = "/finance.v1.SettlementService/ListCommissions"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
+const OperationSettlementServiceListFinanceBillTagAssignmentOptions = "/finance.v1.SettlementService/ListFinanceBillTagAssignmentOptions"
 const OperationSettlementServiceListFinanceBillTagOptions = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
+const OperationSettlementServiceListFinanceFeeTagAssignmentOptions = "/finance.v1.SettlementService/ListFinanceFeeTagAssignmentOptions"
 const OperationSettlementServiceListFinanceFeeTagOptions = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
+const OperationSettlementServiceListFinanceOrganizationOptions = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
+const OperationSettlementServiceListFinanceSettlementPartyOptions = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
+const OperationSettlementServiceListInvoiceCreationBills = "/finance.v1.SettlementService/ListInvoiceCreationBills"
+const OperationSettlementServiceListInvoiceProfilesForBill = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
+const OperationSettlementServiceListVerificationCreationCandidates = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
 const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
@@ -97,21 +108,35 @@ type SettlementServiceHTTPServer interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
+	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
+	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
+	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+	ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
+	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
+	// ListFinanceBillTagAssignmentOptions ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+	ListFinanceBillTagAssignmentOptions(context.Context, *ListFinanceBillTagAssignmentOptionsRequest) (*ListFinanceBillTagAssignmentOptionsResponse, error)
 	ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error)
+	// ListFinanceFeeTagAssignmentOptions ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+	ListFinanceFeeTagAssignmentOptions(context.Context, *ListFinanceFeeTagAssignmentOptionsRequest) (*ListFinanceFeeTagAssignmentOptionsResponse, error)
 	ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error)
+	ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error)
+	ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error)
+	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
+	ListInvoiceProfilesForBill(context.Context, *ListInvoiceProfilesForBillRequest) (*ListInvoiceProfilesForBillResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
 	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
@@ -132,17 +157,21 @@ type SettlementServiceHTTPServer interface {
 func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/finance/fees", _SettlementService_ListFeeLedger0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/fees/orders/{order_id}", _SettlementService_GetFeeLedgerOrderDetail0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/fees/preference", _SettlementService_GetFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/fees/preference", _SettlementService_UpdateFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/finance/fees/preference", _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_GetBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bills/creation-candidates", _SettlementService_ListBillCreationCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bill-tag-options", _SettlementService_ListFinanceBillTagOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bill-tag-assignment-options", _SettlementService_ListFinanceBillTagAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-tags/batch-assign", _SettlementService_BatchAssignFinanceBillTags0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-tags/batch-remove", _SettlementService_BatchRemoveFinanceBillTags0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/fee-tag-options", _SettlementService_ListFinanceFeeTagOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/fee-tag-assignment-options", _SettlementService_ListFinanceFeeTagAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/fee-tags/batch-assign", _SettlementService_BatchAssignFinanceFeeTags0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/fee-tags/batch-remove", _SettlementService_BatchRemoveFinanceFeeTags0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
@@ -153,22 +182,29 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/bills/{id}/confirm", _SettlementService_ConfirmBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/cancel", _SettlementService_CancelBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices", _SettlementService_ListInvoices0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/invoices/creation-bills", _SettlementService_ListInvoiceCreationBills0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/invoices/creation-profiles", _SettlementService_ListInvoiceProfilesForBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices/{id}", _SettlementService_GetInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices", _SettlementService_CreateInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/issue", _SettlementService_IssueInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/cancel", _SettlementService_CancelInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/red-flush", _SettlementService_RedFlushInvoice0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/cashflows", _SettlementService_ListCashflows0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/organization-options", _SettlementService_ListFinanceOrganizationOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/settlement-party-options", _SettlementService_ListFinanceSettlementPartyOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows", _SettlementService_CreateCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/confirm", _SettlementService_ConfirmCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/cancel", _SettlementService_CancelCashflow0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/verifications/creation-candidates", _SettlementService_ListVerificationCreationCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/verifications", _SettlementService_ListVerifications0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commissions/verification-candidates", _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications", _SettlementService_CreateVerification0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions", _SettlementService_ListCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/export", _SettlementService_ExportCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/employees", _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/candidates", _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commissions/rule-candidates", _SettlementService_ListCommissionRuleCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/{id}", _SettlementService_GetCommission0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-rules", _SettlementService_ListCommissionRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-rules", _SettlementService_CreateCommissionRule0_HTTP_Handler(srv))
@@ -199,6 +235,28 @@ func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPSer
 			return err
 		}
 		reply := out.(*ListFeeLedgerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetFeeLedgerOrderDetail0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetFeeLedgerOrderDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetFeeLedgerOrderDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetFeeLedgerOrderDetail(ctx, req.(*GetFeeLedgerOrderDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetFeeLedgerOrderDetailResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -317,6 +375,25 @@ func _SettlementService_ListBills0_HTTP_Handler(srv SettlementServiceHTTPServer)
 	}
 }
 
+func _SettlementService_ListBillCreationCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBillCreationCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListBillCreationCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBillCreationCandidates(ctx, req.(*ListBillCreationCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBillCreationCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_GetBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetBillRequest
@@ -354,6 +431,25 @@ func _SettlementService_ListFinanceBillTagOptions0_HTTP_Handler(srv SettlementSe
 			return err
 		}
 		reply := out.(*ListFinanceBillTagOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListFinanceBillTagAssignmentOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFinanceBillTagAssignmentOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListFinanceBillTagAssignmentOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFinanceBillTagAssignmentOptions(ctx, req.(*ListFinanceBillTagAssignmentOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFinanceBillTagAssignmentOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -411,6 +507,25 @@ func _SettlementService_ListFinanceFeeTagOptions0_HTTP_Handler(srv SettlementSer
 			return err
 		}
 		reply := out.(*ListFinanceFeeTagOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListFinanceFeeTagAssignmentOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFinanceFeeTagAssignmentOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListFinanceFeeTagAssignmentOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFinanceFeeTagAssignmentOptions(ctx, req.(*ListFinanceFeeTagAssignmentOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFinanceFeeTagAssignmentOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -617,6 +732,44 @@ func _SettlementService_ListInvoices0_HTTP_Handler(srv SettlementServiceHTTPServ
 	}
 }
 
+func _SettlementService_ListInvoiceCreationBills0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListInvoiceCreationBillsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListInvoiceCreationBills)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListInvoiceCreationBills(ctx, req.(*ListInvoiceCreationBillsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListInvoiceCreationBillsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListInvoiceProfilesForBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListInvoiceProfilesForBillRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListInvoiceProfilesForBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListInvoiceProfilesForBill(ctx, req.(*ListInvoiceProfilesForBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListInvoiceProfilesForBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_GetInvoice0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetInvoiceRequest
@@ -743,6 +896,44 @@ func _SettlementService_ListCashflows0_HTTP_Handler(srv SettlementServiceHTTPSer
 	}
 }
 
+func _SettlementService_ListFinanceOrganizationOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFinanceOrganizationOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListFinanceOrganizationOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFinanceOrganizationOptions(ctx, req.(*ListFinanceOrganizationOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFinanceOrganizationOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListFinanceSettlementPartyOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFinanceSettlementPartyOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListFinanceSettlementPartyOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFinanceSettlementPartyOptions(ctx, req.(*ListFinanceSettlementPartyOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFinanceSettlementPartyOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_CreateCashflow0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateCashflowRequest
@@ -806,6 +997,25 @@ func _SettlementService_CancelCashflow0_HTTP_Handler(srv SettlementServiceHTTPSe
 	}
 }
 
+func _SettlementService_ListVerificationCreationCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListVerificationCreationCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListVerificationCreationCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListVerificationCreationCandidates(ctx, req.(*ListVerificationCreationCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListVerificationCreationCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_ListVerifications0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListVerificationsRequest
@@ -821,6 +1031,25 @@ func _SettlementService_ListVerifications0_HTTP_Handler(srv SettlementServiceHTT
 			return err
 		}
 		reply := out.(*ListVerificationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCommissionVerificationCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCommissionVerificationCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCommissionVerificationCandidates(ctx, req.(*ListCommissionVerificationCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCommissionVerificationCandidatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -938,6 +1167,25 @@ func _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv SettlementSer
 			return err
 		}
 		reply := out.(*ListCommissionCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListCommissionRuleCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCommissionRuleCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCommissionRuleCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCommissionRuleCandidates(ctx, req.(*ListCommissionRuleCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCommissionRuleCandidatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1244,21 +1492,35 @@ type SettlementServiceHTTPClient interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(ctx context.Context, req *GetBilledFeeEditPolicyRequest, opts ...http.CallOption) (rsp *GetBilledFeeEditPolicyResponse, err error)
 	GetCommission(ctx context.Context, req *GetCommissionRequest, opts ...http.CallOption) (rsp *GetCommissionResponse, err error)
+	GetFeeLedgerOrderDetail(ctx context.Context, req *GetFeeLedgerOrderDetailRequest, opts ...http.CallOption) (rsp *GetFeeLedgerOrderDetailResponse, err error)
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
+	ListBillCreationCandidates(ctx context.Context, req *ListBillCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListBillCreationCandidatesResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
 	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
 	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidatesResponse, err error)
 	ListCommissionEmployees(ctx context.Context, req *ListCommissionEmployeesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
+	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+	ListCommissionRuleCandidates(ctx context.Context, req *ListCommissionRuleCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionRuleCandidatesResponse, err error)
 	ListCommissionRules(ctx context.Context, req *ListCommissionRulesRequest, opts ...http.CallOption) (rsp *ListCommissionRulesResponse, err error)
+	ListCommissionVerificationCandidates(ctx context.Context, req *ListCommissionVerificationCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionVerificationCandidatesResponse, err error)
 	ListCommissions(ctx context.Context, req *ListCommissionsRequest, opts ...http.CallOption) (rsp *ListCommissionsResponse, err error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
+	// ListFinanceBillTagAssignmentOptions ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+	ListFinanceBillTagAssignmentOptions(ctx context.Context, req *ListFinanceBillTagAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceBillTagAssignmentOptionsResponse, err error)
 	ListFinanceBillTagOptions(ctx context.Context, req *ListFinanceBillTagOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceBillTagOptionsResponse, err error)
+	// ListFinanceFeeTagAssignmentOptions ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+	ListFinanceFeeTagAssignmentOptions(ctx context.Context, req *ListFinanceFeeTagAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceFeeTagAssignmentOptionsResponse, err error)
 	ListFinanceFeeTagOptions(ctx context.Context, req *ListFinanceFeeTagOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceFeeTagOptionsResponse, err error)
+	ListFinanceOrganizationOptions(ctx context.Context, req *ListFinanceOrganizationOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceOrganizationOptionsResponse, err error)
+	ListFinanceSettlementPartyOptions(ctx context.Context, req *ListFinanceSettlementPartyOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceSettlementPartyOptionsResponse, err error)
+	ListInvoiceCreationBills(ctx context.Context, req *ListInvoiceCreationBillsRequest, opts ...http.CallOption) (rsp *ListInvoiceCreationBillsResponse, err error)
+	ListInvoiceProfilesForBill(ctx context.Context, req *ListInvoiceProfilesForBillRequest, opts ...http.CallOption) (rsp *ListInvoiceProfilesForBillResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
+	ListVerificationCreationCandidates(ctx context.Context, req *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListVerificationCreationCandidatesResponse, err error)
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
 	MarkCommissionAdjustmentPaid(ctx context.Context, req *MarkCommissionAdjustmentPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionAdjustmentPaidResponse, err error)
 	MarkCommissionPaid(ctx context.Context, req *MarkCommissionPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionPaidResponse, err error)
@@ -1723,6 +1985,22 @@ func (c *SettlementServiceHTTPClientImpl) GetCommission(ctx context.Context, in 
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) GetFeeLedgerOrderDetail(ctx context.Context, in *GetFeeLedgerOrderDetailRequest, opts ...http.CallOption) (*GetFeeLedgerOrderDetailResponse, error) {
+	var out GetFeeLedgerOrderDetailResponse
+	pattern := "/api/v1/finance/fees/orders/{order_id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetFeeLedgerOrderDetail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 func (c *SettlementServiceHTTPClientImpl) GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (*GetFeeLedgerPreferenceResponse, error) {
 	var out GetFeeLedgerPreferenceResponse
@@ -1767,6 +2045,22 @@ func (c *SettlementServiceHTTPClientImpl) IssueInvoice(ctx context.Context, in *
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListBillCreationCandidates(ctx context.Context, in *ListBillCreationCandidatesRequest, opts ...http.CallOption) (*ListBillCreationCandidatesResponse, error) {
+	var out ListBillCreationCandidatesResponse
+	pattern := "/api/v1/finance/bills/creation-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListBillCreationCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1837,6 +2131,23 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionEmployees(ctx context.Co
 	return &out, nil
 }
 
+// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...http.CallOption) (*ListCommissionRuleCandidatesResponse, error) {
+	var out ListCommissionRuleCandidatesResponse
+	pattern := "/api/v1/finance/commissions/rule-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCommissionRuleCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...http.CallOption) (*ListCommissionRulesResponse, error) {
 	var out ListCommissionRulesResponse
 	pattern := "/api/v1/finance/commission-rules"
@@ -1844,6 +2155,22 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionRules(ctx context.Contex
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListCommissionRules),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...http.CallOption) (*ListCommissionVerificationCandidatesResponse, error) {
+	var out ListCommissionVerificationCandidatesResponse
+	pattern := "/api/v1/finance/commissions/verification-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCommissionVerificationCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -1886,6 +2213,23 @@ func (c *SettlementServiceHTTPClientImpl) ListFeeLedger(ctx context.Context, in 
 	return &out, nil
 }
 
+// ListFinanceBillTagAssignmentOptions ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) ListFinanceBillTagAssignmentOptions(ctx context.Context, in *ListFinanceBillTagAssignmentOptionsRequest, opts ...http.CallOption) (*ListFinanceBillTagAssignmentOptionsResponse, error) {
+	var out ListFinanceBillTagAssignmentOptionsResponse
+	pattern := "/api/v1/finance/bill-tag-assignment-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListFinanceBillTagAssignmentOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ListFinanceBillTagOptions(ctx context.Context, in *ListFinanceBillTagOptionsRequest, opts ...http.CallOption) (*ListFinanceBillTagOptionsResponse, error) {
 	var out ListFinanceBillTagOptionsResponse
 	pattern := "/api/v1/finance/bill-tag-options"
@@ -1893,6 +2237,23 @@ func (c *SettlementServiceHTTPClientImpl) ListFinanceBillTagOptions(ctx context.
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListFinanceBillTagOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListFinanceFeeTagAssignmentOptions ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) ListFinanceFeeTagAssignmentOptions(ctx context.Context, in *ListFinanceFeeTagAssignmentOptionsRequest, opts ...http.CallOption) (*ListFinanceFeeTagAssignmentOptionsResponse, error) {
+	var out ListFinanceFeeTagAssignmentOptionsResponse
+	pattern := "/api/v1/finance/fee-tag-assignment-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListFinanceFeeTagAssignmentOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -1918,6 +2279,70 @@ func (c *SettlementServiceHTTPClientImpl) ListFinanceFeeTagOptions(ctx context.C
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...http.CallOption) (*ListFinanceOrganizationOptionsResponse, error) {
+	var out ListFinanceOrganizationOptionsResponse
+	pattern := "/api/v1/finance/organization-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListFinanceOrganizationOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListFinanceSettlementPartyOptions(ctx context.Context, in *ListFinanceSettlementPartyOptionsRequest, opts ...http.CallOption) (*ListFinanceSettlementPartyOptionsResponse, error) {
+	var out ListFinanceSettlementPartyOptionsResponse
+	pattern := "/api/v1/finance/settlement-party-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListFinanceSettlementPartyOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListInvoiceCreationBills(ctx context.Context, in *ListInvoiceCreationBillsRequest, opts ...http.CallOption) (*ListInvoiceCreationBillsResponse, error) {
+	var out ListInvoiceCreationBillsResponse
+	pattern := "/api/v1/finance/invoices/creation-bills"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListInvoiceCreationBills),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListInvoiceProfilesForBill(ctx context.Context, in *ListInvoiceProfilesForBillRequest, opts ...http.CallOption) (*ListInvoiceProfilesForBillResponse, error) {
+	var out ListInvoiceProfilesForBillResponse
+	pattern := "/api/v1/finance/invoices/creation-profiles"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListInvoiceProfilesForBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...http.CallOption) (*ListInvoicesResponse, error) {
 	var out ListInvoicesResponse
 	pattern := "/api/v1/finance/invoices"
@@ -1925,6 +2350,22 @@ func (c *SettlementServiceHTTPClientImpl) ListInvoices(ctx context.Context, in *
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListInvoices),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (*ListVerificationCreationCandidatesResponse, error) {
+	var out ListVerificationCreationCandidatesResponse
+	pattern := "/api/v1/finance/verifications/creation-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListVerificationCreationCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

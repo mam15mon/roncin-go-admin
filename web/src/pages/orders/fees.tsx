@@ -106,6 +106,7 @@ export default function OrderFeesPage() {
   const [billWorkbenchContext, setBillWorkbenchContext] = useState<{
     orderId: string;
     feeIds: string[];
+    organizationId?: string;
   }>();
   const currentBillWorkbenchContext =
     billWorkbenchContext?.orderId === targetOrderId
@@ -286,9 +287,7 @@ export default function OrderFeesPage() {
       }, 0);
     } else {
       const defaultParty =
-        direction === RECEIVABLE
-          ? order?.customerId
-          : order?.bookingAgentId;
+        direction === RECEIVABLE ? order?.customerId : order?.bookingAgentId;
       setTimeout(() => {
         if (
           populationId !== feeFormPopulationIdRef.current ||
@@ -570,7 +569,15 @@ export default function OrderFeesPage() {
           feeWritesDisabled={feeWritesDisabled}
           onOpenBillWorkbench={(feeIds) => {
             if (!orderId) return;
-            setBillWorkbenchContext({ orderId, feeIds });
+            if (!order.organizationId) {
+              message.warning('无法确定费用所属公司，不能创建账单');
+              return;
+            }
+            setBillWorkbenchContext({
+              orderId,
+              feeIds,
+              organizationId: order.organizationId,
+            });
           }}
           onOpenFeeModal={openFeeModal}
           getTableColumns={getTableColumns}
@@ -592,6 +599,7 @@ export default function OrderFeesPage() {
         key={targetOrderId}
         open={Boolean(currentBillWorkbenchContext)}
         initialFeeIds={currentBillWorkbenchContext?.feeIds ?? []}
+        initialOrganizationId={currentBillWorkbenchContext?.organizationId}
         sourceLabel={`订单 ${order.orderNo || order.id}`}
         onClose={() => setBillWorkbenchContext(undefined)}
         onCreated={() => {
