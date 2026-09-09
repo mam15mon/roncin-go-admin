@@ -50,11 +50,7 @@ import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
-import {
-  buildInitialValues,
-  buildUpdatePayload,
-  type OrderDetailFormValues,
-} from './components/detail/orderDetailHelpers';
+import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
 import SameBatchOrdersSection from './components/detail/SameBatchOrdersSection';
 import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
@@ -252,8 +248,10 @@ export default function OrderDetailPage() {
 
   // 2. 构造表单初始值
   const initialValues = useMemo(
-    () => buildInitialValues(order, shippingDocs, personnel),
-    [order, shippingDocs, personnel],
+    () =>
+      definition?.form.buildDetailInitialValues(order, shippingDocs, personnel) ??
+      {},
+    [definition, order, shippingDocs, personnel],
   );
 
   const lockWritePolicy = getOrderBusinessWritePolicy({
@@ -423,10 +421,10 @@ export default function OrderDetailPage() {
 
   // 6. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
-    if (!orderId || !ensureBusinessWriteAllowed()) return false;
+    if (!definition || !orderId || !ensureBusinessWriteAllowed()) return false;
     setSaving(true);
     try {
-      const payload = buildUpdatePayload(
+      const payload = definition.form.buildUpdatePayload(
         orderId,
         order?.version || '0',
         values,

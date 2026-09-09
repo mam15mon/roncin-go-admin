@@ -2,17 +2,11 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useModel, useParams } from '@umijs/max';
 import { App, Button, Card, Result } from 'antd';
-import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import {
-  OrderReferenceType,
-  ShipmentMode,
-  ShipmentType,
-  TradeTerm,
-} from '@/enums.generated';
+import { OrderReferenceType } from '@/enums.generated';
 import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
@@ -20,12 +14,8 @@ import {
 import { searchShippingLineOptions } from '@/utils/options';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
+import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
 import { getOrderKindDefinition } from './order-kinds/registry';
-import {
-  buildCreateOrderPayload,
-  type CreateOrderFormValues,
-} from './order-create-payload';
-import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
@@ -228,9 +218,7 @@ export default function NewOrderPage() {
 
   const handleFinish = async (values: CreateOrderFormValues) => {
     try {
-      await orderServiceCreateOrder(
-        buildCreateOrderPayload(values, definition),
-      );
+      await orderServiceCreateOrder(definition.form.buildCreatePayload(values));
       message.success('创建订单成功');
       history.push(`/orders/${definition.kind}`);
       return true;
@@ -240,10 +228,6 @@ export default function NewOrderPage() {
       return false;
     }
   };
-
-  const defaultCargoCategoryId =
-    cargoCategoryOptions.find((item) => item.code === 'GENERAL')?.value ??
-    cargoCategoryOptions.find((item) => item.label === '普货')?.value;
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>
@@ -262,27 +246,11 @@ export default function NewOrderPage() {
         />
       }
       sections={sections}
-      initialValues={{
-        orderDate: dayjs(),
-        ...(definition.transportMode === 'sea'
-          ? {
-              shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-              shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
-              tradeTerm: TradeTerm.TRADE_TERM_CIF,
-              serviceTypeIds: recommendedServiceIDs(
-                serviceTypeOptions,
-                SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
-              ),
-              cargoCategoryIds:
-                typeof defaultCargoCategoryId === 'string'
-                  ? [defaultCargoCategoryId]
-                  : undefined,
-              creatorUserId: initialState?.currentUser?.id,
-              creatorOrganizationId:
-                initialState?.currentUser?.currentOrganization?.id,
-            }
-          : {}),
-      }}
+      initialValues={definition.form.buildCreateDefaults({
+        creator: templateProps.creator,
+        serviceTypeOptions,
+        cargoCategoryOptions,
+      })}
       onFinish={handleFinish}
       submitText="创建订单"
       resetText="重置表单"
