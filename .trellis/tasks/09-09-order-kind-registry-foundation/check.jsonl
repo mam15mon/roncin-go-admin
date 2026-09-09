@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端测试与质量门禁规范"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "公共模板、页面容器与业务扩展组件边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "草稿生命周期、显式刷新令牌与竞态边界"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "订单 kind、生成枚举与注册表类型约束"}
+{"file": ".trellis/tasks/09-09-order-kind-registry-foundation/research/evidence.md", "reason": "复核计划是否覆盖真实调用方并避免重复类型和能力真相"}

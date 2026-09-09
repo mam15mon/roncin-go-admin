@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件设计与容器拆分规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "状态管理与显式刷新令牌规范"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "TypeScript 类型安全规范"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向验证、最终门禁与 pnpm 命令规范"}
+{"file": ".trellis/tasks/09-09-order-kind-registry-foundation/research/evidence.md", "reason": "订单配置调用面、SE 转换、详情状态与权限真相的代码证据"}
