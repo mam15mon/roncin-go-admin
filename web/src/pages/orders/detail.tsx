@@ -86,9 +86,34 @@ export default function OrderDetailPage() {
   const config = parseOrderKind(kind);
 
   const targetOrderId = config ? orderId : undefined;
+  const orderFormIdentity =
+    config && orderId ? `${config.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
-  const [isFormDirty, setIsFormDirty] = useState(false);
+  const [formDirtyState, setFormDirtyState] = useState<{
+    identity: string | undefined;
+    dirty: boolean;
+  }>({ identity: orderFormIdentity, dirty: false });
+  const activeOrderFormIdentityRef = useRef(orderFormIdentity);
+  activeOrderFormIdentityRef.current = orderFormIdentity;
+  const isFormDirty =
+    formDirtyState.identity === orderFormIdentity && formDirtyState.dirty;
+  const setIsFormDirty = useCallback(
+    (dirty: boolean) => {
+      const sourceIdentity = orderFormIdentity;
+      setFormDirtyState((current) => {
+        // 旧订单的异步保存/恢复回调不得覆盖当前订单的脏状态。
+        if (activeOrderFormIdentityRef.current !== sourceIdentity) {
+          return current;
+        }
+        if (current.identity === sourceIdentity && current.dirty === dirty) {
+          return current;
+        }
+        return { identity: sourceIdentity, dirty };
+      });
+    },
+    [orderFormIdentity],
+  );
   const pendingExplicitFormRefreshRef = useRef(false);
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
@@ -114,8 +139,6 @@ export default function OrderDetailPage() {
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
-  const orderFormIdentity =
-    config && orderId ? `${config.kind}:${orderId}` : undefined;
   const changeActionsTargetKey =
     orderId && config?.category === 'sea'
       ? orderFormIdentity
@@ -150,7 +173,6 @@ export default function OrderDetailPage() {
     setSharedContainerDrawerOpen(false);
     setSharedContainerTEId(undefined);
     setSharedContainerOrderId(undefined);
-    setIsFormDirty(false);
   }, [orderFormIdentity]);
 
   const loadChangeActions = useCallback(async () => {
@@ -271,7 +293,13 @@ export default function OrderDetailPage() {
     }
     formRef.current?.setFieldsValue(initialValues);
     setIsFormDirty(false);
-  }, [draftKey, explicitFormRefreshVersion, initialValues, order]);
+  }, [
+    draftKey,
+    explicitFormRefreshVersion,
+    initialValues,
+    order,
+    setIsFormDirty,
+  ]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
     try {
