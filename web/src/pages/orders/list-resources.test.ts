@@ -183,8 +183,8 @@ describe('useOrderListResources', () => {
   });
 
   it.each(['land', 'rail'] as const)(
-    '列表资源对 %s 运输方式显式关闭，不请求主数据、港口、机场与客户',
-    (transportMode) => {
+    '列表资源对 %s 运输方式显式关闭：初始与全部联想入口均零请求',
+    async (transportMode) => {
       const unimplementedDefinition = {
         ...seaConfig,
         transportMode,
@@ -202,8 +202,69 @@ describe('useOrderListResources', () => {
       expect(mockGetPorts).not.toHaveBeenCalled();
       expect(mockGetAirports).not.toHaveBeenCalled();
       expect(mockSearchPartners).not.toHaveBeenCalled();
+
+      // 用户触发的联想入口同样关闭：统一返回空，不请求、不抛「尚未开放」。
+      await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
+      await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
+      await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
+      await expect(
+        result.current.searchOrderCarriers('船公司'),
+      ).resolves.toEqual([]);
+      await expect(
+        result.current.searchOrderPersonnel('人员'),
+      ).resolves.toEqual([]);
+      expect(mockSearchPartners).not.toHaveBeenCalled();
+      expect(mockSearchPorts).not.toHaveBeenCalled();
+      expect(mockSearchLocations).not.toHaveBeenCalled();
+      expect(mockSearchShippingLines).not.toHaveBeenCalled();
+      expect(mockSearchPersonnel).not.toHaveBeenCalled();
     },
   );
+
+  it('同组织 sea 切换到 air：旧港口立即隐藏，迟到的海运港口联想不回写', async () => {
+    let currentDefinition = seaConfig;
+    const { result, rerender } = renderHook(
+      () => useOrderListResources(currentDefinition),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.ports).toHaveLength(1));
+
+    // 海运下发起慢速港口联想
+    const latePortSearch = deferred<any>();
+    mockSearchPorts.mockImplementationOnce(() => latePortSearch.promise);
+    const searchPromise = result.current.searchOrderPorts('慢速港口');
+
+    // 同组织切换到空运：资源身份（组织 + 运输方式）立即不匹配
+    currentDefinition = {
+      ...seaConfig,
+      transportMode: 'air',
+    } as typeof seaConfig;
+    rerender();
+
+    expect(result.current.ports).toEqual([]);
+    expect(result.current.locationOptions).toEqual([]);
+
+    // 空运资源正常完成
+    await waitFor(() => expect(result.current.airports).toHaveLength(1));
+    expect(result.current.ports).toEqual([]);
+
+    // 旧海运港口联想最后返回：调用方获得空数组，且不写入当前资源
+    latePortSearch.resolve({
+      data: [
+        {
+          id: 'old-sea-port',
+          nameZh: '旧海港',
+          nameEn: 'Old Sea Port',
+          unLocode: 'CNOLD',
+        },
+      ],
+    });
+    await expect(searchPromise).resolves.toEqual([]);
+    expect(result.current.ports).toEqual([]);
+    expect(result.current.locationOptions).not.toContainEqual(
+      expect.objectContaining({ value: 'old-sea-port' }),
+    );
+  });
 
   it('空运定义下港口联想直接关闭，不请求港口接口', async () => {
     const airConfig = {

@@ -734,6 +734,18 @@ describe('SE 适配器完整固定夹具等价', () => {
     });
   });
 
+  it('更新请求对空 receivedAt 显式输出 undefined，不误传默认日期', () => {
+    const result = buildSeaExportUpdatePayload('order-1', '1', {
+      customerId: 'customer-1',
+      paymentTerm: 1,
+      cargoReadyAt: dayjs('2026-08-20T01:00:00.000Z'),
+      receivedAt: undefined,
+    });
+
+    expect(result).toHaveProperty('receivedAt', undefined);
+    expect(result.cargoReadyAt).toBe('2026-08-20T01:00:00.000Z');
+  });
+
   it('完整详情表单逐字段映射为完整更新请求', () => {
     const result = buildSeaExportUpdatePayload('order-1', '9', {
       customerId: 'customer-1',
@@ -756,7 +768,7 @@ describe('SE 适配器完整固定夹具等价', () => {
       factoryName: ' 上海工厂 ',
       cargoReadyAt: dayjs('2026-08-20T01:00:00.000Z'),
       declarationCutoffAt: '2026-08-21T02:00:00.000Z',
-      receivedAt: undefined,
+      receivedAt: dayjs('2026-08-22T03:00:00.000Z'),
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
@@ -820,7 +832,7 @@ describe('SE 适配器完整固定夹具等价', () => {
       factoryName: '上海工厂',
       cargoReadyAt: '2026-08-20T01:00:00.000Z',
       declarationCutoffAt: '2026-08-21T02:00:00.000Z',
-      receivedAt: undefined,
+      receivedAt: '2026-08-22T03:00:00.000Z',
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,

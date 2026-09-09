@@ -38,9 +38,11 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const [ports, setPorts] = useState<API.Port[]>([]);
   const [airports, setAirports] = useState<API.Airport[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
-  const [loadedOrganizationId, setLoadedOrganizationId] = useState<
-    string | null
-  >(null);
+  // 已加载资源携带完整身份（组织 + 运输方式）：同组织 sea → air 切换时，
+  // 即使旧 state 尚未清空，身份不匹配也会让旧港口立即从对外结果中隐藏。
+  const [loadedResourceIdentity, setLoadedResourceIdentity] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
     // 未注册订单类型与未开放运输方式 fail-closed：不发任何主数据请求，
@@ -51,7 +53,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       isUnimplementedTransportMode(definition.transportMode)
     ) {
       requestIdRef.current += 1;
-      setLoadedOrganizationId(null);
+      setLoadedResourceIdentity(undefined);
       setMasterOptions([]);
       setPorts([]);
       setAirports([]);
@@ -61,6 +63,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrgId = organizationId;
+    const currentResourceIdentity = `${organizationId}:${definition.transportMode}`;
     const shouldLoadPorts = definition.transportMode === 'sea';
     const shouldLoadAirports = definition.transportMode === 'air';
 
@@ -82,7 +85,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
         ) {
           return;
         }
-        setLoadedOrganizationId(currentOrgId);
+        setLoadedResourceIdentity(currentResourceIdentity);
         setMasterOptions(options);
         setPorts(portsList);
         setAirports(airportsList);
@@ -99,18 +102,21 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
         ) {
           return;
         }
-        setLoadedOrganizationId(null);
+        setLoadedResourceIdentity(undefined);
         message.error(error.message || '订单主数据加载失败');
       });
   }, [definition, message, organizationId]);
 
-  const isOrgMatched = Boolean(
-    organizationId && loadedOrganizationId === organizationId,
-  );
-  const effectiveMasterOptions = isOrgMatched ? masterOptions : [];
-  const effectivePorts = isOrgMatched ? ports : [];
-  const effectiveAirports = isOrgMatched ? airports : [];
-  const effectiveCustomerMap = isOrgMatched ? customerMap : {};
+  const resourceIdentity =
+    organizationId && definition
+      ? `${organizationId}:${definition.transportMode}`
+      : undefined;
+  const resourcesMatched =
+    Boolean(resourceIdentity) && loadedResourceIdentity === resourceIdentity;
+  const effectiveMasterOptions = resourcesMatched ? masterOptions : [];
+  const effectivePorts = resourcesMatched ? ports : [];
+  const effectiveAirports = resourcesMatched ? airports : [];
+  const effectiveCustomerMap = resourcesMatched ? customerMap : {};
 
   const containerSpecOptions = effectiveMasterOptions
     .filter(
@@ -169,6 +175,13 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       value: item.id ?? '',
     }));
 
+  // 未注册类型与未开放运输方式的对外联想入口统一关闭：
+  // 既不请求，也不抛「尚未开放」，避免部分加载、部分报错的混合语义。
+  const resourcesEnabled =
+    definition?.transportMode !== undefined &&
+    !isUnimplementedTransportMode(definition.transportMode) &&
+    Boolean(organizationId);
+
   const locationOptions = [
     ...regionLocationOptions,
     ...effectivePorts
@@ -187,14 +200,18 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchCustomers = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId || !definition) {
+    const requestTransportMode = locationTransportMode;
+    if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
     const options = await searchPartnerOptions(keyword, {
       role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
       enabled: true,
     });
-    if (activeOrgIdRef.current !== requestOrgId) {
+    if (
+      activeOrgIdRef.current !== requestOrgId ||
+      activeTransportModeRef.current !== requestTransportMode
+    ) {
       return [];
     }
     setCustomerMap((prev) => {
@@ -209,11 +226,12 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchOrderPorts = async (keyword?: string) => {
     const requestOrgId = organizationId;
+    const requestTransportMode = locationTransportMode;
     // 港口联想只属于海运运输方式，其余类型直接关闭。
     if (
       !requestOrgId ||
-      !definition ||
-      definition.transportMode !== 'sea'
+      !resourcesEnabled ||
+      requestTransportMode !== 'sea'
     ) {
       return [];
     }
@@ -224,7 +242,11 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       enabled: true,
     });
     const result = unwrapList(response);
-    if (activeOrgIdRef.current !== requestOrgId) {
+    // 组织或运输方式已切换的迟到港口响应不得写入当前资源。
+    if (
+      activeOrgIdRef.current !== requestOrgId ||
+      activeTransportModeRef.current !== requestTransportMode
+    ) {
       return [];
     }
     setPorts((current) => {
@@ -245,7 +267,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const searchLocations = async (keyword?: string) => {
     const requestOrgId = organizationId;
     const requestTransportMode = locationTransportMode;
-    if (!requestOrgId || !requestTransportMode) {
+    if (!requestOrgId || !resourcesEnabled || !requestTransportMode) {
       return [];
     }
     const options = await searchOrderLocations(requestTransportMode, keyword);
@@ -257,17 +279,22 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
 
   const searchOrderCarriers = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    if (!requestOrgId || !definition) {
+    const requestTransportMode = locationTransportMode;
+    if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
     const options = await searchShippingLineOptions(keyword);
-    return activeOrgIdRef.current === requestOrgId ? options : [];
+    return activeOrgIdRef.current === requestOrgId &&
+      activeTransportModeRef.current === requestTransportMode
+      ? options
+      : [];
   };
 
   const searchOrderPersonnel = async (keyword?: string) => {
     const requestOrgId = organizationId;
+    const requestTransportMode = locationTransportMode;
     const requestBusinessType = personnelBusinessType;
-    if (!requestOrgId || requestBusinessType === undefined) {
+    if (!requestOrgId || !resourcesEnabled || requestBusinessType === undefined) {
       return [];
     }
     const response = await orderServiceListPersonnelOptions({
@@ -278,6 +305,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     });
     if (
       activeOrgIdRef.current !== requestOrgId ||
+      activeTransportModeRef.current !== requestTransportMode ||
       activeBusinessTypeRef.current !== requestBusinessType
     ) {
       return [];
