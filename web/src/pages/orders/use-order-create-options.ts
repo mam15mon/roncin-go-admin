@@ -10,6 +10,7 @@ import {
   isMasterDataKind,
   MASTER_DATA_KINDS,
   requireSeaServiceTypeOptions,
+  resolveOrderLocationOptions,
   searchOrderLocations,
 } from './common';
 import type { OrderKindDefinition } from './order-kinds/types';
@@ -128,9 +129,7 @@ export function useOrderCreateOptions(definition?: OrderKindDefinition) {
         setServiceTypeOptions(nextServiceTypeOptions);
         setCargoCategoryOptions(masterData.cargoCategoryOptions);
         setLocationOptions(
-          definition.transportMode === 'sea'
-            ? masterData.seaLocationOptions
-            : masterData.airLocationOptions,
+          resolveOrderLocationOptions(definition.transportMode, masterData),
         );
         setCurrencyOptions(masterData.currencyOptions);
         setContainerSpecOptions(

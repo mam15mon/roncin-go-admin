@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  isUnimplementedTransportMode,
   MASTER_DATA_KINDS,
   searchOrderLocations,
   searchPartnersByRole,
@@ -76,4 +77,19 @@ describe('订单远程候选项', () => {
       pageSize: 50,
     });
   });
+
+  it.each(['land', 'rail'] as const)(
+    '未开放的 %s 运输方式显式抛错，不落入机场分支',
+    async (transportMode) => {
+      expect(isUnimplementedTransportMode(transportMode)).toBe(true);
+      expect(isUnimplementedTransportMode('sea')).toBe(false);
+      expect(isUnimplementedTransportMode('air')).toBe(false);
+
+      await expect(searchOrderLocations(transportMode, 'x')).rejects.toThrow(
+        '陆运与铁路订单的地点主数据尚未开放',
+      );
+      expect(listPorts).not.toHaveBeenCalled();
+      expect(listAirports).not.toHaveBeenCalled();
+    },
+  );
 });

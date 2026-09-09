@@ -29,6 +29,7 @@ import {
 import { unwrapList } from '@/utils/api';
 import { getCurrencies, searchPartnerOptions } from '@/utils/options';
 import type { OrderTransportMode } from './order-kinds/types';
+import type { SelectOption } from './templates';
 
 export const businessTypeOptions = [
   {
@@ -194,10 +195,26 @@ export async function searchPartnersByRole(
   return searchPartnerOptions(keyword, { role, enabled: true });
 }
 
+/** 陆运/铁路的地点与站点主数据尚未开放；共享代码必须显式关闭，不得静默落入 sea/air 实现。 */
+export function isUnimplementedTransportMode(
+  transportMode: OrderTransportMode,
+): boolean {
+  return transportMode === 'land' || transportMode === 'rail';
+}
+
+function assertTransportStationsSupported(
+  transportMode: OrderTransportMode,
+): asserts transportMode is 'sea' | 'air' {
+  if (isUnimplementedTransportMode(transportMode)) {
+    throw new Error('陆运与铁路订单的地点主数据尚未开放');
+  }
+}
+
 export async function searchOrderLocations(
   transportMode: OrderTransportMode,
   keyword?: string,
 ): Promise<{ label: string; value: string }[]> {
+  assertTransportStationsSupported(transportMode);
   const [regionsResponse, transportResponse] = await Promise.all([
     masterDataServiceListItems({
       kind: MASTER_DATA_KINDS.REGION,
@@ -229,10 +246,11 @@ export async function searchOrderLocations(
 
 export async function fetchOrderMasterData(
   organizationId: string,
-  transportMode?: OrderTransportMode,
+  transportMode: OrderTransportMode,
 ) {
-  const shouldLoadPorts = !transportMode || transportMode === 'sea';
-  const shouldLoadAirports = !transportMode || transportMode === 'air';
+  assertTransportStationsSupported(transportMode);
+  const shouldLoadPorts = transportMode === 'sea';
+  const shouldLoadAirports = transportMode === 'air';
 
   const [masterOptions, ports, airports, currencies] = await Promise.all([
     getMasterDataOptions(organizationId),
@@ -312,4 +330,15 @@ export async function fetchOrderMasterData(
     airLocationOptions,
     currencyOptions,
   };
+}
+
+/** 按运输方式穷尽选择地点候选项；land/rail 显式抛错，不会静默进入机场分支。 */
+export function resolveOrderLocationOptions(
+  transportMode: OrderTransportMode,
+  masterData: Awaited<ReturnType<typeof fetchOrderMasterData>>,
+): SelectOption[] {
+  assertTransportStationsSupported(transportMode);
+  return transportMode === 'sea'
+    ? masterData.seaLocationOptions
+    : masterData.airLocationOptions;
 }

@@ -156,7 +156,7 @@ describe('orders common and config', () => {
   });
 
   it('使用真实数字枚举构建完整订单主数据候选', async () => {
-    const result = await fetchOrderMasterData('org-1');
+    const result = await fetchOrderMasterData('org-1', 'sea');
 
     expect(result.serviceTypeOptions).toHaveLength(19);
     expect(requireSeaServiceTypeOptions(result.serviceTypeOptions)[0]).toEqual({
@@ -184,7 +184,7 @@ describe('orders common and config', () => {
       data: numericMasterData.filter((item) => item.code !== 'BOOKING'),
     });
 
-    const result = await fetchOrderMasterData('org-1');
+    const result = await fetchOrderMasterData('org-1', 'sea');
 
     expect(() =>
       requireSeaServiceTypeOptions(result.serviceTypeOptions),
@@ -203,9 +203,14 @@ describe('orders common and config', () => {
     expect(listPorts).not.toHaveBeenCalled();
   });
 
-  it('按需加载：未指定 category 时同时请求港口与机场', async () => {
-    await fetchOrderMasterData('org-1');
-    expect(listPorts).toHaveBeenCalledTimes(1);
-    expect(listAirports).toHaveBeenCalledTimes(1);
-  });
+  it.each(['land', 'rail'] as const)(
+    '未开放的 %s 运输方式在装载主数据前显式抛错，不请求港口或机场',
+    async (transportMode) => {
+      await expect(fetchOrderMasterData('org-1', transportMode)).rejects.toThrow(
+        '陆运与铁路订单的地点主数据尚未开放',
+      );
+      expect(listPorts).not.toHaveBeenCalled();
+      expect(listAirports).not.toHaveBeenCalled();
+    },
+  );
 });

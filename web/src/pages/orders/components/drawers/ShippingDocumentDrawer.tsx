@@ -14,7 +14,8 @@ import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
-import { shippingDocumentStatusValueEnum } from '../../common';
+import { isUnimplementedTransportMode, shippingDocumentStatusValueEnum } from '../../common';
+import type { OrderTransportMode } from '../../order-kinds/types';
 import {
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   formatHouseReleaseType,
@@ -34,7 +35,7 @@ export type ShippingDocumentDrawerRef = {
 
 type ShippingDocumentDrawerProps = {
   canManage: boolean;
-  transportMode: string;
+  transportMode: OrderTransportMode;
 };
 
 type ShippingDocumentFormValues = {
@@ -261,7 +262,16 @@ const ShippingDocumentDrawer = forwardRef<
         onClose={() => setDrawerOpen(false)}
         width={960}
       >
-        {transportMode === 'sea' && (
+        {isUnimplementedTransportMode(transportMode) && (
+          <Alert
+            type="warning"
+            showIcon
+            message="陆运与铁路订单的分单管理尚未开放"
+          />
+        )}
+
+        {!isUnimplementedTransportMode(transportMode) &&
+          transportMode === 'sea' && (
           <Alert
             type="info"
             showIcon
@@ -275,7 +285,7 @@ const ShippingDocumentDrawer = forwardRef<
           />
         )}
 
-        {order?.id && (
+        {order?.id && !isUnimplementedTransportMode(transportMode) && (
           <ProTable<API.OrderShippingDocument>
             actionRef={actionRef}
             rowKey="id"
@@ -308,7 +318,7 @@ const ShippingDocumentDrawer = forwardRef<
 
       <ModalForm<ShippingDocumentFormValues>
         title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}
-        open={modalOpen}
+        open={modalOpen && !isUnimplementedTransportMode(transportMode)}
         formRef={formRef}
         initialValues={
           editingShippingDocument

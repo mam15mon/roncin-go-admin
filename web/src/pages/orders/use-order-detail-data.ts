@@ -16,6 +16,7 @@ import {
   isMasterDataKind,
   MASTER_DATA_KINDS,
   requireSeaServiceTypeOptions,
+  resolveOrderLocationOptions,
   searchOrderLocations,
 } from './common';
 import type { OrderKindDefinition } from './order-kinds/types';
@@ -144,7 +145,7 @@ export function useOrderDetailData(
         milestonesRes,
         personnelRes,
       ] = await Promise.all([
-        fetchOrderMasterData(organizationId, transportMode),
+        fetchOrderMasterData(organizationId, definition.transportMode),
         transportMode === 'sea'
           ? getOrderPersonnelOptions(organizationId, businessType)
           : Promise.resolve([]),
@@ -174,9 +175,7 @@ export function useOrderDetailData(
       setServiceTypeOptions(nextServiceTypeOptions);
       setCargoCategoryOptions(masterData.cargoCategoryOptions);
       setLocationOptions(
-        transportMode === 'sea'
-          ? masterData.seaLocationOptions
-          : masterData.airLocationOptions,
+        resolveOrderLocationOptions(definition.transportMode, masterData),
       );
       setCurrencyOptions(masterData.currencyOptions);
       setContainerSpecOptions(
