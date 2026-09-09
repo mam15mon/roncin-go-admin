@@ -90,25 +90,25 @@
 
 ## 4. 验收标准
 
-- [ ] **AC-1**：产品代码中 `getFormDraftKey` 的订单模板运行时调用只存在于
+- [x] **AC-1**：产品代码中 `getFormDraftKey` 的订单模板运行时调用只存在于
   `OrderFormTemplate`；模板不读取 `window.location`，新建页和详情页均传入规范化
   `draftPathname`。
-- [ ] **AC-2**：详情页不再包含 `formDirtyState`、`activeOrderFormIdentityRef`、
+- [x] **AC-2**：详情页不再包含 `formDirtyState`、`activeOrderFormIdentityRef`、
   `setIsFormDirty`、受控 `dirty/onDirtyChange` 或直接清当前草稿的代码；模板内部 dirty
   继续驱动关闭守卫。
-- [ ] **AC-3**：底部“重置修改”和显式刷新成功通过 `actionsRef.resetTo` 清当前草稿、回填
+- [x] **AC-3**：底部“重置修改”和显式刷新成功通过 `actionsRef.resetTo` 清当前草稿、回填
   最新服务端初始值并清 dirty；显式刷新失败保留当前值、草稿和 dirty。
-- [ ] **AC-4**：订单更新失败返回 `false` 且保留草稿；更新成功后模板只清一次当前草稿，
+- [x] **AC-4**：订单更新失败返回 `false` 且保留草稿；更新成功后模板只清一次当前草稿，
   后台数据或锁状态刷新失败不改变保存成功结果。
-- [ ] **AC-5**：A dirty 后原地导航到 B，B 不显示 A 的 Form store/dirty；B 有自己的草稿时
+- [x] **AC-5**：A dirty 后原地导航到 B，B 不显示 A 的 Form store/dirty；B 有自己的草稿时
   在首次绘制前恢复 B 草稿并注册 dirty；A 的迟到显式刷新不能重置 B。
-- [ ] **AC-6**：初次或始终 readonly 时不恢复持久草稿；首次解除 readonly 后只恢复一次；
+- [x] **AC-6**：初次或始终 readonly 时不恢复持久草稿；首次解除 readonly 后只恢复一次；
   同订单后续锁状态同步不覆盖已编辑的内存值。
-- [ ] **AC-7**：原生重置、页签关闭确认、用户/组织切换隔离、新建订单草稿恢复和日期复原
+- [x] **AC-7**：原生重置、页签关闭确认、用户/组织切换隔离、新建订单草稿恢复和日期复原
   语义无回归。
-- [ ] **AC-8**：相关定向测试、修改文件 Biome、`pnpm --dir web tsc`、`git diff --check`
+- [x] **AC-8**：相关定向测试、修改文件 Biome、`pnpm --dir web tsc`、`git diff --check`
   通过；任务最终只运行一次 `pnpm run check:web` 且通过。
-- [ ] **AC-9**：实现、测试与 `.trellis/spec/web/frontend/state-management.md` 描述同一所有权
+- [x] **AC-9**：实现、测试与 `.trellis/spec/web/frontend/state-management.md` 描述同一所有权
   边界，不存在为了旧 props 或历史 sessionStorage 数据增加的兼容分支。
 
 ## 5. 不包含范围

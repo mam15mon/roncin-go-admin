@@ -145,3 +145,36 @@ git status --short
 ```
 
 本任务不改依赖、构建配置或生产入口，不固定运行 `pnpm run build`，也不运行后端门禁。
+
+## 7. 最终实施与验收记录
+
+实现按设计完成，并在复核过程中将显式刷新竞态保护收敛为统一单调令牌：每次显式刷新
+递增令牌，已提交的订单身份通过 layout effect 作废旧令牌；请求完成与 pending 消费两个
+边界都复核令牌和订单身份。该实现覆盖同订单乱序、A → B 和 A → B → A 的 ABA 场景，
+无需按订单身份维护请求队列。
+
+最终交付提交：
+
+- `66fad7df refactor(web): 收拢订单模板草稿生命周期`；
+- `12b2c3da fix(web): 显式刷新补单调请求序号门禁`；
+- `6ee5cc1b fix(web): 显式刷新令牌覆盖 ABA 身份往返场景`；
+- `752475b5 refactor(web): 显式刷新令牌改为 layout effect 作废并双端复核`；
+- `1216d858 refactor(web): 拆分订单详情业务容器并以身份作为 key 消除 ABA 竞态`；
+- `9f5168b6 refactor(web): 统一显式刷新令牌架构定稿`；
+- `76348514 refactor(web): 收紧 formDraft 工具层 pathname 为必传`。
+
+其中 `1216d858` 的中间拆分方案已由 `9f5168b6` 收敛，不代表最终组件结构；保留在提交历史
+中用于追溯架构演进。最终代码由业务详情页直接持有统一刷新令牌，模板独占草稿键、dirty
+和草稿生命周期。
+
+2026-09-09 最终复核结果：
+
+- 独立复核未发现 P1、P2 或 P3；产品运行时代码仅由 `OrderFormTemplate` 调用
+  `getFormDraftKey`，且始终显式传入 `tabKey + draftPathname + draftScope`；
+- 4 个核心定向测试文件共 33 个用例通过，覆盖模板生命周期、订单新建页、同订单乱序、
+  A/B 切换和 ABA 往返；
+- `pnpm --dir web tsc`、修改文件 Biome 与 `git diff --check` 通过；
+- 最终执行一次 `pnpm run check:web`，退出码为 0，96 个测试文件、445 个用例全部通过；
+- Biome 全量扫描仍打印既有 `.agents/skills/ant-design` 无读取权限的非致命 internal
+  diagnostic，但 Biome 与总门禁均以退出码 0 完成，本任务未修改该目录；
+- 未运行生产构建和后端门禁，因为任务未触及依赖、构建配置、后端或生成契约。
