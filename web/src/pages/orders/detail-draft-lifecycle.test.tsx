@@ -33,6 +33,7 @@ const templateLifecycleState = vi.hoisted(() => ({
     | ((values: any) => Promise<boolean | undefined>)
     | null,
   internalDirty: false,
+  resetToCalls: 0,
   restoreDraft: false,
 }));
 
@@ -165,18 +166,19 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
             )
           : '';
 
-      React.useImperativeHandle(
-        props.actionsRef,
-        () => ({
-          resetTo: (values?: { customerReferenceNo?: string }) => {
-            formDraft.clearFormDraft(draftKey);
-            form.resetFields();
-            if (values) form.setFieldsValue(values);
-            setInternalDirty(false);
-          },
-        }),
-        [form, draftKey],
-      );
+        React.useImperativeHandle(
+          props.actionsRef,
+          () => ({
+            resetTo: (values?: { customerReferenceNo?: string }) => {
+              templateLifecycleState.resetToCalls += 1;
+              formDraft.clearFormDraft(draftKey);
+              form.resetFields();
+              if (values) form.setFieldsValue(values);
+              setInternalDirty(false);
+            },
+          }),
+          [form, draftKey],
+        );
 
       // 模拟真实模板：首次可编辑时机恢复本身份草稿并标记 dirty。
       React.useEffect(() => {
@@ -270,6 +272,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     templateLifecycleState.activeInstanceProps = null;
     templateLifecycleState.activeHandleFinish = null;
     templateLifecycleState.internalDirty = false;
+    templateLifecycleState.resetToCalls = 0;
     templateLifecycleState.restoreDraft = false;
 
     detailTestState.loadData.mockResolvedValue(undefined);
@@ -479,10 +482,11 @@ describe('订单详情页草稿生命周期与记录身份', () => {
         '刷新后的服务端值',
       );
       expect(templateLifecycleState.internalDirty).toBe(false);
+      expect(templateLifecycleState.resetToCalls).toBe(1);
     });
   });
 
-  it('同一订单连点两次刷新数据时，旧刷新的迟到完成不重置新输入', async () => {
+  it('同一订单连点两次刷新：最新刷新完成后，旧刷新迟到不得再次重置新输入', async () => {
     const firstLoad = deferred<void>();
     const secondLoad = deferred<void>();
     detailTestState.loadData
@@ -503,38 +507,86 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       fireEvent.click(refreshBtn);
     });
 
-    // 旧刷新（第一次）迟到完成：不得触发 resetTo
-    await act(async () => {
-      firstLoad.resolve();
-    });
-    fireEvent.change(screen.getByLabelText('客户参考号'), {
-      target: { value: '刷新间隙输入' },
-    });
-    expect(templateLifecycleState.internalDirty).toBe(true);
-
-    // 最新刷新（第二次）完成：才按显式刷新语义回填服务端值
+    // 最新刷新（第二次）先完成并按显式刷新语义重置一次
     await act(async () => {
       secondLoad.resolve();
     });
-
     await waitFor(() => {
-      expect(screen.getByLabelText('客户参考号')).toHaveValue('服务端初始值');
+      expect(templateLifecycleState.resetToCalls).toBe(1);
       expect(templateLifecycleState.internalDirty).toBe(false);
     });
+
+    // 用户在重置之后开始新的输入
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: '重置后新输入的修改' },
+    });
+    expect(templateLifecycleState.internalDirty).toBe(true);
+
+    // 旧刷新（第一次）最后迟到完成：不得再次 resetTo 抹掉新输入
+    await act(async () => {
+      firstLoad.resolve();
+    });
+
+    expect(screen.getByLabelText('客户参考号')).toHaveValue(
+      '重置后新输入的修改',
+    );
+    expect(templateLifecycleState.internalDirty).toBe(true);
+    expect(templateLifecycleState.resetToCalls).toBe(1);
   });
 
-  it('A 发起刷新后途经 B 回到 A，旧刷新迟到完成不重置重新挂载的 A 草稿', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    saveFormDraft(
-      getFormDraftKey(
-        tabKey,
-        '/orders/sea-export/ord-A',
-        detailTestState.draftScope,
-      ),
-      { customerReferenceNo: 'A-重新挂载后恢复的草稿' },
-    );
-    templateLifecycleState.restoreDraft = true;
+  it('A 发起刷新后切到 B：B 自己的刷新正常重置，A 迟到完成不影响 B', async () => {
+    const loadA = deferred<void>();
+    const loadB = deferred<void>();
+    detailTestState.loadData
+      .mockImplementationOnce(() => loadA.promise)
+      .mockImplementationOnce(() => loadB.promise);
 
+    const { rerender } = render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('刷新数据'));
+    });
+
+    routeState.params = { kind: 'sea-export', id: 'ord-B' };
+    rerender(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    // B 上编辑后发起自己的刷新并成功，回填 B 的服务端值
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'B-编辑中的修改' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('刷新数据'));
+    });
+    await act(async () => {
+      loadB.resolve();
+    });
+    await waitFor(() => {
+      expect(templateLifecycleState.resetToCalls).toBe(1);
+      expect(screen.getByLabelText('客户参考号')).toHaveValue(
+        'B-服务端初始值',
+      );
+    });
+
+    // A 的旧刷新最后完成：不得再次重置 B
+    await act(async () => {
+      loadA.resolve();
+    });
+
+    expect(screen.getByLabelText('客户参考号')).toHaveValue(
+      'B-服务端初始值',
+    );
+    expect(templateLifecycleState.resetToCalls).toBe(1);
+  });
+
+  it('A 发起刷新后途经 B 回到 A：旧刷新迟到完成不重置新 A 实例的输入', async () => {
     const pendingLoad = deferred<void>();
     detailTestState.loadData.mockImplementationOnce(() => pendingLoad.promise);
 
@@ -562,23 +614,22 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       </App>,
     );
 
-    // 重新挂载的 A 实例先恢复自己的草稿并标记 dirty
-    await waitFor(() => {
-      expect(screen.getByLabelText('客户参考号')).toHaveValue(
-        'A-重新挂载后恢复的草稿',
-      );
-      expect(templateLifecycleState.internalDirty).toBe(true);
+    // 在重新挂载的 A 实例上输入新内容
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'A-往返后的新输入' },
     });
+    expect(templateLifecycleState.internalDirty).toBe(true);
 
-    // 旧 A 的刷新此时才迟到完成：不得作用于重新挂载后的新 A 实例
+    // 旧 A 的刷新此时才迟到完成：字符串身份相同，但令牌已被身份往返作废
     await act(async () => {
       pendingLoad.resolve();
     });
 
     expect(screen.getByLabelText('客户参考号')).toHaveValue(
-      'A-重新挂载后恢复的草稿',
+      'A-往返后的新输入',
     );
     expect(templateLifecycleState.internalDirty).toBe(true);
+    expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
   it('A 的显式刷新在导航到 B 后完成时，不得重置 B 的表单与 dirty', async () => {
@@ -618,6 +669,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
 
     expect(screen.getByLabelText('客户参考号')).toHaveValue('B-未保存修改');
     expect(templateLifecycleState.internalDirty).toBe(true);
+    expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
   it('底部重置修改按钮：通过模板 resetTo 清草稿并回填 initialValues', () => {

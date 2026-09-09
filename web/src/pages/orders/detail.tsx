@@ -23,6 +23,7 @@ import {
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -95,18 +96,14 @@ export default function OrderDetailPage() {
     config && orderId ? `${config.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
-  // 显式刷新标记携带发起时的订单身份，A 的迟到刷新不得操作 B 的模板。
+  // 显式刷新标记携带发起时的订单身份与令牌；A 的迟到刷新不得操作 B 的模板。
   const pendingExplicitFormRefreshRef = useRef<{
     identity: string;
+    token: number;
   } | null>(null);
-  // 显式刷新令牌：发起时递增；订单身份在渲染期变化时同步作废全部在途令牌，
-  // 使「旧 A」的迟到完成无法作用于 A→B→回 A 后重新挂载的新实例。
+  // 统一显式刷新令牌：发起时递增；订单身份提交变化时再递增一次，
+  // 使旧身份的全部在途刷新立即失效（覆盖 A→B 与 A→B→回 A 往返）。
   const explicitRefreshTokenRef = useRef(0);
-  const lastOrderFormIdentityRef = useRef(orderFormIdentity);
-  if (lastOrderFormIdentityRef.current !== orderFormIdentity) {
-    lastOrderFormIdentityRef.current = orderFormIdentity;
-    explicitRefreshTokenRef.current += 1;
-  }
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
 
@@ -126,6 +123,18 @@ export default function OrderDetailPage() {
     draftScope,
     loadData,
   } = useOrderDetailData(targetOrderId, config);
+
+  // 订单身份提交变化时同步作废旧身份的全部在途刷新。在 layout effect 中
+  // 执行而非渲染期：render 可能被并发模式重试或放弃，试探性渲染不得作废
+  // 真实请求；layout effect 先于消费 passive effect 运行，可一并清掉已写入
+  // 的 pending，堵住「完成写入 pending 后、消费前身份已切换」的间隙。
+  const previousOrderFormIdentityRef = useRef(orderFormIdentity);
+  useLayoutEffect(() => {
+    if (previousOrderFormIdentityRef.current === orderFormIdentity) return;
+    previousOrderFormIdentityRef.current = orderFormIdentity;
+    explicitRefreshTokenRef.current += 1;
+    pendingExplicitFormRefreshRef.current = null;
+  }, [orderFormIdentity]);
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
@@ -270,8 +279,16 @@ export default function OrderDetailPage() {
     const pending = pendingExplicitFormRefreshRef.current;
     if (!pending) return;
     pendingExplicitFormRefreshRef.current = null;
-    // 刷新后无当前订单（如详情加载失败被清空）时保留草稿与脏状态。
-    if (pending.identity !== orderFormIdentity || !order) return;
+    // 令牌与身份双重复核：覆盖「完成写入 pending 后、消费 effect 运行前」
+    // 又有刷新发起或身份切换的窗口；刷新后无当前订单（如详情加载失败被
+    // 清空）时同样保留草稿与脏状态。
+    if (
+      pending.token !== explicitRefreshTokenRef.current ||
+      pending.identity !== orderFormIdentity ||
+      !order
+    ) {
+      return;
+    }
     templateActionsRef.current?.resetTo(initialValues);
   }, [explicitFormRefreshVersion, initialValues, order, orderFormIdentity]);
 
@@ -281,11 +298,13 @@ export default function OrderDetailPage() {
     const token = ++explicitRefreshTokenRef.current;
     try {
       await loadData();
-      // 已有更新的刷新发起，或订单身份已切换（含 A→B→回 A 往返导致模板
-      // 重新挂载）时，本次迟到完成直接丢弃，不得回填并覆盖当前实例的内容。
+      // 后续刷新发起或订单身份提交变化都会使当前令牌失效。
       if (token !== explicitRefreshTokenRef.current) return;
       // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
-      pendingExplicitFormRefreshRef.current = { identity: requestedIdentity };
+      pendingExplicitFormRefreshRef.current = {
+        identity: requestedIdentity,
+        token,
+      };
       setExplicitFormRefreshVersion((version) => version + 1);
     } catch {
       // 刷新失败保留草稿与当前表单，不触发显式重置
