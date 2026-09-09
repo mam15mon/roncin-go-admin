@@ -57,6 +57,42 @@ export async function settlementServicePreviewBillBatch(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/bill-settlement-account-candidates */
+export async function settlementServiceListBillSettlementAccountCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListBillSettlementAccountCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListBillSettlementAccountCandidatesResponse>(
+    "/api/v1/finance/bill-settlement-account-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/bill-settlement-account-update-candidates */
+export async function settlementServiceListBillSettlementAccountUpdateCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListBillSettlementAccountUpdateCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListBillSettlementAccountUpdateCandidatesResponse>(
+    "/api/v1/finance/bill-settlement-account-update-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。 GET /api/v1/finance/bill-tag-assignment-options */
 export async function settlementServiceListFinanceBillTagAssignmentOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

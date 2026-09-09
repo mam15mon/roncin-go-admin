@@ -42,6 +42,30 @@ type billCreationCandidateServiceRepoStub struct {
 	err                   error
 }
 
+type billSettlementAccountRepoStub struct {
+	biz.PartnerAccountRepo
+	listItems     []*biz.PartnerAccount
+	listOrgID     uuid.UUID
+	listPartnerID uuid.UUID
+	listFilter    biz.PartnerAccountFilter
+}
+
+type billSettlementAccountUpdateRepoStub struct {
+	biz.FinanceBillRepo
+	bill *biz.FinanceBill
+}
+
+func (s *billSettlementAccountUpdateRepoStub) Get(context.Context, []uuid.UUID, uuid.UUID) (*biz.FinanceBill, error) {
+	return s.bill, nil
+}
+
+func (s *billSettlementAccountRepoStub) List(_ context.Context, organizationID, partnerID uuid.UUID, filter biz.PartnerAccountFilter) ([]*biz.PartnerAccount, error) {
+	s.listOrgID = organizationID
+	s.listPartnerID = partnerID
+	s.listFilter = filter
+	return s.listItems, nil
+}
+
 func (s *billCreationCandidateServiceRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter biz.FinanceBillCreationCandidateFilter) (*biz.FinanceBillCreationCandidateResult, error) {
 	s.organizationID = organizationID
 	s.filter = filter
@@ -301,6 +325,56 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	}
 }
 
+func TestBillSettlementAccountCandidatesUseBillCreateScopeAndDirection(t *testing.T) {
+	organizationID, partyID := uuid.New(), uuid.New()
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: uuid.New()},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		RoleGrants: []biz.RoleGrant{{
+			RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization,
+			Permissions:          map[string]struct{}{access.FinanceBillCreate: {}},
+			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: organizationID, Writable: true}},
+		}},
+	}
+	repo := &billSettlementAccountRepoStub{listItems: []*biz.PartnerAccount{
+		{ID: uuid.New(), Name: "应收账户", AccountHolder: "结算单位", BankName: "银行", AccountNo: "001", Currency: "USD", Usage: biz.PartnerAccountUsageReceivable, Enabled: true, IsDefaultReceivable: true},
+		{ID: uuid.New(), Name: "双向账户", AccountHolder: "结算单位", BankName: "银行", AccountNo: "002", Currency: "USD", Usage: biz.PartnerAccountUsageBoth, Enabled: true},
+		{ID: uuid.New(), Name: "应付账户", AccountHolder: "结算单位", BankName: "银行", AccountNo: "003", Currency: "USD", Usage: biz.PartnerAccountUsagePayable, Enabled: true},
+	}}
+	service := &SettlementService{accountUsecase: biz.NewPartnerAccountUsecase(repo)}
+	response, err := service.ListBillSettlementAccountCandidates(biz.WithPrincipal(context.Background(), principal), &v1.ListBillSettlementAccountCandidatesRequest{
+		OrganizationId: organizationID.String(), SettlementPartyId: partyID.String(), Direction: string(biz.OrderFeeReceivable), Currency: "usd",
+	})
+	if err != nil {
+		t.Fatalf("仅建账创建权限查询账户候选失败: %v", err)
+	}
+	if repo.listOrgID != organizationID || repo.listPartnerID != partyID || repo.listFilter.Enabled == nil || !*repo.listFilter.Enabled || repo.listFilter.Currency != "USD" {
+		t.Fatalf("账户候选查询未按建账写范围与固定事实过滤: org=%s partner=%s filter=%+v", repo.listOrgID, repo.listPartnerID, repo.listFilter)
+	}
+	if len(response.Data) != 2 || response.Data[0].Name != "应收账户" || response.Data[1].Name != "双向账户" || !response.Data[0].IsDefault {
+		t.Fatalf("应收候选必须排除用途不符账户并保留默认标记: %#v", response.Data)
+	}
+}
+
+func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
+	organizationID, billID := uuid.New(), uuid.New()
+	principal := &biz.Principal{Organization: biz.Organization{ID: organizationID}, RoleGrants: []biz.RoleGrant{{
+		RoleCode: "bill-editor", DataScope: biz.DataScopeOrganization,
+		Permissions: map[string]struct{}{access.FinanceBillUpdate: {}},
+	}}}
+	billRepo := &billSettlementAccountUpdateRepoStub{bill: &biz.FinanceBill{
+		ID: billID, OrganizationID: organizationID, SettlementPartyID: uuid.New(), Direction: biz.OrderFeeReceivable,
+		Currency: "CNY", Status: biz.FinanceBillConfirmed,
+	}}
+	service := &SettlementService{
+		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil),
+		accountUsecase: biz.NewPartnerAccountUsecase(&billSettlementAccountRepoStub{}),
+	}
+	if _, err := service.ListBillSettlementAccountUpdateCandidates(biz.WithPrincipal(context.Background(), principal), &v1.ListBillSettlementAccountUpdateCandidatesRequest{BillId: billID.String()}); !errors.Is(err, biz.ErrFinanceBillInvalidTransition) {
+		t.Fatalf("已确认账单不能加载草稿改选账户候选: %v", err)
+	}
+}
+
 func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T) {
 	organizationID, otherOrganizationID := uuid.New(), uuid.New()
 	feeID, orderID, partyID := uuid.New(), uuid.New(), uuid.New()
@@ -328,6 +402,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		context:  &biz.ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 		resolved: &biz.ResolvedExchangeRate{Rate: decimal.NewFromInt(1), Source: "SYSTEM", RateDate: "2026-09-10", SettingID: &rateSettingID},
 	}
+	accountID := uuid.New()
 	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo), nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
@@ -340,7 +415,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 	created, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
 		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: organizationID.String(),
 		PreviewToken: preview.GetPreviewToken(), IdempotencyKey: "bill-batch-org-assertion",
-		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), StatementTitle: "测试客户", BillDate: "2026-09-10"}},
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
 	})
 	if err != nil || created.GetData() == nil || repo.createdOrganizationID != organizationID {
 		t.Fatalf("同组织创建失败: response=%#v err=%v", created, err)

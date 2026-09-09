@@ -1,7 +1,13 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
-import { history, useLocation, useParams, useSearchParams } from '@umijs/max';
+import {
+  history,
+  useAccess,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from '@umijs/max';
 import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
@@ -26,7 +32,6 @@ import {
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencyOptions } from '@/utils/options';
-import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
 import BasicInfoSection from './components/BasicInfoSection';
 import ContactCardList, {
@@ -38,11 +43,13 @@ import InterestRuleModal, {
 } from './components/InterestRuleModal';
 import SettlementSection from './components/SettlementSection';
 import ShippingPresetSection from './components/ShippingPresetSection';
+import AccountsPanel from './components/secondary/AccountsPanel';
 
 const { Text } = Typography;
 
 export default function PartnerDetailPage() {
   const { message } = App.useApp();
+  const access = useAccess();
   const params = useParams<{ id?: string }>();
   const location = useLocation();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
@@ -633,9 +640,11 @@ export default function PartnerDetailPage() {
                   toggleSection('accounts', collapsed)
                 }
               >
-                <AccountCardList
-                  partnerId={partnerId}
-                  currencyOptions={currencyOptions}
+                <AccountsPanel
+                  partner={partner}
+                  canRead={access.canReadPartnerAccounts}
+                  canCreate={access.canCreatePartnerAccounts}
+                  canUpdate={access.canUpdatePartnerAccounts}
                 />
               </SectionCard>
 

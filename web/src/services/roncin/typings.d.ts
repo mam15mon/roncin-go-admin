@@ -962,6 +962,7 @@ declare namespace API {
     dueDate?: string;
     paymentTermsDays?: number;
     note?: string;
+    settlementAccountId: string;
   };
 
   type CreateBillBatchRequest = {
@@ -1004,6 +1005,7 @@ declare namespace API {
     idempotencyKey: string;
     statementTitle?: string;
     paymentTermsDays?: number;
+    settlementAccountId: string;
   };
 
   type CreateBillResponse = {
@@ -2221,6 +2223,13 @@ declare namespace API {
     tags?: BusinessTagSummary[];
     organizationId?: string;
     organizationName?: string;
+    settlementAccountId?: string;
+    settlementAccountName?: string;
+    settlementAccountHolder?: string;
+    settlementBankName?: string;
+    settlementBankAccount?: string;
+    settlementAccountCurrency?: string;
+    settlementSwiftCode?: string;
   };
 
   type FinanceBillBatch = {
@@ -2510,6 +2519,17 @@ declare namespace API {
     code?: string;
     name?: string;
     baseCurrency?: string;
+  };
+
+  type FinanceSettlementAccountOption = {
+    id?: string;
+    name?: string;
+    accountHolder?: string;
+    bankName?: string;
+    accountNo?: string;
+    currency?: string;
+    swiftCode?: string;
+    isDefault?: boolean;
   };
 
   type FinanceSettlementPartyOption = {
@@ -2899,6 +2919,22 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListBillSettlementAccountCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementAccountOption[];
+    traceId?: string;
+  };
+
+  type ListBillSettlementAccountUpdateCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementAccountOption[];
+    traceId?: string;
   };
 
   type ListBillsResponse = {
@@ -4526,26 +4562,33 @@ declare namespace API {
 
   type PartnerAccount = {
     id?: string;
-    partnerRoleId?: string;
-    accountType?: string;
+    partnerId?: string;
+    name?: string;
+    accountHolder?: string;
     currency?: string;
     bankName?: string;
-    bankAccount?: string;
+    accountNo?: string;
     swiftCode?: string;
-    isDefault?: boolean;
-    status?: number;
+    usage?: number;
+    isDefaultReceivable?: boolean;
+    isDefaultPayable?: boolean;
+    enabled?: boolean;
     remark?: string;
     createdAt?: string;
     updatedAt?: string;
   };
 
   type PartnerAccountInput = {
+    name: string;
+    accountHolder: string;
     currency: string;
-    bankName?: string;
-    bankAccount?: string;
+    bankName: string;
+    accountNo: string;
     swiftCode?: string;
-    isDefault?: boolean;
-    status: number;
+    usage: number;
+    isDefaultReceivable?: boolean;
+    isDefaultPayable?: boolean;
+    enabled: boolean;
     remark?: string;
   };
 
@@ -4753,6 +4796,8 @@ declare namespace API {
   type PartnerServiceListPartnerAccountsParams = {
     partnerId: string;
     enabled?: boolean;
+    usage?: number;
+    currency?: string;
   };
 
   type PartnerServiceListPartnerAttachmentsParams = {
@@ -6411,6 +6456,17 @@ declare namespace API {
     direction?: string;
   };
 
+  type SettlementServiceListBillSettlementAccountCandidatesParams = {
+    organizationId?: string;
+    settlementPartyId?: string;
+    direction?: string;
+    currency?: string;
+  };
+
+  type SettlementServiceListBillSettlementAccountUpdateCandidatesParams = {
+    billId?: string;
+  };
+
   type SettlementServiceListBillsParams = {
     page?: number;
     pageSize?: number;
@@ -6820,6 +6876,7 @@ declare namespace API {
     expectedVersion: string;
     statementTitle?: string;
     paymentTermsDays?: number;
+    settlementAccountId: string;
   };
 
   type UpdateBillResponse = {

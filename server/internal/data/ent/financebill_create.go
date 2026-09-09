@@ -121,6 +121,56 @@ func (_c *FinanceBillCreate) SetSettlementPartyName(v string) *FinanceBillCreate
 	return _c
 }
 
+// SetSettlementAccountID sets the "settlement_account_id" field.
+func (_c *FinanceBillCreate) SetSettlementAccountID(v uuid.UUID) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountID(v)
+	return _c
+}
+
+// SetSettlementAccountName sets the "settlement_account_name" field.
+func (_c *FinanceBillCreate) SetSettlementAccountName(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountName(v)
+	return _c
+}
+
+// SetSettlementAccountHolder sets the "settlement_account_holder" field.
+func (_c *FinanceBillCreate) SetSettlementAccountHolder(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountHolder(v)
+	return _c
+}
+
+// SetSettlementBankName sets the "settlement_bank_name" field.
+func (_c *FinanceBillCreate) SetSettlementBankName(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementBankName(v)
+	return _c
+}
+
+// SetSettlementBankAccount sets the "settlement_bank_account" field.
+func (_c *FinanceBillCreate) SetSettlementBankAccount(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementBankAccount(v)
+	return _c
+}
+
+// SetSettlementAccountCurrency sets the "settlement_account_currency" field.
+func (_c *FinanceBillCreate) SetSettlementAccountCurrency(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountCurrency(v)
+	return _c
+}
+
+// SetSettlementSwiftCode sets the "settlement_swift_code" field.
+func (_c *FinanceBillCreate) SetSettlementSwiftCode(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementSwiftCode(v)
+	return _c
+}
+
+// SetNillableSettlementSwiftCode sets the "settlement_swift_code" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableSettlementSwiftCode(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetSettlementSwiftCode(*v)
+	}
+	return _c
+}
+
 // SetCurrency sets the "currency" field.
 func (_c *FinanceBillCreate) SetCurrency(v string) *FinanceBillCreate {
 	_c.mutation.SetCurrency(v)
@@ -579,6 +629,54 @@ func (_c *FinanceBillCreate) check() error {
 			return &ValidationError{Name: "settlement_party_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_party_name": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.SettlementAccountID(); !ok {
+		return &ValidationError{Name: "settlement_account_id", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_id"`)}
+	}
+	if _, ok := _c.mutation.SettlementAccountName(); !ok {
+		return &ValidationError{Name: "settlement_account_name", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_name"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountName(); ok {
+		if err := financebill.SettlementAccountNameValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementAccountHolder(); !ok {
+		return &ValidationError{Name: "settlement_account_holder", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_holder"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountHolder(); ok {
+		if err := financebill.SettlementAccountHolderValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_holder", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_holder": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementBankName(); !ok {
+		return &ValidationError{Name: "settlement_bank_name", err: errors.New(`ent: missing required field "FinanceBill.settlement_bank_name"`)}
+	}
+	if v, ok := _c.mutation.SettlementBankName(); ok {
+		if err := financebill.SettlementBankNameValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_bank_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_bank_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementBankAccount(); !ok {
+		return &ValidationError{Name: "settlement_bank_account", err: errors.New(`ent: missing required field "FinanceBill.settlement_bank_account"`)}
+	}
+	if v, ok := _c.mutation.SettlementBankAccount(); ok {
+		if err := financebill.SettlementBankAccountValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_bank_account", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_bank_account": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementAccountCurrency(); !ok {
+		return &ValidationError{Name: "settlement_account_currency", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_currency"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountCurrency(); ok {
+		if err := financebill.SettlementAccountCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_currency": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SettlementSwiftCode(); ok {
+		if err := financebill.SettlementSwiftCodeValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_swift_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_swift_code": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Currency(); !ok {
 		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "FinanceBill.currency"`)}
 	}
@@ -738,6 +836,34 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SettlementPartyName(); ok {
 		_spec.SetField(financebill.FieldSettlementPartyName, field.TypeString, value)
 		_node.SettlementPartyName = value
+	}
+	if value, ok := _c.mutation.SettlementAccountID(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountID, field.TypeUUID, value)
+		_node.SettlementAccountID = value
+	}
+	if value, ok := _c.mutation.SettlementAccountName(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountName, field.TypeString, value)
+		_node.SettlementAccountName = value
+	}
+	if value, ok := _c.mutation.SettlementAccountHolder(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountHolder, field.TypeString, value)
+		_node.SettlementAccountHolder = value
+	}
+	if value, ok := _c.mutation.SettlementBankName(); ok {
+		_spec.SetField(financebill.FieldSettlementBankName, field.TypeString, value)
+		_node.SettlementBankName = value
+	}
+	if value, ok := _c.mutation.SettlementBankAccount(); ok {
+		_spec.SetField(financebill.FieldSettlementBankAccount, field.TypeString, value)
+		_node.SettlementBankAccount = value
+	}
+	if value, ok := _c.mutation.SettlementAccountCurrency(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountCurrency, field.TypeString, value)
+		_node.SettlementAccountCurrency = value
+	}
+	if value, ok := _c.mutation.SettlementSwiftCode(); ok {
+		_spec.SetField(financebill.FieldSettlementSwiftCode, field.TypeString, value)
+		_node.SettlementSwiftCode = value
 	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financebill.FieldCurrency, field.TypeString, value)

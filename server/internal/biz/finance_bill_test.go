@@ -145,7 +145,7 @@ func TestBuildFinanceBillBatchPreviewIsDeterministicAndDetectsSnapshotChanges(t 
 func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	feeID := uuid.Must(uuid.NewV7())
 	terms := 30
-	normalized, err := normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", PaymentTermsDays: &terms, IdempotencyKey: "terms"})
+	normalized, err := normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", PaymentTermsDays: &terms, IdempotencyKey: "terms", SettlementAccountID: uuid.New()})
 	if err != nil {
 		t.Fatalf("账期归一化失败: %v", err)
 	}
@@ -156,6 +156,26 @@ func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	inconsistent := "2026-09-24"
 	if _, err = normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", DueDate: &inconsistent, PaymentTermsDays: &terms, IdempotencyKey: "bad-terms"}); err != ErrFinanceBillInvalidArgument {
 		t.Fatalf("账期与到期日不一致应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestSameFinanceBillCreateIntentRejectsChangedSettlementAccount(t *testing.T) {
+	feeID := uuid.New()
+	statementTitle := "测试结算单位"
+	existing := &FinanceBill{
+		SettlementPartyName: "测试结算单位", SettlementAccountID: uuid.New(), BillDate: "2026-08-26",
+		StatementTitle: &statementTitle,
+		Lines:          []*FinanceBillLine{{OrderFeeID: feeID}},
+	}
+	requested := CreateFinanceBillInput{
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", SettlementAccountID: uuid.New(),
+	}
+	if sameFinanceBillCreateIntent(existing, requested) {
+		t.Fatal("同一幂等键更换结算账户必须判定为不同创建意图")
+	}
+	requested.SettlementAccountID = existing.SettlementAccountID
+	if !sameFinanceBillCreateIntent(existing, requested) {
+		t.Fatal("相同结算账户和费用应保留幂等重试语义")
 	}
 }
 

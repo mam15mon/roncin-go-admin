@@ -15,6 +15,9 @@ import SettlementRulesPanel from './components/secondary/SettlementRulesPanel';
 type PartnerSecondaryProps = {
   partner?: API.Partner;
   open: boolean;
+  canReadAccounts: boolean;
+  canCreateAccounts: boolean;
+  canUpdateAccounts: boolean;
   canManage: boolean;
   onClose: () => void;
 };
@@ -22,6 +25,9 @@ type PartnerSecondaryProps = {
 export default function PartnerSecondary({
   partner,
   open,
+  canReadAccounts,
+  canCreateAccounts,
+  canUpdateAccounts,
   canManage,
   onClose,
 }: PartnerSecondaryProps) {
@@ -66,7 +72,12 @@ export default function PartnerSecondary({
               </Space>
             ),
             children: (
-              <AccountsPanel partner={partner} canManage={canManage} />
+              <AccountsPanel
+                partner={partner}
+                canRead={canReadAccounts}
+                canCreate={canCreateAccounts}
+                canUpdate={canUpdateAccounts}
+              />
             ),
           },
           {

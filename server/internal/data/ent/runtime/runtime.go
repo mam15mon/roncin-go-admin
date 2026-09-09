@@ -2000,8 +2000,103 @@ func init() {
 			return nil
 		}
 	}()
+	// financebillDescSettlementAccountName is the schema descriptor for settlement_account_name field.
+	financebillDescSettlementAccountName := financebillFields[9].Descriptor()
+	// financebill.SettlementAccountNameValidator is a validator for the "settlement_account_name" field. It is called by the builders before save.
+	financebill.SettlementAccountNameValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_account_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementAccountHolder is the schema descriptor for settlement_account_holder field.
+	financebillDescSettlementAccountHolder := financebillFields[10].Descriptor()
+	// financebill.SettlementAccountHolderValidator is a validator for the "settlement_account_holder" field. It is called by the builders before save.
+	financebill.SettlementAccountHolderValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountHolder.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_account_holder string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_holder); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementBankName is the schema descriptor for settlement_bank_name field.
+	financebillDescSettlementBankName := financebillFields[11].Descriptor()
+	// financebill.SettlementBankNameValidator is a validator for the "settlement_bank_name" field. It is called by the builders before save.
+	financebill.SettlementBankNameValidator = func() func(string) error {
+		validators := financebillDescSettlementBankName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_bank_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_bank_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementBankAccount is the schema descriptor for settlement_bank_account field.
+	financebillDescSettlementBankAccount := financebillFields[12].Descriptor()
+	// financebill.SettlementBankAccountValidator is a validator for the "settlement_bank_account" field. It is called by the builders before save.
+	financebill.SettlementBankAccountValidator = func() func(string) error {
+		validators := financebillDescSettlementBankAccount.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_bank_account string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_bank_account); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementAccountCurrency is the schema descriptor for settlement_account_currency field.
+	financebillDescSettlementAccountCurrency := financebillFields[13].Descriptor()
+	// financebill.SettlementAccountCurrencyValidator is a validator for the "settlement_account_currency" field. It is called by the builders before save.
+	financebill.SettlementAccountCurrencyValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(settlement_account_currency string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementSwiftCode is the schema descriptor for settlement_swift_code field.
+	financebillDescSettlementSwiftCode := financebillFields[14].Descriptor()
+	// financebill.SettlementSwiftCodeValidator is a validator for the "settlement_swift_code" field. It is called by the builders before save.
+	financebill.SettlementSwiftCodeValidator = financebillDescSettlementSwiftCode.Validators[0].(func(string) error)
 	// financebillDescCurrency is the schema descriptor for currency field.
-	financebillDescCurrency := financebillFields[8].Descriptor()
+	financebillDescCurrency := financebillFields[15].Descriptor()
 	// financebill.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	financebill.CurrencyValidator = func() func(string) error {
 		validators := financebillDescCurrency.Validators
@@ -2020,7 +2115,7 @@ func init() {
 		}
 	}()
 	// financebillDescBaseCurrency is the schema descriptor for base_currency field.
-	financebillDescBaseCurrency := financebillFields[9].Descriptor()
+	financebillDescBaseCurrency := financebillFields[16].Descriptor()
 	// financebill.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financebill.BaseCurrencyValidator = func() func(string) error {
 		validators := financebillDescBaseCurrency.Validators
@@ -2039,7 +2134,7 @@ func init() {
 		}
 	}()
 	// financebillDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	financebillDescExchangeRateDate := financebillFields[12].Descriptor()
+	financebillDescExchangeRateDate := financebillFields[19].Descriptor()
 	// financebill.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	financebill.ExchangeRateDateValidator = func() func(string) error {
 		validators := financebillDescExchangeRateDate.Validators
@@ -2058,11 +2153,11 @@ func init() {
 		}
 	}()
 	// financebillDescFeeCount is the schema descriptor for fee_count field.
-	financebillDescFeeCount := financebillFields[18].Descriptor()
+	financebillDescFeeCount := financebillFields[25].Descriptor()
 	// financebill.FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
 	financebill.FeeCountValidator = financebillDescFeeCount.Validators[0].(func(int) error)
 	// financebillDescBillDate is the schema descriptor for bill_date field.
-	financebillDescBillDate := financebillFields[19].Descriptor()
+	financebillDescBillDate := financebillFields[26].Descriptor()
 	// financebill.BillDateValidator is a validator for the "bill_date" field. It is called by the builders before save.
 	financebill.BillDateValidator = func() func(string) error {
 		validators := financebillDescBillDate.Validators
@@ -2081,11 +2176,11 @@ func init() {
 		}
 	}()
 	// financebillDescStatementTitle is the schema descriptor for statement_title field.
-	financebillDescStatementTitle := financebillFields[20].Descriptor()
+	financebillDescStatementTitle := financebillFields[27].Descriptor()
 	// financebill.StatementTitleValidator is a validator for the "statement_title" field. It is called by the builders before save.
 	financebill.StatementTitleValidator = financebillDescStatementTitle.Validators[0].(func(string) error)
 	// financebillDescPaymentTermsDays is the schema descriptor for payment_terms_days field.
-	financebillDescPaymentTermsDays := financebillFields[21].Descriptor()
+	financebillDescPaymentTermsDays := financebillFields[28].Descriptor()
 	// financebill.PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
 	financebill.PaymentTermsDaysValidator = func() func(int) error {
 		validators := financebillDescPaymentTermsDays.Validators
@@ -2103,7 +2198,7 @@ func init() {
 		}
 	}()
 	// financebillDescDueDate is the schema descriptor for due_date field.
-	financebillDescDueDate := financebillFields[22].Descriptor()
+	financebillDescDueDate := financebillFields[29].Descriptor()
 	// financebill.DueDateValidator is a validator for the "due_date" field. It is called by the builders before save.
 	financebill.DueDateValidator = func() func(string) error {
 		validators := financebillDescDueDate.Validators
@@ -2121,15 +2216,15 @@ func init() {
 		}
 	}()
 	// financebillDescNote is the schema descriptor for note field.
-	financebillDescNote := financebillFields[23].Descriptor()
+	financebillDescNote := financebillFields[30].Descriptor()
 	// financebill.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financebill.NoteValidator = financebillDescNote.Validators[0].(func(string) error)
 	// financebillDescVersion is the schema descriptor for version field.
-	financebillDescVersion := financebillFields[24].Descriptor()
+	financebillDescVersion := financebillFields[31].Descriptor()
 	// financebill.DefaultVersion holds the default value on creation for the version field.
 	financebill.DefaultVersion = financebillDescVersion.Default.(uint64)
 	// financebillDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financebillDescCancellationReason := financebillFields[29].Descriptor()
+	financebillDescCancellationReason := financebillFields[36].Descriptor()
 	// financebill.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financebill.CancellationReasonValidator = financebillDescCancellationReason.Validators[0].(func(string) error)
 	// financebillDescID is the schema descriptor for id field.
@@ -5743,8 +5838,44 @@ func init() {
 	partneraccount.DefaultUpdatedAt = partneraccountDescUpdatedAt.Default.(func() time.Time)
 	// partneraccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partneraccount.UpdateDefaultUpdatedAt = partneraccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partneraccountDescName is the schema descriptor for name field.
+	partneraccountDescName := partneraccountFields[1].Descriptor()
+	// partneraccount.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	partneraccount.NameValidator = func() func(string) error {
+		validators := partneraccountDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescAccountHolder is the schema descriptor for account_holder field.
+	partneraccountDescAccountHolder := partneraccountFields[2].Descriptor()
+	// partneraccount.AccountHolderValidator is a validator for the "account_holder" field. It is called by the builders before save.
+	partneraccount.AccountHolderValidator = func() func(string) error {
+		validators := partneraccountDescAccountHolder.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(account_holder string) error {
+			for _, fn := range fns {
+				if err := fn(account_holder); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// partneraccountDescCurrency is the schema descriptor for currency field.
-	partneraccountDescCurrency := partneraccountFields[2].Descriptor()
+	partneraccountDescCurrency := partneraccountFields[3].Descriptor()
 	// partneraccount.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	partneraccount.CurrencyValidator = func() func(string) error {
 		validators := partneraccountDescCurrency.Validators
@@ -5762,23 +5893,59 @@ func init() {
 		}
 	}()
 	// partneraccountDescBankName is the schema descriptor for bank_name field.
-	partneraccountDescBankName := partneraccountFields[3].Descriptor()
+	partneraccountDescBankName := partneraccountFields[4].Descriptor()
 	// partneraccount.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
-	partneraccount.BankNameValidator = partneraccountDescBankName.Validators[0].(func(string) error)
-	// partneraccountDescBankAccount is the schema descriptor for bank_account field.
-	partneraccountDescBankAccount := partneraccountFields[4].Descriptor()
-	// partneraccount.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
-	partneraccount.BankAccountValidator = partneraccountDescBankAccount.Validators[0].(func(string) error)
+	partneraccount.BankNameValidator = func() func(string) error {
+		validators := partneraccountDescBankName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bank_name string) error {
+			for _, fn := range fns {
+				if err := fn(bank_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescAccountNo is the schema descriptor for account_no field.
+	partneraccountDescAccountNo := partneraccountFields[5].Descriptor()
+	// partneraccount.AccountNoValidator is a validator for the "account_no" field. It is called by the builders before save.
+	partneraccount.AccountNoValidator = func() func(string) error {
+		validators := partneraccountDescAccountNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(account_no string) error {
+			for _, fn := range fns {
+				if err := fn(account_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// partneraccountDescSwiftCode is the schema descriptor for swift_code field.
-	partneraccountDescSwiftCode := partneraccountFields[5].Descriptor()
+	partneraccountDescSwiftCode := partneraccountFields[6].Descriptor()
 	// partneraccount.SwiftCodeValidator is a validator for the "swift_code" field. It is called by the builders before save.
 	partneraccount.SwiftCodeValidator = partneraccountDescSwiftCode.Validators[0].(func(string) error)
-	// partneraccountDescIsDefault is the schema descriptor for is_default field.
-	partneraccountDescIsDefault := partneraccountFields[6].Descriptor()
-	// partneraccount.DefaultIsDefault holds the default value on creation for the is_default field.
-	partneraccount.DefaultIsDefault = partneraccountDescIsDefault.Default.(bool)
+	// partneraccountDescIsDefaultReceivable is the schema descriptor for is_default_receivable field.
+	partneraccountDescIsDefaultReceivable := partneraccountFields[8].Descriptor()
+	// partneraccount.DefaultIsDefaultReceivable holds the default value on creation for the is_default_receivable field.
+	partneraccount.DefaultIsDefaultReceivable = partneraccountDescIsDefaultReceivable.Default.(bool)
+	// partneraccountDescIsDefaultPayable is the schema descriptor for is_default_payable field.
+	partneraccountDescIsDefaultPayable := partneraccountFields[9].Descriptor()
+	// partneraccount.DefaultIsDefaultPayable holds the default value on creation for the is_default_payable field.
+	partneraccount.DefaultIsDefaultPayable = partneraccountDescIsDefaultPayable.Default.(bool)
+	// partneraccountDescEnabled is the schema descriptor for enabled field.
+	partneraccountDescEnabled := partneraccountFields[10].Descriptor()
+	// partneraccount.DefaultEnabled holds the default value on creation for the enabled field.
+	partneraccount.DefaultEnabled = partneraccountDescEnabled.Default.(bool)
 	// partneraccountDescRemark is the schema descriptor for remark field.
-	partneraccountDescRemark := partneraccountFields[8].Descriptor()
+	partneraccountDescRemark := partneraccountFields[11].Descriptor()
 	// partneraccount.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
 	partneraccount.RemarkValidator = partneraccountDescRemark.Validators[0].(func(string) error)
 	// partneraccountDescID is the schema descriptor for id field.

@@ -24,6 +24,13 @@ func (FinanceBill) Fields() []ent.Field {
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "CANCELLED").Default("DRAFT"),
 		field.UUID("settlement_party_id", uuid.Nil).Immutable(),
 		field.String("settlement_party_name").NotEmpty().MaxLen(200).Immutable(),
+		field.UUID("settlement_account_id", uuid.Nil),
+		field.String("settlement_account_name").NotEmpty().MaxLen(200),
+		field.String("settlement_account_holder").NotEmpty().MaxLen(200),
+		field.String("settlement_bank_name").NotEmpty().MaxLen(200),
+		field.String("settlement_bank_account").NotEmpty().MaxLen(100),
+		field.String("settlement_account_currency").NotEmpty().MinLen(3).MaxLen(3),
+		field.String("settlement_swift_code").Optional().MaxLen(32),
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
@@ -69,6 +76,7 @@ func (FinanceBill) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "bill_date"),
 		index.Fields("settlement_party_id", "direction", "currency"),
+		index.Fields("settlement_account_id"),
 		index.Fields("batch_id"),
 	}
 }

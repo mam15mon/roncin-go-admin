@@ -20,6 +20,13 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "partner_accounts",
+			table:     PartnerAccountsTable,
+			expectedChecks: map[string]string{
+				"partner_accounts_default_usage_check": "((NOT is_default_receivable OR (enabled AND usage IN ('RECEIVABLE', 'BOTH'))) AND (NOT is_default_payable OR (enabled AND usage IN ('PAYABLE', 'BOTH'))))",
+			},
+		},
+		{
 			tableName: "ding_talk_approval_dispatches",
 			table:     DingTalkApprovalDispatchesTable,
 			expectedChecks: map[string]string{

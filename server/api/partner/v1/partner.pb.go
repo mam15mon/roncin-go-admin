@@ -362,52 +362,55 @@ func (PartnerShippingPresetType) EnumDescriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{5}
 }
 
-type PartnerAccountStatus int32
+type PartnerAccountUsage int32
 
 const (
-	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED PartnerAccountStatus = 0
-	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_ACTIVE      PartnerAccountStatus = 1
-	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_INACTIVE    PartnerAccountStatus = 2
+	PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_UNSPECIFIED PartnerAccountUsage = 0
+	PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_RECEIVABLE  PartnerAccountUsage = 1
+	PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_PAYABLE     PartnerAccountUsage = 2
+	PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_BOTH        PartnerAccountUsage = 3
 )
 
-// Enum value maps for PartnerAccountStatus.
+// Enum value maps for PartnerAccountUsage.
 var (
-	PartnerAccountStatus_name = map[int32]string{
-		0: "PARTNER_ACCOUNT_STATUS_UNSPECIFIED",
-		1: "PARTNER_ACCOUNT_STATUS_ACTIVE",
-		2: "PARTNER_ACCOUNT_STATUS_INACTIVE",
+	PartnerAccountUsage_name = map[int32]string{
+		0: "PARTNER_ACCOUNT_USAGE_UNSPECIFIED",
+		1: "PARTNER_ACCOUNT_USAGE_RECEIVABLE",
+		2: "PARTNER_ACCOUNT_USAGE_PAYABLE",
+		3: "PARTNER_ACCOUNT_USAGE_BOTH",
 	}
-	PartnerAccountStatus_value = map[string]int32{
-		"PARTNER_ACCOUNT_STATUS_UNSPECIFIED": 0,
-		"PARTNER_ACCOUNT_STATUS_ACTIVE":      1,
-		"PARTNER_ACCOUNT_STATUS_INACTIVE":    2,
+	PartnerAccountUsage_value = map[string]int32{
+		"PARTNER_ACCOUNT_USAGE_UNSPECIFIED": 0,
+		"PARTNER_ACCOUNT_USAGE_RECEIVABLE":  1,
+		"PARTNER_ACCOUNT_USAGE_PAYABLE":     2,
+		"PARTNER_ACCOUNT_USAGE_BOTH":        3,
 	}
 )
 
-func (x PartnerAccountStatus) Enum() *PartnerAccountStatus {
-	p := new(PartnerAccountStatus)
+func (x PartnerAccountUsage) Enum() *PartnerAccountUsage {
+	p := new(PartnerAccountUsage)
 	*p = x
 	return p
 }
 
-func (x PartnerAccountStatus) String() string {
+func (x PartnerAccountUsage) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (PartnerAccountStatus) Descriptor() protoreflect.EnumDescriptor {
+func (PartnerAccountUsage) Descriptor() protoreflect.EnumDescriptor {
 	return file_partner_v1_partner_proto_enumTypes[6].Descriptor()
 }
 
-func (PartnerAccountStatus) Type() protoreflect.EnumType {
+func (PartnerAccountUsage) Type() protoreflect.EnumType {
 	return &file_partner_v1_partner_proto_enumTypes[6]
 }
 
-func (x PartnerAccountStatus) Number() protoreflect.EnumNumber {
+func (x PartnerAccountUsage) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use PartnerAccountStatus.Descriptor instead.
-func (PartnerAccountStatus) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use PartnerAccountUsage.Descriptor instead.
+func (PartnerAccountUsage) EnumDescriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{6}
 }
 
@@ -3868,21 +3871,24 @@ func (x *SetSupplierBlacklistRequest) GetReason() string {
 }
 
 type PartnerAccount struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	PartnerRoleId string                 `protobuf:"bytes,2,opt,name=partner_role_id,json=partnerRoleId,proto3" json:"partner_role_id,omitempty"`
-	AccountType   string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
-	Currency      string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
-	BankName      string                 `protobuf:"bytes,9,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
-	BankAccount   string                 `protobuf:"bytes,10,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	SwiftCode     string                 `protobuf:"bytes,11,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
-	IsDefault     bool                   `protobuf:"varint,12,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Status        PartnerAccountStatus   `protobuf:"varint,13,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
-	Remark        string                 `protobuf:"bytes,14,opt,name=remark,proto3" json:"remark,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerId           string                 `protobuf:"bytes,2,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Name                string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	AccountHolder       string                 `protobuf:"bytes,4,opt,name=account_holder,json=accountHolder,proto3" json:"account_holder,omitempty"`
+	Currency            string                 `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
+	BankName            string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	AccountNo           string                 `protobuf:"bytes,7,opt,name=account_no,json=accountNo,proto3" json:"account_no,omitempty"`
+	SwiftCode           string                 `protobuf:"bytes,8,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	Usage               PartnerAccountUsage    `protobuf:"varint,9,opt,name=usage,proto3,enum=partner.v1.PartnerAccountUsage" json:"usage,omitempty"`
+	IsDefaultReceivable bool                   `protobuf:"varint,10,opt,name=is_default_receivable,json=isDefaultReceivable,proto3" json:"is_default_receivable,omitempty"`
+	IsDefaultPayable    bool                   `protobuf:"varint,11,opt,name=is_default_payable,json=isDefaultPayable,proto3" json:"is_default_payable,omitempty"`
+	Enabled             bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Remark              string                 `protobuf:"bytes,13,opt,name=remark,proto3" json:"remark,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           string                 `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PartnerAccount) Reset() {
@@ -3922,16 +3928,23 @@ func (x *PartnerAccount) GetId() string {
 	return ""
 }
 
-func (x *PartnerAccount) GetPartnerRoleId() string {
+func (x *PartnerAccount) GetPartnerId() string {
 	if x != nil {
-		return x.PartnerRoleId
+		return x.PartnerId
 	}
 	return ""
 }
 
-func (x *PartnerAccount) GetAccountType() string {
+func (x *PartnerAccount) GetName() string {
 	if x != nil {
-		return x.AccountType
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetAccountHolder() string {
+	if x != nil {
+		return x.AccountHolder
 	}
 	return ""
 }
@@ -3950,9 +3963,9 @@ func (x *PartnerAccount) GetBankName() string {
 	return ""
 }
 
-func (x *PartnerAccount) GetBankAccount() string {
+func (x *PartnerAccount) GetAccountNo() string {
 	if x != nil {
-		return x.BankAccount
+		return x.AccountNo
 	}
 	return ""
 }
@@ -3964,18 +3977,32 @@ func (x *PartnerAccount) GetSwiftCode() string {
 	return ""
 }
 
-func (x *PartnerAccount) GetIsDefault() bool {
+func (x *PartnerAccount) GetUsage() PartnerAccountUsage {
 	if x != nil {
-		return x.IsDefault
+		return x.Usage
+	}
+	return PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_UNSPECIFIED
+}
+
+func (x *PartnerAccount) GetIsDefaultReceivable() bool {
+	if x != nil {
+		return x.IsDefaultReceivable
 	}
 	return false
 }
 
-func (x *PartnerAccount) GetStatus() PartnerAccountStatus {
+func (x *PartnerAccount) GetIsDefaultPayable() bool {
 	if x != nil {
-		return x.Status
+		return x.IsDefaultPayable
 	}
-	return PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED
+	return false
+}
+
+func (x *PartnerAccount) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
 }
 
 func (x *PartnerAccount) GetRemark() string {
@@ -4000,16 +4027,20 @@ func (x *PartnerAccount) GetUpdatedAt() string {
 }
 
 type PartnerAccountInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Currency      string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
-	BankName      string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
-	BankAccount   string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	SwiftCode     string                 `protobuf:"bytes,8,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
-	IsDefault     bool                   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Status        PartnerAccountStatus   `protobuf:"varint,10,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
-	Remark        string                 `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Name                string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	AccountHolder       string                 `protobuf:"bytes,2,opt,name=account_holder,json=accountHolder,proto3" json:"account_holder,omitempty"`
+	Currency            string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
+	BankName            string                 `protobuf:"bytes,4,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	AccountNo           string                 `protobuf:"bytes,5,opt,name=account_no,json=accountNo,proto3" json:"account_no,omitempty"`
+	SwiftCode           string                 `protobuf:"bytes,6,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	Usage               PartnerAccountUsage    `protobuf:"varint,7,opt,name=usage,proto3,enum=partner.v1.PartnerAccountUsage" json:"usage,omitempty"`
+	IsDefaultReceivable bool                   `protobuf:"varint,8,opt,name=is_default_receivable,json=isDefaultReceivable,proto3" json:"is_default_receivable,omitempty"`
+	IsDefaultPayable    bool                   `protobuf:"varint,9,opt,name=is_default_payable,json=isDefaultPayable,proto3" json:"is_default_payable,omitempty"`
+	Enabled             *bool                  `protobuf:"varint,10,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	Remark              string                 `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PartnerAccountInput) Reset() {
@@ -4042,6 +4073,20 @@ func (*PartnerAccountInput) Descriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{40}
 }
 
+func (x *PartnerAccountInput) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetAccountHolder() string {
+	if x != nil {
+		return x.AccountHolder
+	}
+	return ""
+}
+
 func (x *PartnerAccountInput) GetCurrency() string {
 	if x != nil {
 		return x.Currency
@@ -4056,9 +4101,9 @@ func (x *PartnerAccountInput) GetBankName() string {
 	return ""
 }
 
-func (x *PartnerAccountInput) GetBankAccount() string {
+func (x *PartnerAccountInput) GetAccountNo() string {
 	if x != nil {
-		return x.BankAccount
+		return x.AccountNo
 	}
 	return ""
 }
@@ -4070,18 +4115,32 @@ func (x *PartnerAccountInput) GetSwiftCode() string {
 	return ""
 }
 
-func (x *PartnerAccountInput) GetIsDefault() bool {
+func (x *PartnerAccountInput) GetUsage() PartnerAccountUsage {
 	if x != nil {
-		return x.IsDefault
+		return x.Usage
+	}
+	return PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_UNSPECIFIED
+}
+
+func (x *PartnerAccountInput) GetIsDefaultReceivable() bool {
+	if x != nil {
+		return x.IsDefaultReceivable
 	}
 	return false
 }
 
-func (x *PartnerAccountInput) GetStatus() PartnerAccountStatus {
+func (x *PartnerAccountInput) GetIsDefaultPayable() bool {
 	if x != nil {
-		return x.Status
+		return x.IsDefaultPayable
 	}
-	return PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED
+	return false
+}
+
+func (x *PartnerAccountInput) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
 }
 
 func (x *PartnerAccountInput) GetRemark() string {
@@ -4095,6 +4154,8 @@ type ListPartnerAccountsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
 	Enabled       *bool                  `protobuf:"varint,2,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	Usage         *PartnerAccountUsage   `protobuf:"varint,3,opt,name=usage,proto3,enum=partner.v1.PartnerAccountUsage,oneof" json:"usage,omitempty"`
+	Currency      *string                `protobuf:"bytes,4,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4141,6 +4202,20 @@ func (x *ListPartnerAccountsRequest) GetEnabled() bool {
 		return *x.Enabled
 	}
 	return false
+}
+
+func (x *ListPartnerAccountsRequest) GetUsage() PartnerAccountUsage {
+	if x != nil && x.Usage != nil {
+		return *x.Usage
+	}
+	return PartnerAccountUsage_PARTNER_ACCOUNT_USAGE_UNSPECIFIED
+}
+
+func (x *ListPartnerAccountsRequest) GetCurrency() string {
+	if x != nil && x.Currency != nil {
+		return *x.Currency
+	}
+	return ""
 }
 
 type CreatePartnerAccountRequest struct {
@@ -7659,42 +7734,56 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x1bSetSupplierBlacklistRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\vblacklisted\x18\x02 \x01(\bR\vblacklisted\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xf8\x03\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xfa\x03\n" +
 	"\x0ePartnerAccount\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
-	"\x0fpartner_role_id\x18\x02 \x01(\tR\rpartnerRoleId\x12!\n" +
-	"\faccount_type\x18\x03 \x01(\tR\vaccountType\x12\x1a\n" +
-	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12\x1b\n" +
-	"\tbank_name\x18\t \x01(\tR\bbankName\x12!\n" +
-	"\fbank_account\x18\n" +
-	" \x01(\tR\vbankAccount\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"swift_code\x18\v \x01(\tR\tswiftCode\x12\x1d\n" +
+	"partner_id\x18\x02 \x01(\tR\tpartnerId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12%\n" +
+	"\x0eaccount_holder\x18\x04 \x01(\tR\raccountHolder\x12\x1a\n" +
+	"\bcurrency\x18\x05 \x01(\tR\bcurrency\x12\x1b\n" +
+	"\tbank_name\x18\x06 \x01(\tR\bbankName\x12\x1d\n" +
 	"\n" +
-	"is_default\x18\f \x01(\bR\tisDefault\x128\n" +
-	"\x06status\x18\r \x01(\x0e2 .partner.v1.PartnerAccountStatusR\x06status\x12\x16\n" +
-	"\x06remark\x18\x0e \x01(\tR\x06remark\x12\x1d\n" +
+	"account_no\x18\a \x01(\tR\taccountNo\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x0f \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"swift_code\x18\b \x01(\tR\tswiftCode\x125\n" +
+	"\x05usage\x18\t \x01(\x0e2\x1f.partner.v1.PartnerAccountUsageR\x05usage\x122\n" +
+	"\x15is_default_receivable\x18\n" +
+	" \x01(\bR\x13isDefaultReceivable\x12,\n" +
+	"\x12is_default_payable\x18\v \x01(\bR\x10isDefaultPayable\x12\x18\n" +
+	"\aenabled\x18\f \x01(\bR\aenabled\x12\x16\n" +
+	"\x06remark\x18\r \x01(\tR\x06remark\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x10 \x01(\tR\tupdatedAtJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bJ\x04\b\b\x10\tR\rinvoice_titleR\x1aunified_social_credit_codeR\x0fbilling_addressR\rbilling_phone\"\xee\x02\n" +
-	"\x13PartnerAccountInput\x12\x1f\n" +
-	"\bcurrency\x18\x01 \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x1b\n" +
-	"\tbank_name\x18\x06 \x01(\tR\bbankName\x12!\n" +
-	"\fbank_account\x18\a \x01(\tR\vbankAccount\x12\x1d\n" +
+	"created_at\x18\x0e \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"swift_code\x18\b \x01(\tR\tswiftCode\x12\x1d\n" +
+	"updated_at\x18\x0f \x01(\tR\tupdatedAt\"\xc6\x03\n" +
+	"\x13PartnerAccountInput\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12*\n" +
+	"\x0eaccount_holder\x18\x02 \x01(\tB\x03\xe0A\x02R\raccountHolder\x12\x1f\n" +
+	"\bcurrency\x18\x03 \x01(\tB\x03\xe0A\x02R\bcurrency\x12 \n" +
+	"\tbank_name\x18\x04 \x01(\tB\x03\xe0A\x02R\bbankName\x12\"\n" +
 	"\n" +
-	"is_default\x18\t \x01(\bR\tisDefault\x12=\n" +
-	"\x06status\x18\n" +
-	" \x01(\x0e2 .partner.v1.PartnerAccountStatusB\x03\xe0A\x02R\x06status\x12\x16\n" +
-	"\x06remark\x18\v \x01(\tR\x06remarkJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06R\rinvoice_titleR\x1aunified_social_credit_codeR\x0fbilling_addressR\rbilling_phone\"k\n" +
+	"account_no\x18\x05 \x01(\tB\x03\xe0A\x02R\taccountNo\x12\x1d\n" +
+	"\n" +
+	"swift_code\x18\x06 \x01(\tR\tswiftCode\x12:\n" +
+	"\x05usage\x18\a \x01(\x0e2\x1f.partner.v1.PartnerAccountUsageB\x03\xe0A\x02R\x05usage\x122\n" +
+	"\x15is_default_receivable\x18\b \x01(\bR\x13isDefaultReceivable\x12,\n" +
+	"\x12is_default_payable\x18\t \x01(\bR\x10isDefaultPayable\x12\"\n" +
+	"\aenabled\x18\n" +
+	" \x01(\bB\x03\xe0A\x02H\x00R\aenabled\x88\x01\x01\x12\x16\n" +
+	"\x06remark\x18\v \x01(\tR\x06remarkB\n" +
+	"\n" +
+	"\b_enabled\"\xdf\x01\n" +
 	"\x1aListPartnerAccountsRequest\x12\"\n" +
 	"\n" +
 	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x1d\n" +
-	"\aenabled\x18\x02 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\aenabled\x18\x02 \x01(\bH\x00R\aenabled\x88\x01\x01\x12:\n" +
+	"\x05usage\x18\x03 \x01(\x0e2\x1f.partner.v1.PartnerAccountUsageH\x01R\x05usage\x88\x01\x01\x12\x1f\n" +
+	"\bcurrency\x18\x04 \x01(\tH\x02R\bcurrency\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\x81\x01\n" +
+	"\b_enabledB\b\n" +
+	"\x06_usageB\v\n" +
+	"\t_currency\"\x81\x01\n" +
 	"\x1bCreatePartnerAccountRequest\x12\"\n" +
 	"\n" +
 	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12>\n" +
@@ -8050,11 +8139,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	")PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY\x10\x03\x123\n" +
 	"/PARTNER_SHIPPING_PRESET_TYPE_ENGLISH_CARGO_NAME\x10\x04\x12(\n" +
 	"$PARTNER_SHIPPING_PRESET_TYPE_HS_CODE\x10\x05\x12&\n" +
-	"\"PARTNER_SHIPPING_PRESET_TYPE_MARKS\x10\x06*\x86\x01\n" +
-	"\x14PartnerAccountStatus\x12&\n" +
-	"\"PARTNER_ACCOUNT_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
-	"\x1dPARTNER_ACCOUNT_STATUS_ACTIVE\x10\x01\x12#\n" +
-	"\x1fPARTNER_ACCOUNT_STATUS_INACTIVE\x10\x02*\xd6\x01\n" +
+	"\"PARTNER_SHIPPING_PRESET_TYPE_MARKS\x10\x06*\xa5\x01\n" +
+	"\x13PartnerAccountUsage\x12%\n" +
+	"!PARTNER_ACCOUNT_USAGE_UNSPECIFIED\x10\x00\x12$\n" +
+	" PARTNER_ACCOUNT_USAGE_RECEIVABLE\x10\x01\x12!\n" +
+	"\x1dPARTNER_ACCOUNT_USAGE_PAYABLE\x10\x02\x12\x1e\n" +
+	"\x1aPARTNER_ACCOUNT_USAGE_BOTH\x10\x03*\xd6\x01\n" +
 	"\x15PartnerContractStatus\x12'\n" +
 	"#PARTNER_CONTRACT_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fPARTNER_CONTRACT_STATUS_PENDING\x10\x01\x12\"\n" +
@@ -8131,7 +8221,7 @@ var file_partner_v1_partner_proto_goTypes = []any{
 	(PartnerAssignmentRole)(0),                     // 3: partner.v1.PartnerAssignmentRole
 	(PartnerImportMode)(0),                         // 4: partner.v1.PartnerImportMode
 	(PartnerShippingPresetType)(0),                 // 5: partner.v1.PartnerShippingPresetType
-	(PartnerAccountStatus)(0),                      // 6: partner.v1.PartnerAccountStatus
+	(PartnerAccountUsage)(0),                       // 6: partner.v1.PartnerAccountUsage
 	(PartnerContractStatus)(0),                     // 7: partner.v1.PartnerContractStatus
 	(PartnerStatementMode)(0),                      // 8: partner.v1.PartnerStatementMode
 	(PartnerSettlementMethod)(0),                   // 9: partner.v1.PartnerSettlementMethod
@@ -8270,106 +8360,107 @@ var file_partner_v1_partner_proto_depIdxs = []int32{
 	38,  // 47: partner.v1.ListPartnerShippingPresetsResponse.data:type_name -> partner.v1.PartnerShippingPreset
 	92,  // 48: partner.v1.PartnerAuditLog.details:type_name -> partner.v1.PartnerAuditLog.DetailsEntry
 	46,  // 49: partner.v1.ListPartnerAuditLogsResponse.data:type_name -> partner.v1.PartnerAuditLog
-	6,   // 50: partner.v1.PartnerAccount.status:type_name -> partner.v1.PartnerAccountStatus
-	6,   // 51: partner.v1.PartnerAccountInput.status:type_name -> partner.v1.PartnerAccountStatus
-	51,  // 52: partner.v1.CreatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
-	51,  // 53: partner.v1.UpdatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
-	50,  // 54: partner.v1.CreatePartnerAccountResponse.data:type_name -> partner.v1.PartnerAccount
-	50,  // 55: partner.v1.UpdatePartnerAccountResponse.data:type_name -> partner.v1.PartnerAccount
-	50,  // 56: partner.v1.ListPartnerAccountsResponse.data:type_name -> partner.v1.PartnerAccount
-	7,   // 57: partner.v1.PartnerContract.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 58: partner.v1.PartnerContract.allowed_statuses:type_name -> partner.v1.PartnerContractStatus
-	7,   // 59: partner.v1.CreatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 60: partner.v1.UpdatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 61: partner.v1.ListPartnerContractsRequest.status:type_name -> partner.v1.PartnerContractStatus
-	59,  // 62: partner.v1.CreatePartnerContractRequest.contract:type_name -> partner.v1.CreatePartnerContractInput
-	60,  // 63: partner.v1.UpdatePartnerContractRequest.contract:type_name -> partner.v1.UpdatePartnerContractInput
-	58,  // 64: partner.v1.CreatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
-	58,  // 65: partner.v1.UpdatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
-	58,  // 66: partner.v1.ListPartnerContractsResponse.data:type_name -> partner.v1.PartnerContract
-	8,   // 67: partner.v1.PartnerSettlementRule.statement_mode:type_name -> partner.v1.PartnerStatementMode
-	9,   // 68: partner.v1.PartnerSettlementRule.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
-	10,  // 69: partner.v1.PartnerSettlementRule.settlement_base:type_name -> partner.v1.PartnerSettlementBase
-	8,   // 70: partner.v1.PartnerSettlementRuleInput.statement_mode:type_name -> partner.v1.PartnerStatementMode
-	9,   // 71: partner.v1.PartnerSettlementRuleInput.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
-	10,  // 72: partner.v1.PartnerSettlementRuleInput.settlement_base:type_name -> partner.v1.PartnerSettlementBase
-	0,   // 73: partner.v1.ListPartnerSettlementRulesRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	0,   // 74: partner.v1.CreatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	68,  // 75: partner.v1.CreatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
-	0,   // 76: partner.v1.UpdatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	68,  // 77: partner.v1.UpdatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
-	67,  // 78: partner.v1.CreatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	67,  // 79: partner.v1.UpdatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	67,  // 80: partner.v1.ListPartnerSettlementRulesResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	75,  // 81: partner.v1.RegisterPartnerAttachmentResponse.data:type_name -> partner.v1.PartnerAttachment
-	75,  // 82: partner.v1.ListPartnerAttachmentsResponse.data:type_name -> partner.v1.PartnerAttachment
-	22,  // 83: partner.v1.GetPartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 84: partner.v1.CreatePartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 85: partner.v1.UpdatePartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 86: partner.v1.SetSupplierBlacklistResponse.data:type_name -> partner.v1.Partner
-	22,  // 87: partner.v1.ListPartnersResponse.data:type_name -> partner.v1.Partner
-	85,  // 88: partner.v1.ListPartnerInvoiceProfilesResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	85,  // 89: partner.v1.CreatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	85,  // 90: partner.v1.UpdatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	26,  // 91: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
-	27,  // 92: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
-	18,  // 93: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
-	19,  // 94: partner.v1.PartnerService.SearchPartnerAssignmentOptions:input_type -> partner.v1.SearchPartnerAssignmentOptionsRequest
-	28,  // 95: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
-	29,  // 96: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
-	86,  // 97: partner.v1.PartnerService.ListPartnerInvoiceProfiles:input_type -> partner.v1.ListPartnerInvoiceProfilesRequest
-	87,  // 98: partner.v1.PartnerService.CreatePartnerInvoiceProfile:input_type -> partner.v1.CreatePartnerInvoiceProfileRequest
-	88,  // 99: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:input_type -> partner.v1.UpdatePartnerInvoiceProfileRequest
-	49,  // 100: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
-	52,  // 101: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
-	53,  // 102: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
-	54,  // 103: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
-	61,  // 104: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
-	62,  // 105: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
-	63,  // 106: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
-	69,  // 107: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
-	70,  // 108: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
-	71,  // 109: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
-	77,  // 110: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
-	76,  // 111: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
-	31,  // 112: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
-	33,  // 113: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
-	40,  // 114: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
-	47,  // 115: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
-	41,  // 116: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
-	42,  // 117: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
-	80,  // 118: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
-	84,  // 119: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
-	20,  // 120: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
-	21,  // 121: partner.v1.PartnerService.SearchPartnerAssignmentOptions:output_type -> partner.v1.SearchPartnerAssignmentOptionsResponse
-	81,  // 122: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
-	82,  // 123: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
-	89,  // 124: partner.v1.PartnerService.ListPartnerInvoiceProfiles:output_type -> partner.v1.ListPartnerInvoiceProfilesResponse
-	90,  // 125: partner.v1.PartnerService.CreatePartnerInvoiceProfile:output_type -> partner.v1.CreatePartnerInvoiceProfileResponse
-	91,  // 126: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:output_type -> partner.v1.UpdatePartnerInvoiceProfileResponse
-	83,  // 127: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
-	57,  // 128: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
-	55,  // 129: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
-	56,  // 130: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
-	66,  // 131: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
-	64,  // 132: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
-	65,  // 133: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
-	74,  // 134: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
-	72,  // 135: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
-	73,  // 136: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
-	79,  // 137: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
-	78,  // 138: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
-	32,  // 139: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
-	35,  // 140: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
-	45,  // 141: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
-	48,  // 142: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
-	43,  // 143: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
-	44,  // 144: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
-	118, // [118:145] is the sub-list for method output_type
-	91,  // [91:118] is the sub-list for method input_type
-	91,  // [91:91] is the sub-list for extension type_name
-	91,  // [91:91] is the sub-list for extension extendee
-	0,   // [0:91] is the sub-list for field type_name
+	6,   // 50: partner.v1.PartnerAccount.usage:type_name -> partner.v1.PartnerAccountUsage
+	6,   // 51: partner.v1.PartnerAccountInput.usage:type_name -> partner.v1.PartnerAccountUsage
+	6,   // 52: partner.v1.ListPartnerAccountsRequest.usage:type_name -> partner.v1.PartnerAccountUsage
+	51,  // 53: partner.v1.CreatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
+	51,  // 54: partner.v1.UpdatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
+	50,  // 55: partner.v1.CreatePartnerAccountResponse.data:type_name -> partner.v1.PartnerAccount
+	50,  // 56: partner.v1.UpdatePartnerAccountResponse.data:type_name -> partner.v1.PartnerAccount
+	50,  // 57: partner.v1.ListPartnerAccountsResponse.data:type_name -> partner.v1.PartnerAccount
+	7,   // 58: partner.v1.PartnerContract.status:type_name -> partner.v1.PartnerContractStatus
+	7,   // 59: partner.v1.PartnerContract.allowed_statuses:type_name -> partner.v1.PartnerContractStatus
+	7,   // 60: partner.v1.CreatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	7,   // 61: partner.v1.UpdatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	7,   // 62: partner.v1.ListPartnerContractsRequest.status:type_name -> partner.v1.PartnerContractStatus
+	59,  // 63: partner.v1.CreatePartnerContractRequest.contract:type_name -> partner.v1.CreatePartnerContractInput
+	60,  // 64: partner.v1.UpdatePartnerContractRequest.contract:type_name -> partner.v1.UpdatePartnerContractInput
+	58,  // 65: partner.v1.CreatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
+	58,  // 66: partner.v1.UpdatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
+	58,  // 67: partner.v1.ListPartnerContractsResponse.data:type_name -> partner.v1.PartnerContract
+	8,   // 68: partner.v1.PartnerSettlementRule.statement_mode:type_name -> partner.v1.PartnerStatementMode
+	9,   // 69: partner.v1.PartnerSettlementRule.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
+	10,  // 70: partner.v1.PartnerSettlementRule.settlement_base:type_name -> partner.v1.PartnerSettlementBase
+	8,   // 71: partner.v1.PartnerSettlementRuleInput.statement_mode:type_name -> partner.v1.PartnerStatementMode
+	9,   // 72: partner.v1.PartnerSettlementRuleInput.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
+	10,  // 73: partner.v1.PartnerSettlementRuleInput.settlement_base:type_name -> partner.v1.PartnerSettlementBase
+	0,   // 74: partner.v1.ListPartnerSettlementRulesRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	0,   // 75: partner.v1.CreatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	68,  // 76: partner.v1.CreatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
+	0,   // 77: partner.v1.UpdatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	68,  // 78: partner.v1.UpdatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
+	67,  // 79: partner.v1.CreatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	67,  // 80: partner.v1.UpdatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	67,  // 81: partner.v1.ListPartnerSettlementRulesResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	75,  // 82: partner.v1.RegisterPartnerAttachmentResponse.data:type_name -> partner.v1.PartnerAttachment
+	75,  // 83: partner.v1.ListPartnerAttachmentsResponse.data:type_name -> partner.v1.PartnerAttachment
+	22,  // 84: partner.v1.GetPartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 85: partner.v1.CreatePartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 86: partner.v1.UpdatePartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 87: partner.v1.SetSupplierBlacklistResponse.data:type_name -> partner.v1.Partner
+	22,  // 88: partner.v1.ListPartnersResponse.data:type_name -> partner.v1.Partner
+	85,  // 89: partner.v1.ListPartnerInvoiceProfilesResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	85,  // 90: partner.v1.CreatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	85,  // 91: partner.v1.UpdatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	26,  // 92: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
+	27,  // 93: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
+	18,  // 94: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
+	19,  // 95: partner.v1.PartnerService.SearchPartnerAssignmentOptions:input_type -> partner.v1.SearchPartnerAssignmentOptionsRequest
+	28,  // 96: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
+	29,  // 97: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
+	86,  // 98: partner.v1.PartnerService.ListPartnerInvoiceProfiles:input_type -> partner.v1.ListPartnerInvoiceProfilesRequest
+	87,  // 99: partner.v1.PartnerService.CreatePartnerInvoiceProfile:input_type -> partner.v1.CreatePartnerInvoiceProfileRequest
+	88,  // 100: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:input_type -> partner.v1.UpdatePartnerInvoiceProfileRequest
+	49,  // 101: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
+	52,  // 102: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
+	53,  // 103: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
+	54,  // 104: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
+	61,  // 105: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
+	62,  // 106: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
+	63,  // 107: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
+	69,  // 108: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
+	70,  // 109: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
+	71,  // 110: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
+	77,  // 111: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
+	76,  // 112: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
+	31,  // 113: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
+	33,  // 114: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
+	40,  // 115: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
+	47,  // 116: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
+	41,  // 117: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
+	42,  // 118: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
+	80,  // 119: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
+	84,  // 120: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
+	20,  // 121: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
+	21,  // 122: partner.v1.PartnerService.SearchPartnerAssignmentOptions:output_type -> partner.v1.SearchPartnerAssignmentOptionsResponse
+	81,  // 123: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
+	82,  // 124: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
+	89,  // 125: partner.v1.PartnerService.ListPartnerInvoiceProfiles:output_type -> partner.v1.ListPartnerInvoiceProfilesResponse
+	90,  // 126: partner.v1.PartnerService.CreatePartnerInvoiceProfile:output_type -> partner.v1.CreatePartnerInvoiceProfileResponse
+	91,  // 127: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:output_type -> partner.v1.UpdatePartnerInvoiceProfileResponse
+	83,  // 128: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
+	57,  // 129: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
+	55,  // 130: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
+	56,  // 131: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
+	66,  // 132: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
+	64,  // 133: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
+	65,  // 134: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
+	74,  // 135: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
+	72,  // 136: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
+	73,  // 137: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
+	79,  // 138: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
+	78,  // 139: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
+	32,  // 140: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
+	35,  // 141: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
+	45,  // 142: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
+	48,  // 143: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
+	43,  // 144: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
+	44,  // 145: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
+	119, // [119:146] is the sub-list for method output_type
+	92,  // [92:119] is the sub-list for method input_type
+	92,  // [92:92] is the sub-list for extension type_name
+	92,  // [92:92] is the sub-list for extension extendee
+	0,   // [0:92] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }
@@ -8390,6 +8481,7 @@ func file_partner_v1_partner_proto_init() {
 	}
 	file_partner_v1_partner_proto_msgTypes[29].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[35].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[40].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[41].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[50].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[56].OneofWrappers = []any{}

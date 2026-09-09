@@ -601,13 +601,14 @@ export const PartnerShippingPresetType = {
 
 export type PartnerShippingPresetType = (typeof PartnerShippingPresetType)[keyof typeof PartnerShippingPresetType];
 
-export const PartnerAccountStatus = {
-  PARTNER_ACCOUNT_STATUS_UNSPECIFIED: 0,
-  PARTNER_ACCOUNT_STATUS_ACTIVE: 1,
-  PARTNER_ACCOUNT_STATUS_INACTIVE: 2,
+export const PartnerAccountUsage = {
+  PARTNER_ACCOUNT_USAGE_UNSPECIFIED: 0,
+  PARTNER_ACCOUNT_USAGE_RECEIVABLE: 1,
+  PARTNER_ACCOUNT_USAGE_PAYABLE: 2,
+  PARTNER_ACCOUNT_USAGE_BOTH: 3,
 } as const;
 
-export type PartnerAccountStatus = (typeof PartnerAccountStatus)[keyof typeof PartnerAccountStatus];
+export type PartnerAccountUsage = (typeof PartnerAccountUsage)[keyof typeof PartnerAccountUsage];
 
 export const PartnerContractStatus = {
   PARTNER_CONTRACT_STATUS_UNSPECIFIED: 0,

@@ -9,7 +9,6 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	partnercontractent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
-	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 
 	"github.com/google/uuid"
 )
@@ -18,24 +17,20 @@ type partnerAccountRepo struct{ data *Data }
 
 func NewPartnerAccountRepo(data *Data) biz.PartnerAccountRepo { return &partnerAccountRepo{data: data} }
 
-func (r *partnerAccountRepo) role(ctx context.Context, organizationID, partnerID uuid.UUID) (*ent.PartnerRole, error) {
+func (r *partnerAccountRepo) partner(ctx context.Context, organizationID, partnerID uuid.UUID) (*ent.Partner, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	role, err := client.PartnerRole.Query().Where(
-		partnerroleent.PartnerIDEQ(partnerID),
-		partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeCustomer),
-		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
-	).Only(ctx)
+	partner, err := client.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrPartnerAccountInvalidArgument, nil)
 	}
-	return role, nil
+	return partner, nil
 }
 
-func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID uuid.UUID, enabled *bool) ([]*biz.PartnerAccount, error) {
-	role, err := r.role(ctx, organizationID, partnerID)
+func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID uuid.UUID, filter biz.PartnerAccountFilter) ([]*biz.PartnerAccount, error) {
+	partner, err := r.partner(ctx, organizationID, partnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,15 +38,17 @@ func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID
 	if err != nil {
 		return nil, err
 	}
-	query := client.PartnerAccount.Query().Where(partneraccountent.PartnerRoleIDEQ(role.ID))
-	if enabled != nil {
-		status := partneraccountent.StatusInactive
-		if *enabled {
-			status = partneraccountent.StatusActive
-		}
-		query.Where(partneraccountent.StatusEQ(status))
+	query := client.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(partner.ID))
+	if filter.Enabled != nil {
+		query.Where(partneraccountent.EnabledEQ(*filter.Enabled))
 	}
-	items, err := query.Order(partneraccountent.ByIsDefault(), partneraccountent.ByCurrency()).All(ctx)
+	if filter.Usage != "" {
+		query.Where(partneraccountent.UsageEQ(partneraccountent.Usage(filter.Usage)))
+	}
+	if filter.Currency != "" {
+		query.Where(partneraccountent.CurrencyEQ(filter.Currency))
+	}
+	items, err := query.Order(partneraccountent.ByIsDefaultReceivable(), partneraccountent.ByIsDefaultPayable(), partneraccountent.ByCurrency()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +60,7 @@ func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID
 }
 
 func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerAccount, audit *biz.AuditEvent) (*biz.PartnerAccount, error) {
-	role, err := r.role(ctx, organizationID, partnerID)
+	partner, err := r.partner(ctx, organizationID, partnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -76,25 +73,29 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 		if !exists {
 			return biz.ErrPartnerAccountInvalidArgument
 		}
-		if input.IsDefault {
-			if _, updateErr := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
-				return updateErr
-			}
+		if err := r.clearPartnerAccountDefaults(ctx, tx, partner.ID, input.Currency, uuid.Nil, input.IsDefaultReceivable, input.IsDefaultPayable); err != nil {
+			return err
 		}
 		created := tx.PartnerAccount.Create().
-			SetPartnerRoleID(role.ID).
-			SetAccountType(partneraccountent.AccountTypeCustomerSettlement).
+			SetPartnerID(partner.ID).
+			SetName(input.Name).
+			SetAccountHolder(input.AccountHolder).
 			SetCurrency(input.Currency).
 			SetBankName(input.BankName).
-			SetBankAccount(input.BankAccount).
+			SetAccountNo(input.AccountNo).
 			SetSwiftCode(input.SwiftCode).
-			SetIsDefault(input.IsDefault).
-			SetStatus(partneraccountent.Status(input.Status)).
+			SetUsage(partneraccountent.Usage(input.Usage)).
+			SetIsDefaultReceivable(input.IsDefaultReceivable).
+			SetIsDefaultPayable(input.IsDefaultPayable).
+			SetEnabled(input.Enabled).
 			SetRemark(input.Remark)
 		var createErr error
 		item, createErr = created.Save(ctx)
 		if createErr != nil {
-			return mapEntConstraint(createErr, "partner_account_default_key", biz.ErrPartnerAccountDefaultConflict)
+			return mapEntConstraints(createErr,
+				entConstraintMapping{name: "partner_account_default_receivable_key", domainErr: biz.ErrPartnerAccountDefaultConflict},
+				entConstraintMapping{name: "partner_account_default_payable_key", domainErr: biz.ErrPartnerAccountDefaultConflict},
+			)
 		}
 		audit.Details["account.id"] = item.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -114,7 +115,7 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 }
 
 func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerAccount, audit *biz.AuditEvent) (*biz.PartnerAccount, error) {
-	role, err := r.role(ctx, organizationID, partnerID)
+	partner, err := r.partner(ctx, organizationID, partnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,19 +128,30 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 		if !exists {
 			return biz.ErrPartnerAccountInvalidArgument
 		}
-		existing, queryErr := tx.PartnerAccount.Query().Where(partneraccountent.IDEQ(id), partneraccountent.PartnerRoleIDEQ(role.ID)).ForUpdate().Only(ctx)
+		lockedAccounts, queryErr := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(partner.ID)).Order(partneraccountent.ByID()).ForUpdate().All(ctx)
 		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrPartnerAccountNotFound, nil)
+			return queryErr
 		}
-		if input.IsDefault {
-			if _, updateErr := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true), partneraccountent.IDNEQ(id)).SetIsDefault(false).Save(ctx); updateErr != nil {
-				return updateErr
+		var existing *ent.PartnerAccount
+		for _, item := range lockedAccounts {
+			if item.ID == id {
+				existing = item
+				break
 			}
 		}
+		if existing == nil {
+			return biz.ErrPartnerAccountNotFound
+		}
+		if err := r.clearPartnerAccountDefaults(ctx, tx, partner.ID, input.Currency, id, input.IsDefaultReceivable, input.IsDefaultPayable); err != nil {
+			return err
+		}
 		var updateErr error
-		updated, updateErr = existing.Update().SetCurrency(input.Currency).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark).Save(ctx)
+		updated, updateErr = existing.Update().SetName(input.Name).SetAccountHolder(input.AccountHolder).SetCurrency(input.Currency).SetBankName(input.BankName).SetAccountNo(input.AccountNo).SetSwiftCode(input.SwiftCode).SetUsage(partneraccountent.Usage(input.Usage)).SetIsDefaultReceivable(input.IsDefaultReceivable).SetIsDefaultPayable(input.IsDefaultPayable).SetEnabled(input.Enabled).SetRemark(input.Remark).Save(ctx)
 		if updateErr != nil {
-			return mapEntConstraint(updateErr, "partner_account_default_key", biz.ErrPartnerAccountDefaultConflict)
+			return mapEntConstraints(updateErr,
+				entConstraintMapping{name: "partner_account_default_receivable_key", domainErr: biz.ErrPartnerAccountDefaultConflict},
+				entConstraintMapping{name: "partner_account_default_payable_key", domainErr: biz.ErrPartnerAccountDefaultConflict},
+			)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -147,6 +159,34 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 		return nil, err
 	}
 	return partnerAccountToBiz(updated), nil
+}
+
+func (r *partnerAccountRepo) clearPartnerAccountDefaults(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, currency string, excludedID uuid.UUID, receivable, payable bool) error {
+	items, err := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(partnerID), partneraccountent.CurrencyEQ(currency)).Order(partneraccountent.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	ids := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		if item.ID != excludedID {
+			ids = append(ids, item.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	update := tx.PartnerAccount.Update().Where(partneraccountent.IDIn(ids...))
+	if receivable {
+		update.SetIsDefaultReceivable(false)
+	}
+	if payable {
+		update.SetIsDefaultPayable(false)
+	}
+	if !receivable && !payable {
+		return nil
+	}
+	_, err = update.Save(ctx)
+	return err
 }
 
 type partnerContractRepo struct{ data *Data }
@@ -263,7 +303,7 @@ func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partne
 }
 
 func partnerAccountToBiz(item *ent.PartnerAccount) *biz.PartnerAccount {
-	return &biz.PartnerAccount{ID: item.ID, PartnerRoleID: item.PartnerRoleID, AccountType: string(item.AccountType), Currency: item.Currency, BankName: item.BankName, BankAccount: item.BankAccount, SwiftCode: item.SwiftCode, IsDefault: item.IsDefault, Status: biz.PartnerAccountStatus(item.Status), Remark: item.Remark, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.PartnerAccount{ID: item.ID, PartnerID: item.PartnerID, Name: item.Name, AccountHolder: item.AccountHolder, Currency: item.Currency, BankName: item.BankName, AccountNo: item.AccountNo, SwiftCode: item.SwiftCode, Usage: biz.PartnerAccountUsage(item.Usage), IsDefaultReceivable: item.IsDefaultReceivable, IsDefaultPayable: item.IsDefaultPayable, Enabled: item.Enabled, Remark: item.Remark, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func partnerContractToBiz(item *ent.PartnerContract) *biz.PartnerContract {

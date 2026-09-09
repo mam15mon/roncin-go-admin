@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
@@ -47,6 +48,7 @@ type PartnerQuery struct {
 	predicates                      []predicate.Partner
 	withOrganization                *OrganizationQuery
 	withRoles                       *PartnerRoleQuery
+	withAccounts                    *PartnerAccountQuery
 	withContacts                    *PartnerContactQuery
 	withAliases                     *PartnerAliasQuery
 	withProfile                     *PartnerProfileQuery
@@ -139,6 +141,28 @@ func (_q *PartnerQuery) QueryRoles() *PartnerRoleQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.RolesTable, partner.RolesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccounts chains the current query on the "accounts" edge.
+func (_q *PartnerQuery) QueryAccounts() *PartnerAccountQuery {
+	query := (&PartnerAccountClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AccountsTable, partner.AccountsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -736,6 +760,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		predicates:                      append([]predicate.Partner{}, _q.predicates...),
 		withOrganization:                _q.withOrganization.Clone(),
 		withRoles:                       _q.withRoles.Clone(),
+		withAccounts:                    _q.withAccounts.Clone(),
 		withContacts:                    _q.withContacts.Clone(),
 		withAliases:                     _q.withAliases.Clone(),
 		withProfile:                     _q.withProfile.Clone(),
@@ -779,6 +804,17 @@ func (_q *PartnerQuery) WithRoles(opts ...func(*PartnerRoleQuery)) *PartnerQuery
 		opt(query)
 	}
 	_q.withRoles = query
+	return _q
+}
+
+// WithAccounts tells the query-builder to eager-load the nodes that are connected to
+// the "accounts" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithAccounts(opts ...func(*PartnerAccountQuery)) *PartnerQuery {
+	query := (&PartnerAccountClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAccounts = query
 	return _q
 }
 
@@ -1058,9 +1094,10 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [20]bool{
+		loadedTypes = [21]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
+			_q.withAccounts != nil,
 			_q.withContacts != nil,
 			_q.withAliases != nil,
 			_q.withProfile != nil,
@@ -1112,6 +1149,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadRoles(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Roles = []*PartnerRole{} },
 			func(n *Partner, e *PartnerRole) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAccounts; query != nil {
+		if err := _q.loadAccounts(ctx, query, nodes,
+			func(n *Partner) { n.Edges.Accounts = []*PartnerAccount{} },
+			func(n *Partner, e *PartnerAccount) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1301,6 +1345,36 @@ func (_q *PartnerQuery) loadRoles(ctx context.Context, query *PartnerRoleQuery, 
 	}
 	query.Where(predicate.PartnerRole(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.RolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadAccounts(ctx context.Context, query *PartnerAccountQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerAccount)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partneraccount.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerAccount(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.AccountsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

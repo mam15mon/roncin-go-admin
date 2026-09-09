@@ -40,6 +40,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeAccounts holds the string denoting the accounts edge name in mutations.
+	EdgeAccounts = "accounts"
 	// EdgeContacts holds the string denoting the contacts edge name in mutations.
 	EdgeContacts = "contacts"
 	// EdgeAliases holds the string denoting the aliases edge name in mutations.
@@ -92,6 +94,13 @@ const (
 	RolesInverseTable = "partner_roles"
 	// RolesColumn is the table column denoting the roles relation/edge.
 	RolesColumn = "partner_id"
+	// AccountsTable is the table that holds the accounts relation/edge.
+	AccountsTable = "partner_accounts"
+	// AccountsInverseTable is the table name for the PartnerAccount entity.
+	// It exists in this package in order to avoid circular dependency with the "partneraccount" package.
+	AccountsInverseTable = "partner_accounts"
+	// AccountsColumn is the table column denoting the accounts relation/edge.
+	AccountsColumn = "partner_id"
 	// ContactsTable is the table that holds the contacts relation/edge.
 	ContactsTable = "partner_contacts"
 	// ContactsInverseTable is the table name for the PartnerContact entity.
@@ -355,6 +364,20 @@ func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByAccountsCount orders the results by accounts count.
+func ByAccountsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccountsStep(), opts...)
+	}
+}
+
+// ByAccounts orders the results by accounts terms.
+func ByAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByContactsCount orders the results by contacts count.
 func ByContactsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -611,6 +634,13 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RolesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+	)
+}
+func newAccountsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccountsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccountsTable, AccountsColumn),
 	)
 }
 func newContactsStep() *sqlgraph.Step {

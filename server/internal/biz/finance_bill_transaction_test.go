@@ -123,7 +123,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
-		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test",
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test", SettlementAccountID: uuid.New(),
 	})
 	if err != nil {
 		t.Fatalf("创建账单失败: %v", err)

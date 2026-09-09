@@ -18,16 +18,17 @@ import (
 )
 
 var (
-	ErrFinanceBillNotFound            = errors.NotFound("FINANCE_BILL_NOT_FOUND", "账单不存在")
-	ErrFinanceBillInvalidArgument     = errors.BadRequest("FINANCE_BILL_INVALID_ARGUMENT", "账单字段不合法")
-	ErrFinanceBillFeeInvalid          = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_FEE_INVALID), "所选费用必须为已确认状态且尚未进入其他账单")
-	ErrFinanceBillFeeMismatch         = errors.BadRequest("FINANCE_BILL_FEE_MISMATCH", "同一账单的费用必须具有相同收付方向、结算单位、币种和本币")
-	ErrFinanceBillVersionConflict     = errors.Conflict("FINANCE_BILL_VERSION_CONFLICT", "账单已被其他操作人修改，请刷新后重试")
-	ErrFinanceBillInvalidTransition   = errors.Conflict("FINANCE_BILL_INVALID_TRANSITION", "当前账单状态不允许执行该操作")
-	ErrFinanceBillIdempotencyConflict = errors.Conflict("FINANCE_BILL_IDEMPOTENCY_CONFLICT", "账单请求幂等键已被其他请求使用")
-	ErrFinanceBillPreviewStale        = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_PREVIEW_STALE), "费用或拆单结果已变化，请重新预览")
-	ErrFinanceBillBatchMismatch       = errors.BadRequest("FINANCE_BILL_BATCH_MISMATCH", "批量账单分组资料与服务端预览不一致")
-	ErrFinanceBillBatchConflict       = errors.Conflict("FINANCE_BILL_BATCH_CONFLICT", "批量建单幂等键已被其他请求使用")
+	ErrFinanceBillNotFound                 = errors.NotFound("FINANCE_BILL_NOT_FOUND", "账单不存在")
+	ErrFinanceBillInvalidArgument          = errors.BadRequest("FINANCE_BILL_INVALID_ARGUMENT", "账单字段不合法")
+	ErrFinanceBillFeeInvalid               = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_FEE_INVALID), "所选费用必须为已确认状态且尚未进入其他账单")
+	ErrFinanceBillFeeMismatch              = errors.BadRequest("FINANCE_BILL_FEE_MISMATCH", "同一账单的费用必须具有相同收付方向、结算单位、币种和本币")
+	ErrFinanceBillVersionConflict          = errors.Conflict("FINANCE_BILL_VERSION_CONFLICT", "账单已被其他操作人修改，请刷新后重试")
+	ErrFinanceBillInvalidTransition        = errors.Conflict("FINANCE_BILL_INVALID_TRANSITION", "当前账单状态不允许执行该操作")
+	ErrFinanceBillIdempotencyConflict      = errors.Conflict("FINANCE_BILL_IDEMPOTENCY_CONFLICT", "账单请求幂等键已被其他请求使用")
+	ErrFinanceBillPreviewStale             = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_PREVIEW_STALE), "费用或拆单结果已变化，请重新预览")
+	ErrFinanceBillBatchMismatch            = errors.BadRequest("FINANCE_BILL_BATCH_MISMATCH", "批量账单分组资料与服务端预览不一致")
+	ErrFinanceBillBatchConflict            = errors.Conflict("FINANCE_BILL_BATCH_CONFLICT", "批量建单幂等键已被其他请求使用")
+	ErrFinanceBillSettlementAccountInvalid = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID), "结算账户与账单结算单位、方向、币种或启用状态不匹配")
 )
 
 var financeBillCurrencyPattern = regexp.MustCompile(`^[A-Z]{3}$`)
@@ -41,44 +42,51 @@ const (
 )
 
 type FinanceBill struct {
-	ID                    uuid.UUID
-	OrganizationID        uuid.UUID
-	OrganizationName      string
-	BatchID               *uuid.UUID
-	BatchNo               string
-	BillNo                string
-	IdempotencyKey        string
-	Direction             OrderFeeDirection
-	Status                FinanceBillStatus
-	SettlementPartyID     uuid.UUID
-	SettlementPartyName   string
-	Currency              string
-	BaseCurrency          string
-	ExchangeRate          decimal.Decimal
-	ExchangeRateSource    string
-	ExchangeRateDate      string
-	ExchangeRateSettingID *uuid.UUID
-	TotalAmount           decimal.Decimal
-	NetAmount             decimal.Decimal
-	TaxAmount             decimal.Decimal
-	BaseCurrencyAmount    decimal.Decimal
-	VerifiedAmount        decimal.Decimal
-	UnverifiedAmount      decimal.Decimal
-	FeeCount              int
-	BillDate              string
-	StatementTitle        *string
-	PaymentTermsDays      *int
-	DueDate               *string
-	Note                  *string
-	Version               uint64
-	ConfirmedAt           *time.Time
-	ConfirmedBy           *uuid.UUID
-	CancelledAt           *time.Time
-	CancelledBy           *uuid.UUID
-	CancellationReason    *string
-	Lines                 []*FinanceBillLine
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	ID                        uuid.UUID
+	OrganizationID            uuid.UUID
+	OrganizationName          string
+	BatchID                   *uuid.UUID
+	BatchNo                   string
+	BillNo                    string
+	IdempotencyKey            string
+	Direction                 OrderFeeDirection
+	Status                    FinanceBillStatus
+	SettlementPartyID         uuid.UUID
+	SettlementPartyName       string
+	SettlementAccountID       uuid.UUID
+	SettlementAccountName     string
+	SettlementAccountHolder   string
+	SettlementBankName        string
+	SettlementBankAccount     string
+	SettlementAccountCurrency string
+	SettlementSwiftCode       string
+	Currency                  string
+	BaseCurrency              string
+	ExchangeRate              decimal.Decimal
+	ExchangeRateSource        string
+	ExchangeRateDate          string
+	ExchangeRateSettingID     *uuid.UUID
+	TotalAmount               decimal.Decimal
+	NetAmount                 decimal.Decimal
+	TaxAmount                 decimal.Decimal
+	BaseCurrencyAmount        decimal.Decimal
+	VerifiedAmount            decimal.Decimal
+	UnverifiedAmount          decimal.Decimal
+	FeeCount                  int
+	BillDate                  string
+	StatementTitle            *string
+	PaymentTermsDays          *int
+	DueDate                   *string
+	Note                      *string
+	Version                   uint64
+	ConfirmedAt               *time.Time
+	ConfirmedBy               *uuid.UUID
+	CancelledAt               *time.Time
+	CancelledBy               *uuid.UUID
+	CancellationReason        *string
+	Lines                     []*FinanceBillLine
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
 }
 
 type FinanceBillLine struct {
@@ -154,13 +162,14 @@ type FinanceBaseCurrencyAmount struct {
 }
 
 type CreateFinanceBillInput struct {
-	FeeIDs           []uuid.UUID
-	BillDate         string
-	DueDate          *string
-	Note             *string
-	StatementTitle   *string
-	PaymentTermsDays *int
-	IdempotencyKey   string
+	FeeIDs              []uuid.UUID
+	BillDate            string
+	DueDate             *string
+	Note                *string
+	StatementTitle      *string
+	PaymentTermsDays    *int
+	IdempotencyKey      string
+	SettlementAccountID uuid.UUID
 }
 
 type UpdateFinanceBillInput struct {
@@ -176,6 +185,7 @@ type UpdateFinanceBillInput struct {
 	ExchangeRateDate      string
 	ExchangeRateSettingID *uuid.UUID
 	BaseCurrencyAmount    decimal.Decimal
+	SettlementAccountID   uuid.UUID
 }
 
 type FinanceBillGroupingPolicy struct {
@@ -200,12 +210,13 @@ type FinanceBillBatchPreview struct {
 }
 
 type CreateFinanceBillBatchGroupInput struct {
-	GroupKey         string
-	StatementTitle   string
-	BillDate         string
-	DueDate          *string
-	PaymentTermsDays *int
-	Note             *string
+	GroupKey            string
+	StatementTitle      string
+	BillDate            string
+	DueDate             *string
+	PaymentTermsDays    *int
+	Note                *string
+	SettlementAccountID uuid.UUID
 }
 
 type CreateFinanceBillBatchInput struct {
@@ -396,7 +407,7 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 			return nil, ErrFinanceBillBatchMismatch
 		}
 		delete(groupInputs, previewGroup.GroupKey)
-		billInput := CreateFinanceBillInput{FeeIDs: financeBillableFeeIDs(previewGroup.Fees), BillDate: groupInput.BillDate, DueDate: groupInput.DueDate, Note: groupInput.Note, StatementTitle: &groupInput.StatementTitle, PaymentTermsDays: groupInput.PaymentTermsDays, IdempotencyKey: financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey)}
+		billInput := CreateFinanceBillInput{FeeIDs: financeBillableFeeIDs(previewGroup.Fees), BillDate: groupInput.BillDate, DueDate: groupInput.DueDate, Note: groupInput.Note, StatementTitle: &groupInput.StatementTitle, PaymentTermsDays: groupInput.PaymentTermsDays, IdempotencyKey: financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey), SettlementAccountID: groupInput.SettlementAccountID}
 		billInput, err = normalizeCreateFinanceBill(billInput)
 		if err != nil {
 			return nil, err
@@ -573,7 +584,7 @@ func normalizeCreateFinanceBill(input CreateFinanceBillInput) (CreateFinanceBill
 	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
 	input.DueDate = normalizedFinanceBillDueDate(input.BillDate, input.DueDate, input.PaymentTermsDays)
 	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	if len(input.FeeIDs) == 0 || len(input.FeeIDs) > 500 || !validFinanceDate(input.BillDate) || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
+	if len(input.FeeIDs) == 0 || len(input.FeeIDs) > 500 || input.SettlementAccountID == uuid.Nil || !validFinanceDate(input.BillDate) || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return CreateFinanceBillInput{}, ErrFinanceBillInvalidArgument
 	}
 	seen := make(map[uuid.UUID]struct{}, len(input.FeeIDs))
@@ -602,7 +613,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 	bill := &FinanceBill{
 		ID: billID, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey,
 		Direction: first.Fee.Direction, Status: FinanceBillDraft, SettlementPartyID: first.Fee.SettlementPartyID,
-		SettlementPartyName: first.Fee.SettlementPartyName, Currency: first.Fee.Currency, BaseCurrency: first.Fee.BaseCurrency,
+		SettlementPartyName: first.Fee.SettlementPartyName, SettlementAccountID: input.SettlementAccountID, Currency: first.Fee.Currency, BaseCurrency: first.Fee.BaseCurrency,
 		BillDate: input.BillDate, StatementTitle: input.StatementTitle, PaymentTermsDays: input.PaymentTermsDays, DueDate: input.DueDate, Note: input.Note, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(fees)),
 	}
@@ -641,7 +652,7 @@ func sameFinanceBillCreateIntent(existing *FinanceBill, requested CreateFinanceB
 	if requestedTitle == nil {
 		requestedTitle = &existing.SettlementPartyName
 	}
-	if existing.BillDate != requested.BillDate || !stringPointersEqual(existing.DueDate, requested.DueDate) || !stringPointersEqual(existing.Note, requested.Note) || !stringPointersEqual(existing.StatementTitle, requestedTitle) || !intPointersEqual(existing.PaymentTermsDays, requested.PaymentTermsDays) || len(existing.Lines) != len(requested.FeeIDs) {
+	if existing.SettlementAccountID != requested.SettlementAccountID || existing.BillDate != requested.BillDate || !stringPointersEqual(existing.DueDate, requested.DueDate) || !stringPointersEqual(existing.Note, requested.Note) || !stringPointersEqual(existing.StatementTitle, requestedTitle) || !intPointersEqual(existing.PaymentTermsDays, requested.PaymentTermsDays) || len(existing.Lines) != len(requested.FeeIDs) {
 		return false
 	}
 	ids := make([]string, 0, len(existing.Lines))
@@ -686,7 +697,7 @@ func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) 
 		item.DueDate = normalizedOptionalFinanceString(item.DueDate)
 		item.Note = normalizedOptionalFinanceString(item.Note)
 		item.DueDate = normalizedFinanceBillDueDate(item.BillDate, item.DueDate, item.PaymentTermsDays)
-		if item.GroupKey == "" || len(item.GroupKey) != 64 || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) {
+		if item.GroupKey == "" || len(item.GroupKey) != 64 || item.SettlementAccountID == uuid.Nil || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) {
 			return nil, ErrFinanceBillInvalidArgument
 		}
 		if _, exists := seen[item.GroupKey]; exists {
@@ -830,7 +841,7 @@ func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
 		if group.Note != nil {
 			note = *group.Note
 		}
-		writeFinanceHashParts(&builder, group.GroupKey, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note)
+		writeFinanceHashParts(&builder, group.GroupKey, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note, group.SettlementAccountID.String())
 	}
 	return financeSHA256(builder.String())
 }

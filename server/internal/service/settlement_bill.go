@@ -98,6 +98,76 @@ func (s *SettlementService) ListBillCreationCandidates(ctx context.Context, requ
 	return okList(ctx, &v1.ListBillCreationCandidatesResponse{Data: data, Total: result.Total}), nil
 }
 
+func (s *SettlementService) ListBillSettlementAccountCandidates(ctx context.Context, request *v1.ListBillSettlementAccountCandidatesRequest) (*v1.ListBillSettlementAccountCandidatesResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	organizationID, partyID, direction, currency, err := billSettlementAccountCandidateInput(request.GetOrganizationId(), request.GetSettlementPartyId(), request.GetDirection(), request.GetCurrency())
+	if err != nil {
+		return nil, err
+	}
+	rawOrganizationID := organizationID.String()
+	organizationIDs, err := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &rawOrganizationID)
+	if err != nil || len(organizationIDs) != 1 {
+		if err != nil {
+			return nil, err
+		}
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	items, err := s.accountUsecase.List(ctx, organizationID, partyID, biz.PartnerAccountFilter{Enabled: boolPointer(true), Currency: currency})
+	if err != nil {
+		return nil, err
+	}
+	return okList(ctx, &v1.ListBillSettlementAccountCandidatesResponse{Data: financeSettlementAccountOptions(items, direction)}), nil
+}
+
+func (s *SettlementService) ListBillSettlementAccountUpdateCandidates(ctx context.Context, request *v1.ListBillSettlementAccountUpdateCandidatesRequest) (*v1.ListBillSettlementAccountUpdateCandidatesResponse, error) {
+	principal, billID, err := financePrincipalAndID(ctx, request.GetBillId())
+	if err != nil {
+		return nil, err
+	}
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if err != nil {
+		return nil, err
+	}
+	bill, err := s.billUsecase.Get(ctx, organizationIDs, billID)
+	if err != nil {
+		return nil, err
+	}
+	if bill.Status != biz.FinanceBillDraft {
+		return nil, biz.ErrFinanceBillInvalidTransition
+	}
+	items, err := s.accountUsecase.List(ctx, bill.OrganizationID, bill.SettlementPartyID, biz.PartnerAccountFilter{Enabled: boolPointer(true), Currency: bill.Currency})
+	if err != nil {
+		return nil, err
+	}
+	return okList(ctx, &v1.ListBillSettlementAccountUpdateCandidatesResponse{Data: financeSettlementAccountOptions(items, bill.Direction)}), nil
+}
+
+func billSettlementAccountCandidateInput(rawOrganizationID, rawPartyID, rawDirection, rawCurrency string) (uuid.UUID, uuid.UUID, biz.OrderFeeDirection, string, error) {
+	organizationID, orgErr := uuid.Parse(strings.TrimSpace(rawOrganizationID))
+	partyID, partyErr := uuid.Parse(strings.TrimSpace(rawPartyID))
+	direction := biz.OrderFeeDirection(strings.ToUpper(strings.TrimSpace(rawDirection)))
+	currency := strings.ToUpper(strings.TrimSpace(rawCurrency))
+	if orgErr != nil || partyErr != nil || (direction != biz.OrderFeeReceivable && direction != biz.OrderFeePayable) || len(currency) != 3 {
+		return uuid.Nil, uuid.Nil, "", "", biz.ErrFinanceBillInvalidArgument
+	}
+	return organizationID, partyID, direction, currency, nil
+}
+
+func financeSettlementAccountOptions(items []*biz.PartnerAccount, direction biz.OrderFeeDirection) []*v1.FinanceSettlementAccountOption {
+	result := make([]*v1.FinanceSettlementAccountOption, 0, len(items))
+	for _, item := range items {
+		if item.Usage.Supports(direction) {
+			result = append(result, &v1.FinanceSettlementAccountOption{Id: item.ID.String(), Name: item.Name, AccountHolder: item.AccountHolder, BankName: item.BankName, AccountNo: item.AccountNo, Currency: item.Currency, SwiftCode: item.SwiftCode, IsDefault: (direction == biz.OrderFeeReceivable && item.IsDefaultReceivable) || (direction == biz.OrderFeePayable && item.IsDefaultPayable)})
+		}
+	}
+	return result
+}
+
+func boolPointer(value bool) *bool { return &value }
+
 func financeBillSummaryToAPI(summary biz.FinanceBillSummary) *v1.FinanceBillSummary {
 	return &v1.FinanceBillSummary{AmountsByBaseCurrency: financeBaseCurrencyAmountsToAPI(summary.AmountsByBaseCurrency)}
 }
@@ -153,9 +223,12 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
-	item, err := s.billUsecase.Create(ctx, organizationID, principal.UserID, biz.CreateFinanceBillInput{
-		FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(),
-	})
+	accountID, err := uuid.Parse(strings.TrimSpace(request.GetSettlementAccountId()))
+	if err != nil {
+		return nil, biz.ErrFinanceBillSettlementAccountInvalid
+	}
+	input := biz.CreateFinanceBillInput{FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(), SettlementAccountID: accountID}
+	item, err := s.billUsecase.Create(ctx, organizationID, principal.UserID, input)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +287,11 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 		if group == nil {
 			return nil, biz.ErrFinanceBillInvalidArgument
 		}
-		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note})
+		accountID, accountErr := uuid.Parse(strings.TrimSpace(group.GetSettlementAccountId()))
+		if accountErr != nil {
+			return nil, biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID})
 	}
 	requestedOrganization := requestedOrganizationID.String()
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
@@ -278,9 +355,12 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.billUsecase.Update(ctx, organizationIDs, principal.UserID, biz.UpdateFinanceBillInput{
-		ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(),
-	})
+	accountID, err := uuid.Parse(strings.TrimSpace(request.GetSettlementAccountId()))
+	if err != nil {
+		return nil, biz.ErrFinanceBillSettlementAccountInvalid
+	}
+	input := biz.UpdateFinanceBillInput{ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(), SettlementAccountID: accountID}
+	item, err := s.billUsecase.Update(ctx, organizationIDs, principal.UserID, input)
 	if err != nil {
 		return nil, err
 	}
@@ -338,6 +418,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		Id: item.ID.String(), BillNo: item.BillNo, Direction: string(item.Direction), Status: financeBillStatusToAPI(item.Status),
 		OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName,
+		SettlementAccountId: item.SettlementAccountID.String(), SettlementAccountName: item.SettlementAccountName, SettlementAccountHolder: item.SettlementAccountHolder, SettlementBankName: item.SettlementBankName, SettlementBankAccount: item.SettlementBankAccount, SettlementAccountCurrency: item.SettlementAccountCurrency, SettlementSwiftCode: item.SettlementSwiftCode,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: item.TotalAmount.StringFixed(8), NetAmount: item.NetAmount.StringFixed(8),
 		TaxAmount: item.TaxAmount.StringFixed(8), BaseCurrencyAmount: item.BaseCurrencyAmount.StringFixed(8), FeeCount: int32(item.FeeCount),
 		BillDate: item.BillDate, DueDate: item.DueDate, Note: item.Note, Version: item.Version,

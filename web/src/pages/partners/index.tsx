@@ -584,6 +584,9 @@ export default function Partners() {
       <PartnerSecondary
         partner={secondaryPartner}
         open={Boolean(secondaryPartner)}
+        canReadAccounts={access.canReadPartnerAccounts}
+        canCreateAccounts={access.canCreatePartnerAccounts}
+        canUpdateAccounts={access.canUpdatePartnerAccounts}
         canManage={access.canManagePartners}
         onClose={() => setSecondaryPartner(undefined)}
       />

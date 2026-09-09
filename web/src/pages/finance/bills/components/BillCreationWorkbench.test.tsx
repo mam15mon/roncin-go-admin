@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   candidates: vi.fn(),
   preview: vi.fn(),
   create: vi.fn(),
+  accounts: vi.fn(),
 }));
 vi.mock('@ant-design/pro-components', () => ({
   ProTable: (props: any) => {
@@ -33,12 +34,16 @@ vi.mock('@ant-design/pro-components', () => ({
     );
   },
 }));
+vi.mock('@umijs/max', () => ({
+  useAccess: () => ({ hasAction: () => true }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFinanceOrganizationOptions: mocks.organizations,
   settlementServiceListBillCreationCandidates: mocks.candidates,
   settlementServicePreviewBillBatch: mocks.preview,
   settlementServiceCreateBillBatch: mocks.create,
   settlementServiceConfirmBillBatch: vi.fn(),
+  settlementServiceListBillSettlementAccountCandidates: mocks.accounts,
 }));
 
 import BillCreationWorkbench from './BillCreationWorkbench';
@@ -49,6 +54,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     mocks.candidates.mockReset();
     mocks.preview.mockReset();
     mocks.create.mockReset();
+    mocks.accounts.mockReset();
     mocks.create.mockResolvedValue({ data: { id: 'batch-1', bills: [] } });
     mocks.organizations.mockResolvedValue({
       data: [
@@ -67,6 +73,18 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         ],
       }),
     );
+    mocks.accounts.mockResolvedValue({
+      data: [
+        {
+          id: 'account-default',
+          name: '默认结算账户',
+          bankName: '测试银行',
+          accountNo: '6222',
+          currency: 'CNY',
+          isDefault: true,
+        },
+      ],
+    });
   });
   it('未选组织不请求，A 慢响应切 B 后不回填且清空选择', async () => {
     let resolveA: ((value: unknown) => void) | undefined;
@@ -116,7 +134,16 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
   it('预览后的对账抬头默认结算单位名称，且不请求 Partner 服务', async () => {
     mocks.preview.mockResolvedValue({
       previewToken: 'token',
-      data: [{ groupKey: 'g', settlementPartyName: '结算单位甲', fees: [] }],
+      data: [
+        {
+          groupKey: 'g',
+          settlementPartyId: 'partner-a',
+          settlementPartyName: '结算单位甲',
+          direction: 'RECEIVABLE',
+          currency: 'CNY',
+          fees: [],
+        },
+      ],
     });
     render(
       <App>
@@ -133,10 +160,23 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       expect.objectContaining({ organizationId: 'A' }),
       expect.anything(),
     );
+    await waitFor(() =>
+      expect(mocks.accounts).toHaveBeenCalledWith({
+        organizationId: 'A',
+        settlementPartyId: 'partner-a',
+        direction: 'RECEIVABLE',
+        currency: 'CNY',
+      }),
+    );
     fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
     await waitFor(() =>
       expect(mocks.create).toHaveBeenCalledWith(
-        expect.objectContaining({ organizationId: 'A' }),
+        expect.objectContaining({
+          organizationId: 'A',
+          groups: [
+            expect.objectContaining({ settlementAccountId: 'account-default' }),
+          ],
+        }),
         expect.anything(),
       ),
     );
@@ -203,5 +243,220 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       expect(screen.queryByDisplayValue('结算单位A')).not.toBeInTheDocument();
       expect(screen.getByDisplayValue('结算单位B')).toBeInTheDocument();
     });
+  });
+
+  it('两个叶子预览重排后，仍按 groupKey 保留各自默认账户并提交', async () => {
+    const groupA = {
+      groupKey: 'group-a',
+      settlementPartyId: 'partner-a',
+      settlementPartyName: '结算单位 A',
+      direction: 'RECEIVABLE',
+      currency: 'CNY',
+      fees: [],
+    };
+    const groupB = {
+      groupKey: 'group-b',
+      settlementPartyId: 'partner-b',
+      settlementPartyName: '结算单位 B',
+      direction: 'PAYABLE',
+      currency: 'USD',
+      fees: [],
+    };
+    mocks.preview
+      .mockResolvedValueOnce({
+        previewToken: 'token-first',
+        data: [groupA, groupB],
+      })
+      .mockResolvedValueOnce({
+        previewToken: 'token-second',
+        data: [
+          { ...groupB, settlementPartyName: '结算单位 B（重排）' },
+          { ...groupA, settlementPartyName: '结算单位 A（重排）' },
+        ],
+      });
+    mocks.accounts.mockImplementation(({ settlementPartyId }) =>
+      Promise.resolve({
+        data: [
+          {
+            id: settlementPartyId === 'partner-a' ? 'account-a' : 'account-b',
+            name: settlementPartyId === 'partner-a' ? '账户 A' : '账户 B',
+            bankName: '测试银行',
+            currency: settlementPartyId === 'partner-a' ? 'CNY' : 'USD',
+            isDefault: true,
+          },
+        ],
+      }),
+    );
+    render(
+      <App>
+        <BillCreationWorkbench
+          open
+          initialFeeIds={['fee-A']}
+          initialOrganizationId="A"
+          onClose={vi.fn()}
+        />
+      </App>,
+    );
+    expect(await screen.findByDisplayValue('结算单位 A')).toBeInTheDocument();
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(2));
+    expect(
+      await screen.findByText('账户 A｜测试银行｜CNY'),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('账户 B｜测试银行｜USD'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
+    expect(await screen.findByText('结算单位 B（重排）')).toBeInTheDocument();
+    expect(screen.getByText('账户 A｜测试银行｜CNY')).toBeInTheDocument();
+    expect(screen.getByText('账户 B｜测试银行｜USD')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /原子生成 2 张账单/ }));
+    await waitFor(() =>
+      expect(mocks.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          previewToken: 'token-second',
+          groups: expect.arrayContaining([
+            expect.objectContaining({
+              groupKey: 'group-a',
+              settlementAccountId: 'account-a',
+            }),
+            expect.objectContaining({
+              groupKey: 'group-b',
+              settlementAccountId: 'account-b',
+            }),
+          ]),
+        }),
+        expect.anything(),
+      ),
+    );
+  });
+
+  it('已移除叶子的迟到候选不会污染仍存在叶子的账户草稿', async () => {
+    let resolveRemoved: ((value: unknown) => void) | undefined;
+    const remainingGroup = {
+      groupKey: 'remaining',
+      settlementPartyId: 'partner-b',
+      settlementPartyName: '保留单位',
+      direction: 'PAYABLE',
+      currency: 'USD',
+      fees: [],
+    };
+    mocks.preview
+      .mockResolvedValueOnce({
+        previewToken: 'token-first',
+        data: [
+          {
+            groupKey: 'removed',
+            settlementPartyId: 'partner-a',
+            settlementPartyName: '移除单位',
+            direction: 'RECEIVABLE',
+            currency: 'CNY',
+            fees: [],
+          },
+          remainingGroup,
+        ],
+      })
+      .mockResolvedValueOnce({
+        previewToken: 'token-second',
+        data: [remainingGroup],
+      });
+    mocks.accounts.mockImplementation(({ settlementPartyId }) =>
+      settlementPartyId === 'partner-a'
+        ? new Promise((resolve) => {
+            resolveRemoved = resolve;
+          })
+        : Promise.resolve({
+            data: [
+              {
+                id: 'account-remaining',
+                name: '保留账户',
+                bankName: '测试银行',
+                currency: 'USD',
+                isDefault: true,
+              },
+            ],
+          }),
+    );
+    render(
+      <App>
+        <BillCreationWorkbench
+          open
+          initialFeeIds={['fee-A']}
+          initialOrganizationId="A"
+          onClose={vi.fn()}
+        />
+      </App>,
+    );
+    expect(await screen.findByDisplayValue('移除单位')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('保留单位')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue('移除单位')).not.toBeInTheDocument(),
+    );
+    resolveRemoved?.({
+      data: [
+        {
+          id: 'account-removed',
+          name: '旧账户',
+          bankName: '旧银行',
+          currency: 'CNY',
+          isDefault: true,
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
+    await waitFor(() =>
+      expect(mocks.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          groups: [
+            expect.objectContaining({
+              groupKey: 'remaining',
+              settlementAccountId: 'account-remaining',
+            }),
+          ],
+        }),
+        expect.anything(),
+      ),
+    );
+  });
+
+  it('任一叶子没有可选结算账户时阻断整批创建', async () => {
+    mocks.preview.mockResolvedValue({
+      previewToken: 'token',
+      data: [
+        {
+          groupKey: 'without-account',
+          settlementPartyId: 'partner-a',
+          settlementPartyName: '未配置账户单位',
+          direction: 'RECEIVABLE',
+          currency: 'CNY',
+          fees: [],
+        },
+      ],
+    });
+    mocks.accounts.mockResolvedValue({ data: [] });
+    render(
+      <App>
+        <BillCreationWorkbench
+          open
+          initialFeeIds={['fee-A']}
+          initialOrganizationId="A"
+          onClose={vi.fn()}
+        />
+      </App>,
+    );
+    expect(
+      await screen.findByDisplayValue('未配置账户单位'),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
+    await waitFor(() =>
+      expect(screen.getByText('请选择结算账户')).toBeInTheDocument(),
+    );
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 });

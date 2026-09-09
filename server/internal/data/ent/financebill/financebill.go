@@ -36,6 +36,20 @@ const (
 	FieldSettlementPartyID = "settlement_party_id"
 	// FieldSettlementPartyName holds the string denoting the settlement_party_name field in the database.
 	FieldSettlementPartyName = "settlement_party_name"
+	// FieldSettlementAccountID holds the string denoting the settlement_account_id field in the database.
+	FieldSettlementAccountID = "settlement_account_id"
+	// FieldSettlementAccountName holds the string denoting the settlement_account_name field in the database.
+	FieldSettlementAccountName = "settlement_account_name"
+	// FieldSettlementAccountHolder holds the string denoting the settlement_account_holder field in the database.
+	FieldSettlementAccountHolder = "settlement_account_holder"
+	// FieldSettlementBankName holds the string denoting the settlement_bank_name field in the database.
+	FieldSettlementBankName = "settlement_bank_name"
+	// FieldSettlementBankAccount holds the string denoting the settlement_bank_account field in the database.
+	FieldSettlementBankAccount = "settlement_bank_account"
+	// FieldSettlementAccountCurrency holds the string denoting the settlement_account_currency field in the database.
+	FieldSettlementAccountCurrency = "settlement_account_currency"
+	// FieldSettlementSwiftCode holds the string denoting the settlement_swift_code field in the database.
+	FieldSettlementSwiftCode = "settlement_swift_code"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
@@ -178,6 +192,13 @@ var Columns = []string{
 	FieldStatus,
 	FieldSettlementPartyID,
 	FieldSettlementPartyName,
+	FieldSettlementAccountID,
+	FieldSettlementAccountName,
+	FieldSettlementAccountHolder,
+	FieldSettlementBankName,
+	FieldSettlementBankAccount,
+	FieldSettlementAccountCurrency,
+	FieldSettlementSwiftCode,
 	FieldCurrency,
 	FieldBaseCurrency,
 	FieldExchangeRate,
@@ -225,6 +246,18 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
 	SettlementPartyNameValidator func(string) error
+	// SettlementAccountNameValidator is a validator for the "settlement_account_name" field. It is called by the builders before save.
+	SettlementAccountNameValidator func(string) error
+	// SettlementAccountHolderValidator is a validator for the "settlement_account_holder" field. It is called by the builders before save.
+	SettlementAccountHolderValidator func(string) error
+	// SettlementBankNameValidator is a validator for the "settlement_bank_name" field. It is called by the builders before save.
+	SettlementBankNameValidator func(string) error
+	// SettlementBankAccountValidator is a validator for the "settlement_bank_account" field. It is called by the builders before save.
+	SettlementBankAccountValidator func(string) error
+	// SettlementAccountCurrencyValidator is a validator for the "settlement_account_currency" field. It is called by the builders before save.
+	SettlementAccountCurrencyValidator func(string) error
+	// SettlementSwiftCodeValidator is a validator for the "settlement_swift_code" field. It is called by the builders before save.
+	SettlementSwiftCodeValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
@@ -383,6 +416,41 @@ func BySettlementPartyID(opts ...sql.OrderTermOption) OrderOption {
 // BySettlementPartyName orders the results by the settlement_party_name field.
 func BySettlementPartyName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementPartyName, opts...).ToFunc()
+}
+
+// BySettlementAccountID orders the results by the settlement_account_id field.
+func BySettlementAccountID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountID, opts...).ToFunc()
+}
+
+// BySettlementAccountName orders the results by the settlement_account_name field.
+func BySettlementAccountName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountName, opts...).ToFunc()
+}
+
+// BySettlementAccountHolder orders the results by the settlement_account_holder field.
+func BySettlementAccountHolder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountHolder, opts...).ToFunc()
+}
+
+// BySettlementBankName orders the results by the settlement_bank_name field.
+func BySettlementBankName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementBankName, opts...).ToFunc()
+}
+
+// BySettlementBankAccount orders the results by the settlement_bank_account field.
+func BySettlementBankAccount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementBankAccount, opts...).ToFunc()
+}
+
+// BySettlementAccountCurrency orders the results by the settlement_account_currency field.
+func BySettlementAccountCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountCurrency, opts...).ToFunc()
+}
+
+// BySettlementSwiftCode orders the results by the settlement_swift_code field.
+func BySettlementSwiftCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementSwiftCode, opts...).ToFunc()
 }
 
 // ByCurrency orders the results by the currency field.

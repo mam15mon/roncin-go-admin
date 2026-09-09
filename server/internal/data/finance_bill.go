@@ -18,6 +18,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
@@ -389,6 +390,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		if active {
 			return biz.ErrFinanceBillFeeInvalid
 		}
+		if err = hydrateFinanceBillSettlementAccount(ctx, tx, bill); err != nil {
+			return err
+		}
 		now := time.Now().UTC()
 		billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
 		if err != nil {
@@ -403,6 +407,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 			SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
 			SetNillableBatchID(bill.BatchID).
 			SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
+			SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).
 			SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).
 			SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
 			SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
@@ -488,6 +493,10 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		if active {
 			return biz.ErrFinanceBillFeeInvalid
 		}
+		// 与单张建账保持“费用 → 账户”的固定加锁顺序，避免批量与单张并发建账互相等待。
+		if err := hydrateFinanceBillSettlementAccounts(ctx, tx, batch.Bills); err != nil {
+			return err
+		}
 		now := time.Now().UTC()
 		batchRule, batchSequence, err := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeBillBatch, now)
 		if err != nil {
@@ -511,7 +520,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				return allocateErr
 			}
 			bill.BatchNo = batch.BatchNo
-			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 			if saveErr != nil {
 				return saveErr
 			}
@@ -549,7 +558,11 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 		if item.Status != financebillent.StatusDRAFT {
 			return biz.ErrFinanceBillInvalidTransition
 		}
-		update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
+		candidate := &biz.FinanceBill{OrganizationID: item.OrganizationID, SettlementPartyID: item.SettlementPartyID, Direction: biz.OrderFeeDirection(item.Direction), Currency: item.Currency, SettlementAccountID: input.SettlementAccountID}
+		if err = hydrateFinanceBillSettlementAccount(ctx, tx, candidate); err != nil {
+			return err
+		}
+		update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetSettlementAccountID(input.SettlementAccountID).SetSettlementAccountName(candidate.SettlementAccountName).SetSettlementAccountHolder(candidate.SettlementAccountHolder).SetSettlementBankName(candidate.SettlementBankName).SetSettlementBankAccount(candidate.SettlementBankAccount).SetSettlementAccountCurrency(candidate.SettlementAccountCurrency).SetSettlementSwiftCode(candidate.SettlementSwiftCode).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
 		if input.ExchangeRateSettingID == nil {
 			update.ClearExchangeRateSettingID()
 		} else {
@@ -679,6 +692,60 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 	return r.Get(ctx, organizationIDs, id)
 }
 
+// hydrateFinanceBillSettlementAccount 在账单写事务内重读账户并固化快照，不能信任请求端传来的快照。
+func hydrateFinanceBillSettlementAccount(ctx context.Context, tx *ent.Tx, bill *biz.FinanceBill) error {
+	return hydrateFinanceBillSettlementAccounts(ctx, tx, []*biz.FinanceBill{bill})
+}
+
+// hydrateFinanceBillSettlementAccounts 先按账户主键固定顺序取得共享锁，再逐账单校验账户事实。
+// 这样批量建账不会按前端分组顺序与账户默认值切换形成反序锁等待。
+func hydrateFinanceBillSettlementAccounts(ctx context.Context, tx *ent.Tx, bills []*biz.FinanceBill) error {
+	accountIDs := make([]uuid.UUID, 0, len(bills))
+	seen := make(map[uuid.UUID]struct{}, len(bills))
+	for _, bill := range bills {
+		if bill == nil || bill.SettlementAccountID == uuid.Nil || bill.OrganizationID == uuid.Nil || bill.SettlementPartyID == uuid.Nil || (bill.Direction != biz.OrderFeeReceivable && bill.Direction != biz.OrderFeePayable) || len(bill.Currency) != 3 {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		if _, exists := seen[bill.SettlementAccountID]; !exists {
+			seen[bill.SettlementAccountID] = struct{}{}
+			accountIDs = append(accountIDs, bill.SettlementAccountID)
+		}
+	}
+	sort.Slice(accountIDs, func(i, j int) bool { return accountIDs[i].String() < accountIDs[j].String() })
+	accounts, err := tx.PartnerAccount.Query().Where(partneraccountent.IDIn(accountIDs...)).WithPartner().Order(partneraccountent.ByID()).ForShare().All(ctx)
+	if err != nil {
+		return mapEntError(err, nil, biz.ErrFinanceBillSettlementAccountInvalid)
+	}
+	accountsByID := make(map[uuid.UUID]*ent.PartnerAccount, len(accounts))
+	for _, account := range accounts {
+		accountsByID[account.ID] = account
+	}
+	for _, bill := range bills {
+		account := accountsByID[bill.SettlementAccountID]
+		if account == nil || account.PartnerID != bill.SettlementPartyID || account.Currency != bill.Currency || !account.Enabled {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		partner, partnerErr := account.Edges.PartnerOrErr()
+		if partnerErr != nil || partner.OrganizationID != bill.OrganizationID {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		usage := partneraccountent.UsageRECEIVABLE
+		if bill.Direction == biz.OrderFeePayable {
+			usage = partneraccountent.UsagePAYABLE
+		}
+		if account.Usage != usage && account.Usage != partneraccountent.UsageBOTH {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		bill.SettlementAccountName = account.Name
+		bill.SettlementAccountHolder = account.AccountHolder
+		bill.SettlementBankName = account.BankName
+		bill.SettlementBankAccount = account.AccountNo
+		bill.SettlementAccountCurrency = account.Currency
+		bill.SettlementSwiftCode = account.SwiftCode
+	}
+	return nil
+}
+
 func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	totalAmount, err := decimalOf(item.TotalAmount)
 	if err != nil {
@@ -703,7 +770,7 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	result := &biz.FinanceBill{
 		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, BillNo: item.BillNo, IdempotencyKey: item.IdempotencyKey,
 		Direction: biz.OrderFeeDirection(item.Direction), Status: biz.FinanceBillStatus(item.Status),
-		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName,
+		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName, SettlementAccountID: item.SettlementAccountID, SettlementAccountName: item.SettlementAccountName, SettlementAccountHolder: item.SettlementAccountHolder, SettlementBankName: item.SettlementBankName, SettlementBankAccount: item.SettlementBankAccount, SettlementAccountCurrency: item.SettlementAccountCurrency, SettlementSwiftCode: item.SettlementSwiftCode,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount,
 		ExchangeRate: exchangeRate, ExchangeRateSource: string(item.ExchangeRateSource), ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingID: item.ExchangeRateSettingID,
 		BaseCurrencyAmount: baseAmount, FeeCount: item.FeeCount, BillDate: item.BillDate, StatementTitle: item.StatementTitle, PaymentTermsDays: item.PaymentTermsDays, DueDate: item.DueDate, Note: item.Note,

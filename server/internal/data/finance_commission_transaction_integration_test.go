@@ -354,7 +354,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		t.Fatalf("创建测试应付费用: %v", err)
 	}
 
-	billItem, err := data.db.FinanceBill.Create().
+	billCreate := data.db.FinanceBill.Create().
 		SetOrganizationID(org.ID).
 		SetBillNo("BILL-" + suffix).
 		SetIdempotencyKey("bill-" + suffix).
@@ -373,8 +373,8 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetBaseCurrencyAmount("1000.00000000").
 		SetFeeCount(1).
 		SetBillDate(financeCommissionIntegrationDate).
-		SetVersion(1).
-		Save(ctx)
+		SetVersion(1)
+	billItem, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试账单: %v", err)
 	}
@@ -758,7 +758,7 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 		t.Fatalf("创建测试往来单位: %v", err)
 	}
 
-	billA, err := data.db.FinanceBill.Create().
+	billACreate := data.db.FinanceBill.Create().
 		SetOrganizationID(org.ID).
 		SetBillNo("BILL-A-" + suffix).
 		SetIdempotencyKey("bill-a-" + suffix).
@@ -776,13 +776,13 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 		SetTaxAmount("0.00000000").
 		SetBaseCurrencyAmount("1000.00000000").
 		SetFeeCount(1).
-		SetBillDate("2026-08-30").
-		Save(ctx)
+		SetBillDate("2026-08-30")
+	billA, err := withTestFinanceBillSettlementAccountSnapshot(billACreate, uuid.New(), "CNY").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建账单 A 失败: %v", err)
 	}
 
-	billB, err := data.db.FinanceBill.Create().
+	billBCreate := data.db.FinanceBill.Create().
 		SetOrganizationID(org.ID).
 		SetBillNo("BILL-B-" + suffix).
 		SetIdempotencyKey("bill-b-" + suffix).
@@ -800,8 +800,8 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 		SetTaxAmount("0.00000000").
 		SetBaseCurrencyAmount("2000.00000000").
 		SetFeeCount(1).
-		SetBillDate("2026-08-30").
-		Save(ctx)
+		SetBillDate("2026-08-30")
+	billB, err := withTestFinanceBillSettlementAccountSnapshot(billBCreate, uuid.New(), "CNY").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建账单 B 失败: %v", err)
 	}

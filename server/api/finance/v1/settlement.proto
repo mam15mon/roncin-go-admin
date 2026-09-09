@@ -60,6 +60,14 @@ service SettlementService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/bills/creation-candidates"};
   }
+  rpc ListBillSettlementAccountCandidates(ListBillSettlementAccountCandidatesRequest) returns (ListBillSettlementAccountCandidatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bill-settlement-account-candidates"};
+  }
+  rpc ListBillSettlementAccountUpdateCandidates(ListBillSettlementAccountUpdateCandidatesRequest) returns (ListBillSettlementAccountUpdateCandidatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bill-settlement-account-update-candidates"};
+  }
 
   rpc GetBill(GetBillRequest) returns (GetBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -438,6 +446,7 @@ message CreateBillRequest {
   string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
   optional string statement_title = 6;
   optional int32 payment_terms_days = 7;
+  string settlement_account_id = 8 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateBillRequest {
@@ -448,6 +457,7 @@ message UpdateBillRequest {
   uint64 expected_version = 5 [(google.api.field_behavior) = REQUIRED];
   optional string statement_title = 6;
   optional int32 payment_terms_days = 7;
+  string settlement_account_id = 8 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ConfirmBillRequest {
@@ -521,6 +531,13 @@ message FinanceBill {
   repeated finance.v1.BusinessTagSummary tags = 36;
   string organization_id = 37;
   string organization_name = 38;
+  string settlement_account_id = 39;
+  string settlement_account_name = 40;
+  string settlement_account_holder = 41;
+  string settlement_bank_name = 42;
+  string settlement_bank_account = 43;
+  string settlement_account_currency = 44;
+  string settlement_swift_code = 45;
 }
 
 message BillGroupingPolicy {
@@ -567,7 +584,29 @@ message CreateBillBatchGroupInput {
   optional string due_date = 4;
   optional int32 payment_terms_days = 5;
   optional string note = 6;
+  string settlement_account_id = 7 [(google.api.field_behavior) = REQUIRED];
 }
+
+message FinanceSettlementAccountOption {
+  string id = 1;
+  string name = 2;
+  string account_holder = 3;
+  string bank_name = 4;
+  string account_no = 5;
+  string currency = 6;
+  string swift_code = 7;
+  bool is_default = 8;
+}
+
+message ListBillSettlementAccountCandidatesRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string settlement_party_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string direction = 3 [(google.api.field_behavior) = REQUIRED];
+  string currency = 4 [(google.api.field_behavior) = REQUIRED];
+}
+message ListBillSettlementAccountCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementAccountOption data = 4; string trace_id = 5; }
+message ListBillSettlementAccountUpdateCandidatesRequest { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message ListBillSettlementAccountUpdateCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementAccountOption data = 4; string trace_id = 5; }
 
 message CreateBillBatchRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];

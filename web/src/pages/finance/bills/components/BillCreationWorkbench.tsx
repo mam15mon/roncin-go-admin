@@ -56,10 +56,11 @@ type GroupFormValue = {
   billDate: Dayjs;
   paymentTermsDays?: number;
   note?: string;
+  settlementAccountId?: string;
 };
 
 type WorkbenchFormValue = {
-  groups: GroupFormValue[];
+  groups: Record<string, GroupFormValue>;
 };
 
 type RequestError = Error & {
@@ -224,16 +225,19 @@ export default function BillCreationWorkbench({
         previewErrorKeyRef.current = undefined;
         setPreview(response);
 
-        form.setFieldsValue({
-          groups: groups.map((group) => {
-            return {
-              statementTitle: group.settlementPartyName || '',
-              billDate: dayjs(),
-              paymentTermsDays: undefined,
-              note: undefined,
-            };
-          }),
-        });
+        const previousGroups = form.getFieldValue('groups') || {};
+        const nextGroups: Record<string, GroupFormValue> = {};
+        for (const group of groups) {
+          if (!group.groupKey) continue;
+          nextGroups[group.groupKey] = previousGroups[group.groupKey] || {
+            statementTitle: group.settlementPartyName || '',
+            billDate: dayjs(),
+            paymentTermsDays: undefined,
+            note: undefined,
+            settlementAccountId: undefined,
+          };
+        }
+        form.setFieldValue('groups', nextGroups);
         return true;
       } catch (rawError: unknown) {
         if (
@@ -369,7 +373,13 @@ export default function BillCreationWorkbench({
       message.warning('账单预览快照已失效或为空，请重新预览');
       return;
     }
-    const values = await form.validateFields();
+    let values: WorkbenchFormValue;
+    try {
+      values = await form.validateFields();
+    } catch {
+      message.warning('请为每张拟生成账单补齐必填资料和结算账户');
+      return;
+    }
     setLoading(true);
     try {
       const response = await settlementServiceCreateBillBatch(
@@ -379,14 +389,15 @@ export default function BillCreationWorkbench({
           previewToken: preview.previewToken,
           idempotencyKey,
           organizationId,
-          groups: preview.data.map((group, index) => {
-            const value = values.groups[index];
+          groups: preview.data.map((group) => {
+            const value = values.groups[group.groupKey || ''];
             return {
               groupKey: group.groupKey || '',
               statementTitle: value.statementTitle.trim(),
               billDate: value.billDate.format('YYYY-MM-DD'),
               paymentTermsDays: value.paymentTermsDays,
               note: value.note?.trim() || undefined,
+              settlementAccountId: value.settlementAccountId || '',
             };
           }),
         },
@@ -660,11 +671,11 @@ export default function BillCreationWorkbench({
             </Row>
           </Card>
 
-          {preview.data.map((group, index) => (
+          {preview.data.map((group) => (
             <BillGroupCard
               key={group.groupKey}
               group={group}
-              index={index}
+              organizationId={organizationId || ''}
               feeColumns={getPreviewFeeColumns(handleRemoveFee)}
               directionText={directionText}
             />

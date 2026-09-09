@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 
@@ -45,12 +44,11 @@ func (r *invalidAuditResultVerificationRepo) Create(ctx context.Context, organiz
 }
 
 func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
-	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
+	data, cleanup := getIntegrationData(t)
+	defer cleanup()
 
 	t.Run("相同幂等键并发创建返回同一核销", func(t *testing.T) {
-		fixture := newVerificationPostgresFixture(t)
+		fixture := newVerificationPostgresFixture(t, data)
 		usecase := fixture.newUsecase(NewVerificationRepo(fixture.data), NewExchangeRateRepo(fixture.data))
 		inputs := []biz.CreateVerificationInput{fixture.input("same-key"), fixture.input("same-key")}
 
@@ -67,7 +65,7 @@ func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
 	})
 
 	t.Run("审计失败回滚核销分摊和单号序列", func(t *testing.T) {
-		fixture := newVerificationPostgresFixture(t)
+		fixture := newVerificationPostgresFixture(t, data)
 		repo := &invalidAuditResultVerificationRepo{VerificationRepo: NewVerificationRepo(fixture.data)}
 		usecase := fixture.newUsecase(repo, NewExchangeRateRepo(fixture.data))
 
@@ -79,7 +77,7 @@ func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
 	})
 
 	t.Run("并发修改汇率不改变事务内核销快照", func(t *testing.T) {
-		fixture := newVerificationPostgresFixture(t)
+		fixture := newVerificationPostgresFixture(t, data)
 		exchangeRepo := &pausingExchangeRateRepo{
 			ExchangeRateRepo: NewExchangeRateRepo(fixture.data), resolved: make(chan struct{}), release: make(chan struct{}),
 		}
@@ -141,23 +139,17 @@ func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
 	})
 }
 
-func newVerificationPostgresFixture(t *testing.T) *verificationPostgresFixture {
+func newVerificationPostgresFixture(t *testing.T, data *Data) *verificationPostgresFixture {
 	t.Helper()
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	data, cleanup, err := newIntegrationData(source)
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
-	t.Cleanup(cleanup)
 	base := newFinanceBillPostgresFixture(t, data)
 	fixture := &verificationPostgresFixture{financeBillPostgresFixture: base}
 	t.Cleanup(fixture.cleanupVerification)
 	ctx := context.Background()
 
-	if _, err = data.db.NumberRule.Create().SetOrganizationID(fixture.organizationID).SetDocumentType(numberruleent.DocumentTypeWriteOff).SetPrefix("WO-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {
+	if _, err := data.db.NumberRule.Create().SetOrganizationID(fixture.organizationID).SetDocumentType(numberruleent.DocumentTypeWriteOff).SetPrefix("WO-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {
 		t.Fatalf("创建测试核销编号规则: %v", err)
 	}
-	if _, err = data.db.ExchangeRateTimeStandard.Create().SetOrganizationID(fixture.organizationID).SetRateType(exchangeratetimestandardent.RateTypeWRITE_OFF).SetTimeStandard(exchangeratetimestandardent.TimeStandardWRITE_OFF_TIME).SetSortOrder(0).Save(ctx); err != nil {
+	if _, err := data.db.ExchangeRateTimeStandard.Create().SetOrganizationID(fixture.organizationID).SetRateType(exchangeratetimestandardent.RateTypeWRITE_OFF).SetTimeStandard(exchangeratetimestandardent.TimeStandardWRITE_OFF_TIME).SetSortOrder(0).Save(ctx); err != nil {
 		t.Fatalf("创建测试核销汇率时间标准: %v", err)
 	}
 	setting, err := data.db.ExchangeRateSetting.Create().SetOrganizationID(fixture.organizationID).SetRateType(exchangeratesettingent.RateTypeWRITE_OFF).SetFromCurrency("USD").SetToCurrency("CNY").SetEffectiveFrom(time.Date(2026, 8, 1, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).SetReceivableRate("7.30000000").SetPayableRate("7.30000000").SetIsActive(true).Save(ctx)
@@ -166,7 +158,8 @@ func newVerificationPostgresFixture(t *testing.T) *verificationPostgresFixture {
 	}
 	fixture.settingID = setting.ID
 
-	bill, err := data.db.FinanceBill.Create().SetOrganizationID(fixture.organizationID).SetBillNo("BILL-V-" + fixture.suffix).SetIdempotencyKey("bill-verification-" + fixture.suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusCONFIRMED).SetSettlementPartyID(fixture.partnerID).SetSettlementPartyName("账单事务测试客户-" + fixture.suffix).SetCurrency("USD").SetBaseCurrency("CNY").SetExchangeRate("7.20000000").SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).SetTotalAmount("100.00000000").SetNetAmount("100.00000000").SetTaxAmount("0.00000000").SetBaseCurrencyAmount("720.00000000").SetFeeCount(1).SetBillDate(financeBillIntegrationDate).SetVersion(1).Save(ctx)
+	billCreate := data.db.FinanceBill.Create().SetOrganizationID(fixture.organizationID).SetBillNo("BILL-V-" + fixture.suffix).SetIdempotencyKey("bill-verification-" + fixture.suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusCONFIRMED).SetSettlementPartyID(fixture.partnerID).SetSettlementPartyName("账单事务测试客户-" + fixture.suffix).SetCurrency("USD").SetBaseCurrency("CNY").SetExchangeRate("7.20000000").SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).SetTotalAmount("100.00000000").SetNetAmount("100.00000000").SetTaxAmount("0.00000000").SetBaseCurrencyAmount("720.00000000").SetFeeCount(1).SetBillDate(financeBillIntegrationDate).SetVersion(1)
+	bill, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, fixture.usdAccountID, "USD").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试已确认账单: %v", err)
 	}

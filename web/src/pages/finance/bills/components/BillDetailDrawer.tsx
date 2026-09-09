@@ -52,6 +52,28 @@ export default function BillDetailDrawer({
           <Descriptions.Item label="结算单位">
             {detail.settlementPartyName}
           </Descriptions.Item>
+          <Descriptions.Item label="结算账户">
+            {detail.settlementAccountName ||
+              detail.settlementAccountHolder ||
+              '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="账户户名">
+            {detail.settlementAccountHolder || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="开户银行">
+            {detail.settlementBankName || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="银行账号">
+            {detail.settlementBankAccount || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="账户币种">
+            {detail.settlementAccountCurrency || '-'}
+          </Descriptions.Item>
+          {detail.settlementSwiftCode && (
+            <Descriptions.Item label="SWIFT Code">
+              {detail.settlementSwiftCode}
+            </Descriptions.Item>
+          )}
           <DItem label="建单批次">{detail.batchNo}</DItem>
           <DItem label="对账抬头">{detail.statementTitle}</DItem>
           <Descriptions.Item label="含税总额">

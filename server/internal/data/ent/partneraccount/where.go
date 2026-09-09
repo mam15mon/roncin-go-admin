@@ -66,9 +66,19 @@ func UpdatedAt(v time.Time) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// PartnerRoleID applies equality check predicate on the "partner_role_id" field. It's identical to PartnerRoleIDEQ.
-func PartnerRoleID(v uuid.UUID) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldPartnerRoleID, v))
+// PartnerID applies equality check predicate on the "partner_id" field. It's identical to PartnerIDEQ.
+func PartnerID(v uuid.UUID) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldPartnerID, v))
+}
+
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldName, v))
+}
+
+// AccountHolder applies equality check predicate on the "account_holder" field. It's identical to AccountHolderEQ.
+func AccountHolder(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldAccountHolder, v))
 }
 
 // Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
@@ -81,9 +91,9 @@ func BankName(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldEQ(FieldBankName, v))
 }
 
-// BankAccount applies equality check predicate on the "bank_account" field. It's identical to BankAccountEQ.
-func BankAccount(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldBankAccount, v))
+// AccountNo applies equality check predicate on the "account_no" field. It's identical to AccountNoEQ.
+func AccountNo(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldAccountNo, v))
 }
 
 // SwiftCode applies equality check predicate on the "swift_code" field. It's identical to SwiftCodeEQ.
@@ -91,9 +101,19 @@ func SwiftCode(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldEQ(FieldSwiftCode, v))
 }
 
-// IsDefault applies equality check predicate on the "is_default" field. It's identical to IsDefaultEQ.
-func IsDefault(v bool) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefault, v))
+// IsDefaultReceivable applies equality check predicate on the "is_default_receivable" field. It's identical to IsDefaultReceivableEQ.
+func IsDefaultReceivable(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefaultReceivable, v))
+}
+
+// IsDefaultPayable applies equality check predicate on the "is_default_payable" field. It's identical to IsDefaultPayableEQ.
+func IsDefaultPayable(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefaultPayable, v))
+}
+
+// Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
+func Enabled(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldEnabled, v))
 }
 
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
@@ -181,44 +201,154 @@ func UpdatedAtLTE(v time.Time) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// PartnerRoleIDEQ applies the EQ predicate on the "partner_role_id" field.
-func PartnerRoleIDEQ(v uuid.UUID) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldPartnerRoleID, v))
+// PartnerIDEQ applies the EQ predicate on the "partner_id" field.
+func PartnerIDEQ(v uuid.UUID) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldPartnerID, v))
 }
 
-// PartnerRoleIDNEQ applies the NEQ predicate on the "partner_role_id" field.
-func PartnerRoleIDNEQ(v uuid.UUID) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNEQ(FieldPartnerRoleID, v))
+// PartnerIDNEQ applies the NEQ predicate on the "partner_id" field.
+func PartnerIDNEQ(v uuid.UUID) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldPartnerID, v))
 }
 
-// PartnerRoleIDIn applies the In predicate on the "partner_role_id" field.
-func PartnerRoleIDIn(vs ...uuid.UUID) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIn(FieldPartnerRoleID, vs...))
+// PartnerIDIn applies the In predicate on the "partner_id" field.
+func PartnerIDIn(vs ...uuid.UUID) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldIn(FieldPartnerID, vs...))
 }
 
-// PartnerRoleIDNotIn applies the NotIn predicate on the "partner_role_id" field.
-func PartnerRoleIDNotIn(vs ...uuid.UUID) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotIn(FieldPartnerRoleID, vs...))
+// PartnerIDNotIn applies the NotIn predicate on the "partner_id" field.
+func PartnerIDNotIn(vs ...uuid.UUID) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNotIn(FieldPartnerID, vs...))
 }
 
-// AccountTypeEQ applies the EQ predicate on the "account_type" field.
-func AccountTypeEQ(v AccountType) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldAccountType, v))
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldName, v))
 }
 
-// AccountTypeNEQ applies the NEQ predicate on the "account_type" field.
-func AccountTypeNEQ(v AccountType) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNEQ(FieldAccountType, v))
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldName, v))
 }
 
-// AccountTypeIn applies the In predicate on the "account_type" field.
-func AccountTypeIn(vs ...AccountType) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIn(FieldAccountType, vs...))
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldIn(FieldName, vs...))
 }
 
-// AccountTypeNotIn applies the NotIn predicate on the "account_type" field.
-func AccountTypeNotIn(vs ...AccountType) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotIn(FieldAccountType, vs...))
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContainsFold(FieldName, v))
+}
+
+// AccountHolderEQ applies the EQ predicate on the "account_holder" field.
+func AccountHolderEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldAccountHolder, v))
+}
+
+// AccountHolderNEQ applies the NEQ predicate on the "account_holder" field.
+func AccountHolderNEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldAccountHolder, v))
+}
+
+// AccountHolderIn applies the In predicate on the "account_holder" field.
+func AccountHolderIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldIn(FieldAccountHolder, vs...))
+}
+
+// AccountHolderNotIn applies the NotIn predicate on the "account_holder" field.
+func AccountHolderNotIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNotIn(FieldAccountHolder, vs...))
+}
+
+// AccountHolderGT applies the GT predicate on the "account_holder" field.
+func AccountHolderGT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGT(FieldAccountHolder, v))
+}
+
+// AccountHolderGTE applies the GTE predicate on the "account_holder" field.
+func AccountHolderGTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGTE(FieldAccountHolder, v))
+}
+
+// AccountHolderLT applies the LT predicate on the "account_holder" field.
+func AccountHolderLT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLT(FieldAccountHolder, v))
+}
+
+// AccountHolderLTE applies the LTE predicate on the "account_holder" field.
+func AccountHolderLTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLTE(FieldAccountHolder, v))
+}
+
+// AccountHolderContains applies the Contains predicate on the "account_holder" field.
+func AccountHolderContains(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContains(FieldAccountHolder, v))
+}
+
+// AccountHolderHasPrefix applies the HasPrefix predicate on the "account_holder" field.
+func AccountHolderHasPrefix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasPrefix(FieldAccountHolder, v))
+}
+
+// AccountHolderHasSuffix applies the HasSuffix predicate on the "account_holder" field.
+func AccountHolderHasSuffix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasSuffix(FieldAccountHolder, v))
+}
+
+// AccountHolderEqualFold applies the EqualFold predicate on the "account_holder" field.
+func AccountHolderEqualFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEqualFold(FieldAccountHolder, v))
+}
+
+// AccountHolderContainsFold applies the ContainsFold predicate on the "account_holder" field.
+func AccountHolderContainsFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContainsFold(FieldAccountHolder, v))
 }
 
 // CurrencyEQ applies the EQ predicate on the "currency" field.
@@ -341,16 +471,6 @@ func BankNameHasSuffix(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldHasSuffix(FieldBankName, v))
 }
 
-// BankNameIsNil applies the IsNil predicate on the "bank_name" field.
-func BankNameIsNil() predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIsNull(FieldBankName))
-}
-
-// BankNameNotNil applies the NotNil predicate on the "bank_name" field.
-func BankNameNotNil() predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotNull(FieldBankName))
-}
-
 // BankNameEqualFold applies the EqualFold predicate on the "bank_name" field.
 func BankNameEqualFold(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldEqualFold(FieldBankName, v))
@@ -361,79 +481,69 @@ func BankNameContainsFold(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldContainsFold(FieldBankName, v))
 }
 
-// BankAccountEQ applies the EQ predicate on the "bank_account" field.
-func BankAccountEQ(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldBankAccount, v))
+// AccountNoEQ applies the EQ predicate on the "account_no" field.
+func AccountNoEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldAccountNo, v))
 }
 
-// BankAccountNEQ applies the NEQ predicate on the "bank_account" field.
-func BankAccountNEQ(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNEQ(FieldBankAccount, v))
+// AccountNoNEQ applies the NEQ predicate on the "account_no" field.
+func AccountNoNEQ(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldAccountNo, v))
 }
 
-// BankAccountIn applies the In predicate on the "bank_account" field.
-func BankAccountIn(vs ...string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIn(FieldBankAccount, vs...))
+// AccountNoIn applies the In predicate on the "account_no" field.
+func AccountNoIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldIn(FieldAccountNo, vs...))
 }
 
-// BankAccountNotIn applies the NotIn predicate on the "bank_account" field.
-func BankAccountNotIn(vs ...string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotIn(FieldBankAccount, vs...))
+// AccountNoNotIn applies the NotIn predicate on the "account_no" field.
+func AccountNoNotIn(vs ...string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNotIn(FieldAccountNo, vs...))
 }
 
-// BankAccountGT applies the GT predicate on the "bank_account" field.
-func BankAccountGT(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldGT(FieldBankAccount, v))
+// AccountNoGT applies the GT predicate on the "account_no" field.
+func AccountNoGT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGT(FieldAccountNo, v))
 }
 
-// BankAccountGTE applies the GTE predicate on the "bank_account" field.
-func BankAccountGTE(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldGTE(FieldBankAccount, v))
+// AccountNoGTE applies the GTE predicate on the "account_no" field.
+func AccountNoGTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldGTE(FieldAccountNo, v))
 }
 
-// BankAccountLT applies the LT predicate on the "bank_account" field.
-func BankAccountLT(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldLT(FieldBankAccount, v))
+// AccountNoLT applies the LT predicate on the "account_no" field.
+func AccountNoLT(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLT(FieldAccountNo, v))
 }
 
-// BankAccountLTE applies the LTE predicate on the "bank_account" field.
-func BankAccountLTE(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldLTE(FieldBankAccount, v))
+// AccountNoLTE applies the LTE predicate on the "account_no" field.
+func AccountNoLTE(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldLTE(FieldAccountNo, v))
 }
 
-// BankAccountContains applies the Contains predicate on the "bank_account" field.
-func BankAccountContains(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldContains(FieldBankAccount, v))
+// AccountNoContains applies the Contains predicate on the "account_no" field.
+func AccountNoContains(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContains(FieldAccountNo, v))
 }
 
-// BankAccountHasPrefix applies the HasPrefix predicate on the "bank_account" field.
-func BankAccountHasPrefix(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldHasPrefix(FieldBankAccount, v))
+// AccountNoHasPrefix applies the HasPrefix predicate on the "account_no" field.
+func AccountNoHasPrefix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasPrefix(FieldAccountNo, v))
 }
 
-// BankAccountHasSuffix applies the HasSuffix predicate on the "bank_account" field.
-func BankAccountHasSuffix(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldHasSuffix(FieldBankAccount, v))
+// AccountNoHasSuffix applies the HasSuffix predicate on the "account_no" field.
+func AccountNoHasSuffix(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldHasSuffix(FieldAccountNo, v))
 }
 
-// BankAccountIsNil applies the IsNil predicate on the "bank_account" field.
-func BankAccountIsNil() predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIsNull(FieldBankAccount))
+// AccountNoEqualFold applies the EqualFold predicate on the "account_no" field.
+func AccountNoEqualFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEqualFold(FieldAccountNo, v))
 }
 
-// BankAccountNotNil applies the NotNil predicate on the "bank_account" field.
-func BankAccountNotNil() predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotNull(FieldBankAccount))
-}
-
-// BankAccountEqualFold applies the EqualFold predicate on the "bank_account" field.
-func BankAccountEqualFold(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEqualFold(FieldBankAccount, v))
-}
-
-// BankAccountContainsFold applies the ContainsFold predicate on the "bank_account" field.
-func BankAccountContainsFold(v string) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldContainsFold(FieldBankAccount, v))
+// AccountNoContainsFold applies the ContainsFold predicate on the "account_no" field.
+func AccountNoContainsFold(v string) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldContainsFold(FieldAccountNo, v))
 }
 
 // SwiftCodeEQ applies the EQ predicate on the "swift_code" field.
@@ -511,34 +621,54 @@ func SwiftCodeContainsFold(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldContainsFold(FieldSwiftCode, v))
 }
 
-// IsDefaultEQ applies the EQ predicate on the "is_default" field.
-func IsDefaultEQ(v bool) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefault, v))
+// UsageEQ applies the EQ predicate on the "usage" field.
+func UsageEQ(v Usage) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldUsage, v))
 }
 
-// IsDefaultNEQ applies the NEQ predicate on the "is_default" field.
-func IsDefaultNEQ(v bool) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNEQ(FieldIsDefault, v))
+// UsageNEQ applies the NEQ predicate on the "usage" field.
+func UsageNEQ(v Usage) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldUsage, v))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldEQ(FieldStatus, v))
+// UsageIn applies the In predicate on the "usage" field.
+func UsageIn(vs ...Usage) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldIn(FieldUsage, vs...))
 }
 
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNEQ(FieldStatus, v))
+// UsageNotIn applies the NotIn predicate on the "usage" field.
+func UsageNotIn(vs ...Usage) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNotIn(FieldUsage, vs...))
 }
 
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldIn(FieldStatus, vs...))
+// IsDefaultReceivableEQ applies the EQ predicate on the "is_default_receivable" field.
+func IsDefaultReceivableEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefaultReceivable, v))
 }
 
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.PartnerAccount {
-	return predicate.PartnerAccount(sql.FieldNotIn(FieldStatus, vs...))
+// IsDefaultReceivableNEQ applies the NEQ predicate on the "is_default_receivable" field.
+func IsDefaultReceivableNEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldIsDefaultReceivable, v))
+}
+
+// IsDefaultPayableEQ applies the EQ predicate on the "is_default_payable" field.
+func IsDefaultPayableEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldIsDefaultPayable, v))
+}
+
+// IsDefaultPayableNEQ applies the NEQ predicate on the "is_default_payable" field.
+func IsDefaultPayableNEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldIsDefaultPayable, v))
+}
+
+// EnabledEQ applies the EQ predicate on the "enabled" field.
+func EnabledEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldEQ(FieldEnabled, v))
+}
+
+// EnabledNEQ applies the NEQ predicate on the "enabled" field.
+func EnabledNEQ(v bool) predicate.PartnerAccount {
+	return predicate.PartnerAccount(sql.FieldNEQ(FieldEnabled, v))
 }
 
 // RemarkEQ applies the EQ predicate on the "remark" field.
@@ -616,21 +746,21 @@ func RemarkContainsFold(v string) predicate.PartnerAccount {
 	return predicate.PartnerAccount(sql.FieldContainsFold(FieldRemark, v))
 }
 
-// HasPartnerRole applies the HasEdge predicate on the "partner_role" edge.
-func HasPartnerRole() predicate.PartnerAccount {
+// HasPartner applies the HasEdge predicate on the "partner" edge.
+func HasPartner() predicate.PartnerAccount {
 	return predicate.PartnerAccount(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PartnerRoleTable, PartnerRoleColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PartnerTable, PartnerColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPartnerRoleWith applies the HasEdge predicate on the "partner_role" edge with a given conditions (other predicates).
-func HasPartnerRoleWith(preds ...predicate.PartnerRole) predicate.PartnerAccount {
+// HasPartnerWith applies the HasEdge predicate on the "partner" edge with a given conditions (other predicates).
+func HasPartnerWith(preds ...predicate.Partner) predicate.PartnerAccount {
 	return predicate.PartnerAccount(func(s *sql.Selector) {
-		step := newPartnerRoleStep()
+		step := newPartnerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

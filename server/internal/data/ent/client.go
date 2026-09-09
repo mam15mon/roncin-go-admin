@@ -15567,6 +15567,22 @@ func (c *PartnerClient) QueryRoles(_m *Partner) *PartnerRoleQuery {
 	return query
 }
 
+// QueryAccounts queries the accounts edge of a Partner.
+func (c *PartnerClient) QueryAccounts(_m *Partner) *PartnerAccountQuery {
+	query := (&PartnerAccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AccountsTable, partner.AccountsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryContacts queries the contacts edge of a Partner.
 func (c *PartnerClient) QueryContacts(_m *Partner) *PartnerContactQuery {
 	query := (&PartnerContactClient{config: c.config}).Query()
@@ -15989,15 +16005,15 @@ func (c *PartnerAccountClient) GetX(ctx context.Context, id uuid.UUID) *PartnerA
 	return obj
 }
 
-// QueryPartnerRole queries the partner_role edge of a PartnerAccount.
-func (c *PartnerAccountClient) QueryPartnerRole(_m *PartnerAccount) *PartnerRoleQuery {
-	query := (&PartnerRoleClient{config: c.config}).Query()
+// QueryPartner queries the partner edge of a PartnerAccount.
+func (c *PartnerAccountClient) QueryPartner(_m *PartnerAccount) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(partneraccount.Table, partneraccount.FieldID, id),
-			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, partneraccount.PartnerRoleTable, partneraccount.PartnerRoleColumn),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partneraccount.PartnerTable, partneraccount.PartnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17255,22 +17271,6 @@ func (c *PartnerRoleClient) QueryPartner(_m *PartnerRole) *PartnerQuery {
 			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, id),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, partnerrole.PartnerTable, partnerrole.PartnerColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAccounts queries the accounts edge of a PartnerRole.
-func (c *PartnerRoleClient) QueryAccounts(_m *PartnerRole) *PartnerAccountQuery {
-	query := (&PartnerAccountClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, id),
-			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.AccountsTable, partnerrole.AccountsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

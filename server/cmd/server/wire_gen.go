@@ -158,7 +158,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	commissionUsecase := biz.NewCommissionUsecase(commissionRepo, orderConfigUsecase, exchangeRateUsecase, dataData)
 	feeLedgerPreferenceRepo := data.NewFeeLedgerPreferenceRepo(dataData)
 	feeLedgerPreferenceUsecase := biz.NewFeeLedgerPreferenceUsecase(feeLedgerPreferenceRepo)
-	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase, businessTagUsecase)
+	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase, businessTagUsecase, partnerAccountUsecase)
 	orderTagService := service.NewOrderTagService(businessTagUsecase)
 	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, partnerUsecase, sessionPolicy, logger, orderTagService)
 	dingTalkApprovalRepo := data.NewDingTalkApprovalRepo(dataData)

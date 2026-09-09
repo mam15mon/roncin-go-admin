@@ -2032,6 +2032,85 @@
         }
       }
     },
+    "/api/v1/finance/bill-settlement-account-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListBillSettlementAccountCandidates",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListBillSettlementAccountCandidatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bill-settlement-account-update-candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListBillSettlementAccountUpdateCandidates",
+        "parameters": [
+          {
+            "name": "billId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListBillSettlementAccountUpdateCandidatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/bill-tag-assignment-options": {
       "get": {
         "tags": [
@@ -10613,6 +10692,21 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "usage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15134,7 +15228,8 @@
         "required": [
           "groupKey",
           "statementTitle",
-          "billDate"
+          "billDate",
+          "settlementAccountId"
         ],
         "type": "object",
         "properties": {
@@ -15155,6 +15250,9 @@
             "format": "int32"
           },
           "note": {
+            "type": "string"
+          },
+          "settlementAccountId": {
             "type": "string"
           }
         }
@@ -15221,7 +15319,8 @@
         "required": [
           "feeIds",
           "billDate",
-          "idempotencyKey"
+          "idempotencyKey",
+          "settlementAccountId"
         ],
         "type": "object",
         "properties": {
@@ -15249,6 +15348,9 @@
           "paymentTermsDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "settlementAccountId": {
+            "type": "string"
           }
         }
       },
@@ -16521,6 +16623,27 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "settlementAccountId": {
+            "type": "string"
+          },
+          "settlementAccountName": {
+            "type": "string"
+          },
+          "settlementAccountHolder": {
+            "type": "string"
+          },
+          "settlementBankName": {
+            "type": "string"
+          },
+          "settlementBankAccount": {
+            "type": "string"
+          },
+          "settlementAccountCurrency": {
+            "type": "string"
+          },
+          "settlementSwiftCode": {
+            "type": "string"
           }
         }
       },
@@ -17370,6 +17493,35 @@
           }
         }
       },
+      "finance.v1.FinanceSettlementAccountOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "accountHolder": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "accountNo": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "swiftCode": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
       "finance.v1.FinanceSettlementPartyOption": {
         "type": "object",
         "properties": {
@@ -17757,6 +17909,54 @@
           },
           "total": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListBillSettlementAccountCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceSettlementAccountOption"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListBillSettlementAccountUpdateCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceSettlementAccountOption"
+            }
           },
           "traceId": {
             "type": "string"
@@ -18892,7 +19092,8 @@
         "required": [
           "id",
           "billDate",
-          "expectedVersion"
+          "expectedVersion",
+          "settlementAccountId"
         ],
         "type": "object",
         "properties": {
@@ -18917,6 +19118,9 @@
           "paymentTermsDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "settlementAccountId": {
+            "type": "string"
           }
         }
       },
@@ -29225,10 +29429,13 @@
           "id": {
             "type": "string"
           },
-          "partnerRoleId": {
+          "partnerId": {
             "type": "string"
           },
-          "accountType": {
+          "name": {
+            "type": "string"
+          },
+          "accountHolder": {
             "type": "string"
           },
           "currency": {
@@ -29237,18 +29444,24 @@
           "bankName": {
             "type": "string"
           },
-          "bankAccount": {
+          "accountNo": {
             "type": "string"
           },
           "swiftCode": {
             "type": "string"
           },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "status": {
+          "usage": {
             "type": "integer",
             "format": "enum"
+          },
+          "isDefaultReceivable": {
+            "type": "boolean"
+          },
+          "isDefaultPayable": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
           },
           "remark": {
             "type": "string"
@@ -29263,29 +29476,46 @@
       },
       "partner.v1.PartnerAccountInput": {
         "required": [
+          "name",
+          "accountHolder",
           "currency",
-          "status"
+          "bankName",
+          "accountNo",
+          "usage",
+          "enabled"
         ],
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
+          "accountHolder": {
+            "type": "string"
+          },
           "currency": {
             "type": "string"
           },
           "bankName": {
             "type": "string"
           },
-          "bankAccount": {
+          "accountNo": {
             "type": "string"
           },
           "swiftCode": {
             "type": "string"
           },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "status": {
+          "usage": {
             "type": "integer",
             "format": "enum"
+          },
+          "isDefaultReceivable": {
+            "type": "boolean"
+          },
+          "isDefaultPayable": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
           },
           "remark": {
             "type": "string"

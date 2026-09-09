@@ -42,6 +42,20 @@ type FinanceBill struct {
 	SettlementPartyID uuid.UUID `json:"settlement_party_id,omitempty"`
 	// SettlementPartyName holds the value of the "settlement_party_name" field.
 	SettlementPartyName string `json:"settlement_party_name,omitempty"`
+	// SettlementAccountID holds the value of the "settlement_account_id" field.
+	SettlementAccountID uuid.UUID `json:"settlement_account_id,omitempty"`
+	// SettlementAccountName holds the value of the "settlement_account_name" field.
+	SettlementAccountName string `json:"settlement_account_name,omitempty"`
+	// SettlementAccountHolder holds the value of the "settlement_account_holder" field.
+	SettlementAccountHolder string `json:"settlement_account_holder,omitempty"`
+	// SettlementBankName holds the value of the "settlement_bank_name" field.
+	SettlementBankName string `json:"settlement_bank_name,omitempty"`
+	// SettlementBankAccount holds the value of the "settlement_bank_account" field.
+	SettlementBankAccount string `json:"settlement_bank_account,omitempty"`
+	// SettlementAccountCurrency holds the value of the "settlement_account_currency" field.
+	SettlementAccountCurrency string `json:"settlement_account_currency,omitempty"`
+	// SettlementSwiftCode holds the value of the "settlement_swift_code" field.
+	SettlementSwiftCode string `json:"settlement_swift_code,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
@@ -217,11 +231,11 @@ func (*FinanceBill) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financebill.FieldFeeCount, financebill.FieldPaymentTermsDays, financebill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
+		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldSettlementAccountName, financebill.FieldSettlementAccountHolder, financebill.FieldSettlementBankName, financebill.FieldSettlementBankAccount, financebill.FieldSettlementAccountCurrency, financebill.FieldSettlementSwiftCode, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financebill.FieldCreatedAt, financebill.FieldUpdatedAt, financebill.FieldConfirmedAt, financebill.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
-		case financebill.FieldID, financebill.FieldOrganizationID, financebill.FieldSettlementPartyID:
+		case financebill.FieldID, financebill.FieldOrganizationID, financebill.FieldSettlementPartyID, financebill.FieldSettlementAccountID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -304,6 +318,48 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field settlement_party_name", values[i])
 			} else if value.Valid {
 				_m.SettlementPartyName = value.String
+			}
+		case financebill.FieldSettlementAccountID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_account_id", values[i])
+			} else if value != nil {
+				_m.SettlementAccountID = *value
+			}
+		case financebill.FieldSettlementAccountName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_account_name", values[i])
+			} else if value.Valid {
+				_m.SettlementAccountName = value.String
+			}
+		case financebill.FieldSettlementAccountHolder:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_account_holder", values[i])
+			} else if value.Valid {
+				_m.SettlementAccountHolder = value.String
+			}
+		case financebill.FieldSettlementBankName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_bank_name", values[i])
+			} else if value.Valid {
+				_m.SettlementBankName = value.String
+			}
+		case financebill.FieldSettlementBankAccount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_bank_account", values[i])
+			} else if value.Valid {
+				_m.SettlementBankAccount = value.String
+			}
+		case financebill.FieldSettlementAccountCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_account_currency", values[i])
+			} else if value.Valid {
+				_m.SettlementAccountCurrency = value.String
+			}
+		case financebill.FieldSettlementSwiftCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field settlement_swift_code", values[i])
+			} else if value.Valid {
+				_m.SettlementSwiftCode = value.String
 			}
 		case financebill.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -559,6 +615,27 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("settlement_party_name=")
 	builder.WriteString(_m.SettlementPartyName)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_account_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SettlementAccountID))
+	builder.WriteString(", ")
+	builder.WriteString("settlement_account_name=")
+	builder.WriteString(_m.SettlementAccountName)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_account_holder=")
+	builder.WriteString(_m.SettlementAccountHolder)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_bank_name=")
+	builder.WriteString(_m.SettlementBankName)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_bank_account=")
+	builder.WriteString(_m.SettlementBankAccount)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_account_currency=")
+	builder.WriteString(_m.SettlementAccountCurrency)
+	builder.WriteString(", ")
+	builder.WriteString("settlement_swift_code=")
+	builder.WriteString(_m.SettlementSwiftCode)
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)

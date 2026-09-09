@@ -574,44 +574,50 @@ message SetSupplierBlacklistRequest {
   string reason = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-enum PartnerAccountStatus {
-  PARTNER_ACCOUNT_STATUS_UNSPECIFIED = 0;
-  PARTNER_ACCOUNT_STATUS_ACTIVE = 1;
-  PARTNER_ACCOUNT_STATUS_INACTIVE = 2;
+enum PartnerAccountUsage {
+  PARTNER_ACCOUNT_USAGE_UNSPECIFIED = 0;
+  PARTNER_ACCOUNT_USAGE_RECEIVABLE = 1;
+  PARTNER_ACCOUNT_USAGE_PAYABLE = 2;
+  PARTNER_ACCOUNT_USAGE_BOTH = 3;
 }
 
 message PartnerAccount {
-  reserved 5, 6, 7, 8;
-  reserved "invoice_title", "unified_social_credit_code", "billing_address", "billing_phone";
   string id = 1;
-  string partner_role_id = 2;
-  string account_type = 3;
-  string currency = 4;
-  string bank_name = 9;
-  string bank_account = 10;
-  string swift_code = 11;
-  bool is_default = 12;
-  PartnerAccountStatus status = 13;
-  string remark = 14;
-  string created_at = 15;
-  string updated_at = 16;
+  string partner_id = 2;
+  string name = 3;
+  string account_holder = 4;
+  string currency = 5;
+  string bank_name = 6;
+  string account_no = 7;
+  string swift_code = 8;
+  PartnerAccountUsage usage = 9;
+  bool is_default_receivable = 10;
+  bool is_default_payable = 11;
+  bool enabled = 12;
+  string remark = 13;
+  string created_at = 14;
+  string updated_at = 15;
 }
 
 message PartnerAccountInput {
-  reserved 2, 3, 4, 5;
-  reserved "invoice_title", "unified_social_credit_code", "billing_address", "billing_phone";
-  string currency = 1 [(google.api.field_behavior) = REQUIRED];
-  string bank_name = 6;
-  string bank_account = 7;
-  string swift_code = 8;
-  bool is_default = 9;
-  PartnerAccountStatus status = 10 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string account_holder = 2 [(google.api.field_behavior) = REQUIRED];
+  string currency = 3 [(google.api.field_behavior) = REQUIRED];
+  string bank_name = 4 [(google.api.field_behavior) = REQUIRED];
+  string account_no = 5 [(google.api.field_behavior) = REQUIRED];
+  string swift_code = 6;
+  PartnerAccountUsage usage = 7 [(google.api.field_behavior) = REQUIRED];
+  bool is_default_receivable = 8;
+  bool is_default_payable = 9;
+  optional bool enabled = 10 [(google.api.field_behavior) = REQUIRED];
   string remark = 11;
 }
 
 message ListPartnerAccountsRequest {
   string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
   optional bool enabled = 2;
+  optional PartnerAccountUsage usage = 3;
+  optional string currency = 4;
 }
 
 message CreatePartnerAccountRequest {

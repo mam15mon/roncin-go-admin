@@ -19,68 +19,70 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName                        = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_GetFeeLedgerOrderDetail_FullMethodName              = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
-	SettlementService_GetFeeLedgerPreference_FullMethodName               = "/finance.v1.SettlementService/GetFeeLedgerPreference"
-	SettlementService_UpdateFeeLedgerPreference_FullMethodName            = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
-	SettlementService_ResetFeeLedgerPreference_FullMethodName             = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
-	SettlementService_GetBilledFeeEditPolicy_FullMethodName               = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
-	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName            = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
-	SettlementService_ListBills_FullMethodName                            = "/finance.v1.SettlementService/ListBills"
-	SettlementService_ListBillCreationCandidates_FullMethodName           = "/finance.v1.SettlementService/ListBillCreationCandidates"
-	SettlementService_GetBill_FullMethodName                              = "/finance.v1.SettlementService/GetBill"
-	SettlementService_ListFinanceBillTagOptions_FullMethodName            = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
-	SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName  = "/finance.v1.SettlementService/ListFinanceBillTagAssignmentOptions"
-	SettlementService_BatchAssignFinanceBillTags_FullMethodName           = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
-	SettlementService_BatchRemoveFinanceBillTags_FullMethodName           = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
-	SettlementService_ListFinanceFeeTagOptions_FullMethodName             = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
-	SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName   = "/finance.v1.SettlementService/ListFinanceFeeTagAssignmentOptions"
-	SettlementService_BatchAssignFinanceFeeTags_FullMethodName            = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
-	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName            = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
-	SettlementService_CreateBill_FullMethodName                           = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_PreviewBillBatch_FullMethodName                     = "/finance.v1.SettlementService/PreviewBillBatch"
-	SettlementService_CreateBillBatch_FullMethodName                      = "/finance.v1.SettlementService/CreateBillBatch"
-	SettlementService_ConfirmBillBatch_FullMethodName                     = "/finance.v1.SettlementService/ConfirmBillBatch"
-	SettlementService_UpdateBill_FullMethodName                           = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName                          = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName                           = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName                         = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_ListInvoiceCreationBills_FullMethodName             = "/finance.v1.SettlementService/ListInvoiceCreationBills"
-	SettlementService_ListInvoiceProfilesForBill_FullMethodName           = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
-	SettlementService_GetInvoice_FullMethodName                           = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName                        = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName                         = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName                        = "/finance.v1.SettlementService/CancelInvoice"
-	SettlementService_RedFlushInvoice_FullMethodName                      = "/finance.v1.SettlementService/RedFlushInvoice"
-	SettlementService_ListCashflows_FullMethodName                        = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_ListFinanceOrganizationOptions_FullMethodName       = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
-	SettlementService_ListFinanceSettlementPartyOptions_FullMethodName    = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
-	SettlementService_CreateCashflow_FullMethodName                       = "/finance.v1.SettlementService/CreateCashflow"
-	SettlementService_ConfirmCashflow_FullMethodName                      = "/finance.v1.SettlementService/ConfirmCashflow"
-	SettlementService_CancelCashflow_FullMethodName                       = "/finance.v1.SettlementService/CancelCashflow"
-	SettlementService_ListVerificationCreationCandidates_FullMethodName   = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
-	SettlementService_ListVerifications_FullMethodName                    = "/finance.v1.SettlementService/ListVerifications"
-	SettlementService_ListCommissionVerificationCandidates_FullMethodName = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
-	SettlementService_CreateVerification_FullMethodName                   = "/finance.v1.SettlementService/CreateVerification"
-	SettlementService_ReverseVerification_FullMethodName                  = "/finance.v1.SettlementService/ReverseVerification"
-	SettlementService_ListCommissions_FullMethodName                      = "/finance.v1.SettlementService/ListCommissions"
-	SettlementService_ExportCommissions_FullMethodName                    = "/finance.v1.SettlementService/ExportCommissions"
-	SettlementService_ListCommissionEmployees_FullMethodName              = "/finance.v1.SettlementService/ListCommissionEmployees"
-	SettlementService_ListCommissionCandidates_FullMethodName             = "/finance.v1.SettlementService/ListCommissionCandidates"
-	SettlementService_ListCommissionRuleCandidates_FullMethodName         = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
-	SettlementService_GetCommission_FullMethodName                        = "/finance.v1.SettlementService/GetCommission"
-	SettlementService_ListCommissionRules_FullMethodName                  = "/finance.v1.SettlementService/ListCommissionRules"
-	SettlementService_CreateCommissionRule_FullMethodName                 = "/finance.v1.SettlementService/CreateCommissionRule"
-	SettlementService_UpdateCommissionRule_FullMethodName                 = "/finance.v1.SettlementService/UpdateCommissionRule"
-	SettlementService_PreviewCommission_FullMethodName                    = "/finance.v1.SettlementService/PreviewCommission"
-	SettlementService_CreateCommission_FullMethodName                     = "/finance.v1.SettlementService/CreateCommission"
-	SettlementService_ConfirmCommission_FullMethodName                    = "/finance.v1.SettlementService/ConfirmCommission"
-	SettlementService_MarkCommissionPaid_FullMethodName                   = "/finance.v1.SettlementService/MarkCommissionPaid"
-	SettlementService_CancelCommission_FullMethodName                     = "/finance.v1.SettlementService/CancelCommission"
-	SettlementService_CreateCommissionAdjustment_FullMethodName           = "/finance.v1.SettlementService/CreateCommissionAdjustment"
-	SettlementService_ConfirmCommissionAdjustment_FullMethodName          = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
-	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName         = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
-	SettlementService_CancelCommissionAdjustment_FullMethodName           = "/finance.v1.SettlementService/CancelCommissionAdjustment"
+	SettlementService_ListFeeLedger_FullMethodName                             = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_GetFeeLedgerOrderDetail_FullMethodName                   = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
+	SettlementService_GetFeeLedgerPreference_FullMethodName                    = "/finance.v1.SettlementService/GetFeeLedgerPreference"
+	SettlementService_UpdateFeeLedgerPreference_FullMethodName                 = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
+	SettlementService_ResetFeeLedgerPreference_FullMethodName                  = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
+	SettlementService_GetBilledFeeEditPolicy_FullMethodName                    = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
+	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName                 = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
+	SettlementService_ListBills_FullMethodName                                 = "/finance.v1.SettlementService/ListBills"
+	SettlementService_ListBillCreationCandidates_FullMethodName                = "/finance.v1.SettlementService/ListBillCreationCandidates"
+	SettlementService_ListBillSettlementAccountCandidates_FullMethodName       = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
+	SettlementService_ListBillSettlementAccountUpdateCandidates_FullMethodName = "/finance.v1.SettlementService/ListBillSettlementAccountUpdateCandidates"
+	SettlementService_GetBill_FullMethodName                                   = "/finance.v1.SettlementService/GetBill"
+	SettlementService_ListFinanceBillTagOptions_FullMethodName                 = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
+	SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName       = "/finance.v1.SettlementService/ListFinanceBillTagAssignmentOptions"
+	SettlementService_BatchAssignFinanceBillTags_FullMethodName                = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
+	SettlementService_BatchRemoveFinanceBillTags_FullMethodName                = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
+	SettlementService_ListFinanceFeeTagOptions_FullMethodName                  = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
+	SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName        = "/finance.v1.SettlementService/ListFinanceFeeTagAssignmentOptions"
+	SettlementService_BatchAssignFinanceFeeTags_FullMethodName                 = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
+	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName                 = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
+	SettlementService_CreateBill_FullMethodName                                = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_PreviewBillBatch_FullMethodName                          = "/finance.v1.SettlementService/PreviewBillBatch"
+	SettlementService_CreateBillBatch_FullMethodName                           = "/finance.v1.SettlementService/CreateBillBatch"
+	SettlementService_ConfirmBillBatch_FullMethodName                          = "/finance.v1.SettlementService/ConfirmBillBatch"
+	SettlementService_UpdateBill_FullMethodName                                = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName                               = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName                                = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName                              = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_ListInvoiceCreationBills_FullMethodName                  = "/finance.v1.SettlementService/ListInvoiceCreationBills"
+	SettlementService_ListInvoiceProfilesForBill_FullMethodName                = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
+	SettlementService_GetInvoice_FullMethodName                                = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName                             = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName                              = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName                             = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_RedFlushInvoice_FullMethodName                           = "/finance.v1.SettlementService/RedFlushInvoice"
+	SettlementService_ListCashflows_FullMethodName                             = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_ListFinanceOrganizationOptions_FullMethodName            = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
+	SettlementService_ListFinanceSettlementPartyOptions_FullMethodName         = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
+	SettlementService_CreateCashflow_FullMethodName                            = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName                           = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName                            = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListVerificationCreationCandidates_FullMethodName        = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
+	SettlementService_ListVerifications_FullMethodName                         = "/finance.v1.SettlementService/ListVerifications"
+	SettlementService_ListCommissionVerificationCandidates_FullMethodName      = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
+	SettlementService_CreateVerification_FullMethodName                        = "/finance.v1.SettlementService/CreateVerification"
+	SettlementService_ReverseVerification_FullMethodName                       = "/finance.v1.SettlementService/ReverseVerification"
+	SettlementService_ListCommissions_FullMethodName                           = "/finance.v1.SettlementService/ListCommissions"
+	SettlementService_ExportCommissions_FullMethodName                         = "/finance.v1.SettlementService/ExportCommissions"
+	SettlementService_ListCommissionEmployees_FullMethodName                   = "/finance.v1.SettlementService/ListCommissionEmployees"
+	SettlementService_ListCommissionCandidates_FullMethodName                  = "/finance.v1.SettlementService/ListCommissionCandidates"
+	SettlementService_ListCommissionRuleCandidates_FullMethodName              = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
+	SettlementService_GetCommission_FullMethodName                             = "/finance.v1.SettlementService/GetCommission"
+	SettlementService_ListCommissionRules_FullMethodName                       = "/finance.v1.SettlementService/ListCommissionRules"
+	SettlementService_CreateCommissionRule_FullMethodName                      = "/finance.v1.SettlementService/CreateCommissionRule"
+	SettlementService_UpdateCommissionRule_FullMethodName                      = "/finance.v1.SettlementService/UpdateCommissionRule"
+	SettlementService_PreviewCommission_FullMethodName                         = "/finance.v1.SettlementService/PreviewCommission"
+	SettlementService_CreateCommission_FullMethodName                          = "/finance.v1.SettlementService/CreateCommission"
+	SettlementService_ConfirmCommission_FullMethodName                         = "/finance.v1.SettlementService/ConfirmCommission"
+	SettlementService_MarkCommissionPaid_FullMethodName                        = "/finance.v1.SettlementService/MarkCommissionPaid"
+	SettlementService_CancelCommission_FullMethodName                          = "/finance.v1.SettlementService/CancelCommission"
+	SettlementService_CreateCommissionAdjustment_FullMethodName                = "/finance.v1.SettlementService/CreateCommissionAdjustment"
+	SettlementService_ConfirmCommissionAdjustment_FullMethodName               = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
+	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName              = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
+	SettlementService_CancelCommissionAdjustment_FullMethodName                = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -104,6 +106,8 @@ type SettlementServiceClient interface {
 	UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
 	ListBillCreationCandidates(ctx context.Context, in *ListBillCreationCandidatesRequest, opts ...grpc.CallOption) (*ListBillCreationCandidatesResponse, error)
+	ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountCandidatesResponse, error)
+	ListBillSettlementAccountUpdateCandidates(ctx context.Context, in *ListBillSettlementAccountUpdateCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
 	ListFinanceBillTagOptions(ctx context.Context, in *ListFinanceBillTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagOptionsResponse, error)
 	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
@@ -254,6 +258,26 @@ func (c *settlementServiceClient) ListBillCreationCandidates(ctx context.Context
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListBillCreationCandidatesResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListBillCreationCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBillSettlementAccountCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListBillSettlementAccountCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListBillSettlementAccountUpdateCandidates(ctx context.Context, in *ListBillSettlementAccountUpdateCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountUpdateCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBillSettlementAccountUpdateCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListBillSettlementAccountUpdateCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -811,6 +835,8 @@ type SettlementServiceServer interface {
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
+	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
+	ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error)
 	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
@@ -903,6 +929,12 @@ func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBill
 }
 func (UnimplementedSettlementServiceServer) ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBillCreationCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBillSettlementAccountCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBillSettlementAccountUpdateCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBill not implemented")
@@ -1242,6 +1274,42 @@ func _SettlementService_ListBillCreationCandidates_Handler(srv interface{}, ctx 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListBillCreationCandidates(ctx, req.(*ListBillCreationCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListBillSettlementAccountCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillSettlementAccountCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListBillSettlementAccountCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListBillSettlementAccountCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListBillSettlementAccountCandidates(ctx, req.(*ListBillSettlementAccountCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListBillSettlementAccountUpdateCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillSettlementAccountUpdateCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListBillSettlementAccountUpdateCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListBillSettlementAccountUpdateCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListBillSettlementAccountUpdateCandidates(ctx, req.(*ListBillSettlementAccountUpdateCandidatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2242,6 +2310,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBillCreationCandidates",
 			Handler:    _SettlementService_ListBillCreationCandidates_Handler,
+		},
+		{
+			MethodName: "ListBillSettlementAccountCandidates",
+			Handler:    _SettlementService_ListBillSettlementAccountCandidates_Handler,
+		},
+		{
+			MethodName: "ListBillSettlementAccountUpdateCandidates",
+			Handler:    _SettlementService_ListBillSettlementAccountUpdateCandidates_Handler,
 		},
 		{
 			MethodName: "GetBill",

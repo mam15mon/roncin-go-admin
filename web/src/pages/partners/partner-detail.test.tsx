@@ -25,6 +25,11 @@ vi.mock('@umijs/max', () => ({
   }),
   useParams: () => routeState.params,
   useSearchParams: () => [new URLSearchParams(routeState.search)],
+  useAccess: () => ({
+    canReadPartnerAccounts: true,
+    canCreatePartnerAccounts: true,
+    canUpdatePartnerAccounts: true,
+  }),
 }));
 
 vi.mock('@/services/roncin/adminService', () => ({

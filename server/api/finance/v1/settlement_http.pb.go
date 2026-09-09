@@ -48,6 +48,8 @@ const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.Settlement
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBillCreationCandidates = "/finance.v1.SettlementService/ListBillCreationCandidates"
+const OperationSettlementServiceListBillSettlementAccountCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
+const OperationSettlementServiceListBillSettlementAccountUpdateCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountUpdateCandidates"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
@@ -114,6 +116,8 @@ type SettlementServiceHTTPServer interface {
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
+	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
+	ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
@@ -165,6 +169,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("PUT", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/creation-candidates", _SettlementService_ListBillCreationCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bill-settlement-account-candidates", _SettlementService_ListBillSettlementAccountCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bill-settlement-account-update-candidates", _SettlementService_ListBillSettlementAccountUpdateCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bill-tag-options", _SettlementService_ListFinanceBillTagOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bill-tag-assignment-options", _SettlementService_ListFinanceBillTagAssignmentOptions0_HTTP_Handler(srv))
@@ -390,6 +396,44 @@ func _SettlementService_ListBillCreationCandidates0_HTTP_Handler(srv SettlementS
 			return err
 		}
 		reply := out.(*ListBillCreationCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListBillSettlementAccountCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBillSettlementAccountCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListBillSettlementAccountCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBillSettlementAccountCandidates(ctx, req.(*ListBillSettlementAccountCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBillSettlementAccountCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListBillSettlementAccountUpdateCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBillSettlementAccountUpdateCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListBillSettlementAccountUpdateCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBillSettlementAccountUpdateCandidates(ctx, req.(*ListBillSettlementAccountUpdateCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBillSettlementAccountUpdateCandidatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1498,6 +1542,8 @@ type SettlementServiceHTTPClient interface {
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBillCreationCandidates(ctx context.Context, req *ListBillCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListBillCreationCandidatesResponse, err error)
+	ListBillSettlementAccountCandidates(ctx context.Context, req *ListBillSettlementAccountCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountCandidatesResponse, err error)
+	ListBillSettlementAccountUpdateCandidates(ctx context.Context, req *ListBillSettlementAccountUpdateCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountUpdateCandidatesResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
 	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
 	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidatesResponse, err error)
@@ -2058,6 +2104,38 @@ func (c *SettlementServiceHTTPClientImpl) ListBillCreationCandidates(ctx context
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListBillCreationCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...http.CallOption) (*ListBillSettlementAccountCandidatesResponse, error) {
+	var out ListBillSettlementAccountCandidatesResponse
+	pattern := "/api/v1/finance/bill-settlement-account-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListBillSettlementAccountCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListBillSettlementAccountUpdateCandidates(ctx context.Context, in *ListBillSettlementAccountUpdateCandidatesRequest, opts ...http.CallOption) (*ListBillSettlementAccountUpdateCandidatesResponse, error) {
+	var out ListBillSettlementAccountUpdateCandidatesResponse
+	pattern := "/api/v1/finance/bill-settlement-account-update-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListBillSettlementAccountUpdateCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

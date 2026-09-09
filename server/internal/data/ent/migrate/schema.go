@@ -1235,6 +1235,13 @@ var (
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "settlement_account_id", Type: field.TypeUUID},
+		{Name: "settlement_account_name", Type: field.TypeString, Size: 200},
+		{Name: "settlement_account_holder", Type: field.TypeString, Size: 200},
+		{Name: "settlement_bank_name", Type: field.TypeString, Size: 200},
+		{Name: "settlement_bank_account", Type: field.TypeString, Size: 100},
+		{Name: "settlement_account_currency", Type: field.TypeString, Size: 3},
+		{Name: "settlement_swift_code", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
@@ -1269,31 +1276,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bills_finance_bill_batches_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[28]},
+				Columns:    []*schema.Column{FinanceBillsColumns[35]},
 				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_organizations_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[29]},
+				Columns:    []*schema.Column{FinanceBillsColumns[36]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_partners_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[30]},
+				Columns:    []*schema.Column{FinanceBillsColumns[37]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_users_confirmed_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[31]},
+				Columns:    []*schema.Column{FinanceBillsColumns[38]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_users_cancelled_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[32]},
+				Columns:    []*schema.Column{FinanceBillsColumns[39]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1307,27 +1314,32 @@ var (
 			{
 				Name:    "financebill_organization_id_bill_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[29], FinanceBillsColumns[3]},
+				Columns: []*schema.Column{FinanceBillsColumns[36], FinanceBillsColumns[3]},
 			},
 			{
 				Name:    "financebill_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[29], FinanceBillsColumns[4]},
+				Columns: []*schema.Column{FinanceBillsColumns[36], FinanceBillsColumns[4]},
 			},
 			{
 				Name:    "financebill_organization_id_status_bill_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[29], FinanceBillsColumns[6], FinanceBillsColumns[19]},
+				Columns: []*schema.Column{FinanceBillsColumns[36], FinanceBillsColumns[6], FinanceBillsColumns[26]},
 			},
 			{
 				Name:    "financebill_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[30], FinanceBillsColumns[5], FinanceBillsColumns[8]},
+				Columns: []*schema.Column{FinanceBillsColumns[37], FinanceBillsColumns[5], FinanceBillsColumns[15]},
+			},
+			{
+				Name:    "financebill_settlement_account_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[8]},
 			},
 			{
 				Name:    "financebill_batch_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[28]},
+				Columns: []*schema.Column{FinanceBillsColumns[35]},
 			},
 		},
 	}
@@ -4301,15 +4313,18 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "account_type", Type: field.TypeEnum, Enums: []string{"customer_settlement"}},
+		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "account_holder", Type: field.TypeString, Size: 200},
 		{Name: "currency", Type: field.TypeString, Size: 3},
-		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
-		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "bank_name", Type: field.TypeString, Size: 200},
+		{Name: "account_no", Type: field.TypeString, Size: 100},
 		{Name: "swift_code", Type: field.TypeString, Nullable: true, Size: 32},
-		{Name: "is_default", Type: field.TypeBool, Default: false},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
+		{Name: "usage", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE", "BOTH"}},
+		{Name: "is_default_receivable", Type: field.TypeBool, Default: false},
+		{Name: "is_default_payable", Type: field.TypeBool, Default: false},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "partner_role_id", Type: field.TypeUUID},
+		{Name: "partner_id", Type: field.TypeUUID},
 	}
 	// PartnerAccountsTable holds the schema information for the "partner_accounts" table.
 	PartnerAccountsTable = &schema.Table{
@@ -4318,9 +4333,9 @@ var (
 		PrimaryKey: []*schema.Column{PartnerAccountsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "partner_accounts_partner_roles_accounts",
-				Columns:    []*schema.Column{PartnerAccountsColumns[11]},
-				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
+				Symbol:     "partner_accounts_partners_accounts",
+				Columns:    []*schema.Column{PartnerAccountsColumns[14]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -4331,22 +4346,30 @@ var (
 				Columns: []*schema.Column{PartnerAccountsColumns[2]},
 			},
 			{
-				Name:    "partner_account_default_key",
+				Name:    "partner_account_default_receivable_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[3]},
+				Columns: []*schema.Column{PartnerAccountsColumns[14], PartnerAccountsColumns[5]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "is_default",
+					Where: "is_default_receivable",
 				},
 			},
 			{
-				Name:    "partneraccount_partner_role_id_status",
-				Unique:  false,
-				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[9]},
+				Name:    "partner_account_default_payable_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerAccountsColumns[14], PartnerAccountsColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default_payable",
+				},
 			},
 			{
-				Name:    "partneraccount_partner_role_id_created_at",
+				Name:    "partneraccount_partner_id_enabled_currency",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[1]},
+				Columns: []*schema.Column{PartnerAccountsColumns[14], PartnerAccountsColumns[12], PartnerAccountsColumns[5]},
+			},
+			{
+				Name:    "partneraccount_partner_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAccountsColumns[14], PartnerAccountsColumns[1]},
 			},
 		},
 	}
@@ -6815,7 +6838,11 @@ func init() {
 	OrderUnlockRequestsTable.ForeignKeys[5].RefTable = UsersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
-	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
+	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerAccountsTable.Annotation = &entsql.Annotation{}
+	PartnerAccountsTable.Annotation.Checks = map[string]string{
+		"partner_accounts_default_usage_check": "((NOT is_default_receivable OR (enabled AND usage IN ('RECEIVABLE', 'BOTH'))) AND (NOT is_default_payable OR (enabled AND usage IN ('PAYABLE', 'BOTH'))))",
+	}
 	PartnerAliasTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerAssignmentsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAssignmentsTable.ForeignKeys[1].RefTable = PartnersTable

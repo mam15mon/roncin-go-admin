@@ -13,37 +13,52 @@ import (
 var (
 	ErrPartnerAccountNotFound        = errors.NotFound("PARTNER_ACCOUNT_NOT_FOUND", "结算账户不存在")
 	ErrPartnerAccountInvalidArgument = errors.BadRequest("PARTNER_ACCOUNT_INVALID_ARGUMENT", "结算账户字段不合法")
-	ErrPartnerAccountDefaultConflict = errors.Conflict("PARTNER_ACCOUNT_DEFAULT_CONFLICT", "角色只能有一个默认结算账户")
+	ErrPartnerAccountDefaultConflict = errors.Conflict("PARTNER_ACCOUNT_DEFAULT_CONFLICT", "同一往来单位、币种和用途只能有一个默认结算账户")
 )
 
-type PartnerAccountStatus string
+type PartnerAccountUsage string
 
 const (
-	PartnerAccountActive   PartnerAccountStatus = "active"
-	PartnerAccountInactive PartnerAccountStatus = "inactive"
+	PartnerAccountUsageReceivable PartnerAccountUsage = "RECEIVABLE"
+	PartnerAccountUsagePayable    PartnerAccountUsage = "PAYABLE"
+	PartnerAccountUsageBoth       PartnerAccountUsage = "BOTH"
 )
 
-func (s PartnerAccountStatus) Valid() bool {
-	return s == PartnerAccountActive || s == PartnerAccountInactive
+func (u PartnerAccountUsage) Valid() bool {
+	return u == PartnerAccountUsageReceivable || u == PartnerAccountUsagePayable || u == PartnerAccountUsageBoth
+}
+
+func (u PartnerAccountUsage) Supports(direction OrderFeeDirection) bool {
+	return (direction == OrderFeeReceivable && (u == PartnerAccountUsageReceivable || u == PartnerAccountUsageBoth)) ||
+		(direction == OrderFeePayable && (u == PartnerAccountUsagePayable || u == PartnerAccountUsageBoth))
 }
 
 type PartnerAccount struct {
-	ID            uuid.UUID
-	PartnerRoleID uuid.UUID
-	AccountType   string
-	Currency      string
-	BankName      string
-	BankAccount   string
-	SwiftCode     string
-	IsDefault     bool
-	Status        PartnerAccountStatus
-	Remark        string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID                  uuid.UUID
+	PartnerID           uuid.UUID
+	Name                string
+	AccountHolder       string
+	Currency            string
+	BankName            string
+	AccountNo           string
+	SwiftCode           string
+	Usage               PartnerAccountUsage
+	IsDefaultReceivable bool
+	IsDefaultPayable    bool
+	Enabled             bool
+	Remark              string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+}
+
+type PartnerAccountFilter struct {
+	Enabled  *bool
+	Usage    PartnerAccountUsage
+	Currency string
 }
 
 type PartnerAccountRepo interface {
-	List(context.Context, uuid.UUID, uuid.UUID, *bool) ([]*PartnerAccount, error)
+	List(context.Context, uuid.UUID, uuid.UUID, PartnerAccountFilter) ([]*PartnerAccount, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerAccount, *AuditEvent) (*PartnerAccount, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerAccount, *AuditEvent) (*PartnerAccount, error)
 }
@@ -56,11 +71,15 @@ func NewPartnerAccountUsecase(repo PartnerAccountRepo) *PartnerAccountUsecase {
 	return &PartnerAccountUsecase{repo: repo}
 }
 
-func (uc *PartnerAccountUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, enabled *bool) ([]*PartnerAccount, error) {
+func (uc *PartnerAccountUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, filter PartnerAccountFilter) ([]*PartnerAccount, error) {
 	if organizationID == uuid.Nil || partnerID == uuid.Nil {
 		return nil, ErrPartnerAccountInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationID, partnerID, enabled)
+	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
+	if (filter.Usage != "" && !filter.Usage.Valid()) || (filter.Currency != "" && len(filter.Currency) != 3) {
+		return nil, ErrPartnerAccountInvalidArgument
+	}
+	return uc.repo.List(ctx, organizationID, partnerID, filter)
 }
 
 func (uc *PartnerAccountUsecase) Create(ctx context.Context, organizationID, actorID, partnerID uuid.UUID, input *PartnerAccount) (*PartnerAccount, error) {
@@ -87,15 +106,17 @@ func normalizePartnerAccount(input *PartnerAccount) (*PartnerAccount, error) {
 		return nil, ErrPartnerAccountInvalidArgument
 	}
 	output := *input
+	output.Name = strings.TrimSpace(output.Name)
+	output.AccountHolder = strings.TrimSpace(output.AccountHolder)
 	output.Currency = strings.ToUpper(strings.TrimSpace(output.Currency))
 	output.BankName = strings.TrimSpace(output.BankName)
-	output.BankAccount = strings.TrimSpace(output.BankAccount)
+	output.AccountNo = strings.TrimSpace(output.AccountNo)
 	output.SwiftCode = strings.ToUpper(strings.TrimSpace(output.SwiftCode))
 	output.Remark = strings.TrimSpace(output.Remark)
-	if len(output.Currency) != 3 || !output.Status.Valid() || utf8.RuneCountInString(output.BankName) > 200 || utf8.RuneCountInString(output.BankAccount) > 100 || utf8.RuneCountInString(output.SwiftCode) > 32 || utf8.RuneCountInString(output.Remark) > 500 {
+	if output.Name == "" || output.AccountHolder == "" || output.BankName == "" || output.AccountNo == "" || len(output.Currency) != 3 || !output.Usage.Valid() || utf8.RuneCountInString(output.Name) > 200 || utf8.RuneCountInString(output.AccountHolder) > 200 || utf8.RuneCountInString(output.BankName) > 200 || utf8.RuneCountInString(output.AccountNo) > 100 || utf8.RuneCountInString(output.SwiftCode) > 32 || utf8.RuneCountInString(output.Remark) > 500 {
 		return nil, ErrPartnerAccountInvalidArgument
 	}
-	if output.IsDefault && output.Status != PartnerAccountActive {
+	if (!output.Enabled && (output.IsDefaultReceivable || output.IsDefaultPayable)) || (output.IsDefaultReceivable && !output.Usage.Supports(OrderFeeReceivable)) || (output.IsDefaultPayable && !output.Usage.Supports(OrderFeePayable)) {
 		return nil, ErrPartnerAccountInvalidArgument
 	}
 	return &output, nil

@@ -8,24 +8,146 @@ import {
   Input,
   InputNumber,
   Row,
+  Select,
   Space,
   Tag,
   Typography,
 } from 'antd';
-import React from 'react';
+import type { NamePath } from 'antd/es/form/interface';
+import React, { useEffect, useRef, useState } from 'react';
+import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
+import { unwrapList } from '@/utils/api';
 
 const { Text } = Typography;
 
 type BillGroupCardProps = {
   group: API.BillBatchPreviewGroup;
-  index: number;
+  organizationId: string;
   feeColumns: ProColumns<API.FeeLedgerItem>[];
   directionText: (dir?: string) => string;
 };
 
+type SettlementAccountSelectProps = {
+  group: API.BillBatchPreviewGroup;
+  organizationId: string;
+};
+
+function settlementAccountLabel(account: API.FinanceSettlementAccountOption) {
+  const identity = account.name || account.accountHolder || '未命名账户';
+  const bank = account.bankName || '-';
+  const suffix = account.accountNo ? ` · ${account.accountNo}` : '';
+  return `${identity}｜${bank}${suffix}｜${account.currency || '-'}`;
+}
+
+/** 每个叶子的候选独立加载，避免并行叶子互相取消，也避免旧身份迟到回填。 */
+function SettlementAccountSelect({
+  group,
+  organizationId,
+}: SettlementAccountSelectProps) {
+  const form = Form.useFormInstance();
+  const [options, setOptions] = useState<API.FinanceSettlementAccountOption[]>(
+    [],
+  );
+  const [loading, setLoading] = useState(false);
+  const requestSequenceRef = useRef(0);
+  const identityRef = useRef<string | undefined>(undefined);
+  const groupKey = group.groupKey || '';
+  const groupField = (field: 'settlementAccountId'): NamePath => [
+    'groups',
+    groupKey,
+    field,
+  ];
+  const identity = [
+    organizationId,
+    groupKey,
+    group.settlementPartyId || '',
+    group.direction || '',
+    group.currency || '',
+  ].join(':');
+
+  useEffect(() => {
+    const requestSequence = ++requestSequenceRef.current;
+    const identityChanged =
+      identityRef.current !== undefined && identityRef.current !== identity;
+    identityRef.current = identity;
+    if (identityChanged) {
+      form.setFieldValue(groupField('settlementAccountId'), undefined);
+    }
+    setOptions([]);
+    if (
+      !organizationId ||
+      !groupKey ||
+      !group.settlementPartyId ||
+      !group.direction ||
+      !group.currency
+    ) {
+      setLoading(false);
+      return undefined;
+    }
+    setLoading(true);
+    void settlementServiceListBillSettlementAccountCandidates({
+      organizationId,
+      settlementPartyId: group.settlementPartyId,
+      direction: group.direction,
+      currency: group.currency,
+    })
+      .then((response) => {
+        if (requestSequence !== requestSequenceRef.current) return;
+        const accounts = unwrapList(response);
+        setOptions(accounts);
+        const selected = form.getFieldValue(groupField('settlementAccountId'));
+        const selectedStillAvailable = accounts.some(
+          (account) => account.id === selected,
+        );
+        if (selected && selectedStillAvailable) return;
+
+        const defaultAccount = accounts.find((account) => account.isDefault);
+        form.setFieldValue(
+          groupField('settlementAccountId'),
+          defaultAccount?.id,
+        );
+      })
+      .catch(() => {
+        if (requestSequence === requestSequenceRef.current) setOptions([]);
+      })
+      .finally(() => {
+        if (requestSequence === requestSequenceRef.current) setLoading(false);
+      });
+    return () => {
+      requestSequenceRef.current += 1;
+    };
+  }, [
+    form,
+    group.currency,
+    group.direction,
+    group.settlementPartyId,
+    groupKey,
+    identity,
+    organizationId,
+  ]);
+
+  return (
+    <Form.Item
+      name={groupField('settlementAccountId')}
+      label="结算账户"
+      rules={[{ required: true, message: '请选择结算账户' }]}
+    >
+      <Select
+        allowClear
+        loading={loading}
+        placeholder="请选择与账单方向、币种一致的启用账户"
+        options={options.map((account) => ({
+          value: account.id,
+          label: settlementAccountLabel(account),
+        }))}
+      />
+    </Form.Item>
+  );
+}
+
 export default function BillGroupCard({
   group,
-  index,
+  organizationId,
   feeColumns,
   directionText,
 }: BillGroupCardProps) {
@@ -60,7 +182,9 @@ export default function BillGroupCard({
       <Row gutter={16} style={{ marginBottom: 8 }}>
         <Col xs={24} md={8}>
           <Form.Item
-            name={['groups', index, 'statementTitle']}
+            name={
+              ['groups', group.groupKey || '', 'statementTitle'] as NamePath
+            }
             label="对账抬头"
             rules={[
               {
@@ -76,7 +200,7 @@ export default function BillGroupCard({
         </Col>
         <Col xs={24} md={5}>
           <Form.Item
-            name={['groups', index, 'billDate']}
+            name={['groups', group.groupKey || '', 'billDate'] as NamePath}
             label="账单日期"
             rules={[{ required: true, message: '请选择账单日期' }]}
           >
@@ -85,7 +209,9 @@ export default function BillGroupCard({
         </Col>
         <Col xs={24} md={4}>
           <Form.Item
-            name={['groups', index, 'paymentTermsDays']}
+            name={
+              ['groups', group.groupKey || '', 'paymentTermsDays'] as NamePath
+            }
             label="账期（天）"
           >
             <InputNumber
@@ -99,12 +225,18 @@ export default function BillGroupCard({
         </Col>
         <Col xs={24} md={7}>
           <Form.Item
-            name={['groups', index, 'note']}
+            name={['groups', group.groupKey || '', 'note'] as NamePath}
             label="备注"
             rules={[{ max: 500, message: '备注不能超过 500 字' }]}
           >
             <Input maxLength={500} placeholder="选填，账单备注" />
           </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <SettlementAccountSelect
+            group={group}
+            organizationId={organizationId}
+          />
         </Col>
       </Row>
       <ProTable<API.FeeLedgerItem>

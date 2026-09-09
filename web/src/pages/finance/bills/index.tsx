@@ -205,6 +205,7 @@ export default function FinanceBillsPage() {
       billDate: bill.billDate ? dayjs(bill.billDate) : dayjs(),
       paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
+      settlementAccountId: bill.settlementAccountId,
     });
     setEditOpen(true);
   };
@@ -237,6 +238,7 @@ export default function FinanceBillsPage() {
           billDate: values.billDate.format('YYYY-MM-DD'),
           paymentTermsDays: values.paymentTermsDays,
           note: values.note?.trim() || undefined,
+          settlementAccountId: values.settlementAccountId,
         },
       );
       message.success('账单已成功更新并自动刷新汇率快照');
@@ -460,6 +462,7 @@ export default function FinanceBillsPage() {
       />
 
       <BillEditModal
+        key={editing?.id}
         open={editOpen}
         editing={editing}
         form={form}
