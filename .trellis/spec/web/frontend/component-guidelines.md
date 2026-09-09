@@ -63,8 +63,34 @@ if (
   - 详情页：`海运出口`，标题为 `[订单号]`（未加载时为 `[ID]`），主要返回按钮为 `返回列表`；
   - 费用页：`海运出口 / [订单号]`，标题为 `费用录入`，主要返回按钮为 `返回订单详情`；
   - 拆票页：`海运出口 / [订单号]`，标题为 `拆票`，主要返回按钮为 `返回订单详情`。
-- **业务菜单名统一**：菜单名统一使用“海运出口”（或配置的 `navigationTitle`），禁止在面包屑中混用“海运出口订单”或“海运出口订单列表”。
+- **业务菜单名统一**：菜单名统一使用“海运出口”（或注册定义的 `navigationTitle`，由页面显式传入 `OrderPageHeader`），禁止在面包屑中混用“海运出口订单”或“海运出口订单列表”，页头组件不得再查任何类型字典。
 - **单一边界与异常兜底**：
   - 详情与费用页面的加载中与 404/未找到档案状态必须保留公共页头与返回路径；
   - 无效业务类型（如未知 kind）明确展示 404 错误状态，禁止静默回退为海运出口；
   - 订单编号与操作按钮在各工作台间保持一致定位，避免在同一页面内提供多个重复的返回入口。
+
+## 订单类型三类真相边界（order-kinds 注册表）
+
+订单类型相关代码必须区分三类所有权，不得互相越权：
+
+| 真相 | 唯一所有者 | 边界 |
+|------|-----------|------|
+| 订单类型元数据与表单/详情适配入口 | `pages/orders/order-kinds/` 注册表（`ORDER_KIND_REGISTRY` + `getOrderKindDefinition`） | kind、业务枚举、贸易方向、运输方式、标题、Sections、默认值、创建/更新转换、详情扩展组件 |
+| 订单操作能力（谁能做什么） | 后端权限 Manifest + `access.canOrder` + `order.allowedActions` | 前端不得在注册表或组件内维护第二套 capability 集合；类型扩展组件的存在只表达 UI 实现位置 |
+| 表单生命周期（草稿、dirty、恢复、resetTo） | `OrderFormTemplate` | 页面与类型扩展不得读写草稿键或 dirty；外部重置只经 `actionsRef.resetTo` |
+
+注册契约：
+
+- 注册项以 `satisfies Record<OrderKind, OrderKindDefinition>` 穷尽约束；只注册已真实交付的类型（当前仅 `sea-export`），不提前注册 SI/AE/AI/LAND/RAIL 占位。
+- `getOrderKindDefinition(kindOrPath?)` 接受直接 kind 或 `/orders/<kind>` 路径；空值、未知、未注册类型一律返回 `undefined`，页面据此展示 404，禁止默认 Sea/Air 兜底，未知类型不得进入数据 Hook 或发起请求。
+- 页面（列表/新建/详情/费用）与列表查询、资源 Hook 只消费注册定义；`common.ts` 只保留跨类型共享的选项、搜索与主数据工具，不再维护类型字典。
+- 公共 `OrderListTemplate` 不反向依赖页面注册表：删除其本地 kind 联合与 kindMap，业务类型列只消费页面查询已映射好的 `businessType` 文案。
+
+有状态类型详情扩展（`OrderKindDefinition.DetailFeatures`）：
+
+- 扩展是正常 React 组件（如 `SeaExportDetailFeatures`），合法持有 Hook、请求序号与本地状态；禁止从注册字典动态调用 Hook，也禁止把全部 setter 塞进巨型 context。
+- 页面以 `key={orderFormIdentity}` 重挂载扩展；扩展内请求必须同时校验请求序号、目标身份与实例存活，旧实例的同步续体不得对旧订单再发起请求。
+- 扩展经 render-prop 贡献 `headerActions`（插在「异常情况」与「更多操作」之间）、`moreMenuItems`（置于通用菜单项之前）、`appendSections`（置于审计时间线之前）、`overlays` 与 `refreshTypeState`。
+- `OrderDetailFeaturesContext` 只提供业务输入与命令（订单身份、写入口校验、`refreshOrderAndLock`、绑定业务类型的 `canOrder`、搜索函数与候选项）；不暴露草稿键、dirty setter、显式刷新令牌或模板 actions ref。
+- 扩展的普通刷新走 `refreshOrderAndLock`（不清草稿、不 `resetTo`）；显式刷新令牌完全由通用详情页持有（见 state-management.md）。
+- 通用详情组件（`detail.tsx`、`OrderDetailHeader`）不得直接 import Sea 覆盖层或品类服务；类型专属按钮经 `businessActions` 插槽注入，通用 Header 不认识具体业务动作。
