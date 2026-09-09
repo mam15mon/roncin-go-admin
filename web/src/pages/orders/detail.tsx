@@ -99,8 +99,14 @@ export default function OrderDetailPage() {
   const pendingExplicitFormRefreshRef = useRef<{
     identity: string;
   } | null>(null);
-  // 同一订单连续发起刷新时用单调序号丢弃旧刷新的迟到完成。
-  const explicitRefreshSeqRef = useRef(0);
+  // 显式刷新令牌：发起时递增；订单身份在渲染期变化时同步作废全部在途令牌，
+  // 使「旧 A」的迟到完成无法作用于 A→B→回 A 后重新挂载的新实例。
+  const explicitRefreshTokenRef = useRef(0);
+  const lastOrderFormIdentityRef = useRef(orderFormIdentity);
+  if (lastOrderFormIdentityRef.current !== orderFormIdentity) {
+    lastOrderFormIdentityRef.current = orderFormIdentity;
+    explicitRefreshTokenRef.current += 1;
+  }
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
 
@@ -272,12 +278,12 @@ export default function OrderDetailPage() {
   const refreshOrderDataAndResetForm = useCallback(async () => {
     const requestedIdentity = orderFormIdentity;
     if (!requestedIdentity) return;
-    const seq = ++explicitRefreshSeqRef.current;
+    const token = ++explicitRefreshTokenRef.current;
     try {
       await loadData();
-      // 已有更新的刷新发起时，本次旧刷新的迟到完成直接丢弃，
-      // 不得回填并覆盖用户在新刷新之后输入的内容。
-      if (seq !== explicitRefreshSeqRef.current) return;
+      // 已有更新的刷新发起，或订单身份已切换（含 A→B→回 A 往返导致模板
+      // 重新挂载）时，本次迟到完成直接丢弃，不得回填并覆盖当前实例的内容。
+      if (token !== explicitRefreshTokenRef.current) return;
       // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
       pendingExplicitFormRefreshRef.current = { identity: requestedIdentity };
       setExplicitFormRefreshVersion((version) => version + 1);

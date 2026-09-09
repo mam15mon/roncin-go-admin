@@ -523,6 +523,64 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
   });
 
+  it('A 发起刷新后途经 B 回到 A，旧刷新迟到完成不重置重新挂载的 A 草稿', async () => {
+    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
+    saveFormDraft(
+      getFormDraftKey(
+        tabKey,
+        '/orders/sea-export/ord-A',
+        detailTestState.draftScope,
+      ),
+      { customerReferenceNo: 'A-重新挂载后恢复的草稿' },
+    );
+    templateLifecycleState.restoreDraft = true;
+
+    const pendingLoad = deferred<void>();
+    detailTestState.loadData.mockImplementationOnce(() => pendingLoad.promise);
+
+    const { rerender } = render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('刷新数据'));
+    });
+
+    // A → B → 回 A：期间未再点刷新，字符串身份与刷新序号均未变化
+    routeState.params = { kind: 'sea-export', id: 'ord-B' };
+    rerender(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    routeState.params = { kind: 'sea-export', id: 'ord-A' };
+    rerender(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    // 重新挂载的 A 实例先恢复自己的草稿并标记 dirty
+    await waitFor(() => {
+      expect(screen.getByLabelText('客户参考号')).toHaveValue(
+        'A-重新挂载后恢复的草稿',
+      );
+      expect(templateLifecycleState.internalDirty).toBe(true);
+    });
+
+    // 旧 A 的刷新此时才迟到完成：不得作用于重新挂载后的新 A 实例
+    await act(async () => {
+      pendingLoad.resolve();
+    });
+
+    expect(screen.getByLabelText('客户参考号')).toHaveValue(
+      'A-重新挂载后恢复的草稿',
+    );
+    expect(templateLifecycleState.internalDirty).toBe(true);
+  });
+
   it('A 的显式刷新在导航到 B 后完成时，不得重置 B 的表单与 dirty', async () => {
     const pendingLoad = deferred<void>();
     detailTestState.loadData.mockImplementationOnce(() => pendingLoad.promise);
