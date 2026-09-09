@@ -28,6 +28,7 @@ import {
 } from '@/enums.generated';
 import { unwrapList } from '@/utils/api';
 import { getCurrencies, searchPartnerOptions } from '@/utils/options';
+import type { OrderTransportMode } from './order-kinds/types';
 
 export const businessTypeOptions = [
   {
@@ -186,42 +187,6 @@ export const PARTNER_ROLES = {
   FOREIGN_AGENT: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
 } as const;
 
-export type OrderKind = 'sea-export';
-
-export interface OrderKindConfig {
-  kind: OrderKind;
-  businessType: number;
-  tradeDirection: number;
-  title: string;
-  navigationTitle: string;
-  category: 'sea' | 'air';
-}
-
-export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
-  'sea-export': {
-    kind: 'sea-export',
-    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
-    title: '海运出口订单',
-    navigationTitle: '海运出口',
-    category: 'sea',
-  },
-};
-
-export function parseOrderKind(
-  pathnameOrKind?: string,
-): OrderKindConfig | undefined {
-  if (!pathnameOrKind) return undefined;
-  if (ORDER_KIND_CONFIGS[pathnameOrKind]) {
-    return ORDER_KIND_CONFIGS[pathnameOrKind];
-  }
-  const match = pathnameOrKind.match(/\/orders\/([^/]+)/);
-  if (match && ORDER_KIND_CONFIGS[match[1]]) {
-    return ORDER_KIND_CONFIGS[match[1]];
-  }
-  return undefined;
-}
-
 export async function searchPartnersByRole(
   role: number,
   keyword?: string,
@@ -230,7 +195,7 @@ export async function searchPartnersByRole(
 }
 
 export async function searchOrderLocations(
-  category: 'sea' | 'air',
+  transportMode: OrderTransportMode,
   keyword?: string,
 ): Promise<{ label: string; value: string }[]> {
   const [regionsResponse, transportResponse] = await Promise.all([
@@ -241,7 +206,7 @@ export async function searchOrderLocations(
       page: 1,
       pageSize: 50,
     }),
-    category === 'sea'
+    transportMode === 'sea'
       ? masterDataServiceListPorts({ keyword, enabled: true, page: 1, pageSize: 50 })
       : masterDataServiceListAirports({ keyword, enabled: true, page: 1, pageSize: 50 }),
   ]);
@@ -250,7 +215,7 @@ export async function searchOrderLocations(
     value: item.id ?? '',
   }));
   const transportLocations =
-    category === 'sea'
+    transportMode === 'sea'
       ? (transportResponse.data as API.Port[] | undefined)?.map((item) => ({
           label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
           value: item.id ?? '',
@@ -264,10 +229,10 @@ export async function searchOrderLocations(
 
 export async function fetchOrderMasterData(
   organizationId: string,
-  category?: 'sea' | 'air',
+  transportMode?: OrderTransportMode,
 ) {
-  const shouldLoadPorts = !category || category === 'sea';
-  const shouldLoadAirports = !category || category === 'air';
+  const shouldLoadPorts = !transportMode || transportMode === 'sea';
+  const shouldLoadAirports = !transportMode || transportMode === 'air';
 
   const [masterOptions, ports, airports, currencies] = await Promise.all([
     getMasterDataOptions(organizationId),

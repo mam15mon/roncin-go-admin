@@ -18,10 +18,10 @@ import {
 } from '@/enums.generated';
 import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
 import OrderPageHeader from '../OrderPageHeader';
-import type { OrderKind } from '../../common';
 
 type OrderDetailHeaderProps = {
   kind: string;
+  navigationTitle: string;
   orderId: string;
   configTitle: string;
   order: API.Order;
@@ -55,6 +55,7 @@ type OrderDetailHeaderProps = {
 
 export default function OrderDetailHeader({
   kind,
+  navigationTitle,
   orderId,
   configTitle: _configTitle,
   order,
@@ -89,7 +90,8 @@ export default function OrderDetailHeader({
     <>
       <OrderPageHeader
         page="detail"
-        orderKind={kind as OrderKind}
+        orderKind={kind}
+        navigationTitle={navigationTitle}
         orderId={orderId}
         orderNo={order?.orderNo}
         tags={

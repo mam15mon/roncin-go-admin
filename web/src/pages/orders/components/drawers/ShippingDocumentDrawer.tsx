@@ -34,7 +34,7 @@ export type ShippingDocumentDrawerRef = {
 
 type ShippingDocumentDrawerProps = {
   canManage: boolean;
-  category: string;
+  transportMode: string;
 };
 
 type ShippingDocumentFormValues = {
@@ -46,7 +46,7 @@ type ShippingDocumentFormValues = {
 const ShippingDocumentDrawer = forwardRef<
   ShippingDocumentDrawerRef,
   ShippingDocumentDrawerProps
->(function ShippingDocumentDrawer({ canManage, category }, ref) {
+>(function ShippingDocumentDrawer({ canManage, transportMode }, ref) {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
@@ -261,7 +261,7 @@ const ShippingDocumentDrawer = forwardRef<
         onClose={() => setDrawerOpen(false)}
         width={960}
       >
-        {category === 'sea' && (
+        {transportMode === 'sea' && (
           <Alert
             type="info"
             showIcon
@@ -367,7 +367,7 @@ const ShippingDocumentDrawer = forwardRef<
           placeholder="请输入分单号"
           rules={[{ required: true, message: '请输入分单号' }]}
         />
-        {category === 'sea' ? (
+        {transportMode === 'sea' ? (
           <ProFormSearchableSelect
             name="releaseType"
             label="分单签放方式"

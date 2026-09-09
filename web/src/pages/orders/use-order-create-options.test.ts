@@ -8,10 +8,9 @@ import {
 } from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
-  type OrderKindConfig,
-  parseOrderKind,
   searchOrderLocations,
 } from './common';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 let mockCurrentUser: any = {
@@ -49,7 +48,7 @@ const mockSearchLocations = vi.mocked(searchOrderLocations);
 const mockGetPersonnel = vi.mocked(getOrderPersonnelOptions);
 const mockClearCache = vi.mocked(clearOrderMasterDataCache);
 
-const seaConfig = parseOrderKind('sea-export') as OrderKindConfig;
+const seaConfig = seaExportDefinition;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return React.createElement(App, null, children);
@@ -365,7 +364,7 @@ describe('useOrderCreateOptions', () => {
     mockFetchMasterData.mockImplementationOnce(() => nextLoad.promise);
     currentConfig = {
       ...seaConfig,
-      businessType: seaConfig.businessType + 1,
+      businessType: (seaConfig.businessType + 1) as typeof seaConfig.businessType,
     };
     rerender();
 

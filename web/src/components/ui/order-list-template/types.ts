@@ -1,14 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 
-export type OrderKind =
-  | 'sea-export'
-  | 'sea-import'
-  | 'air-export'
-  | 'air-import'
-  | 'rail'
-  | 'truck'
-  | 'customs';
-
 export interface OrderSelectOption {
   label: string;
   value: string;
@@ -87,7 +78,8 @@ export interface OrderListFilterParams {
 export interface OrderListItem {
   id: string;
   orderNo: string;
-  orderKind?: OrderKind;
+  /** 页面注册定义提供的稳定路由标识（如 `sea-export`），模板不做业务解释。 */
+  orderKind?: string;
   businessType?: string | number;
   stage?: string; // 进程
   customerName?: string;
@@ -170,8 +162,6 @@ export type BatchActionKey =
 export interface OrderListTemplateProps {
   /** 是否显示标签管理入口 */
   showManageTags?: boolean;
-  /** 品类标识（如 'sea-export' | 'sea-import' | 'air-export' | 'air-import'） */
-  orderKind: OrderKind;
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */

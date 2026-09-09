@@ -27,7 +27,6 @@ import type {
 
 export function OrderListTemplate({
   actionRef: externalActionRef,
-  orderKind,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
   customColumns,
@@ -119,28 +118,13 @@ export function OrderListTemplate({
           </Space>
         ),
       },
-      // 4. 业务类型
+      // 4. 业务类型（页面查询已按注册定义映射好显示文案）
       {
         title: '业务类型',
         dataIndex: 'businessType',
         width: 100,
         sorter: true,
-        render: (_, record) => {
-          const kindMap: Record<string, string> = {
-            'sea-export': '海运出口',
-            'sea-import': '海运进口',
-            'air-export': '空运出口',
-            'air-import': '空运进口',
-            rail: '铁路运输',
-            truck: '内陆拖车',
-            customs: '报关业务',
-          };
-          return (
-            kindMap[record.orderKind || orderKind] ||
-            record.businessType ||
-            '海运出口'
-          );
-        },
+        renderText: (val) => val || '-',
       },
       // 5. 委托单位
       {
@@ -546,7 +530,6 @@ export function OrderListTemplate({
       },
     ],
     [
-      orderKind,
       extraColumns,
       onViewDetail,
       onEditOrder,

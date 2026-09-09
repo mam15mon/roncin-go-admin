@@ -46,7 +46,7 @@ import { searchShippingLineOptions } from '@/utils/options';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
-import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
+import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
@@ -67,9 +67,9 @@ import {
   confirmOrderClosure,
   confirmOrderTermination,
 } from './order-detail-transitions';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
-import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
 import {
   getOrderBusinessWritePolicy,
@@ -89,11 +89,11 @@ export default function OrderDetailPage() {
 
   const kind = params.kind;
   const orderId = params.id;
-  const config = parseOrderKind(kind);
+  const definition = getOrderKindDefinition(kind);
 
-  const targetOrderId = config ? orderId : undefined;
+  const targetOrderId = definition ? orderId : undefined;
   const orderFormIdentity =
-    config && orderId ? `${config.kind}:${orderId}` : undefined;
+    definition && orderId ? `${definition.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
   // 显式刷新标记携带发起时的订单身份与令牌；A 的迟到刷新不得操作 B 的模板。
@@ -122,7 +122,7 @@ export default function OrderDetailPage() {
     personnelOptions,
     draftScope,
     loadData,
-  } = useOrderDetailData(targetOrderId, config);
+  } = useOrderDetailData(targetOrderId, definition);
 
   // 订单身份提交变化时同步作废旧身份的全部在途刷新。
   // 在 layout effect 的 setup 与 cleanup 中均递增 token 并清空 pending：
@@ -142,7 +142,7 @@ export default function OrderDetailPage() {
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const changeActionsTargetKey =
-    orderId && config?.category === 'sea' ? orderFormIdentity : undefined;
+    orderId && definition?.transportMode === 'sea' ? orderFormIdentity : undefined;
   const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
   activeChangeActionsTargetRef.current = changeActionsTargetKey;
   const changeActionsRequestIdRef = useRef(0);
@@ -236,19 +236,19 @@ export default function OrderDetailPage() {
       order?.orderNo &&
       orderId &&
       order.id === orderId &&
-      config?.kind &&
+      definition?.kind &&
       typeof window !== 'undefined'
     ) {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
           detail: {
-            path: `/orders/${config.kind}/${orderId}`,
-            title: `${order.orderNo}_${config?.title || ''}详情`,
+            path: `/orders/${definition.kind}/${orderId}`,
+            title: `${order.orderNo}_${definition?.title || ''}详情`,
           },
         }),
       );
     }
-  }, [order?.orderNo, order?.id, orderId, config?.kind, config?.title]);
+  }, [order?.orderNo, order?.id, orderId, definition?.kind, definition?.title]);
 
   // 2. 构造表单初始值
   const initialValues = useMemo(
@@ -324,7 +324,7 @@ export default function OrderDetailPage() {
     setSynchronizingLockChange(true);
     try {
       await Promise.all([loadData(), refreshLockState()]);
-      if (config?.category === 'sea') {
+      if (definition?.transportMode === 'sea') {
         await loadChangeActions();
       }
     } finally {
@@ -378,12 +378,10 @@ export default function OrderDetailPage() {
     ],
   );
 
-  const formSections = useMemo(() => {
-    if (config?.category === 'air') {
-      return getAirTemplateSections(templateProps);
-    }
-    return getSeaTemplateSections(templateProps);
-  }, [config?.category, templateProps]);
+  const formSections = useMemo(
+    () => definition?.form.buildSections(templateProps) ?? [],
+    [definition, templateProps],
+  );
 
   // 4. 海管家风格「订单状态」卡片（作为前置区块）
   const prependSections: OrderFormTemplateSection[] = useMemo(
@@ -394,7 +392,7 @@ export default function OrderDetailPage() {
   // 5. 后置区块：拆票/改配历史与操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(
     () => [
-      ...(config?.category === 'sea' && orderId
+      ...(definition?.transportMode === 'sea' && orderId
         ? [
             {
               key: 'same-batch-orders',
@@ -402,7 +400,7 @@ export default function OrderDetailPage() {
               content: (
                 <SameBatchOrdersSection
                   orderId={orderId}
-                  orderKind={config.kind}
+                  orderKind={definition.kind}
                 />
               ),
             },
@@ -420,7 +418,7 @@ export default function OrderDetailPage() {
         : []),
       buildOrderAuditTimelineSection(order),
     ],
-    [config?.category, order, orderId],
+    [definition?.transportMode, order, orderId],
   );
 
   // 6. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
@@ -450,7 +448,7 @@ export default function OrderDetailPage() {
     }
   };
 
-  if (!config) {
+  if (!definition) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
         <Result
@@ -475,7 +473,8 @@ export default function OrderDetailPage() {
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="detail"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           orderId={orderId}
           orderNo={order?.orderNo}
         />
@@ -496,7 +495,8 @@ export default function OrderDetailPage() {
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="detail"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           orderId={orderId}
           orderNo={orderId}
         />
@@ -532,7 +532,8 @@ export default function OrderDetailPage() {
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="detail"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           orderId={orderId}
           orderNo={orderId}
         />
@@ -586,8 +587,8 @@ export default function OrderDetailPage() {
   };
 
   const moreMenuItems: MenuProps['items'] = [
-    ...(config.category === 'sea' &&
-    access.canOrder(config.businessType, 'reassign')
+    ...(definition.transportMode === 'sea' &&
+    access.canOrder(definition.businessType, 'reassign')
       ? [
           {
             key: 'shared-voyage-update',
@@ -597,13 +598,16 @@ export default function OrderDetailPage() {
           },
         ]
       : []),
-    ...(config.category === 'sea'
+    ...(definition.transportMode === 'sea'
       ? [
           {
             key: 'shared-container-workbench',
             icon: <ShareAltOutlined />,
             label: '跨订单共享箱工作台',
-            disabled: !access.canOrder(config.businessType, 'container.read'),
+            disabled: !access.canOrder(
+              definition.businessType,
+              'container.read',
+            ),
             onClick: () => {
               const teId = order.seaMasterBill?.transportExecutionId;
               if (!teId) {
@@ -623,7 +627,7 @@ export default function OrderDetailPage() {
       key: 'fees-drawer',
       icon: <DollarOutlined />,
       label: '快速费用抽屉',
-      disabled: !access.canOrder(config.businessType, 'fee.read'),
+      disabled: !access.canOrder(definition.businessType, 'fee.read'),
       onClick: () => orderFeePanelRef.current?.open(order),
     },
     {
@@ -660,12 +664,14 @@ export default function OrderDetailPage() {
       <OrderFormTemplate<OrderDetailFormValues>
         key={orderFormIdentity}
         tabKey={
-          config && orderId
-            ? resolveTabKey(`/orders/${config.kind}/${orderId}`)
+          definition && orderId
+            ? resolveTabKey(`/orders/${definition.kind}/${orderId}`)
             : undefined
         }
         draftPathname={
-          config && orderId ? `/orders/${config.kind}/${orderId}` : undefined
+          definition && orderId
+            ? `/orders/${definition.kind}/${orderId}`
+            : undefined
         }
         draftScope={draftScope}
         loading={false}
@@ -676,27 +682,28 @@ export default function OrderDetailPage() {
         onFinish={handleSaveEdit}
         header={
           <OrderDetailHeader
-            kind={config.kind}
+            kind={definition.kind}
+            navigationTitle={definition.navigationTitle}
             orderId={orderId || ''}
-            configTitle={config.title}
+            configTitle={definition.title}
             order={order}
             saving={saving}
-            canManageFee={access.canOrder(config.businessType, 'fee.read')}
+            canManageFee={access.canOrder(definition.businessType, 'fee.read')}
             canCreatePod={access.canOrder(
-              config.businessType,
+              definition.businessType,
               'release_pod.create',
             )}
             canCreateAbnormal={access.canOrder(
-              config.businessType,
+              definition.businessType,
               'abnormal_case.create',
             )}
             canSplit={
-              config.category === 'sea' &&
-              access.canOrder(config.businessType, 'split')
+              definition.transportMode === 'sea' &&
+              access.canOrder(definition.businessType, 'split')
             }
             canReassign={
-              config.category === 'sea' &&
-              access.canOrder(config.businessType, 'reassign')
+              definition.transportMode === 'sea' &&
+              access.canOrder(definition.businessType, 'reassign')
             }
             splitDisabled={!changeActions?.canSplit}
             splitBlockedReasons={changeActions?.splitBlockedReasons}
@@ -777,7 +784,7 @@ export default function OrderDetailPage() {
         ref={releasePodPanelRef}
         canManage={
           !businessWritesDisabled &&
-          access.canOrder(config.businessType, 'release_pod.create')
+          access.canOrder(definition.businessType, 'release_pod.create')
         }
       />
       <OrderFeePanel ref={orderFeePanelRef} />
@@ -785,7 +792,7 @@ export default function OrderDetailPage() {
         ref={abnormalCasePanelRef}
         canManage={
           !businessWritesDisabled &&
-          access.canOrder(config.businessType, 'abnormal_case.create')
+          access.canOrder(definition.businessType, 'abnormal_case.create')
         }
         masterOptions={[]}
       />
@@ -836,15 +843,15 @@ export default function OrderDetailPage() {
             orderNo={order?.orderNo}
             canCreate={
               !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'container.create')
+              access.canOrder(definition.businessType, 'container.create')
             }
             canUpdate={
               !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'container.update')
+              access.canOrder(definition.businessType, 'container.update')
             }
             canDelete={
               !businessWritesDisabled &&
-              access.canOrder(config.businessType, 'container.delete')
+              access.canOrder(definition.businessType, 'container.delete')
             }
             containerSpecOptions={containerSpecOptions}
           />

@@ -18,14 +18,14 @@ import {
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
 import { searchShippingLineOptions } from '@/utils/options';
-import { PARTNER_ROLES, parseOrderKind, searchPartnersByRole } from './common';
+import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import {
   buildCreateOrderPayload,
   type CreateOrderFormValues,
 } from './order-create-payload';
 import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
-import { getAirTemplateSections, getSeaTemplateSections } from './templates';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
@@ -39,7 +39,7 @@ export default function NewOrderPage() {
     initialState?.currentUser?.currentOrganization?.id,
   );
 
-  const config = parseOrderKind(params.kind);
+  const definition = getOrderKindDefinition(params.kind);
 
   const {
     loading,
@@ -52,7 +52,7 @@ export default function NewOrderPage() {
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
-  } = useOrderCreateOptions(config);
+  } = useOrderCreateOptions(definition);
 
   const checkOrderReference = useCallback(
     async (referenceType: OrderReferenceType) => {
@@ -152,14 +152,12 @@ export default function NewOrderPage() {
     ],
   );
 
-  const sections = useMemo(() => {
-    if (!config) return [];
-    return config.category === 'sea'
-      ? getSeaTemplateSections(templateProps)
-      : getAirTemplateSections(templateProps);
-  }, [config, templateProps]);
+  const sections = useMemo(
+    () => definition?.form.buildSections(templateProps) ?? [],
+    [definition, templateProps],
+  );
 
-  if (!config) {
+  if (!definition) {
     return (
       <PageContainer>
         <Result
@@ -179,7 +177,7 @@ export default function NewOrderPage() {
     );
   }
 
-  if (!access.canOrder(config.businessType, 'create')) {
+  if (!access.canOrder(definition.businessType, 'create')) {
     return <Result status="403" title="无权新建此类订单" />;
   }
 
@@ -197,7 +195,8 @@ export default function NewOrderPage() {
       >
         <OrderPageHeader
           page="create"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           subTitle="填写业务委托与配舱信息"
         />
         <Card
@@ -229,9 +228,11 @@ export default function NewOrderPage() {
 
   const handleFinish = async (values: CreateOrderFormValues) => {
     try {
-      await orderServiceCreateOrder(buildCreateOrderPayload(values, config));
+      await orderServiceCreateOrder(
+        buildCreateOrderPayload(values, definition),
+      );
       message.success('创建订单成功');
-      history.push(`/orders/${config.kind}`);
+      history.push(`/orders/${definition.kind}`);
       return true;
     } catch (error: unknown) {
       const err = error as Error;
@@ -246,8 +247,8 @@ export default function NewOrderPage() {
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>
-      tabKey={resolveTabKey(`/orders/${config.kind}/new`)}
-      draftPathname={`/orders/${config.kind}/new`}
+      tabKey={resolveTabKey(`/orders/${definition.kind}/new`)}
+      draftPathname={`/orders/${definition.kind}/new`}
       draftScope={draftScope}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
@@ -255,14 +256,15 @@ export default function NewOrderPage() {
       header={
         <OrderPageHeader
           page="create"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           subTitle="填写业务委托与配舱信息"
         />
       }
       sections={sections}
       initialValues={{
         orderDate: dayjs(),
-        ...(config.category === 'sea'
+        ...(definition.transportMode === 'sea'
           ? {
               shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
               shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,

@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { describe, expect, it } from 'vitest';
-import { ORDER_KIND_CONFIGS } from './common';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { buildCreateOrderPayload } from './order-create-payload';
 
 describe('buildCreateOrderPayload', () => {
@@ -32,7 +32,7 @@ describe('buildCreateOrderPayload', () => {
         seaDocumentStructure: 3,
         seaHouseBill: { houseNo: '  HBL-001  ', issuerSource: 1 },
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result).toMatchObject({
@@ -71,7 +71,7 @@ describe('buildCreateOrderPayload', () => {
         paymentTerm: 1,
         seaHouseBill: { houseNo: '   ', issuerSource: 1 },
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result.seaDocument?.houseBill).toEqual({
@@ -89,7 +89,7 @@ describe('buildCreateOrderPayload', () => {
         paymentTerm: 1,
         operatorUserId: 'operator-1',
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result.customerReferenceNo).toBeUndefined();
@@ -97,15 +97,12 @@ describe('buildCreateOrderPayload', () => {
     expect(result.shippingDocuments).toBeUndefined();
   });
 
-  it('非海运订单装配旧提单 shippingDocuments', () => {
-    const nonSeaConfig = {
-      kind: 'air-export' as any,
+  it('非海运运输方式装配旧提单 shippingDocuments', () => {
+    const nonSeaDefinition = {
       businessType: 2,
       tradeDirection: 1,
-      title: '空运出口订单',
-      navigationTitle: '空运出口',
-      category: 'air' as const,
-    };
+      transportMode: 'air',
+    } as const;
     const result = buildCreateOrderPayload(
       {
         customerId: 'customer-1',
@@ -113,7 +110,7 @@ describe('buildCreateOrderPayload', () => {
         paymentTerm: 1,
         shippingDocuments: [{ houseNo: '  AWB-001  ' }, { houseNo: '  ' }],
       },
-      nonSeaConfig,
+      nonSeaDefinition,
     );
 
     expect(result.shippingDocuments).toEqual([{ houseNo: 'AWB-001' }]);
@@ -134,7 +131,7 @@ describe('buildCreateOrderPayload', () => {
         seaMasterBillExpectedCandidateTeVersion: 5,
         seaMasterBillCorrectionReason: '更正主单号',
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result.seaMasterBill).toEqual({
@@ -158,7 +155,7 @@ describe('buildCreateOrderPayload', () => {
           masterNo: 'COSCO999902',
         },
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result.seaMasterBill).toEqual({
@@ -172,7 +169,7 @@ describe('buildCreateOrderPayload', () => {
         customerId: 'customer-1',
         paymentTerm: 1,
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
     );
 
     expect(result.tradeTerm).toBeUndefined();

@@ -5,11 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
   fetchOrderMasterData,
-  type OrderKindConfig,
-  parseOrderKind,
   searchOrderLocations,
   seaServiceTypes,
 } from './common';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderDetailData } from './use-order-detail-data';
 
 let mockCurrentUser: any = {
@@ -73,7 +72,7 @@ vi.mock('./common', async (importOriginal) => {
 const mockGetOrder = vi.mocked(orderServiceGetOrder);
 const mockFetchMasterData = vi.mocked(fetchOrderMasterData);
 const mockSearchLocations = vi.mocked(searchOrderLocations);
-const config = parseOrderKind('sea-export') as OrderKindConfig;
+const config = seaExportDefinition;
 
 const detailMasterData = {
   serviceTypeOptions: seaServiceTypes.map(({ code, name }) => ({
@@ -449,8 +448,8 @@ describe('useOrderDetailData', () => {
     mockGetOrder.mockImplementationOnce(() => nextOrderRequest.promise);
     currentConfig = {
       ...config,
-      category: 'air',
-      businessType: config.businessType + 1,
+      transportMode: 'air',
+      businessType: (config.businessType + 1) as typeof config.businessType,
     };
     rerender();
 

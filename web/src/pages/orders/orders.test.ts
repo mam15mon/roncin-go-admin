@@ -3,12 +3,10 @@ import { MasterDataKind } from '@/enums.generated';
 import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import {
   MASTER_DATA_KINDS,
-  ORDER_KIND_CONFIGS,
   PARTNER_ROLES,
   businessTypeOptions,
   fetchOrderMasterData,
   isMasterDataKind,
-  parseOrderKind,
   requireSeaServiceTypeOptions,
   seaServiceTypes,
   shipmentModeOptions,
@@ -74,22 +72,7 @@ describe('orders common and config', () => {
     getCurrencies.mockResolvedValue([]);
   });
 
-  it('正确解析业务类型路径到配置', () => {
-    expect(parseOrderKind('sea-export')).toEqual(ORDER_KIND_CONFIGS['sea-export']);
-    expect(parseOrderKind('/orders/sea-export')?.businessType).toBe(1);
-    expect(parseOrderKind('/orders/sea-export/new')?.category).toBe('sea');
-
-    expect(parseOrderKind('sea-import')).toBeUndefined();
-    expect(parseOrderKind('air-export')).toBeUndefined();
-    expect(parseOrderKind('air-import')).toBeUndefined();
-
-    expect(parseOrderKind('unknown-kind')).toBeUndefined();
-    expect(parseOrderKind('')).toBeUndefined();
-  });
-
   it('验证业务类型与贸易方向配置', () => {
-    expect(ORDER_KIND_CONFIGS['sea-export'].tradeDirection).toBe(1);
-
     expect(businessTypeOptions).toEqual([
       { label: '海运出口', value: 1, color: 'blue' },
     ]);

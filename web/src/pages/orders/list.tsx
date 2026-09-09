@@ -14,7 +14,6 @@ import {
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
-import { parseOrderKind } from './common';
 import AttachmentDrawer, {
   type AttachmentDrawerRef,
 } from './components/drawers/AttachmentDrawer';
@@ -45,12 +44,13 @@ import {
 } from './list-documents-action';
 import { queryOrderList } from './list-query';
 import { useOrderListResources } from './list-resources';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 export default function OrderListPage() {
   const location = useLocation();
-  const config = parseOrderKind(location.pathname);
+  const definition = getOrderKindDefinition(location.pathname);
 
   const actionRef = useRef<ActionType | undefined>(undefined);
   const transitionModalRef = useRef<TransitionModalRef | null>(null);
@@ -75,9 +75,9 @@ export default function OrderListPage() {
   >([]);
 
   useEffect(() => {
-    if (!config) return;
+    if (!definition) return;
     void orderTagServiceListOrderTagOptions({
-      businessType: config.businessType as number,
+      businessType: definition.businessType as number,
       page: 1,
       pageSize: 200,
     }).then((response) => {
@@ -88,7 +88,7 @@ export default function OrderListPage() {
         })),
       );
     });
-  }, [config?.businessType]);
+  }, [definition?.businessType]);
   const {
     masterOptions,
     ports,
@@ -100,9 +100,9 @@ export default function OrderListPage() {
     searchOrderPorts,
     searchOrderCarriers,
     searchOrderPersonnel,
-  } = useOrderListResources(config);
+  } = useOrderListResources(definition);
 
-  if (!config) {
+  if (!definition) {
     return (
       <PageContainer>
         <Result
@@ -118,9 +118,8 @@ export default function OrderListPage() {
     <>
       <OrderListTemplate
         actionRef={actionRef}
-        orderKind={config.kind as any}
-        title={config.title}
-        subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
+        title={definition.title}
+        subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         options={{
           loadPorts: searchOrderPorts,
           loadPartners: searchCustomers,
@@ -128,7 +127,7 @@ export default function OrderListPage() {
           loadPersonnel: searchOrderPersonnel,
           tags: tagFilterOptions,
         }}
-        showManageTags={access.canOrder(config.businessType, 'update')}
+        showManageTags={access.canOrder(definition.businessType, 'update')}
         onBatchAction={(actionKey, rows) => {
           if (actionKey === 'manage-tags') {
             setTagRows(rows);
@@ -136,16 +135,16 @@ export default function OrderListPage() {
           }
         }}
         queryOrders={(params) =>
-          queryOrderList(params, config, {
+          queryOrderList(params, definition, {
             ports,
             airports,
             customerMap,
             containerSpecMap,
           })
         }
-        onCreateOrder={() => history.push(`/orders/${config.kind}/new`)}
+        onCreateOrder={() => history.push(`/orders/${definition.kind}/new`)}
         onViewDetail={(item) =>
-          history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)
+          history.push(`/orders/${item.orderKind || definition.kind}/${item.id}`)
         }
         onOpenFees={(item) =>
           item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
@@ -153,11 +152,11 @@ export default function OrderListPage() {
         onOpenMilestones={(item) =>
           item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord)
         }
-        documentsActionLabel={getDocumentsActionLabel(config.businessType)}
+        documentsActionLabel={getDocumentsActionLabel(definition.businessType)}
         onOpenDocuments={(item) =>
           openOrderDocuments(
-            config.businessType,
-            config.kind,
+            definition.businessType,
+            definition.kind,
             item,
             (path) => history.push(path),
             (record) => shippingDocumentDrawerRef.current?.open(record),
@@ -195,7 +194,7 @@ export default function OrderListPage() {
         loadOptions={(params) =>
           orderTagServiceListOrderTagOptions({
             ...params,
-            businessType: config.businessType as number,
+            businessType: definition.businessType as number,
           })
         }
         targetCount={tagRows.length}
@@ -208,14 +207,14 @@ export default function OrderListPage() {
           const orderIds = tagRows.map((row) => row.id);
           if (mode === 'assign') {
             await orderTagServiceBatchAssignOrderTags({
-              businessType: config.businessType as number,
+              businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
             message.success(`已为 ${orderIds.length} 个订单添加标签`);
           } else {
             await orderTagServiceBatchRemoveOrderTags({
-              businessType: config.businessType as number,
+              businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
@@ -227,48 +226,48 @@ export default function OrderListPage() {
       />
       <MilestoneDrawer
         ref={milestoneDrawerRef}
-        canSet={access.canOrder(config.businessType, 'milestone.set')}
+        canSet={access.canOrder(definition.businessType, 'milestone.set')}
       />
       <AttachmentDrawer
         ref={attachmentDrawerRef}
         canRegister={access.canOrder(
-          config.businessType,
+          definition.businessType,
           'attachment.register',
         )}
       />
       <PersonnelDrawer
         ref={personnelDrawerRef}
-        canAssign={access.canOrder(config.businessType, 'personnel.assign')}
-        canRemove={access.canOrder(config.businessType, 'personnel.remove')}
+        canAssign={access.canOrder(definition.businessType, 'personnel.assign')}
+        canRemove={access.canOrder(definition.businessType, 'personnel.remove')}
       />
       <ContainerDrawer
         ref={containerDrawerRef}
-        canCreate={access.canOrder(config.businessType, 'container.create')}
-        canUpdate={access.canOrder(config.businessType, 'container.update')}
-        canRemove={access.canOrder(config.businessType, 'container.delete')}
+        canCreate={access.canOrder(definition.businessType, 'container.create')}
+        canUpdate={access.canOrder(definition.businessType, 'container.update')}
+        canRemove={access.canOrder(definition.businessType, 'container.delete')}
         containerSpecOptions={containerSpecOptions}
         containerSpecMap={containerSpecMap}
       />
       <ConsolidationDrawer ref={consolidationDrawerRef} />
       <CargoItemDrawer
         ref={cargoItemDrawerRef}
-        canCreate={access.canOrder(config.businessType, 'cargo_item.create')}
-        canUpdate={access.canOrder(config.businessType, 'cargo_item.update')}
-        canRemove={access.canOrder(config.businessType, 'cargo_item.delete')}
+        canCreate={access.canOrder(definition.businessType, 'cargo_item.create')}
+        canUpdate={access.canOrder(definition.businessType, 'cargo_item.update')}
+        canRemove={access.canOrder(definition.businessType, 'cargo_item.delete')}
       />
       <ShippingDocumentDrawer
         ref={shippingDocumentDrawerRef}
-        canManage={access.canOrder(config.businessType, 'update')}
-        category={config.category}
+        canManage={access.canOrder(definition.businessType, 'update')}
+        transportMode={definition.transportMode}
       />
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canOrder(config.businessType, 'release_pod.create')}
+        canManage={access.canOrder(definition.businessType, 'release_pod.create')}
       />
       <OrderFeePanel ref={orderFeePanelRef} />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
+        canManage={access.canOrder(definition.businessType, 'abnormal_case.create')}
         masterOptions={masterOptions}
       />
     </>

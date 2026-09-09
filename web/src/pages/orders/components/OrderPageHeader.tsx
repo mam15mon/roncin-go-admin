@@ -1,13 +1,15 @@
 import { history } from '@umijs/max';
 import React, { type ReactNode } from 'react';
 import { PageHeaderShell } from '@/components/ui';
-import { ORDER_KIND_CONFIGS, type OrderKind } from '../common';
 
 export type OrderPageKind = 'create' | 'detail' | 'fees' | 'split';
 
 export interface OrderPageHeaderProps {
   page: OrderPageKind;
-  orderKind: OrderKind;
+  /** 订单类型路由标识（如 `sea-export`），由页面从注册定义传入。 */
+  orderKind: string;
+  /** 业务菜单名（如「海运出口」），来自订单类型注册定义的 navigationTitle。 */
+  navigationTitle: string;
   orderId?: string;
   orderNo?: string;
   tags?: ReactNode;
@@ -18,20 +20,19 @@ export interface OrderPageHeaderProps {
 export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
   page,
   orderKind,
+  navigationTitle,
   orderId,
   orderNo,
   tags,
   extra,
   subTitle,
 }) => {
-  const config = ORDER_KIND_CONFIGS[orderKind];
-  const navTitle = config?.navigationTitle || '海运出口';
   const listPath = `/orders/${orderKind}`;
   const detailPath = orderId ? `/orders/${orderKind}/${orderId}` : listPath;
   const orderIdentifier = orderNo || orderId || '订单详情';
 
   const breadcrumbs: Array<{ label: string; href?: string }> = [
-    { label: navTitle, href: listPath },
+    { label: navigationTitle, href: listPath },
   ];
 
   let title: ReactNode = '';

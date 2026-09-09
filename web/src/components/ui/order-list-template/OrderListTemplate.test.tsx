@@ -62,7 +62,6 @@ describe('OrderListTemplate', () => {
 
     const { container } = render(
       <OrderListTemplate
-        orderKind="sea-export"
         title="海运出口订单"
         subTitle="海运整箱与拼箱出口业务调度"
         queryOrders={mockQuery}

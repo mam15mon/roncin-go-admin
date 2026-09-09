@@ -14,22 +14,22 @@ import {
 import {
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  type OrderKindConfig,
   searchOrderLocations,
 } from './common';
+import type { OrderKindDefinition } from './order-kinds/types';
 
 /** 订单列表页共用的主数据加载、候选项派生与联想搜索逻辑。 */
-export function useOrderListResources(config?: OrderKindConfig) {
+export function useOrderListResources(definition?: OrderKindDefinition) {
   const { message } = App.useApp();
   const { initialState } = useModel('@@initialState');
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
-  const locationCategory = config?.category === 'air' ? 'air' : 'sea';
-  const activeCategoryRef = useRef(locationCategory);
-  activeCategoryRef.current = locationCategory;
+  const locationTransportMode = definition?.transportMode ?? 'sea';
+  const activeTransportModeRef = useRef(locationTransportMode);
+  activeTransportModeRef.current = locationTransportMode;
   const personnelBusinessType =
-    config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE;
+    definition?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE;
   const activeBusinessTypeRef = useRef(personnelBusinessType);
   activeBusinessTypeRef.current = personnelBusinessType;
   const requestIdRef = useRef(0);
@@ -54,8 +54,10 @@ export function useOrderListResources(config?: OrderKindConfig) {
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrgId = organizationId;
-    const shouldLoadPorts = !config?.category || config.category === 'sea';
-    const shouldLoadAirports = !config?.category || config.category === 'air';
+    const shouldLoadPorts =
+      !definition?.transportMode || definition.transportMode === 'sea';
+    const shouldLoadAirports =
+      !definition?.transportMode || definition.transportMode === 'air';
 
     void Promise.all([
       getMasterDataOptions(organizationId),
@@ -95,7 +97,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
         setLoadedOrganizationId(null);
         message.error(error.message || '订单主数据加载失败');
       });
-  }, [config?.category, message, organizationId]);
+  }, [definition?.transportMode, message, organizationId]);
 
   const isOrgMatched = Boolean(
     organizationId && loadedOrganizationId === organizationId,
@@ -232,13 +234,13 @@ export function useOrderListResources(config?: OrderKindConfig) {
 
   const searchLocations = async (keyword?: string) => {
     const requestOrgId = organizationId;
-    const requestCategory = locationCategory;
+    const requestTransportMode = locationTransportMode;
     if (!requestOrgId) {
       return [];
     }
-    const options = await searchOrderLocations(requestCategory, keyword);
+    const options = await searchOrderLocations(requestTransportMode, keyword);
     return activeOrgIdRef.current === requestOrgId &&
-      activeCategoryRef.current === requestCategory
+      activeTransportModeRef.current === requestTransportMode
       ? options
       : [];
   };

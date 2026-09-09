@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { OrderKindConfig } from './common';
+import type { OrderKindDefinition } from './order-kinds/types';
 
 export type CreateOrderFormValues = {
   customerId: string;
@@ -85,9 +85,9 @@ export type CreateOrderFormValues = {
 /** 将新建订单表单值整理为创建请求 payload（含岗位人员装配）。 */
 export function buildCreateOrderPayload(
   values: CreateOrderFormValues,
-  config: OrderKindConfig,
+  definition: Pick<OrderKindDefinition, 'businessType' | 'tradeDirection' | 'transportMode'>,
 ): API.CreateOrderRequest {
-  const isSea = config.category === 'sea' || config.businessType === 1; // BUSINESS_TYPE_SE
+  const isSea = definition.transportMode === 'sea';
 
   const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
   const addPersonnel = (
@@ -167,8 +167,8 @@ export function buildCreateOrderPayload(
     customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
     bookingNo: values.bookingNo?.trim() || undefined,
     internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
-    businessType: config.businessType,
-    tradeDirection: config.tradeDirection,
+    businessType: definition.businessType,
+    tradeDirection: definition.tradeDirection,
     tradeTerm:
       values.tradeTerm !== undefined && values.tradeTerm !== null
         ? Number(values.tradeTerm)

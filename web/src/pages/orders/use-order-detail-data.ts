@@ -15,16 +15,16 @@ import {
   fetchOrderMasterData,
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  type OrderKindConfig,
   requireSeaServiceTypeOptions,
   searchOrderLocations,
 } from './common';
+import type { OrderKindDefinition } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
 type DetailErrorState = {
   organizationId: string;
   orderId: string;
-  category: OrderKindConfig['category'];
+  transportMode: OrderKindDefinition['transportMode'];
   businessType: number;
   error: Error;
 };
@@ -32,7 +32,7 @@ type DetailErrorState = {
 /** 订单详情页的订单档案与主数据候选项加载。 */
 export function useOrderDetailData(
   orderId: string | undefined,
-  config?: OrderKindConfig,
+  definition?: OrderKindDefinition,
 ) {
   const { message } = App.useApp();
   const { initialState } = useModel('@@initialState');
@@ -41,19 +41,21 @@ export function useOrderDetailData(
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
   const businessType =
-    config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
-  const category = config?.category;
-  const activeCategoryRef = useRef(category);
-  activeCategoryRef.current = category;
+    definition?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
+  const transportMode = definition?.transportMode;
+  const activeTransportModeRef = useRef(transportMode);
+  activeTransportModeRef.current = transportMode;
   const activeBusinessTypeRef = useRef(businessType);
   activeBusinessTypeRef.current = businessType;
-  const [loading, setLoading] = useState(Boolean(config && orderId));
+  const [loading, setLoading] = useState(Boolean(definition && orderId));
   const [order, setOrder] = useState<API.Order>();
   const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
   const [loadedOrganizationId, setLoadedOrganizationId] = useState<
     string | undefined
   >();
-  const [loadedCategory, setLoadedCategory] = useState<typeof category>();
+  const [loadedTransportMode, setLoadedTransportMode] = useState<
+    typeof transportMode
+  >();
   const [loadedBusinessType, setLoadedBusinessType] = useState<number>();
   const [errorState, setErrorState] = useState<DetailErrorState | null>(null);
   const activeOrderIdRef = useRef(orderId);
@@ -83,12 +85,12 @@ export function useOrderDetailData(
   >([]);
 
   const loadData = useCallback(async () => {
-    if (!orderId || !config) {
+    if (!orderId || !definition) {
       requestIdRef.current += 1;
       setOrder(undefined);
       setLoadedOrderId(undefined);
       setLoadedOrganizationId(undefined);
-      setLoadedCategory(undefined);
+      setLoadedTransportMode(undefined);
       setLoadedBusinessType(undefined);
       setErrorState(null);
       setShippingDocs([]);
@@ -105,7 +107,7 @@ export function useOrderDetailData(
       setOrder(undefined);
       setLoadedOrderId(undefined);
       setLoadedOrganizationId(undefined);
-      setLoadedCategory(undefined);
+      setLoadedTransportMode(undefined);
       setLoadedBusinessType(undefined);
       setErrorState(null);
       setShippingDocs([]);
@@ -127,7 +129,7 @@ export function useOrderDetailData(
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
     const currentOrgId = organizationId;
-    const currentCategory = config.category;
+    const currentTransportMode = definition.transportMode;
     const currentBusinessType = businessType;
     setLoading(true);
     setErrorState(null);
@@ -142,8 +144,8 @@ export function useOrderDetailData(
         milestonesRes,
         personnelRes,
       ] = await Promise.all([
-        fetchOrderMasterData(organizationId, category),
-        category === 'sea'
+        fetchOrderMasterData(organizationId, transportMode),
+        transportMode === 'sea'
           ? getOrderPersonnelOptions(organizationId, businessType)
           : Promise.resolve([]),
         orderServiceGetOrder({ id: orderId }),
@@ -158,21 +160,21 @@ export function useOrderDetailData(
         currentRequestId !== requestIdRef.current ||
         currentOrderId !== activeOrderIdRef.current ||
         currentOrgId !== activeOrgIdRef.current ||
-        currentCategory !== activeCategoryRef.current ||
+        currentTransportMode !== activeTransportModeRef.current ||
         currentBusinessType !== activeBusinessTypeRef.current
       ) {
         return;
       }
 
       const nextServiceTypeOptions =
-        category === 'sea'
+        transportMode === 'sea'
           ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
           : masterData.serviceTypeOptions;
 
       setServiceTypeOptions(nextServiceTypeOptions);
       setCargoCategoryOptions(masterData.cargoCategoryOptions);
       setLocationOptions(
-        category === 'sea'
+        transportMode === 'sea'
           ? masterData.seaLocationOptions
           : masterData.airLocationOptions,
       );
@@ -197,7 +199,7 @@ export function useOrderDetailData(
       setOrder(orderRes.data);
       setLoadedOrderId(currentOrderId);
       setLoadedOrganizationId(currentOrgId);
-      setLoadedCategory(currentCategory);
+      setLoadedTransportMode(currentTransportMode);
       setLoadedBusinessType(currentBusinessType);
       setErrorState(null);
       setShippingDocs(unwrapList(docsRes));
@@ -210,18 +212,18 @@ export function useOrderDetailData(
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current &&
         currentOrgId === activeOrgIdRef.current &&
-        currentCategory === activeCategoryRef.current &&
+        currentTransportMode === activeTransportModeRef.current &&
         currentBusinessType === activeBusinessTypeRef.current
       ) {
         setOrder(undefined);
         setLoadedOrderId(undefined);
         setLoadedOrganizationId(undefined);
-        setLoadedCategory(undefined);
+        setLoadedTransportMode(undefined);
         setLoadedBusinessType(undefined);
         setErrorState({
           organizationId: currentOrgId,
           orderId: currentOrderId,
-          category: currentCategory,
+          transportMode: currentTransportMode,
           businessType: currentBusinessType,
           error: err instanceof Error ? err : new Error(String(err)),
         });
@@ -237,7 +239,7 @@ export function useOrderDetailData(
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current &&
         currentOrgId === activeOrgIdRef.current &&
-        currentCategory === activeCategoryRef.current &&
+        currentTransportMode === activeTransportModeRef.current &&
         currentBusinessType === activeBusinessTypeRef.current
       ) {
         setLoading(false);
@@ -245,8 +247,8 @@ export function useOrderDetailData(
     }
   }, [
     businessType,
-    category,
-    config,
+    transportMode,
+    definition,
     isUserLoaded,
     message,
     orderId,
@@ -262,7 +264,7 @@ export function useOrderDetailData(
       organizationId &&
       loadedOrderId === orderId &&
       loadedOrganizationId === organizationId &&
-      loadedCategory === category &&
+      loadedTransportMode === transportMode &&
       loadedBusinessType === businessType,
   );
   const effectiveOrder = isOrderMatched ? order : undefined;
@@ -273,29 +275,29 @@ export function useOrderDetailData(
   const searchLocations = useCallback(
     async (keyword?: string) => {
       const requestOrgId = organizationId;
-      const requestCategory = category;
+      const requestTransportMode = transportMode;
       const requestBusinessType = businessType;
-      if (!requestOrgId || !requestCategory) {
+      if (!requestOrgId || !requestTransportMode) {
         return [];
       }
 
       if (!keyword?.trim()) {
         return activeOrgIdRef.current === requestOrgId &&
-          activeCategoryRef.current === requestCategory &&
+          activeTransportModeRef.current === requestTransportMode &&
           activeBusinessTypeRef.current === requestBusinessType &&
           activeOrderIdRef.current === orderId &&
           loadedOrderId === orderId &&
           loadedOrganizationId === requestOrgId &&
-          loadedCategory === requestCategory &&
+          loadedTransportMode === requestTransportMode &&
           loadedBusinessType === requestBusinessType
           ? locationOptions
           : [];
       }
 
-      const options = await searchOrderLocations(requestCategory, keyword);
+      const options = await searchOrderLocations(requestTransportMode, keyword);
       if (
         activeOrgIdRef.current !== requestOrgId ||
-        activeCategoryRef.current !== requestCategory ||
+        activeTransportModeRef.current !== requestTransportMode ||
         activeBusinessTypeRef.current !== requestBusinessType ||
         activeOrderIdRef.current !== orderId
       ) {
@@ -304,9 +306,9 @@ export function useOrderDetailData(
       return options;
     },
     [
-      category,
+      transportMode,
       businessType,
-      loadedCategory,
+      loadedTransportMode,
       loadedBusinessType,
       loadedOrderId,
       loadedOrganizationId,
@@ -326,16 +328,16 @@ export function useOrderDetailData(
     orderId &&
     errorState?.organizationId === organizationId &&
     errorState.orderId === orderId &&
-    errorState.category === category &&
+    errorState.transportMode === transportMode &&
     errorState.businessType === businessType
       ? errorState.error
       : null);
   const isPending =
-    Boolean(config && orderId && organizationId) &&
+    Boolean(definition && orderId && organizationId) &&
     !isOrderMatched &&
     !effectiveError;
 
-  const effectiveLoading = !config
+  const effectiveLoading = !definition
     ? false
     : isUserLoaded && !organizationId
       ? false

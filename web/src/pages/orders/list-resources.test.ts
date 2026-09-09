@@ -13,12 +13,9 @@ import {
   getCachedPorts,
   getMasterDataOptions,
 } from '@/utils/order-options-cache';
-import {
-  type OrderKindConfig,
-  parseOrderKind,
-  searchOrderLocations,
-} from './common';
+import { searchOrderLocations } from './common';
 import { useOrderListResources } from './list-resources';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 
 let mockCurrentUser: any = {
   id: 'user-1',
@@ -72,7 +69,7 @@ const mockSearchPorts = vi.mocked(masterDataServiceListPorts);
 const mockSearchLocations = vi.mocked(searchOrderLocations);
 const mockSearchPersonnel = vi.mocked(orderServiceListPersonnelOptions);
 
-const seaConfig = parseOrderKind('sea-export') as OrderKindConfig;
+const seaConfig = seaExportDefinition;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return React.createElement(App, null, children);
@@ -169,10 +166,10 @@ describe('useOrderListResources', () => {
   });
 
   it('air 模式按需拉取：仅拉取机场，不拉取港口', async () => {
-    const airConfig: OrderKindConfig = {
+    const airConfig = {
       ...seaConfig,
-      category: 'air',
-    };
+      transportMode: 'air',
+    } as typeof seaConfig;
 
     const { result } = renderHook(() => useOrderListResources(airConfig), {
       wrapper,
@@ -397,9 +394,9 @@ describe('useOrderListResources', () => {
 
     currentConfig = {
       ...seaConfig,
-      category: 'air',
+      transportMode: 'air',
       businessType: seaConfig.businessType + 1,
-    };
+    } as typeof seaConfig;
     rerender();
 
     locationSearch.resolve([

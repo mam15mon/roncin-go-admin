@@ -1044,6 +1044,7 @@ export default function SeaOrderSplitPage() {
       <OrderPageHeader
         page="split"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId={orderId}
         orderNo={splitContext?.orderNo}
         subTitle="支持整单部分拆票、HBL/箱货零误差守恒切分、草稿费用整行归属及多票并行派生"

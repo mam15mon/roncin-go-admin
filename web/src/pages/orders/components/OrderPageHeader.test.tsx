@@ -38,6 +38,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="create"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         subTitle="填写业务委托与配舱信息"
       />,
     );
@@ -63,6 +64,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="detail"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
@@ -85,6 +87,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="fees"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
@@ -114,6 +117,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="split"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
@@ -140,6 +144,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="fees"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-pending-1"
         orderNo={undefined}
       />,
@@ -158,6 +163,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="detail"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
         tags={<span data-testid="test-tag">已锁定</span>}

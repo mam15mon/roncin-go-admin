@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderTerminationStatus } from '@/enums.generated';
-import { ORDER_KIND_CONFIGS } from './common';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { queryOrderList } from './list-query';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
@@ -22,7 +22,7 @@ describe('queryOrderList', () => {
 
     await queryOrderList(
       { numberType, numberKeyword: 'REF-001' },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
       { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
     );
 
@@ -48,7 +48,7 @@ describe('queryOrderList', () => {
         shareStatus: 'unshared',
         tagIds: ['tag-1'],
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
       { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
     );
 
@@ -91,7 +91,7 @@ describe('queryOrderList', () => {
 
     const result = await queryOrderList(
       { page: 1, pageSize: 20 },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
       {
         ports: [
           {

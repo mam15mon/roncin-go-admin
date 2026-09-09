@@ -9,16 +9,16 @@ import {
   fetchOrderMasterData,
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  type OrderKindConfig,
   requireSeaServiceTypeOptions,
   searchOrderLocations,
 } from './common';
+import type { OrderKindDefinition } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
 type CreateOptionsRequestIdentity = {
   organizationId: string;
-  category: OrderKindConfig['category'];
-  businessType: OrderKindConfig['businessType'];
+  transportMode: OrderKindDefinition['transportMode'];
+  businessType: OrderKindDefinition['businessType'];
 };
 
 type CreateOptionsErrorState = CreateOptionsRequestIdentity & {
@@ -26,7 +26,7 @@ type CreateOptionsErrorState = CreateOptionsRequestIdentity & {
 };
 
 /** 新建订单页的主数据与人员候选项加载。 */
-export function useOrderCreateOptions(config?: OrderKindConfig) {
+export function useOrderCreateOptions(definition?: OrderKindDefinition) {
   const { message } = App.useApp();
   const { initialState } = useModel('@@initialState');
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
@@ -57,10 +57,10 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
 
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;
-  const activeCategoryRef = useRef(config?.category);
-  activeCategoryRef.current = config?.category;
-  const activeBusinessTypeRef = useRef(config?.businessType);
-  activeBusinessTypeRef.current = config?.businessType;
+  const activeTransportModeRef = useRef(definition?.transportMode);
+  activeTransportModeRef.current = definition?.transportMode;
+  const activeBusinessTypeRef = useRef(definition?.businessType);
+  activeBusinessTypeRef.current = definition?.businessType;
   const requestIdRef = useRef(0);
 
   const retry = useCallback(() => {
@@ -73,7 +73,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
   }, [organizationId]);
 
   useEffect(() => {
-    if (!config) {
+    if (!definition) {
       requestIdRef.current += 1;
       setLoadedIdentity(null);
       setLoading(false);
@@ -99,36 +99,36 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
 
     const currentRequestId = ++requestIdRef.current;
     const currentOrgId = organizationId;
-    const currentCategory = config.category;
-    const currentBusinessType = config.businessType;
+    const currentTransportMode = definition.transportMode;
+    const currentBusinessType = definition.businessType;
     setLoading(true);
     setErrorState(null);
 
     Promise.all([
-      fetchOrderMasterData(organizationId, config.category),
-      config.category === 'sea'
-        ? getOrderPersonnelOptions(organizationId, config.businessType)
+      fetchOrderMasterData(organizationId, definition.transportMode),
+      definition.transportMode === 'sea'
+        ? getOrderPersonnelOptions(organizationId, definition.businessType)
         : Promise.resolve([]),
     ])
       .then(([masterData, personnelResponse]) => {
         if (
           currentRequestId !== requestIdRef.current ||
           currentOrgId !== activeOrgIdRef.current ||
-          currentCategory !== activeCategoryRef.current ||
+          currentTransportMode !== activeTransportModeRef.current ||
           currentBusinessType !== activeBusinessTypeRef.current
         ) {
           return;
         }
 
         const nextServiceTypeOptions =
-          config.category === 'sea'
+          definition.transportMode === 'sea'
             ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
             : masterData.serviceTypeOptions;
 
         setServiceTypeOptions(nextServiceTypeOptions);
         setCargoCategoryOptions(masterData.cargoCategoryOptions);
         setLocationOptions(
-          config.category === 'sea'
+          definition.transportMode === 'sea'
             ? masterData.seaLocationOptions
             : masterData.airLocationOptions,
         );
@@ -151,7 +151,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
         setPersonnelOptions(personnelResponse);
         setLoadedIdentity({
           organizationId: currentOrgId,
-          category: currentCategory,
+          transportMode: currentTransportMode,
           businessType: currentBusinessType,
         });
         setErrorState(null);
@@ -160,7 +160,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
         if (
           currentRequestId !== requestIdRef.current ||
           currentOrgId !== activeOrgIdRef.current ||
-          currentCategory !== activeCategoryRef.current ||
+          currentTransportMode !== activeTransportModeRef.current ||
           currentBusinessType !== activeBusinessTypeRef.current
         ) {
           return;
@@ -168,7 +168,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
         setLoadedIdentity(null);
         setErrorState({
           organizationId: currentOrgId,
-          category: currentCategory,
+          transportMode: currentTransportMode,
           businessType: currentBusinessType,
           error: err,
         });
@@ -178,47 +178,51 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
         if (
           currentRequestId === requestIdRef.current &&
           currentOrgId === activeOrgIdRef.current &&
-          currentCategory === activeCategoryRef.current &&
+          currentTransportMode === activeTransportModeRef.current &&
           currentBusinessType === activeBusinessTypeRef.current
         ) {
           setLoading(false);
         }
       });
-  }, [config, isUserLoaded, message, organizationId, reloadKey]);
+  }, [definition, isUserLoaded, message, organizationId, reloadKey]);
 
   const isIdentityMatched = Boolean(
     organizationId &&
-      config &&
+      definition &&
       loadedIdentity?.organizationId === organizationId &&
-      loadedIdentity.category === config.category &&
-      loadedIdentity.businessType === config.businessType,
+      loadedIdentity.transportMode === definition.transportMode &&
+      loadedIdentity.businessType === definition.businessType,
   );
   const effectiveLocationOptions = isIdentityMatched ? locationOptions : [];
 
   const searchLocations = useCallback(
     async (keyword?: string) => {
       const requestOrgId = organizationId;
-      const requestCategory = config?.category;
-      const requestBusinessType = config?.businessType;
-      if (!requestOrgId || !requestCategory || requestBusinessType == null) {
+      const requestTransportMode = definition?.transportMode;
+      const requestBusinessType = definition?.businessType;
+      if (
+        !requestOrgId ||
+        !requestTransportMode ||
+        requestBusinessType == null
+      ) {
         return [];
       }
 
       if (!keyword?.trim()) {
         return activeOrgIdRef.current === requestOrgId &&
-          activeCategoryRef.current === requestCategory &&
+          activeTransportModeRef.current === requestTransportMode &&
           activeBusinessTypeRef.current === requestBusinessType &&
           loadedIdentity?.organizationId === requestOrgId &&
-          loadedIdentity.category === requestCategory &&
+          loadedIdentity.transportMode === requestTransportMode &&
           loadedIdentity.businessType === requestBusinessType
           ? locationOptions
           : [];
       }
 
-      const options = await searchOrderLocations(requestCategory, keyword);
+      const options = await searchOrderLocations(requestTransportMode, keyword);
       if (
         activeOrgIdRef.current !== requestOrgId ||
-        activeCategoryRef.current !== requestCategory ||
+        activeTransportModeRef.current !== requestTransportMode ||
         activeBusinessTypeRef.current !== requestBusinessType
       ) {
         return [];
@@ -226,8 +230,8 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
       return options;
     },
     [
-      config?.businessType,
-      config?.category,
+      definition?.businessType,
+      definition?.transportMode,
       loadedIdentity,
       locationOptions,
       organizationId,
@@ -241,13 +245,13 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
   const effectiveError =
     missingOrgError ||
     (organizationId &&
-    config &&
+    definition &&
     errorState?.organizationId === organizationId &&
-    errorState.category === config.category &&
-    errorState.businessType === config.businessType
+    errorState.transportMode === definition.transportMode &&
+    errorState.businessType === definition.businessType
       ? errorState.error
       : null);
-  const effectiveLoading = !config
+  const effectiveLoading = !definition
     ? false
     : isUserLoaded && !organizationId
       ? false
