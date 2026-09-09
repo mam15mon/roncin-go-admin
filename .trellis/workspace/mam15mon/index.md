@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 43
+- **Total Sessions**: 44
 - **Last Active**: 2026-09-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1144 | Active |
+| `journal-1.md` | ~1167 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 44 | 2026-09-09 | 订单类型注册薄底座最终复核与收尾 | `89bcdd77`, `83024e4e` | `main` |
 | 43 | 2026-09-09 | 收拢订单模板草稿生命周期 | `f95cccc5`, `66fad7df`, `12b2c3da`, `6ee5cc1b`, `752475b5`, `1216d858`, `9f5168b6`, `76348514`, `f264a215` | `main` |
 | 42 | 2026-09-09 | 清理订单草稿冗余防御代码 | `823be6d8`, `917f460b` | `main` |
 | 41 | 2026-09-09 | 落地多组织快速上线薄底座 | `1c8dfc1c`, `67c81115`, `327789ef`, `5ed5bc17`, `b3ca41ee`, `6c67e1a1`, `cfb8cb82`, `ff2c955b`, `aed9f0af`, `d4349040`, `721d2ff7`, `aa2f9dec` | `main` |

@@ -1142,3 +1142,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 44: 订单类型注册薄底座最终复核与收尾
+<!-- trellis-session: v=2 fp=8f94463a5793ba4f -->
+
+**Date**: 2026-09-09
+**Task**: 订单类型注册薄底座最终复核与收尾
+**Branch**: `main`
+
+### Summary
+
+使用 gpt-5.6-terra 完成列表资源统一 fail-closed、多维身份竞态门禁与 receivedAt 测试补强；独立复核无阻断项，更新 Hook 规范，最终 check:web 98 个测试文件 488 个用例通过并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `89bcdd77` | fix(web): 列表资源统一 fail-closed 与组织加运输方式身份 |
+| `83024e4e` | docs(spec): 记录订单资源多维身份边界 |
+
+### Status
+
+[OK] **Completed**
