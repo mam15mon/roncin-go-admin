@@ -482,6 +482,47 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
   });
 
+  it('同一订单连点两次刷新数据时，旧刷新的迟到完成不重置新输入', async () => {
+    const firstLoad = deferred<void>();
+    const secondLoad = deferred<void>();
+    detailTestState.loadData
+      .mockImplementationOnce(() => firstLoad.promise)
+      .mockImplementationOnce(() => secondLoad.promise);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const refreshBtn = screen.getByText('刷新数据');
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
+
+    // 旧刷新（第一次）迟到完成：不得触发 resetTo
+    await act(async () => {
+      firstLoad.resolve();
+    });
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: '刷新间隙输入' },
+    });
+    expect(templateLifecycleState.internalDirty).toBe(true);
+
+    // 最新刷新（第二次）完成：才按显式刷新语义回填服务端值
+    await act(async () => {
+      secondLoad.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('服务端初始值');
+      expect(templateLifecycleState.internalDirty).toBe(false);
+    });
+  });
+
   it('A 的显式刷新在导航到 B 后完成时，不得重置 B 的表单与 dirty', async () => {
     const pendingLoad = deferred<void>();
     detailTestState.loadData.mockImplementationOnce(() => pendingLoad.promise);

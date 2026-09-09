@@ -99,6 +99,8 @@ export default function OrderDetailPage() {
   const pendingExplicitFormRefreshRef = useRef<{
     identity: string;
   } | null>(null);
+  // 同一订单连续发起刷新时用单调序号丢弃旧刷新的迟到完成。
+  const explicitRefreshSeqRef = useRef(0);
   const [explicitFormRefreshVersion, setExplicitFormRefreshVersion] =
     useState(0);
 
@@ -270,8 +272,12 @@ export default function OrderDetailPage() {
   const refreshOrderDataAndResetForm = useCallback(async () => {
     const requestedIdentity = orderFormIdentity;
     if (!requestedIdentity) return;
+    const seq = ++explicitRefreshSeqRef.current;
     try {
       await loadData();
+      // 已有更新的刷新发起时，本次旧刷新的迟到完成直接丢弃，
+      // 不得回填并覆盖用户在新刷新之后输入的内容。
+      if (seq !== explicitRefreshSeqRef.current) return;
       // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
       pendingExplicitFormRefreshRef.current = { identity: requestedIdentity };
       setExplicitFormRefreshVersion((version) => version + 1);
