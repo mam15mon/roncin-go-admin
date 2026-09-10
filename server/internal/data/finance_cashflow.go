@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	financeverification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	partner "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -43,6 +44,9 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 	}
 	if f.Currency != "" {
 		p = append(p, cash.CurrencyEQ(f.Currency))
+	}
+	if f.OnlyUnverified {
+		p = append(p, cashflowUnverifiedPredicate())
 	}
 	client, clientErr := r.data.client(ctx)
 	if clientErr != nil {
@@ -177,6 +181,26 @@ func (r *financeCashflowRepo) enrichVerificationAmounts(ctx context.Context, cas
 	}
 	return nil
 }
+
+// cashflowUnverifiedPredicate 是资金流水「未核销完」的 SQL 侧定义：
+// 流水金额 > 有效核销分摊合计（allocation active 且父核销单 ACTIVE，原值比较，不钳负）。
+// 展示侧的等价定义在 enrichVerificationAmounts（UnverifiedAmount 负值钳零），两处口径须同步维护。
+// 谓词必须进入 Count 与分页 Query 的共用条件，保证候选过滤发生在 LIMIT 之前。
+func cashflowUnverifiedPredicate() predicate.FinanceCashflow {
+	return func(selector *entsql.Selector) {
+		cashflowID := selector.C(cash.FieldID)
+		amount := selector.C(cash.FieldAmount)
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			builder.WriteString("(")
+			builder.Ident(amount)
+			builder.WriteString(" > COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.cashflow_id = ")
+			builder.Ident(cashflowID)
+			builder.WriteString(" AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
+			builder.WriteString("), 0))")
+		}))
+	}
+}
+
 func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCashflow, error) {
 	client, clientErr := r.data.client(ctx)
 	if clientErr != nil {

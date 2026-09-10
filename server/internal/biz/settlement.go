@@ -59,17 +59,20 @@ type FeeLedgerItem struct {
 	FinanceLocked     bool
 }
 
-func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount decimal.Decimal) FeeLedgerFinancialProgress {
+// ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。
+// settledAmount 是「有效结清金额」：有效核销分摊（allocation active 且核销单 ACTIVE）
+// 加有效对冲分摊（allocation active 且对冲单 CONFIRMED）；对外状态枚举保持既有契约不变。
+func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, settledAmount decimal.Decimal) FeeLedgerFinancialProgress {
 	if !hasBill {
 		return FeeLedgerUnbilled
 	}
-	if verifiedAmount.LessThanOrEqual(decimal.Zero) {
+	if settledAmount.LessThanOrEqual(decimal.Zero) {
 		if invoiced {
 			return FeeLedgerInvoicedUnverified
 		}
 		return FeeLedgerUnverifiedUninvoiced
 	}
-	if verifiedAmount.LessThan(billAmount) {
+	if settledAmount.LessThan(billAmount) {
 		if invoiced {
 			return FeeLedgerInvoicedPartiallyVerified
 		}

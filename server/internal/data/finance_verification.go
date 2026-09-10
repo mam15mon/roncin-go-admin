@@ -140,6 +140,8 @@ func (r *verificationRepo) LoadCashflowContextScoped(ctx context.Context, organi
 }
 
 // ListCreationCandidates 复用账单和资金流水仓储的组织谓词与有效核销余额计算。
+// 未结清/未核销过滤下推到数据库（OnlyUnsettled / OnlyUnverified），保证发生在 LIMIT 之前，
+// 避免前列记录全部已结清时未结清候选被截断；Go 层保留防御性余额检查。
 // 候选只服务于工作台体验；创建事务仍会重新读取并加锁校验所有来源。
 func (r *verificationRepo) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.VerificationCreationCandidates, error) {
 	cashflowResult, err := (&financeCashflowRepo{data: r.data}).ListScoped(ctx, []uuid.UUID{organizationID}, biz.FinanceCashflowFilter{
@@ -149,6 +151,7 @@ func (r *verificationRepo) ListCreationCandidates(ctx context.Context, organizat
 		Status:            biz.FinanceCashflowConfirmed,
 		SettlementPartyID: &filter.SettlementPartyID,
 		Currency:          filter.Currency,
+		OnlyUnverified:    true,
 	})
 	if err != nil {
 		return nil, err
@@ -160,6 +163,7 @@ func (r *verificationRepo) ListCreationCandidates(ctx context.Context, organizat
 		Status:            biz.FinanceBillConfirmed,
 		SettlementPartyID: &filter.SettlementPartyID,
 		Currency:          filter.Currency,
+		OnlyUnsettled:     true,
 	})
 	if err != nil {
 		return nil, err

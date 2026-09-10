@@ -53,6 +53,9 @@ type FinanceCashflowFilter struct {
 	Status            FinanceCashflowStatus
 	SettlementPartyID *uuid.UUID
 	Currency          string
+	// OnlyUnverified 是仅供仓储内部使用的过滤条件（核销候选）：由数据库按
+	// 「流水金额 > 有效核销分摊合计」在分页前过滤，不进入公共 API 契约。
+	OnlyUnverified bool
 }
 type FinanceCashflowListResult struct {
 	Items   []*FinanceCashflow
