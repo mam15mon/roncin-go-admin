@@ -41,3 +41,29 @@ export const invoiceStateText = (
     invoiceStates[status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT];
   return state?.text ?? '';
 };
+
+// 草稿「取消」与已开票「作废」是两个语义不同的终态操作，确认文案不得混用。
+export const invoiceDraftCancelTitle = (
+  direction: string | undefined,
+  organizationName?: string,
+): string =>
+  `取消 ${organizationName || '所属公司未标识'} 的${invoiceRecordNoun(direction)}草稿并释放关联账单？`;
+
+export const invoiceVoidTitle = (
+  direction: string | undefined,
+  organizationName?: string,
+): string =>
+  `作废 ${organizationName || '所属公司未标识'} 的已${invoiceIssueVerb(direction)}发票并释放关联账单？`;
+
+export const invoiceDraftCancelDescription =
+  '取消草稿并释放关联账单，取消后不可恢复。';
+
+// 系统不判断税期：作废只允许在已满足线下税务条件时由操作者确认执行。
+export const invoiceVoidTaxConditionNotice =
+  '仅当已于线下税控/开票系统完成作废或满足当期作废条件时才能执行；系统不判断税期，不会代替线下税务判断。作废后关联账单将被释放且不可恢复。';
+
+export const invoiceCancelSuccessText = (direction?: string): string =>
+  `${invoiceRecordNoun(direction)}草稿已取消，关联账单已释放`;
+
+export const invoiceVoidSuccessText = (direction?: string): string =>
+  `${invoiceRecordNoun(direction)}已作废，关联账单已释放`;

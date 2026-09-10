@@ -30,7 +30,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
-import { makeVersionActions } from '@/utils/versionActions';
+import InvoiceCancelModal from './components/InvoiceCancelModal';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
 import {
@@ -38,11 +38,12 @@ import {
   InvoiceRedFlushModal,
 } from './components/InvoiceIssueAndRedFlushModals';
 import {
-  invoiceRecordNoun,
+  invoiceCancelSuccessText,
   invoiceIssueActionText,
   invoiceStateText,
   invoiceStates,
   isReceivableInvoice,
+  invoiceVoidSuccessText,
 } from './components/invoiceConstants';
 
 type CreateValues = {
@@ -56,17 +57,20 @@ type RedFlushValues = {
   redInvoiceDate: Dayjs;
   reason: string;
 };
+type CancelValues = { reason: string };
 
 export default function FinanceInvoicesPage() {
   const access = useAccess();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [createForm] = Form.useForm<CreateValues>();
   const [issueForm] = Form.useForm<IssueValues>();
   const [redFlushForm] = Form.useForm<RedFlushValues>();
+  const [cancelForm] = Form.useForm<CancelValues>();
   const [createOpen, setCreateOpen] = useState(false);
   const [issueTarget, setIssueTarget] = useState<API.FinanceInvoice>();
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
+  const [cancelTarget, setCancelTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -93,10 +97,6 @@ export default function FinanceInvoicesPage() {
       .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
       .join(' / ') || '-';
   const reload = () => actionRef.current?.reload();
-  const invoiceActions = makeVersionActions<API.FinanceInvoice>({
-    modal,
-    message,
-  });
 
   const showDetail = async (row: API.FinanceInvoice) => {
     if (!row.id) return;
@@ -170,24 +170,32 @@ export default function FinanceInvoicesPage() {
     }
   };
 
-  const cancelInvoice = (row: API.FinanceInvoice) => {
-    invoiceActions.confirm(
-      row,
-      `取消 ${row.organizationName || '所属公司未标识'} 的${invoiceRecordNoun(row.direction)}并释放账单？`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceCancelInvoice(
-          { id },
-          { id, expectedVersion, reason },
-        );
-        message.success(`${invoiceRecordNoun(row.direction)}已取消，账单已释放`);
-        reload();
-      },
-      {
-        danger: true,
-        placeholder: '请输入取消原因（必填）',
-        requiredMessage: '请输入取消原因',
-      },
-    );
+  const cancelInvoice = async () => {
+    if (!cancelTarget?.id || !cancelTarget.version) return;
+    const issued =
+      cancelTarget.status ===
+      FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED;
+    const values = await cancelForm.validateFields();
+    setSubmitting(true);
+    try {
+      await settlementServiceCancelInvoice(
+        { id: cancelTarget.id },
+        { id: cancelTarget.id, expectedVersion: cancelTarget.version, reason: values.reason },
+      );
+      message.success(
+        issued
+          ? invoiceVoidSuccessText(cancelTarget.direction)
+          : invoiceCancelSuccessText(cancelTarget.direction),
+      );
+      setCancelTarget(undefined);
+      reload();
+    } catch (error: any) {
+      message.error(
+        error.message || (issued ? '作废发票失败' : '取消开票记录失败'),
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const redFlushInvoice = async () => {
@@ -393,12 +401,15 @@ export default function FinanceInvoicesPage() {
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
-        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_CANCELLED &&
-        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_RED_FLUSHED ? (
+        (r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ||
+          r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED) ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}
-            onClick={() => cancelInvoice(r)}
+            onClick={() => {
+              cancelForm.resetFields();
+              setCancelTarget(r);
+            }}
           >
             <CloseCircleOutlined />{' '}
             {r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
@@ -532,6 +543,15 @@ export default function FinanceInvoicesPage() {
         redFlushForm={redFlushForm}
         onCancel={() => setRedFlushTarget(undefined)}
         onOk={redFlushInvoice}
+      />
+
+      <InvoiceCancelModal
+        open={Boolean(cancelTarget)}
+        submitting={submitting}
+        cancelForm={cancelForm}
+        cancelTarget={cancelTarget}
+        onCancel={() => setCancelTarget(undefined)}
+        onOk={cancelInvoice}
       />
 
       <InvoiceDetailDrawer

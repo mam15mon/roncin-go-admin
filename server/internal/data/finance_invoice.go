@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -338,6 +339,58 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 	return r.Get(ctx, org, id)
 }
 
+// lockAndReleaseInvoiceActiveBills 释放发票活动账单关联并推进账单版本，供 Cancel/RedFlush 共用。
+// 发票状态判断不在此辅助内：调用方必须在 Invoice FOR UPDATE 并完成权威状态校验后调用。
+// 锁序固定为 Invoice → 按 ID 排序的活动 FinanceInvoiceBill → 按 UUID 升序的 FinanceBill FOR UPDATE；
+// 释放活动关联后每张受影响账单 version 恰好递增一次，任一步失败由外层事务整体回滚。
+func lockAndReleaseInvoiceActiveBills(ctx context.Context, tx *ent.Tx, org, invoiceID uuid.UUID) error {
+	links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(invoiceID), financeinvoicebillent.ActiveEQ(true)).Order(financeinvoicebillent.ByID()).ForUpdate().All(ctx)
+	if queryErr != nil {
+		return queryErr
+	}
+	if len(links) == 0 {
+		return biz.ErrFinanceInvoiceInvalidTransition
+	}
+	billIDs := make([]uuid.UUID, 0, len(links))
+	seen := make(map[uuid.UUID]struct{}, len(links))
+	for _, link := range links {
+		if _, ok := seen[link.BillID]; ok {
+			continue
+		}
+		seen[link.BillID] = struct{}{}
+		billIDs = append(billIDs, link.BillID)
+	}
+	sort.Slice(billIDs, func(i, j int) bool { return billIDs[i].String() < billIDs[j].String() })
+	bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(billIDs...)).Order(financebillent.ByID()).ForUpdate().All(ctx)
+	if queryErr != nil {
+		return queryErr
+	}
+	if len(bills) != len(billIDs) {
+		return biz.ErrFinanceInvoiceBillInvalid
+	}
+	for _, bill := range bills {
+		if bill.OrganizationID != org || bill.Status != financebillent.StatusCONFIRMED {
+			return biz.ErrFinanceInvoiceBillInvalid
+		}
+	}
+	released, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(invoiceID), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx)
+	if updateErr != nil {
+		return updateErr
+	}
+	if released != len(links) {
+		return biz.ErrFinanceInvoiceBillInvalid
+	}
+	// 释放关联后推进账单版本，使携带旧版本号的并发账单操作以 409 冲突失败。
+	affected, updateErr := tx.FinanceBill.Update().Where(financebillent.IDIn(billIDs...)).AddVersion(1).Save(ctx)
+	if updateErr != nil {
+		return updateErr
+	}
+	if affected != len(billIDs) {
+		return biz.ErrFinanceInvoiceBillInvalid
+	}
+	return nil
+}
+
 func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
@@ -347,18 +400,12 @@ func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUI
 		if item.Version != version {
 			return biz.ErrFinanceInvoiceVersionConflict
 		}
-		if item.Status == financeinvoiceent.StatusCANCELLED {
+		// CANCELLED 与 RED_FLUSHED 均为终态；只有 DRAFT（取消草稿）与 ISSUED（作废已开票发票）允许取消。
+		if item.Status != financeinvoiceent.StatusDRAFT && item.Status != financeinvoiceent.StatusISSUED {
 			return biz.ErrFinanceInvoiceInvalidTransition
 		}
-		links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if len(links) == 0 {
-			return biz.ErrFinanceInvoiceInvalidTransition
-		}
-		if _, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
-			return updateErr
+		if releaseErr := lockAndReleaseInvoiceActiveBills(ctx, tx, org, id); releaseErr != nil {
+			return releaseErr
 		}
 		now := time.Now()
 		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
@@ -381,6 +428,7 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		if item.Version != version {
 			return biz.ErrFinanceInvoiceVersionConflict
 		}
+		// 红冲只允许 ISSUED；DRAFT 未开票、CANCELLED 与 RED_FLUSHED 为终态。
 		if item.Status != financeinvoiceent.StatusISSUED {
 			return biz.ErrFinanceInvoiceInvalidTransition
 		}
@@ -391,15 +439,8 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		if duplicate {
 			return biz.ErrFinanceInvoiceRedNoExists
 		}
-		links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if len(links) == 0 {
-			return biz.ErrFinanceInvoiceInvalidTransition
-		}
-		if _, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
-			return updateErr
+		if releaseErr := lockAndReleaseInvoiceActiveBills(ctx, tx, org, id); releaseErr != nil {
+			return releaseErr
 		}
 		now := time.Now()
 		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
