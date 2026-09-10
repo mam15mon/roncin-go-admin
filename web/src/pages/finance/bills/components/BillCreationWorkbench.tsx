@@ -418,7 +418,7 @@ export default function BillCreationWorkbench({
     const initialIds = initialFeeKey
       ? initialFeeKey.split('|').filter(Boolean)
       : [];
-    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${open ? 'open' : 'closed'}`;
+    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${groupingMode}:${open ? 'open' : 'closed'}`;
     let cancelled = false;
     if (previewInitKeyRef.current === initKey) {
       const pending = previewPendingRef.current;
@@ -479,7 +479,7 @@ export default function BillCreationWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [open, initialFeeKey, initialOrganizationId]);
+  }, [open, initialFeeKey, initialOrganizationId, groupingMode]);
 
   const invalidatePreview = useCallback(() => {
     if (previewTimerRef.current) {
