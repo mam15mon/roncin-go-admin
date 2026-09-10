@@ -177,3 +177,20 @@
 - `web/types/**`
 
 除非先修改契约源并执行正式生成流程。
+
+## 7. 最终验收记录（2026-09-11）
+
+- trellis-check 全量复核：**通过**——12 个需求 ID（ORD-01~04、FIN-01~03、INV-01~02、
+  ACC-01/03/04）全部有代码与测试证据；阶段间交互四项裁定成立
+  （31 处门禁调用点逐一核对无意外语义变化；结清双口径在真实流转下等价；
+  发票释放锁序无反向等待；administrator 例外全仓无残留）。
+- 阶段五门禁：`go test ./...`（含 RONCIN_INTEGRATION_DATABASE_SOURCE 集成全集，
+  干净环境）18 包 ok / 0 FAIL；`go vet` 通过；`buf lint` 通过；`govulncheck` 0 可达漏洞；
+  `check:web` 在提交时点状态通过（admin/invoices 定向 vitest 38+11 用例复核通过）。
+- 过程中修复的存量缺陷：海运航程冲突校验时区不一致（22d7debb，触发场景测试 a687ba2c），
+  此前被集成测试静默 SKIP 掩盖——后续全量门禁应带集成环境变量执行。
+- 遗留记录（P3，不阻断）：①未结清/未核销两套 SQL 口径（联不联父单据状态）靠
+  「状态翻转必同事务翻转 allocation」不变量保持等价，建议后续统一；
+  ②展示侧 ETD/ETA 日期格式化未统一 UTC/业务时区，存在展示日偏移的理论风险；
+  ③门禁命令 `set -a && source .env.local` 会污染 TestProductionConfigUsesSafeDefaults
+  等配置安全测试，跑门禁时只应注入必要变量。
