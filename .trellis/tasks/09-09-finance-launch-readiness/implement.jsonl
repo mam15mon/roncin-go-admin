@@ -3,6 +3,7 @@
 {"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、Data.client、稳定加锁、版本和唯一约束"}
 {"file":".trellis/spec/server/backend/error-handling.md","reason":"混合方向、缺汇率、超额分摊和越权错误语义"}
 {"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端定向测试、集成测试与生成验证"}
+{"file":".trellis/spec/server/backend/finance-bill-currency.md","reason":"普通账单固定费用币种边界、账单日汇率和预计开票快照的跨层契约"}
 {"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"批量建账工作台层级导航与表单组件职责"}
 {"file":".trellis/spec/web/frontend/state-management.md","reason":"按 group_key 保存叶子配置及异步预览失效边界"}
 {"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成 API 类型和财务表单类型约束"}

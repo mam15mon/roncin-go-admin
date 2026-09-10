@@ -12,6 +12,7 @@
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
+| [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率与预计开票快照 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |
@@ -29,6 +30,7 @@
 7. 单改、作废或 Switch 是否先 Preview、锁内重算，并保留不可变历史与财务门禁。
 8. 跨组织访问是否按具体权限筛选角色、保留权限与组织范围来源绑定，并在仓储查询中
    显式应用实体 ID 与允许组织集合。
+9. 普通账单是否始终按费用币种拆分，契约中不存在关闭分币种、目标账单币种或跨币种人工折算旁路。
 
 ## Quality Check
 
