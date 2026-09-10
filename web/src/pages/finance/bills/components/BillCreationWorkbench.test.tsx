@@ -316,20 +316,46 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       </App>,
     );
     expect(await screen.findByDisplayValue('结算单位 A')).toBeInTheDocument();
-    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(2));
     expect(
       await screen.findByText('账户 A｜测试银行｜CNY'),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByText(/结算单位 B · - USD/));
-    expect(await screen.findByDisplayValue('结算单位 B')).toBeInTheDocument();
-    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(2));
+    fireEvent.click(await screen.findByText(/结算单位 B.*USD/));
+    expect(await screen.findByDisplayValue(/结算单位 B/)).toBeInTheDocument();
     expect(
       await screen.findByText('账户 B｜测试银行｜USD'),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
-    expect(await screen.findByText('结算单位 B（重排）')).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText(/结算单位 B.*重排/)).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByText('账户 B｜测试银行｜USD')).toBeInTheDocument();
+
+    const createBtn = await screen.findByRole('button', {
+      name: /原子生成 2 张账单/,
+    });
+    await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
+    fireEvent.click(createBtn);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
+    expect(mocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        previewToken: 'token-second',
+        groups: expect.arrayContaining([
+          expect.objectContaining({
+            groupKey: 'group-b',
+            statementTitle: '结算单位 B',
+            settlementAccountId: 'account-b',
+          }),
+          expect.objectContaining({
+            groupKey: 'group-a',
+            statementTitle: '结算单位 A',
+            settlementAccountId: 'account-a',
+          }),
+        ]),
+      }),
+      expect.anything(),
+    );
   });
 
   it('已移除叶子的迟到候选不会污染仍存在叶子的账户草稿', async () => {

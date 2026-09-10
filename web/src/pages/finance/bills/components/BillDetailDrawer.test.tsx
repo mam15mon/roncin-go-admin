@@ -30,4 +30,27 @@ describe('BillDetailDrawer 结算账户快照', () => {
     expect(screen.getByText('62220001')).toBeInTheDocument();
     expect(screen.getByText('TESTCNBJ')).toBeInTheDocument();
   });
+
+  it('展示固化的预计开票币种、预计开票汇率和预计开票金额', () => {
+    render(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={vi.fn()}
+        detail={{
+          id: 'bill-2',
+          billNo: 'BILL-2',
+          currency: 'USD',
+          totalAmount: '100.00000000',
+          estimatedInvoiceCurrency: 'CNY',
+          estimatedInvoiceRate: '7.12345679',
+          estimatedInvoiceAmount: '712.34567900',
+          lines: [],
+        }}
+      />,
+    );
+    expect(screen.getByText('CNY')).toBeInTheDocument();
+    expect(screen.getByText('7.12345679')).toBeInTheDocument();
+    expect(screen.getByText('712.34567900 CNY')).toBeInTheDocument();
+  });
 });

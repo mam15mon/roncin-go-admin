@@ -135,6 +135,17 @@ export default function BillDetailDrawer({
           <Descriptions.Item label="费用笔数">
             {detail.feeCount} 笔
           </Descriptions.Item>
+          <Descriptions.Item label="预计开票币种">
+            {detail.estimatedInvoiceCurrency || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="预计开票汇率">
+            {detail.estimatedInvoiceRate || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="预计开票金额">
+            {detail.estimatedInvoiceAmount
+              ? `${detail.estimatedInvoiceAmount} ${detail.estimatedInvoiceCurrency || ''}`.trim()
+              : '-'}
+          </Descriptions.Item>
           <DItem label="备注" span={3}>
             {detail.note}
           </DItem>

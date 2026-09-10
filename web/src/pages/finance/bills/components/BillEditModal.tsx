@@ -197,6 +197,14 @@ export default function BillEditModal({
                           '预计开票币种与账单币种不同时必须填写预计开票汇率',
                         );
                       }
+                      if (normalizedRate) {
+                        const num = Number(normalizedRate);
+                        if (Number.isNaN(num) || num <= 0) {
+                          throw new Error(
+                            '预计开票汇率必须为大于 0 的有效数字',
+                          );
+                        }
+                      }
                       if (
                         estimatedCurrency === billCurrency &&
                         normalizedRate &&

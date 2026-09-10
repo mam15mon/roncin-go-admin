@@ -255,6 +255,10 @@ export default function BillCreationWorkbench({
       policyOverride?: API.BillGroupingPolicy,
       organizationIdOverride?: string,
     ) => {
+      if (previewTimerRef.current) {
+        clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = undefined;
+      }
       const ids = overrideIds ?? selectedIdsRef.current;
       const requestedOrganizationId =
         organizationIdOverride ?? organizationIdRef.current;
@@ -340,7 +344,9 @@ export default function BillCreationWorkbench({
               estimatedInvoiceCurrency:
                 existing.estimatedInvoiceCurrency !== undefined
                   ? existing.estimatedInvoiceCurrency
-                  : group.estimatedInvoiceCurrency || group.currency || undefined,
+                  : group.estimatedInvoiceCurrency ||
+                    group.currency ||
+                    undefined,
               estimatedInvoiceRate:
                 existing.estimatedInvoiceRate !== undefined
                   ? existing.estimatedInvoiceRate
@@ -371,16 +377,18 @@ export default function BillCreationWorkbench({
         }
         return false;
       } finally {
-        if (
-          requestToken === previewRequestTokenRef.current &&
-          requestFingerprint === previewFingerprintRef.current
-        ) {
+        if (requestToken === previewRequestTokenRef.current) {
           setLoading(false);
         }
       }
     },
     [form, message, sessionIdentity],
   );
+
+  const loadPreviewRef = useRef(loadPreview);
+  useEffect(() => {
+    loadPreviewRef.current = loadPreview;
+  }, [loadPreview]);
 
   // 初始化或当从业务页面进入时，自动快速预览并直达账单资料页
   useEffect(() => {
@@ -433,7 +441,7 @@ export default function BillCreationWorkbench({
 
     if (initialIds.length > 0 && initialOrganizationId) {
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
-      const previewPromise = loadPreview(
+      const previewPromise = loadPreviewRef.current(
         initialIds,
         {
           mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
@@ -458,12 +466,17 @@ export default function BillCreationWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [open, initialFeeKey, initialOrganizationId, form, loadPreview]);
+  }, [open, initialFeeKey, initialOrganizationId]);
 
   const invalidatePreview = useCallback(() => {
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = undefined;
+    }
     previewRequestTokenRef.current += 1;
     previewFingerprintRef.current = '';
     previewTokenFingerprintRef.current = '';
+    setLoading(false);
     setPreview((currentPreview) =>
       currentPreview
         ? { ...currentPreview, previewToken: undefined }
@@ -540,7 +553,10 @@ export default function BillCreationWorkbench({
       (group) =>
         !group.groupKey ||
         group.configurationComplete === false ||
-        !isGroupComplete(currentValues.groups?.[group.groupKey]),
+        !isGroupComplete(
+          currentValues.groups?.[group.groupKey],
+          group.currency,
+        ),
     );
     if (firstInvalidGroup?.groupKey) {
       setActiveGroupKey(firstInvalidGroup.groupKey);
@@ -559,12 +575,21 @@ export default function BillCreationWorkbench({
     let values: WorkbenchFormValue;
     try {
       values = await form.validateFields();
-    } catch {
+    } catch (errorInfo: any) {
+      const firstErrorField = errorInfo?.errorFields?.[0]?.name;
+      if (
+        Array.isArray(firstErrorField) &&
+        firstErrorField[0] === 'groups' &&
+        firstErrorField[1]
+      ) {
+        setActiveGroupKey(String(firstErrorField[1]));
+      }
       message.warning('请为每张拟生成账单补齐必填资料和结算账户');
       return;
     }
     setLoading(true);
     try {
+      const allFormValues = form.getFieldsValue(true) as WorkbenchFormValue;
       const response = await settlementServiceCreateBillBatch(
         {
           feeIds: selectedIds,
@@ -577,9 +602,16 @@ export default function BillCreationWorkbench({
           idempotencyKey,
           organizationId,
           groups: preview.data.map((group) => {
-            const value = values.groups[group.groupKey || ''];
+            const groupKey = group.groupKey || '';
+            const value =
+              values?.groups?.[groupKey] || allFormValues.groups?.[groupKey];
+            if (!value) {
+              throw new Error(
+                `账单组 ${group.settlementPartyName || groupKey} 缺少配置数据`,
+              );
+            }
             return {
-              groupKey: group.groupKey || '',
+              groupKey,
               statementTitle: value.statementTitle.trim(),
               billDate: value.billDate.format('YYYY-MM-DD'),
               paymentTermsDays: value.paymentTermsDays,
@@ -587,7 +619,8 @@ export default function BillCreationWorkbench({
               settlementAccountId: value.settlementAccountId || '',
               estimatedInvoiceCurrency:
                 value.estimatedInvoiceCurrency || undefined,
-              estimatedInvoiceRate: value.estimatedInvoiceRate || undefined,
+              estimatedInvoiceRate:
+                value.estimatedInvoiceRate?.trim() || undefined,
             };
           }),
         },
@@ -650,7 +683,7 @@ export default function BillCreationWorkbench({
             (group) =>
               !group.groupKey ||
               group.configurationComplete === false ||
-              !isGroupComplete(formGroups?.[group.groupKey]),
+              !isGroupComplete(formGroups?.[group.groupKey], group.currency),
           )
           .map((group) => group.groupKey || ''),
       ),
@@ -830,7 +863,23 @@ export default function BillCreationWorkbench({
         <Form
           form={form}
           layout="vertical"
-          onValuesChange={() => handleConfigurationChange()}
+          onValuesChange={(changedValues) => {
+            if (!changedValues?.groups) return;
+            const shouldRefresh = Object.values(changedValues.groups).some(
+              (groupValue: any) => {
+                if (!groupValue || typeof groupValue !== 'object') return false;
+                return (
+                  'billDate' in groupValue ||
+                  'settlementAccountId' in groupValue ||
+                  'estimatedInvoiceCurrency' in groupValue ||
+                  'estimatedInvoiceRate' in groupValue
+                );
+              },
+            );
+            if (shouldRefresh) {
+              handleConfigurationChange();
+            }
+          }}
         >
           <Card
             size="small"
@@ -913,17 +962,24 @@ export default function BillCreationWorkbench({
             invalidGroupKeys={invalidGroupKeys}
             onSelect={setActiveGroupKey}
           />
-          {activeGroup && (
-            <BillGroupCard
-              key={activeGroup.groupKey}
-              group={activeGroup}
-              organizationId={organizationId || ''}
-              sessionIdentity={sessionIdentity}
-              feeColumns={getPreviewFeeColumns(handleRemoveFee)}
-              directionText={directionText}
-              onConfigurationChange={handleConfigurationChange}
-            />
-          )}
+          {preview.data.map((group) => {
+            const isCurrent = group.groupKey === activeGroupKey;
+            return (
+              <div
+                key={group.groupKey}
+                style={{ display: isCurrent ? 'block' : 'none' }}
+              >
+                <BillGroupCard
+                  group={group}
+                  organizationId={organizationId || ''}
+                  sessionIdentity={sessionIdentity}
+                  feeColumns={getPreviewFeeColumns(handleRemoveFee)}
+                  directionText={directionText}
+                  onConfigurationChange={handleConfigurationChange}
+                />
+              </div>
+            );
+          })}
         </Form>
       )}
 
