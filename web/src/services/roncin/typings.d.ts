@@ -2432,6 +2432,9 @@ declare namespace API {
     cnyEffectiveCommissionAmount?: string;
     organizationId?: string;
     organizationName?: string;
+    confirmedBy?: string;
+    paidBy?: string;
+    cancelledBy?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -2460,6 +2463,9 @@ declare namespace API {
     sourceVerificationId?: string;
     organizationId?: string;
     organizationName?: string;
+    confirmedBy?: string;
+    paidBy?: string;
+    cancelledBy?: string;
   };
 
   type FinanceCommissionLine = {

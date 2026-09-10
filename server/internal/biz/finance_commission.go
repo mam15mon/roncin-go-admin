@@ -18,7 +18,7 @@ var (
 	ErrCommissionNotFound             = errors.NotFound("FINANCE_COMMISSION_NOT_FOUND", "提成记录不存在")
 	ErrCommissionInvalid              = errors.BadRequest("FINANCE_COMMISSION_INVALID", "提成参数不合法")
 	ErrCommissionSource               = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")
-	ErrCommissionDuplicate            = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销、员工与规则已存在提成记录")
+	ErrCommissionDuplicate            = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销、员工与人员角色已存在未取消提成记录")
 	ErrCommissionTransition           = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_TRANSITION), "当前提成状态不允许该操作")
 	ErrCommissionRuleNotFound         = errors.NotFound("FINANCE_COMMISSION_RULE_NOT_FOUND", "提成规则不存在")
 	ErrCommissionRuleInvalid          = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
@@ -72,6 +72,7 @@ type FinanceCommissionAdjustment struct {
 	Note                                                              *string
 	Version                                                           uint64
 	ConfirmedAt, PaidAt, CancelledAt                                  *time.Time
+	ConfirmedBy, PaidBy, CancelledBy                                  *uuid.UUID
 	CancellationReason                                                *string
 	CreatedAt, UpdatedAt                                              time.Time
 }
@@ -194,6 +195,7 @@ type FinanceCommission struct {
 	Note                                                       *string
 	Version                                                    uint64
 	ConfirmedAt, PaidAt, CancelledAt                           *time.Time
+	ConfirmedBy, PaidBy, CancelledBy                           *uuid.UUID
 	CancellationReason                                         *string
 	CreatedAt, UpdatedAt                                       time.Time
 	Lines                                                      []*FinanceCommissionLine

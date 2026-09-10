@@ -273,6 +273,24 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		t.Fatalf("创建测试员工成员资格: %v", err)
 	}
 
+	actor, err := data.db.User.Create().
+		SetUsername("actor_" + suffix).
+		SetDisplayName("提成操作员-" + suffix).
+		SetEnabled(true).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试操作员: %v", err)
+	}
+	fixture.actorID = actor.ID
+
+	if _, err = data.db.Membership.Create().
+		SetOrganizationID(org.ID).
+		SetUserID(actor.ID).
+		SetEnabled(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试操作员成员资格: %v", err)
+	}
+
 	order, err := data.db.Order.Create().
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE" + suffix).
@@ -676,6 +694,7 @@ func (f *commissionPostgresFixture) cleanup() {
 			return err
 		}},
 		{name: "测试用户", run: func() error {
+			_ = f.data.db.User.DeleteOneID(f.actorID).Exec(ctx)
 			return f.data.db.User.DeleteOneID(f.employeeID).Exec(ctx)
 		}},
 		{name: "往来单位", run: func() error {
@@ -893,3 +912,282 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 
 var _ biz.CommissionRepo = (*invalidAuditResultCommissionRepo)(nil)
 var _ biz.CommissionRepo = (*invalidSaveCommissionRepo)(nil)
+
+func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
+	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
+		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
+	}
+
+	t.Run("同一核销同一员工相同角色更换规则重复计提被阻止", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("first"))
+		if err != nil {
+			t.Fatalf("创建首笔提成失败: %v", err)
+		}
+		if created == nil {
+			t.Fatal("创建首笔提成未返回实体")
+		}
+
+		// 创建同角色不同ID的提成规则
+		rule2, err := fixture.data.db.FinanceCommissionRule.Create().
+			SetOrganizationID(fixture.organizationID).
+			SetName("销售提成备用规则-" + fixture.suffix).
+			SetPersonnelRole(rule.PersonnelRoleSALES).
+			SetCalculationBasis(rule.CalculationBasisREALIZED_PROFIT).
+			SetRatePercent("12.0000").
+			SetEnabled(true).
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建第二套提成规则失败: %v", err)
+		}
+
+		// 使用不同规则ID再次创建提成，应被阻止
+		inputDiffRule := fixture.input("dup-diff-rule")
+		inputDiffRule.RuleID = rule2.ID
+		_, err = usecase.Create(ctx, fixture.organizationID, fixture.actorID, inputDiffRule)
+		if err == nil {
+			t.Fatal("更换规则ID后重复创建提成未报错")
+		}
+		if !errors.Is(err, biz.ErrCommissionDuplicate) {
+			t.Fatalf("更换规则ID后返回错误 = %v，期望 %v", err, biz.ErrCommissionDuplicate)
+		}
+
+		// 使用相同规则ID再次创建提成，同样应被阻止
+		inputSameRule := fixture.input("dup-same-rule")
+		_, err = usecase.Create(ctx, fixture.organizationID, fixture.actorID, inputSameRule)
+		if err == nil {
+			t.Fatal("相同规则ID重复创建提成未报错")
+		}
+		if !errors.Is(err, biz.ErrCommissionDuplicate) {
+			t.Fatalf("相同规则ID返回错误 = %v，期望 %v", err, biz.ErrCommissionDuplicate)
+		}
+
+		// 验证数据库中活动提成数量保持为 1
+		count, err := fixture.data.db.FinanceCommission.Query().Where(
+			commission.OrganizationIDEQ(fixture.organizationID),
+			commission.VerificationIDEQ(fixture.verificationID),
+			commission.EmployeeIDEQ(fixture.employeeID),
+			commission.StatusNEQ(commission.StatusCANCELLED),
+		).Count(ctx)
+		if err != nil || count != 1 {
+			t.Fatalf("活动提成数量 = %d，期望 1，error=%v", count, err)
+		}
+	})
+
+	t.Run("提成取消后相同人员角色允许重新计提", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("to-cancel"))
+		if err != nil {
+			t.Fatalf("创建提成失败: %v", err)
+		}
+
+		cancelled, err := usecase.Cancel(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, "测试取消以重新计提")
+		if err != nil {
+			t.Fatalf("取消提成失败: %v", err)
+		}
+		if cancelled.Status != biz.CommissionCancelled {
+			t.Fatalf("取消提成状态不符: %s", cancelled.Status)
+		}
+		if cancelled.CancelledBy == nil || *cancelled.CancelledBy != fixture.actorID || cancelled.CancelledAt == nil {
+			t.Fatalf("取消提成操作者或时间缺失: by=%v at=%v", cancelled.CancelledBy, cancelled.CancelledAt)
+		}
+
+		// 取消后，同一核销、同一员工、相同角色重新创建提成应成功
+		recreated, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("recreated"))
+		if err != nil {
+			t.Fatalf("取消后重新创建提成失败: %v", err)
+		}
+		if recreated.Status != biz.CommissionDraft {
+			t.Fatalf("重新创建提成状态不符: %s", recreated.Status)
+		}
+
+		// 检查数据库记录：1 笔 CANCELLED，1 笔 DRAFT
+		totalCount, err := fixture.data.db.FinanceCommission.Query().Where(
+			commission.OrganizationIDEQ(fixture.organizationID),
+			commission.VerificationIDEQ(fixture.verificationID),
+			commission.EmployeeIDEQ(fixture.employeeID),
+		).Count(ctx)
+		if err != nil || totalCount != 2 {
+			t.Fatalf("数据库提成总数 = %d，期望 2，error=%v", totalCount, err)
+		}
+	})
+
+	t.Run("流转DRAFT到CONFIRMED到PAID记录操作者与时间", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("flow"))
+		if err != nil {
+			t.Fatalf("创建提成失败: %v", err)
+		}
+
+		confirmed, err := usecase.Confirm(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version)
+		if err != nil {
+			t.Fatalf("确认提成失败: %v", err)
+		}
+		if confirmed.Status != biz.CommissionConfirmed {
+			t.Fatalf("确认后提成状态不符: %s", confirmed.Status)
+		}
+		if confirmed.ConfirmedBy == nil || *confirmed.ConfirmedBy != fixture.actorID || confirmed.ConfirmedAt == nil {
+			t.Fatalf("确认人或时间缺失: by=%v at=%v", confirmed.ConfirmedBy, confirmed.ConfirmedAt)
+		}
+
+		paid, err := usecase.MarkPaid(ctx, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
+		if err != nil {
+			t.Fatalf("发放提成失败: %v", err)
+		}
+		if paid.Status != biz.CommissionPaid {
+			t.Fatalf("发放后提成状态不符: %s", paid.Status)
+		}
+		if paid.PaidBy == nil || *paid.PaidBy != fixture.actorID || paid.PaidAt == nil {
+			t.Fatalf("发放人或时间缺失: by=%v at=%v", paid.PaidBy, paid.PaidAt)
+		}
+		if paid.ConfirmedBy == nil || *paid.ConfirmedBy != fixture.actorID || paid.ConfirmedAt == nil {
+			t.Fatalf("确认人或时间在发放后丢失: by=%v at=%v", paid.ConfirmedBy, paid.ConfirmedAt)
+		}
+
+		// 验证数据库持久化字段
+		dbComm, err := fixture.data.db.FinanceCommission.Get(ctx, created.ID)
+		if err != nil {
+			t.Fatalf("从数据库直查提成失败: %v", err)
+		}
+		if dbComm.Status != commission.StatusPAID {
+			t.Fatalf("数据库中提成状态不符: %s", dbComm.Status)
+		}
+		if dbComm.ConfirmedBy == nil || *dbComm.ConfirmedBy != fixture.actorID || dbComm.ConfirmedAt == nil {
+			t.Fatalf("数据库中确认人或时间缺失: by=%v at=%v", dbComm.ConfirmedBy, dbComm.ConfirmedAt)
+		}
+		if dbComm.PaidBy == nil || *dbComm.PaidBy != fixture.actorID || dbComm.PaidAt == nil {
+			t.Fatalf("数据库中发放人或时间缺失: by=%v at=%v", dbComm.PaidBy, dbComm.PaidAt)
+		}
+	})
+
+	t.Run("核销撤销对未发CONFIRMED提成自动取消", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("unverify-confirmed"))
+		if err != nil {
+			t.Fatalf("创建提成失败: %v", err)
+		}
+
+		confirmed, err := usecase.Confirm(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version)
+		if err != nil {
+			t.Fatalf("确认提成失败: %v", err)
+		}
+
+		vRepo := NewVerificationRepo(fixture.data)
+		audit := &biz.AuditEvent{
+			OrganizationID: &fixture.organizationID,
+			UserID:         &fixture.actorID,
+			Action:         "finance.verification.reverse",
+			Result:         "success",
+			ResourceType:   "finance_verification",
+			ResourceID:     fixture.verificationID.String(),
+		}
+		reversedV, err := vRepo.Reverse(ctx, fixture.organizationID, fixture.verificationID, fixture.actorID, 1, "测试反核销取消CONFIRMED提成", audit)
+		if err != nil {
+			t.Fatalf("撤销核销失败: %v", err)
+		}
+		if reversedV.Status != biz.VerificationReversed {
+			t.Fatalf("核销撤销后状态不符: %s", reversedV.Status)
+		}
+
+		// 提成主单应被自动置为 CANCELLED，且记录取消人和时间
+		reloaded, err := usecase.Get(ctx, fixture.organizationID, confirmed.ID)
+		if err != nil {
+			t.Fatalf("重读提成失败: %v", err)
+		}
+		if reloaded.Status != biz.CommissionCancelled {
+			t.Fatalf("核销撤销后提成状态 = %s，期望 CANCELLED", reloaded.Status)
+		}
+		if reloaded.CancelledBy == nil || *reloaded.CancelledBy != fixture.actorID || reloaded.CancelledAt == nil {
+			t.Fatalf("核销撤销后提成取消人或时间缺失: by=%v at=%v", reloaded.CancelledBy, reloaded.CancelledAt)
+		}
+		if reloaded.CancellationReason == nil || !strings.Contains(*reloaded.CancellationReason, "核销撤销自动取消") {
+			t.Fatalf("核销撤销后提成取消原因不符: %v", reloaded.CancellationReason)
+		}
+	})
+
+	t.Run("核销撤销对已发PAID提成生成冲减单并清零有效提成", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("unverify-paid"))
+		if err != nil {
+			t.Fatalf("创建提成失败: %v", err)
+		}
+
+		confirmed, err := usecase.Confirm(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version)
+		if err != nil {
+			t.Fatalf("确认提成失败: %v", err)
+		}
+
+		paid, err := usecase.MarkPaid(ctx, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
+		if err != nil {
+			t.Fatalf("发放提成失败: %v", err)
+		}
+
+		vRepo := NewVerificationRepo(fixture.data)
+		audit := &biz.AuditEvent{
+			OrganizationID: &fixture.organizationID,
+			UserID:         &fixture.actorID,
+			Action:         "finance.verification.reverse",
+			Result:         "success",
+			ResourceType:   "finance_verification",
+			ResourceID:     fixture.verificationID.String(),
+		}
+		reversedV, err := vRepo.Reverse(ctx, fixture.organizationID, fixture.verificationID, fixture.actorID, 1, "测试反核销冲减PAID提成", audit)
+		if err != nil {
+			t.Fatalf("撤销核销失败: %v", err)
+		}
+		if reversedV.Status != biz.VerificationReversed {
+			t.Fatalf("核销撤销后状态不符: %s", reversedV.Status)
+		}
+
+		// 检查提成主单：保持 PAID，但冲减序号递增，有效金额清零
+		reloaded, err := usecase.Get(ctx, fixture.organizationID, paid.ID)
+		if err != nil {
+			t.Fatalf("重读提成失败: %v", err)
+		}
+		if reloaded.Status != biz.CommissionPaid {
+			t.Fatalf("核销撤销后已发提成状态 = %s，期望 PAID", reloaded.Status)
+		}
+		if !reloaded.EffectiveCommissionAmount.IsZero() {
+			t.Fatalf("核销撤销后有效提成金额 = %s，期望 0", reloaded.EffectiveCommissionAmount)
+		}
+		if len(reloaded.Adjustments) != 1 {
+			t.Fatalf("核销撤销后调整单数量 = %d，期望 1", len(reloaded.Adjustments))
+		}
+
+		adj := reloaded.Adjustments[0]
+		if adj.Status != biz.CommissionConfirmed {
+			t.Fatalf("冲减调整单状态 = %s，期望 CONFIRMED", adj.Status)
+		}
+		if adj.Direction != biz.CommissionAdjustmentDecrease {
+			t.Fatalf("冲减调整单方向 = %s，期望 DECREASE", adj.Direction)
+		}
+		if adj.SourceType != biz.CommissionAdjustmentSourceVerificationReversal {
+			t.Fatalf("冲减调整单来源类型 = %s，期望 VERIFICATION_REVERSAL", adj.SourceType)
+		}
+		if !adj.Amount.Equal(paid.CommissionAmount) {
+			t.Fatalf("冲减调整单金额 = %s，期望等于原始金额 %s", adj.Amount, paid.CommissionAmount)
+		}
+		if adj.ConfirmedBy == nil || *adj.ConfirmedBy != fixture.actorID || adj.ConfirmedAt == nil {
+			t.Fatalf("冲减调整单确认人或时间缺失: by=%v at=%v", adj.ConfirmedBy, adj.ConfirmedAt)
+		}
+		if adj.SourceVerificationID == nil || *adj.SourceVerificationID != fixture.verificationID {
+			t.Fatalf("冲减调整单关联核销ID = %v，期望 %v", adj.SourceVerificationID, fixture.verificationID)
+		}
+	})
+}

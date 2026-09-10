@@ -14540,6 +14540,9 @@ type FinanceCommissionAdjustment struct {
 	SourceVerificationId *string                 `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
 	OrganizationId       string                  `protobuf:"bytes,24,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName     string                  `protobuf:"bytes,25,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	ConfirmedBy          *string                 `protobuf:"bytes,26,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
+	PaidBy               *string                 `protobuf:"bytes,27,opt,name=paid_by,json=paidBy,proto3,oneof" json:"paid_by,omitempty"`
+	CancelledBy          *string                 `protobuf:"bytes,28,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -14745,6 +14748,27 @@ func (x *FinanceCommissionAdjustment) GetOrganizationId() string {
 func (x *FinanceCommissionAdjustment) GetOrganizationName() string {
 	if x != nil {
 		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetConfirmedBy() string {
+	if x != nil && x.ConfirmedBy != nil {
+		return *x.ConfirmedBy
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetPaidBy() string {
+	if x != nil && x.PaidBy != nil {
+		return *x.PaidBy
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetCancelledBy() string {
+	if x != nil && x.CancelledBy != nil {
+		return *x.CancelledBy
 	}
 	return ""
 }
@@ -15212,6 +15236,9 @@ type FinanceCommission struct {
 	CnyEffectiveCommissionAmount string                         `protobuf:"bytes,43,opt,name=cny_effective_commission_amount,json=cnyEffectiveCommissionAmount,proto3" json:"cny_effective_commission_amount,omitempty"`
 	OrganizationId               string                         `protobuf:"bytes,44,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName             string                         `protobuf:"bytes,45,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	ConfirmedBy                  *string                        `protobuf:"bytes,46,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
+	PaidBy                       *string                        `protobuf:"bytes,47,opt,name=paid_by,json=paidBy,proto3,oneof" json:"paid_by,omitempty"`
+	CancelledBy                  *string                        `protobuf:"bytes,48,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -15557,6 +15584,27 @@ func (x *FinanceCommission) GetOrganizationId() string {
 func (x *FinanceCommission) GetOrganizationName() string {
 	if x != nil {
 		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetConfirmedBy() string {
+	if x != nil && x.ConfirmedBy != nil {
+		return *x.ConfirmedBy
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetPaidBy() string {
+	if x != nil && x.PaidBy != nil {
+		return *x.PaidBy
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCancelledBy() string {
+	if x != nil && x.CancelledBy != nil {
+		return *x.CancelledBy
 	}
 	return ""
 }
@@ -19261,7 +19309,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf9\a\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x95\t\n" +
 	"\x1bFinanceCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12#\n" +
@@ -19292,14 +19340,21 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"sourceType\x129\n" +
 	"\x16source_verification_id\x18\x17 \x01(\tH\x05R\x14sourceVerificationId\x88\x01\x01\x12'\n" +
 	"\x0forganization_id\x18\x18 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x19 \x01(\tR\x10organizationNameB\a\n" +
+	"\x11organization_name\x18\x19 \x01(\tR\x10organizationName\x12&\n" +
+	"\fconfirmed_by\x18\x1a \x01(\tH\x06R\vconfirmedBy\x88\x01\x01\x12\x1c\n" +
+	"\apaid_by\x18\x1b \x01(\tH\aR\x06paidBy\x88\x01\x01\x12&\n" +
+	"\fcancelled_by\x18\x1c \x01(\tH\bR\vcancelledBy\x88\x01\x01B\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\n" +
 	"\n" +
 	"\b_paid_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +
 	"\x14_cancellation_reasonB\x19\n" +
-	"\x17_source_verification_id\"x\n" +
+	"\x17_source_verification_idB\x0f\n" +
+	"\r_confirmed_byB\n" +
+	"\n" +
+	"\b_paid_byB\x0f\n" +
+	"\r_cancelled_by\"x\n" +
 	"\x19FinanceOrganizationOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -19334,7 +19389,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12<\n" +
 	"\x04data\x18\x04 \x03(\v2(.finance.v1.FinanceSettlementPartyOptionR\x04data\x12\x14\n" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xe0\x10\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xfc\x11\n" +
 	"\x11FinanceCommission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rcommission_no\x18\x02 \x01(\tR\fcommissionNo\x12'\n" +
@@ -19385,7 +19440,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x15cny_adjustment_amount\x18* \x01(\tR\x13cnyAdjustmentAmount\x12E\n" +
 	"\x1fcny_effective_commission_amount\x18+ \x01(\tR\x1ccnyEffectiveCommissionAmount\x12'\n" +
 	"\x0forganization_id\x18, \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18- \x01(\tR\x10organizationNameB\a\n" +
+	"\x11organization_name\x18- \x01(\tR\x10organizationName\x12&\n" +
+	"\fconfirmed_by\x18. \x01(\tH\n" +
+	"R\vconfirmedBy\x88\x01\x01\x12\x1c\n" +
+	"\apaid_by\x18/ \x01(\tH\vR\x06paidBy\x88\x01\x01\x12&\n" +
+	"\fcancelled_by\x180 \x01(\tH\fR\vcancelledBy\x88\x01\x01B\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\n" +
 	"\n" +
@@ -19398,7 +19457,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"_rule_nameB\x11\n" +
 	"\x0f_personnel_roleB\x14\n" +
 	"\x12_calculation_basisB\x1f\n" +
-	"\x1d_cny_exchange_rate_setting_id\"\xee\x02\n" +
+	"\x1d_cny_exchange_rate_setting_idB\x0f\n" +
+	"\r_confirmed_byB\n" +
+	"\n" +
+	"\b_paid_byB\x0f\n" +
+	"\r_cancelled_by\"\xee\x02\n" +
 	"\x18ExportCommissionsRequest\x12\x1d\n" +
 	"\akeyword\x18\x01 \x01(\tH\x00R\akeyword\x88\x01\x01\x12@\n" +
 	"\x06status\x18\x02 \x01(\x0e2#.finance.v1.FinanceCommissionStatusH\x01R\x06status\x88\x01\x01\x125\n" +

@@ -10992,6 +10992,12 @@ components:
                     type: string
                 organizationName:
                     type: string
+                confirmedBy:
+                    type: string
+                paidBy:
+                    type: string
+                cancelledBy:
+                    type: string
         finance.v1.FinanceCommissionAdjustment:
             type: object
             properties:
@@ -11045,6 +11051,12 @@ components:
                 organizationId:
                     type: string
                 organizationName:
+                    type: string
+                confirmedBy:
+                    type: string
+                paidBy:
+                    type: string
+                cancelledBy:
                     type: string
         finance.v1.FinanceCommissionLine:
             type: object

@@ -17554,6 +17554,15 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "confirmedBy": {
+            "type": "string"
+          },
+          "paidBy": {
+            "type": "string"
+          },
+          "cancelledBy": {
+            "type": "string"
           }
         }
       },
@@ -17634,6 +17643,15 @@
             "type": "string"
           },
           "organizationName": {
+            "type": "string"
+          },
+          "confirmedBy": {
+            "type": "string"
+          },
+          "paidBy": {
+            "type": "string"
+          },
+          "cancelledBy": {
             "type": "string"
           }
         }

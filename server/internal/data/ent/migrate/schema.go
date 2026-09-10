@@ -1752,6 +1752,14 @@ var (
 				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[4]},
 			},
 			{
+				Name:    "finance_commissions_target_active_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[38], FinanceCommissionsColumns[40], FinanceCommissionsColumns[11]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status <> 'CANCELLED'",
+				},
+			},
+			{
 				Name:    "financecommission_verification_id_employee_id_status",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceCommissionsColumns[38], FinanceCommissionsColumns[40], FinanceCommissionsColumns[16]},

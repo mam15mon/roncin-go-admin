@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -78,6 +79,10 @@ func (FinanceCommission) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "commission_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
+		index.Fields("organization_id", "verification_id", "employee_id", "personnel_role").
+			StorageKey("finance_commissions_target_active_unique").
+			Unique().
+			Annotations(entsql.IndexWhere("status <> 'CANCELLED'")),
 		index.Fields("verification_id", "employee_id", "status"),
 		index.Fields("organization_id", "commission_date"),
 		index.Fields("organization_id", "status", "created_at"),
