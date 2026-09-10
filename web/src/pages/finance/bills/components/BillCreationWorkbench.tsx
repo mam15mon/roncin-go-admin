@@ -70,6 +70,9 @@ type GroupFormValue = {
 type WorkbenchFormValue = {
   groups: Record<string, GroupFormValue>;
 };
+type WorkbenchValidationError = {
+  errorFields?: { name?: (string | number)[] }[];
+};
 
 type RequestError = Error & {
   data?: { reason?: string; message?: string };
@@ -575,8 +578,9 @@ export default function BillCreationWorkbench({
     let values: WorkbenchFormValue;
     try {
       values = await form.validateFields();
-    } catch (errorInfo: any) {
-      const firstErrorField = errorInfo?.errorFields?.[0]?.name;
+    } catch (errorInfo: unknown) {
+      const { errorFields } = (errorInfo ?? {}) as WorkbenchValidationError;
+      const firstErrorField = errorFields?.[0]?.name;
       if (
         Array.isArray(firstErrorField) &&
         firstErrorField[0] === 'groups' &&
@@ -866,7 +870,7 @@ export default function BillCreationWorkbench({
           onValuesChange={(changedValues) => {
             if (!changedValues?.groups) return;
             const shouldRefresh = Object.values(changedValues.groups).some(
-              (groupValue: any) => {
+              (groupValue: Partial<GroupFormValue>) => {
                 if (!groupValue || typeof groupValue !== 'object') return false;
                 return (
                   'billDate' in groupValue ||
