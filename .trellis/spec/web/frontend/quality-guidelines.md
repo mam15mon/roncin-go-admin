@@ -23,11 +23,25 @@ pnpm --dir web exec biome check <changed-file> [more-changed-files...]
 pnpm --dir web test -- <test-file>
 ```
 
+定向测试路径必须相对 `web/` 目录（如 `src/pages/...`）。写成 `web/src/...`
+前缀时，vitest 过滤器会静默匹配 0 个测试且退出码为 0，造成「全绿」假通过。
+运行后必须确认输出中的测试文件数大于 0，再采信结果：
+
+```bash
+# 错误：过滤器不匹配，0 个测试静默通过
+pnpm --dir web exec vitest run web/src/pages/foo/bar.test.tsx
+# 正确
+pnpm --dir web exec vitest run src/pages/foo/bar.test.tsx
+```
+
 ### 2. 普通本地提交
 
 - 运行受影响的定向测试与 `git diff --check`。
 - 改动公共类型、Hook/组件接口、路由或难以由定向测试覆盖的类型链时，增加
-  `pnpm --dir web tsc`。
+  `pnpm --dir web tsc`。该命令走 package.json 脚本（含 `--noEmit`）；禁止
+  直接执行 `pnpm --dir web exec tsc`，缺少 `--noEmit` 会向 `web/src` 输出
+  数百个编译 `.js` 产物污染源码树。误执行后按产物清单精确删除并复核
+  `git status`，不得混入提交。
 - 提交动作本身不触发全量 `pnpm --dir web test`、`pnpm run check:web` 或构建。
 
 ### 3. 最终验收
