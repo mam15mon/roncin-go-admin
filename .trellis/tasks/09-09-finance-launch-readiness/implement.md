@@ -305,3 +305,20 @@ pnpm run check
 - 工作区无调试文件、秘密、缓存和来源不明改动；
 - 最终门禁及无法运行项完整记录；
 - 完成 Trellis 检查、归档和开发日志记录。
+
+## 11. 最终验收记录（2026-09-10 归档）
+
+- 一次性 PostgreSQL 双环境全链路验收（`pnpm run acceptance:finance:disposable`）全部成功：
+  Stage 1（CNY：集成测试 14 PASS/0 SKIP、应收全链、应付全链、UI e2e 3/3）、
+  Stage 2（USD 本位币 EUR 业务币外币全链）。验收编排已对齐现行契约
+  （船公司/主单/直单结构、两段式建账预览、组织与账户必填、账单汇率提成口径、
+  核销组织级联、发票方向文案、Playwright 1.62 超时机制），提交 fbe7b785、0cf0165f。
+- `pnpm run check` 全量门禁通过：权限键 299 项、proto 常量、biome、tsc、
+  前端 110 文件 537 测试、buf lint、`go test ./...`、`go vet`、govulncheck 0 可达漏洞。
+- AC0–AC28：除 AC5/AC13/AC23 发票侧随 Phase 5 延期（90afba10）外全部有代码与测试证据；
+  AC3 销项/进项方向文案已实现（6cb3d82e）。
+- 经用户确认按现状归档的两条证据层级说明：
+  1. AC9 应付外币变体（外币+进项发票+应付汇兑损益组合）未单独编排，
+     以应付本位币链（Stage 1）、应收外币链（Stage 2）与单测/集成测试为证据；
+  2. AC1/AC28 跨组织权限场景以 auth/service 层单测与集成测试为证据，
+     验收编排为单组织引导环境。
