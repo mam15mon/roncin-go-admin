@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -298,6 +299,10 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 		return []*biz.OrderConsolidationSummary{}, nil
 	}
 
+	// 成员集合以 Link ACTIVE 定位，成员 Order 额外要求 LCL 且终止维度 ACTIVE：
+	// 退关订单不计入件重尺、成员数与 house numbers。HBL 从当前真相源
+	// SeaHouseBill 读取，且必须属于该成员当前活动 MBL，不再依赖旧
+	// OrderShippingDocument。
 	allLinks, err := client.SeaMasterBillOrderLink.Query().
 		Where(
 			seamasterbillorderlink.OrganizationIDEQ(organizationID),
@@ -305,9 +310,18 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
 		WithOrder(func(oq *ent.OrderQuery) {
-			oq.Where(orderent.ShipmentTypeEQ(orderent.ShipmentTypeLCL)).
+			oq.Where(
+				orderent.ShipmentTypeEQ(orderent.ShipmentTypeLCL),
+				orderent.TerminationStatusEQ(orderent.TerminationStatusACTIVE),
+			).
 				WithCargoItems().
-				WithShippingDocuments()
+				WithSeaHouseBills(func(hq *ent.SeaHouseBillQuery) {
+					hq.Where(
+						seahousebill.OrganizationIDEQ(organizationID),
+						seahousebill.MasterBillIDIn(mblIDs...),
+						seahousebill.StatusNEQ(seahousebill.StatusVOIDED),
+					)
+				})
 		}).
 		Order(seamasterbillorderlink.ByStartedAt()).
 		All(ctx)
@@ -342,9 +356,19 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 					member.Actual.GrossWeightKg += cargo.GrossWeightKg
 					member.Actual.VolumeCbm += cargo.VolumeCbm
 				}
-				for _, doc := range orderItem.Edges.ShippingDocuments {
-					member.HouseNos = append(member.HouseNos, doc.HouseNo)
+				// 仅统计属于当前活动 MBL 的有效 HBL，按 house no 稳定排序并去重。
+				houseSeen := make(map[string]struct{}, len(orderItem.Edges.SeaHouseBills))
+				for _, hb := range orderItem.Edges.SeaHouseBills {
+					if hb.MasterBillID != mblID {
+						continue
+					}
+					if _, dup := houseSeen[hb.HouseNo]; dup {
+						continue
+					}
+					houseSeen[hb.HouseNo] = struct{}{}
+					member.HouseNos = append(member.HouseNos, hb.HouseNo)
 				}
+				sort.Strings(member.HouseNos)
 				members[orderItem.ID] = member
 				summary.Members = append(summary.Members, member)
 			}

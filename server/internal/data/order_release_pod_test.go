@@ -68,6 +68,10 @@ func orderRowsWithShipmentType(id, orgID uuid.UUID, shipmentType string) *sqlmoc
 			values[i] = "TRADITIONAL_FORWARDING"
 		case orderent.FieldFlowStatus:
 			values[i] = "CONFIRMED"
+		case orderent.FieldTerminationStatus:
+			values[i] = "ACTIVE"
+		case orderent.FieldClosureStatus:
+			values[i] = "OPEN"
 		case orderent.FieldCreatedAt, orderent.FieldUpdatedAt:
 			values[i] = now
 		default:

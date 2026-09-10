@@ -19,6 +19,11 @@ var (
 	ErrOrderClosureInvalid            = errors.BadRequest("ORDER_CLOSURE_INVALID", "订单结案状态流转不合法")
 	ErrOrderClosureBlocked            = errors.Conflict("ORDER_CLOSURE_BLOCKED", "订单尚未满足结案条件")
 	ErrOrderConsolidationShipmentType = errors.BadRequest("ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID", "仅拼箱订单可查看自拼汇总")
+	// 内容写门禁专用：订单业务资料可编辑要求 termination_status=ACTIVE、
+	// closure_status=OPEN 且未业务锁定；生命周期命令不得复用这些错误。
+	ErrOrderTerminationInProgress = errors.Conflict("ORDER_TERMINATION_IN_PROGRESS", "订单已进入终止流程，不允许修改业务数据")
+	ErrOrderTerminated            = errors.Conflict("ORDER_TERMINATED", "订单已终止，不允许修改业务数据")
+	ErrOrderClosed                = errors.Conflict("ORDER_CLOSED", "订单已结案，不允许修改业务数据")
 )
 
 // OrderUsecase 的领域错误与仓储接口集中在本文件；枚举与领域对象见

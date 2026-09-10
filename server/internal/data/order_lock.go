@@ -47,20 +47,44 @@ func orderAccessBusinessType(businessType orderent.BusinessType) (access.OrderBu
 	return parsed, nil
 }
 
-// ensureOrderBusinessEditable 统一订单锁门禁：检查订单是否处于未锁定状态。若已锁定，返回结构化 ORDER_BUSINESS_LOCKED 错误。
-func ensureOrderBusinessEditable(ctx context.Context, tx *ent.Tx, existing *ent.Order) error {
+// ensureOrderBusinessContentEditable 是全部订单业务内容写入口的统一门禁：
+// 订单必须处于 termination_status=ACTIVE、closure_status=OPEN 且未业务锁定。
+// 校验顺序为先生命周期后业务锁，使不可逆程度更高的生命周期原因优先呈现，
+// 避免订单已终止但残留历史锁信息时误提示“先解锁即可编辑”。
+// 本门禁只用于业务字段及子资源写入；终止、恢复、结案、反结案等生命周期命令
+// 在锁定订单行后执行专属状态校验，不得复用本门禁。
+// users 仅在订单已锁定时用于补充锁定人姓名，可为 nil。
+func ensureOrderBusinessContentEditable(ctx context.Context, users *ent.UserClient, existing *ent.Order) error {
 	if existing == nil {
 		return nil
 	}
 	if _, err := orderAccessBusinessType(existing.BusinessType); err != nil {
 		return err
 	}
+	switch existing.TerminationStatus {
+	case orderent.TerminationStatusACTIVE:
+	case orderent.TerminationStatusTERMINATING:
+		return biz.ErrOrderTerminationInProgress
+	case orderent.TerminationStatusTERMINATED:
+		return biz.ErrOrderTerminated
+	default:
+		return biz.ErrOrderStatusConflict
+	}
+	if existing.ClosureStatus != orderent.ClosureStatusOPEN {
+		return biz.ErrOrderClosed
+	}
 	if existing.LockedAt == nil {
 		return nil
 	}
+	return ensureOrderNotBusinessLocked(ctx, users, existing)
+}
+
+// ensureOrderNotBusinessLocked 校验订单未被业务锁定；已锁定时返回携带订单、
+// 代次、时间和锁定人元数据的结构化 ORDER_BUSINESS_LOCKED 错误。
+func ensureOrderNotBusinessLocked(ctx context.Context, users *ent.UserClient, existing *ent.Order) error {
 	var lockedByName string
-	if existing.LockedBy != nil {
-		u, err := tx.User.Get(ctx, *existing.LockedBy)
+	if existing.LockedBy != nil && users != nil {
+		u, err := users.Get(ctx, *existing.LockedBy)
 		if err == nil && u != nil {
 			lockedByName = u.DisplayName
 		}
@@ -68,19 +92,10 @@ func ensureOrderBusinessEditable(ctx context.Context, tx *ent.Tx, existing *ent.
 	return biz.NewErrOrderBusinessLocked(existing.ID, existing.OrderNo, existing.LockGeneration, *existing.LockedAt, lockedByName)
 }
 
-// lockOrderAndEnsureBusinessEditable 在事务中以 FOR UPDATE 读取订单并校验是否可业务编辑。
-func lockOrderAndEnsureBusinessEditable(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*ent.Order, error) {
-	existing, err := tx.Order.Query().
-		Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
-	}
-	if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
-		return nil, err
-	}
-	return existing, nil
+// ensureOrderBusinessEditable 是统一内容门禁的事务上下文适配，供在 *ent.Tx
+// 中完成订单加锁的既有写入口复用；规则真相源在 ensureOrderBusinessContentEditable。
+func ensureOrderBusinessEditable(ctx context.Context, tx *ent.Tx, existing *ent.Order) error {
+	return ensureOrderBusinessContentEditable(ctx, tx.User, existing)
 }
 
 // ensureSharedMBLNotLocked 检查共享 MBL 下的所有活动成员订单是否被锁定；任一被锁定则整体阻断。

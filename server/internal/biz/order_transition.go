@@ -79,6 +79,10 @@ func validTerminationTransition(from, to OrderTerminationStatus) bool {
 }
 
 // TransitionStatus 校验并执行 SE 订单主流程流转。
+//
+// 主流程推进属于业务写入：仅允许终止维度 ACTIVE、结案维度 OPEN 且未业务锁定
+// 的订单流转；该约束由生命周期专属校验表达，仓储层在 Order FOR UPDATE 后独立
+// 复验，不复用内容写门禁。
 func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, targetStatus OrderFlowStatus, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !targetStatus.Valid() || utf8.RuneCountInString(reason) > 500 {
@@ -99,6 +103,12 @@ func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, ac
 }
 
 // TransitionTermination 校验并执行订单终止维度流转。
+//
+// 终止维度是生命周期命令，不经过内容写门禁：完成（TERMINATING → TERMINATED）、
+// 取消（TERMINATING → ACTIVE）与恢复（TERMINATED → ACTIVE）不因业务锁或历史
+// 终止状态被阻断；仅 ACTIVE → TERMINATING 发起时仍要求订单未业务锁定。
+// 最终进入 TERMINATED 时，仓储层在同一事务结束该订单的活动 SE Link，且恢复
+// 订单不自动复活历史 Link。
 func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderTerminationStatus, terminationType *OrderTerminationType, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || reason == "" || utf8.RuneCountInString(reason) > 500 || target != OrderTerminationActive && (terminationType == nil || !terminationType.Valid()) {
@@ -119,6 +129,10 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 }
 
 // TransitionClosure 校验并执行订单结案或反结案。
+//
+// 结案与反结案是生命周期命令，不经过内容写门禁也不校验业务锁：已业务锁定的
+// DOCUMENT_RELEASED 订单允许结案；结案 readiness（主流程完成或终止完成、无
+// 活动异常、无未开账费用）由仓储层在事务内重验。
 func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderClosureStatus, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || reason == "" || utf8.RuneCountInString(reason) > 500 {
