@@ -202,3 +202,57 @@ func financeBillableFeeForTest(partyID uuid.UUID, total, net, tax, base string) 
 		},
 	}
 }
+
+func TestCalculateOverdueDays(t *testing.T) {
+	dueDate := "2026-09-01"
+	futureDueDate := "2026-09-15"
+	businessDate := "2026-09-10"
+
+	// 1. 正常应收已确认且未结清、已逾期9天
+	days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &dueDate, businessDate)
+	if days != 9 {
+		t.Fatalf("预期逾期9天，实际=%d", days)
+	}
+
+	// 2. 应付账单不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeePayable, FinanceBillConfirmed, decimal.NewFromInt(100), &dueDate, businessDate); days != 0 {
+		t.Fatalf("应付账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 3. 草稿账单不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillDraft, decimal.NewFromInt(100), &dueDate, businessDate); days != 0 {
+		t.Fatalf("草稿账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 4. 已结清账单（未核销为0）不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.Zero, &dueDate, businessDate); days != 0 {
+		t.Fatalf("已结清账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 5. 到期日为空不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), nil, businessDate); days != 0 {
+		t.Fatalf("空到期日不应计算逾期天数，实际=%d", days)
+	}
+
+	// 6. 到期日在业务日期当天或未来不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &futureDueDate, businessDate); days != 0 {
+		t.Fatalf("未到期账单不应计算逾期天数，实际=%d", days)
+	}
+	sameDate := businessDate
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &sameDate, businessDate); days != 0 {
+		t.Fatalf("当天到期账单不应计算逾期天数，实际=%d", days)
+	}
+}
+
+func TestFinanceBillListDueDateValidation(t *testing.T) {
+	uc := NewFinanceBillUsecase(nil, nil, nil)
+	org := uuid.New()
+	// 非法到期日格式
+	if _, err := uc.List(context.Background(), []uuid.UUID{org}, FinanceBillFilter{Page: 1, PageSize: 20, DueDateFrom: "invalid"}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("非法到期日应被拒绝，实际错误=%v", err)
+	}
+	// DueDateFrom > DueDateTo
+	if _, err := uc.List(context.Background(), []uuid.UUID{org}, FinanceBillFilter{Page: 1, PageSize: 20, DueDateFrom: "2026-09-10", DueDateTo: "2026-09-01"}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("到期日范围倒置应被拒绝，实际错误=%v", err)
+	}
+}

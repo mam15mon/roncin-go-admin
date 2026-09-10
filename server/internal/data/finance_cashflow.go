@@ -53,8 +53,11 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 	if e != nil {
 		return nil, e
 	}
+	summaryPredicates := append([]predicate.FinanceCashflow{}, p...)
+	summaryPredicates = append(summaryPredicates, cash.StatusEQ(cash.StatusCONFIRMED))
+	summaryQuery := client.FinanceCashflow.Query().WithOrganization().Where(summaryPredicates...)
 	summaryRows := make([]financeCashflowSummaryRow, 0)
-	if e := q.Clone().
+	if e := summaryQuery.Clone().
 		GroupBy(cash.FieldDirection, cash.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(cash.FieldBaseAmount), "base_amount")).
 		Scan(ctx, &summaryRows); e != nil {
@@ -78,7 +81,7 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 		bucket.UnverifiedBaseAmount = bucket.ReceivableBaseAmount.Add(bucket.PayableBaseAmount)
 	}
 	allocations, e := client.FinanceVerificationAllocation.Query().
-		Where(allocation.ActiveEQ(true), allocation.HasCashflowWith(p...)).
+		Where(allocation.ActiveEQ(true), allocation.HasCashflowWith(summaryPredicates...)).
 		WithCashflow(func(query *ent.FinanceCashflowQuery) {
 			query.Select(cash.FieldID, cash.FieldBaseCurrency)
 		}).All(ctx)

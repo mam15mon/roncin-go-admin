@@ -136,8 +136,10 @@ func TestVerificationCreationCandidatesKeepOrganizationPredicateInBothSourceQuer
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations".*finance_bills.*organization_id`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*organization_id`).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+		WillReturnRows(sqlmock.NewRows(financebill.Columns))
 
 	result, err := repo.ListCreationCandidates(context.Background(), organizationID, biz.VerificationCreationCandidateFilter{
 		Direction:         biz.OrderFeeReceivable,

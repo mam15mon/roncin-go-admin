@@ -2491,6 +2491,10 @@ type ListBillsRequest struct {
 	BillDateTo        *string                `protobuf:"bytes,9,opt,name=bill_date_to,json=billDateTo,proto3,oneof" json:"bill_date_to,omitempty"`
 	TagIds            []string               `protobuf:"bytes,10,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	OrganizationId    *string                `protobuf:"bytes,11,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	DueDateFrom       *string                `protobuf:"bytes,12,opt,name=due_date_from,json=dueDateFrom,proto3,oneof" json:"due_date_from,omitempty"`
+	DueDateTo         *string                `protobuf:"bytes,13,opt,name=due_date_to,json=dueDateTo,proto3,oneof" json:"due_date_to,omitempty"`
+	OnlyUnsettled     *bool                  `protobuf:"varint,14,opt,name=only_unsettled,json=onlyUnsettled,proto3,oneof" json:"only_unsettled,omitempty"`
+	OnlyOverdue       *bool                  `protobuf:"varint,15,opt,name=only_overdue,json=onlyOverdue,proto3,oneof" json:"only_overdue,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -2600,6 +2604,34 @@ func (x *ListBillsRequest) GetOrganizationId() string {
 		return *x.OrganizationId
 	}
 	return ""
+}
+
+func (x *ListBillsRequest) GetDueDateFrom() string {
+	if x != nil && x.DueDateFrom != nil {
+		return *x.DueDateFrom
+	}
+	return ""
+}
+
+func (x *ListBillsRequest) GetDueDateTo() string {
+	if x != nil && x.DueDateTo != nil {
+		return *x.DueDateTo
+	}
+	return ""
+}
+
+func (x *ListBillsRequest) GetOnlyUnsettled() bool {
+	if x != nil && x.OnlyUnsettled != nil {
+		return *x.OnlyUnsettled
+	}
+	return false
+}
+
+func (x *ListBillsRequest) GetOnlyOverdue() bool {
+	if x != nil && x.OnlyOverdue != nil {
+		return *x.OnlyOverdue
+	}
+	return false
 }
 
 type ListBillCreationCandidatesRequest struct {
@@ -3366,6 +3398,7 @@ type FinanceBill struct {
 	EstimatedInvoiceAmount    *string                `protobuf:"bytes,48,opt,name=estimated_invoice_amount,json=estimatedInvoiceAmount,proto3,oneof" json:"estimated_invoice_amount,omitempty"`
 	// netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
 	NettedAmount  string `protobuf:"bytes,49,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
+	OverdueDays   int32  `protobuf:"varint,50,opt,name=overdue_days,json=overdueDays,proto3" json:"overdue_days,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3741,6 +3774,13 @@ func (x *FinanceBill) GetNettedAmount() string {
 		return x.NettedAmount
 	}
 	return ""
+}
+
+func (x *FinanceBill) GetOverdueDays() int32 {
+	if x != nil {
+		return x.OverdueDays
+	}
+	return 0
 }
 
 type BillGroupingPolicy struct {
@@ -5369,13 +5409,14 @@ func (x *ListBillsResponse) GetSummary() *FinanceBillSummary {
 }
 
 type FinanceBaseCurrencyAmount struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	BaseCurrency         string                 `protobuf:"bytes,1,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	ReceivableBaseAmount string                 `protobuf:"bytes,2,opt,name=receivable_base_amount,json=receivableBaseAmount,proto3" json:"receivable_base_amount,omitempty"`
-	PayableBaseAmount    string                 `protobuf:"bytes,3,opt,name=payable_base_amount,json=payableBaseAmount,proto3" json:"payable_base_amount,omitempty"`
-	UnverifiedBaseAmount string                 `protobuf:"bytes,4,opt,name=unverified_base_amount,json=unverifiedBaseAmount,proto3" json:"unverified_base_amount,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"open.v1"`
+	BaseCurrency                string                 `protobuf:"bytes,1,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	ReceivableBaseAmount        string                 `protobuf:"bytes,2,opt,name=receivable_base_amount,json=receivableBaseAmount,proto3" json:"receivable_base_amount,omitempty"`
+	PayableBaseAmount           string                 `protobuf:"bytes,3,opt,name=payable_base_amount,json=payableBaseAmount,proto3" json:"payable_base_amount,omitempty"`
+	UnverifiedBaseAmount        string                 `protobuf:"bytes,4,opt,name=unverified_base_amount,json=unverifiedBaseAmount,proto3" json:"unverified_base_amount,omitempty"`
+	OverdueReceivableBaseAmount string                 `protobuf:"bytes,5,opt,name=overdue_receivable_base_amount,json=overdueReceivableBaseAmount,proto3" json:"overdue_receivable_base_amount,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *FinanceBaseCurrencyAmount) Reset() {
@@ -5432,6 +5473,13 @@ func (x *FinanceBaseCurrencyAmount) GetPayableBaseAmount() string {
 func (x *FinanceBaseCurrencyAmount) GetUnverifiedBaseAmount() string {
 	if x != nil {
 		return x.UnverifiedBaseAmount
+	}
+	return ""
+}
+
+func (x *FinanceBaseCurrencyAmount) GetOverdueReceivableBaseAmount() string {
+	if x != nil {
+		return x.OverdueReceivableBaseAmount
 	}
 	return ""
 }
@@ -17938,7 +17986,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.BilledFeeEditPolicyR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb2\x04\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9a\x06\n" +
 	"\x10ListBillsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -17952,7 +18000,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"billDateTo\x88\x01\x01\x12\x17\n" +
 	"\atag_ids\x18\n" +
 	" \x03(\tR\x06tagIds\x12,\n" +
-	"\x0forganization_id\x18\v \x01(\tH\aR\x0eorganizationId\x88\x01\x01B\n" +
+	"\x0forganization_id\x18\v \x01(\tH\aR\x0eorganizationId\x88\x01\x01\x12'\n" +
+	"\rdue_date_from\x18\f \x01(\tH\bR\vdueDateFrom\x88\x01\x01\x12#\n" +
+	"\vdue_date_to\x18\r \x01(\tH\tR\tdueDateTo\x88\x01\x01\x12*\n" +
+	"\x0eonly_unsettled\x18\x0e \x01(\bH\n" +
+	"R\ronlyUnsettled\x88\x01\x01\x12&\n" +
+	"\fonly_overdue\x18\x0f \x01(\bH\vR\vonlyOverdue\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\f\n" +
 	"\n" +
@@ -17962,7 +18015,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\t_currencyB\x11\n" +
 	"\x0f_bill_date_fromB\x0f\n" +
 	"\r_bill_date_toB\x12\n" +
-	"\x10_organization_id\"\xde\x01\n" +
+	"\x10_organization_idB\x10\n" +
+	"\x0e_due_date_fromB\x0e\n" +
+	"\f_due_date_toB\x11\n" +
+	"\x0f_only_unsettledB\x0f\n" +
+	"\r_only_overdue\"\xde\x01\n" +
 	"!ListBillCreationCandidatesRequest\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
@@ -18044,7 +18101,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bquantity\x18\x11 \x01(\tR\bquantity\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x12 \x01(\tR\tunitPriceB\v\n" +
-	"\t_tax_rate\"\xee\x12\n" +
+	"\t_tax_rate\"\x91\x13\n" +
 	"\vFinanceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1c\n" +
@@ -18100,7 +18157,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1aestimated_invoice_currency\x18. \x01(\tH\fR\x18estimatedInvoiceCurrency\x88\x01\x01\x129\n" +
 	"\x16estimated_invoice_rate\x18/ \x01(\tH\rR\x14estimatedInvoiceRate\x88\x01\x01\x12=\n" +
 	"\x18estimated_invoice_amount\x180 \x01(\tH\x0eR\x16estimatedInvoiceAmount\x88\x01\x01\x12#\n" +
-	"\rnetted_amount\x181 \x01(\tR\fnettedAmountB\v\n" +
+	"\rnetted_amount\x181 \x01(\tR\fnettedAmount\x12!\n" +
+	"\foverdue_days\x182 \x01(\x05R\voverdueDaysB\v\n" +
 	"\t_due_dateB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
@@ -18270,12 +18328,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04data\x18\x04 \x03(\v2\x17.finance.v1.FinanceBillR\x04data\x12\x14\n" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x128\n" +
-	"\asummary\x18\a \x01(\v2\x1e.finance.v1.FinanceBillSummaryR\asummary\"\xdc\x01\n" +
+	"\asummary\x18\a \x01(\v2\x1e.finance.v1.FinanceBillSummaryR\asummary\"\xa1\x02\n" +
 	"\x19FinanceBaseCurrencyAmount\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +
 	"\x13payable_base_amount\x18\x03 \x01(\tR\x11payableBaseAmount\x124\n" +
-	"\x16unverified_base_amount\x18\x04 \x01(\tR\x14unverifiedBaseAmount\"t\n" +
+	"\x16unverified_base_amount\x18\x04 \x01(\tR\x14unverifiedBaseAmount\x12C\n" +
+	"\x1eoverdue_receivable_base_amount\x18\x05 \x01(\tR\x1boverdueReceivableBaseAmount\"t\n" +
 	"\x12FinanceBillSummary\x12^\n" +
 	"\x18amounts_by_base_currency\x18\x01 \x03(\v2%.finance.v1.FinanceBaseCurrencyAmountR\x15amountsByBaseCurrency\"\xa1\x01\n" +
 	"\x0fGetBillResponse\x12\x18\n" +

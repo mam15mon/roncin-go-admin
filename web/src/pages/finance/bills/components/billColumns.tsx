@@ -238,9 +238,22 @@ export function getFinanceBillColumns({
     {
       title: '到期日',
       dataIndex: 'dueDate',
-      width: 110,
+      width: 150,
       search: false,
-      renderText: (value) => value || '-',
+      render: (_, row) => {
+        if (!row.dueDate) return '-';
+        if (row.overdueDays && row.overdueDays > 0) {
+          return (
+            <Space size={4}>
+              <span>{row.dueDate}</span>
+              <Tag color="error" style={{ margin: 0 }}>
+                逾期 {row.overdueDays} 天
+              </Tag>
+            </Space>
+          );
+        }
+        return row.dueDate;
+      },
     },
     {
       title: '创建时间',

@@ -2251,6 +2251,7 @@ declare namespace API {
     receivableBaseAmount?: string;
     payableBaseAmount?: string;
     unverifiedBaseAmount?: string;
+    overdueReceivableBaseAmount?: string;
   };
 
   type FinanceBill = {
@@ -2304,6 +2305,7 @@ declare namespace API {
     estimatedInvoiceAmount?: string;
     /** netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。 */
     nettedAmount?: string;
+    overdueDays?: number;
   };
 
   type FinanceBillBatch = {
@@ -6694,6 +6696,10 @@ declare namespace API {
     billDateTo?: string;
     tagIds?: string[];
     organizationId?: string;
+    dueDateFrom?: string;
+    dueDateTo?: string;
+    onlyUnsettled?: boolean;
+    onlyOverdue?: boolean;
   };
 
   type SettlementServiceListCashflowsParams = {

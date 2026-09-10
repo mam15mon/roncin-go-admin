@@ -78,6 +78,7 @@ type FinanceBill struct {
 	VerifiedAmount            decimal.Decimal
 	NettedAmount              decimal.Decimal
 	UnverifiedAmount          decimal.Decimal
+	OverdueDays               int32
 	FeeCount                  int
 	BillDate                  string
 	StatementTitle            *string
@@ -137,6 +138,10 @@ type FinanceBillFilter struct {
 	BillDateFrom      string
 	BillDateTo        string
 	TagIDs            []uuid.UUID
+	DueDateFrom       string
+	DueDateTo         string
+	OnlyUnsettled     bool
+	OnlyOverdue       bool
 }
 
 type FinanceBillCreationCandidateFilter struct {
@@ -161,10 +166,11 @@ type FinanceBillSummary struct {
 
 // FinanceBaseCurrencyAmount 保持本位币边界；跨组织聚合不得直接相加不同币种金额。
 type FinanceBaseCurrencyAmount struct {
-	BaseCurrency         string
-	ReceivableBaseAmount decimal.Decimal
-	PayableBaseAmount    decimal.Decimal
-	UnverifiedBaseAmount decimal.Decimal
+	BaseCurrency                string
+	ReceivableBaseAmount        decimal.Decimal
+	PayableBaseAmount           decimal.Decimal
+	UnverifiedBaseAmount        decimal.Decimal
+	OverdueReceivableBaseAmount decimal.Decimal
 }
 
 type CreateFinanceBillInput struct {
@@ -338,6 +344,9 @@ func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.U
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	if !validFinanceDateRange(filter.BillDateFrom, filter.BillDateTo) {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	if !validFinanceDateRange(filter.DueDateFrom, filter.DueDateTo) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	return uc.repo.List(ctx, organizationIDs, filter)
@@ -1430,6 +1439,27 @@ func validFinanceDateRange(from, to string) bool {
 	from = strings.TrimSpace(from)
 	to = strings.TrimSpace(to)
 	return (from == "" || validFinanceDate(from)) && (to == "" || validFinanceDate(to)) && (from == "" || to == "" || from <= to)
+}
+
+// CalculateOverdueDays 计算应收账单的逾期天数。只有已确认、存在未核销余额且到期日小于当前业务日期的应收账单才计算逾期天数。
+func CalculateOverdueDays(direction OrderFeeDirection, status FinanceBillStatus, unverifiedAmount decimal.Decimal, dueDate *string, businessDate string) int32 {
+	if direction != OrderFeeReceivable || status != FinanceBillConfirmed || !unverifiedAmount.IsPositive() || dueDate == nil || strings.TrimSpace(*dueDate) == "" {
+		return 0
+	}
+	trimmedDueDate := strings.TrimSpace(*dueDate)
+	if trimmedDueDate >= businessDate {
+		return 0
+	}
+	dueT, err1 := time.Parse("2006-01-02", trimmedDueDate)
+	bizT, err2 := time.Parse("2006-01-02", businessDate)
+	if err1 != nil || err2 != nil {
+		return 0
+	}
+	days := int32(bizT.Sub(dueT).Hours() / 24)
+	if days < 0 {
+		return 0
+	}
+	return days
 }
 
 func normalizedOptionalFinanceString(value *string) *string {

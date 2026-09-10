@@ -122,7 +122,8 @@ export default function FinanceBillsPage() {
     field:
       | 'receivableBaseAmount'
       | 'payableBaseAmount'
-      | 'unverifiedBaseAmount',
+      | 'unverifiedBaseAmount'
+      | 'overdueReceivableBaseAmount',
   ) =>
     metricStats.amountsByBaseCurrency
       .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
@@ -135,6 +136,9 @@ export default function FinanceBillsPage() {
     settlementPartyId?: string;
     currency?: string;
     billDateRange?: [Dayjs, Dayjs];
+    dueDateRange?: [Dayjs, Dayjs];
+    onlyUnsettled?: string;
+    onlyOverdue?: string;
   }>({});
 
   const filterItems: SearchFilterFieldItem[] = [
@@ -175,6 +179,26 @@ export default function FinanceBillsPage() {
       label: '账单日期',
       type: 'date-range',
       placeholder: ['开始日期', '结束日期'],
+    },
+    {
+      name: 'dueDateRange',
+      label: '到期日期',
+      type: 'date-range',
+      placeholder: ['到期开始', '到期结束'],
+    },
+    {
+      name: 'onlyUnsettled',
+      label: '结清状态',
+      type: 'select',
+      placeholder: '全部',
+      options: [{ label: '仅看未结清', value: 'true' }],
+    },
+    {
+      name: 'onlyOverdue',
+      label: '逾期状态',
+      type: 'select',
+      placeholder: '全部',
+      options: [{ label: '仅看已逾期', value: 'true' }],
     },
     {
       name: 'settlementPartyId',
@@ -316,6 +340,16 @@ export default function FinanceBillsPage() {
         ? '#cf1322'
         : '#52c41a',
     },
+    {
+      key: 'overdue-bills',
+      title: '逾期应收折本币',
+      value: formatBaseCurrencyAmounts('overdueReceivableBaseAmount'),
+      valueColor: metricStats.amountsByBaseCurrency.some(
+        (item) => Number(item.overdueReceivableBaseAmount ?? 0) > 0,
+      )
+        ? '#cf1322'
+        : '#52c41a',
+    },
   ];
 
   const columns = getFinanceBillColumns({
@@ -440,6 +474,12 @@ export default function FinanceBillsPage() {
           const billDateTo = searchParams.billDateRange?.[1]
             ? searchParams.billDateRange[1].format('YYYY-MM-DD')
             : undefined;
+          const dueDateFrom = searchParams.dueDateRange?.[0]
+            ? searchParams.dueDateRange[0].format('YYYY-MM-DD')
+            : undefined;
+          const dueDateTo = searchParams.dueDateRange?.[1]
+            ? searchParams.dueDateRange[1].format('YYYY-MM-DD')
+            : undefined;
 
           const response = await settlementServiceListBills({
             page: params.current,
@@ -451,6 +491,11 @@ export default function FinanceBillsPage() {
             currency: searchParams.currency || undefined,
             billDateFrom,
             billDateTo,
+            dueDateFrom,
+            dueDateTo,
+            onlyUnsettled:
+              searchParams.onlyUnsettled === 'true' ? true : undefined,
+            onlyOverdue: searchParams.onlyOverdue === 'true' ? true : undefined,
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
             organizationId,
           });

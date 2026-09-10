@@ -23,6 +23,10 @@ import (
 )
 
 func assertFinanceBaseCurrencyAmount(t *testing.T, items []biz.FinanceBaseCurrencyAmount, currency, receivable, payable, unverified string) {
+	assertFinanceBillBaseCurrencyAmount(t, items, currency, receivable, payable, unverified, "0")
+}
+
+func assertFinanceBillBaseCurrencyAmount(t *testing.T, items []biz.FinanceBaseCurrencyAmount, currency, receivable, payable, unverified, overdueReceivable string) {
 	t.Helper()
 	for _, item := range items {
 		if item.BaseCurrency != currency {
@@ -30,7 +34,8 @@ func assertFinanceBaseCurrencyAmount(t *testing.T, items []biz.FinanceBaseCurren
 		}
 		if !item.ReceivableBaseAmount.Equal(decimal.RequireFromString(receivable)) ||
 			!item.PayableBaseAmount.Equal(decimal.RequireFromString(payable)) ||
-			!item.UnverifiedBaseAmount.Equal(decimal.RequireFromString(unverified)) {
+			!item.UnverifiedBaseAmount.Equal(decimal.RequireFromString(unverified)) ||
+			!item.OverdueReceivableBaseAmount.Equal(decimal.RequireFromString(overdueReceivable)) {
 			t.Fatalf("本位币 %s 汇总不符合预期: %+v", currency, item)
 		}
 		return
@@ -112,6 +117,8 @@ func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20 OFFSET 20`).
 		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
 
@@ -122,7 +129,7 @@ func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {
 	if result.Total != 3 || len(result.Items) != 0 {
 		t.Fatalf("账单分页结果不符合预期: total=%d items=%d", result.Total, len(result.Items))
 	}
-	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "150.25", "40", "190.25")
+	assertFinanceBillBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "150.25", "40", "190.25", "0")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("账单列表未使用数据库分页或汇总: %v", err)
 	}
@@ -197,6 +204,8 @@ func TestFinanceBillListDeductsActiveAllocationsByBaseCurrency(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
 			AddRow(usdID, "USD").
 			AddRow(cnyID, "CNY"))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20`).
 		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
 
@@ -204,10 +213,71 @@ func TestFinanceBillListDeductsActiveAllocationsByBaseCurrency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询账单多本位币汇总失败: %v", err)
 	}
-	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "USD", "120", "10", "80")
-	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "200", "0", "140")
+	assertFinanceBillBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "USD", "120", "10", "80", "0")
+	assertFinanceBillBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "200", "0", "140", "0")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("账单未按本位币精确扣减有效核销: %v", err)
+	}
+}
+
+func TestFinanceBillListOverdueSummary(t *testing.T) {
+	data, mock := setupFinanceSummaryData(t)
+	repo := &financeBillRepo{data: data}
+	organizationID := uuid.New()
+	overdueBillID := uuid.New()
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*status.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "100"))
+	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
+		WillReturnRows(financeSummaryAllocationRows(
+			financeSummaryAllocation(uuid.Nil, overdueBillID, "20", "20", "0"),
+		))
+	mock.ExpectQuery(`SELECT "finance_bills"\."id", "finance_bills"\."base_currency" FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
+			AddRow(overdueBillID, "CNY"))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(financeNettingSummaryAllocationRows(
+			financeNettingSummaryAllocation(overdueBillID, "10", "10"),
+		))
+	mock.ExpectQuery(`SELECT "finance_bills"\."id", "finance_bills"\."base_currency" FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
+			AddRow(overdueBillID, "CNY"))
+
+	// 逾期应收聚合
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}).
+			AddRow("CNY", "100"))
+	// 逾期核销扣减
+	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
+		WillReturnRows(financeSummaryAllocationRows(
+			financeSummaryAllocation(uuid.Nil, overdueBillID, "20", "20", "0"),
+		))
+	mock.ExpectQuery(`SELECT "finance_bills"\."id", "finance_bills"\."base_currency" FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
+			AddRow(overdueBillID, "CNY"))
+	// 逾期对冲扣减
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(financeNettingSummaryAllocationRows(
+			financeNettingSummaryAllocation(overdueBillID, "10", "10"),
+		))
+	mock.ExpectQuery(`SELECT "finance_bills"\."id", "finance_bills"\."base_currency" FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
+			AddRow(overdueBillID, "CNY"))
+
+	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
+
+	result, err := repo.List(context.Background(), []uuid.UUID{organizationID}, biz.FinanceBillFilter{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("查询账单列表失败: %v", err)
+	}
+	// 应收总额 100，核销 20，对冲 10，未核销 70，逾期未结清 70
+	assertFinanceBillBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "100", "0", "70", "70")
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("逾期应收汇总未按有效核销和对冲精确扣减: %v", err)
 	}
 }
 
@@ -332,5 +402,112 @@ func TestFinanceNettingListUsesFilteredDatabaseSummary(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("对冲列表 summary 查询未完整传递 keyword 过滤: %v", err)
+	}
+}
+
+func TestFinanceBillDueDateAndOverduePredicates(t *testing.T) {
+	table := entsql.Table(financebillent.Table)
+	selector := entsql.Dialect(dialect.Postgres).Select(table.C(financebillent.FieldID)).From(table)
+
+	// 测试未结清谓词
+	billUnsettledPredicate()(selector)
+	query, _ := selector.Query()
+	if !strings.Contains(query, "SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva WHERE fva.bill_id = \"finance_bills\".\"id\" AND fva.active = TRUE") ||
+		!strings.Contains(query, "SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna WHERE fna.bill_id = \"finance_bills\".\"id\" AND fna.active = TRUE") {
+		t.Fatalf("未结清谓词 SQL 不符合预期: %s", query)
+	}
+
+	// 测试逾期谓词
+	overdueSelector := entsql.Dialect(dialect.Postgres).Select(table.C(financebillent.FieldID)).From(table)
+	billOverduePredicate("2026-09-10")(overdueSelector)
+	overdueQuery, overdueArgs := overdueSelector.Query()
+	if !strings.Contains(overdueQuery, `"finance_bills"."direction" = $1`) ||
+		!strings.Contains(overdueQuery, `"finance_bills"."status" = $2`) ||
+		!strings.Contains(overdueQuery, `"finance_bills"."due_date" IS NOT NULL`) ||
+		!strings.Contains(overdueQuery, `"finance_bills"."due_date" < $4`) {
+		t.Fatalf("逾期谓词 SQL 不符合预期: %s", overdueQuery)
+	}
+	if len(overdueArgs) < 4 || overdueArgs[0] != financebillent.DirectionRECEIVABLE || overdueArgs[1] != financebillent.StatusCONFIRMED || overdueArgs[3] != "2026-09-10" {
+		t.Fatalf("逾期谓词参数不符合预期: %v", overdueArgs)
+	}
+}
+
+func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
+	data, mock := setupFinanceSummaryData(t)
+	orgID := uuid.New()
+
+	// 1. 验证账单汇总严格过滤已确认状态（即便列表未传状态筛选）
+	billRepo := &financeBillRepo{data: data}
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+	// 汇总查询必须包含 "finance_bills"."status" = $2 (CONFIRMED)
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*"status".*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "100"))
+	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}))
+	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
+
+	_, err := billRepo.List(context.Background(), []uuid.UUID{orgID}, biz.FinanceBillFilter{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("账单列表查询失败: %v", err)
+	}
+
+	// 2. 验证发票汇总严格过滤已开具状态
+	invoiceRepo := &financeInvoiceRepo{data: data}
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_invoices"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_invoices".*"status".*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "100"))
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_invoices".*"status"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT "finance_invoices"\..*FROM "finance_invoices".*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financeinvoiceent.Columns))
+
+	_, err = invoiceRepo.List(context.Background(), orgID, biz.FinanceInvoiceFilter{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("发票列表查询失败: %v", err)
+	}
+
+	// 3. 验证资金流水汇总严格过滤已确认状态
+	cashflowRepo := &financeCashflowRepo{data: data}
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_cashflows".*"status".*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "100"))
+	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT "finance_cashflows"\..*FROM "finance_cashflows".*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financecashflowent.Columns))
+
+	_, err = cashflowRepo.List(context.Background(), orgID, biz.FinanceCashflowFilter{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("资金流水列表查询失败: %v", err)
+	}
+
+	// 4. 验证核销汇总严格过滤有效状态
+	verRepo := &verificationRepo{data: data}
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_verifications"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_verifications".*"status".*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "100"))
+	mock.ExpectQuery(`SELECT "finance_verifications"\..*FROM "finance_verifications".*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financeverificationent.Columns))
+
+	_, err = verRepo.List(context.Background(), orgID, biz.VerificationFilter{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("核销列表查询失败: %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("财务汇总未排除无效状态（草稿/取消/红冲/反核销）: %v", err)
 	}
 }

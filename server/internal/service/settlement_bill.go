@@ -26,7 +26,13 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
 		Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))),
 		Status:    financeBillStatusFromAPI(request.Status),
-		Currency:  strings.ToUpper(financeOptionalString(request.Currency)), BillDateFrom: financeOptionalString(request.BillDateFrom), BillDateTo: financeOptionalString(request.BillDateTo),
+		Currency:  strings.ToUpper(financeOptionalString(request.Currency)),
+		BillDateFrom: financeOptionalString(request.BillDateFrom),
+		BillDateTo:   financeOptionalString(request.BillDateTo),
+		DueDateFrom:  financeOptionalString(request.DueDateFrom),
+		DueDateTo:    financeOptionalString(request.DueDateTo),
+		OnlyUnsettled: request.GetOnlyUnsettled(),
+		OnlyOverdue:   request.GetOnlyOverdue(),
 	}
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
@@ -177,7 +183,13 @@ func financeBillSummaryToAPI(summary biz.FinanceBillSummary) *v1.FinanceBillSumm
 func financeBaseCurrencyAmountsToAPI(items []biz.FinanceBaseCurrencyAmount) []*v1.FinanceBaseCurrencyAmount {
 	data := make([]*v1.FinanceBaseCurrencyAmount, 0, len(items))
 	for _, item := range items {
-		data = append(data, &v1.FinanceBaseCurrencyAmount{BaseCurrency: item.BaseCurrency, ReceivableBaseAmount: item.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: item.PayableBaseAmount.StringFixed(8), UnverifiedBaseAmount: item.UnverifiedBaseAmount.StringFixed(8)})
+		data = append(data, &v1.FinanceBaseCurrencyAmount{
+			BaseCurrency:                item.BaseCurrency,
+			ReceivableBaseAmount:        item.ReceivableBaseAmount.StringFixed(8),
+			PayableBaseAmount:           item.PayableBaseAmount.StringFixed(8),
+			UnverifiedBaseAmount:        item.UnverifiedBaseAmount.StringFixed(8),
+			OverdueReceivableBaseAmount: item.OverdueReceivableBaseAmount.StringFixed(8),
+		})
 	}
 	return data
 }
@@ -465,6 +477,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		BatchId: uuidStringPtr(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
 		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID),
 		EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: financeDecimalPointer(item.EstimatedInvoiceRate, 8), EstimatedInvoiceAmount: financeDecimalPointer(item.EstimatedInvoiceAmount, 8),
+		OverdueDays:              item.OverdueDays,
 	}
 }
 

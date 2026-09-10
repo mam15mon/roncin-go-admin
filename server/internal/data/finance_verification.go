@@ -58,8 +58,10 @@ func (r *verificationRepo) ListScoped(ctx context.Context, organizationIDs []uui
 	if e != nil {
 		return nil, e
 	}
+	summaryPredicates := append([]predicate.FinanceVerification{}, p...)
+	summaryPredicates = append(summaryPredicates, ver.StatusEQ(ver.StatusACTIVE))
 	summaryRows := make([]verificationSummaryRow, 0)
-	if e := q.Clone().
+	if e := client.FinanceVerification.Query().Where(summaryPredicates...).
 		GroupBy(ver.FieldDirection, ver.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(ver.FieldBaseAmount), "base_amount")).
 		Scan(ctx, &summaryRows); e != nil {

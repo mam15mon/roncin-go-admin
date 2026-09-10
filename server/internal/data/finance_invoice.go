@@ -51,8 +51,11 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 	if err != nil {
 		return nil, err
 	}
+	summaryPredicates := append([]predicate.FinanceInvoice{}, p...)
+	summaryPredicates = append(summaryPredicates, financeinvoiceent.StatusEQ(financeinvoiceent.StatusISSUED))
+	summaryQuery := client.FinanceInvoice.Query().WithOrganization().Where(summaryPredicates...)
 	summaryRows := make([]financeInvoiceSummaryRow, 0)
-	if err := q.Clone().Where(financeinvoiceent.BaseCurrencyAmountNotNil()).
+	if err := summaryQuery.Clone().Where(financeinvoiceent.BaseCurrencyAmountNotNil()).
 		GroupBy(financeinvoiceent.FieldDirection, financeinvoiceent.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(financeinvoiceent.FieldBaseCurrencyAmount), "base_amount")).
 		Scan(ctx, &summaryRows); err != nil {
@@ -73,7 +76,7 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 		}
 	}
 	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
-	issuedCount, err := q.Clone().Where(financeinvoiceent.StatusEQ(financeinvoiceent.StatusISSUED)).Count(ctx)
+	issuedCount, err := summaryQuery.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}

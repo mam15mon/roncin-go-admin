@@ -2498,6 +2498,34 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "dueDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dueDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onlyUnsettled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "onlyOverdue",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -16979,6 +17007,9 @@
           },
           "unverifiedBaseAmount": {
             "type": "string"
+          },
+          "overdueReceivableBaseAmount": {
+            "type": "string"
           }
         }
       },
@@ -17141,6 +17172,10 @@
           "nettedAmount": {
             "type": "string",
             "description": "netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。"
+          },
+          "overdueDays": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

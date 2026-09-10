@@ -446,6 +446,10 @@ message ListBillsRequest {
   optional string bill_date_to = 9;
   repeated string tag_ids = 10;
   optional string organization_id = 11;
+  optional string due_date_from = 12;
+  optional string due_date_to = 13;
+  optional bool only_unsettled = 14;
+  optional bool only_overdue = 15;
 }
 message ListBillCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; }
 message ListBillCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeLedgerItem data = 4; int64 total = 5; string trace_id = 6; }
@@ -561,6 +565,7 @@ message FinanceBill {
   optional string estimated_invoice_amount = 48;
   // netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
   string netted_amount = 49;
+  int32 overdue_days = 50;
 }
 
 message BillGroupingPolicy {
@@ -738,6 +743,7 @@ message FinanceBaseCurrencyAmount {
   string receivable_base_amount = 2;
   string payable_base_amount = 3;
   string unverified_base_amount = 4;
+  string overdue_receivable_base_amount = 5;
 }
 
 message FinanceBillSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency = 1; }

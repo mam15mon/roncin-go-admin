@@ -68,6 +68,19 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if filter.BillDateTo != "" {
 		predicates = append(predicates, financebillent.BillDateLTE(filter.BillDateTo))
 	}
+	if filter.DueDateFrom != "" {
+		predicates = append(predicates, financebillent.DueDateGTE(filter.DueDateFrom))
+	}
+	if filter.DueDateTo != "" {
+		predicates = append(predicates, financebillent.DueDateLTE(filter.DueDateTo))
+	}
+	if filter.OnlyUnsettled {
+		predicates = append(predicates, billUnsettledPredicate())
+	}
+	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")
+	if filter.OnlyOverdue {
+		predicates = append(predicates, billOverduePredicate(currentBusinessDate))
+	}
 	if len(filter.TagIDs) > 0 {
 		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
@@ -76,8 +89,10 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if err != nil {
 		return nil, err
 	}
+	summaryPredicates := append([]predicate.FinanceBill{}, predicates...)
+	summaryPredicates = append(summaryPredicates, financebillent.StatusEQ(financebillent.StatusCONFIRMED))
 	summaryRows := make([]financeBillSummaryRow, 0)
-	if err := query.Clone().
+	if err := client.FinanceBill.Query().Where(summaryPredicates...).
 		GroupBy(financebillent.FieldDirection, financebillent.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(financebillent.FieldBaseCurrencyAmount), "base_amount")).
 		Scan(ctx, &summaryRows); err != nil {
@@ -101,7 +116,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		bucket.UnverifiedBaseAmount = bucket.ReceivableBaseAmount.Add(bucket.PayableBaseAmount)
 	}
 	allocations, err := client.FinanceVerificationAllocation.Query().
-		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(predicates...)).
+		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(summaryPredicates...)).
 		WithBill(func(query *ent.FinanceBillQuery) {
 			query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
 		}).All(ctx)
@@ -121,7 +136,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
 	}
 	nettingAllocations, err := client.FinanceNettingAllocation.Query().
-		Where(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasBillWith(predicates...)).
+		Where(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasBillWith(summaryPredicates...)).
 		WithBill(func(query *ent.FinanceBillQuery) {
 			query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
 		}).All(ctx)
@@ -139,6 +154,79 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		}
 		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
 		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
+	}
+	overduePredicates := append([]predicate.FinanceBill{}, summaryPredicates...)
+	overduePredicates = append(overduePredicates,
+		financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
+		financebillent.DueDateNotNil(),
+		financebillent.DueDateNEQ(""),
+		financebillent.DueDateLT(currentBusinessDate),
+		billUnsettledPredicate(),
+	)
+	var overdueSummaryRows []financeBillSummaryRow
+	if err := client.FinanceBill.Query().Where(overduePredicates...).
+		GroupBy(financebillent.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(financebillent.FieldBaseCurrencyAmount), "base_amount")).
+		Scan(ctx, &overdueSummaryRows); err != nil {
+		return nil, err
+	}
+	for _, row := range overdueSummaryRows {
+		value, parseErr := decimalOf(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
+		bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Add(value)
+	}
+	if len(overdueSummaryRows) > 0 {
+		overdueAllocations, err := client.FinanceVerificationAllocation.Query().
+			Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(overduePredicates...)).
+			WithBill(func(query *ent.FinanceBillQuery) {
+				query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+			}).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, allocation := range overdueAllocations {
+			amount, parseErr := decimalOf(allocation.BillBaseAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			bill, edgeErr := allocation.Edges.BillOrErr()
+			if edgeErr != nil {
+				return nil, edgeErr
+			}
+			bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Sub(amount)
+		}
+
+		overdueNettings, err := client.FinanceNettingAllocation.Query().
+			Where(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasBillWith(overduePredicates...)).
+			WithBill(func(query *ent.FinanceBillQuery) {
+				query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+			}).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, allocation := range overdueNettings {
+			amount, parseErr := decimalOf(allocation.BaseCurrencyAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			bill, edgeErr := allocation.Edges.BillOrErr()
+			if edgeErr != nil {
+				return nil, edgeErr
+			}
+			bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Sub(amount)
+		}
+	}
+	for _, bucket := range amountsByBaseCurrency {
+		if bucket.OverdueReceivableBaseAmount.IsNegative() {
+			bucket.OverdueReceivableBaseAmount = decimal.Zero
+		} else {
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Round(8)
+		}
 	}
 	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
 
@@ -218,6 +306,7 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		return err
 	}
 	// 未核销余额 = 总额 - 有效核销 - 有效对冲；普通资金核销只处理抵销后的剩余余额。
+	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")
 	for _, bill := range bills {
 		bill.VerifiedAmount = bill.VerifiedAmount.Round(8)
 		bill.NettedAmount = nettedSums[bill.ID].Round(8)
@@ -225,6 +314,7 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		if bill.UnverifiedAmount.IsNegative() {
 			bill.UnverifiedAmount = decimal.Zero
 		}
+		bill.OverdueDays = biz.CalculateOverdueDays(bill.Direction, bill.Status, bill.UnverifiedAmount, bill.DueDate, currentBusinessDate)
 	}
 	return nil
 }
@@ -1094,3 +1184,30 @@ func financeDecimalStringEqual(stored *string, expected *decimal.Decimal, scale 
 }
 
 var _ biz.FinanceBillRepo = (*financeBillRepo)(nil)
+
+func billUnsettledPredicate() predicate.FinanceBill {
+	return func(selector *entsql.Selector) {
+		billID := selector.C(financebillent.FieldID)
+		totalAmount := selector.C(financebillent.FieldTotalAmount)
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			builder.WriteString("(")
+			builder.Ident(totalAmount)
+			builder.WriteString(" > (COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva WHERE fva.bill_id = ")
+			builder.Ident(billID)
+			builder.WriteString(" AND fva.active = TRUE), 0) + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna WHERE fna.bill_id = ")
+			builder.Ident(billID)
+			builder.WriteString(" AND fna.active = TRUE), 0)))")
+		}))
+	}
+}
+
+func billOverduePredicate(businessDate string) predicate.FinanceBill {
+	return financebillent.And(
+		financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
+		financebillent.StatusEQ(financebillent.StatusCONFIRMED),
+		financebillent.DueDateNotNil(),
+		financebillent.DueDateNEQ(""),
+		financebillent.DueDateLT(businessDate),
+		billUnsettledPredicate(),
+	)
+}
