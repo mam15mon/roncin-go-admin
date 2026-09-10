@@ -191,7 +191,7 @@ export default function FinanceBillsPage() {
       label: '结清状态',
       type: 'select',
       placeholder: '全部',
-      options: [{ label: '仅看未结清', value: 'true' }],
+      options: [{ label: '仅看未结清（已确认）', value: 'true' }],
     },
     {
       name: 'onlyOverdue',
