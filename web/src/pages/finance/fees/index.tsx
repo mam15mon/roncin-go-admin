@@ -19,7 +19,9 @@ import {
   FinanceOrganizationPurpose,
   OrderFeeStatus,
 } from '@/enums.generated';
-import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
+import BillCreationWorkbench, {
+  type BillCreationMode,
+} from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { orderFeeServiceConfirmFee } from '@/services/roncin/orderFeeService';
 import {
   settlementServiceBatchAssignFinanceFeeTags,
@@ -60,6 +62,15 @@ export function hasMixedBillDirections(rows: API.FeeLedgerItem[]) {
   return new Set(rows.map((row) => row.direction).filter(Boolean)).size > 1;
 }
 
+// 对冲建账要求同一批费用同时包含应收和应付；单方向费用只能走普通账单，
+// 页面不自动替用户切换模式。
+export function hasBothBillDirections(rows: API.FeeLedgerItem[]) {
+  const directions = new Set(
+    rows.map((row) => row.direction).filter(Boolean),
+  );
+  return directions.has('RECEIVABLE') && directions.has('PAYABLE');
+}
+
 // 费用标签写入以当前筛选的单一公司为边界；跨组织选择应在请求候选和提交前拦截。
 export function feeRowsBelongToOrganization(
   rows: API.FeeLedgerItem[],
@@ -77,6 +88,8 @@ export default function FinanceFeeLedgerPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
+  const [billWorkbenchMode, setBillWorkbenchMode] =
+    useState<BillCreationMode>('NORMAL');
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
     useState<string>();
@@ -394,6 +407,7 @@ export default function FinanceFeeLedgerPage() {
           }
           setSelectedFeeIds(keys.map(String));
           setSelectedBillOrganizationId(selectedOrganizationID);
+          setBillWorkbenchMode('NORMAL');
           setBillWorkbenchOpen(true);
         }}
         batchActions={[
@@ -402,6 +416,46 @@ export default function FinanceFeeLedgerPage() {
             label: '批量确认勾选费用',
             onClick: handleBatchConfirm,
           },
+          ...(access.canCreateFinanceNettings
+            ? [
+                {
+                  key: 'create-netting-bill',
+                  label: '创建对冲账单',
+                  onClick: (
+                    _keys: React.Key[],
+                    rows: API.FeeLedgerItem[],
+                  ) => {
+                    const invalidRows = rows.filter(
+                      (row) => !canCreateBill(row),
+                    );
+                    if (invalidRows.length > 0) {
+                      message.warning(
+                        '所选费用中包含不可建账的记录，请仅选择已确认且未入账单的费用',
+                      );
+                      return;
+                    }
+                    if (!hasBothBillDirections(rows)) {
+                      message.warning(
+                        '对冲账单需同时包含应收和应付费用，请各保留至少一笔后再对冲。',
+                      );
+                      return;
+                    }
+                    const selectedOrganizationID =
+                      resolveSingleBillCreationOrganization(rows);
+                    if (!selectedOrganizationID) {
+                      message.warning(
+                        '所选费用缺少所属公司或跨公司，不能创建对冲账单',
+                      );
+                      return;
+                    }
+                    setSelectedFeeIds(rows.map((row) => row.id || '').filter(Boolean));
+                    setSelectedBillOrganizationId(selectedOrganizationID);
+                    setBillWorkbenchMode('NETTING');
+                    setBillWorkbenchOpen(true);
+                  },
+                },
+              ]
+            : []),
           ...(access.canManageFinanceFeeTags && organizationId
             ? [
                 {
@@ -485,6 +539,7 @@ export default function FinanceFeeLedgerPage() {
           )?.name
         }
         sourceLabel={`从费用明细勾选的 ${selectedFeeIds.length} 笔费用`}
+        mode={billWorkbenchMode}
         onClose={() => setBillWorkbenchOpen(false)}
         onCreated={() => {
           setBillWorkbenchOpen(false);

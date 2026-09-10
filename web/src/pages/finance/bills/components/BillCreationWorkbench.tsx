@@ -50,6 +50,7 @@ import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillGroupNavigator from './BillGroupNavigator';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
+import NettingPairsCard from './NettingPairsCard';
 import {
   getPreviewFeeColumns,
   selectionFeeColumns,
@@ -79,12 +80,15 @@ type RequestError = Error & {
   response?: { data?: { reason?: string; message?: string } };
 };
 
+export type BillCreationMode = 'NORMAL' | 'NETTING';
+
 export type BillCreationWorkbenchProps = {
   open: boolean;
   initialFeeIds?: string[];
   initialOrganizationId?: string;
   initialOrganizationName?: string;
   sourceLabel?: string;
+  mode?: BillCreationMode;
   onClose: () => void;
   onCreated?: (batch: API.FinanceBillBatch) => void;
 };
@@ -170,9 +174,15 @@ export default function BillCreationWorkbench({
   initialOrganizationId,
   initialOrganizationName,
   sourceLabel,
+  mode = 'NORMAL',
   onClose,
   onCreated,
 }: BillCreationWorkbenchProps) {
+  // 对冲模式在服务端仍按方向分别生成原始账单叶子，并额外原子生成草稿对冲结算单。
+  const groupingMode =
+    mode === 'NETTING'
+      ? BillGroupingMode.BILL_GROUPING_MODE_NETTING
+      : BillGroupingMode.BILL_GROUPING_MODE_NORMAL;
   const { message } = App.useApp();
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [current, setCurrent] = useState(0);
@@ -274,7 +284,7 @@ export default function BillCreationWorkbench({
         return false;
       }
       const policy = policyOverride ?? {
-        mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+        mode: groupingMode,
         splitByOrder: splitByOrderRef.current,
         splitByTaxRate: splitByTaxRateRef.current,
       };
@@ -385,7 +395,7 @@ export default function BillCreationWorkbench({
         }
       }
     },
-    [form, message, sessionIdentity],
+    [form, groupingMode, message, sessionIdentity],
   );
 
   const loadPreviewRef = useRef(loadPreview);
@@ -447,7 +457,7 @@ export default function BillCreationWorkbench({
       const previewPromise = loadPreviewRef.current(
         initialIds,
         {
-          mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+          mode: groupingMode,
           splitByOrder: true,
           splitByTaxRate: false,
         },
@@ -536,7 +546,7 @@ export default function BillCreationWorkbench({
     if (current === 1) {
       if (
         await loadPreview(undefined, {
-          mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+          mode: groupingMode,
           splitByOrder,
           splitByTaxRate,
         })
@@ -598,7 +608,7 @@ export default function BillCreationWorkbench({
         {
           feeIds: selectedIds,
           groupingPolicy: {
-            mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+            mode: groupingMode,
             splitByOrder,
             splitByTaxRate,
           },
@@ -727,7 +737,9 @@ export default function BillCreationWorkbench({
               loading={loading}
               onClick={() => void createBatch()}
             >
-              原子生成 {preview?.data?.length || 0} 张账单
+              {mode === 'NETTING'
+                ? `原子生成 ${preview?.data?.length || 0} 张账单与 ${preview?.nettingPairs?.length || 0} 张对冲单`
+                : `原子生成 ${preview?.data?.length || 0} 张账单`}
             </Button>
           )}
         </Space>
@@ -737,7 +749,7 @@ export default function BillCreationWorkbench({
 
   return (
     <Drawer
-      title="费用批量转账单"
+      title={mode === 'NETTING' ? '费用批量对冲建账' : '费用批量转账单'}
       open={open}
       size="min(1280px, 96vw)"
       destroyOnHidden
@@ -913,7 +925,7 @@ export default function BillCreationWorkbench({
                         setSplitByOrder(checked);
                         invalidatePreview();
                         await loadPreview(undefined, {
-                          mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+                          mode: groupingMode,
                           splitByOrder: checked,
                           splitByTaxRate,
                         });
@@ -929,7 +941,7 @@ export default function BillCreationWorkbench({
                         setSplitByTaxRate(checked);
                         invalidatePreview();
                         await loadPreview(undefined, {
-                          mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+                          mode: groupingMode,
                           splitByOrder,
                           splitByTaxRate: checked,
                         });
@@ -958,6 +970,9 @@ export default function BillCreationWorkbench({
             currentGroup={activeGroup}
             incompleteCount={invalidGroupKeys.size}
           />
+          {mode === 'NETTING' && (
+            <NettingPairsCard pairs={preview.nettingPairs || []} />
+          )}
           <BillGroupNavigator
             groups={preview.data}
             splitByTaxRate={splitByTaxRate}

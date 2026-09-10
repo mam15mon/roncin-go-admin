@@ -70,6 +70,14 @@ export const DOC_TYPES: DocTypeMeta[] = [
     defaultPrefix: 'CM',
   },
   {
+    key: 'DOCUMENT_TYPE_NETTING',
+    numValue: 15,
+    label: '对冲结算单号',
+    shortLabel: '对冲',
+    color: 'lime',
+    defaultPrefix: 'NT',
+  },
+  {
     key: 'DOCUMENT_TYPE_HOUSE_BILL',
     numValue: 9,
     label: '分提单号 (HBL)',
