@@ -51,8 +51,6 @@ describe('箱货删除版本', () => {
     cargoService.remove.mockResolvedValue({ success: true });
   });
 
-  afterEach(() => cleanup());
-
   it('集装箱删除发送记录真实版本', async () => {
     containerService.list.mockResolvedValue({
       data: [{ id: 'container-1', containerNo: 'TGHU1234567', version: '7' }],
