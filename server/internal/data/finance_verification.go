@@ -366,7 +366,7 @@ func reconcileCommissionsForVerificationReversal(ctx context.Context, tx *ent.Tx
 	cancellationReason := limitedFinanceReason("核销撤销自动取消：" + reason)
 	recoveryReason := limitedFinanceReason("核销撤销自动冲减：" + reason)
 	for _, parent := range commissions {
-		lines, queryErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID)).Order(commissionline.ByOrderID()).ForUpdate().All(ctx)
+		lines, queryErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID)).Order(commissionline.ByID()).ForUpdate().All(ctx)
 		if queryErr != nil {
 			return queryErr
 		}

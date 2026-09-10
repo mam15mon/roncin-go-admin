@@ -246,7 +246,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		}
 		result.Items = append(result.Items, converted)
 	}
-	if err := r.enrichVerificationAmounts(ctx, result.Items); err != nil {
+	if err := r.enrichVerificationAmounts(ctx, result.Items, currentBusinessDate); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -269,13 +269,13 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}); err != nil {
+	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}, time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")); err != nil {
 		return nil, err
 	}
 	return converted, nil
 }
 
-func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills []*biz.FinanceBill) error {
+func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills []*biz.FinanceBill, currentBusinessDate string) error {
 	if len(bills) == 0 {
 		return nil
 	}
@@ -309,7 +309,8 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		return err
 	}
 	// 未核销余额 = 总额 - 有效核销 - 有效对冲；普通资金核销只处理抵销后的剩余余额。
-	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")
+	// 展示侧负值钳零；SQL 侧未结清谓词（billUnsettledPredicate）以原值比较，两处口径须同步维护。
+	// currentBusinessDate 由调用方传入：列表场景与筛选谓词共用同一业务日，避免跨上海午夜的不一致。
 	for _, bill := range bills {
 		bill.VerifiedAmount = bill.VerifiedAmount.Round(8)
 		bill.NettedAmount = nettedSums[bill.ID].Round(8)
@@ -1188,6 +1189,8 @@ func financeDecimalStringEqual(stored *string, expected *decimal.Decimal, scale 
 
 var _ biz.FinanceBillRepo = (*financeBillRepo)(nil)
 
+// billUnsettledPredicate 是「未结清」的 SQL 侧定义：总额 > 有效核销 + 有效对冲（原值比较，不钳负）。
+// 展示侧的等价定义在 enrichVerificationAmounts（UnverifiedAmount 负值钳零），两处口径须同步维护。
 func billUnsettledPredicate() predicate.FinanceBill {
 	return func(selector *entsql.Selector) {
 		billID := selector.C(financebillent.FieldID)

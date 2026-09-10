@@ -16,11 +16,15 @@ func NewFinanceCustomSettingRepo(data *Data) biz.FinanceCustomSettingRepo {
 }
 
 func (r *financeCustomSettingRepo) GetBilledFeeEditPolicy(ctx context.Context, organizationID uuid.UUID) (*biz.BilledFeeEditPolicy, error) {
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.data.db.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).Only(ctx)
+	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return &biz.BilledFeeEditPolicy{OrganizationID: ownerID, EditableFields: []biz.BilledFeeEditableField{}}, nil
 	}
@@ -31,7 +35,11 @@ func (r *financeCustomSettingRepo) GetBilledFeeEditPolicy(ctx context.Context, o
 }
 
 func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.BilledFeeEditPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.BilledFeeEditPolicy, error) {
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
 	if err != nil {
 		return nil, err
 	}
