@@ -603,6 +603,33 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 	if len(conflicts) != 7 {
 		t.Fatalf("expected 7 conflicts, got %d: %#v", len(conflicts), conflicts)
 	}
+
+	// 同一瞬间以不同时区偏移表达（北京时间次日凌晨 vs UTC 前一日晚间）不得被
+	// 判成不同自然日而产生假航程冲突——修复前该场景在 UTC 16:00–24:00 触发。
+	sameInstantUTC := time.Date(2026, 9, 11, 16, 37, 34, 0, time.UTC)
+	sameInstantShanghai := sameInstantUTC.In(time.FixedZone("CST", 8*3600))
+	orderSameInstant := &SeaTransportExecution{
+		ShippingLineID:      carrier1,
+		OriginLocationID:    pol1,
+		DischargeLocationID: pod1,
+		VesselName:          "EVER GIVEN",
+		VoyageNo:            "001W",
+		ETD:                 &sameInstantUTC,
+		ETA:                 &sameInstantUTC,
+	}
+	candidateShanghai := &SeaTransportExecution{
+		ShippingLineID:      carrier1,
+		OriginLocationID:    pol1,
+		DischargeLocationID: pod1,
+		VesselName:          "ever given",
+		VoyageNo:            "001W",
+		ETD:                 &sameInstantShanghai,
+		ETA:                 &sameInstantShanghai,
+	}
+	conflicts = CheckSeaVoyageConflicts(candidateShanghai, orderSameInstant)
+	if len(conflicts) != 0 {
+		t.Fatalf("同一瞬间不同时区偏移不得产生假冲突，got %d: %#v", len(conflicts), conflicts)
+	}
 }
 
 func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
