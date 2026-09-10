@@ -565,7 +565,7 @@ export default function BillCreationWorkbench({
     const firstInvalidGroup = preview?.data?.find(
       (group) =>
         !group.groupKey ||
-        group.configurationComplete === false ||
+        group.configurationComplete !== true ||
         !isGroupComplete(
           currentValues.groups?.[group.groupKey],
           group.currency,
@@ -580,7 +580,7 @@ export default function BillCreationWorkbench({
       !preview?.previewToken ||
       !preview.data?.length ||
       previewTokenFingerprintRef.current !== previewFingerprintRef.current ||
-      preview.data.some((group) => group.configurationComplete === false)
+      preview.data.some((group) => group.configurationComplete !== true)
     ) {
       message.warning('账单预览快照尚未完整或已失效，请补齐配置后重新预览');
       return;
@@ -696,7 +696,7 @@ export default function BillCreationWorkbench({
           .filter(
             (group) =>
               !group.groupKey ||
-              group.configurationComplete === false ||
+              group.configurationComplete !== true ||
               !isGroupComplete(formGroups?.[group.groupKey], group.currency),
           )
           .map((group) => group.groupKey || ''),

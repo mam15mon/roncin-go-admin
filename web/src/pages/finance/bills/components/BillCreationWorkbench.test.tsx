@@ -191,6 +191,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
           settlementPartyName: '结算单位甲',
           direction: 'RECEIVABLE',
           currency: 'CNY',
+          configurationComplete: true,
           fees: [],
         },
       ],
@@ -313,6 +314,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       settlementPartyName: '结算单位 A',
       direction: 'RECEIVABLE',
       currency: 'CNY',
+      configurationComplete: true,
       fees: [],
     };
     const groupB = {
@@ -321,6 +323,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       settlementPartyName: '结算单位 B',
       direction: 'RECEIVABLE',
       currency: 'USD',
+      configurationComplete: true,
       fees: [],
     };
     mocks.preview

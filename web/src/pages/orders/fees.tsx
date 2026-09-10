@@ -504,7 +504,7 @@ export default function OrderFeesPage() {
         orderNo={order.orderNo}
         tags={
           <>
-            {order.canModify === false &&
+            {order.canModify !== true &&
               order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
                 <Tag color="warning" icon={<LockOutlined />}>
                   已锁单
