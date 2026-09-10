@@ -2,7 +2,9 @@ package migration
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1123,5 +1125,87 @@ func TestPostgresUniversalOrderLockMigrationFromSEBaseline(t *testing.T) {
 	}
 	if len(revisionChecksum) != 64 {
 		t.Errorf("全业务订单锁迁移 checksum 长度=%d，期望 64", len(revisionChecksum))
+	}
+}
+
+func TestPostgresChecksumRepairMigration(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+
+	db, err := sql.Open("pgx", source)
+	if err != nil {
+		t.Fatalf("打开 PostgreSQL 失败: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		t.Fatalf("连接 PostgreSQL 失败: %v", err)
+	}
+
+	schemaName := "roncin_checksum_repair_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	quotedSchema := `"` + schemaName + `"`
+	if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+		t.Fatalf("创建临时 Schema 失败: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanupCancel()
+		if _, err := db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE"); err != nil {
+			t.Errorf("删除临时 Schema 失败: %v", err)
+		}
+	})
+	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+		t.Fatalf("切换临时 Schema 失败: %v", err)
+	}
+
+	dir := t.TempDir()
+	migrationPath := filepath.Join(dir, "20260910140000_repair_probe.sql")
+	initialContent := "CREATE TABLE repair_probe (id integer PRIMARY KEY);"
+	if err := os.WriteFile(migrationPath, []byte(initialContent), 0o600); err != nil {
+		t.Fatalf("写入迁移文件失败: %v", err)
+	}
+	if err := Apply(ctx, db, dir); err != nil {
+		t.Fatalf("首次迁移失败: %v", err)
+	}
+
+	// 模拟开发期把已应用的迁移文件继续改写。
+	editedContent := "CREATE TABLE repair_probe (id integer PRIMARY KEY, note text);"
+	if err := os.WriteFile(migrationPath, []byte(editedContent), 0o600); err != nil {
+		t.Fatalf("改写迁移文件失败: %v", err)
+	}
+	if err := Apply(ctx, db, dir); err == nil || !strings.Contains(err.Error(), "校验和不一致") {
+		t.Fatalf("严格模式应因校验和不一致失败，实际错误: %v", err)
+	}
+
+	var repaired []string
+	if err := ApplyWithOptions(ctx, db, dir, Options{
+		AllowChecksumRepair: true,
+		ChecksumRepaired: func(version, oldChecksum, newChecksum string) {
+			repaired = append(repaired, version)
+		},
+	}); err != nil {
+		t.Fatalf("重录校验和后迁移失败: %v", err)
+	}
+	if len(repaired) != 1 || repaired[0] != "20260910140000_repair_probe" {
+		t.Fatalf("重录回调异常: %#v", repaired)
+	}
+	editedHash := sha256.Sum256([]byte(editedContent))
+	var storedChecksum string
+	if err := db.QueryRowContext(ctx, `SELECT checksum FROM schema_migrations WHERE version = $1`, "20260910140000_repair_probe").Scan(&storedChecksum); err != nil {
+		t.Fatalf("读取迁移记录失败: %v", err)
+	}
+	if storedChecksum != hex.EncodeToString(editedHash[:]) {
+		t.Fatalf("迁移记录未更新为当前文件校验和: %s", storedChecksum)
+	}
+	if err := Apply(ctx, db, dir); err != nil {
+		t.Fatalf("重录后严格模式重复执行失败: %v", err)
 	}
 }

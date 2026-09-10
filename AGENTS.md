@@ -209,6 +209,7 @@ pnpm dev
 pnpm run dev:web
 pnpm run dev:server
 pnpm run dev:permit
+pnpm run migrate:dev
 pnpm run generate:web-client
 pnpm run generate:permission-keys
 pnpm run check:web
@@ -270,6 +271,9 @@ pnpm --dir web biome:lint
   迁移步骤同样执行该命令）在迁移完成后按 `internal/access` 的 Manifest 幂等
   同步 `permissions` 表，并为 `administrator` 角色补挂缺失权限。新增权限码
   不需要单独跑 `pnpm run dev:permit`，该脚本仅保留作开发期手工兜底。
+- 迁移校验和按环境区分：`pnpm dev` 与 `pnpm run migrate:dev` 允许把已应用迁移
+  的校验和重录为当前文件（开发期迁移文件在应用后继续修改属正常迭代）；
+  `pnpm run migrate:server` 保持严格校验，禁止对生产库做任何自动修复。
 - 生产采用同域部署：Go 服务提供 `/api/*`、`/health/*` 以及 React 静态资源。
   修改静态资源打包或路由时，同时验证开发期代理和生产同域路径。
 

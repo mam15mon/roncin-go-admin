@@ -139,7 +139,9 @@ async function prepareDatabase() {
 
   console.log(`[dev] 本机 PostgreSQL (${postgresHost}:${postgresPort}) 已就绪`);
   console.log('[dev] 执行数据库迁移');
-  await runPnpmScript('migrate:server');
+  // 开发期迁移文件常在应用到本地库后继续修改，migrate:dev 允许重录校验和自愈，
+  // 生产的 migrate:server 保持严格校验。
+  await runPnpmScript('migrate:dev');
 }
 
 const children = new Map();

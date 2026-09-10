@@ -18,6 +18,7 @@
     "check:permission-keys": "node scripts/generate-permission-keys.mjs --check",
     "check:proto-constants": "node scripts/generate-proto-constants.mjs --check",
     "migrate:server": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/migrate -dir migrations",
+    "migrate:dev": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/migrate -dir migrations -allow-checksum-repair",
     "sync:regions": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-regions -apply",
     "sync:airports": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-airports -apply",
     "sync:airlines": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-airlines -apply",
