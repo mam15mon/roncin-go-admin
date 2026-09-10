@@ -110,3 +110,26 @@ bill.exchange_rate = resolve_bill_date_rate(fee.currency, organization.base_curr
 ```
 
 账单币种由费用事实决定；用户只配置日期、同币种账户和独立的预计开票值。
+
+## 对冲汇总与余额的有效口径
+
+### Convention: 对冲只计已确认，余额是派生值
+
+**What**：财务汇总中的对冲抵销金额只统计 `status = CONFIRMED` 的对冲单；账单可用余额
+= 总额 − 有效核销 − 有效对冲，全程实时派生，不落库冗余余额字段。
+
+**Why**：草稿对冲未生效即扣减余额会提前阻塞正常核销；反转/取消通过对冲分摊
+`active = false` 与状态翻转自然退出有效金额，无需双写恢复。列表汇总共享列表筛选谓词
+（组织、单位、币种、关键词、状态），与「有效金额只统计有效记录」的口径一致。
+
+**Example**：
+
+```text
+bill.available = bill.total
+             - sum(verification_allocations where active)
+             - sum(netting_allocations where active)
+netting summary amount = sum(nettings where status = CONFIRMED)
+```
+
+**Related**：对冲预览与计划共用 `biz.MaxFinanceNettingBills` 上限（当前 500），
+超限 fail-closed 返回 `ErrFinanceNettingTooManyBills`，不静默截断预览总额。
