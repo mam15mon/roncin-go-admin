@@ -277,11 +277,13 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 		}
 	}
 
-	// 6. ETD（双方有值时匹配）
+	// 6. ETD（双方有值时匹配）。日期必须先统一到 UTC 再比较：数据库往返的
+	// timestamptz 可能携带会话时区，而订单输入按 RFC3339 偏移解析，同一瞬间在
+	// 两个时区可能落在不同自然日，未归一化会产生假冲突。
 	if masterVoyage.ETD != nil && !masterVoyage.ETD.IsZero() &&
 		orderVoyage.ETD != nil && !orderVoyage.ETD.IsZero() {
-		masterDate := masterVoyage.ETD.Format("2006-01-02")
-		orderDate := orderVoyage.ETD.Format("2006-01-02")
+		masterDate := masterVoyage.ETD.UTC().Format("2006-01-02")
+		orderDate := orderVoyage.ETD.UTC().Format("2006-01-02")
 		if masterDate != orderDate {
 			conflicts = append(conflicts, &SeaVoyageConflict{
 				Field:       "etd",
@@ -292,11 +294,11 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 		}
 	}
 
-	// 7. ETA（双方有值时匹配）
+	// 7. ETA（双方有值时匹配，与 ETD 同样先归一化到 UTC）。
 	if masterVoyage.ETA != nil && !masterVoyage.ETA.IsZero() &&
 		orderVoyage.ETA != nil && !orderVoyage.ETA.IsZero() {
-		masterDate := masterVoyage.ETA.Format("2006-01-02")
-		orderDate := orderVoyage.ETA.Format("2006-01-02")
+		masterDate := masterVoyage.ETA.UTC().Format("2006-01-02")
+		orderDate := orderVoyage.ETA.UTC().Format("2006-01-02")
 		if masterDate != orderDate {
 			conflicts = append(conflicts, &SeaVoyageConflict{
 				Field:       "eta",
