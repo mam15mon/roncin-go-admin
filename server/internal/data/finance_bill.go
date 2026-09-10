@@ -75,6 +75,9 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		predicates = append(predicates, financebillent.DueDateLTE(filter.DueDateTo))
 	}
 	if filter.OnlyUnsettled {
+		if filter.Status == "" {
+			predicates = append(predicates, financebillent.StatusEQ(financebillent.StatusCONFIRMED))
+		}
 		predicates = append(predicates, billUnsettledPredicate())
 	}
 	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")

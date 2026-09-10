@@ -1190,4 +1190,154 @@ func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
 			t.Fatalf("冲减调整单关联核销ID = %v，期望 %v", adj.SourceVerificationID, fixture.verificationID)
 		}
 	})
+
+	t.Run("核销撤销对草稿DRAFT提成自动取消", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("unverify-draft"))
+		if err != nil {
+			t.Fatalf("创建草稿提成失败: %v", err)
+		}
+		if created.Status != biz.CommissionDraft {
+			t.Fatalf("创建提成状态 = %s，期望 DRAFT", created.Status)
+		}
+
+		vRepo := NewVerificationRepo(fixture.data)
+		audit := &biz.AuditEvent{
+			OrganizationID: &fixture.organizationID,
+			UserID:         &fixture.actorID,
+			Action:         "finance.verification.reverse",
+			Result:         "success",
+			ResourceType:   "finance_verification",
+			ResourceID:     fixture.verificationID.String(),
+		}
+		reversedV, err := vRepo.Reverse(ctx, fixture.organizationID, fixture.verificationID, fixture.actorID, 1, "测试反核销取消DRAFT提成", audit)
+		if err != nil {
+			t.Fatalf("撤销核销失败: %v", err)
+		}
+		if reversedV.Status != biz.VerificationReversed {
+			t.Fatalf("核销撤销后状态不符: %s", reversedV.Status)
+		}
+
+		reloaded, err := usecase.Get(ctx, fixture.organizationID, created.ID)
+		if err != nil {
+			t.Fatalf("重读提成失败: %v", err)
+		}
+		if reloaded.Status != biz.CommissionCancelled {
+			t.Fatalf("核销撤销后草稿提成状态 = %s，期望 CANCELLED", reloaded.Status)
+		}
+		if reloaded.CancelledBy == nil || *reloaded.CancelledBy != fixture.actorID || reloaded.CancelledAt == nil {
+			t.Fatalf("核销撤销后草稿提成取消人或时间缺失: by=%v at=%v", reloaded.CancelledBy, reloaded.CancelledAt)
+		}
+		if reloaded.CancellationReason == nil || !strings.Contains(*reloaded.CancellationReason, "核销撤销自动取消") {
+			t.Fatalf("核销撤销后草稿提成取消原因不符: %v", reloaded.CancellationReason)
+		}
+	})
+
+	t.Run("并发重复计提恰好一笔成功且另一笔返回ErrCommissionDuplicate", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		results := make(chan error, 2)
+
+		go func() {
+			defer wg.Done()
+			_, err := usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, fixture.input("concurrent-1"))
+			results <- err
+		}()
+
+		go func() {
+			defer wg.Done()
+			_, err := usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, fixture.input("concurrent-2"))
+			results <- err
+		}()
+
+		wg.Wait()
+		close(results)
+
+		var successes, duplicates int
+		for err := range results {
+			if err == nil {
+				successes++
+			} else if errors.Is(err, biz.ErrCommissionDuplicate) {
+				duplicates++
+			} else {
+				t.Fatalf("并发计提返回非预期错误: %v", err)
+			}
+		}
+
+		if successes != 1 || duplicates != 1 {
+			t.Fatalf("并发计提结果不符: successes=%d, duplicates=%d", successes, duplicates)
+		}
+
+		count, err := fixture.data.db.FinanceCommission.Query().Where(
+			commission.OrganizationIDEQ(fixture.organizationID),
+			commission.VerificationIDEQ(fixture.verificationID),
+			commission.EmployeeIDEQ(fixture.employeeID),
+			commission.StatusNEQ(commission.StatusCANCELLED),
+		).Count(context.Background())
+		if err != nil || count != 1 {
+			t.Fatalf("并发后活动提成数量 = %d，期望 1，error=%v", count, err)
+		}
+	})
+
+	t.Run("违反提成唯一约束时数据库层报错由mapEntError正确映射为ErrCommissionDuplicate", func(t *testing.T) {
+		fixture := newCommissionPostgresFixture(t)
+		ctx := context.Background()
+		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+
+		// 正常创建首笔提成
+		first, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("constraint-first"))
+		if err != nil {
+			t.Fatalf("正常创建首笔提成失败: %v", err)
+		}
+
+		// 绕过 biz 预查直接调用底层数据库插入第二笔相同业务键记录，验证 Postgres 唯一约束触发且能被 mapEntError 识别
+		_, err = fixture.data.db.FinanceCommission.Create().
+			SetID(uuid.New()).
+			SetOrganizationID(first.OrganizationID).
+			SetCommissionNo("TC-CONSTRAINT-DUP-" + fixture.suffix).
+			SetIdempotencyKey("mock-constraint-dup-" + fixture.suffix).
+			SetVerificationID(first.VerificationID).
+			SetVerificationNo(first.VerificationNo).
+			SetEmployeeID(first.EmployeeID).
+			SetEmployeeName(first.EmployeeName).
+			SetCustomerCount(first.CustomerCount).
+			SetOrderCount(first.OrderCount).
+			SetFeeCount(first.FeeCount).
+			SetRuleID(first.RuleID).
+			SetRuleName(first.RuleName).
+			SetPersonnelRole(string(first.PersonnelRole)).
+			SetCalculationBasis(string(first.CalculationBasis)).
+			SetRuleVersion(first.RuleVersion).
+			SetCalculationVersion(first.CalculationVersion).
+			SetSourceFingerprint(first.SourceFingerprint).
+			SetStatus(commission.StatusDRAFT).
+			SetBaseCurrency(first.BaseCurrency).
+			SetRealizedRevenue(first.RealizedRevenue.StringFixed(8)).
+			SetAllocatedCost(first.AllocatedCost.StringFixed(8)).
+			SetRealizedProfit(first.RealizedProfit.StringFixed(8)).
+			SetCommissionBaseAmount(first.CommissionBaseAmount.StringFixed(8)).
+			SetRatePercent(first.RatePercent.StringFixed(4)).
+			SetCommissionAmount(first.CommissionAmount.StringFixed(8)).
+			SetCommissionDate(first.CommissionDate).
+			SetCnyExchangeRate(first.CNYExchangeRate.StringFixed(8)).
+			SetCnyExchangeRateSource(commission.CnyExchangeRateSource(first.CNYExchangeRateSource)).
+			SetCnyExchangeRateDate(first.CNYExchangeRateDate).
+			SetCnyCommissionAmount(first.CNYCommissionAmount.StringFixed(8)).
+			SetVersion(1).
+			Save(ctx)
+		if err == nil {
+			t.Fatal("直接插入相同业务键记录未触发数据库唯一索引约束")
+		}
+
+		mappedErr := mapEntError(err, nil, biz.ErrCommissionDuplicate)
+		if !errors.Is(mappedErr, biz.ErrCommissionDuplicate) {
+			t.Fatalf("唯一约束错误经 mapEntError 映射后 = %v，期望 %v", mappedErr, biz.ErrCommissionDuplicate)
+		}
+	})
 }

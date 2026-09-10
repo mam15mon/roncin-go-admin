@@ -432,6 +432,35 @@ func TestFinanceBillDueDateAndOverduePredicates(t *testing.T) {
 	}
 }
 
+func TestFinanceBillOnlyUnsettledDefaultsToConfirmed(t *testing.T) {
+	data, mock := setupFinanceSummaryData(t)
+	repo := &financeBillRepo{data: data}
+	organizationID := uuid.New()
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*WHERE.*"organization_id" IN \(\$1\).*AND.*"status" = \$2.*fva.*fna`).
+		WithArgs(organizationID, financebillent.StatusCONFIRMED).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
+	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
+		WillReturnRows(sqlmock.NewRows(financeverificationallocationent.Columns))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(sqlmock.NewRows(financenettingallocationent.Columns))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*due_date.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}))
+	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*WHERE.*"organization_id" IN \(\$1\).*AND.*"status" = \$2.*ORDER BY.*LIMIT 20`).
+		WithArgs(organizationID, financebillent.StatusCONFIRMED).
+		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
+
+	_, err := repo.List(context.Background(), []uuid.UUID{organizationID}, biz.FinanceBillFilter{Page: 1, PageSize: 20, OnlyUnsettled: true})
+	if err != nil {
+		t.Fatalf("查询未结清账单列表失败: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("未结清账单列表未默认追加已确认状态过滤: %v", err)
+	}
+}
+
 func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	orgID := uuid.New()
