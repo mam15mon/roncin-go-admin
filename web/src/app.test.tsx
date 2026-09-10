@@ -53,7 +53,10 @@ vi.mock('antd', () => ({
   Result: () => null,
 }));
 
-import { getOrganizationWorkspaceKey, OrganizationWorkspace } from './app';
+import {
+  getOrganizationWorkspaceKey,
+  OrganizationWorkspace,
+} from '@/components/layout/OrganizationWorkspace';
 
 function Page({ label }: { label: string }) {
   useEffect(() => {

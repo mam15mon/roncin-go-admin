@@ -5,7 +5,10 @@ import { Result } from 'antd';
 import React from 'react';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
 import { HeaderTitle } from '@/components/layout/HeaderTitle';
-import { TagsView } from '@/components/layout/TagsView';
+import {
+  getOrganizationWorkspaceKey,
+  OrganizationWorkspace,
+} from '@/components/layout/OrganizationWorkspace';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
@@ -29,25 +32,6 @@ export interface InitialState {
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-}
-
-export function getOrganizationWorkspaceKey(
-  currentUser?: API.CurrentUser,
-): string {
-  return `${currentUser?.id ?? 'anonymous'}:${currentUser?.currentOrganization?.id ?? 'no-organization'}`;
-}
-
-export function OrganizationWorkspace({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="roncin-layout-wrapper roncin-organization-workspace">
-      <TagsView />
-      <div className="roncin-layout-main">{children}</div>
-    </div>
-  );
 }
 
 export async function getInitialState(): Promise<InitialState> {
