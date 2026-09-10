@@ -828,7 +828,13 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 		if verified {
 			return biz.ErrFinanceBillInvalidTransition
 		}
-		netted, err := tx.FinanceNettingAllocation.Query().Where(financenettingallocationent.BillIDEQ(id), financenettingallocationent.ActiveEQ(true)).Exist(ctx)
+		netted, err := tx.FinanceNettingAllocation.Query().Where(
+			financenettingallocationent.BillIDEQ(id),
+			financenettingallocationent.Or(
+				financenettingallocationent.ActiveEQ(true),
+				financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)),
+			),
+		).Exist(ctx)
 		if err != nil {
 			return err
 		}

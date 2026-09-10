@@ -24,9 +24,7 @@ const appMocks = vi.hoisted(() => ({
 }));
 
 const reasonFlow = vi.hoisted(() => ({
-  submit: undefined as
-    | ((reason: string) => Promise<void> | void)
-    | undefined,
+  submit: undefined as ((reason: string) => Promise<void> | void) | undefined,
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -135,6 +133,7 @@ describe('对冲结算单管理页', () => {
     render(<FinanceNettingsPage />);
     await waitFor(() => expect(serviceMocks.listNettings).toHaveBeenCalled());
     const titles = templateProps.columns?.map((column) => column.title);
+    expect(titles).toContain('关键词');
     expect(titles).toContain('对冲单号');
     expect(titles).toContain('抵销金额');
     expect(titles).toContain('本币抵销额');

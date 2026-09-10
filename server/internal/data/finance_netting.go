@@ -55,6 +55,12 @@ func (r *financeNettingRepo) List(ctx context.Context, organizationIDs []uuid.UU
 	}
 	// 汇总口径只统计已确认对冲；草稿、已取消与已反转记录保留审计但不进入有效金额。
 	summaryPredicates := []predicate.FinanceNetting{financenettingent.OrganizationIDIn(organizationIDs...), financenettingent.StatusEQ(financenettingent.StatusCONFIRMED)}
+	if filter.Keyword != "" {
+		summaryPredicates = append(summaryPredicates, financenettingent.Or(
+			financenettingent.NettingNoContainsFold(filter.Keyword),
+			financenettingent.SettlementPartyNameContainsFold(filter.Keyword),
+		))
+	}
 	if filter.SettlementPartyID != nil {
 		summaryPredicates = append(summaryPredicates, financenettingent.SettlementPartyIDEQ(*filter.SettlementPartyID))
 	}

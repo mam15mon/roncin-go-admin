@@ -17,6 +17,7 @@ import (
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
+	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/shopspring/decimal"
 )
@@ -299,5 +300,37 @@ func TestVerificationListUsesFilteredDatabaseSummary(t *testing.T) {
 	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "60", "10", "0")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("核销列表未使用数据库分页或汇总: %v", err)
+	}
+}
+
+func TestFinanceNettingListUsesFilteredDatabaseSummary(t *testing.T) {
+	data, mock := setupFinanceSummaryData(t)
+	repo := NewFinanceNettingRepo(data)
+	orgID := uuid.New()
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE)`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_nettings".*"organization_id".*"status".*("netting_no" ILIKE|"settlement_party_name" ILIKE)`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_nettings".*"organization_id".*"status".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}).AddRow("CNY", "150.00000000"))
+
+	mock.ExpectQuery(`SELECT "finance_nettings"\..*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*ORDER BY.*LIMIT 20`).
+		WillReturnRows(sqlmock.NewRows(financenettingent.Columns))
+
+	result, err := repo.List(context.Background(), []uuid.UUID{orgID}, biz.FinanceNettingFilter{Page: 1, PageSize: 20, Keyword: "NT-001"})
+	if err != nil {
+		t.Fatalf("查询对冲列表失败: %v", err)
+	}
+	if result.Total != 1 || result.Summary.ConfirmedCount != 1 {
+		t.Fatalf("对冲列表与汇总统计不符合预期: total=%d confirmedCount=%d", result.Total, result.Summary.ConfirmedCount)
+	}
+	if len(result.Summary.AmountsByBaseCurrency) != 1 || result.Summary.AmountsByBaseCurrency[0].BaseCurrency != "CNY" || !result.Summary.AmountsByBaseCurrency[0].NettingBaseAmount.Equal(decimal.RequireFromString("150")) {
+		t.Fatalf("对冲本币汇总不符合预期: %+v", result.Summary.AmountsByBaseCurrency)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("对冲列表 summary 查询未完整传递 keyword 过滤: %v", err)
 	}
 }

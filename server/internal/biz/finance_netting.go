@@ -20,6 +20,7 @@ var (
 	ErrFinanceNettingDirection           = errors.BadRequest("FINANCE_NETTING_DIRECTION", "对冲需至少包含一张应收账单和一张应付账单")
 	ErrFinanceNettingBalance             = errors.Conflict("FINANCE_NETTING_BALANCE", "账单可用余额不足以完成本次对冲")
 	ErrFinanceNettingTransition          = errors.Conflict("FINANCE_NETTING_TRANSITION", "当前对冲状态不允许执行该操作")
+	ErrFinanceNettingBillNotConfirmed    = errors.Conflict("FINANCE_NETTING_BILL_NOT_CONFIRMED", "来源账单必须均为已确认状态方可确认对冲单")
 	ErrFinanceNettingVersionConflict     = errors.Conflict("FINANCE_NETTING_VERSION_CONFLICT", "对冲单已被其他操作人修改，请刷新后重试")
 	ErrFinanceNettingBillVersionConflict = errors.Conflict("FINANCE_NETTING_BILL_VERSION_CONFLICT", "来源账单已被其他操作人修改，请刷新后重试")
 	ErrFinanceNettingIdempotency         = errors.Conflict("FINANCE_NETTING_IDEMPOTENCY", "对冲请求幂等键已被其他请求使用")
@@ -359,8 +360,11 @@ func ValidateFinanceNettingConfirmation(netting *FinanceNetting, bills []*Financ
 	receivableSum, payableSum := decimal.Zero, decimal.Zero
 	for _, allocation := range netting.Allocations {
 		bill := billByID[allocation.BillID]
-		if bill == nil || bill.Status != FinanceBillConfirmed || bill.SettlementPartyID != netting.SettlementPartyID || bill.Currency != netting.Currency {
+		if bill == nil || bill.SettlementPartyID != netting.SettlementPartyID || bill.Currency != netting.Currency {
 			return ErrFinanceNettingTransition
+		}
+		if bill.Status != FinanceBillConfirmed {
+			return ErrFinanceNettingBillNotConfirmed
 		}
 		if allocation.Direction != bill.Direction {
 			return ErrFinanceNettingInvalid

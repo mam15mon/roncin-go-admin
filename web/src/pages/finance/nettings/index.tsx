@@ -82,10 +82,7 @@ export default function FinanceNettingsPage() {
 
   const confirmNetting = (record: API.FinanceNetting) => {
     nettingActions.run(record, async ({ id, expectedVersion }) => {
-      await settlementServiceConfirmNetting(
-        { id },
-        { id, expectedVersion },
-      );
+      await settlementServiceConfirmNetting({ id }, { id, expectedVersion });
       message.success('对冲单已确认；双方账单未结余额已按抵销额扣减');
       reload();
     });
@@ -132,7 +129,8 @@ export default function FinanceNettingsPage() {
   const formatNettingBaseAmounts = () =>
     metricStats.amountsByBaseCurrency
       .map(
-        (item) => `${item.nettingBaseAmount ?? '0'} ${item.baseCurrency ?? '-'}`,
+        (item) =>
+          `${item.nettingBaseAmount ?? '0'} ${item.baseCurrency ?? '-'}`,
       )
       .join(' / ') || '-';
 
@@ -158,6 +156,14 @@ export default function FinanceNettingsPage() {
       width: 150,
       search: false,
       renderText: (value) => value || '-',
+    },
+    {
+      title: '关键词',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      fieldProps: {
+        placeholder: '输入对冲单号或结算单位',
+      },
     },
     {
       title: '序号',
@@ -317,6 +323,7 @@ export default function FinanceNettingsPage() {
             page: params.current,
             pageSize: params.pageSize,
             keyword: params.keyword,
+            currency: params.currency,
             status: params.status ? Number(params.status) : undefined,
             organizationId,
           });
@@ -402,11 +409,20 @@ export default function FinanceNettingsPage() {
               ) : null}
             </Descriptions>
 
-            <div style={{ fontWeight: 600, marginBottom: 8, marginTop: 16, fontSize: 13 }}>
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                marginTop: 16,
+                fontSize: 13,
+              }}
+            >
               对冲分摊明细（{nettingStatusText(detail.status)}
-              {detail.status === FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT
+              {detail.status ===
+              FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT
                 ? '，确认后生效'
-                : ''}）
+                : ''}
+              ）
             </div>
             <Table<API.FinanceNettingAllocation>
               rowKey="id"
@@ -445,8 +461,7 @@ export default function FinanceNettingsPage() {
                   title: '本币抵销额',
                   dataIndex: 'baseCurrencyAmount',
                   align: 'right',
-                  render: (value) =>
-                    `${value || '0'} ${detail.baseCurrency}`,
+                  render: (value) => `${value || '0'} ${detail.baseCurrency}`,
                 },
                 {
                   title: '有效',
