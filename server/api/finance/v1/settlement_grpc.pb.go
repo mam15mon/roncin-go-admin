@@ -65,6 +65,13 @@ const (
 	SettlementService_ListCommissionVerificationCandidates_FullMethodName      = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
 	SettlementService_CreateVerification_FullMethodName                        = "/finance.v1.SettlementService/CreateVerification"
 	SettlementService_ReverseVerification_FullMethodName                       = "/finance.v1.SettlementService/ReverseVerification"
+	SettlementService_ListNettings_FullMethodName                              = "/finance.v1.SettlementService/ListNettings"
+	SettlementService_PreviewNetting_FullMethodName                            = "/finance.v1.SettlementService/PreviewNetting"
+	SettlementService_CreateNetting_FullMethodName                             = "/finance.v1.SettlementService/CreateNetting"
+	SettlementService_GetNetting_FullMethodName                                = "/finance.v1.SettlementService/GetNetting"
+	SettlementService_ConfirmNetting_FullMethodName                            = "/finance.v1.SettlementService/ConfirmNetting"
+	SettlementService_CancelNetting_FullMethodName                             = "/finance.v1.SettlementService/CancelNetting"
+	SettlementService_ReverseNetting_FullMethodName                            = "/finance.v1.SettlementService/ReverseNetting"
 	SettlementService_ListCommissions_FullMethodName                           = "/finance.v1.SettlementService/ListCommissions"
 	SettlementService_ExportCommissions_FullMethodName                         = "/finance.v1.SettlementService/ExportCommissions"
 	SettlementService_ListCommissionEmployees_FullMethodName                   = "/finance.v1.SettlementService/ListCommissionEmployees"
@@ -145,6 +152,14 @@ type SettlementServiceClient interface {
 	ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionVerificationCandidatesResponse, error)
 	CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error)
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
+	// 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+	ListNettings(ctx context.Context, in *ListNettingsRequest, opts ...grpc.CallOption) (*ListNettingsResponse, error)
+	PreviewNetting(ctx context.Context, in *PreviewNettingRequest, opts ...grpc.CallOption) (*PreviewNettingResponse, error)
+	CreateNetting(ctx context.Context, in *CreateNettingRequest, opts ...grpc.CallOption) (*CreateNettingResponse, error)
+	GetNetting(ctx context.Context, in *GetNettingRequest, opts ...grpc.CallOption) (*GetNettingResponse, error)
+	ConfirmNetting(ctx context.Context, in *ConfirmNettingRequest, opts ...grpc.CallOption) (*ConfirmNettingResponse, error)
+	CancelNetting(ctx context.Context, in *CancelNettingRequest, opts ...grpc.CallOption) (*CancelNettingResponse, error)
+	ReverseNetting(ctx context.Context, in *ReverseNettingRequest, opts ...grpc.CallOption) (*ReverseNettingResponse, error)
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	ExportCommissions(ctx context.Context, in *ExportCommissionsRequest, opts ...grpc.CallOption) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
@@ -634,6 +649,76 @@ func (c *settlementServiceClient) ReverseVerification(ctx context.Context, in *R
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListNettings(ctx context.Context, in *ListNettingsRequest, opts ...grpc.CallOption) (*ListNettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNettingsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListNettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) PreviewNetting(ctx context.Context, in *PreviewNettingRequest, opts ...grpc.CallOption) (*PreviewNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_PreviewNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateNetting(ctx context.Context, in *CreateNettingRequest, opts ...grpc.CallOption) (*CreateNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetNetting(ctx context.Context, in *GetNettingRequest, opts ...grpc.CallOption) (*GetNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ConfirmNetting(ctx context.Context, in *ConfirmNettingRequest, opts ...grpc.CallOption) (*ConfirmNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ConfirmNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CancelNetting(ctx context.Context, in *CancelNettingRequest, opts ...grpc.CallOption) (*CancelNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CancelNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ReverseNetting(ctx context.Context, in *ReverseNettingRequest, opts ...grpc.CallOption) (*ReverseNettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReverseNettingResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ReverseNetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCommissionsResponse)
@@ -874,6 +959,14 @@ type SettlementServiceServer interface {
 	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
+	// 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+	ListNettings(context.Context, *ListNettingsRequest) (*ListNettingsResponse, error)
+	PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error)
+	CreateNetting(context.Context, *CreateNettingRequest) (*CreateNettingResponse, error)
+	GetNetting(context.Context, *GetNettingRequest) (*GetNettingResponse, error)
+	ConfirmNetting(context.Context, *ConfirmNettingRequest) (*ConfirmNettingResponse, error)
+	CancelNetting(context.Context, *CancelNettingRequest) (*CancelNettingResponse, error)
+	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
@@ -1040,6 +1133,27 @@ func (UnimplementedSettlementServiceServer) CreateVerification(context.Context, 
 }
 func (UnimplementedSettlementServiceServer) ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReverseVerification not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListNettings(context.Context, *ListNettingsRequest) (*ListNettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNettings not implemented")
+}
+func (UnimplementedSettlementServiceServer) PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewNetting not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateNetting(context.Context, *CreateNettingRequest) (*CreateNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateNetting not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetNetting(context.Context, *GetNettingRequest) (*GetNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNetting not implemented")
+}
+func (UnimplementedSettlementServiceServer) ConfirmNetting(context.Context, *ConfirmNettingRequest) (*ConfirmNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmNetting not implemented")
+}
+func (UnimplementedSettlementServiceServer) CancelNetting(context.Context, *CancelNettingRequest) (*CancelNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelNetting not implemented")
+}
+func (UnimplementedSettlementServiceServer) ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReverseNetting not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissions not implemented")
@@ -1944,6 +2058,132 @@ func _SettlementService_ReverseVerification_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListNettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListNettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListNettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListNettings(ctx, req.(*ListNettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_PreviewNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).PreviewNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_PreviewNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).PreviewNetting(ctx, req.(*PreviewNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateNetting(ctx, req.(*CreateNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetNetting(ctx, req.(*GetNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ConfirmNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ConfirmNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ConfirmNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ConfirmNetting(ctx, req.(*ConfirmNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CancelNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CancelNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CancelNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CancelNetting(ctx, req.(*CancelNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ReverseNetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReverseNettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ReverseNetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ReverseNetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ReverseNetting(ctx, req.(*ReverseNettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_ListCommissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCommissionsRequest)
 	if err := dec(in); err != nil {
@@ -2458,6 +2698,34 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReverseVerification",
 			Handler:    _SettlementService_ReverseVerification_Handler,
+		},
+		{
+			MethodName: "ListNettings",
+			Handler:    _SettlementService_ListNettings_Handler,
+		},
+		{
+			MethodName: "PreviewNetting",
+			Handler:    _SettlementService_PreviewNetting_Handler,
+		},
+		{
+			MethodName: "CreateNetting",
+			Handler:    _SettlementService_CreateNetting_Handler,
+		},
+		{
+			MethodName: "GetNetting",
+			Handler:    _SettlementService_GetNetting_Handler,
+		},
+		{
+			MethodName: "ConfirmNetting",
+			Handler:    _SettlementService_ConfirmNetting_Handler,
+		},
+		{
+			MethodName: "CancelNetting",
+			Handler:    _SettlementService_CancelNetting_Handler,
+		},
+		{
+			MethodName: "ReverseNetting",
+			Handler:    _SettlementService_ReverseNetting_Handler,
 		},
 		{
 			MethodName: "ListCommissions",

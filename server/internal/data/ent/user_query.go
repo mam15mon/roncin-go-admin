@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
@@ -74,6 +75,9 @@ type UserQuery struct {
 	withConfirmedFinanceCashflows             *FinanceCashflowQuery
 	withCancelledFinanceCashflows             *FinanceCashflowQuery
 	withReversedFinanceVerifications          *FinanceVerificationQuery
+	withConfirmedFinanceNettings              *FinanceNettingQuery
+	withCancelledFinanceNettings              *FinanceNettingQuery
+	withReversedFinanceNettings               *FinanceNettingQuery
 	withFinanceCommissions                    *FinanceCommissionQuery
 	withConfirmedFinanceCommissions           *FinanceCommissionQuery
 	withPaidFinanceCommissions                *FinanceCommissionQuery
@@ -466,6 +470,72 @@ func (_q *UserQuery) QueryReversedFinanceVerifications() *FinanceVerificationQue
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ReversedFinanceVerificationsTable, user.ReversedFinanceVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfirmedFinanceNettings chains the current query on the "confirmed_finance_nettings" edge.
+func (_q *UserQuery) QueryConfirmedFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedFinanceNettingsTable, user.ConfirmedFinanceNettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceNettings chains the current query on the "cancelled_finance_nettings" edge.
+func (_q *UserQuery) QueryCancelledFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceNettingsTable, user.CancelledFinanceNettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReversedFinanceNettings chains the current query on the "reversed_finance_nettings" edge.
+func (_q *UserQuery) QueryReversedFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReversedFinanceNettingsTable, user.ReversedFinanceNettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1384,6 +1454,9 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withConfirmedFinanceCashflows:             _q.withConfirmedFinanceCashflows.Clone(),
 		withCancelledFinanceCashflows:             _q.withCancelledFinanceCashflows.Clone(),
 		withReversedFinanceVerifications:          _q.withReversedFinanceVerifications.Clone(),
+		withConfirmedFinanceNettings:              _q.withConfirmedFinanceNettings.Clone(),
+		withCancelledFinanceNettings:              _q.withCancelledFinanceNettings.Clone(),
+		withReversedFinanceNettings:               _q.withReversedFinanceNettings.Clone(),
 		withFinanceCommissions:                    _q.withFinanceCommissions.Clone(),
 		withConfirmedFinanceCommissions:           _q.withConfirmedFinanceCommissions.Clone(),
 		withPaidFinanceCommissions:                _q.withPaidFinanceCommissions.Clone(),
@@ -1584,6 +1657,39 @@ func (_q *UserQuery) WithReversedFinanceVerifications(opts ...func(*FinanceVerif
 		opt(query)
 	}
 	_q.withReversedFinanceVerifications = query
+	return _q
+}
+
+// WithConfirmedFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "confirmed_finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConfirmedFinanceNettings(opts ...func(*FinanceNettingQuery)) *UserQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmedFinanceNettings = query
+	return _q
+}
+
+// WithCancelledFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "cancelled_finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCancelledFinanceNettings(opts ...func(*FinanceNettingQuery)) *UserQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCancelledFinanceNettings = query
+	return _q
+}
+
+// WithReversedFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "reversed_finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithReversedFinanceNettings(opts ...func(*FinanceNettingQuery)) *UserQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withReversedFinanceNettings = query
 	return _q
 }
 
@@ -2017,7 +2123,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [47]bool{
+		loadedTypes = [50]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2033,6 +2139,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withConfirmedFinanceCashflows != nil,
 			_q.withCancelledFinanceCashflows != nil,
 			_q.withReversedFinanceVerifications != nil,
+			_q.withConfirmedFinanceNettings != nil,
+			_q.withCancelledFinanceNettings != nil,
+			_q.withReversedFinanceNettings != nil,
 			_q.withFinanceCommissions != nil,
 			_q.withConfirmedFinanceCommissions != nil,
 			_q.withPaidFinanceCommissions != nil,
@@ -2211,6 +2320,33 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.ReversedFinanceVerifications = []*FinanceVerification{} },
 			func(n *User, e *FinanceVerification) {
 				n.Edges.ReversedFinanceVerifications = append(n.Edges.ReversedFinanceVerifications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmedFinanceNettings; query != nil {
+		if err := _q.loadConfirmedFinanceNettings(ctx, query, nodes,
+			func(n *User) { n.Edges.ConfirmedFinanceNettings = []*FinanceNetting{} },
+			func(n *User, e *FinanceNetting) {
+				n.Edges.ConfirmedFinanceNettings = append(n.Edges.ConfirmedFinanceNettings, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCancelledFinanceNettings; query != nil {
+		if err := _q.loadCancelledFinanceNettings(ctx, query, nodes,
+			func(n *User) { n.Edges.CancelledFinanceNettings = []*FinanceNetting{} },
+			func(n *User, e *FinanceNetting) {
+				n.Edges.CancelledFinanceNettings = append(n.Edges.CancelledFinanceNettings, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withReversedFinanceNettings; query != nil {
+		if err := _q.loadReversedFinanceNettings(ctx, query, nodes,
+			func(n *User) { n.Edges.ReversedFinanceNettings = []*FinanceNetting{} },
+			func(n *User, e *FinanceNetting) {
+				n.Edges.ReversedFinanceNettings = append(n.Edges.ReversedFinanceNettings, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2961,6 +3097,105 @@ func (_q *UserQuery) loadReversedFinanceVerifications(ctx context.Context, query
 	}
 	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ReversedFinanceVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ReversedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "reversed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "reversed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConfirmedFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*User, init func(*User), assign func(*User, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldConfirmedBy)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConfirmedFinanceNettingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCancelledFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*User, init func(*User), assign func(*User, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldCancelledBy)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CancelledFinanceNettingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CancelledBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadReversedFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*User, init func(*User), assign func(*User, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldReversedBy)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReversedFinanceNettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

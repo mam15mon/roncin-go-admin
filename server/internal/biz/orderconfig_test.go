@@ -72,6 +72,7 @@ func TestDefaultNumberRules(t *testing.T) {
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 		{DocumentType: DocumentTypeCommission, Prefix: "CM", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeNetting, Prefix: "NT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 	}
 
 	if got := DefaultNumberRules(); !reflect.DeepEqual(got, want) {

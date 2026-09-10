@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -41,6 +42,7 @@ type FinanceBillQuery struct {
 	withLines                   *FinanceBillLineQuery
 	withInvoiceLinks            *FinanceInvoiceBillQuery
 	withVerificationAllocations *FinanceVerificationAllocationQuery
+	withNettingAllocations      *FinanceNettingAllocationQuery
 	withEnterpriseTagLinks      *FinanceBillEnterpriseTagQuery
 	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -248,6 +250,28 @@ func (_q *FinanceBillQuery) QueryVerificationAllocations() *FinanceVerificationA
 			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
 			sqlgraph.To(financeverificationallocation.Table, financeverificationallocation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebill.VerificationAllocationsTable, financebill.VerificationAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNettingAllocations chains the current query on the "netting_allocations" edge.
+func (_q *FinanceBillQuery) QueryNettingAllocations() *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.NettingAllocationsTable, financebill.NettingAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -477,6 +501,7 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		withLines:                   _q.withLines.Clone(),
 		withInvoiceLinks:            _q.withInvoiceLinks.Clone(),
 		withVerificationAllocations: _q.withVerificationAllocations.Clone(),
+		withNettingAllocations:      _q.withNettingAllocations.Clone(),
 		withEnterpriseTagLinks:      _q.withEnterpriseTagLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -572,6 +597,17 @@ func (_q *FinanceBillQuery) WithVerificationAllocations(opts ...func(*FinanceVer
 	return _q
 }
 
+// WithNettingAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "netting_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithNettingAllocations(opts ...func(*FinanceNettingAllocationQuery)) *FinanceBillQuery {
+	query := (&FinanceNettingAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNettingAllocations = query
+	return _q
+}
+
 // WithEnterpriseTagLinks tells the query-builder to eager-load the nodes that are connected to
 // the "enterprise_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *FinanceBillQuery) WithEnterpriseTagLinks(opts ...func(*FinanceBillEnterpriseTagQuery)) *FinanceBillQuery {
@@ -661,7 +697,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			_q.withOrganization != nil,
 			_q.withBatch != nil,
 			_q.withSettlementParty != nil,
@@ -670,6 +706,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			_q.withLines != nil,
 			_q.withInvoiceLinks != nil,
 			_q.withVerificationAllocations != nil,
+			_q.withNettingAllocations != nil,
 			_q.withEnterpriseTagLinks != nil,
 		}
 	)
@@ -743,6 +780,15 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			func(n *FinanceBill) { n.Edges.VerificationAllocations = []*FinanceVerificationAllocation{} },
 			func(n *FinanceBill, e *FinanceVerificationAllocation) {
 				n.Edges.VerificationAllocations = append(n.Edges.VerificationAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNettingAllocations; query != nil {
+		if err := _q.loadNettingAllocations(ctx, query, nodes,
+			func(n *FinanceBill) { n.Edges.NettingAllocations = []*FinanceNettingAllocation{} },
+			func(n *FinanceBill, e *FinanceNettingAllocation) {
+				n.Edges.NettingAllocations = append(n.Edges.NettingAllocations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -988,6 +1034,36 @@ func (_q *FinanceBillQuery) loadVerificationAllocations(ctx context.Context, que
 	}
 	query.Where(predicate.FinanceVerificationAllocation(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financebill.VerificationAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadNettingAllocations(ctx context.Context, query *FinanceNettingAllocationQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceNettingAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenettingallocation.FieldBillID)
+	}
+	query.Where(predicate.FinanceNettingAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebill.NettingAllocationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

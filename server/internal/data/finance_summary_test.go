@@ -17,6 +17,7 @@ import (
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
+	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/shopspring/decimal"
 )
 
@@ -108,6 +109,8 @@ func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {
 			AddRow("PAYABLE", "CNY", "40"))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20 OFFSET 20`).
 		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
 
@@ -184,6 +187,15 @@ func TestFinanceBillListDeductsActiveAllocationsByBaseCurrency(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
 			AddRow(usdID, "USD").
 			AddRow(cnyID, "CNY"))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations"`).
+		WillReturnRows(financeNettingSummaryAllocationRows(
+			financeNettingSummaryAllocation(usdID, "20", "20"),
+			financeNettingSummaryAllocation(cnyID, "10", "10"),
+		))
+	mock.ExpectQuery(`SELECT "finance_bills"\."id", "finance_bills"\."base_currency" FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "base_currency"}).
+			AddRow(usdID, "USD").
+			AddRow(cnyID, "CNY"))
 	mock.ExpectQuery(`SELECT "finance_bills"\..*FROM "finance_bills".*ORDER BY.*LIMIT 20`).
 		WillReturnRows(sqlmock.NewRows(financebillent.Columns))
 
@@ -191,8 +203,8 @@ func TestFinanceBillListDeductsActiveAllocationsByBaseCurrency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询账单多本位币汇总失败: %v", err)
 	}
-	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "USD", "120", "10", "100")
-	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "200", "0", "150")
+	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "USD", "120", "10", "80")
+	assertFinanceBaseCurrencyAmount(t, result.Summary.AmountsByBaseCurrency, "CNY", "200", "0", "140")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("账单未按本位币精确扣减有效核销: %v", err)
 	}
@@ -214,6 +226,24 @@ func financeSummaryAllocationRows(items ...financeSummaryAllocationInput) *sqlmo
 	rows := sqlmock.NewRows(financeverificationallocationent.Columns)
 	for _, item := range items {
 		rows.AddRow(uuid.New(), time.Now(), time.Now(), uuid.New(), item.cashflowID, item.billID, "FLOW", "BILL", item.amount, item.billBaseAmount, item.cashflowAmount, item.amount, "0", true)
+	}
+	return rows
+}
+
+type financeNettingSummaryAllocationInput struct {
+	billID             uuid.UUID
+	amount             string
+	baseCurrencyAmount string
+}
+
+func financeNettingSummaryAllocation(billID uuid.UUID, amount, baseCurrencyAmount string) financeNettingSummaryAllocationInput {
+	return financeNettingSummaryAllocationInput{billID: billID, amount: amount, baseCurrencyAmount: baseCurrencyAmount}
+}
+
+func financeNettingSummaryAllocationRows(items ...financeNettingSummaryAllocationInput) *sqlmock.Rows {
+	rows := sqlmock.NewRows(financenettingallocationent.Columns)
+	for _, item := range items {
+		rows.AddRow(uuid.New(), time.Now(), time.Now(), uuid.New(), item.billID, "BILL", "RECEIVABLE", item.amount, item.baseCurrencyAmount, true)
 	}
 	return rows
 }

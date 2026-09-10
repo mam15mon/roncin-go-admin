@@ -134,6 +134,8 @@ func TestVerificationCreationCandidatesKeepOrganizationPredicateInBothSourceQuer
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_bills.*organization_id`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*FROM "finance_netting_allocations".*finance_bills.*organization_id`).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*organization_id`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 

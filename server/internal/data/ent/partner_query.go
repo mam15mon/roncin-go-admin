@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -63,6 +64,7 @@ type PartnerQuery struct {
 	withFinanceInvoices             *FinanceInvoiceQuery
 	withFinanceCashflows            *FinanceCashflowQuery
 	withFinanceVerifications        *FinanceVerificationQuery
+	withFinanceNettings             *FinanceNettingQuery
 	withOrderCommissionAttributions *OrderCommissionAttributionQuery
 	withIssuedSeaHouseBills         *SeaHouseBillQuery
 	withSeaOrderReassignments       *SeaOrderReassignmentEventQuery
@@ -478,6 +480,28 @@ func (_q *PartnerQuery) QueryFinanceVerifications() *FinanceVerificationQuery {
 	return query
 }
 
+// QueryFinanceNettings chains the current query on the "finance_nettings" edge.
+func (_q *PartnerQuery) QueryFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceNettingsTable, partner.FinanceNettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryOrderCommissionAttributions chains the current query on the "order_commission_attributions" edge.
 func (_q *PartnerQuery) QueryOrderCommissionAttributions() *OrderCommissionAttributionQuery {
 	query := (&OrderCommissionAttributionClient{config: _q.config}).Query()
@@ -775,6 +799,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withFinanceInvoices:             _q.withFinanceInvoices.Clone(),
 		withFinanceCashflows:            _q.withFinanceCashflows.Clone(),
 		withFinanceVerifications:        _q.withFinanceVerifications.Clone(),
+		withFinanceNettings:             _q.withFinanceNettings.Clone(),
 		withOrderCommissionAttributions: _q.withOrderCommissionAttributions.Clone(),
 		withIssuedSeaHouseBills:         _q.withIssuedSeaHouseBills.Clone(),
 		withSeaOrderReassignments:       _q.withSeaOrderReassignments.Clone(),
@@ -972,6 +997,17 @@ func (_q *PartnerQuery) WithFinanceVerifications(opts ...func(*FinanceVerificati
 	return _q
 }
 
+// WithFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithFinanceNettings(opts ...func(*FinanceNettingQuery)) *PartnerQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceNettings = query
+	return _q
+}
+
 // WithOrderCommissionAttributions tells the query-builder to eager-load the nodes that are connected to
 // the "order_commission_attributions" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *PartnerQuery) WithOrderCommissionAttributions(opts ...func(*OrderCommissionAttributionQuery)) *PartnerQuery {
@@ -1094,7 +1130,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [21]bool{
+		loadedTypes = [22]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withAccounts != nil,
@@ -1112,6 +1148,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withFinanceInvoices != nil,
 			_q.withFinanceCashflows != nil,
 			_q.withFinanceVerifications != nil,
+			_q.withFinanceNettings != nil,
 			_q.withOrderCommissionAttributions != nil,
 			_q.withIssuedSeaHouseBills != nil,
 			_q.withSeaOrderReassignments != nil,
@@ -1259,6 +1296,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			func(n *Partner, e *FinanceVerification) {
 				n.Edges.FinanceVerifications = append(n.Edges.FinanceVerifications, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceNettings; query != nil {
+		if err := _q.loadFinanceNettings(ctx, query, nodes,
+			func(n *Partner) { n.Edges.FinanceNettings = []*FinanceNetting{} },
+			func(n *Partner, e *FinanceNetting) { n.Edges.FinanceNettings = append(n.Edges.FinanceNettings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1792,6 +1836,36 @@ func (_q *PartnerQuery) loadFinanceVerifications(ctx context.Context, query *Fin
 	}
 	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.FinanceVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SettlementPartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "settlement_party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldSettlementPartyID)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.FinanceNettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

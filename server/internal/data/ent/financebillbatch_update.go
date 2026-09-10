@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -51,6 +52,21 @@ func (_u *FinanceBillBatchUpdate) AddBills(v ...*FinanceBill) *FinanceBillBatchU
 	return _u.AddBillIDs(ids...)
 }
 
+// AddNettingIDs adds the "nettings" edge to the FinanceNetting entity by IDs.
+func (_u *FinanceBillBatchUpdate) AddNettingIDs(ids ...uuid.UUID) *FinanceBillBatchUpdate {
+	_u.mutation.AddNettingIDs(ids...)
+	return _u
+}
+
+// AddNettings adds the "nettings" edges to the FinanceNetting entity.
+func (_u *FinanceBillBatchUpdate) AddNettings(v ...*FinanceNetting) *FinanceBillBatchUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNettingIDs(ids...)
+}
+
 // Mutation returns the FinanceBillBatchMutation object of the builder.
 func (_u *FinanceBillBatchUpdate) Mutation() *FinanceBillBatchMutation {
 	return _u.mutation
@@ -75,6 +91,27 @@ func (_u *FinanceBillBatchUpdate) RemoveBills(v ...*FinanceBill) *FinanceBillBat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveBillIDs(ids...)
+}
+
+// ClearNettings clears all "nettings" edges to the FinanceNetting entity.
+func (_u *FinanceBillBatchUpdate) ClearNettings() *FinanceBillBatchUpdate {
+	_u.mutation.ClearNettings()
+	return _u
+}
+
+// RemoveNettingIDs removes the "nettings" edge to FinanceNetting entities by IDs.
+func (_u *FinanceBillBatchUpdate) RemoveNettingIDs(ids ...uuid.UUID) *FinanceBillBatchUpdate {
+	_u.mutation.RemoveNettingIDs(ids...)
+	return _u
+}
+
+// RemoveNettings removes "nettings" edges to FinanceNetting entities.
+func (_u *FinanceBillBatchUpdate) RemoveNettings(v ...*FinanceNetting) *FinanceBillBatchUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNettingIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -184,6 +221,51 @@ func (_u *FinanceBillBatchUpdate) sqlSave(ctx context.Context) (_node int, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.NettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNettingsIDs(); len(nodes) > 0 && !_u.mutation.NettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financebillbatch.Label}
@@ -225,6 +307,21 @@ func (_u *FinanceBillBatchUpdateOne) AddBills(v ...*FinanceBill) *FinanceBillBat
 	return _u.AddBillIDs(ids...)
 }
 
+// AddNettingIDs adds the "nettings" edge to the FinanceNetting entity by IDs.
+func (_u *FinanceBillBatchUpdateOne) AddNettingIDs(ids ...uuid.UUID) *FinanceBillBatchUpdateOne {
+	_u.mutation.AddNettingIDs(ids...)
+	return _u
+}
+
+// AddNettings adds the "nettings" edges to the FinanceNetting entity.
+func (_u *FinanceBillBatchUpdateOne) AddNettings(v ...*FinanceNetting) *FinanceBillBatchUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNettingIDs(ids...)
+}
+
 // Mutation returns the FinanceBillBatchMutation object of the builder.
 func (_u *FinanceBillBatchUpdateOne) Mutation() *FinanceBillBatchMutation {
 	return _u.mutation
@@ -249,6 +346,27 @@ func (_u *FinanceBillBatchUpdateOne) RemoveBills(v ...*FinanceBill) *FinanceBill
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveBillIDs(ids...)
+}
+
+// ClearNettings clears all "nettings" edges to the FinanceNetting entity.
+func (_u *FinanceBillBatchUpdateOne) ClearNettings() *FinanceBillBatchUpdateOne {
+	_u.mutation.ClearNettings()
+	return _u
+}
+
+// RemoveNettingIDs removes the "nettings" edge to FinanceNetting entities by IDs.
+func (_u *FinanceBillBatchUpdateOne) RemoveNettingIDs(ids ...uuid.UUID) *FinanceBillBatchUpdateOne {
+	_u.mutation.RemoveNettingIDs(ids...)
+	return _u
+}
+
+// RemoveNettings removes "nettings" edges to FinanceNetting entities.
+func (_u *FinanceBillBatchUpdateOne) RemoveNettings(v ...*FinanceNetting) *FinanceBillBatchUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNettingIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceBillBatchUpdate builder.
@@ -381,6 +499,51 @@ func (_u *FinanceBillBatchUpdateOne) sqlSave(ctx context.Context) (_node *Financ
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNettingsIDs(); len(nodes) > 0 && !_u.mutation.NettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

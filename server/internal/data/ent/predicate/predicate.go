@@ -123,6 +123,12 @@ type FinanceInvoiceBill func(*sql.Selector)
 // FinanceInvoiceLine is the predicate function for financeinvoiceline builders.
 type FinanceInvoiceLine func(*sql.Selector)
 
+// FinanceNetting is the predicate function for financenetting builders.
+type FinanceNetting func(*sql.Selector)
+
+// FinanceNettingAllocation is the predicate function for financenettingallocation builders.
+type FinanceNettingAllocation func(*sql.Selector)
+
 // FinanceVerification is the predicate function for financeverification builders.
 type FinanceVerification func(*sql.Selector)
 

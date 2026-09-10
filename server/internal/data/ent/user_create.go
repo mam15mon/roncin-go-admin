@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
@@ -494,6 +495,51 @@ func (_c *UserCreate) AddReversedFinanceVerifications(v ...*FinanceVerification)
 		ids[i] = v[i].ID
 	}
 	return _c.AddReversedFinanceVerificationIDs(ids...)
+}
+
+// AddConfirmedFinanceNettingIDs adds the "confirmed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddConfirmedFinanceNettings adds the "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddConfirmedFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedFinanceNettingIDs(ids...)
+}
+
+// AddCancelledFinanceNettingIDs adds the "cancelled_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCancelledFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddCancelledFinanceNettings adds the "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddCancelledFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCancelledFinanceNettingIDs(ids...)
+}
+
+// AddReversedFinanceNettingIDs adds the "reversed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddReversedFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddReversedFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddReversedFinanceNettings adds the "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddReversedFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReversedFinanceNettingIDs(ids...)
 }
 
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
@@ -1442,6 +1488,54 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReversedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

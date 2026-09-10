@@ -70,6 +70,8 @@ const (
 	EdgeFinanceCashflows = "finance_cashflows"
 	// EdgeFinanceVerifications holds the string denoting the finance_verifications edge name in mutations.
 	EdgeFinanceVerifications = "finance_verifications"
+	// EdgeFinanceNettings holds the string denoting the finance_nettings edge name in mutations.
+	EdgeFinanceNettings = "finance_nettings"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
@@ -199,6 +201,13 @@ const (
 	FinanceVerificationsInverseTable = "finance_verifications"
 	// FinanceVerificationsColumn is the table column denoting the finance_verifications relation/edge.
 	FinanceVerificationsColumn = "settlement_party_id"
+	// FinanceNettingsTable is the table that holds the finance_nettings relation/edge.
+	FinanceNettingsTable = "finance_nettings"
+	// FinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	FinanceNettingsInverseTable = "finance_nettings"
+	// FinanceNettingsColumn is the table column denoting the finance_nettings relation/edge.
+	FinanceNettingsColumn = "settlement_party_id"
 	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsTable = "order_commission_attributions"
 	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
@@ -567,6 +576,20 @@ func ByFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 	}
 }
 
+// ByFinanceNettingsCount orders the results by finance_nettings count.
+func ByFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByFinanceNettings orders the results by finance_nettings terms.
+func ByFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
 func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -739,6 +762,13 @@ func newFinanceVerificationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceVerificationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceVerificationsTable, FinanceVerificationsColumn),
+	)
+}
+func newFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceNettingsTable, FinanceNettingsColumn),
 	)
 }
 func newOrderCommissionAttributionsStep() *sqlgraph.Step {

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -191,6 +192,21 @@ func (_c *FinanceBillBatchCreate) AddBills(v ...*FinanceBill) *FinanceBillBatchC
 		ids[i] = v[i].ID
 	}
 	return _c.AddBillIDs(ids...)
+}
+
+// AddNettingIDs adds the "nettings" edge to the FinanceNetting entity by IDs.
+func (_c *FinanceBillBatchCreate) AddNettingIDs(ids ...uuid.UUID) *FinanceBillBatchCreate {
+	_c.mutation.AddNettingIDs(ids...)
+	return _c
+}
+
+// AddNettings adds the "nettings" edges to the FinanceNetting entity.
+func (_c *FinanceBillBatchCreate) AddNettings(v ...*FinanceNetting) *FinanceBillBatchCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNettingIDs(ids...)
 }
 
 // Mutation returns the FinanceBillBatchMutation object of the builder.
@@ -465,6 +481,22 @@ func (_c *FinanceBillBatchCreate) createSpec() (*FinanceBillBatch, *sqlgraph.Cre
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

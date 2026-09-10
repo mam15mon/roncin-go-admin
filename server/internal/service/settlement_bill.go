@@ -275,7 +275,7 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 		}
 		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8)})
 	}
-	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, PreviewToken: preview.PreviewToken}), nil
+	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, NettingPairs: billBatchNettingPairsToAPI(preview.NettingPairs), PreviewToken: preview.PreviewToken}), nil
 }
 
 func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.CreateBillBatchRequest) (*v1.CreateBillBatchResponse, error) {
@@ -461,7 +461,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		ConfirmedAt: financeTime(item.ConfirmedAt), ConfirmedBy: uuidStringPtr(item.ConfirmedBy), CancelledAt: financeTime(item.CancelledAt),
 		CancelledBy: uuidStringPtr(item.CancelledBy), CancellationReason: item.CancellationReason, Lines: lines,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339),
-		VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8),
+		VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8), NettedAmount: item.NettedAmount.StringFixed(8),
 		BatchId: uuidStringPtr(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
 		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID),
 		EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: financeDecimalPointer(item.EstimatedInvoiceRate, 8), EstimatedInvoiceAmount: financeDecimalPointer(item.EstimatedInvoiceAmount, 8),
@@ -476,7 +476,11 @@ func financeBillBatchToAPI(item *biz.FinanceBillBatch) *v1.FinanceBillBatch {
 	for _, bill := range item.Bills {
 		bills = append(bills, financeBillToAPI(bill))
 	}
-	return &v1.FinanceBillBatch{Id: item.ID.String(), BatchNo: item.BatchNo, SplitByOrder: item.GroupingPolicy.SplitByOrder, SplitByTaxRate: item.GroupingPolicy.SplitByTaxRate, Mode: financeBillGroupingModeToAPI(item.GroupingPolicy.Mode), FeeCount: int32(item.FeeCount), BillCount: int32(item.BillCount), TotalBaseAmount: item.TotalBaseAmount.StringFixed(8), BaseCurrency: item.BaseCurrency, Bills: bills, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339)}
+	nettings := make([]*v1.FinanceNetting, 0, len(item.Nettings))
+	for _, netting := range item.Nettings {
+		nettings = append(nettings, financeNettingToAPI(netting))
+	}
+	return &v1.FinanceBillBatch{Id: item.ID.String(), BatchNo: item.BatchNo, SplitByOrder: item.GroupingPolicy.SplitByOrder, SplitByTaxRate: item.GroupingPolicy.SplitByTaxRate, Mode: financeBillGroupingModeToAPI(item.GroupingPolicy.Mode), FeeCount: int32(item.FeeCount), BillCount: int32(item.BillCount), TotalBaseAmount: item.TotalBaseAmount.StringFixed(8), BaseCurrency: item.BaseCurrency, Bills: bills, Nettings: nettings, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339)}
 }
 
 func financeBillGroupingModeToAPI(value string) v1.BillGroupingMode {

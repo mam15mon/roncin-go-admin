@@ -755,6 +755,29 @@ func HasBillsWith(preds ...predicate.FinanceBill) predicate.FinanceBillBatch {
 	})
 }
 
+// HasNettings applies the HasEdge predicate on the "nettings" edge.
+func HasNettings() predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NettingsTable, NettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNettingsWith applies the HasEdge predicate on the "nettings" edge with a given conditions (other predicates).
+func HasNettingsWith(preds ...predicate.FinanceNetting) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(func(s *sql.Selector) {
+		step := newNettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceBillBatch) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(sql.AndPredicates(predicates...))

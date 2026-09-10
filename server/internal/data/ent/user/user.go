@@ -76,6 +76,12 @@ const (
 	EdgeCancelledFinanceCashflows = "cancelled_finance_cashflows"
 	// EdgeReversedFinanceVerifications holds the string denoting the reversed_finance_verifications edge name in mutations.
 	EdgeReversedFinanceVerifications = "reversed_finance_verifications"
+	// EdgeConfirmedFinanceNettings holds the string denoting the confirmed_finance_nettings edge name in mutations.
+	EdgeConfirmedFinanceNettings = "confirmed_finance_nettings"
+	// EdgeCancelledFinanceNettings holds the string denoting the cancelled_finance_nettings edge name in mutations.
+	EdgeCancelledFinanceNettings = "cancelled_finance_nettings"
+	// EdgeReversedFinanceNettings holds the string denoting the reversed_finance_nettings edge name in mutations.
+	EdgeReversedFinanceNettings = "reversed_finance_nettings"
 	// EdgeFinanceCommissions holds the string denoting the finance_commissions edge name in mutations.
 	EdgeFinanceCommissions = "finance_commissions"
 	// EdgeConfirmedFinanceCommissions holds the string denoting the confirmed_finance_commissions edge name in mutations.
@@ -247,6 +253,27 @@ const (
 	ReversedFinanceVerificationsInverseTable = "finance_verifications"
 	// ReversedFinanceVerificationsColumn is the table column denoting the reversed_finance_verifications relation/edge.
 	ReversedFinanceVerificationsColumn = "reversed_by"
+	// ConfirmedFinanceNettingsTable is the table that holds the confirmed_finance_nettings relation/edge.
+	ConfirmedFinanceNettingsTable = "finance_nettings"
+	// ConfirmedFinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	ConfirmedFinanceNettingsInverseTable = "finance_nettings"
+	// ConfirmedFinanceNettingsColumn is the table column denoting the confirmed_finance_nettings relation/edge.
+	ConfirmedFinanceNettingsColumn = "confirmed_by"
+	// CancelledFinanceNettingsTable is the table that holds the cancelled_finance_nettings relation/edge.
+	CancelledFinanceNettingsTable = "finance_nettings"
+	// CancelledFinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	CancelledFinanceNettingsInverseTable = "finance_nettings"
+	// CancelledFinanceNettingsColumn is the table column denoting the cancelled_finance_nettings relation/edge.
+	CancelledFinanceNettingsColumn = "cancelled_by"
+	// ReversedFinanceNettingsTable is the table that holds the reversed_finance_nettings relation/edge.
+	ReversedFinanceNettingsTable = "finance_nettings"
+	// ReversedFinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	ReversedFinanceNettingsInverseTable = "finance_nettings"
+	// ReversedFinanceNettingsColumn is the table column denoting the reversed_finance_nettings relation/edge.
+	ReversedFinanceNettingsColumn = "reversed_by"
 	// FinanceCommissionsTable is the table that holds the finance_commissions relation/edge.
 	FinanceCommissionsTable = "finance_commissions"
 	// FinanceCommissionsInverseTable is the table name for the FinanceCommission entity.
@@ -837,6 +864,48 @@ func ByReversedFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) 
 	}
 }
 
+// ByConfirmedFinanceNettingsCount orders the results by confirmed_finance_nettings count.
+func ByConfirmedFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfirmedFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByConfirmedFinanceNettings orders the results by confirmed_finance_nettings terms.
+func ByConfirmedFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmedFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCancelledFinanceNettingsCount orders the results by cancelled_finance_nettings count.
+func ByCancelledFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByCancelledFinanceNettings orders the results by cancelled_finance_nettings terms.
+func ByCancelledFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByReversedFinanceNettingsCount orders the results by reversed_finance_nettings count.
+func ByReversedFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReversedFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByReversedFinanceNettings orders the results by reversed_finance_nettings terms.
+func ByReversedFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReversedFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFinanceCommissionsCount orders the results by finance_commissions count.
 func ByFinanceCommissionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1387,6 +1456,27 @@ func newReversedFinanceVerificationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ReversedFinanceVerificationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ReversedFinanceVerificationsTable, ReversedFinanceVerificationsColumn),
+	)
+}
+func newConfirmedFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmedFinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceNettingsTable, ConfirmedFinanceNettingsColumn),
+	)
+}
+func newCancelledFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledFinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceNettingsTable, CancelledFinanceNettingsColumn),
+	)
+}
+func newReversedFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReversedFinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReversedFinanceNettingsTable, ReversedFinanceNettingsColumn),
 	)
 }
 func newFinanceCommissionsStep() *sqlgraph.Step {

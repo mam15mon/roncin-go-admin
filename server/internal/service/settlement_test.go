@@ -92,7 +92,7 @@ func (s *billCreationCandidateServiceRepoStub) GetBatchByIdempotencyKey(context.
 	return s.batch, nil
 }
 
-func (s *billCreationCandidateServiceRepoStub) CreateBatch(_ context.Context, batch *biz.FinanceBillBatch, _ string, _ *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+func (s *billCreationCandidateServiceRepoStub) CreateBatch(_ context.Context, batch *biz.FinanceBillBatch, _ string, _ *biz.AuditEvent, _ []*biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	s.createdOrganizationID = batch.OrganizationID
 	s.batch = batch
 	return batch, s.err

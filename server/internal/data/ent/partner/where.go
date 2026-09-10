@@ -1017,6 +1017,29 @@ func HasFinanceVerificationsWith(preds ...predicate.FinanceVerification) predica
 	})
 }
 
+// HasFinanceNettings applies the HasEdge predicate on the "finance_nettings" edge.
+func HasFinanceNettings() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceNettingsTable, FinanceNettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceNettingsWith applies the HasEdge predicate on the "finance_nettings" edge with a given conditions (other predicates).
+func HasFinanceNettingsWith(preds ...predicate.FinanceNetting) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newFinanceNettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderCommissionAttributions applies the HasEdge predicate on the "order_commission_attributions" edge.
 func HasOrderCommissionAttributions() predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {

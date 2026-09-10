@@ -140,6 +140,16 @@ export const FinanceVerificationStatus = {
 
 export type FinanceVerificationStatus = (typeof FinanceVerificationStatus)[keyof typeof FinanceVerificationStatus];
 
+export const FinanceNettingStatus = {
+  FINANCE_NETTING_STATUS_UNSPECIFIED: 0,
+  FINANCE_NETTING_STATUS_DRAFT: 1,
+  FINANCE_NETTING_STATUS_CONFIRMED: 2,
+  FINANCE_NETTING_STATUS_CANCELLED: 3,
+  FINANCE_NETTING_STATUS_REVERSED: 4,
+} as const;
+
+export type FinanceNettingStatus = (typeof FinanceNettingStatus)[keyof typeof FinanceNettingStatus];
+
 export const FinanceCommissionStatus = {
   FINANCE_COMMISSION_STATUS_UNSPECIFIED: 0,
   FINANCE_COMMISSION_STATUS_DRAFT: 1,
@@ -196,6 +206,7 @@ export const FinanceOrganizationPurpose = {
   FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE: 9,
   FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE: 10,
   FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE: 11,
+  FINANCE_ORGANIZATION_PURPOSE_NETTING_READ: 12,
 } as const;
 
 export type FinanceOrganizationPurpose = (typeof FinanceOrganizationPurpose)[keyof typeof FinanceOrganizationPurpose];
@@ -236,6 +247,7 @@ export const DocumentType = {
   DOCUMENT_TYPE_FREIGHT_RATE: 12,
   DOCUMENT_TYPE_COMMISSION: 13,
   DOCUMENT_TYPE_BILL_BATCH: 14,
+  DOCUMENT_TYPE_NETTING: 15,
 } as const;
 
 export type DocumentType = (typeof DocumentType)[keyof typeof DocumentType];

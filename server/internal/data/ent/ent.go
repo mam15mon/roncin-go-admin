@@ -51,6 +51,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -217,6 +219,8 @@ func checkColumn(t, c string) error {
 			financeinvoice.Table:                 financeinvoice.ValidColumn,
 			financeinvoicebill.Table:             financeinvoicebill.ValidColumn,
 			financeinvoiceline.Table:             financeinvoiceline.ValidColumn,
+			financenetting.Table:                 financenetting.ValidColumn,
+			financenettingallocation.Table:       financenettingallocation.ValidColumn,
 			financeverification.Table:            financeverification.ValidColumn,
 			financeverificationallocation.Table:  financeverificationallocation.ValidColumn,
 			loginratelimitbucket.Table:           loginratelimitbucket.ValidColumn,

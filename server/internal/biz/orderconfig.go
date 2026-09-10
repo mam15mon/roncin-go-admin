@@ -34,6 +34,7 @@ const (
 	DocumentTypeInvoice           DocumentType = "invoice"
 	DocumentTypeFreightRate       DocumentType = "freight_rate"
 	DocumentTypeCommission        DocumentType = "commission"
+	DocumentTypeNetting           DocumentType = "netting"
 )
 
 func (value DocumentType) Valid() bool {
@@ -41,7 +42,7 @@ func (value DocumentType) Valid() bool {
 	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeQuotation, DocumentTypeWriteOff,
 		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference,
 		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeInvoice,
-		DocumentTypeFreightRate, DocumentTypeCommission:
+		DocumentTypeFreightRate, DocumentTypeCommission, DocumentTypeNetting:
 		return true
 	default:
 		return false
@@ -122,6 +123,7 @@ func DefaultNumberRules() []NumberRule {
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 		{DocumentType: DocumentTypeCommission, Prefix: "CM", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeNetting, Prefix: "NT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 	}
 }
 

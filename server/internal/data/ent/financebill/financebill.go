@@ -116,6 +116,8 @@ const (
 	EdgeInvoiceLinks = "invoice_links"
 	// EdgeVerificationAllocations holds the string denoting the verification_allocations edge name in mutations.
 	EdgeVerificationAllocations = "verification_allocations"
+	// EdgeNettingAllocations holds the string denoting the netting_allocations edge name in mutations.
+	EdgeNettingAllocations = "netting_allocations"
 	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
 	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// Table holds the table name of the financebill in the database.
@@ -176,6 +178,13 @@ const (
 	VerificationAllocationsInverseTable = "finance_verification_allocations"
 	// VerificationAllocationsColumn is the table column denoting the verification_allocations relation/edge.
 	VerificationAllocationsColumn = "bill_id"
+	// NettingAllocationsTable is the table that holds the netting_allocations relation/edge.
+	NettingAllocationsTable = "finance_netting_allocations"
+	// NettingAllocationsInverseTable is the table name for the FinanceNettingAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financenettingallocation" package.
+	NettingAllocationsInverseTable = "finance_netting_allocations"
+	// NettingAllocationsColumn is the table column denoting the netting_allocations relation/edge.
+	NettingAllocationsColumn = "bill_id"
 	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
 	EnterpriseTagLinksTable = "finance_bill_enterprise_tags"
 	// EnterpriseTagLinksInverseTable is the table name for the FinanceBillEnterpriseTag entity.
@@ -666,6 +675,20 @@ func ByVerificationAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) Order
 	}
 }
 
+// ByNettingAllocationsCount orders the results by netting_allocations count.
+func ByNettingAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNettingAllocationsStep(), opts...)
+	}
+}
+
+// ByNettingAllocations orders the results by netting_allocations terms.
+func ByNettingAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNettingAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
 func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -733,6 +756,13 @@ func newVerificationAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VerificationAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VerificationAllocationsTable, VerificationAllocationsColumn),
+	)
+}
+func newNettingAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NettingAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NettingAllocationsTable, NettingAllocationsColumn),
 	)
 }
 func newEnterpriseTagLinksStep() *sqlgraph.Step {

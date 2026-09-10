@@ -144,7 +144,7 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 	}
 	usecase := biz.NewCommissionUsecase(repo, nil, biz.NewExchangeRateUsecase(repo.rateStub), &commissionTransactorStub{})
 	verificationUsecase := biz.NewVerificationUsecase(&verificationRepoStub{}, nil, nil)
-	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, usecase, nil, nil, nil, nil)
+	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, nil, usecase, nil, nil, nil, nil)
 	return service, repo
 }
 
@@ -294,7 +294,7 @@ func TestListCommissionVerificationCandidatesUsesManageWritableOrganization(t *t
 		ID: uuid.New(), OrganizationID: allowed, VerificationNo: "VR202609100001", Status: biz.VerificationActive,
 		Direction: biz.OrderFeeReceivable, SettlementPartyName: "测试结算单位", Currency: "CNY",
 	}}}}
-	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil), nil, nil, nil, nil, nil)
+	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil), nil, nil, nil, nil, nil, nil)
 	principal := &biz.Principal{
 		UserID: uuid.New(), Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,

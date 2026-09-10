@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -31,6 +32,7 @@ type FinanceBillBatchQuery struct {
 	withOrganization *OrganizationQuery
 	withCreator      *UserQuery
 	withBills        *FinanceBillQuery
+	withNettings     *FinanceNettingQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -127,6 +129,28 @@ func (_q *FinanceBillBatchQuery) QueryBills() *FinanceBillQuery {
 			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, selector),
 			sqlgraph.To(financebill.Table, financebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.BillsTable, financebillbatch.BillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNettings chains the current query on the "nettings" edge.
+func (_q *FinanceBillBatchQuery) QueryNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.NettingsTable, financebillbatch.NettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -329,6 +353,7 @@ func (_q *FinanceBillBatchQuery) Clone() *FinanceBillBatchQuery {
 		withOrganization: _q.withOrganization.Clone(),
 		withCreator:      _q.withCreator.Clone(),
 		withBills:        _q.withBills.Clone(),
+		withNettings:     _q.withNettings.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -365,6 +390,17 @@ func (_q *FinanceBillBatchQuery) WithBills(opts ...func(*FinanceBillQuery)) *Fin
 		opt(query)
 	}
 	_q.withBills = query
+	return _q
+}
+
+// WithNettings tells the query-builder to eager-load the nodes that are connected to
+// the "nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillBatchQuery) WithNettings(opts ...func(*FinanceNettingQuery)) *FinanceBillBatchQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNettings = query
 	return _q
 }
 
@@ -446,10 +482,11 @@ func (_q *FinanceBillBatchQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*FinanceBillBatch{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withOrganization != nil,
 			_q.withCreator != nil,
 			_q.withBills != nil,
+			_q.withNettings != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -489,6 +526,13 @@ func (_q *FinanceBillBatchQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		if err := _q.loadBills(ctx, query, nodes,
 			func(n *FinanceBillBatch) { n.Edges.Bills = []*FinanceBill{} },
 			func(n *FinanceBillBatch, e *FinanceBill) { n.Edges.Bills = append(n.Edges.Bills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNettings; query != nil {
+		if err := _q.loadNettings(ctx, query, nodes,
+			func(n *FinanceBillBatch) { n.Edges.Nettings = []*FinanceNetting{} },
+			func(n *FinanceBillBatch, e *FinanceNetting) { n.Edges.Nettings = append(n.Edges.Nettings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -568,6 +612,39 @@ func (_q *FinanceBillBatchQuery) loadBills(ctx context.Context, query *FinanceBi
 	}
 	query.Where(predicate.FinanceBill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financebillbatch.BillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BatchID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "batch_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "batch_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillBatchQuery) loadNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*FinanceBillBatch, init func(*FinanceBillBatch), assign func(*FinanceBillBatch, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBillBatch)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldBatchID)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebillbatch.NettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

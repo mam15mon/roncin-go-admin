@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -411,6 +412,21 @@ func (_c *PartnerCreate) AddFinanceVerifications(v ...*FinanceVerification) *Par
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceVerificationIDs(ids...)
+}
+
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *PartnerCreate) AddFinanceNettingIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_c *PartnerCreate) AddFinanceNettings(v ...*FinanceNetting) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceNettingIDs(ids...)
 }
 
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
@@ -933,6 +949,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

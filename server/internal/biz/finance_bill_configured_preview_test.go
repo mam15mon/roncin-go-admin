@@ -102,8 +102,39 @@ func TestConfiguredFinanceBillInitialPreviewDoesNotRequireTemporaryDateRate(t *t
 func TestConfiguredFinanceBillPreviewRejectsUnsupportedGroupingMode(t *testing.T) {
 	organizationID, partyID := uuid.New(), uuid.New()
 	fee := financeBillableFeeForTest(partyID, "100", "100", "0", "100")
-	if _, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{fee}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NETTING"}}); err != ErrFinanceBillGroupingModeUnsupported {
-		t.Fatalf("NETTING 必须 fail-closed，错误=%v", err)
+	if _, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{fee}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{}}); err != ErrFinanceBillGroupingModeUnsupported {
+		t.Fatalf("未指定模式必须 fail-closed，错误=%v", err)
+	}
+}
+
+func TestConfiguredFinanceBillNettingPreviewSplitsDirectionsIntoLeaves(t *testing.T) {
+	organizationID, partyID := uuid.New(), uuid.New()
+	receivable := financeBillableFeeForTest(partyID, "100", "100", "0", "100")
+	payable := financeBillableFeeForTest(partyID, "20", "20", "0", "20")
+	payable.Fee.Direction = OrderFeePayable
+	preview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{receivable, payable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NETTING"}})
+	if err != nil {
+		t.Fatalf("对冲模式应允许混合方向并按方向分叶: %v", err)
+	}
+	if len(preview.Groups) != 2 {
+		t.Fatalf("应收与应付费用必须分别形成叶子: %#v", preview.Groups)
+	}
+	directions := map[OrderFeeDirection]bool{}
+	for _, group := range preview.Groups {
+		directions[group.Direction] = true
+	}
+	if !directions[OrderFeeReceivable] || !directions[OrderFeePayable] {
+		t.Fatalf("对冲叶子应同时包含应收与应付: %#v", preview.Groups)
+	}
+}
+
+func TestConfiguredFinanceBillNettingPreviewRejectsSingleDirection(t *testing.T) {
+	organizationID, partyID := uuid.New(), uuid.New()
+	receivable := financeBillableFeeForTest(partyID, "100", "100", "0", "100")
+	payableOtherParty := financeBillableFeeForTest(uuid.New(), "20", "20", "0", "20")
+	payableOtherParty.Fee.Direction = OrderFeePayable
+	if _, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{receivable, payableOtherParty}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NETTING"}}); err != ErrFinanceNettingSingleDirection {
+		t.Fatalf("对冲模式下同一结算单位缺少反方向费用必须拒绝，错误=%v", err)
 	}
 }
 

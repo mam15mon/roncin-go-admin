@@ -16,6 +16,7 @@ import (
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
+	nettingallocent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	ver "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	alloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -215,6 +216,18 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 				return parseErr
 			}
 			usedCash[x.CashflowID] = usedCash[x.CashflowID].Add(z)
+			usedBill[x.BillID] = usedBill[x.BillID].Add(z)
+		}
+		// 有效对冲分摊同样占用账单余额；普通资金核销只能处理抵销后的剩余余额。
+		nettingExisting, e := tx.FinanceNettingAllocation.Query().Where(nettingallocent.BillIDIn(billIDs...), nettingallocent.ActiveEQ(true)).All(ctx)
+		if e != nil {
+			return e
+		}
+		for _, x := range nettingExisting {
+			z, parseErr := decimalOf(x.Amount)
+			if parseErr != nil {
+				return parseErr
+			}
 			usedBill[x.BillID] = usedBill[x.BillID].Add(z)
 		}
 		for i, x := range v.Allocations {

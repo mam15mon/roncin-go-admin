@@ -542,6 +542,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BillBatchNettingPair = {
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    receivableGrossAmount?: string;
+    payableGrossAmount?: string;
+    offsetAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+  };
+
   type BillBatchPreviewGroup = {
     groupKey?: string;
     direction?: string;
@@ -690,6 +701,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceInvoice;
+    traceId?: string;
+  };
+
+  type CancelNettingRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type CancelNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -910,6 +935,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee;
+    traceId?: string;
+  };
+
+  type ConfirmNettingRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -1202,6 +1240,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: MasterDataItem;
+    traceId?: string;
+  };
+
+  type CreateNettingRequest = {
+    organizationId: string;
+    bills: NettingBillExpectedVersion[];
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -2249,6 +2302,8 @@ declare namespace API {
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
     estimatedInvoiceAmount?: string;
+    /** netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。 */
+    nettedAmount?: string;
   };
 
   type FinanceBillBatch = {
@@ -2263,6 +2318,8 @@ declare namespace API {
     bills?: FinanceBill[];
     createdAt?: string;
     mode?: number;
+    /** nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。 */
+    nettings?: FinanceNetting[];
   };
 
   type FinanceBillLine = {
@@ -2534,6 +2591,78 @@ declare namespace API {
     issuedCount?: string;
   };
 
+  type FinanceNetting = {
+    id?: string;
+    nettingNo?: string;
+    status?: number;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    amount?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    note?: string;
+    version?: string;
+    allocations?: FinanceNettingAllocation[];
+    createdAt?: string;
+    updatedAt?: string;
+    confirmedAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    reversedAt?: string;
+    reversalReason?: string;
+    organizationId?: string;
+    organizationName?: string;
+    batchId?: string;
+    batchNo?: string;
+  };
+
+  type FinanceNettingAllocation = {
+    id?: string;
+    billId?: string;
+    billNo?: string;
+    direction?: string;
+    amount?: string;
+    baseCurrencyAmount?: string;
+    active?: boolean;
+  };
+
+  type FinanceNettingBaseCurrencyAmount = {
+    baseCurrency?: string;
+    nettingBaseAmount?: string;
+  };
+
+  type FinanceNettingBillBalance = {
+    billId?: string;
+    billNo?: string;
+    billDate?: string;
+    totalAmount?: string;
+    verifiedAmount?: string;
+    nettedAmount?: string;
+    availableAmount?: string;
+    version?: string;
+  };
+
+  type FinanceNettingPreview = {
+    organizationId?: string;
+    organizationName?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    receivableBills?: FinanceNettingBillBalance[];
+    payableBills?: FinanceNettingBillBalance[];
+    receivableAvailableAmount?: string;
+    payableAvailableAmount?: string;
+    offsetAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+  };
+
+  type FinanceNettingSummary = {
+    amountsByBaseCurrency?: FinanceNettingBaseCurrencyAmount[];
+    confirmedCount?: string;
+  };
+
   type FinanceOrganizationOption = {
     id?: string;
     code?: string;
@@ -2712,6 +2841,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceInvoice;
+    traceId?: string;
+  };
+
+  type GetNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -3240,6 +3377,16 @@ declare namespace API {
     message?: string;
     data?: OrderMilestone[];
     traceId?: string;
+  };
+
+  type ListNettingsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting[];
+    total?: string;
+    traceId?: string;
+    summary?: FinanceNettingSummary;
   };
 
   type ListNumberRulesResponse = {
@@ -3787,6 +3934,11 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
+  };
+
+  type NettingBillExpectedVersion = {
+    billId: string;
+    expectedVersion: string;
   };
 
   type NumberRule = {
@@ -5020,6 +5172,8 @@ declare namespace API {
     data?: BillBatchPreviewGroup[];
     previewToken?: string;
     traceId?: string;
+    /** netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。 */
+    nettingPairs?: BillBatchNettingPair[];
   };
 
   type PreviewChangeSeaDocumentModeRequest = {
@@ -5080,6 +5234,20 @@ declare namespace API {
     message?: string;
     data?: ExchangeRateImportBatch;
     previewToken?: string;
+    traceId?: string;
+  };
+
+  type PreviewNettingRequest = {
+    organizationId: string;
+    settlementPartyId: string;
+    currency: string;
+  };
+
+  type PreviewNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNettingPreview;
     traceId?: string;
   };
 
@@ -5367,6 +5535,20 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
+    traceId?: string;
+  };
+
+  type ReverseNettingRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type ReverseNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -6417,6 +6599,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelNettingParams = {
+    id: string;
+  };
+
   type SettlementServiceConfirmBillBatchParams = {
     id: string;
   };
@@ -6434,6 +6620,10 @@ declare namespace API {
   };
 
   type SettlementServiceConfirmCommissionParams = {
+    id: string;
+  };
+
+  type SettlementServiceConfirmNettingParams = {
     id: string;
   };
 
@@ -6462,6 +6652,10 @@ declare namespace API {
   };
 
   type SettlementServiceGetInvoiceParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetNettingParams = {
     id: string;
   };
 
@@ -6646,6 +6840,16 @@ declare namespace API {
     organizationId?: string;
   };
 
+  type SettlementServiceListNettingsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: number;
+    settlementPartyId?: string;
+    currency?: string;
+    organizationId?: string;
+  };
+
   type SettlementServiceListVerificationCreationCandidatesParams = {
     organizationId?: string;
     direction?: string;
@@ -6675,6 +6879,10 @@ declare namespace API {
 
   type SettlementServiceResetFeeLedgerPreferenceParams = {
     version?: string;
+  };
+
+  type SettlementServiceReverseNettingParams = {
+    id: string;
   };
 
   type SettlementServiceReverseVerificationParams = {

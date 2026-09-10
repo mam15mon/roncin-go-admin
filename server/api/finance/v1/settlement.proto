@@ -163,6 +163,14 @@ service SettlementService {
   rpc ListCommissionVerificationCandidates(ListCommissionVerificationCandidatesRequest) returns (ListCommissionVerificationCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/verification-candidates"}; }
   rpc CreateVerification(CreateVerificationRequest) returns (CreateVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications" body: "*"}; }
   rpc ReverseVerification(ReverseVerificationRequest) returns (ReverseVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications/{id}/reverse" body: "*"}; }
+  // 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+  rpc ListNettings(ListNettingsRequest) returns (ListNettingsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/nettings"}; }
+  rpc PreviewNetting(PreviewNettingRequest) returns (PreviewNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/nettings/preview" body: "*"}; }
+  rpc CreateNetting(CreateNettingRequest) returns (CreateNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/nettings" body: "*"}; }
+  rpc GetNetting(GetNettingRequest) returns (GetNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/nettings/{id}"}; }
+  rpc ConfirmNetting(ConfirmNettingRequest) returns (ConfirmNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.confirm" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/nettings/{id}/confirm" body: "*"}; }
+  rpc CancelNetting(CancelNettingRequest) returns (CancelNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/nettings/{id}/cancel" body: "*"}; }
+  rpc ReverseNetting(ReverseNettingRequest) returns (ReverseNettingResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.netting.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/nettings/{id}/reverse" body: "*"}; }
   rpc ListCommissions(ListCommissionsRequest) returns (ListCommissionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions"}; }
   rpc ExportCommissions(ExportCommissionsRequest) returns (ExportCommissionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.export" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/export"}; }
   rpc ListCommissionEmployees(ListCommissionEmployeesRequest) returns (ListCommissionEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/employees"}; }
@@ -210,6 +218,14 @@ enum FinanceVerificationStatus {
   FINANCE_VERIFICATION_STATUS_UNSPECIFIED = 0;
   FINANCE_VERIFICATION_STATUS_ACTIVE = 1;
   FINANCE_VERIFICATION_STATUS_REVERSED = 2;
+}
+
+enum FinanceNettingStatus {
+  FINANCE_NETTING_STATUS_UNSPECIFIED = 0;
+  FINANCE_NETTING_STATUS_DRAFT = 1;
+  FINANCE_NETTING_STATUS_CONFIRMED = 2;
+  FINANCE_NETTING_STATUS_CANCELLED = 3;
+  FINANCE_NETTING_STATUS_REVERSED = 4;
 }
 
 enum FinanceCommissionStatus {
@@ -543,6 +559,8 @@ message FinanceBill {
   optional string estimated_invoice_currency = 46;
   optional string estimated_invoice_rate = 47;
   optional string estimated_invoice_amount = 48;
+  // netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
+  string netted_amount = 49;
 }
 
 message BillGroupingPolicy {
@@ -603,6 +621,20 @@ message PreviewBillBatchResponse {
   repeated BillBatchPreviewGroup data = 4;
   string preview_token = 5;
   string trace_id = 6;
+  // netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。
+  repeated BillBatchNettingPair netting_pairs = 7;
+}
+
+// BillBatchNettingPair 是对冲建账预览中同一结算单位、同一账单币种的抵销汇总。
+message BillBatchNettingPair {
+  string settlement_party_id = 1;
+  string settlement_party_name = 2;
+  string currency = 3;
+  string receivable_gross_amount = 4;
+  string payable_gross_amount = 5;
+  string offset_amount = 6;
+  string net_receivable_amount = 7;
+  string net_payable_amount = 8;
 }
 
 message CreateBillBatchGroupInput {
@@ -661,6 +693,8 @@ message FinanceBillBatch {
   repeated FinanceBill bills = 9;
   string created_at = 10;
   BillGroupingMode mode = 11;
+  // nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。
+  repeated FinanceNetting nettings = 12;
 }
 
 message CreateBillBatchResponse {
@@ -795,6 +829,29 @@ message ListVerificationsResponse { bool success=1; int32 code=2; string message
 message FinanceVerificationSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency=1; }
 message CreateVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
 message ReverseVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
+
+message FinanceNettingAllocation { string id=1; string bill_id=2; string bill_no=3; string direction=4; string amount=5; string base_currency_amount=6; bool active=7; }
+// FinanceNetting 只保存双方共同账单币种的抵销金额，不产生混合币种总额。
+message FinanceNetting { string id=1; string netting_no=2; FinanceNettingStatus status=3; string settlement_party_id=4; string settlement_party_name=5; string currency=6; string amount=7; string base_currency=8; string base_currency_amount=9; optional string note=10; uint64 version=11; repeated FinanceNettingAllocation allocations=12; string created_at=13; string updated_at=14; optional string confirmed_at=15; optional string cancelled_at=16; optional string cancellation_reason=17; optional string reversed_at=18; optional string reversal_reason=19; string organization_id=20; string organization_name=21; optional string batch_id=22; optional string batch_no=23; }
+message FinanceNettingBillBalance { string bill_id=1; string bill_no=2; string bill_date=3; string total_amount=4; string verified_amount=5; string netted_amount=6; string available_amount=7; uint64 version=8; }
+message FinanceNettingPreview { string organization_id=1; string organization_name=2; string settlement_party_id=3; string settlement_party_name=4; string currency=5; repeated FinanceNettingBillBalance receivable_bills=6; repeated FinanceNettingBillBalance payable_bills=7; string receivable_available_amount=8; string payable_available_amount=9; string offset_amount=10; string net_receivable_amount=11; string net_payable_amount=12; }
+message PreviewNettingRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; string settlement_party_id=2 [(google.api.field_behavior)=REQUIRED]; string currency=3 [(google.api.field_behavior)=REQUIRED]; }
+message PreviewNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNettingPreview data=4; string trace_id=5; }
+message NettingBillExpectedVersion { string bill_id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
+message CreateNettingRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; repeated NettingBillExpectedVersion bills=2 [(google.api.field_behavior)=REQUIRED]; optional string note=3; string idempotency_key=4 [(google.api.field_behavior)=REQUIRED]; }
+message CreateNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
+message ConfirmNettingRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
+message ConfirmNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
+message CancelNettingRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message CancelNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
+message ReverseNettingRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message ReverseNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
+message ListNettingsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceNettingStatus status=4; optional string settlement_party_id=5; optional string currency=6; optional string organization_id=7; }
+message FinanceNettingBaseCurrencyAmount { string base_currency=1; string netting_base_amount=2; }
+message FinanceNettingSummary { repeated FinanceNettingBaseCurrencyAmount amounts_by_base_currency=1; int64 confirmed_count=2; }
+message ListNettingsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceNetting data=4; int64 total=5; string trace_id=6; FinanceNettingSummary summary=7; }
+message GetNettingRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
+message GetNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
 message ListCommissionsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceCommissionStatus status=4; optional string commission_date_from=5; optional string commission_date_to=6; optional string organization_id=7; }
 message GetCommissionRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
 message ListCommissionEmployeesRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string organization_id=4; }
@@ -840,6 +897,7 @@ enum FinanceOrganizationPurpose {
   FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE = 9;
   FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE = 10;
   FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE = 11;
+  FINANCE_ORGANIZATION_PURPOSE_NETTING_READ = 12;
 }
 message FinanceOrganizationOption { string id = 1; string code = 2; string name = 3; string base_currency = 4; }
 message ListFinanceOrganizationOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 2; }

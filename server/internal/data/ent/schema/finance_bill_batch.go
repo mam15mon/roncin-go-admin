@@ -38,6 +38,7 @@ func (FinanceBillBatch) Edges() []ent.Edge {
 		edge.From("organization", Organization.Type).Ref("finance_bill_batches").Field("organization_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_finance_bill_batches").Field("created_by").Unique().Required().Immutable(),
 		edge.To("bills", FinanceBill.Type),
+		edge.To("nettings", FinanceNetting.Type),
 	}
 }
 

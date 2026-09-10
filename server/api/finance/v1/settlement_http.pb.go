@@ -26,11 +26,13 @@ const OperationSettlementServiceCancelCashflow = "/finance.v1.SettlementService/
 const OperationSettlementServiceCancelCommission = "/finance.v1.SettlementService/CancelCommission"
 const OperationSettlementServiceCancelCommissionAdjustment = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 const OperationSettlementServiceCancelInvoice = "/finance.v1.SettlementService/CancelInvoice"
+const OperationSettlementServiceCancelNetting = "/finance.v1.SettlementService/CancelNetting"
 const OperationSettlementServiceConfirmBill = "/finance.v1.SettlementService/ConfirmBill"
 const OperationSettlementServiceConfirmBillBatch = "/finance.v1.SettlementService/ConfirmBillBatch"
 const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService/ConfirmCashflow"
 const OperationSettlementServiceConfirmCommission = "/finance.v1.SettlementService/ConfirmCommission"
 const OperationSettlementServiceConfirmCommissionAdjustment = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
+const OperationSettlementServiceConfirmNetting = "/finance.v1.SettlementService/ConfirmNetting"
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
 const OperationSettlementServiceCreateBillBatch = "/finance.v1.SettlementService/CreateBillBatch"
 const OperationSettlementServiceCreateCashflow = "/finance.v1.SettlementService/CreateCashflow"
@@ -38,6 +40,7 @@ const OperationSettlementServiceCreateCommission = "/finance.v1.SettlementServic
 const OperationSettlementServiceCreateCommissionAdjustment = "/finance.v1.SettlementService/CreateCommissionAdjustment"
 const OperationSettlementServiceCreateCommissionRule = "/finance.v1.SettlementService/CreateCommissionRule"
 const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/CreateInvoice"
+const OperationSettlementServiceCreateNetting = "/finance.v1.SettlementService/CreateNetting"
 const OperationSettlementServiceCreateVerification = "/finance.v1.SettlementService/CreateVerification"
 const OperationSettlementServiceExportCommissions = "/finance.v1.SettlementService/ExportCommissions"
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
@@ -46,6 +49,7 @@ const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/G
 const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
 const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
+const OperationSettlementServiceGetNetting = "/finance.v1.SettlementService/GetNetting"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBillCreationCandidates = "/finance.v1.SettlementService/ListBillCreationCandidates"
 const OperationSettlementServiceListBillSettlementAccountCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
@@ -68,14 +72,17 @@ const OperationSettlementServiceListFinanceSettlementPartyOptions = "/finance.v1
 const OperationSettlementServiceListInvoiceCreationBills = "/finance.v1.SettlementService/ListInvoiceCreationBills"
 const OperationSettlementServiceListInvoiceProfilesForBill = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
+const OperationSettlementServiceListNettings = "/finance.v1.SettlementService/ListNettings"
 const OperationSettlementServiceListVerificationCreationCandidates = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
 const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
 const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementService/PreviewBillBatch"
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
+const OperationSettlementServicePreviewNetting = "/finance.v1.SettlementService/PreviewNetting"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
 const OperationSettlementServiceResetFeeLedgerPreference = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
+const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 const OperationSettlementServiceUpdateBilledFeeEditPolicy = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
@@ -92,11 +99,13 @@ type SettlementServiceHTTPServer interface {
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CancelCommissionResponse, error)
 	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CancelCommissionAdjustmentResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
+	CancelNetting(context.Context, *CancelNettingRequest) (*CancelNettingResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error)
 	ConfirmCommissionAdjustment(context.Context, *ConfirmCommissionAdjustmentRequest) (*ConfirmCommissionAdjustmentResponse, error)
+	ConfirmNetting(context.Context, *ConfirmNettingRequest) (*ConfirmNettingResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
@@ -104,6 +113,7 @@ type SettlementServiceHTTPServer interface {
 	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CreateCommissionAdjustmentResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error)
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
+	CreateNetting(context.Context, *CreateNettingRequest) (*CreateNettingResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
@@ -114,6 +124,7 @@ type SettlementServiceHTTPServer interface {
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
+	GetNetting(context.Context, *GetNettingRequest) (*GetNettingResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
 	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
@@ -140,15 +151,19 @@ type SettlementServiceHTTPServer interface {
 	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
 	ListInvoiceProfilesForBill(context.Context, *ListInvoiceProfilesForBillRequest) (*ListInvoiceProfilesForBillResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	// ListNettings 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+	ListNettings(context.Context, *ListNettingsRequest) (*ListNettingsResponse, error)
 	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
 	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
+	PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
+	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
@@ -206,6 +221,13 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("GET", "/api/v1/finance/commissions/verification-candidates", _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications", _SettlementService_CreateVerification0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/nettings", _SettlementService_ListNettings0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/nettings/preview", _SettlementService_PreviewNetting0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/nettings", _SettlementService_CreateNetting0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/nettings/{id}", _SettlementService_GetNetting0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/nettings/{id}/confirm", _SettlementService_ConfirmNetting0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/nettings/{id}/cancel", _SettlementService_CancelNetting0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/nettings/{id}/reverse", _SettlementService_ReverseNetting0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions", _SettlementService_ListCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/export", _SettlementService_ExportCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/employees", _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv))
@@ -1139,6 +1161,151 @@ func _SettlementService_ReverseVerification0_HTTP_Handler(srv SettlementServiceH
 	}
 }
 
+func _SettlementService_ListNettings0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNettingsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListNettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNettings(ctx, req.(*ListNettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListNettingsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_PreviewNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewNettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServicePreviewNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewNetting(ctx, req.(*PreviewNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CreateNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCreateNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNetting(ctx, req.(*CreateNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNettingRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNetting(ctx, req.(*GetNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ConfirmNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmNettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceConfirmNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmNetting(ctx, req.(*ConfirmNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CancelNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelNettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCancelNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelNetting(ctx, req.(*CancelNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ReverseNetting0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ReverseNettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceReverseNetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ReverseNetting(ctx, req.(*ReverseNettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ReverseNettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_ListCommissions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListCommissionsRequest
@@ -1518,11 +1685,13 @@ type SettlementServiceHTTPClient interface {
 	CancelCommission(ctx context.Context, req *CancelCommissionRequest, opts ...http.CallOption) (rsp *CancelCommissionResponse, err error)
 	CancelCommissionAdjustment(ctx context.Context, req *CancelCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *CancelCommissionAdjustmentResponse, err error)
 	CancelInvoice(ctx context.Context, req *CancelInvoiceRequest, opts ...http.CallOption) (rsp *CancelInvoiceResponse, err error)
+	CancelNetting(ctx context.Context, req *CancelNettingRequest, opts ...http.CallOption) (rsp *CancelNettingResponse, err error)
 	ConfirmBill(ctx context.Context, req *ConfirmBillRequest, opts ...http.CallOption) (rsp *ConfirmBillResponse, err error)
 	ConfirmBillBatch(ctx context.Context, req *ConfirmBillBatchRequest, opts ...http.CallOption) (rsp *ConfirmBillBatchResponse, err error)
 	ConfirmCashflow(ctx context.Context, req *ConfirmCashflowRequest, opts ...http.CallOption) (rsp *ConfirmCashflowResponse, err error)
 	ConfirmCommission(ctx context.Context, req *ConfirmCommissionRequest, opts ...http.CallOption) (rsp *ConfirmCommissionResponse, err error)
 	ConfirmCommissionAdjustment(ctx context.Context, req *ConfirmCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *ConfirmCommissionAdjustmentResponse, err error)
+	ConfirmNetting(ctx context.Context, req *ConfirmNettingRequest, opts ...http.CallOption) (rsp *ConfirmNettingResponse, err error)
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
 	CreateBillBatch(ctx context.Context, req *CreateBillBatchRequest, opts ...http.CallOption) (rsp *CreateBillBatchResponse, err error)
 	CreateCashflow(ctx context.Context, req *CreateCashflowRequest, opts ...http.CallOption) (rsp *CreateCashflowResponse, err error)
@@ -1530,6 +1699,7 @@ type SettlementServiceHTTPClient interface {
 	CreateCommissionAdjustment(ctx context.Context, req *CreateCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *CreateCommissionAdjustmentResponse, err error)
 	CreateCommissionRule(ctx context.Context, req *CreateCommissionRuleRequest, opts ...http.CallOption) (rsp *CreateCommissionRuleResponse, err error)
 	CreateInvoice(ctx context.Context, req *CreateInvoiceRequest, opts ...http.CallOption) (rsp *CreateInvoiceResponse, err error)
+	CreateNetting(ctx context.Context, req *CreateNettingRequest, opts ...http.CallOption) (rsp *CreateNettingResponse, err error)
 	CreateVerification(ctx context.Context, req *CreateVerificationRequest, opts ...http.CallOption) (rsp *CreateVerificationResponse, err error)
 	ExportCommissions(ctx context.Context, req *ExportCommissionsRequest, opts ...http.CallOption) (rsp *ExportCommissionsResponse, err error)
 	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
@@ -1540,6 +1710,7 @@ type SettlementServiceHTTPClient interface {
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
+	GetNetting(ctx context.Context, req *GetNettingRequest, opts ...http.CallOption) (rsp *GetNettingResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBillCreationCandidates(ctx context.Context, req *ListBillCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListBillCreationCandidatesResponse, err error)
 	ListBillSettlementAccountCandidates(ctx context.Context, req *ListBillSettlementAccountCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountCandidatesResponse, err error)
@@ -1566,15 +1737,19 @@ type SettlementServiceHTTPClient interface {
 	ListInvoiceCreationBills(ctx context.Context, req *ListInvoiceCreationBillsRequest, opts ...http.CallOption) (rsp *ListInvoiceCreationBillsResponse, err error)
 	ListInvoiceProfilesForBill(ctx context.Context, req *ListInvoiceProfilesForBillRequest, opts ...http.CallOption) (rsp *ListInvoiceProfilesForBillResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
+	// ListNettings 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+	ListNettings(ctx context.Context, req *ListNettingsRequest, opts ...http.CallOption) (rsp *ListNettingsResponse, err error)
 	ListVerificationCreationCandidates(ctx context.Context, req *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListVerificationCreationCandidatesResponse, err error)
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
 	MarkCommissionAdjustmentPaid(ctx context.Context, req *MarkCommissionAdjustmentPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionAdjustmentPaidResponse, err error)
 	MarkCommissionPaid(ctx context.Context, req *MarkCommissionPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionPaidResponse, err error)
 	PreviewBillBatch(ctx context.Context, req *PreviewBillBatchRequest, opts ...http.CallOption) (rsp *PreviewBillBatchResponse, err error)
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
+	PreviewNetting(ctx context.Context, req *PreviewNettingRequest, opts ...http.CallOption) (rsp *PreviewNettingResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(ctx context.Context, req *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *ResetFeeLedgerPreferenceResponse, err error)
+	ReverseNetting(ctx context.Context, req *ReverseNettingRequest, opts ...http.CallOption) (rsp *ReverseNettingResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
@@ -1745,6 +1920,23 @@ func (c *SettlementServiceHTTPClientImpl) CancelInvoice(ctx context.Context, in 
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) CancelNetting(ctx context.Context, in *CancelNettingRequest, opts ...http.CallOption) (*CancelNettingResponse, error) {
+	var out CancelNettingResponse
+	pattern := "/api/v1/finance/nettings/{id}/cancel"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCancelNetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...http.CallOption) (*ConfirmBillResponse, error) {
 	var out ConfirmBillResponse
 	pattern := "/api/v1/finance/bills/{id}/confirm"
@@ -1821,6 +2013,23 @@ func (c *SettlementServiceHTTPClientImpl) ConfirmCommissionAdjustment(ctx contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceConfirmCommissionAdjustment),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ConfirmNetting(ctx context.Context, in *ConfirmNettingRequest, opts ...http.CallOption) (*ConfirmNettingResponse, error) {
+	var out ConfirmNettingResponse
+	pattern := "/api/v1/finance/nettings/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceConfirmNetting),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1940,6 +2149,23 @@ func (c *SettlementServiceHTTPClientImpl) CreateInvoice(ctx context.Context, in 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceCreateInvoice),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CreateNetting(ctx context.Context, in *CreateNettingRequest, opts ...http.CallOption) (*CreateNettingResponse, error) {
+	var out CreateNettingResponse
+	pattern := "/api/v1/finance/nettings"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCreateNetting),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -2071,6 +2297,22 @@ func (c *SettlementServiceHTTPClientImpl) GetInvoice(ctx context.Context, in *Ge
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceGetInvoice),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) GetNetting(ctx context.Context, in *GetNettingRequest, opts ...http.CallOption) (*GetNettingResponse, error) {
+	var out GetNettingResponse
+	pattern := "/api/v1/finance/nettings/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetNetting),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -2437,6 +2679,23 @@ func (c *SettlementServiceHTTPClientImpl) ListInvoices(ctx context.Context, in *
 	return &out, nil
 }
 
+// ListNettings 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+func (c *SettlementServiceHTTPClientImpl) ListNettings(ctx context.Context, in *ListNettingsRequest, opts ...http.CallOption) (*ListNettingsResponse, error) {
+	var out ListNettingsResponse
+	pattern := "/api/v1/finance/nettings"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListNettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (*ListVerificationCreationCandidatesResponse, error) {
 	var out ListVerificationCreationCandidatesResponse
 	pattern := "/api/v1/finance/verifications/creation-candidates"
@@ -2537,6 +2796,23 @@ func (c *SettlementServiceHTTPClientImpl) PreviewCommission(ctx context.Context,
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) PreviewNetting(ctx context.Context, in *PreviewNettingRequest, opts ...http.CallOption) (*PreviewNettingResponse, error) {
+	var out PreviewNettingResponse
+	pattern := "/api/v1/finance/nettings/preview"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServicePreviewNetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) RedFlushInvoice(ctx context.Context, in *RedFlushInvoiceRequest, opts ...http.CallOption) (*RedFlushInvoiceResponse, error) {
 	var out RedFlushInvoiceResponse
 	pattern := "/api/v1/finance/invoices/{id}/red-flush"
@@ -2565,6 +2841,23 @@ func (c *SettlementServiceHTTPClientImpl) ResetFeeLedgerPreference(ctx context.C
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ReverseNetting(ctx context.Context, in *ReverseNettingRequest, opts ...http.CallOption) (*ReverseNettingResponse, error) {
+	var out ReverseNettingResponse
+	pattern := "/api/v1/finance/nettings/{id}/reverse"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceReverseNetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -62,9 +62,11 @@ type FinanceBillBatchEdges struct {
 	Creator *User `json:"creator,omitempty"`
 	// Bills holds the value of the bills edge.
 	Bills []*FinanceBill `json:"bills,omitempty"`
+	// Nettings holds the value of the nettings edge.
+	Nettings []*FinanceNetting `json:"nettings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -96,6 +98,15 @@ func (e FinanceBillBatchEdges) BillsOrErr() ([]*FinanceBill, error) {
 		return e.Bills, nil
 	}
 	return nil, &NotLoadedError{edge: "bills"}
+}
+
+// NettingsOrErr returns the Nettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillBatchEdges) NettingsOrErr() ([]*FinanceNetting, error) {
+	if e.loadedTypes[3] {
+		return e.Nettings, nil
+	}
+	return nil, &NotLoadedError{edge: "nettings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -244,6 +255,11 @@ func (_m *FinanceBillBatch) QueryCreator() *UserQuery {
 // QueryBills queries the "bills" edge of the FinanceBillBatch entity.
 func (_m *FinanceBillBatch) QueryBills() *FinanceBillQuery {
 	return NewFinanceBillBatchClient(_m.config).QueryBills(_m)
+}
+
+// QueryNettings queries the "nettings" edge of the FinanceBillBatch entity.
+func (_m *FinanceBillBatch) QueryNettings() *FinanceNettingQuery {
+	return NewFinanceBillBatchClient(_m.config).QueryNettings(_m)
 }
 
 // Update returns a builder for updating this FinanceBillBatch.

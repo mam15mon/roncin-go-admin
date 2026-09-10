@@ -82,6 +82,8 @@ type PartnerEdges struct {
 	FinanceCashflows []*FinanceCashflow `json:"finance_cashflows,omitempty"`
 	// FinanceVerifications holds the value of the finance_verifications edge.
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
+	// FinanceNettings holds the value of the finance_nettings edge.
+	FinanceNettings []*FinanceNetting `json:"finance_nettings,omitempty"`
 	// OrderCommissionAttributions holds the value of the order_commission_attributions edge.
 	OrderCommissionAttributions []*OrderCommissionAttribution `json:"order_commission_attributions,omitempty"`
 	// IssuedSeaHouseBills holds the value of the issued_sea_house_bills edge.
@@ -92,7 +94,7 @@ type PartnerEdges struct {
 	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [21]bool
+	loadedTypes [22]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -252,10 +254,19 @@ func (e PartnerEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error
 	return nil, &NotLoadedError{edge: "finance_verifications"}
 }
 
+// FinanceNettingsOrErr returns the FinanceNettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) FinanceNettingsOrErr() ([]*FinanceNetting, error) {
+	if e.loadedTypes[17] {
+		return e.FinanceNettings, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_nettings"}
+}
+
 // OrderCommissionAttributionsOrErr returns the OrderCommissionAttributions value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[18] {
 		return e.OrderCommissionAttributions, nil
 	}
 	return nil, &NotLoadedError{edge: "order_commission_attributions"}
@@ -264,7 +275,7 @@ func (e PartnerEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttr
 // IssuedSeaHouseBillsOrErr returns the IssuedSeaHouseBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) IssuedSeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
-	if e.loadedTypes[18] {
+	if e.loadedTypes[19] {
 		return e.IssuedSeaHouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "issued_sea_house_bills"}
@@ -273,7 +284,7 @@ func (e PartnerEdges) IssuedSeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
 // SeaOrderReassignmentsOrErr returns the SeaOrderReassignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) SeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[20] {
 		return e.SeaOrderReassignments, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_reassignments"}
@@ -282,7 +293,7 @@ func (e PartnerEdges) SeaOrderReassignmentsOrErr() ([]*SeaOrderReassignmentEvent
 // SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.SeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
@@ -479,6 +490,11 @@ func (_m *Partner) QueryFinanceCashflows() *FinanceCashflowQuery {
 // QueryFinanceVerifications queries the "finance_verifications" edge of the Partner entity.
 func (_m *Partner) QueryFinanceVerifications() *FinanceVerificationQuery {
 	return NewPartnerClient(_m.config).QueryFinanceVerifications(_m)
+}
+
+// QueryFinanceNettings queries the "finance_nettings" edge of the Partner entity.
+func (_m *Partner) QueryFinanceNettings() *FinanceNettingQuery {
+	return NewPartnerClient(_m.config).QueryFinanceNettings(_m)
 }
 
 // QueryOrderCommissionAttributions queries the "order_commission_attributions" edge of the Partner entity.

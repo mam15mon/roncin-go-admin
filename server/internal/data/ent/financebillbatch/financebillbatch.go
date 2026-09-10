@@ -50,6 +50,8 @@ const (
 	EdgeCreator = "creator"
 	// EdgeBills holds the string denoting the bills edge name in mutations.
 	EdgeBills = "bills"
+	// EdgeNettings holds the string denoting the nettings edge name in mutations.
+	EdgeNettings = "nettings"
 	// Table holds the table name of the financebillbatch in the database.
 	Table = "finance_bill_batches"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -73,6 +75,13 @@ const (
 	BillsInverseTable = "finance_bills"
 	// BillsColumn is the table column denoting the bills relation/edge.
 	BillsColumn = "batch_id"
+	// NettingsTable is the table that holds the nettings relation/edge.
+	NettingsTable = "finance_nettings"
+	// NettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	NettingsInverseTable = "finance_nettings"
+	// NettingsColumn is the table column denoting the nettings relation/edge.
+	NettingsColumn = "batch_id"
 )
 
 // Columns holds all SQL columns for financebillbatch fields.
@@ -262,6 +271,20 @@ func ByBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNettingsCount orders the results by nettings count.
+func ByNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNettingsStep(), opts...)
+	}
+}
+
+// ByNettings orders the results by nettings terms.
+func ByNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -281,5 +304,12 @@ func newBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, BillsTable, BillsColumn),
+	)
+}
+func newNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NettingsTable, NettingsColumn),
 	)
 }

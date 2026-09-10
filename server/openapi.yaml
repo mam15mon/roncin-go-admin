@@ -3055,6 +3055,176 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.RedFlushInvoiceResponse'
+    /api/v1/finance/nettings:
+        get:
+            tags:
+                - SettlementService
+            description: 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
+            operationId: SettlementService_ListNettings
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: settlementPartyId
+                  in: query
+                  schema:
+                    type: string
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListNettingsResponse'
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CreateNetting
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateNettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateNettingResponse'
+    /api/v1/finance/nettings/preview:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_PreviewNetting
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.PreviewNettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.PreviewNettingResponse'
+    /api/v1/finance/nettings/{id}:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_GetNetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.GetNettingResponse'
+    /api/v1/finance/nettings/{id}/cancel:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CancelNetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CancelNettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CancelNettingResponse'
+    /api/v1/finance/nettings/{id}/confirm:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ConfirmNetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.ConfirmNettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ConfirmNettingResponse'
+    /api/v1/finance/nettings/{id}/reverse:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ReverseNetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.ReverseNettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ReverseNettingResponse'
     /api/v1/finance/organization-options:
         get:
             tags:
@@ -8846,6 +9016,26 @@ components:
                     format: int32
                 traceId:
                     type: string
+        finance.v1.BillBatchNettingPair:
+            type: object
+            properties:
+                settlementPartyId:
+                    type: string
+                settlementPartyName:
+                    type: string
+                currency:
+                    type: string
+                receivableGrossAmount:
+                    type: string
+                payableGrossAmount:
+                    type: string
+                offsetAmount:
+                    type: string
+                netReceivableAmount:
+                    type: string
+                netPayableAmount:
+                    type: string
+            description: BillBatchNettingPair 是对冲建账预览中同一结算单位、同一账单币种的抵销汇总。
         finance.v1.BillBatchPreviewGroup:
             type: object
             properties:
@@ -9116,6 +9306,33 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.CancelNettingRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
+        finance.v1.CancelNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNetting'
                 traceId:
                     type: string
         finance.v1.CommissionCalculation:
@@ -9464,6 +9681,30 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.ExchangeRateImportBatch'
+                traceId:
+                    type: string
+        finance.v1.ConfirmNettingRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.ConfirmNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNetting'
                 traceId:
                     type: string
         finance.v1.CreateBillBatchGroupInput:
@@ -9870,6 +10111,37 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.CreateNettingRequest:
+            required:
+                - organizationId
+                - bills
+                - idempotencyKey
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                bills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.NettingBillExpectedVersion'
+                note:
+                    type: string
+                idempotencyKey:
+                    type: string
+        finance.v1.CreateNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNetting'
                 traceId:
                     type: string
         finance.v1.CreateTaxableServiceRequest:
@@ -10443,6 +10715,9 @@ components:
                     type: string
                 estimatedInvoiceAmount:
                     type: string
+                nettedAmount:
+                    type: string
+                    description: netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
         finance.v1.FinanceBillBatch:
             type: object
             properties:
@@ -10473,6 +10748,11 @@ components:
                 mode:
                     type: integer
                     format: enum
+                nettings:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNetting'
+                    description: nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。
         finance.v1.FinanceBillLine:
             type: object
             properties:
@@ -10998,6 +11278,142 @@ components:
                         $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
                 issuedCount:
                     type: string
+        finance.v1.FinanceNetting:
+            type: object
+            properties:
+                id:
+                    type: string
+                nettingNo:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                settlementPartyId:
+                    type: string
+                settlementPartyName:
+                    type: string
+                currency:
+                    type: string
+                amount:
+                    type: string
+                baseCurrency:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
+                note:
+                    type: string
+                version:
+                    type: string
+                allocations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNettingAllocation'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                confirmedAt:
+                    type: string
+                cancelledAt:
+                    type: string
+                cancellationReason:
+                    type: string
+                reversedAt:
+                    type: string
+                reversalReason:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                batchId:
+                    type: string
+                batchNo:
+                    type: string
+            description: FinanceNetting 只保存双方共同账单币种的抵销金额，不产生混合币种总额。
+        finance.v1.FinanceNettingAllocation:
+            type: object
+            properties:
+                id:
+                    type: string
+                billId:
+                    type: string
+                billNo:
+                    type: string
+                direction:
+                    type: string
+                amount:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
+                active:
+                    type: boolean
+        finance.v1.FinanceNettingBaseCurrencyAmount:
+            type: object
+            properties:
+                baseCurrency:
+                    type: string
+                nettingBaseAmount:
+                    type: string
+        finance.v1.FinanceNettingBillBalance:
+            type: object
+            properties:
+                billId:
+                    type: string
+                billNo:
+                    type: string
+                billDate:
+                    type: string
+                totalAmount:
+                    type: string
+                verifiedAmount:
+                    type: string
+                nettedAmount:
+                    type: string
+                availableAmount:
+                    type: string
+                version:
+                    type: string
+        finance.v1.FinanceNettingPreview:
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                settlementPartyId:
+                    type: string
+                settlementPartyName:
+                    type: string
+                currency:
+                    type: string
+                receivableBills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNettingBillBalance'
+                payableBills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNettingBillBalance'
+                receivableAvailableAmount:
+                    type: string
+                payableAvailableAmount:
+                    type: string
+                offsetAmount:
+                    type: string
+                netReceivableAmount:
+                    type: string
+                netPayableAmount:
+                    type: string
+        finance.v1.FinanceNettingSummary:
+            type: object
+            properties:
+                amountsByBaseCurrency:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNettingBaseCurrencyAmount'
+                confirmedCount:
+                    type: string
         finance.v1.FinanceOrganizationOption:
             type: object
             properties:
@@ -11240,6 +11656,20 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.GetNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNetting'
                 traceId:
                     type: string
         finance.v1.IssueInvoiceRequest:
@@ -11716,6 +12146,26 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoiceSummary'
+        finance.v1.ListNettingsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNetting'
+                total:
+                    type: string
+                traceId:
+                    type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FinanceNettingSummary'
         finance.v1.ListTaxableServicesResponse:
             type: object
             properties:
@@ -11823,6 +12273,16 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCommission'
                 traceId:
                     type: string
+        finance.v1.NettingBillExpectedVersion:
+            required:
+                - billId
+                - expectedVersion
+            type: object
+            properties:
+                billId:
+                    type: string
+                expectedVersion:
+                    type: string
         finance.v1.PreviewBillBatchRequest:
             required:
                 - feeIds
@@ -11860,6 +12320,11 @@ components:
                     type: string
                 traceId:
                     type: string
+                nettingPairs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BillBatchNettingPair'
+                    description: netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。
         finance.v1.PreviewCommissionRequest:
             required:
                 - verificationId
@@ -11914,6 +12379,33 @@ components:
                     type: string
                 traceId:
                     type: string
+        finance.v1.PreviewNettingRequest:
+            required:
+                - organizationId
+                - settlementPartyId
+                - currency
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                settlementPartyId:
+                    type: string
+                currency:
+                    type: string
+        finance.v1.PreviewNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNettingPreview'
+                traceId:
+                    type: string
         finance.v1.RedFlushInvoiceRequest:
             required:
                 - id
@@ -11959,6 +12451,33 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FeeLedgerPreference'
+                traceId:
+                    type: string
+        finance.v1.ReverseNettingRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
+        finance.v1.ReverseNettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceNetting'
                 traceId:
                     type: string
         finance.v1.ReverseVerificationRequest:

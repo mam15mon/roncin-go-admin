@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -116,6 +117,7 @@ type OrganizationQuery struct {
 	withFinanceInvoices               *FinanceInvoiceQuery
 	withFinanceCashflows              *FinanceCashflowQuery
 	withFinanceVerifications          *FinanceVerificationQuery
+	withFinanceNettings               *FinanceNettingQuery
 	withFinanceCommissions            *FinanceCommissionQuery
 	withFinanceCommissionLines        *FinanceCommissionLineQuery
 	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
@@ -901,6 +903,28 @@ func (_q *OrganizationQuery) QueryFinanceVerifications() *FinanceVerificationQue
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceVerificationsTable, organization.FinanceVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceNettings chains the current query on the "finance_nettings" edge.
+func (_q *OrganizationQuery) QueryFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceNettingsTable, organization.FinanceNettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1771,6 +1795,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceInvoices:               _q.withFinanceInvoices.Clone(),
 		withFinanceCashflows:              _q.withFinanceCashflows.Clone(),
 		withFinanceVerifications:          _q.withFinanceVerifications.Clone(),
+		withFinanceNettings:               _q.withFinanceNettings.Clone(),
 		withFinanceCommissions:            _q.withFinanceCommissions.Clone(),
 		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
 		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
@@ -2166,6 +2191,17 @@ func (_q *OrganizationQuery) WithFinanceVerifications(opts ...func(*FinanceVerif
 		opt(query)
 	}
 	_q.withFinanceVerifications = query
+	return _q
+}
+
+// WithFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceNettings(opts ...func(*FinanceNettingQuery)) *OrganizationQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceNettings = query
 	return _q
 }
 
@@ -2566,7 +2602,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [62]bool{
+		loadedTypes = [63]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2600,6 +2636,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceInvoices != nil,
 			_q.withFinanceCashflows != nil,
 			_q.withFinanceVerifications != nil,
+			_q.withFinanceNettings != nil,
 			_q.withFinanceCommissions != nil,
 			_q.withFinanceCommissionLines != nil,
 			_q.withFinanceCommissionAdjustments != nil,
@@ -2897,6 +2934,13 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization, e *FinanceVerification) {
 				n.Edges.FinanceVerifications = append(n.Edges.FinanceVerifications, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceNettings; query != nil {
+		if err := _q.loadFinanceNettings(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceNettings = []*FinanceNetting{} },
+			func(n *Organization, e *FinanceNetting) { n.Edges.FinanceNettings = append(n.Edges.FinanceNettings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -4147,6 +4191,36 @@ func (_q *OrganizationQuery) loadFinanceVerifications(ctx context.Context, query
 	}
 	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceNettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

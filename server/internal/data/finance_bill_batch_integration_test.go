@@ -12,8 +12,11 @@ import (
 	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	numberruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/shopspring/decimal"
 )
 
 // financeBillBatchPostgresFixture 在账单事务夹具之上补齐批量建账所需的操作用户、
@@ -303,4 +306,204 @@ func (f *financeBillBatchPostgresFixture) requireRolledBackBatchState(feeID uuid
 	if err != nil || fee.Status != orderfeeent.StatusCONFIRMED {
 		f.t.Fatalf("零写入校验：费用状态 = %#v，期望 CONFIRMED（未被部分改成 BILLED），error=%v", fee, err)
 	}
+}
+
+// createBatchConfirmedPayableFee 创建同结算单位、同币种、同税率的已确认应付费用，
+// 与 createBatchConfirmedFee 组成对冲建账所需的双向费用事实。
+func (f *financeBillBatchPostgresFixture) createBatchConfirmedPayableFee(key string) uuid.UUID {
+	f.t.Helper()
+	fee, err := f.data.db.OrderFee.Create().
+		SetOrderID(f.orderID).
+		SetIdempotencyKey("batch-payable-fee-"+key+"-"+f.suffix).
+		SetDirection(orderfeeent.DirectionPAYABLE).
+		SetStatus(orderfeeent.StatusCONFIRMED).
+		SetFeeCode("AGENT_FREIGHT").
+		SetFeeName("代理费").
+		SetSettlementPartyID(f.partnerID).
+		SetBillingUnit("票").
+		SetQuantity("1.0000").
+		SetUnitPrice("40.0000").
+		SetTotalAmount("40.00000000").
+		SetNetAmount("40.00000000").
+		SetTaxAmount("0.00000000").
+		SetTaxRate("0.00").
+		SetCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateDate(financeBillIntegrationDate).
+		SetBaseCurrency("CNY").
+		SetBaseCurrencyAmount("40.00000000").
+		SetExpenseDate(financeBillIntegrationDate).
+		SetVersion(1).
+		Save(context.Background())
+	if err != nil {
+		f.t.Fatalf("创建对冲建账测试应付费用: %v", err)
+	}
+	return fee.ID
+}
+
+// cleanupNettingRows 在批次夹具清理前删除对冲分摊与对冲单；对冲分摊引用账单（NO ACTION）。
+func (f *financeBillBatchPostgresFixture) cleanupNettingRows() {
+	cleanupCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if _, err := f.data.db.FinanceNettingAllocation.Delete().Where(financenettingallocationent.HasNettingWith(financenettingent.OrganizationIDEQ(f.organizationID))).Exec(cleanupCtx); err != nil {
+		f.t.Errorf("清理对冲建账测试对冲分摊: %v", err)
+	}
+	if _, err := f.data.db.FinanceNetting.Delete().Where(financenettingent.OrganizationIDEQ(f.organizationID)).Exec(cleanupCtx); err != nil {
+		f.t.Errorf("清理对冲建账测试对冲单: %v", err)
+	}
+}
+
+// buildNettingBatchInput 以对冲模式复现两段式预览并组装创建输入。
+func (f *financeBillBatchPostgresFixture) buildNettingBatchInput(t *testing.T, usecase *biz.FinanceBillUsecase, idempotencyKey string, feeIDs []uuid.UUID) biz.CreateFinanceBillBatchInput {
+	t.Helper()
+	ctx := context.Background()
+	policy := biz.FinanceBillGroupingPolicy{Mode: "NETTING", SplitByOrder: true}
+	initial, err := usecase.PreviewBatch(ctx, f.organizationID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: policy})
+	if err != nil {
+		t.Fatalf("对冲模式无配置预览失败: %v", err)
+	}
+	if len(initial.NettingPairs) != 1 {
+		t.Fatalf("对冲预览应返回 1 组抵销汇总: %#v", initial.NettingPairs)
+	}
+	configs := make([]biz.FinanceBillBatchPreviewGroupConfig, 0, len(initial.Groups))
+	for _, group := range initial.Groups {
+		configs = append(configs, biz.FinanceBillBatchPreviewGroupConfig{
+			GroupKey: group.GroupKey, BillDate: financeBillIntegrationDate, SettlementAccountID: f.accountID,
+		})
+	}
+	preview, err := usecase.PreviewBatch(ctx, f.organizationID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: policy, GroupConfigs: configs})
+	if err != nil {
+		t.Fatalf("对冲模式完整配置预览失败: %v", err)
+	}
+	if preview.PreviewToken == "" || len(preview.NettingPairs) != 1 || len(preview.Groups) != 2 {
+		t.Fatalf("对冲预览结果不完整: token=%q groups=%d pairs=%d", preview.PreviewToken, len(preview.Groups), len(preview.NettingPairs))
+	}
+	if !preview.NettingPairs[0].OffsetAmount.Equal(decimal.RequireFromString("40")) {
+		t.Fatalf("对冲抵销额应为 40: %#v", preview.NettingPairs[0])
+	}
+	groups := make([]biz.CreateFinanceBillBatchGroupInput, 0, len(preview.Groups))
+	for _, group := range preview.Groups {
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{
+			GroupKey: group.GroupKey, StatementTitle: group.SettlementPartyName, BillDate: financeBillIntegrationDate, SettlementAccountID: f.accountID,
+		})
+	}
+	return biz.CreateFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: policy, Groups: groups, PreviewToken: preview.PreviewToken, IdempotencyKey: idempotencyKey}
+}
+
+func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	defer cleanup()
+	hasCNY, err := data.db.Currency.Query().Where(currencyent.CodeEQ("CNY"), currencyent.EnabledEQ(true)).Exist(context.Background())
+	if err != nil {
+		t.Fatalf("查询对冲建账用例所需币种: %v", err)
+	}
+	if !hasCNY {
+		if _, err := data.db.Currency.Create().SetCode("CNY").SetName("人民币").SetEnabled(true).Save(context.Background()); err != nil {
+			t.Fatalf("创建对冲建账用例所需币种: %v", err)
+		}
+	}
+
+	t.Run("对冲批次原子生成双方账单与草稿对冲单并支持确认反转", func(t *testing.T) {
+		fixture := newFinanceBillBatchPostgresFixture(t, data)
+		if _, err := data.db.NumberRule.Create().SetOrganizationID(fixture.organizationID).SetDocumentType(numberruleent.DocumentTypeNetting).SetPrefix("NT-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(context.Background()); err != nil {
+			t.Fatalf("创建测试对冲编号规则: %v", err)
+		}
+		t.Cleanup(fixture.cleanupNettingRows)
+		receivableFeeID := fixture.createBatchConfirmedFee("netting-receivable")
+		payableFeeID := fixture.createBatchConfirmedPayableFee("netting-payable")
+		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
+		input := fixture.buildNettingBatchInput(t, usecase, "batch-netting-"+fixture.suffix, []uuid.UUID{receivableFeeID, payableFeeID})
+
+		batch, err := usecase.CreateBatch(context.Background(), fixture.organizationID, fixture.actorUserID, input)
+		if err != nil {
+			t.Fatalf("对冲批次创建失败: %v", err)
+		}
+		if len(batch.Bills) != 2 || len(batch.Nettings) != 1 {
+			t.Fatalf("对冲批次应生成两张账单与一张对冲单: bills=%d nettings=%d", len(batch.Bills), len(batch.Nettings))
+		}
+		netting := batch.Nettings[0]
+		if netting.Status != biz.FinanceNettingDraft || !netting.Amount.Equal(decimal.RequireFromString("40")) || netting.BatchID == nil || *netting.BatchID != batch.ID {
+			t.Fatalf("对冲单字段错误: %#v", netting)
+		}
+		if len(netting.Allocations) != 2 {
+			t.Fatalf("对冲分摊应覆盖双方账单: %#v", netting.Allocations)
+		}
+		for _, allocation := range netting.Allocations {
+			if allocation.Active {
+				t.Fatalf("批次对冲分摊初始必须未生效: %#v", allocation)
+			}
+		}
+
+		expectedVersions := make(map[uuid.UUID]uint64, len(batch.Bills))
+		directions := map[biz.OrderFeeDirection]uuid.UUID{}
+		for _, bill := range batch.Bills {
+			expectedVersions[bill.ID] = bill.Version
+			directions[bill.Direction] = bill.ID
+		}
+		confirmedBatch, err := usecase.ConfirmBatch(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, batch.ID, expectedVersions)
+		if err != nil {
+			t.Fatalf("确认对冲批次账单失败: %v", err)
+		}
+		if len(confirmedBatch.Nettings) != 1 || confirmedBatch.Nettings[0].Status != biz.FinanceNettingDraft {
+			t.Fatalf("批次确认不应改变对冲单状态: %#v", confirmedBatch.Nettings)
+		}
+
+		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data)
+		confirmed, err := nettingUsecase.Confirm(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, netting.ID, netting.Version)
+		if err != nil {
+			t.Fatalf("确认对冲单失败: %v", err)
+		}
+		if confirmed.Status != biz.FinanceNettingConfirmed || confirmed.Version != netting.Version+1 {
+			t.Fatalf("对冲确认结果错误: %#v", confirmed)
+		}
+		billRepo := NewFinanceBillRepo(data)
+		receivableBill, err := billRepo.Get(context.Background(), []uuid.UUID{fixture.organizationID}, directions[biz.OrderFeeReceivable])
+		if err != nil {
+			t.Fatalf("读取应收账单失败: %v", err)
+		}
+		payableBill, err := billRepo.Get(context.Background(), []uuid.UUID{fixture.organizationID}, directions[biz.OrderFeePayable])
+		if err != nil {
+			t.Fatalf("读取应付账单失败: %v", err)
+		}
+		if !receivableBill.NettedAmount.Equal(decimal.RequireFromString("40")) || !receivableBill.UnverifiedAmount.Equal(decimal.RequireFromString("60")) {
+			t.Fatalf("应收账单对冲后余额错误: netted=%s unverified=%s", receivableBill.NettedAmount, receivableBill.UnverifiedAmount)
+		}
+		if !payableBill.NettedAmount.Equal(decimal.RequireFromString("40")) || !payableBill.UnverifiedAmount.IsZero() {
+			t.Fatalf("应付账单对冲后余额错误: netted=%s unverified=%s", payableBill.NettedAmount, payableBill.UnverifiedAmount)
+		}
+
+		reversed, err := nettingUsecase.Reverse(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, netting.ID, confirmed.Version, "冲销测试回退")
+		if err != nil {
+			t.Fatalf("反转对冲单失败: %v", err)
+		}
+		if reversed.Status != biz.FinanceNettingReversed {
+			t.Fatalf("对冲反转结果错误: %#v", reversed)
+		}
+		restoredReceivable, err := billRepo.Get(context.Background(), []uuid.UUID{fixture.organizationID}, directions[biz.OrderFeeReceivable])
+		if err != nil {
+			t.Fatalf("重读应收账单失败: %v", err)
+		}
+		restoredPayable, err := billRepo.Get(context.Background(), []uuid.UUID{fixture.organizationID}, directions[biz.OrderFeePayable])
+		if err != nil {
+			t.Fatalf("重读应付账单失败: %v", err)
+		}
+		if !restoredReceivable.NettedAmount.IsZero() || !restoredReceivable.UnverifiedAmount.Equal(decimal.RequireFromString("100")) ||
+			!restoredPayable.NettedAmount.IsZero() || !restoredPayable.UnverifiedAmount.Equal(decimal.RequireFromString("40")) {
+			t.Fatalf("反转后余额未恢复: receivable=%#v payable=%#v", restoredReceivable, restoredPayable)
+		}
+	})
+
+	t.Run("对冲批次拒绝单方向费用", func(t *testing.T) {
+		fixture := newFinanceBillBatchPostgresFixture(t, data)
+		t.Cleanup(fixture.cleanupNettingRows)
+		feeIDs := []uuid.UUID{fixture.createBatchConfirmedFee("netting-single")}
+		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
+		_, err := usecase.PreviewBatch(context.Background(), fixture.organizationID, biz.PreviewFinanceBillBatchInput{
+			FeeIDs: feeIDs, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: "NETTING", SplitByOrder: true},
+		})
+		if !errors.Is(err, biz.ErrFinanceNettingSingleDirection) {
+			t.Fatalf("单方向费用走对冲模式错误 = %v，期望 %v", err, biz.ErrFinanceNettingSingleDirection)
+		}
+	})
 }

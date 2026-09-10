@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -658,6 +659,21 @@ func (_u *OrganizationUpdate) AddFinanceVerifications(v ...*FinanceVerification)
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceVerificationIDs(ids...)
+}
+
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceNettingIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_u *OrganizationUpdate) AddFinanceNettings(v ...*FinanceNetting) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceNettingIDs(ids...)
 }
 
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
@@ -1776,6 +1792,27 @@ func (_u *OrganizationUpdate) RemoveFinanceVerifications(v ...*FinanceVerificati
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceVerificationIDs(ids...)
+}
+
+// ClearFinanceNettings clears all "finance_nettings" edges to the FinanceNetting entity.
+func (_u *OrganizationUpdate) ClearFinanceNettings() *OrganizationUpdate {
+	_u.mutation.ClearFinanceNettings()
+	return _u
+}
+
+// RemoveFinanceNettingIDs removes the "finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceNettingIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceNettings removes "finance_nettings" edges to FinanceNetting entities.
+func (_u *OrganizationUpdate) RemoveFinanceNettings(v ...*FinanceNetting) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceNettingIDs(ids...)
 }
 
 // ClearFinanceCommissions clears all "finance_commissions" edges to the FinanceCommission entity.
@@ -3943,6 +3980,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.FinanceCommissionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5841,6 +5923,21 @@ func (_u *OrganizationUpdateOne) AddFinanceVerifications(v ...*FinanceVerificati
 	return _u.AddFinanceVerificationIDs(ids...)
 }
 
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceNettingIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_u *OrganizationUpdateOne) AddFinanceNettings(v ...*FinanceNetting) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceNettingIDs(ids...)
+}
+
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
 func (_u *OrganizationUpdateOne) AddFinanceCommissionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddFinanceCommissionIDs(ids...)
@@ -6957,6 +7054,27 @@ func (_u *OrganizationUpdateOne) RemoveFinanceVerifications(v ...*FinanceVerific
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceVerificationIDs(ids...)
+}
+
+// ClearFinanceNettings clears all "finance_nettings" edges to the FinanceNetting entity.
+func (_u *OrganizationUpdateOne) ClearFinanceNettings() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceNettings()
+	return _u
+}
+
+// RemoveFinanceNettingIDs removes the "finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceNettingIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceNettings removes "finance_nettings" edges to FinanceNetting entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceNettings(v ...*FinanceNetting) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceNettingIDs(ids...)
 }
 
 // ClearFinanceCommissions clears all "finance_commissions" edges to the FinanceCommission entity.
@@ -9147,6 +9265,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -45,6 +45,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -3774,6 +3776,196 @@ func init() {
 	financeinvoicelineDescID := financeinvoicelineMixinFields0[0].Descriptor()
 	// financeinvoiceline.DefaultID holds the default value on creation for the id field.
 	financeinvoiceline.DefaultID = financeinvoicelineDescID.Default.(func() uuid.UUID)
+	financenettingMixin := schema.FinanceNetting{}.Mixin()
+	financenettingMixinFields0 := financenettingMixin[0].Fields()
+	_ = financenettingMixinFields0
+	financenettingMixinFields1 := financenettingMixin[1].Fields()
+	_ = financenettingMixinFields1
+	financenettingFields := schema.FinanceNetting{}.Fields()
+	_ = financenettingFields
+	// financenettingDescCreatedAt is the schema descriptor for created_at field.
+	financenettingDescCreatedAt := financenettingMixinFields1[0].Descriptor()
+	// financenetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financenetting.DefaultCreatedAt = financenettingDescCreatedAt.Default.(func() time.Time)
+	// financenettingDescUpdatedAt is the schema descriptor for updated_at field.
+	financenettingDescUpdatedAt := financenettingMixinFields1[1].Descriptor()
+	// financenetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financenetting.DefaultUpdatedAt = financenettingDescUpdatedAt.Default.(func() time.Time)
+	// financenetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financenetting.UpdateDefaultUpdatedAt = financenettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financenettingDescNettingNo is the schema descriptor for netting_no field.
+	financenettingDescNettingNo := financenettingFields[1].Descriptor()
+	// financenetting.NettingNoValidator is a validator for the "netting_no" field. It is called by the builders before save.
+	financenetting.NettingNoValidator = func() func(string) error {
+		validators := financenettingDescNettingNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(netting_no string) error {
+			for _, fn := range fns {
+				if err := fn(netting_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	financenettingDescIdempotencyKey := financenettingFields[2].Descriptor()
+	// financenetting.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	financenetting.IdempotencyKeyValidator = func() func(string) error {
+		validators := financenettingDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescRequestHash is the schema descriptor for request_hash field.
+	financenettingDescRequestHash := financenettingFields[3].Descriptor()
+	// financenetting.RequestHashValidator is a validator for the "request_hash" field. It is called by the builders before save.
+	financenetting.RequestHashValidator = func() func(string) error {
+		validators := financenettingDescRequestHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_hash string) error {
+			for _, fn := range fns {
+				if err := fn(request_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescSettlementPartyName is the schema descriptor for settlement_party_name field.
+	financenettingDescSettlementPartyName := financenettingFields[7].Descriptor()
+	// financenetting.SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
+	financenetting.SettlementPartyNameValidator = func() func(string) error {
+		validators := financenettingDescSettlementPartyName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_party_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_party_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescCurrency is the schema descriptor for currency field.
+	financenettingDescCurrency := financenettingFields[8].Descriptor()
+	// financenetting.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	financenetting.CurrencyValidator = func() func(string) error {
+		validators := financenettingDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescBaseCurrency is the schema descriptor for base_currency field.
+	financenettingDescBaseCurrency := financenettingFields[10].Descriptor()
+	// financenetting.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	financenetting.BaseCurrencyValidator = func() func(string) error {
+		validators := financenettingDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescNote is the schema descriptor for note field.
+	financenettingDescNote := financenettingFields[12].Descriptor()
+	// financenetting.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	financenetting.NoteValidator = financenettingDescNote.Validators[0].(func(string) error)
+	// financenettingDescVersion is the schema descriptor for version field.
+	financenettingDescVersion := financenettingFields[13].Descriptor()
+	// financenetting.DefaultVersion holds the default value on creation for the version field.
+	financenetting.DefaultVersion = financenettingDescVersion.Default.(uint64)
+	// financenettingDescCancellationReason is the schema descriptor for cancellation_reason field.
+	financenettingDescCancellationReason := financenettingFields[18].Descriptor()
+	// financenetting.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
+	financenetting.CancellationReasonValidator = financenettingDescCancellationReason.Validators[0].(func(string) error)
+	// financenettingDescReversalReason is the schema descriptor for reversal_reason field.
+	financenettingDescReversalReason := financenettingFields[21].Descriptor()
+	// financenetting.ReversalReasonValidator is a validator for the "reversal_reason" field. It is called by the builders before save.
+	financenetting.ReversalReasonValidator = financenettingDescReversalReason.Validators[0].(func(string) error)
+	// financenettingDescID is the schema descriptor for id field.
+	financenettingDescID := financenettingMixinFields0[0].Descriptor()
+	// financenetting.DefaultID holds the default value on creation for the id field.
+	financenetting.DefaultID = financenettingDescID.Default.(func() uuid.UUID)
+	financenettingallocationMixin := schema.FinanceNettingAllocation{}.Mixin()
+	financenettingallocationMixinFields0 := financenettingallocationMixin[0].Fields()
+	_ = financenettingallocationMixinFields0
+	financenettingallocationMixinFields1 := financenettingallocationMixin[1].Fields()
+	_ = financenettingallocationMixinFields1
+	financenettingallocationFields := schema.FinanceNettingAllocation{}.Fields()
+	_ = financenettingallocationFields
+	// financenettingallocationDescCreatedAt is the schema descriptor for created_at field.
+	financenettingallocationDescCreatedAt := financenettingallocationMixinFields1[0].Descriptor()
+	// financenettingallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financenettingallocation.DefaultCreatedAt = financenettingallocationDescCreatedAt.Default.(func() time.Time)
+	// financenettingallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	financenettingallocationDescUpdatedAt := financenettingallocationMixinFields1[1].Descriptor()
+	// financenettingallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financenettingallocation.DefaultUpdatedAt = financenettingallocationDescUpdatedAt.Default.(func() time.Time)
+	// financenettingallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financenettingallocation.UpdateDefaultUpdatedAt = financenettingallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financenettingallocationDescBillNo is the schema descriptor for bill_no field.
+	financenettingallocationDescBillNo := financenettingallocationFields[2].Descriptor()
+	// financenettingallocation.BillNoValidator is a validator for the "bill_no" field. It is called by the builders before save.
+	financenettingallocation.BillNoValidator = func() func(string) error {
+		validators := financenettingallocationDescBillNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bill_no string) error {
+			for _, fn := range fns {
+				if err := fn(bill_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingallocationDescActive is the schema descriptor for active field.
+	financenettingallocationDescActive := financenettingallocationFields[6].Descriptor()
+	// financenettingallocation.DefaultActive holds the default value on creation for the active field.
+	financenettingallocation.DefaultActive = financenettingallocationDescActive.Default.(bool)
+	// financenettingallocationDescID is the schema descriptor for id field.
+	financenettingallocationDescID := financenettingallocationMixinFields0[0].Descriptor()
+	// financenettingallocation.DefaultID holds the default value on creation for the id field.
+	financenettingallocation.DefaultID = financenettingallocationDescID.Default.(func() uuid.UUID)
 	financeverificationMixin := schema.FinanceVerification{}.Mixin()
 	financeverificationMixinFields0 := financeverificationMixin[0].Fields()
 	_ = financeverificationMixinFields0

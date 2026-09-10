@@ -76,6 +76,7 @@ type FinanceBill struct {
 	TaxAmount                 decimal.Decimal
 	BaseCurrencyAmount        decimal.Decimal
 	VerifiedAmount            decimal.Decimal
+	NettedAmount              decimal.Decimal
 	UnverifiedAmount          decimal.Decimal
 	FeeCount                  int
 	BillDate                  string
@@ -228,7 +229,21 @@ type FinanceBillBatchPreviewGroup struct {
 
 type FinanceBillBatchPreview struct {
 	Groups       []*FinanceBillBatchPreviewGroup
+	NettingPairs []*FinanceBillBatchNettingPair
 	PreviewToken string
+}
+
+// FinanceBillBatchNettingPair 是对冲建账模式下同一结算单位、同一账单币种的抵销汇总；
+// 金额只用双方共同账单币种计算，不产生对冲汇率或混合币种总额。
+type FinanceBillBatchNettingPair struct {
+	SettlementPartyID                     uuid.UUID
+	SettlementPartyName                   string
+	Currency                              string
+	ReceivableGrossAmount                 decimal.Decimal
+	PayableGrossAmount                    decimal.Decimal
+	OffsetAmount                          decimal.Decimal
+	NetReceivableAmount                   decimal.Decimal
+	NetPayableAmount                      decimal.Decimal
 }
 
 type CreateFinanceBillBatchGroupInput struct {
@@ -274,6 +289,7 @@ type FinanceBillBatch struct {
 	TotalBaseAmount                      decimal.Decimal
 	BaseCurrency                         string
 	Bills                                []*FinanceBill
+	Nettings                             []*FinanceNetting
 	CreatedAt, UpdatedAt                 time.Time
 }
 
@@ -288,7 +304,7 @@ type FinanceBillRepo interface {
 	LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
-	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent) (*FinanceBillBatch, error)
+	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent, nettingAudits []*AuditEvent) (*FinanceBillBatch, error)
 	ValidateBillCurrencies(ctx context.Context, currencies []string) error
 	HydrateBillSettlementAccounts(ctx context.Context, bills []*FinanceBill) error
 	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
@@ -397,7 +413,7 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 	if organizationID == uuid.Nil || len(fees) == 0 || len(fees) > 500 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	if policy.Mode != "NORMAL" {
+	if policy.Mode != "NORMAL" && policy.Mode != "NETTING" {
 		return nil, ErrFinanceBillGroupingModeUnsupported
 	}
 	ordered := append([]*FinanceBillableFee(nil), fees...)
@@ -415,10 +431,14 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 			return nil, ErrFinanceBillInvalidArgument
 		}
 		seen[fee.ID] = struct{}{}
-		if direction == "" {
-			direction = fee.Direction
-		} else if direction != fee.Direction {
-			return nil, ErrFinanceBillMixedDirection
+		// 普通模式一次建账只允许单一收付方向；对冲模式允许混合方向，但方向仍参与叶子身份，
+		// 应收、应付费用分别形成各自的原始账单叶子。
+		if policy.Mode == "NORMAL" {
+			if direction == "" {
+				direction = fee.Direction
+			} else if direction != fee.Direction {
+				return nil, ErrFinanceBillMixedDirection
+			}
 		}
 		// 普通账单始终以费用币种拆分；币种是叶子身份的一部分，不能由请求覆盖。
 		parts := []string{string(fee.Direction), fee.SettlementPartyID.String(), fee.Currency, fee.BaseCurrency}
@@ -454,7 +474,41 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 		}
 		result.Groups = append(result.Groups, group)
 	}
+	if policy.Mode == "NETTING" {
+		if err := validateFinanceNettingGroupPairs(result.Groups); err != nil {
+			return nil, err
+		}
+	}
 	return result, nil
+}
+
+// validateFinanceNettingGroupPairs 要求对冲建账的每个“结算单位 + 账单币种”组合
+// 至少各有一笔应收和应付费用；单方向费用应使用普通账单，不静默拆成两个普通批次。
+func validateFinanceNettingGroupPairs(groups []*FinanceBillBatchPreviewGroup) error {
+	type pairDirection struct{ receivable, payable bool }
+	pairs := make(map[string]*pairDirection)
+	for _, group := range groups {
+		if group == nil {
+			return ErrFinanceNettingInvalid
+		}
+		key := group.SettlementPartyID.String() + "|" + group.Currency
+		pair := pairs[key]
+		if pair == nil {
+			pair = &pairDirection{}
+			pairs[key] = pair
+		}
+		if group.Direction == OrderFeeReceivable {
+			pair.receivable = true
+		} else {
+			pair.payable = true
+		}
+	}
+	for _, pair := range pairs {
+		if !pair.receivable || !pair.payable {
+			return ErrFinanceNettingSingleDirection
+		}
+	}
+	return nil
 }
 
 func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context.Context, organizationID uuid.UUID, fees []*FinanceBillableFee, input PreviewFinanceBillBatchInput) (*FinanceBillBatchPreview, error) {
@@ -548,12 +602,58 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 		}
 		group.ConfigurationComplete = true
 	}
+	if input.GroupingPolicy.Mode == "NETTING" {
+		preview.NettingPairs = buildFinanceNettingPairs(preview.Groups)
+	}
 	if !complete {
 		preview.PreviewToken = ""
 		return preview, nil
 	}
 	preview.PreviewToken = financeBillConfiguredPreviewToken(organizationID, input.GroupingPolicy, preview.Groups)
 	return preview, nil
+}
+
+// buildFinanceNettingPairs 按结算单位与账单币种汇总叶子毛额，抵销额为双方较小值，
+// 净应收/净应付为抵销后的剩余金额；金额只用共同账单币种。
+func buildFinanceNettingPairs(groups []*FinanceBillBatchPreviewGroup) []*FinanceBillBatchNettingPair {
+	type pairTotals struct {
+		settlementPartyID   uuid.UUID
+		settlementPartyName string
+		currency            string
+		receivable, payable decimal.Decimal
+	}
+	pairs := make(map[string]*pairTotals)
+	keys := make([]string, 0)
+	for _, group := range groups {
+		key := group.SettlementPartyID.String() + "|" + group.Currency
+		pair := pairs[key]
+		if pair == nil {
+			pair = &pairTotals{settlementPartyID: group.SettlementPartyID, settlementPartyName: group.SettlementPartyName, currency: group.Currency}
+			pairs[key] = pair
+			keys = append(keys, key)
+		}
+		if group.Direction == OrderFeeReceivable {
+			pair.receivable = pair.receivable.Add(group.TotalAmount)
+		} else {
+			pair.payable = pair.payable.Add(group.TotalAmount)
+		}
+	}
+	sort.Strings(keys)
+	result := make([]*FinanceBillBatchNettingPair, 0, len(keys))
+	for _, key := range keys {
+		pair := pairs[key]
+		item := &FinanceBillBatchNettingPair{
+			SettlementPartyID: pair.settlementPartyID, SettlementPartyName: pair.settlementPartyName, Currency: pair.currency,
+			ReceivableGrossAmount: pair.receivable.Round(8), PayableGrossAmount: pair.payable.Round(8),
+		}
+		if item.ReceivableGrossAmount.IsPositive() && item.PayableGrossAmount.IsPositive() {
+			item.OffsetAmount = decimal.Min(item.ReceivableGrossAmount, item.PayableGrossAmount).Round(8)
+		}
+		item.NetReceivableAmount = item.ReceivableGrossAmount.Sub(item.OffsetAmount).Round(8)
+		item.NetPayableAmount = item.PayableGrossAmount.Sub(item.OffsetAmount).Round(8)
+		result = append(result, item)
+	}
+	return result
 }
 
 func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context, organizationID uuid.UUID, group *FinanceBillBatchPreviewGroup, billDate string) (*FinanceBill, error) {
@@ -824,7 +924,20 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 			return ErrFinanceBillBatchMismatch
 		}
 		batch.TotalBaseAmount = batch.TotalBaseAmount.RoundBank(8)
-		_, transactionErr = uc.repo.CreateBatch(txCtx, batch, input.PreviewToken, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"))
+		nettingAudits := make([]*AuditEvent, 0)
+		if input.GroupingPolicy.Mode == "NETTING" {
+			// 对冲批次在同一事务内原子生成双方原始账单与对冲结算单；对冲单初始为草稿，
+			// 待账单确认后再单独确认生效。
+			nettings, planErr := planBatchFinanceNettings(organizationID, batchID, input.IdempotencyKey, batch.Bills)
+			if planErr != nil {
+				return planErr
+			}
+			batch.Nettings = nettings
+			for _, netting := range nettings {
+				nettingAudits = append(nettingAudits, financeNettingAudit(organizationID, actorID, netting.ID, "finance.netting.create"))
+			}
+		}
+		_, transactionErr = uc.repo.CreateBatch(txCtx, batch, input.PreviewToken, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"), nettingAudits)
 		return transactionErr
 	})
 	if err == nil {
@@ -1274,6 +1387,13 @@ func financeBillBatchBillKey(batchKey, groupKey string) string {
 	builder := strings.Builder{}
 	writeFinanceHashParts(&builder, batchKey, groupKey)
 	return "batch-bill:" + financeSHA256(builder.String())
+}
+
+// financeBillBatchNettingKey 为对冲批次内每个“结算单位 + 账单币种”组合生成确定性幂等键。
+func financeBillBatchNettingKey(batchKey string, settlementPartyID uuid.UUID, currency string) string {
+	builder := strings.Builder{}
+	writeFinanceHashParts(&builder, batchKey, settlementPartyID.String(), currency)
+	return "batch-netting:" + financeSHA256(builder.String())
 }
 
 func financeSHA256(value string) string {

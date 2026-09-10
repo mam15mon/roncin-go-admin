@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -655,6 +656,21 @@ func (_u *FinanceBillUpdate) AddVerificationAllocations(v ...*FinanceVerificatio
 	return _u.AddVerificationAllocationIDs(ids...)
 }
 
+// AddNettingAllocationIDs adds the "netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_u *FinanceBillUpdate) AddNettingAllocationIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.AddNettingAllocationIDs(ids...)
+	return _u
+}
+
+// AddNettingAllocations adds the "netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *FinanceBillUpdate) AddNettingAllocations(v ...*FinanceNettingAllocation) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNettingAllocationIDs(ids...)
+}
+
 // AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
 func (_u *FinanceBillUpdate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdate {
 	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
@@ -748,6 +764,27 @@ func (_u *FinanceBillUpdate) RemoveVerificationAllocations(v ...*FinanceVerifica
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVerificationAllocationIDs(ids...)
+}
+
+// ClearNettingAllocations clears all "netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *FinanceBillUpdate) ClearNettingAllocations() *FinanceBillUpdate {
+	_u.mutation.ClearNettingAllocations()
+	return _u
+}
+
+// RemoveNettingAllocationIDs removes the "netting_allocations" edge to FinanceNettingAllocation entities by IDs.
+func (_u *FinanceBillUpdate) RemoveNettingAllocationIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.RemoveNettingAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveNettingAllocations removes "netting_allocations" edges to FinanceNettingAllocation entities.
+func (_u *FinanceBillUpdate) RemoveNettingAllocations(v ...*FinanceNettingAllocation) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNettingAllocationIDs(ids...)
 }
 
 // ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
@@ -1233,6 +1270,51 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNettingAllocationsIDs(); len(nodes) > 0 && !_u.mutation.NettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1926,6 +2008,21 @@ func (_u *FinanceBillUpdateOne) AddVerificationAllocations(v ...*FinanceVerifica
 	return _u.AddVerificationAllocationIDs(ids...)
 }
 
+// AddNettingAllocationIDs adds the "netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_u *FinanceBillUpdateOne) AddNettingAllocationIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.AddNettingAllocationIDs(ids...)
+	return _u
+}
+
+// AddNettingAllocations adds the "netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *FinanceBillUpdateOne) AddNettingAllocations(v ...*FinanceNettingAllocation) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNettingAllocationIDs(ids...)
+}
+
 // AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
 func (_u *FinanceBillUpdateOne) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
 	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
@@ -2019,6 +2116,27 @@ func (_u *FinanceBillUpdateOne) RemoveVerificationAllocations(v ...*FinanceVerif
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVerificationAllocationIDs(ids...)
+}
+
+// ClearNettingAllocations clears all "netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *FinanceBillUpdateOne) ClearNettingAllocations() *FinanceBillUpdateOne {
+	_u.mutation.ClearNettingAllocations()
+	return _u
+}
+
+// RemoveNettingAllocationIDs removes the "netting_allocations" edge to FinanceNettingAllocation entities by IDs.
+func (_u *FinanceBillUpdateOne) RemoveNettingAllocationIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.RemoveNettingAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveNettingAllocations removes "netting_allocations" edges to FinanceNettingAllocation entities.
+func (_u *FinanceBillUpdateOne) RemoveNettingAllocations(v ...*FinanceNettingAllocation) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNettingAllocationIDs(ids...)
 }
 
 // ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
@@ -2534,6 +2652,51 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNettingAllocationsIDs(); len(nodes) > 0 && !_u.mutation.NettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

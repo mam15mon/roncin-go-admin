@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
@@ -514,6 +515,51 @@ func (_u *UserUpdate) AddReversedFinanceVerifications(v ...*FinanceVerification)
 		ids[i] = v[i].ID
 	}
 	return _u.AddReversedFinanceVerificationIDs(ids...)
+}
+
+// AddConfirmedFinanceNettingIDs adds the "confirmed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdate) AddConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddConfirmedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddConfirmedFinanceNettings adds the "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) AddConfirmedFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedFinanceNettingIDs(ids...)
+}
+
+// AddCancelledFinanceNettingIDs adds the "cancelled_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdate) AddCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCancelledFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceNettings adds the "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) AddCancelledFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceNettingIDs(ids...)
+}
+
+// AddReversedFinanceNettingIDs adds the "reversed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdate) AddReversedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddReversedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddReversedFinanceNettings adds the "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) AddReversedFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReversedFinanceNettingIDs(ids...)
 }
 
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
@@ -1314,6 +1360,69 @@ func (_u *UserUpdate) RemoveReversedFinanceVerifications(v ...*FinanceVerificati
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveReversedFinanceVerificationIDs(ids...)
+}
+
+// ClearConfirmedFinanceNettings clears all "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) ClearConfirmedFinanceNettings() *UserUpdate {
+	_u.mutation.ClearConfirmedFinanceNettings()
+	return _u
+}
+
+// RemoveConfirmedFinanceNettingIDs removes the "confirmed_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdate) RemoveConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveConfirmedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedFinanceNettings removes "confirmed_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdate) RemoveConfirmedFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedFinanceNettingIDs(ids...)
+}
+
+// ClearCancelledFinanceNettings clears all "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) ClearCancelledFinanceNettings() *UserUpdate {
+	_u.mutation.ClearCancelledFinanceNettings()
+	return _u
+}
+
+// RemoveCancelledFinanceNettingIDs removes the "cancelled_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdate) RemoveCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCancelledFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceNettings removes "cancelled_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdate) RemoveCancelledFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceNettingIDs(ids...)
+}
+
+// ClearReversedFinanceNettings clears all "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdate) ClearReversedFinanceNettings() *UserUpdate {
+	_u.mutation.ClearReversedFinanceNettings()
+	return _u
+}
+
+// RemoveReversedFinanceNettingIDs removes the "reversed_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdate) RemoveReversedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveReversedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveReversedFinanceNettings removes "reversed_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdate) RemoveReversedFinanceNettings(v ...*FinanceNetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReversedFinanceNettingIDs(ids...)
 }
 
 // ClearFinanceCommissions clears all "finance_commissions" edges to the FinanceCommission entity.
@@ -2826,6 +2935,141 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfirmedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReversedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReversedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.ReversedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReversedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -4746,6 +4990,51 @@ func (_u *UserUpdateOne) AddReversedFinanceVerifications(v ...*FinanceVerificati
 	return _u.AddReversedFinanceVerificationIDs(ids...)
 }
 
+// AddConfirmedFinanceNettingIDs adds the "confirmed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdateOne) AddConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddConfirmedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddConfirmedFinanceNettings adds the "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) AddConfirmedFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedFinanceNettingIDs(ids...)
+}
+
+// AddCancelledFinanceNettingIDs adds the "cancelled_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdateOne) AddCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCancelledFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceNettings adds the "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) AddCancelledFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceNettingIDs(ids...)
+}
+
+// AddReversedFinanceNettingIDs adds the "reversed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *UserUpdateOne) AddReversedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddReversedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddReversedFinanceNettings adds the "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) AddReversedFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReversedFinanceNettingIDs(ids...)
+}
+
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
 func (_u *UserUpdateOne) AddFinanceCommissionIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddFinanceCommissionIDs(ids...)
@@ -5544,6 +5833,69 @@ func (_u *UserUpdateOne) RemoveReversedFinanceVerifications(v ...*FinanceVerific
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveReversedFinanceVerificationIDs(ids...)
+}
+
+// ClearConfirmedFinanceNettings clears all "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) ClearConfirmedFinanceNettings() *UserUpdateOne {
+	_u.mutation.ClearConfirmedFinanceNettings()
+	return _u
+}
+
+// RemoveConfirmedFinanceNettingIDs removes the "confirmed_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdateOne) RemoveConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveConfirmedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedFinanceNettings removes "confirmed_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdateOne) RemoveConfirmedFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedFinanceNettingIDs(ids...)
+}
+
+// ClearCancelledFinanceNettings clears all "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) ClearCancelledFinanceNettings() *UserUpdateOne {
+	_u.mutation.ClearCancelledFinanceNettings()
+	return _u
+}
+
+// RemoveCancelledFinanceNettingIDs removes the "cancelled_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdateOne) RemoveCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCancelledFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceNettings removes "cancelled_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdateOne) RemoveCancelledFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceNettingIDs(ids...)
+}
+
+// ClearReversedFinanceNettings clears all "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_u *UserUpdateOne) ClearReversedFinanceNettings() *UserUpdateOne {
+	_u.mutation.ClearReversedFinanceNettings()
+	return _u
+}
+
+// RemoveReversedFinanceNettingIDs removes the "reversed_finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *UserUpdateOne) RemoveReversedFinanceNettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveReversedFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveReversedFinanceNettings removes "reversed_finance_nettings" edges to FinanceNetting entities.
+func (_u *UserUpdateOne) RemoveReversedFinanceNettings(v ...*FinanceNetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReversedFinanceNettingIDs(ids...)
 }
 
 // ClearFinanceCommissions clears all "finance_commissions" edges to the FinanceCommission entity.
@@ -7086,6 +7438,141 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfirmedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReversedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReversedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.ReversedFinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReversedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

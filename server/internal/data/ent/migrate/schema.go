@@ -2340,6 +2340,165 @@ var (
 			},
 		},
 	}
+	// FinanceNettingsColumns holds the columns for the "finance_nettings" table.
+	FinanceNettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "netting_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_hash", Type: field.TypeString, Size: 64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "CANCELLED", "REVERSED"}, Default: "DRAFT"},
+		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "reversed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reversal_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "batch_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "reversed_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceNettingsTable holds the schema information for the "finance_nettings" table.
+	FinanceNettingsTable = &schema.Table{
+		Name:       "finance_nettings",
+		Columns:    FinanceNettingsColumns,
+		PrimaryKey: []*schema.Column{FinanceNettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_nettings_finance_bill_batches_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[19]},
+				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_nettings_organizations_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[20]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_nettings_partners_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[21]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_nettings_users_confirmed_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_nettings_users_reversed_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financenetting_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingsColumns[2]},
+			},
+			{
+				Name:    "financenetting_organization_id_netting_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[3]},
+			},
+			{
+				Name:    "financenetting_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[4]},
+			},
+			{
+				Name:    "financenetting_organization_id_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
+			},
+			{
+				Name:    "financenetting_settlement_party_id_currency",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingsColumns[21], FinanceNettingsColumns[8]},
+			},
+			{
+				Name:    "financenetting_batch_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingsColumns[19]},
+			},
+		},
+	}
+	// FinanceNettingAllocationsColumns holds the columns for the "finance_netting_allocations" table.
+	FinanceNettingAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "bill_no", Type: field.TypeString, Size: 64},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "active", Type: field.TypeBool, Default: false},
+		{Name: "bill_id", Type: field.TypeUUID},
+		{Name: "netting_id", Type: field.TypeUUID},
+	}
+	// FinanceNettingAllocationsTable holds the schema information for the "finance_netting_allocations" table.
+	FinanceNettingAllocationsTable = &schema.Table{
+		Name:       "finance_netting_allocations",
+		Columns:    FinanceNettingAllocationsColumns,
+		PrimaryKey: []*schema.Column{FinanceNettingAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_netting_allocations_finance_bills_netting_allocations",
+				Columns:    []*schema.Column{FinanceNettingAllocationsColumns[8]},
+				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_netting_allocations_finance_nettings_allocations",
+				Columns:    []*schema.Column{FinanceNettingAllocationsColumns[9]},
+				RefColumns: []*schema.Column{FinanceNettingsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financenettingallocation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingAllocationsColumns[2]},
+			},
+			{
+				Name:    "financenettingallocation_netting_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingAllocationsColumns[9], FinanceNettingAllocationsColumns[7]},
+			},
+			{
+				Name:    "financenettingallocation_bill_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingAllocationsColumns[8], FinanceNettingAllocationsColumns[7]},
+			},
+			{
+				Name:    "netting_allocation_pair_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceNettingAllocationsColumns[9], FinanceNettingAllocationsColumns[8]},
+			},
+		},
+	}
 	// FinanceVerificationsColumns holds the columns for the "finance_verifications" table.
 	FinanceVerificationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2678,7 +2837,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "bill_batch", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission"}},
+		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "bill_batch", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission", "netting"}},
 		{Name: "prefix", Type: field.TypeString, Size: 32},
 		{Name: "date_format", Type: field.TypeEnum, Enums: []string{"yyyyMMdd", "yyyyMM", "yyyy", "none"}, Default: "yyyyMMdd"},
 		{Name: "sequence_length", Type: field.TypeInt, Default: 4},
@@ -6584,6 +6743,8 @@ var (
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
 		FinanceInvoiceLinesTable,
+		FinanceNettingsTable,
+		FinanceNettingAllocationsTable,
 		FinanceVerificationsTable,
 		FinanceVerificationAllocationsTable,
 		LoginRateLimitBucketsTable,
@@ -6753,6 +6914,25 @@ func init() {
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
 	FinanceInvoiceLinesTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
+	FinanceNettingsTable.ForeignKeys[0].RefTable = FinanceBillBatchesTable
+	FinanceNettingsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	FinanceNettingsTable.ForeignKeys[2].RefTable = PartnersTable
+	FinanceNettingsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceNettingsTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceNettingsTable.ForeignKeys[5].RefTable = UsersTable
+	FinanceNettingsTable.Annotation = &entsql.Annotation{}
+	FinanceNettingsTable.Annotation.Checks = map[string]string{
+		"financenetting_amount_positive":          "amount > 0",
+		"financenetting_base_amount_non_negative": "base_currency_amount >= 0",
+		"financenetting_status_check":             "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
+	}
+	FinanceNettingAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
+	FinanceNettingAllocationsTable.ForeignKeys[1].RefTable = FinanceNettingsTable
+	FinanceNettingAllocationsTable.Annotation = &entsql.Annotation{}
+	FinanceNettingAllocationsTable.Annotation.Checks = map[string]string{
+		"financenettingallocation_amount_positive": "amount > 0",
+		"financenettingallocation_direction_check": "direction IN ('RECEIVABLE', 'PAYABLE')",
+	}
 	FinanceVerificationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceVerificationsTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceVerificationsTable.ForeignKeys[2].RefTable = UsersTable

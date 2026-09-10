@@ -55,6 +55,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -207,6 +209,10 @@ type Client struct {
 	FinanceInvoiceBill *FinanceInvoiceBillClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
+	// FinanceNetting is the client for interacting with the FinanceNetting builders.
+	FinanceNetting *FinanceNettingClient
+	// FinanceNettingAllocation is the client for interacting with the FinanceNettingAllocation builders.
+	FinanceNettingAllocation *FinanceNettingAllocationClient
 	// FinanceVerification is the client for interacting with the FinanceVerification builders.
 	FinanceVerification *FinanceVerificationClient
 	// FinanceVerificationAllocation is the client for interacting with the FinanceVerificationAllocation builders.
@@ -391,6 +397,8 @@ func (c *Client) init() {
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
 	c.FinanceInvoiceLine = NewFinanceInvoiceLineClient(c.config)
+	c.FinanceNetting = NewFinanceNettingClient(c.config)
+	c.FinanceNettingAllocation = NewFinanceNettingAllocationClient(c.config)
 	c.FinanceVerification = NewFinanceVerificationClient(c.config)
 	c.FinanceVerificationAllocation = NewFinanceVerificationAllocationClient(c.config)
 	c.LoginRateLimitBucket = NewLoginRateLimitBucketClient(c.config)
@@ -589,6 +597,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
 		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                 NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:            NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
@@ -714,6 +724,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
 		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                 NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:            NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
@@ -823,12 +835,13 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
 		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
 		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
@@ -865,12 +878,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
 		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
 		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
@@ -971,6 +985,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceInvoiceBill.mutate(ctx, m)
 	case *FinanceInvoiceLineMutation:
 		return c.FinanceInvoiceLine.mutate(ctx, m)
+	case *FinanceNettingMutation:
+		return c.FinanceNetting.mutate(ctx, m)
+	case *FinanceNettingAllocationMutation:
+		return c.FinanceNettingAllocation.mutate(ctx, m)
 	case *FinanceVerificationMutation:
 		return c.FinanceVerification.mutate(ctx, m)
 	case *FinanceVerificationAllocationMutation:
@@ -5479,6 +5497,22 @@ func (c *FinanceBillClient) QueryVerificationAllocations(_m *FinanceBill) *Finan
 	return query
 }
 
+// QueryNettingAllocations queries the netting_allocations edge of a FinanceBill.
+func (c *FinanceBillClient) QueryNettingAllocations(_m *FinanceBill) *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, id),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.NettingAllocationsTable, financebill.NettingAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEnterpriseTagLinks queries the enterprise_tag_links edge of a FinanceBill.
 func (c *FinanceBillClient) QueryEnterpriseTagLinks(_m *FinanceBill) *FinanceBillEnterpriseTagQuery {
 	query := (&FinanceBillEnterpriseTagClient{config: c.config}).Query()
@@ -5669,6 +5703,22 @@ func (c *FinanceBillBatchClient) QueryBills(_m *FinanceBillBatch) *FinanceBillQu
 			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, id),
 			sqlgraph.To(financebill.Table, financebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.BillsTable, financebillbatch.BillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNettings queries the nettings edge of a FinanceBillBatch.
+func (c *FinanceBillBatchClient) QueryNettings(_m *FinanceBillBatch) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.NettingsTable, financebillbatch.NettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8062,6 +8112,416 @@ func (c *FinanceInvoiceLineClient) mutate(ctx context.Context, m *FinanceInvoice
 		return (&FinanceInvoiceLineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceInvoiceLine mutation op: %q", m.Op())
+	}
+}
+
+// FinanceNettingClient is a client for the FinanceNetting schema.
+type FinanceNettingClient struct {
+	config
+}
+
+// NewFinanceNettingClient returns a client for the FinanceNetting from the given config.
+func NewFinanceNettingClient(c config) *FinanceNettingClient {
+	return &FinanceNettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financenetting.Hooks(f(g(h())))`.
+func (c *FinanceNettingClient) Use(hooks ...Hook) {
+	c.hooks.FinanceNetting = append(c.hooks.FinanceNetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financenetting.Intercept(f(g(h())))`.
+func (c *FinanceNettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceNetting = append(c.inters.FinanceNetting, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceNetting entity.
+func (c *FinanceNettingClient) Create() *FinanceNettingCreate {
+	mutation := newFinanceNettingMutation(c.config, OpCreate)
+	return &FinanceNettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceNetting entities.
+func (c *FinanceNettingClient) CreateBulk(builders ...*FinanceNettingCreate) *FinanceNettingCreateBulk {
+	return &FinanceNettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceNettingClient) MapCreateBulk(slice any, setFunc func(*FinanceNettingCreate, int)) *FinanceNettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceNettingCreateBulk{err: fmt.Errorf("calling to FinanceNettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceNettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceNettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceNetting.
+func (c *FinanceNettingClient) Update() *FinanceNettingUpdate {
+	mutation := newFinanceNettingMutation(c.config, OpUpdate)
+	return &FinanceNettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceNettingClient) UpdateOne(_m *FinanceNetting) *FinanceNettingUpdateOne {
+	mutation := newFinanceNettingMutation(c.config, OpUpdateOne, withFinanceNetting(_m))
+	return &FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceNettingClient) UpdateOneID(id uuid.UUID) *FinanceNettingUpdateOne {
+	mutation := newFinanceNettingMutation(c.config, OpUpdateOne, withFinanceNettingID(id))
+	return &FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceNetting.
+func (c *FinanceNettingClient) Delete() *FinanceNettingDelete {
+	mutation := newFinanceNettingMutation(c.config, OpDelete)
+	return &FinanceNettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceNettingClient) DeleteOne(_m *FinanceNetting) *FinanceNettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceNettingClient) DeleteOneID(id uuid.UUID) *FinanceNettingDeleteOne {
+	builder := c.Delete().Where(financenetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceNettingDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceNetting.
+func (c *FinanceNettingClient) Query() *FinanceNettingQuery {
+	return &FinanceNettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceNetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceNetting entity by its id.
+func (c *FinanceNettingClient) Get(ctx context.Context, id uuid.UUID) (*FinanceNetting, error) {
+	return c.Query().Where(financenetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceNettingClient) GetX(ctx context.Context, id uuid.UUID) *FinanceNetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryOrganization(_m *FinanceNetting) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.OrganizationTable, financenetting.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySettlementParty queries the settlement_party edge of a FinanceNetting.
+func (c *FinanceNettingClient) QuerySettlementParty(_m *FinanceNetting) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.SettlementPartyTable, financenetting.SettlementPartyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBatch queries the batch edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryBatch(_m *FinanceNetting) *FinanceBillBatchQuery {
+	query := (&FinanceBillBatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financebillbatch.Table, financebillbatch.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.BatchTable, financenetting.BatchColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmedByUser queries the confirmed_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryConfirmedByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.ConfirmedByUserTable, financenetting.ConfirmedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledByUser queries the cancelled_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryCancelledByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.CancelledByUserTable, financenetting.CancelledByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReversedByUser queries the reversed_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryReversedByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.ReversedByUserTable, financenetting.ReversedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAllocations queries the allocations edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryAllocations(_m *FinanceNetting) *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.AllocationsTable, financenetting.AllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceNettingClient) Hooks() []Hook {
+	return c.hooks.FinanceNetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceNettingClient) Interceptors() []Interceptor {
+	return c.inters.FinanceNetting
+}
+
+func (c *FinanceNettingClient) mutate(ctx context.Context, m *FinanceNettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceNettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceNettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceNettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceNetting mutation op: %q", m.Op())
+	}
+}
+
+// FinanceNettingAllocationClient is a client for the FinanceNettingAllocation schema.
+type FinanceNettingAllocationClient struct {
+	config
+}
+
+// NewFinanceNettingAllocationClient returns a client for the FinanceNettingAllocation from the given config.
+func NewFinanceNettingAllocationClient(c config) *FinanceNettingAllocationClient {
+	return &FinanceNettingAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financenettingallocation.Hooks(f(g(h())))`.
+func (c *FinanceNettingAllocationClient) Use(hooks ...Hook) {
+	c.hooks.FinanceNettingAllocation = append(c.hooks.FinanceNettingAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financenettingallocation.Intercept(f(g(h())))`.
+func (c *FinanceNettingAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceNettingAllocation = append(c.inters.FinanceNettingAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceNettingAllocation entity.
+func (c *FinanceNettingAllocationClient) Create() *FinanceNettingAllocationCreate {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpCreate)
+	return &FinanceNettingAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceNettingAllocation entities.
+func (c *FinanceNettingAllocationClient) CreateBulk(builders ...*FinanceNettingAllocationCreate) *FinanceNettingAllocationCreateBulk {
+	return &FinanceNettingAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceNettingAllocationClient) MapCreateBulk(slice any, setFunc func(*FinanceNettingAllocationCreate, int)) *FinanceNettingAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceNettingAllocationCreateBulk{err: fmt.Errorf("calling to FinanceNettingAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceNettingAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceNettingAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Update() *FinanceNettingAllocationUpdate {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdate)
+	return &FinanceNettingAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceNettingAllocationClient) UpdateOne(_m *FinanceNettingAllocation) *FinanceNettingAllocationUpdateOne {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdateOne, withFinanceNettingAllocation(_m))
+	return &FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceNettingAllocationClient) UpdateOneID(id uuid.UUID) *FinanceNettingAllocationUpdateOne {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdateOne, withFinanceNettingAllocationID(id))
+	return &FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Delete() *FinanceNettingAllocationDelete {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpDelete)
+	return &FinanceNettingAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceNettingAllocationClient) DeleteOne(_m *FinanceNettingAllocation) *FinanceNettingAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceNettingAllocationClient) DeleteOneID(id uuid.UUID) *FinanceNettingAllocationDeleteOne {
+	builder := c.Delete().Where(financenettingallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceNettingAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Query() *FinanceNettingAllocationQuery {
+	return &FinanceNettingAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceNettingAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceNettingAllocation entity by its id.
+func (c *FinanceNettingAllocationClient) Get(ctx context.Context, id uuid.UUID) (*FinanceNettingAllocation, error) {
+	return c.Query().Where(financenettingallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceNettingAllocationClient) GetX(ctx context.Context, id uuid.UUID) *FinanceNettingAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryNetting queries the netting edge of a FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) QueryNetting(_m *FinanceNettingAllocation) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.NettingTable, financenettingallocation.NettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBill queries the bill edge of a FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) QueryBill(_m *FinanceNettingAllocation) *FinanceBillQuery {
+	query := (&FinanceBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, id),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.BillTable, financenettingallocation.BillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceNettingAllocationClient) Hooks() []Hook {
+	return c.hooks.FinanceNettingAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceNettingAllocationClient) Interceptors() []Interceptor {
+	return c.inters.FinanceNettingAllocation
+}
+
+func (c *FinanceNettingAllocationClient) mutate(ctx context.Context, m *FinanceNettingAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceNettingAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceNettingAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceNettingAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceNettingAllocation mutation op: %q", m.Op())
 	}
 }
 
@@ -14937,6 +15397,22 @@ func (c *OrganizationClient) QueryFinanceVerifications(_m *Organization) *Financ
 	return query
 }
 
+// QueryFinanceNettings queries the finance_nettings edge of a Organization.
+func (c *OrganizationClient) QueryFinanceNettings(_m *Organization) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceNettingsTable, organization.FinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceCommissions queries the finance_commissions edge of a Organization.
 func (c *OrganizationClient) QueryFinanceCommissions(_m *Organization) *FinanceCommissionQuery {
 	query := (&FinanceCommissionClient{config: c.config}).Query()
@@ -15800,6 +16276,22 @@ func (c *PartnerClient) QueryFinanceVerifications(_m *Partner) *FinanceVerificat
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceVerificationsTable, partner.FinanceVerificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceNettings queries the finance_nettings edge of a Partner.
+func (c *PartnerClient) QueryFinanceNettings(_m *Partner) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceNettingsTable, partner.FinanceNettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -23038,6 +23530,54 @@ func (c *UserClient) QueryReversedFinanceVerifications(_m *User) *FinanceVerific
 	return query
 }
 
+// QueryConfirmedFinanceNettings queries the confirmed_finance_nettings edge of a User.
+func (c *UserClient) QueryConfirmedFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedFinanceNettingsTable, user.ConfirmedFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceNettings queries the cancelled_finance_nettings edge of a User.
+func (c *UserClient) QueryCancelledFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceNettingsTable, user.CancelledFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReversedFinanceNettings queries the reversed_finance_nettings edge of a User.
+func (c *UserClient) QueryReversedFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReversedFinanceNettingsTable, user.ReversedFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceCommissions queries the finance_commissions edge of a User.
 func (c *UserClient) QueryFinanceCommissions(_m *User) *FinanceCommissionQuery {
 	query := (&FinanceCommissionClient{config: c.config}).Query()
@@ -23590,11 +24130,11 @@ type (
 		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
@@ -23622,11 +24162,11 @@ type (
 		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,

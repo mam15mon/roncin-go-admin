@@ -1381,6 +1381,75 @@ func HasReversedFinanceVerificationsWith(preds ...predicate.FinanceVerification)
 	})
 }
 
+// HasConfirmedFinanceNettings applies the HasEdge predicate on the "confirmed_finance_nettings" edge.
+func HasConfirmedFinanceNettings() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceNettingsTable, ConfirmedFinanceNettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmedFinanceNettingsWith applies the HasEdge predicate on the "confirmed_finance_nettings" edge with a given conditions (other predicates).
+func HasConfirmedFinanceNettingsWith(preds ...predicate.FinanceNetting) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfirmedFinanceNettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCancelledFinanceNettings applies the HasEdge predicate on the "cancelled_finance_nettings" edge.
+func HasCancelledFinanceNettings() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceNettingsTable, CancelledFinanceNettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCancelledFinanceNettingsWith applies the HasEdge predicate on the "cancelled_finance_nettings" edge with a given conditions (other predicates).
+func HasCancelledFinanceNettingsWith(preds ...predicate.FinanceNetting) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCancelledFinanceNettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReversedFinanceNettings applies the HasEdge predicate on the "reversed_finance_nettings" edge.
+func HasReversedFinanceNettings() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReversedFinanceNettingsTable, ReversedFinanceNettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReversedFinanceNettingsWith applies the HasEdge predicate on the "reversed_finance_nettings" edge with a given conditions (other predicates).
+func HasReversedFinanceNettingsWith(preds ...predicate.FinanceNetting) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newReversedFinanceNettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFinanceCommissions applies the HasEdge predicate on the "finance_commissions" edge.
 func HasFinanceCommissions() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

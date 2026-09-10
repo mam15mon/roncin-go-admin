@@ -15,8 +15,9 @@ import (
 
 // SettlementService 按子域拆分实现：费账台账（settlement_fee_ledger.go）、
 // 账单（settlement_bill.go）、发票（settlement_invoice.go）、资金流水
-// （settlement_cashflow.go）、核销（settlement_verification.go）、佣金
-// （settlement_commission.go）；本文件保留服务锚点与跨子域共享的转换辅助。
+// （settlement_cashflow.go）、核销（settlement_verification.go）、对冲
+// （settlement_netting.go）、佣金（settlement_commission.go）；本文件保留
+// 服务锚点与跨子域共享的转换辅助。
 type SettlementService struct {
 	v1.UnimplementedSettlementServiceServer
 	usecase              *biz.SettlementUsecase
@@ -24,6 +25,7 @@ type SettlementService struct {
 	invoiceUsecase       *biz.FinanceInvoiceUsecase
 	cashflowUsecase      *biz.FinanceCashflowUsecase
 	verificationUsecase  *biz.VerificationUsecase
+	nettingUsecase       *biz.FinanceNettingUsecase
 	commissionUsecase    *biz.CommissionUsecase
 	preferenceUsecase    *biz.FeeLedgerPreferenceUsecase
 	customSettingUsecase *biz.FinanceCustomSettingUsecase
@@ -112,13 +114,15 @@ func financeOrganizationPurposePermission(purpose v1.FinanceOrganizationPurpose)
 		return access.FinanceCommissionManage, true, true
 	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_FEE_READ:
 		return access.FinanceFeeRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_NETTING_READ:
+		return access.FinanceNettingRead, false, true
 	default:
 		return "", false, false
 	}
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
 }
 
 func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {

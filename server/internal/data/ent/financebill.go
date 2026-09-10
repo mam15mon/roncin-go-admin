@@ -130,11 +130,13 @@ type FinanceBillEdges struct {
 	InvoiceLinks []*FinanceInvoiceBill `json:"invoice_links,omitempty"`
 	// VerificationAllocations holds the value of the verification_allocations edge.
 	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
+	// NettingAllocations holds the value of the netting_allocations edge.
+	NettingAllocations []*FinanceNettingAllocation `json:"netting_allocations,omitempty"`
 	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
 	EnterpriseTagLinks []*FinanceBillEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -219,10 +221,19 @@ func (e FinanceBillEdges) VerificationAllocationsOrErr() ([]*FinanceVerification
 	return nil, &NotLoadedError{edge: "verification_allocations"}
 }
 
+// NettingAllocationsOrErr returns the NettingAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillEdges) NettingAllocationsOrErr() ([]*FinanceNettingAllocation, error) {
+	if e.loadedTypes[8] {
+		return e.NettingAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "netting_allocations"}
+}
+
 // EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) EnterpriseTagLinksOrErr() ([]*FinanceBillEnterpriseTag, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.EnterpriseTagLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
@@ -581,6 +592,11 @@ func (_m *FinanceBill) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
 // QueryVerificationAllocations queries the "verification_allocations" edge of the FinanceBill entity.
 func (_m *FinanceBill) QueryVerificationAllocations() *FinanceVerificationAllocationQuery {
 	return NewFinanceBillClient(_m.config).QueryVerificationAllocations(_m)
+}
+
+// QueryNettingAllocations queries the "netting_allocations" edge of the FinanceBill entity.
+func (_m *FinanceBill) QueryNettingAllocations() *FinanceNettingAllocationQuery {
+	return NewFinanceBillClient(_m.config).QueryNettingAllocations(_m)
 }
 
 // QueryEnterpriseTagLinks queries the "enterprise_tag_links" edge of the FinanceBill entity.
