@@ -37,7 +37,13 @@ import {
   InvoiceIssueModal,
   InvoiceRedFlushModal,
 } from './components/InvoiceIssueAndRedFlushModals';
-import { invoiceStates } from './components/invoiceConstants';
+import {
+  invoiceRecordNoun,
+  invoiceIssueActionText,
+  invoiceStateText,
+  invoiceStates,
+  isReceivableInvoice,
+} from './components/invoiceConstants';
 
 type CreateValues = {
   invoiceProfileId: string;
@@ -145,11 +151,20 @@ export default function FinanceInvoicesPage() {
           invoiceDate: values.invoiceDate.format('YYYY-MM-DD'),
         },
       );
-      message.success('发票已确认开具');
+      message.success(
+        isReceivableInvoice(issueTarget.direction)
+          ? '发票已确认开具'
+          : '发票已确认收票',
+      );
       setIssueTarget(undefined);
       reload();
     } catch (error: any) {
-      message.error(error.message || '确认开具失败');
+      message.error(
+        error.message ||
+          (isReceivableInvoice(issueTarget.direction)
+            ? '确认开具失败'
+            : '确认收票失败'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -158,13 +173,13 @@ export default function FinanceInvoicesPage() {
   const cancelInvoice = (row: API.FinanceInvoice) => {
     invoiceActions.confirm(
       row,
-      `取消 ${row.organizationName || '所属公司未标识'} 的开票记录并释放账单？`,
+      `取消 ${row.organizationName || '所属公司未标识'} 的${invoiceRecordNoun(row.direction)}并释放账单？`,
       async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelInvoice(
           { id },
           { id, expectedVersion, reason },
         );
-        message.success('开票记录已取消，账单已释放');
+        message.success(`${invoiceRecordNoun(row.direction)}已取消，账单已释放`);
         reload();
       },
       {
@@ -239,14 +254,22 @@ export default function FinanceInvoicesPage() {
       width: 90,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        Object.entries(invoiceStates).map(([k, v]) => [k, { text: v.text }]),
+        Object.entries(invoiceStates).map(([k, v]) => [
+          k,
+          {
+            text:
+              Number(k) === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
+                ? '已开具 / 已收票'
+                : v.text,
+          },
+        ]),
       ),
       render: (_, r) => {
         const v =
           invoiceStates[
             r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
           ];
-        return <Tag color={v?.color}>{v?.text}</Tag>;
+        return <Tag color={v?.color}>{invoiceStateText(r.status, r.direction)}</Tag>;
       },
     },
     {
@@ -366,7 +389,7 @@ export default function FinanceInvoicesPage() {
               issueForm.setFieldsValue({ invoiceDate: dayjs() });
             }}
           >
-            <CheckOutlined /> 确认开具
+            <CheckOutlined /> {invoiceIssueActionText(r.direction)}
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
@@ -421,7 +444,7 @@ export default function FinanceInvoicesPage() {
     },
     {
       key: 'issued-count',
-      title: '已正式开具',
+      title: '已开具 / 已收票',
       value: metricStats.issuedCount,
       suffix: '笔',
       valueColor: '#52c41a',

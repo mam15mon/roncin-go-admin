@@ -2,7 +2,7 @@ import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
 import { FinanceInvoiceStatus } from '@/enums.generated';
-import { invoiceStates } from './invoiceConstants';
+import { invoiceIssueDateLabel, invoiceIssueVerb, invoiceRecordNoun, invoiceStateText, invoiceStates } from './invoiceConstants';
 
 interface InvoiceDetailDrawerProps {
   detail?: API.FinanceInvoice;
@@ -15,7 +15,7 @@ export default function InvoiceDetailDrawer({
 }: InvoiceDetailDrawerProps) {
   return (
     <DescriptionsDetailDrawer
-      title={(current) => `开票详情 ${current?.recordNo || ''}`}
+      title={(current) => `${invoiceRecordNoun(current?.direction)}详情 ${current?.recordNo || ''}`}
       open={Boolean(detail)}
       detail={detail}
       size={760}
@@ -32,12 +32,7 @@ export default function InvoiceDetailDrawer({
                 ]?.color
               }
             >
-              {
-                invoiceStates[
-                  detail.status ??
-                    FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
-                ]?.text
-              }
+              {invoiceStateText(detail.status, detail.direction)}
             </Tag>
           </Descriptions.Item>
           <DItem label="税务发票号">{detail.taxInvoiceNo}</DItem>
@@ -55,7 +50,7 @@ export default function InvoiceDetailDrawer({
           <DItem label="注册电话">{detail.registeredPhone}</DItem>
           <DItem label="开户银行">{detail.bankName}</DItem>
           <DItem label="银行账号">{detail.bankAccount}</DItem>
-          <Descriptions.Item label="开票日期">
+          <Descriptions.Item label={invoiceIssueDateLabel(detail.direction)}>
             {detail.invoiceDate || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="未税金额">
@@ -92,7 +87,9 @@ export default function InvoiceDetailDrawer({
                 </Tag>
               </Space>
             ) : (
-              <span style={{ color: '#8c8c8c' }}>草稿（开票时固化）</span>
+              <span style={{ color: '#8c8c8c' }}>
+                草稿（{invoiceIssueVerb(detail.direction)}时固化）
+              </span>
             )}
           </Descriptions.Item>
           <Descriptions.Item label="发票折本币">
