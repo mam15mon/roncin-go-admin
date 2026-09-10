@@ -581,9 +581,6 @@ func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context,
 		ExchangeRateSettingID: targetBaseRate.SettingID, BillDate: billDate, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(group.Fees)),
 	}
-	if bill.ExchangeRateSource == "SAME_CURRENCY" {
-		bill.ExchangeRateSource = "BASE_CURRENCY"
-	}
 	for _, item := range group.Fees {
 		fee := item.Fee
 		bill.Lines = append(bill.Lines, &FinanceBillLine{
@@ -710,28 +707,6 @@ func financeBillFeeByID(items []*FinanceBillableFee, id uuid.UUID) *OrderFee {
 		}
 	}
 	return nil
-}
-
-func financeBillSettlementPartyIDs(items []*FinanceBillableFee) []uuid.UUID {
-	seen := make(map[uuid.UUID]struct{})
-	result := make([]uuid.UUID, 0)
-	for _, item := range items {
-		if item != nil && item.Fee != nil {
-			if _, ok := seen[item.Fee.SettlementPartyID]; !ok {
-				seen[item.Fee.SettlementPartyID] = struct{}{}
-				result = append(result, item.Fee.SettlementPartyID)
-			}
-		}
-	}
-	sort.Slice(result, func(i, j int) bool { return result[i].String() < result[j].String() })
-	return result
-}
-
-func financeBillBatchDirection(items []*FinanceBillableFee) OrderFeeDirection {
-	if len(items) == 0 || items[0] == nil || items[0].Fee == nil {
-		return ""
-	}
-	return items[0].Fee.Direction
 }
 
 func (uc *FinanceBillUsecase) ResolveBillableFeeOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error) {
@@ -948,7 +923,8 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 	bill.ExchangeRateSource = resolved.Source
 	bill.ExchangeRateDate = resolved.RateDate
 	bill.ExchangeRateSettingID = resolved.SettingID
-	bill.BaseCurrencyAmount = bill.TotalAmount.Mul(resolved.Rate).RoundBank(8)
+	// 头本位币金额必须使用已固化（舍入到 8 位）的账单汇率，与批量内核口径一致。
+	bill.BaseCurrencyAmount = bill.TotalAmount.Mul(bill.ExchangeRate).RoundBank(8)
 	allocated := decimal.Zero
 	for index, line := range bill.Lines {
 		line.ExchangeRate = bill.ExchangeRate

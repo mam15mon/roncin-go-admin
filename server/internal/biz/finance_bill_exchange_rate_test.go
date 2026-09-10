@@ -97,6 +97,43 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	}
 }
 
+func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
+	organizationID := uuid.New()
+	// 超过 8 位小数的汇率必须先固化到 8 位，头本位币金额按已固化汇率计算。
+	exchangeRepo := &exchangeRateRepoStub{
+		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
+		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.1234567891"), Source: "SYSTEM", RateDate: "2026-08-26"},
+	}
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
+	taxRate := decimal.Zero
+	bill := &FinanceBill{
+		Direction:    OrderFeeReceivable,
+		Currency:     "USD",
+		BaseCurrency: "CNY",
+		TotalAmount:  decimal.NewFromInt(100),
+		BillDate:     "2026-08-26",
+		Lines: []*FinanceBillLine{{
+			OrderFeeID: uuid.New(), Currency: "USD", BaseCurrency: "CNY",
+			TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxRate: &taxRate,
+		}},
+	}
+
+	if err := usecase.applyBillExchangeRate(context.Background(), organizationID, bill); err != nil {
+		t.Fatalf("应用超长小数汇率失败: %v", err)
+	}
+	if bill.ExchangeRate.StringFixed(8) != "7.12345679" {
+		t.Fatalf("账单汇率未按 8 位固化: %s", bill.ExchangeRate.StringFixed(8))
+	}
+	// 100 × 7.12345679 = 712.34567900；不得使用未舍入汇率得出 712.34567891。
+	if bill.BaseCurrencyAmount.StringFixed(8) != "712.34567900" {
+		t.Fatalf("头本位币金额必须等于账单金额 × 已固化汇率: %s", bill.BaseCurrencyAmount.StringFixed(8))
+	}
+	if bill.Lines[0].BaseCurrencyAmount.StringFixed(8) != "712.34567900" {
+		t.Fatalf("明细本位币金额未与头金额保持一致: %s", bill.Lines[0].BaseCurrencyAmount.StringFixed(8))
+	}
+}
+
 func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testing.T) {
 	currentOrganizationID := uuid.New()
 	targetOrganizationID := uuid.New()

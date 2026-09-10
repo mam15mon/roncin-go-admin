@@ -10,7 +10,7 @@ ALTER TABLE "finance_bill_batches"
   ADD CONSTRAINT "finance_bill_batches_grouping_mode_check" CHECK ("grouping_mode" IN ('NORMAL', 'NETTING'));
 
 ALTER TABLE "finance_bills"
-  ADD COLUMN "estimated_invoice_currency" character varying NULL,
+  ADD COLUMN "estimated_invoice_currency" character varying(3) NULL,
   ADD COLUMN "estimated_invoice_rate" numeric(18,8) NULL,
   ADD COLUMN "estimated_invoice_amount" numeric(28,8) NULL,
   ADD CONSTRAINT "finance_bills_estimated_invoice_snapshot_check" CHECK (("estimated_invoice_currency" IS NULL AND "estimated_invoice_rate" IS NULL AND "estimated_invoice_amount" IS NULL) OR ("estimated_invoice_currency" IS NOT NULL AND "estimated_invoice_rate" IS NOT NULL AND "estimated_invoice_amount" IS NOT NULL AND "estimated_invoice_rate" > 0 AND "estimated_invoice_amount" >= 0));
