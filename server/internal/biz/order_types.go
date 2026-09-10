@@ -234,7 +234,7 @@ type Order struct {
 	InternalReferenceNo    string
 	ShipperShortName       string
 	ConsigneeShortName     string
-	ShippingLineID              *uuid.UUID
+	ShippingLineID         *uuid.UUID
 	BookingAgentID         *uuid.UUID
 	ForeignAgentID         *uuid.UUID
 	ShippingAgentID        *uuid.UUID
@@ -341,7 +341,7 @@ type OrderListOptions struct {
 	LockedAtRange         OrderDateRange
 	OriginLocationID      *uuid.UUID
 	DestinationLocationID *uuid.UUID
-	ShippingLineID             *uuid.UUID
+	ShippingLineID        *uuid.UUID
 	ConsigneeShortName    string
 	ShipperShortName      string
 	Operator              OrderPersonnelFilter

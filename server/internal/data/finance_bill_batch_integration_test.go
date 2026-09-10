@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
-	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -176,7 +176,7 @@ func (f *financeBillBatchPostgresFixture) createBatchConfirmedFee(key string) uu
 	f.t.Helper()
 	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
-		SetIdempotencyKey("batch-fee-"+key+"-"+f.suffix).
+		SetIdempotencyKey("batch-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
 		SetStatus(orderfeeent.StatusCONFIRMED).
 		SetFeeCode("OCEAN_FREIGHT").
@@ -314,7 +314,7 @@ func (f *financeBillBatchPostgresFixture) createBatchConfirmedPayableFee(key str
 	f.t.Helper()
 	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
-		SetIdempotencyKey("batch-payable-fee-"+key+"-"+f.suffix).
+		SetIdempotencyKey("batch-payable-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionPAYABLE).
 		SetStatus(orderfeeent.StatusCONFIRMED).
 		SetFeeCode("AGENT_FREIGHT").

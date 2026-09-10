@@ -24,13 +24,13 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 	}
 	filter := biz.FinanceBillFilter{
 		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
-		Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))),
-		Status:    financeBillStatusFromAPI(request.Status),
-		Currency:  strings.ToUpper(financeOptionalString(request.Currency)),
-		BillDateFrom: financeOptionalString(request.BillDateFrom),
-		BillDateTo:   financeOptionalString(request.BillDateTo),
-		DueDateFrom:  financeOptionalString(request.DueDateFrom),
-		DueDateTo:    financeOptionalString(request.DueDateTo),
+		Direction:     biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))),
+		Status:        financeBillStatusFromAPI(request.Status),
+		Currency:      strings.ToUpper(financeOptionalString(request.Currency)),
+		BillDateFrom:  financeOptionalString(request.BillDateFrom),
+		BillDateTo:    financeOptionalString(request.BillDateTo),
+		DueDateFrom:   financeOptionalString(request.DueDateFrom),
+		DueDateTo:     financeOptionalString(request.DueDateTo),
 		OnlyUnsettled: request.GetOnlyUnsettled(),
 		OnlyOverdue:   request.GetOnlyOverdue(),
 	}
@@ -477,7 +477,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		BatchId: uuidStringPtr(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
 		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID),
 		EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: financeDecimalPointer(item.EstimatedInvoiceRate, 8), EstimatedInvoiceAmount: financeDecimalPointer(item.EstimatedInvoiceAmount, 8),
-		OverdueDays:              item.OverdueDays,
+		OverdueDays: item.OverdueDays,
 	}
 }
 

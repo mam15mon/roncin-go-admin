@@ -15,10 +15,10 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
-	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
-	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
+	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/shopspring/decimal"
 )
 

@@ -242,14 +242,14 @@ type FinanceBillBatchPreview struct {
 // FinanceBillBatchNettingPair 是对冲建账模式下同一结算单位、同一账单币种的抵销汇总；
 // 金额只用双方共同账单币种计算，不产生对冲汇率或混合币种总额。
 type FinanceBillBatchNettingPair struct {
-	SettlementPartyID                     uuid.UUID
-	SettlementPartyName                   string
-	Currency                              string
-	ReceivableGrossAmount                 decimal.Decimal
-	PayableGrossAmount                    decimal.Decimal
-	OffsetAmount                          decimal.Decimal
-	NetReceivableAmount                   decimal.Decimal
-	NetPayableAmount                      decimal.Decimal
+	SettlementPartyID     uuid.UUID
+	SettlementPartyName   string
+	Currency              string
+	ReceivableGrossAmount decimal.Decimal
+	PayableGrossAmount    decimal.Decimal
+	OffsetAmount          decimal.Decimal
+	NetReceivableAmount   decimal.Decimal
+	NetPayableAmount      decimal.Decimal
 }
 
 type CreateFinanceBillBatchGroupInput struct {
