@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { readlinkSync, readdirSync } from 'node:fs';
+import { readlinkSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 if (process.platform !== 'linux') {
@@ -29,6 +30,107 @@ if (!postgresDatabase || !postgresUser || !postgresPassword) {
 const developmentServerExecutable = fileURLToPath(
   new URL('../server/tmp/roncin-server', import.meta.url),
 );
+
+const repositoryRoot = dirname(dirname(fileURLToPath(import.meta.url)));
+
+function isWithinRepository(target) {
+  return target === repositoryRoot || target.startsWith(`${repositoryRoot}/`);
+}
+
+function scanProcesses() {
+  const processes = new Map();
+  for (const entry of readdirSync('/proc')) {
+    if (!/^\d+$/.test(entry)) continue;
+    const processId = Number.parseInt(entry, 10);
+    try {
+      const executable = readlinkSync(`/proc/${entry}/exe`);
+      const cwd = readlinkSync(`/proc/${entry}/cwd`);
+      const stat = readFileSync(`/proc/${entry}/stat`, 'utf-8');
+      // stat 的 comm 字段可能含空格和括号，从最后一个 ')' 之后切分剩余字段；
+      // 依次为 state、ppid。
+      const parentProcessId = Number.parseInt(
+        stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1],
+        10,
+      );
+      const command = (readFileSync(`/proc/${entry}/cmdline`, 'utf-8').split('\0')[0] ?? '').trim();
+      processes.set(processId, { executable, cwd, command, parentProcessId });
+    } catch {
+      // 进程可能已在枚举期间退出，或属于内核线程等其他用户，忽略即可。
+    }
+  }
+  return processes;
+}
+
+function collectAncestors(processes, processId) {
+  const chain = new Set();
+  let current = processId;
+  while (current && processes.has(current) && !chain.has(current)) {
+    chain.add(current);
+    current = processes.get(current).parentProcessId;
+  }
+  return chain;
+}
+
+function collectDescendants(processes, rootProcessId) {
+  const tree = new Set([rootProcessId]);
+  let expanded = true;
+  while (expanded) {
+    expanded = false;
+    for (const [processId, process] of processes) {
+      if (tree.has(processId) || !tree.has(process.parentProcessId)) continue;
+      tree.add(processId);
+      expanded = true;
+    }
+  }
+  return tree;
+}
+
+function findAirAncestor(processes, processId) {
+  let parentProcessId = processes.get(processId)?.parentProcessId;
+  while (parentProcessId && processes.has(parentProcessId)) {
+    const parent = processes.get(parentProcessId);
+    if (parent.executable.endsWith('/air')) return parentProcessId;
+    parentProcessId = parent.parentProcessId;
+  }
+  return null;
+}
+
+function findExistingDevelopmentServerProcesses() {
+  const processes = scanProcesses();
+  // 本脚本自身及其祖先永远不作为清理目标，避免向上误伤启动它的终端。
+  const protectedProcessIds = collectAncestors(processes, process.pid);
+
+  const rootProcessIds = new Set();
+  for (const [processId, process] of processes) {
+    if (protectedProcessIds.has(processId)) continue;
+    let rootProcessId = null;
+    if (process.executable === developmentServerExecutable) {
+      // 后端 roncin-server：向上定位 air 祖先，从 air 起整棵关闭。
+      rootProcessId = findAirAncestor(processes, processId) ?? processId;
+    } else if (process.executable.endsWith('/air') && isWithinRepository(process.cwd)) {
+      // 孤儿 air：roncin-server 子进程可能已被热重载替换或退出，按 air 进程本身识别。
+      rootProcessId = processId;
+    } else if (
+      (process.command === 'umi' || process.command === 'utoopack-dev-server') &&
+      isWithinRepository(process.cwd)
+    ) {
+      // 前端 dev 进程：umi 会把 argv0 改写为 umi / utoopack-dev-server。
+      // 只杀命中的进程及其子树，外层 pnpm/sh 包装进程随子进程退出自然收敛。
+      rootProcessId = processId;
+    }
+    if (rootProcessId !== null && !protectedProcessIds.has(rootProcessId)) {
+      rootProcessIds.add(rootProcessId);
+    }
+  }
+
+  const targetProcessIds = new Set();
+  for (const rootProcessId of rootProcessIds) {
+    for (const processId of collectDescendants(processes, rootProcessId)) {
+      targetProcessIds.add(processId);
+    }
+  }
+  return [...targetProcessIds];
+}
 
 function runChecked(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -71,56 +173,18 @@ function pgIsReadyIsAvailable() {
   return spawnSync('pg_isready', ['--version'], { stdio: 'ignore' }).status === 0;
 }
 
-function findExistingDevelopmentServerTrees() {
-  const processes = new Map();
-  for (const entry of readdirSync('/proc')) {
-    if (!/^\d+$/.test(entry)) continue;
-    const processId = Number.parseInt(entry, 10);
-    try {
-      const [stat] = readlinkSync(`/proc/${entry}/exe`).split('\n');
-      const status = spawnSync('ps', ['-o', 'ppid=', '-p', entry], {
-        encoding: 'utf8',
-      });
-      if (status.status !== 0) continue;
-      processes.set(processId, {
-        executable: stat,
-        parentProcessId: Number.parseInt(status.stdout.trim(), 10),
-      });
-    } catch {
-      // 进程可能已在枚举期间退出，忽略即可。
-    }
-  }
-
-  const targetProcessIds = new Set();
-  for (const [processId, process] of processes) {
-    if (process.executable !== developmentServerExecutable) continue;
-    let targetProcessId = processId;
-    let parentProcessId = process.parentProcessId;
-    while (parentProcessId && processes.has(parentProcessId)) {
-      const parent = processes.get(parentProcessId);
-      if (parent.executable.endsWith('/air')) {
-        targetProcessId = parentProcessId;
-        break;
-      }
-      parentProcessId = parent.parentProcessId;
-    }
-    targetProcessIds.add(targetProcessId);
-  }
-  return [...targetProcessIds];
-}
-
 function stopExistingDevelopmentServers() {
-  for (const processId of findExistingDevelopmentServerTrees()) {
-    console.log(`[dev] 关闭本仓库已有后端开发进程树: PID ${processId}`);
+  const processIds = findExistingDevelopmentServerProcesses();
+  if (processIds.length === 0) return;
+  console.log(`[dev] 关闭本仓库已有开发进程树: PID ${processIds.join(', ')}`);
+  for (const processId of processIds) {
     const result = spawnSync('kill', ['-TERM', String(processId)], {
       stdio: 'ignore',
     });
     if (result.error) {
       throw result.error;
     }
-    if (result.status !== 0) {
-      throw new Error(`关闭已有后端开发进程树失败: PID ${processId}`);
-    }
+    // 单个 PID 退出码非零通常意味着枚举后进程已自行退出，继续处理其余 PID。
   }
 }
 
