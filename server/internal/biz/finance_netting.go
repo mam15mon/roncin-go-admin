@@ -16,7 +16,7 @@ import (
 var (
 	ErrFinanceNettingNotFound            = errors.NotFound("FINANCE_NETTING_NOT_FOUND", "对冲单不存在")
 	ErrFinanceNettingInvalid             = errors.BadRequest("FINANCE_NETTING_INVALID", "对冲参数不合法")
-	ErrFinanceNettingMismatch            = errors.BadRequest("FINANCE_NETTING_MISMATCH", "对冲账单必须属于同一结算单位并具有相同账单币种")
+	ErrFinanceNettingMismatch            = errors.BadRequest("FINANCE_NETTING_MISMATCH", "对冲账单必须属于同一组织、同一结算单位并具有相同账单币种，或不在当前权限范围内")
 	ErrFinanceNettingDirection           = errors.BadRequest("FINANCE_NETTING_DIRECTION", "对冲需至少包含一张应收账单和一张应付账单")
 	ErrFinanceNettingBalance             = errors.Conflict("FINANCE_NETTING_BALANCE", "账单可用余额不足以完成本次对冲")
 	ErrFinanceNettingTransition          = errors.Conflict("FINANCE_NETTING_TRANSITION", "当前对冲状态不允许执行该操作")
@@ -25,7 +25,12 @@ var (
 	ErrFinanceNettingBillVersionConflict = errors.Conflict("FINANCE_NETTING_BILL_VERSION_CONFLICT", "来源账单已被其他操作人修改，请刷新后重试")
 	ErrFinanceNettingIdempotency         = errors.Conflict("FINANCE_NETTING_IDEMPOTENCY", "对冲请求幂等键已被其他请求使用")
 	ErrFinanceNettingSingleDirection     = errors.BadRequest("FINANCE_NETTING_SINGLE_DIRECTION", "对冲建账需在同一结算单位、同一账单币种下同时包含应收和应付费用，单方向费用请使用普通账单")
+	ErrFinanceNettingTooManyBills        = errors.BadRequest("FINANCE_NETTING_TOO_MANY_BILLS", "同一结算单位与账单币种下的候选账单数量超过上限，请缩小范围后重试")
 )
+
+// MaxFinanceNettingBills 是单次对冲预览与计划允许参与的最大账单数量，
+// 预览加载与计划校验共用同一上限，避免预览静默截断。
+const MaxFinanceNettingBills = 500
 
 type FinanceNettingStatus string
 
@@ -50,51 +55,51 @@ type FinanceNettingAllocation struct {
 
 // FinanceNetting 只保存双方共同账单币种的抵销金额，不保存对冲汇率，也不产生混合币种总额。
 type FinanceNetting struct {
-	ID                          uuid.UUID
-	OrganizationID              uuid.UUID
-	OrganizationName            string
-	BatchID                     *uuid.UUID
-	BatchNo                     string
-	NettingNo                   string
-	IdempotencyKey              string
-	RequestHash                 string
-	Status                      FinanceNettingStatus
-	SettlementPartyID           uuid.UUID
-	SettlementPartyName         string
-	Currency                    string
-	Amount                      decimal.Decimal
-	BaseCurrency                string
-	BaseCurrencyAmount          decimal.Decimal
-	Note                        *string
-	Version                     uint64
-	ConfirmedAt                 *time.Time
-	ConfirmedBy                 *uuid.UUID
-	CancelledAt                 *time.Time
-	CancelledBy                 *uuid.UUID
-	CancellationReason          *string
-	ReversedAt                  *time.Time
-	ReversedBy                  *uuid.UUID
-	ReversalReason              *string
-	Allocations                 []*FinanceNettingAllocation
-	CreatedAt, UpdatedAt        time.Time
+	ID                   uuid.UUID
+	OrganizationID       uuid.UUID
+	OrganizationName     string
+	BatchID              *uuid.UUID
+	BatchNo              string
+	NettingNo            string
+	IdempotencyKey       string
+	RequestHash          string
+	Status               FinanceNettingStatus
+	SettlementPartyID    uuid.UUID
+	SettlementPartyName  string
+	Currency             string
+	Amount               decimal.Decimal
+	BaseCurrency         string
+	BaseCurrencyAmount   decimal.Decimal
+	Note                 *string
+	Version              uint64
+	ConfirmedAt          *time.Time
+	ConfirmedBy          *uuid.UUID
+	CancelledAt          *time.Time
+	CancelledBy          *uuid.UUID
+	CancellationReason   *string
+	ReversedAt           *time.Time
+	ReversedBy           *uuid.UUID
+	ReversalReason       *string
+	Allocations          []*FinanceNettingAllocation
+	CreatedAt, UpdatedAt time.Time
 }
 
 // FinanceNettingBill 是锁内读取的账单余额事实；可用余额 = 总额 - 有效核销 - 有效对冲。
 type FinanceNettingBill struct {
-	ID                 uuid.UUID
-	BillNo             string
-	BillDate           string
-	Status             FinanceBillStatus
-	Direction          OrderFeeDirection
-	SettlementPartyID  uuid.UUID
+	ID                  uuid.UUID
+	BillNo              string
+	BillDate            string
+	Status              FinanceBillStatus
+	Direction           OrderFeeDirection
+	SettlementPartyID   uuid.UUID
 	SettlementPartyName string
-	Currency           string
-	BaseCurrency       string
-	ExchangeRate       decimal.Decimal
-	TotalAmount        decimal.Decimal
-	VerifiedAmount     decimal.Decimal
-	NettedAmount       decimal.Decimal
-	Version            uint64
+	Currency            string
+	BaseCurrency        string
+	ExchangeRate        decimal.Decimal
+	TotalAmount         decimal.Decimal
+	VerifiedAmount      decimal.Decimal
+	NettedAmount        decimal.Decimal
+	Version             uint64
 }
 
 func (b *FinanceNettingBill) AvailableAmount() decimal.Decimal {
@@ -106,24 +111,24 @@ func (b *FinanceNettingBill) AvailableAmount() decimal.Decimal {
 }
 
 type FinanceNettingBillBalance struct {
-	BillID                              uuid.UUID
-	BillNo, BillDate                    string
-	TotalAmount                         decimal.Decimal
-	VerifiedAmount, NettedAmount        decimal.Decimal
-	AvailableAmount                     decimal.Decimal
-	Version                             uint64
+	BillID                       uuid.UUID
+	BillNo, BillDate             string
+	TotalAmount                  decimal.Decimal
+	VerifiedAmount, NettedAmount decimal.Decimal
+	AvailableAmount              decimal.Decimal
+	Version                      uint64
 }
 
 type FinanceNettingPreview struct {
-	OrganizationID, SettlementPartyID   uuid.UUID
+	OrganizationID, SettlementPartyID     uuid.UUID
 	OrganizationName, SettlementPartyName string
-	Currency                            string
-	ReceivableBills, PayableBills       []*FinanceNettingBillBalance
-	ReceivableAvailableAmount           decimal.Decimal
-	PayableAvailableAmount              decimal.Decimal
-	OffsetAmount                        decimal.Decimal
-	NetReceivableAmount                 decimal.Decimal
-	NetPayableAmount                    decimal.Decimal
+	Currency                              string
+	ReceivableBills, PayableBills         []*FinanceNettingBillBalance
+	ReceivableAvailableAmount             decimal.Decimal
+	PayableAvailableAmount                decimal.Decimal
+	OffsetAmount                          decimal.Decimal
+	NetReceivableAmount                   decimal.Decimal
+	NetPayableAmount                      decimal.Decimal
 }
 
 type FinanceNettingBillVersion struct {
@@ -132,17 +137,17 @@ type FinanceNettingBillVersion struct {
 }
 
 type CreateFinanceNettingInput struct {
-	Bills         []FinanceNettingBillVersion
-	Note          *string
+	Bills          []FinanceNettingBillVersion
+	Note           *string
 	IdempotencyKey string
 }
 
 type FinanceNettingFilter struct {
-	Page, PageSize int
-	Keyword        string
-	Status         FinanceNettingStatus
+	Page, PageSize    int
+	Keyword           string
+	Status            FinanceNettingStatus
 	SettlementPartyID *uuid.UUID
-	Currency      string
+	Currency          string
 }
 
 type FinanceNettingListResult struct {
@@ -246,13 +251,13 @@ func ApplyFinanceNettingPreviewAmounts(preview *FinanceNettingPreview) {
 }
 
 type financeNettingPlan struct {
-	SettlementPartyID    uuid.UUID
-	SettlementPartyName  string
-	Currency             string
-	BaseCurrency         string
-	Amount               decimal.Decimal
-	BaseCurrencyAmount   decimal.Decimal
-	Allocations          []*FinanceNettingAllocation
+	SettlementPartyID   uuid.UUID
+	SettlementPartyName string
+	Currency            string
+	BaseCurrency        string
+	Amount              decimal.Decimal
+	BaseCurrencyAmount  decimal.Decimal
+	Allocations         []*FinanceNettingAllocation
 }
 
 // PlanFinanceNetting 校验锁内账单事实并形成对冲计划：对冲金额为双方可用余额较小值，
@@ -260,7 +265,7 @@ type financeNettingPlan struct {
 // 校验同组织（由锁内查询范围保证数量一致）、同结算单位、相反方向、相同最终账单币种、
 // 状态有效、版本匹配与可用余额充足。
 func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceNettingBillVersion) (*financeNettingPlan, error) {
-	if len(bills) == 0 || len(bills) != len(expectedVersions) || len(bills) > 500 {
+	if len(bills) == 0 || len(bills) != len(expectedVersions) || len(bills) > MaxFinanceNettingBills {
 		return nil, ErrFinanceNettingMismatch
 	}
 	expected := make(map[uuid.UUID]uint64, len(expectedVersions))
@@ -275,6 +280,7 @@ func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceN
 	}
 	seen := make(map[uuid.UUID]struct{}, len(bills))
 	receivableTotal, payableTotal := decimal.Zero, decimal.Zero
+	hasReceivable, hasPayable := false, false
 	plan := &financeNettingPlan{}
 	for _, bill := range bills {
 		if bill == nil || bill.ID == uuid.Nil {
@@ -303,12 +309,17 @@ func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceN
 		}
 		if bill.Direction == OrderFeeReceivable {
 			receivableTotal = receivableTotal.Add(bill.AvailableAmount())
+			hasReceivable = true
 		} else {
 			payableTotal = payableTotal.Add(bill.AvailableAmount())
+			hasPayable = true
 		}
 	}
-	if receivableTotal.IsZero() || payableTotal.IsZero() {
+	if !hasReceivable || !hasPayable {
 		return nil, ErrFinanceNettingDirection
+	}
+	if receivableTotal.IsZero() || payableTotal.IsZero() {
+		return nil, ErrFinanceNettingBalance
 	}
 	plan.Amount = decimal.Min(receivableTotal, payableTotal).Round(8)
 	if !plan.Amount.IsPositive() {

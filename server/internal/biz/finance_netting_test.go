@@ -116,6 +116,7 @@ func TestPlanFinanceNettingRejections(t *testing.T) {
 	draftBill := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeePayable, "100", "0", "0", 1)
 	draftBill.Status = FinanceBillDraft
 	fullyNetted := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeePayable, "100", "0", "100", 1)
+	anotherReceivable := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "80", "0", "0", 1)
 	cases := []struct {
 		name        string
 		bills       []*FinanceNettingBill
@@ -125,7 +126,8 @@ func TestPlanFinanceNettingRejections(t *testing.T) {
 		{"跨账单币种拒绝", []*FinanceNettingBill{receivable, currencyMismatch}, ErrFinanceNettingMismatch},
 		{"跨本位币拒绝", []*FinanceNettingBill{receivable, baseMismatch}, ErrFinanceNettingMismatch},
 		{"未确认账单拒绝", []*FinanceNettingBill{receivable, draftBill}, ErrFinanceNettingTransition},
-		{"单方向拒绝", []*FinanceNettingBill{receivable, fullyNetted}, ErrFinanceNettingDirection},
+		{"单方向拒绝", []*FinanceNettingBill{receivable, anotherReceivable}, ErrFinanceNettingDirection},
+		{"单边可用余额耗尽拒绝", []*FinanceNettingBill{receivable, fullyNetted}, ErrFinanceNettingBalance},
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {

@@ -11,10 +11,10 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/shopspring/decimal"
 )
 
@@ -176,9 +176,14 @@ func (r *financeNettingRepo) LoadPreview(ctx context.Context, organizationID, se
 			financebillent.SettlementPartyIDEQ(settlementPartyID),
 			financebillent.CurrencyEQ(currency),
 			financebillent.StatusEQ(financebillent.StatusCONFIRMED),
-		).Order(financebillent.ByID()).All(ctx)
+		).Order(financebillent.ByID()).
+		Limit(biz.MaxFinanceNettingBills + 1).
+		All(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if len(bills) > biz.MaxFinanceNettingBills {
+		return nil, biz.ErrFinanceNettingTooManyBills
 	}
 	billIDs := make([]uuid.UUID, 0, len(bills))
 	for _, bill := range bills {
