@@ -26441,6 +26441,9 @@ type FinanceBillMutation struct {
 	settlement_bank_account         *string
 	settlement_account_currency     *string
 	settlement_swift_code           *string
+	estimated_invoice_currency      *string
+	estimated_invoice_rate          *string
+	estimated_invoice_amount        *string
 	currency                        *string
 	base_currency                   *string
 	exchange_rate                   *string
@@ -27232,6 +27235,153 @@ func (m *FinanceBillMutation) SettlementSwiftCodeCleared() bool {
 func (m *FinanceBillMutation) ResetSettlementSwiftCode() {
 	m.settlement_swift_code = nil
 	delete(m.clearedFields, financebill.FieldSettlementSwiftCode)
+}
+
+// SetEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field.
+func (m *FinanceBillMutation) SetEstimatedInvoiceCurrency(s string) {
+	m.estimated_invoice_currency = &s
+}
+
+// EstimatedInvoiceCurrency returns the value of the "estimated_invoice_currency" field in the mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceCurrency() (r string, exists bool) {
+	v := m.estimated_invoice_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEstimatedInvoiceCurrency returns the old "estimated_invoice_currency" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldEstimatedInvoiceCurrency(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEstimatedInvoiceCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEstimatedInvoiceCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEstimatedInvoiceCurrency: %w", err)
+	}
+	return oldValue.EstimatedInvoiceCurrency, nil
+}
+
+// ClearEstimatedInvoiceCurrency clears the value of the "estimated_invoice_currency" field.
+func (m *FinanceBillMutation) ClearEstimatedInvoiceCurrency() {
+	m.estimated_invoice_currency = nil
+	m.clearedFields[financebill.FieldEstimatedInvoiceCurrency] = struct{}{}
+}
+
+// EstimatedInvoiceCurrencyCleared returns if the "estimated_invoice_currency" field was cleared in this mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceCurrencyCleared() bool {
+	_, ok := m.clearedFields[financebill.FieldEstimatedInvoiceCurrency]
+	return ok
+}
+
+// ResetEstimatedInvoiceCurrency resets all changes to the "estimated_invoice_currency" field.
+func (m *FinanceBillMutation) ResetEstimatedInvoiceCurrency() {
+	m.estimated_invoice_currency = nil
+	delete(m.clearedFields, financebill.FieldEstimatedInvoiceCurrency)
+}
+
+// SetEstimatedInvoiceRate sets the "estimated_invoice_rate" field.
+func (m *FinanceBillMutation) SetEstimatedInvoiceRate(s string) {
+	m.estimated_invoice_rate = &s
+}
+
+// EstimatedInvoiceRate returns the value of the "estimated_invoice_rate" field in the mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceRate() (r string, exists bool) {
+	v := m.estimated_invoice_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEstimatedInvoiceRate returns the old "estimated_invoice_rate" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldEstimatedInvoiceRate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEstimatedInvoiceRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEstimatedInvoiceRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEstimatedInvoiceRate: %w", err)
+	}
+	return oldValue.EstimatedInvoiceRate, nil
+}
+
+// ClearEstimatedInvoiceRate clears the value of the "estimated_invoice_rate" field.
+func (m *FinanceBillMutation) ClearEstimatedInvoiceRate() {
+	m.estimated_invoice_rate = nil
+	m.clearedFields[financebill.FieldEstimatedInvoiceRate] = struct{}{}
+}
+
+// EstimatedInvoiceRateCleared returns if the "estimated_invoice_rate" field was cleared in this mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceRateCleared() bool {
+	_, ok := m.clearedFields[financebill.FieldEstimatedInvoiceRate]
+	return ok
+}
+
+// ResetEstimatedInvoiceRate resets all changes to the "estimated_invoice_rate" field.
+func (m *FinanceBillMutation) ResetEstimatedInvoiceRate() {
+	m.estimated_invoice_rate = nil
+	delete(m.clearedFields, financebill.FieldEstimatedInvoiceRate)
+}
+
+// SetEstimatedInvoiceAmount sets the "estimated_invoice_amount" field.
+func (m *FinanceBillMutation) SetEstimatedInvoiceAmount(s string) {
+	m.estimated_invoice_amount = &s
+}
+
+// EstimatedInvoiceAmount returns the value of the "estimated_invoice_amount" field in the mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceAmount() (r string, exists bool) {
+	v := m.estimated_invoice_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEstimatedInvoiceAmount returns the old "estimated_invoice_amount" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldEstimatedInvoiceAmount(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEstimatedInvoiceAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEstimatedInvoiceAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEstimatedInvoiceAmount: %w", err)
+	}
+	return oldValue.EstimatedInvoiceAmount, nil
+}
+
+// ClearEstimatedInvoiceAmount clears the value of the "estimated_invoice_amount" field.
+func (m *FinanceBillMutation) ClearEstimatedInvoiceAmount() {
+	m.estimated_invoice_amount = nil
+	m.clearedFields[financebill.FieldEstimatedInvoiceAmount] = struct{}{}
+}
+
+// EstimatedInvoiceAmountCleared returns if the "estimated_invoice_amount" field was cleared in this mutation.
+func (m *FinanceBillMutation) EstimatedInvoiceAmountCleared() bool {
+	_, ok := m.clearedFields[financebill.FieldEstimatedInvoiceAmount]
+	return ok
+}
+
+// ResetEstimatedInvoiceAmount resets all changes to the "estimated_invoice_amount" field.
+func (m *FinanceBillMutation) ResetEstimatedInvoiceAmount() {
+	m.estimated_invoice_amount = nil
+	delete(m.clearedFields, financebill.FieldEstimatedInvoiceAmount)
 }
 
 // SetCurrency sets the "currency" field.
@@ -28628,7 +28778,7 @@ func (m *FinanceBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillMutation) Fields() []string {
-	fields := make([]string, 0, 39)
+	fields := make([]string, 0, 42)
 	if m.created_at != nil {
 		fields = append(fields, financebill.FieldCreatedAt)
 	}
@@ -28679,6 +28829,15 @@ func (m *FinanceBillMutation) Fields() []string {
 	}
 	if m.settlement_swift_code != nil {
 		fields = append(fields, financebill.FieldSettlementSwiftCode)
+	}
+	if m.estimated_invoice_currency != nil {
+		fields = append(fields, financebill.FieldEstimatedInvoiceCurrency)
+	}
+	if m.estimated_invoice_rate != nil {
+		fields = append(fields, financebill.FieldEstimatedInvoiceRate)
+	}
+	if m.estimated_invoice_amount != nil {
+		fields = append(fields, financebill.FieldEstimatedInvoiceAmount)
 	}
 	if m.currency != nil {
 		fields = append(fields, financebill.FieldCurrency)
@@ -28788,6 +28947,12 @@ func (m *FinanceBillMutation) Field(name string) (ent.Value, bool) {
 		return m.SettlementAccountCurrency()
 	case financebill.FieldSettlementSwiftCode:
 		return m.SettlementSwiftCode()
+	case financebill.FieldEstimatedInvoiceCurrency:
+		return m.EstimatedInvoiceCurrency()
+	case financebill.FieldEstimatedInvoiceRate:
+		return m.EstimatedInvoiceRate()
+	case financebill.FieldEstimatedInvoiceAmount:
+		return m.EstimatedInvoiceAmount()
 	case financebill.FieldCurrency:
 		return m.Currency()
 	case financebill.FieldBaseCurrency:
@@ -28875,6 +29040,12 @@ func (m *FinanceBillMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldSettlementAccountCurrency(ctx)
 	case financebill.FieldSettlementSwiftCode:
 		return m.OldSettlementSwiftCode(ctx)
+	case financebill.FieldEstimatedInvoiceCurrency:
+		return m.OldEstimatedInvoiceCurrency(ctx)
+	case financebill.FieldEstimatedInvoiceRate:
+		return m.OldEstimatedInvoiceRate(ctx)
+	case financebill.FieldEstimatedInvoiceAmount:
+		return m.OldEstimatedInvoiceAmount(ctx)
 	case financebill.FieldCurrency:
 		return m.OldCurrency(ctx)
 	case financebill.FieldBaseCurrency:
@@ -29046,6 +29217,27 @@ func (m *FinanceBillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSettlementSwiftCode(v)
+		return nil
+	case financebill.FieldEstimatedInvoiceCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEstimatedInvoiceCurrency(v)
+		return nil
+	case financebill.FieldEstimatedInvoiceRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEstimatedInvoiceRate(v)
+		return nil
+	case financebill.FieldEstimatedInvoiceAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEstimatedInvoiceAmount(v)
 		return nil
 	case financebill.FieldCurrency:
 		v, ok := value.(string)
@@ -29276,6 +29468,15 @@ func (m *FinanceBillMutation) ClearedFields() []string {
 	if m.FieldCleared(financebill.FieldSettlementSwiftCode) {
 		fields = append(fields, financebill.FieldSettlementSwiftCode)
 	}
+	if m.FieldCleared(financebill.FieldEstimatedInvoiceCurrency) {
+		fields = append(fields, financebill.FieldEstimatedInvoiceCurrency)
+	}
+	if m.FieldCleared(financebill.FieldEstimatedInvoiceRate) {
+		fields = append(fields, financebill.FieldEstimatedInvoiceRate)
+	}
+	if m.FieldCleared(financebill.FieldEstimatedInvoiceAmount) {
+		fields = append(fields, financebill.FieldEstimatedInvoiceAmount)
+	}
 	if m.FieldCleared(financebill.FieldExchangeRateSettingID) {
 		fields = append(fields, financebill.FieldExchangeRateSettingID)
 	}
@@ -29325,6 +29526,15 @@ func (m *FinanceBillMutation) ClearField(name string) error {
 		return nil
 	case financebill.FieldSettlementSwiftCode:
 		m.ClearSettlementSwiftCode()
+		return nil
+	case financebill.FieldEstimatedInvoiceCurrency:
+		m.ClearEstimatedInvoiceCurrency()
+		return nil
+	case financebill.FieldEstimatedInvoiceRate:
+		m.ClearEstimatedInvoiceRate()
+		return nil
+	case financebill.FieldEstimatedInvoiceAmount:
+		m.ClearEstimatedInvoiceAmount()
 		return nil
 	case financebill.FieldExchangeRateSettingID:
 		m.ClearExchangeRateSettingID()
@@ -29414,6 +29624,15 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 		return nil
 	case financebill.FieldSettlementSwiftCode:
 		m.ResetSettlementSwiftCode()
+		return nil
+	case financebill.FieldEstimatedInvoiceCurrency:
+		m.ResetEstimatedInvoiceCurrency()
+		return nil
+	case financebill.FieldEstimatedInvoiceRate:
+		m.ResetEstimatedInvoiceRate()
+		return nil
+	case financebill.FieldEstimatedInvoiceAmount:
+		m.ResetEstimatedInvoiceAmount()
 		return nil
 	case financebill.FieldCurrency:
 		m.ResetCurrency()
@@ -29750,6 +29969,7 @@ type FinanceBillBatchMutation struct {
 	request_hash        *string
 	split_by_order      *bool
 	split_by_tax_rate   *bool
+	grouping_mode       *financebillbatch.GroupingMode
 	fee_count           *int
 	addfee_count        *int
 	bill_count          *int
@@ -30161,6 +30381,42 @@ func (m *FinanceBillBatchMutation) ResetSplitByTaxRate() {
 	m.split_by_tax_rate = nil
 }
 
+// SetGroupingMode sets the "grouping_mode" field.
+func (m *FinanceBillBatchMutation) SetGroupingMode(fm financebillbatch.GroupingMode) {
+	m.grouping_mode = &fm
+}
+
+// GroupingMode returns the value of the "grouping_mode" field in the mutation.
+func (m *FinanceBillBatchMutation) GroupingMode() (r financebillbatch.GroupingMode, exists bool) {
+	v := m.grouping_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupingMode returns the old "grouping_mode" field's value of the FinanceBillBatch entity.
+// If the FinanceBillBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillBatchMutation) OldGroupingMode(ctx context.Context) (v financebillbatch.GroupingMode, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupingMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupingMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupingMode: %w", err)
+	}
+	return oldValue.GroupingMode, nil
+}
+
+// ResetGroupingMode resets all changes to the "grouping_mode" field.
+func (m *FinanceBillBatchMutation) ResetGroupingMode() {
+	m.grouping_mode = nil
+}
+
 // SetFeeCount sets the "fee_count" field.
 func (m *FinanceBillBatchMutation) SetFeeCount(i int) {
 	m.fee_count = &i
@@ -30536,7 +30792,7 @@ func (m *FinanceBillBatchMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillBatchMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, financebillbatch.FieldCreatedAt)
 	}
@@ -30560,6 +30816,9 @@ func (m *FinanceBillBatchMutation) Fields() []string {
 	}
 	if m.split_by_tax_rate != nil {
 		fields = append(fields, financebillbatch.FieldSplitByTaxRate)
+	}
+	if m.grouping_mode != nil {
+		fields = append(fields, financebillbatch.FieldGroupingMode)
 	}
 	if m.fee_count != nil {
 		fields = append(fields, financebillbatch.FieldFeeCount)
@@ -30600,6 +30859,8 @@ func (m *FinanceBillBatchMutation) Field(name string) (ent.Value, bool) {
 		return m.SplitByOrder()
 	case financebillbatch.FieldSplitByTaxRate:
 		return m.SplitByTaxRate()
+	case financebillbatch.FieldGroupingMode:
+		return m.GroupingMode()
 	case financebillbatch.FieldFeeCount:
 		return m.FeeCount()
 	case financebillbatch.FieldBillCount:
@@ -30635,6 +30896,8 @@ func (m *FinanceBillBatchMutation) OldField(ctx context.Context, name string) (e
 		return m.OldSplitByOrder(ctx)
 	case financebillbatch.FieldSplitByTaxRate:
 		return m.OldSplitByTaxRate(ctx)
+	case financebillbatch.FieldGroupingMode:
+		return m.OldGroupingMode(ctx)
 	case financebillbatch.FieldFeeCount:
 		return m.OldFeeCount(ctx)
 	case financebillbatch.FieldBillCount:
@@ -30709,6 +30972,13 @@ func (m *FinanceBillBatchMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSplitByTaxRate(v)
+		return nil
+	case financebillbatch.FieldGroupingMode:
+		v, ok := value.(financebillbatch.GroupingMode)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupingMode(v)
 		return nil
 	case financebillbatch.FieldFeeCount:
 		v, ok := value.(int)
@@ -30844,6 +31114,9 @@ func (m *FinanceBillBatchMutation) ResetField(name string) error {
 		return nil
 	case financebillbatch.FieldSplitByTaxRate:
 		m.ResetSplitByTaxRate()
+		return nil
+	case financebillbatch.FieldGroupingMode:
+		m.ResetGroupingMode()
 		return nil
 	case financebillbatch.FieldFeeCount:
 		m.ResetFeeCount()

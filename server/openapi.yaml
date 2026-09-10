@@ -8879,6 +8879,34 @@ components:
                     type: string
                 baseCurrencyAmount:
                     type: string
+                isTemporaryBillDate:
+                    type: boolean
+                configurationComplete:
+                    type: boolean
+                estimatedInvoiceCurrency:
+                    type: string
+                estimatedInvoiceRate:
+                    type: string
+                estimatedInvoiceAmount:
+                    type: string
+        finance.v1.BillBatchPreviewGroupConfigInput:
+            required:
+                - groupKey
+            type: object
+            properties:
+                groupKey:
+                    type: string
+                billDate:
+                    type: string
+                settlementAccountId:
+                    type: string
+                estimatedInvoiceCurrency:
+                    type: string
+                estimatedInvoiceRate:
+                    type: string
+            description: |-
+                BillBatchPreviewGroupConfigInput 由服务端上一轮返回的 group_key 标识叶子；
+                 初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。
         finance.v1.BillExpectedVersion:
             required:
                 - billId
@@ -8896,6 +8924,9 @@ components:
                     type: boolean
                 splitByTaxRate:
                     type: boolean
+                mode:
+                    type: integer
+                    format: enum
         finance.v1.BilledFeeEditPolicy:
             type: object
             properties:
@@ -9457,6 +9488,10 @@ components:
                 note:
                     type: string
                 settlementAccountId:
+                    type: string
+                estimatedInvoiceCurrency:
+                    type: string
+                estimatedInvoiceRate:
                     type: string
         finance.v1.CreateBillBatchRequest:
             required:
@@ -10402,6 +10437,12 @@ components:
                     type: string
                 settlementSwiftCode:
                     type: string
+                estimatedInvoiceCurrency:
+                    type: string
+                estimatedInvoiceRate:
+                    type: string
+                estimatedInvoiceAmount:
+                    type: string
         finance.v1.FinanceBillBatch:
             type: object
             properties:
@@ -10429,6 +10470,9 @@ components:
                         $ref: '#/components/schemas/finance.v1.FinanceBill'
                 createdAt:
                     type: string
+                mode:
+                    type: integer
+                    format: enum
         finance.v1.FinanceBillLine:
             type: object
             properties:
@@ -11794,6 +11838,10 @@ components:
                     $ref: '#/components/schemas/finance.v1.BillGroupingPolicy'
                 organizationId:
                     type: string
+                groupConfigs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BillBatchPreviewGroupConfigInput'
         finance.v1.PreviewBillBatchResponse:
             type: object
             properties:
@@ -12060,6 +12108,10 @@ components:
                     type: integer
                     format: int32
                 settlementAccountId:
+                    type: string
+                estimatedInvoiceCurrency:
+                    type: string
+                estimatedInvoiceRate:
                     type: string
         finance.v1.UpdateBillResponse:
             type: object

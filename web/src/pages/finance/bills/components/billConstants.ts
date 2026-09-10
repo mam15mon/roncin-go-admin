@@ -22,4 +22,6 @@ export type BillFormValues = {
   paymentTermsDays?: number;
   note?: string;
   settlementAccountId: string;
+  estimatedInvoiceCurrency?: string;
+  estimatedInvoiceRate?: string;
 };

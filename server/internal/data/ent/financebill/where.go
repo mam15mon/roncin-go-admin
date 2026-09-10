@@ -131,6 +131,21 @@ func SettlementSwiftCode(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldSettlementSwiftCode, v))
 }
 
+// EstimatedInvoiceCurrency applies equality check predicate on the "estimated_invoice_currency" field. It's identical to EstimatedInvoiceCurrencyEQ.
+func EstimatedInvoiceCurrency(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceRate applies equality check predicate on the "estimated_invoice_rate" field. It's identical to EstimatedInvoiceRateEQ.
+func EstimatedInvoiceRate(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceAmount applies equality check predicate on the "estimated_invoice_amount" field. It's identical to EstimatedInvoiceAmountEQ.
+func EstimatedInvoiceAmount(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceAmount, v))
+}
+
 // Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
 func Currency(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldCurrency, v))
@@ -1059,6 +1074,231 @@ func SettlementSwiftCodeEqualFold(v string) predicate.FinanceBill {
 // SettlementSwiftCodeContainsFold applies the ContainsFold predicate on the "settlement_swift_code" field.
 func SettlementSwiftCodeContainsFold(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldContainsFold(FieldSettlementSwiftCode, v))
+}
+
+// EstimatedInvoiceCurrencyEQ applies the EQ predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyNEQ applies the NEQ predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyNEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyIn applies the In predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldEstimatedInvoiceCurrency, vs...))
+}
+
+// EstimatedInvoiceCurrencyNotIn applies the NotIn predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyNotIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldEstimatedInvoiceCurrency, vs...))
+}
+
+// EstimatedInvoiceCurrencyGT applies the GT predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyGT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGT(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyGTE applies the GTE predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyGTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGTE(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyLT applies the LT predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyLT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLT(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyLTE applies the LTE predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyLTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLTE(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyContains applies the Contains predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyContains(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContains(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyHasPrefix applies the HasPrefix predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyHasPrefix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasPrefix(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyHasSuffix applies the HasSuffix predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyHasSuffix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasSuffix(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyIsNil applies the IsNil predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldEstimatedInvoiceCurrency))
+}
+
+// EstimatedInvoiceCurrencyNotNil applies the NotNil predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldEstimatedInvoiceCurrency))
+}
+
+// EstimatedInvoiceCurrencyEqualFold applies the EqualFold predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyEqualFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEqualFold(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceCurrencyContainsFold applies the ContainsFold predicate on the "estimated_invoice_currency" field.
+func EstimatedInvoiceCurrencyContainsFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContainsFold(FieldEstimatedInvoiceCurrency, v))
+}
+
+// EstimatedInvoiceRateEQ applies the EQ predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateNEQ applies the NEQ predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateNEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateIn applies the In predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldEstimatedInvoiceRate, vs...))
+}
+
+// EstimatedInvoiceRateNotIn applies the NotIn predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateNotIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldEstimatedInvoiceRate, vs...))
+}
+
+// EstimatedInvoiceRateGT applies the GT predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateGT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGT(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateGTE applies the GTE predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateGTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGTE(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateLT applies the LT predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateLT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLT(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateLTE applies the LTE predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateLTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLTE(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateContains applies the Contains predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateContains(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContains(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateHasPrefix applies the HasPrefix predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateHasPrefix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasPrefix(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateHasSuffix applies the HasSuffix predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateHasSuffix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasSuffix(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateIsNil applies the IsNil predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldEstimatedInvoiceRate))
+}
+
+// EstimatedInvoiceRateNotNil applies the NotNil predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldEstimatedInvoiceRate))
+}
+
+// EstimatedInvoiceRateEqualFold applies the EqualFold predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateEqualFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEqualFold(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceRateContainsFold applies the ContainsFold predicate on the "estimated_invoice_rate" field.
+func EstimatedInvoiceRateContainsFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContainsFold(FieldEstimatedInvoiceRate, v))
+}
+
+// EstimatedInvoiceAmountEQ applies the EQ predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountNEQ applies the NEQ predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountNEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountIn applies the In predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldEstimatedInvoiceAmount, vs...))
+}
+
+// EstimatedInvoiceAmountNotIn applies the NotIn predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountNotIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldEstimatedInvoiceAmount, vs...))
+}
+
+// EstimatedInvoiceAmountGT applies the GT predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountGT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGT(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountGTE applies the GTE predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountGTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGTE(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountLT applies the LT predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountLT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLT(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountLTE applies the LTE predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountLTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLTE(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountContains applies the Contains predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountContains(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContains(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountHasPrefix applies the HasPrefix predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountHasPrefix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasPrefix(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountHasSuffix applies the HasSuffix predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountHasSuffix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasSuffix(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountIsNil applies the IsNil predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldEstimatedInvoiceAmount))
+}
+
+// EstimatedInvoiceAmountNotNil applies the NotNil predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldEstimatedInvoiceAmount))
+}
+
+// EstimatedInvoiceAmountEqualFold applies the EqualFold predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountEqualFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEqualFold(FieldEstimatedInvoiceAmount, v))
+}
+
+// EstimatedInvoiceAmountContainsFold applies the ContainsFold predicate on the "estimated_invoice_amount" field.
+func EstimatedInvoiceAmountContainsFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContainsFold(FieldEstimatedInvoiceAmount, v))
 }
 
 // CurrencyEQ applies the EQ predicate on the "currency" field.

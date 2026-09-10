@@ -3,6 +3,7 @@
 package financebillbatch
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,8 @@ const (
 	FieldSplitByOrder = "split_by_order"
 	// FieldSplitByTaxRate holds the string denoting the split_by_tax_rate field in the database.
 	FieldSplitByTaxRate = "split_by_tax_rate"
+	// FieldGroupingMode holds the string denoting the grouping_mode field in the database.
+	FieldGroupingMode = "grouping_mode"
 	// FieldFeeCount holds the string denoting the fee_count field in the database.
 	FieldFeeCount = "fee_count"
 	// FieldBillCount holds the string denoting the bill_count field in the database.
@@ -83,6 +86,7 @@ var Columns = []string{
 	FieldRequestHash,
 	FieldSplitByOrder,
 	FieldSplitByTaxRate,
+	FieldGroupingMode,
 	FieldFeeCount,
 	FieldBillCount,
 	FieldTotalBaseAmount,
@@ -126,6 +130,32 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// GroupingMode defines the type for the "grouping_mode" enum field.
+type GroupingMode string
+
+// GroupingModeNORMAL is the default value of the GroupingMode enum.
+const DefaultGroupingMode = GroupingModeNORMAL
+
+// GroupingMode values.
+const (
+	GroupingModeNORMAL  GroupingMode = "NORMAL"
+	GroupingModeNETTING GroupingMode = "NETTING"
+)
+
+func (gm GroupingMode) String() string {
+	return string(gm)
+}
+
+// GroupingModeValidator is a validator for the "grouping_mode" field enum values. It is called by the builders before save.
+func GroupingModeValidator(gm GroupingMode) error {
+	switch gm {
+	case GroupingModeNORMAL, GroupingModeNETTING:
+		return nil
+	default:
+		return fmt.Errorf("financebillbatch: invalid enum value for grouping_mode field: %q", gm)
+	}
+}
 
 // OrderOption defines the ordering options for the FinanceBillBatch queries.
 type OrderOption func(*sql.Selector)
@@ -173,6 +203,11 @@ func BySplitByOrder(opts ...sql.OrderTermOption) OrderOption {
 // BySplitByTaxRate orders the results by the split_by_tax_rate field.
 func BySplitByTaxRate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSplitByTaxRate, opts...).ToFunc()
+}
+
+// ByGroupingMode orders the results by the grouping_mode field.
+func ByGroupingMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupingMode, opts...).ToFunc()
 }
 
 // ByFeeCount orders the results by the fee_count field.

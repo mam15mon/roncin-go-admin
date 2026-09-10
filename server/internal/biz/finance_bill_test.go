@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"errors"
-	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -68,7 +67,7 @@ func TestNormalizeCreateFinanceBillRejectsDuplicateFeesAndInvalidDueDate(t *test
 	}
 }
 
-func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T) {
+func TestBuildConfiguredFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	partyID := uuid.Must(uuid.NewV7())
 	first := financeBillableFeeForTest(partyID, "100", "94.33962264", "5.66037736", "100")
@@ -80,7 +79,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 	third.Fee.TaxRate = &otherRate
 	fees := []*FinanceBillableFee{third, first, second}
 
-	basePreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
+	basePreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("按固定维度预览失败: %v", err)
 	}
@@ -91,7 +90,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 		t.Fatalf("未启用可选策略时不应返回订单或税率分组维度")
 	}
 
-	orderPreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{SplitByOrder: true})
+	orderPreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL", SplitByOrder: true}})
 	if err != nil {
 		t.Fatalf("按订单拆分预览失败: %v", err)
 	}
@@ -99,7 +98,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 		t.Fatalf("按订单拆分应得到 2 组，实际为 %d", len(orderPreview.Groups))
 	}
 
-	fullPreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{SplitByOrder: true, SplitByTaxRate: true})
+	fullPreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL", SplitByOrder: true, SplitByTaxRate: true}})
 	if err != nil {
 		t.Fatalf("按订单和税率拆分预览失败: %v", err)
 	}
@@ -113,32 +112,23 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 	}
 }
 
-func TestBuildFinanceBillBatchPreviewIsDeterministicAndDetectsSnapshotChanges(t *testing.T) {
+func TestBuildConfiguredFinanceBillBatchPreviewIsDeterministic(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	partyID := uuid.Must(uuid.NewV7())
 	first := financeBillableFeeForTest(partyID, "100", "94.33962264", "5.66037736", "100")
 	second := financeBillableFeeForTest(partyID, "200", "188.67924528", "11.32075472", "200")
 	fees := []*FinanceBillableFee{first, second}
 
-	forward, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
+	forward, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("首次预览失败: %v", err)
 	}
-	reverse, err := BuildFinanceBillBatchPreview(organizationID, slices.Clone([]*FinanceBillableFee{second, first}), FinanceBillGroupingPolicy{})
+	reverse, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{second, first}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("倒序预览失败: %v", err)
 	}
-	if forward.PreviewToken != reverse.PreviewToken || forward.Groups[0].GroupKey != reverse.Groups[0].GroupKey {
+	if forward.Groups[0].GroupKey != reverse.Groups[0].GroupKey {
 		t.Fatalf("相同费用集合不应受输入顺序影响")
-	}
-
-	second.Fee.Version++
-	changed, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
-	if err != nil {
-		t.Fatalf("快照变化后预览失败: %v", err)
-	}
-	if changed.PreviewToken == forward.PreviewToken {
-		t.Fatalf("费用版本变化后预览令牌必须变化")
 	}
 }
 

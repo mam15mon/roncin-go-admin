@@ -40,6 +40,13 @@ type billCreationCandidateServiceRepoStub struct {
 	fees                  []*biz.FinanceBillableFee
 	createdOrganizationID uuid.UUID
 	err                   error
+	batch                 *biz.FinanceBillBatch
+}
+
+type settlementServiceTransactorStub struct{}
+
+func (settlementServiceTransactorStub) WithinTransaction(ctx context.Context, operation func(context.Context) error) error {
+	return operation(ctx)
 }
 
 type billSettlementAccountRepoStub struct {
@@ -82,12 +89,28 @@ func (s *billCreationCandidateServiceRepoStub) LoadBillableFees(_ context.Contex
 }
 
 func (s *billCreationCandidateServiceRepoStub) GetBatchByIdempotencyKey(context.Context, uuid.UUID, string) (*biz.FinanceBillBatch, error) {
-	return nil, nil
+	return s.batch, nil
 }
 
 func (s *billCreationCandidateServiceRepoStub) CreateBatch(_ context.Context, batch *biz.FinanceBillBatch, _ string, _ *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	s.createdOrganizationID = batch.OrganizationID
+	s.batch = batch
 	return batch, s.err
+}
+
+func (*billCreationCandidateServiceRepoStub) ValidateBillCurrencies(context.Context, []string) error {
+	return nil
+}
+
+func (*billCreationCandidateServiceRepoStub) HydrateBillSettlementAccounts(_ context.Context, bills []*biz.FinanceBill) error {
+	for _, bill := range bills {
+		bill.SettlementAccountName = "测试账户"
+		bill.SettlementAccountHolder = "测试客户"
+		bill.SettlementBankName = "测试银行"
+		bill.SettlementBankAccount = "001"
+		bill.SettlementAccountCurrency = bill.Currency
+	}
+	return nil
 }
 
 func (s *invoiceCreationCandidateRepoStub) ListCreationBills(_ context.Context, organizationID uuid.UUID, filter biz.FinanceInvoiceCreationBillFilter) (*biz.FinanceInvoiceCreationBillListResult, error) {
@@ -375,6 +398,14 @@ func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
 	}
 }
 
+func TestPreviewBillBatchConfigsRejectEstimatedRateWithoutCurrency(t *testing.T) {
+	rate := "1.2"
+	configs, err := previewBillBatchConfigsFromAPI(&v1.PreviewBillBatchRequest{GroupConfigs: []*v1.BillBatchPreviewGroupConfigInput{{GroupKey: "group", EstimatedInvoiceRate: &rate}}})
+	if err != biz.ErrFinanceBillInvalidArgument || len(configs.groups) != 0 {
+		t.Fatalf("预计开票汇率缺币种错误: configs=%#v err=%v", configs, err)
+	}
+}
+
 func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T) {
 	organizationID, otherOrganizationID := uuid.New(), uuid.New()
 	feeID, orderID, partyID := uuid.New(), uuid.New(), uuid.New()
@@ -403,17 +434,25 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		resolved: &biz.ResolvedExchangeRate{Rate: decimal.NewFromInt(1), Source: "SYSTEM", RateDate: "2026-09-10", SettingID: &rateSettingID},
 	}
 	accountID := uuid.New()
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo), nil)}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo), settlementServiceTransactorStub{})}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
+	policy := &v1.BillGroupingPolicy{Mode: v1.BillGroupingMode_BILL_GROUPING_MODE_NORMAL}
 	preview, err := service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: organizationID.String(),
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
 	})
 	if err != nil || len(preview.GetData()) != 1 || len(repo.organizationIDs) != 1 || repo.organizationIDs[0] != organizationID {
 		t.Fatalf("同组织预览失败: response=%#v scope=%v err=%v", preview, repo.organizationIDs, err)
 	}
+	preview, err = service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
+		GroupConfigs: []*v1.BillBatchPreviewGroupConfigInput{{GroupKey: preview.Data[0].GetGroupKey(), BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+	})
+	if err != nil || preview.GetPreviewToken() == "" {
+		t.Fatalf("完整配置预览失败: response=%#v err=%v", preview, err)
+	}
 	created, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: organizationID.String(),
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
 		PreviewToken: preview.GetPreviewToken(), IdempotencyKey: "bill-batch-org-assertion",
 		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
 	})
@@ -423,17 +462,17 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 
 	fee.OrganizationID = otherOrganizationID
 	if _, err := service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: organizationID.String(),
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
 	}); !errors.Is(err, biz.ErrFinanceBillInvalidArgument) {
 		t.Fatalf("来源声明为 A、费用解析为 B 时预览错误 = %v", err)
 	}
 	if _, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: organizationID.String(),
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
 	}); !errors.Is(err, biz.ErrFinanceBillInvalidArgument) {
 		t.Fatalf("来源声明为 A、费用解析为 B 时创建错误 = %v", err)
 	}
 	if _, err := service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: &v1.BillGroupingPolicy{}, OrganizationId: otherOrganizationID.String(),
+		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: otherOrganizationID.String(),
 	}); !errors.Is(err, biz.ErrPermissionDenied) {
 		t.Fatalf("无 B 公司建账权限时错误 = %v", err)
 	}

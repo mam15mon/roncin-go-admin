@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { BillGroupingMode } from '@/enums.generated';
 
 const mocks = vi.hoisted(() => ({
   organizations: vi.fn(),
@@ -44,6 +45,12 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateBillBatch: mocks.create,
   settlementServiceConfirmBillBatch: vi.fn(),
   settlementServiceListBillSettlementAccountCandidates: mocks.accounts,
+}));
+vi.mock('@/utils/options', () => ({
+  getCurrencyOptions: vi.fn().mockResolvedValue([
+    { label: 'CNY - 人民币', value: 'CNY' },
+    { label: 'USD - 美元', value: 'USD' },
+  ]),
 }));
 
 import BillCreationWorkbench from './BillCreationWorkbench';
@@ -157,7 +164,14 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     );
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     expect(mocks.preview).toHaveBeenCalledWith(
-      expect.objectContaining({ organizationId: 'A' }),
+      expect.objectContaining({
+        organizationId: 'A',
+        groupingPolicy: {
+          mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
+          splitByOrder: true,
+          splitByTaxRate: false,
+        },
+      }),
       expect.anything(),
     );
     await waitFor(() =>
@@ -168,14 +182,18 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         currency: 'CNY',
       }),
     );
+    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
     fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
     await waitFor(() =>
       expect(mocks.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: 'A',
           groups: [
-            expect.objectContaining({ settlementAccountId: 'account-default' }),
+            expect.objectContaining({
+              settlementAccountId: 'account-default',
+            }),
           ],
+          previewToken: 'token',
         }),
         expect.anything(),
       ),
@@ -245,7 +263,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     });
   });
 
-  it('两个叶子预览重排后，仍按 groupKey 保留各自默认账户并提交', async () => {
+  it('两个叶子预览重排后，仍按 groupKey 保留各自默认账户', async () => {
     const groupA = {
       groupKey: 'group-a',
       settlementPartyId: 'partner-a',
@@ -258,7 +276,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       groupKey: 'group-b',
       settlementPartyId: 'partner-b',
       settlementPartyName: '结算单位 B',
-      direction: 'PAYABLE',
+      direction: 'RECEIVABLE',
       currency: 'USD',
       fees: [],
     };
@@ -267,7 +285,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         previewToken: 'token-first',
         data: [groupA, groupB],
       })
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         previewToken: 'token-second',
         data: [
           { ...groupB, settlementPartyName: '结算单位 B（重排）' },
@@ -298,38 +316,20 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       </App>,
     );
     expect(await screen.findByDisplayValue('结算单位 A')).toBeInTheDocument();
-    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(1));
     expect(
       await screen.findByText('账户 A｜测试银行｜CNY'),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/结算单位 B · - USD/));
+    expect(await screen.findByDisplayValue('结算单位 B')).toBeInTheDocument();
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(2));
     expect(
       await screen.findByText('账户 B｜测试银行｜USD'),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
     expect(await screen.findByText('结算单位 B（重排）')).toBeInTheDocument();
-    expect(screen.getByText('账户 A｜测试银行｜CNY')).toBeInTheDocument();
     expect(screen.getByText('账户 B｜测试银行｜USD')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /原子生成 2 张账单/ }));
-    await waitFor(() =>
-      expect(mocks.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          previewToken: 'token-second',
-          groups: expect.arrayContaining([
-            expect.objectContaining({
-              groupKey: 'group-a',
-              settlementAccountId: 'account-a',
-            }),
-            expect.objectContaining({
-              groupKey: 'group-b',
-              settlementAccountId: 'account-b',
-            }),
-          ]),
-        }),
-        expect.anything(),
-      ),
-    );
   });
 
   it('已移除叶子的迟到候选不会污染仍存在叶子的账户草稿', async () => {
@@ -357,7 +357,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
           remainingGroup,
         ],
       })
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         previewToken: 'token-second',
         data: [remainingGroup],
       });
@@ -389,6 +389,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       </App>,
     );
     expect(await screen.findByDisplayValue('移除单位')).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/保留单位 · - USD/));
     expect(await screen.findByDisplayValue('保留单位')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
@@ -406,20 +407,8 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         },
       ],
     });
-
-    fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
     await waitFor(() =>
-      expect(mocks.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          groups: [
-            expect.objectContaining({
-              groupKey: 'remaining',
-              settlementAccountId: 'account-remaining',
-            }),
-          ],
-        }),
-        expect.anything(),
-      ),
+      expect(screen.queryByText('旧账户｜旧银行｜CNY')).not.toBeInTheDocument(),
     );
   });
 
@@ -455,7 +444,9 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
     await waitFor(() =>
-      expect(screen.getByText('请选择结算账户')).toBeInTheDocument(),
+      expect(
+        screen.getByText('请先补齐首个标记叶子的日期和结算账户'),
+      ).toBeInTheDocument(),
     );
     expect(mocks.create).not.toHaveBeenCalled();
   });

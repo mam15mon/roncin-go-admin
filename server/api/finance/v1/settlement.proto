@@ -458,6 +458,8 @@ message UpdateBillRequest {
   optional string statement_title = 6;
   optional int32 payment_terms_days = 7;
   string settlement_account_id = 8 [(google.api.field_behavior) = REQUIRED];
+  optional string estimated_invoice_currency = 9;
+  optional string estimated_invoice_rate = 10;
 }
 
 message ConfirmBillRequest {
@@ -538,17 +540,38 @@ message FinanceBill {
   string settlement_bank_account = 43;
   string settlement_account_currency = 44;
   string settlement_swift_code = 45;
+  optional string estimated_invoice_currency = 46;
+  optional string estimated_invoice_rate = 47;
+  optional string estimated_invoice_amount = 48;
 }
 
 message BillGroupingPolicy {
   bool split_by_order = 1;
   bool split_by_tax_rate = 2;
+  BillGroupingMode mode = 3;
+}
+
+enum BillGroupingMode {
+  BILL_GROUPING_MODE_UNSPECIFIED = 0;
+  BILL_GROUPING_MODE_NORMAL = 1;
+  BILL_GROUPING_MODE_NETTING = 2;
 }
 
 message PreviewBillBatchRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
   BillGroupingPolicy grouping_policy = 2 [(google.api.field_behavior) = REQUIRED];
   string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
+  repeated BillBatchPreviewGroupConfigInput group_configs = 4;
+}
+
+// BillBatchPreviewGroupConfigInput 由服务端上一轮返回的 group_key 标识叶子；
+// 初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。
+message BillBatchPreviewGroupConfigInput {
+  string group_key = 1 [(google.api.field_behavior) = REQUIRED];
+  string bill_date = 2;
+  string settlement_account_id = 3;
+  optional string estimated_invoice_currency = 4;
+  optional string estimated_invoice_rate = 5;
 }
 
 message BillBatchPreviewGroup {
@@ -566,6 +589,11 @@ message BillBatchPreviewGroup {
   string net_amount = 12;
   string tax_amount = 13;
   string base_currency_amount = 14;
+  bool is_temporary_bill_date = 15;
+  bool configuration_complete = 16;
+  string estimated_invoice_currency = 17;
+  string estimated_invoice_rate = 18;
+  string estimated_invoice_amount = 19;
 }
 
 message PreviewBillBatchResponse {
@@ -585,6 +613,8 @@ message CreateBillBatchGroupInput {
   optional int32 payment_terms_days = 5;
   optional string note = 6;
   string settlement_account_id = 7 [(google.api.field_behavior) = REQUIRED];
+  optional string estimated_invoice_currency = 8;
+  optional string estimated_invoice_rate = 9;
 }
 
 message FinanceSettlementAccountOption {
@@ -605,7 +635,9 @@ message ListBillSettlementAccountCandidatesRequest {
   string currency = 4 [(google.api.field_behavior) = REQUIRED];
 }
 message ListBillSettlementAccountCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementAccountOption data = 4; string trace_id = 5; }
-message ListBillSettlementAccountUpdateCandidatesRequest { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message ListBillSettlementAccountUpdateCandidatesRequest {
+  string bill_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
 message ListBillSettlementAccountUpdateCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementAccountOption data = 4; string trace_id = 5; }
 
 message CreateBillBatchRequest {
@@ -628,6 +660,7 @@ message FinanceBillBatch {
   string base_currency = 8;
   repeated FinanceBill bills = 9;
   string created_at = 10;
+  BillGroupingMode mode = 11;
 }
 
 message CreateBillBatchResponse {

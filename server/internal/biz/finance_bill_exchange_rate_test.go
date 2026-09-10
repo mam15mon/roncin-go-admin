@@ -14,9 +14,12 @@ type financeBillTargetOrganizationRepoStub struct {
 	updateScopes []uuid.UUID
 	updateInput  UpdateFinanceBillInput
 	updateAudit  *AuditEvent
+	fees         []*FinanceBillableFee
+	callOrder    []string
 }
 
 func (s *financeBillTargetOrganizationRepoStub) Get(_ context.Context, _ []uuid.UUID, _ uuid.UUID) (*FinanceBill, error) {
+	s.callOrder = append(s.callOrder, "get")
 	return s.bill, nil
 }
 
@@ -25,6 +28,27 @@ func (s *financeBillTargetOrganizationRepoStub) Update(_ context.Context, organi
 	s.updateInput = input
 	s.updateAudit = audit
 	return s.bill, nil
+}
+
+func (s *financeBillTargetOrganizationRepoStub) LoadBillableFees(context.Context, uuid.UUID, []uuid.UUID) ([]*FinanceBillableFee, error) {
+	s.callOrder = append(s.callOrder, "fees")
+	return s.fees, nil
+}
+
+func (*financeBillTargetOrganizationRepoStub) ValidateBillCurrencies(context.Context, []string) error {
+	return nil
+}
+
+func (s *financeBillTargetOrganizationRepoStub) HydrateBillSettlementAccounts(_ context.Context, bills []*FinanceBill) error {
+	s.callOrder = append(s.callOrder, "account")
+	for _, bill := range bills {
+		bill.SettlementAccountName = "测试账户"
+		bill.SettlementAccountHolder = "测试客户"
+		bill.SettlementBankName = "测试银行"
+		bill.SettlementBankAccount = "001"
+		bill.SettlementAccountCurrency = bill.Currency
+	}
+	return nil
 }
 
 type financeBillTargetExchangeRateRepoStub struct {
@@ -79,17 +103,22 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	actorID := uuid.New()
 	billID := uuid.New()
 	settingID := uuid.New()
+	feeID, orderID, partyID, accountID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
+	taxRate := decimal.Zero
 	billRepo := &financeBillTargetOrganizationRepoStub{bill: &FinanceBill{
 		ID: billID, OrganizationID: targetOrganizationID, Direction: OrderFeeReceivable,
-		Currency: "USD", TotalAmount: decimal.NewFromInt(100), Version: 2,
+		Status: FinanceBillDraft, SettlementPartyID: partyID, SettlementPartyName: "测试客户",
+		Currency: "USD", BaseCurrency: "CNY", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
+		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero}},
 	}}
+	billRepo.fees = []*FinanceBillableFee{{OrderNo: "SE001", Fee: &OrderFee{ID: feeID, OrderID: orderID, Direction: OrderFeeReceivable, Status: OrderFeeBilled, SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, TaxRate: &taxRate, Currency: "USD", ExchangeRate: decimal.RequireFromString("7.10"), BaseCurrency: "CNY", BaseCurrencyAmount: decimal.NewFromInt(710)}}}
 	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolved: &ResolvedExchangeRate{
 		Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-09-09", SettingID: &settingID,
 	}}
-	usecase := NewFinanceBillUsecase(billRepo, NewExchangeRateUsecase(exchangeRepo), nil)
+	usecase := NewFinanceBillUsecase(billRepo, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
 
 	_, err := usecase.Update(t.Context(), []uuid.UUID{currentOrganizationID, targetOrganizationID}, actorID, UpdateFinanceBillInput{
-		ID: billID, BillDate: "2026-09-09", ExpectedVersion: 2,
+		ID: billID, BillDate: "2026-09-09", ExpectedVersion: 2, SettlementAccountID: accountID,
 	})
 	if err != nil {
 		t.Fatalf("跨组织账单更新失败: %v", err)
@@ -102,5 +131,8 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	}
 	if billRepo.updateInput.ExchangeRate.StringFixed(8) != "7.20000000" || billRepo.updateInput.BaseCurrencyAmount.StringFixed(8) != "720.00000000" {
 		t.Fatalf("目标组织汇率快照未传入仓储: %#v", billRepo.updateInput)
+	}
+	if len(billRepo.callOrder) < 4 || billRepo.callOrder[0] != "get" || billRepo.callOrder[1] != "get" || billRepo.callOrder[2] != "fees" || billRepo.callOrder[3] != "account" {
+		t.Fatalf("草稿更新锁定顺序 = %v，期望预读后按账单、费用、账户处理", billRepo.callOrder)
 	}
 }

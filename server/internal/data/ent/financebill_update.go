@@ -158,6 +158,66 @@ func (_u *FinanceBillUpdate) ClearSettlementSwiftCode() *FinanceBillUpdate {
 	return _u
 }
 
+// SetEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field.
+func (_u *FinanceBillUpdate) SetEstimatedInvoiceCurrency(v string) *FinanceBillUpdate {
+	_u.mutation.SetEstimatedInvoiceCurrency(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillableEstimatedInvoiceCurrency(v *string) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetEstimatedInvoiceCurrency(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceCurrency clears the value of the "estimated_invoice_currency" field.
+func (_u *FinanceBillUpdate) ClearEstimatedInvoiceCurrency() *FinanceBillUpdate {
+	_u.mutation.ClearEstimatedInvoiceCurrency()
+	return _u
+}
+
+// SetEstimatedInvoiceRate sets the "estimated_invoice_rate" field.
+func (_u *FinanceBillUpdate) SetEstimatedInvoiceRate(v string) *FinanceBillUpdate {
+	_u.mutation.SetEstimatedInvoiceRate(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceRate sets the "estimated_invoice_rate" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillableEstimatedInvoiceRate(v *string) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetEstimatedInvoiceRate(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceRate clears the value of the "estimated_invoice_rate" field.
+func (_u *FinanceBillUpdate) ClearEstimatedInvoiceRate() *FinanceBillUpdate {
+	_u.mutation.ClearEstimatedInvoiceRate()
+	return _u
+}
+
+// SetEstimatedInvoiceAmount sets the "estimated_invoice_amount" field.
+func (_u *FinanceBillUpdate) SetEstimatedInvoiceAmount(v string) *FinanceBillUpdate {
+	_u.mutation.SetEstimatedInvoiceAmount(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceAmount sets the "estimated_invoice_amount" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillableEstimatedInvoiceAmount(v *string) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetEstimatedInvoiceAmount(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceAmount clears the value of the "estimated_invoice_amount" field.
+func (_u *FinanceBillUpdate) ClearEstimatedInvoiceAmount() *FinanceBillUpdate {
+	_u.mutation.ClearEstimatedInvoiceAmount()
+	return _u
+}
+
 // SetCurrency sets the "currency" field.
 func (_u *FinanceBillUpdate) SetCurrency(v string) *FinanceBillUpdate {
 	_u.mutation.SetCurrency(v)
@@ -784,6 +844,11 @@ func (_u *FinanceBillUpdate) check() error {
 			return &ValidationError{Name: "settlement_swift_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_swift_code": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.EstimatedInvoiceCurrency(); ok {
+		if err := financebill.EstimatedInvoiceCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "estimated_invoice_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.estimated_invoice_currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Currency(); ok {
 		if err := financebill.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.currency": %w`, err)}
@@ -879,6 +944,24 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.SettlementSwiftCodeCleared() {
 		_spec.ClearField(financebill.FieldSettlementSwiftCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceCurrency(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceCurrencyCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceRate(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceRate, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceRateCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceAmount(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceAmount, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceAmountCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceAmount, field.TypeString)
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(financebill.FieldCurrency, field.TypeString, value)
@@ -1343,6 +1426,66 @@ func (_u *FinanceBillUpdateOne) SetNillableSettlementSwiftCode(v *string) *Finan
 // ClearSettlementSwiftCode clears the value of the "settlement_swift_code" field.
 func (_u *FinanceBillUpdateOne) ClearSettlementSwiftCode() *FinanceBillUpdateOne {
 	_u.mutation.ClearSettlementSwiftCode()
+	return _u
+}
+
+// SetEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field.
+func (_u *FinanceBillUpdateOne) SetEstimatedInvoiceCurrency(v string) *FinanceBillUpdateOne {
+	_u.mutation.SetEstimatedInvoiceCurrency(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillableEstimatedInvoiceCurrency(v *string) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetEstimatedInvoiceCurrency(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceCurrency clears the value of the "estimated_invoice_currency" field.
+func (_u *FinanceBillUpdateOne) ClearEstimatedInvoiceCurrency() *FinanceBillUpdateOne {
+	_u.mutation.ClearEstimatedInvoiceCurrency()
+	return _u
+}
+
+// SetEstimatedInvoiceRate sets the "estimated_invoice_rate" field.
+func (_u *FinanceBillUpdateOne) SetEstimatedInvoiceRate(v string) *FinanceBillUpdateOne {
+	_u.mutation.SetEstimatedInvoiceRate(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceRate sets the "estimated_invoice_rate" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillableEstimatedInvoiceRate(v *string) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetEstimatedInvoiceRate(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceRate clears the value of the "estimated_invoice_rate" field.
+func (_u *FinanceBillUpdateOne) ClearEstimatedInvoiceRate() *FinanceBillUpdateOne {
+	_u.mutation.ClearEstimatedInvoiceRate()
+	return _u
+}
+
+// SetEstimatedInvoiceAmount sets the "estimated_invoice_amount" field.
+func (_u *FinanceBillUpdateOne) SetEstimatedInvoiceAmount(v string) *FinanceBillUpdateOne {
+	_u.mutation.SetEstimatedInvoiceAmount(v)
+	return _u
+}
+
+// SetNillableEstimatedInvoiceAmount sets the "estimated_invoice_amount" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillableEstimatedInvoiceAmount(v *string) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetEstimatedInvoiceAmount(*v)
+	}
+	return _u
+}
+
+// ClearEstimatedInvoiceAmount clears the value of the "estimated_invoice_amount" field.
+func (_u *FinanceBillUpdateOne) ClearEstimatedInvoiceAmount() *FinanceBillUpdateOne {
+	_u.mutation.ClearEstimatedInvoiceAmount()
 	return _u
 }
 
@@ -1985,6 +2128,11 @@ func (_u *FinanceBillUpdateOne) check() error {
 			return &ValidationError{Name: "settlement_swift_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_swift_code": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.EstimatedInvoiceCurrency(); ok {
+		if err := financebill.EstimatedInvoiceCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "estimated_invoice_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.estimated_invoice_currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Currency(); ok {
 		if err := financebill.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.currency": %w`, err)}
@@ -2097,6 +2245,24 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 	}
 	if _u.mutation.SettlementSwiftCodeCleared() {
 		_spec.ClearField(financebill.FieldSettlementSwiftCode, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceCurrency(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceCurrencyCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceRate(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceRate, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceRateCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.EstimatedInvoiceAmount(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceAmount, field.TypeString, value)
+	}
+	if _u.mutation.EstimatedInvoiceAmountCleared() {
+		_spec.ClearField(financebill.FieldEstimatedInvoiceAmount, field.TypeString)
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(financebill.FieldCurrency, field.TypeString, value)

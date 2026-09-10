@@ -1,4 +1,5 @@
 import {
+  Card,
   DatePicker,
   Form,
   type FormInstance,
@@ -11,6 +12,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { settlementServiceListBillSettlementAccountUpdateCandidates } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { getCurrencyOptions, type SelectOption } from '@/utils/options';
 import type { BillFormValues } from './billConstants';
 
 interface BillEditModalProps {
@@ -34,7 +36,22 @@ export default function BillEditModal({
     API.FinanceSettlementAccountOption[]
   >([]);
   const [accountsLoading, setAccountsLoading] = useState(false);
+  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
   const requestSequenceRef = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCurrencyOptions()
+      .then((options) => {
+        if (!cancelled) setCurrencyOptions(options);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrencyOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const requestSequence = ++requestSequenceRef.current;
@@ -125,6 +142,78 @@ export default function BillEditModal({
               }))}
             />
           </Form.Item>
+          <Card
+            size="small"
+            title="固定账单币种与账单日汇率"
+            style={{ width: '100%' }}
+          >
+            <Space wrap>
+              <span>账单币种：{editing?.currency || '-'}</span>
+              <span>组织本位币：{editing?.baseCurrency || '-'}</span>
+              <span>生效汇率：{editing?.exchangeRate || '服务端未提供'}</span>
+              <span>
+                汇率日期：{editing?.exchangeRateDate || '服务端未提供'}
+              </span>
+            </Space>
+          </Card>
+          <Card
+            size="small"
+            title="预计开票配置（不改变固定账单币种）"
+            style={{ width: '100%' }}
+          >
+            <Space size={16} align="start" wrap>
+              <Form.Item name="estimatedInvoiceCurrency" label="预计开票币种">
+                <Select
+                  allowClear
+                  placeholder="默认使用账单币种"
+                  options={currencyOptions}
+                  style={{ minWidth: 220 }}
+                />
+              </Form.Item>
+              <Form.Item
+                name="estimatedInvoiceRate"
+                label="预计开票汇率"
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator: async (_, rate) => {
+                      const estimatedCurrency = getFieldValue(
+                        'estimatedInvoiceCurrency',
+                      );
+                      const billCurrency = editing?.currency;
+                      const normalizedRate = rate?.trim();
+                      if (!estimatedCurrency) {
+                        if (normalizedRate) {
+                          throw new Error(
+                            '填写预计开票汇率时必须选择预计开票币种',
+                          );
+                        }
+                        return;
+                      }
+                      if (
+                        estimatedCurrency !== billCurrency &&
+                        !normalizedRate
+                      ) {
+                        throw new Error(
+                          '预计开票币种与账单币种不同时必须填写预计开票汇率',
+                        );
+                      }
+                      if (
+                        estimatedCurrency === billCurrency &&
+                        normalizedRate &&
+                        Number(normalizedRate) !== 1
+                      ) {
+                        throw new Error(
+                          '预计开票币种与账单币种相同时，汇率必须为 1',
+                        );
+                      }
+                    },
+                  }),
+                ]}
+              >
+                <Input placeholder="预计汇率" style={{ minWidth: 220 }} />
+              </Form.Item>
+            </Space>
+          </Card>
           <Form.Item name="note" label="备注" style={{ minWidth: 620 }}>
             <Input maxLength={500} />
           </Form.Item>

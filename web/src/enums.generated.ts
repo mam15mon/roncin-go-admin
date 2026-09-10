@@ -175,6 +175,14 @@ export const BilledFeeEditableField = {
 
 export type BilledFeeEditableField = (typeof BilledFeeEditableField)[keyof typeof BilledFeeEditableField];
 
+export const BillGroupingMode = {
+  BILL_GROUPING_MODE_UNSPECIFIED: 0,
+  BILL_GROUPING_MODE_NORMAL: 1,
+  BILL_GROUPING_MODE_NETTING: 2,
+} as const;
+
+export type BillGroupingMode = (typeof BillGroupingMode)[keyof typeof BillGroupingMode];
+
 export const FinanceOrganizationPurpose = {
   FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED: 0,
   FINANCE_ORGANIZATION_PURPOSE_BILL_READ: 1,

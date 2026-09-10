@@ -171,6 +171,48 @@ func (_c *FinanceBillCreate) SetNillableSettlementSwiftCode(v *string) *FinanceB
 	return _c
 }
 
+// SetEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceCurrency(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceCurrency(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceCurrency(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceCurrency(*v)
+	}
+	return _c
+}
+
+// SetEstimatedInvoiceRate sets the "estimated_invoice_rate" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceRate(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceRate(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceRate sets the "estimated_invoice_rate" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceRate(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceRate(*v)
+	}
+	return _c
+}
+
+// SetEstimatedInvoiceAmount sets the "estimated_invoice_amount" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceAmount(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceAmount(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceAmount sets the "estimated_invoice_amount" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceAmount(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceAmount(*v)
+	}
+	return _c
+}
+
 // SetCurrency sets the "currency" field.
 func (_c *FinanceBillCreate) SetCurrency(v string) *FinanceBillCreate {
 	_c.mutation.SetCurrency(v)
@@ -677,6 +719,11 @@ func (_c *FinanceBillCreate) check() error {
 			return &ValidationError{Name: "settlement_swift_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_swift_code": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.EstimatedInvoiceCurrency(); ok {
+		if err := financebill.EstimatedInvoiceCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "estimated_invoice_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.estimated_invoice_currency": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Currency(); !ok {
 		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "FinanceBill.currency"`)}
 	}
@@ -864,6 +911,18 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SettlementSwiftCode(); ok {
 		_spec.SetField(financebill.FieldSettlementSwiftCode, field.TypeString, value)
 		_node.SettlementSwiftCode = value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceCurrency(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString, value)
+		_node.EstimatedInvoiceCurrency = &value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceRate(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceRate, field.TypeString, value)
+		_node.EstimatedInvoiceRate = &value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceAmount(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceAmount, field.TypeString, value)
+		_node.EstimatedInvoiceAmount = &value
 	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financebill.FieldCurrency, field.TypeString, value)

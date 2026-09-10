@@ -50,6 +50,12 @@ const (
 	FieldSettlementAccountCurrency = "settlement_account_currency"
 	// FieldSettlementSwiftCode holds the string denoting the settlement_swift_code field in the database.
 	FieldSettlementSwiftCode = "settlement_swift_code"
+	// FieldEstimatedInvoiceCurrency holds the string denoting the estimated_invoice_currency field in the database.
+	FieldEstimatedInvoiceCurrency = "estimated_invoice_currency"
+	// FieldEstimatedInvoiceRate holds the string denoting the estimated_invoice_rate field in the database.
+	FieldEstimatedInvoiceRate = "estimated_invoice_rate"
+	// FieldEstimatedInvoiceAmount holds the string denoting the estimated_invoice_amount field in the database.
+	FieldEstimatedInvoiceAmount = "estimated_invoice_amount"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
@@ -199,6 +205,9 @@ var Columns = []string{
 	FieldSettlementBankAccount,
 	FieldSettlementAccountCurrency,
 	FieldSettlementSwiftCode,
+	FieldEstimatedInvoiceCurrency,
+	FieldEstimatedInvoiceRate,
+	FieldEstimatedInvoiceAmount,
 	FieldCurrency,
 	FieldBaseCurrency,
 	FieldExchangeRate,
@@ -258,6 +267,8 @@ var (
 	SettlementAccountCurrencyValidator func(string) error
 	// SettlementSwiftCodeValidator is a validator for the "settlement_swift_code" field. It is called by the builders before save.
 	SettlementSwiftCodeValidator func(string) error
+	// EstimatedInvoiceCurrencyValidator is a validator for the "estimated_invoice_currency" field. It is called by the builders before save.
+	EstimatedInvoiceCurrencyValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
@@ -451,6 +462,21 @@ func BySettlementAccountCurrency(opts ...sql.OrderTermOption) OrderOption {
 // BySettlementSwiftCode orders the results by the settlement_swift_code field.
 func BySettlementSwiftCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementSwiftCode, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceCurrency orders the results by the estimated_invoice_currency field.
+func ByEstimatedInvoiceCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceCurrency, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceRate orders the results by the estimated_invoice_rate field.
+func ByEstimatedInvoiceRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceRate, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceAmount orders the results by the estimated_invoice_amount field.
+func ByEstimatedInvoiceAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceAmount, opts...).ToFunc()
 }
 
 // ByCurrency orders the results by the currency field.

@@ -36,6 +36,8 @@ type FinanceBillBatch struct {
 	SplitByOrder bool `json:"split_by_order,omitempty"`
 	// SplitByTaxRate holds the value of the "split_by_tax_rate" field.
 	SplitByTaxRate bool `json:"split_by_tax_rate,omitempty"`
+	// GroupingMode holds the value of the "grouping_mode" field.
+	GroupingMode financebillbatch.GroupingMode `json:"grouping_mode,omitempty"`
 	// FeeCount holds the value of the "fee_count" field.
 	FeeCount int `json:"fee_count,omitempty"`
 	// BillCount holds the value of the "bill_count" field.
@@ -105,7 +107,7 @@ func (*FinanceBillBatch) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case financebillbatch.FieldFeeCount, financebillbatch.FieldBillCount:
 			values[i] = new(sql.NullInt64)
-		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldTotalBaseAmount, financebillbatch.FieldBaseCurrency:
+		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldGroupingMode, financebillbatch.FieldTotalBaseAmount, financebillbatch.FieldBaseCurrency:
 			values[i] = new(sql.NullString)
 		case financebillbatch.FieldCreatedAt, financebillbatch.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -179,6 +181,12 @@ func (_m *FinanceBillBatch) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field split_by_tax_rate", values[i])
 			} else if value.Valid {
 				_m.SplitByTaxRate = value.Bool
+			}
+		case financebillbatch.FieldGroupingMode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field grouping_mode", values[i])
+			} else if value.Valid {
+				_m.GroupingMode = financebillbatch.GroupingMode(value.String)
 			}
 		case financebillbatch.FieldFeeCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -284,6 +292,9 @@ func (_m *FinanceBillBatch) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("split_by_tax_rate=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SplitByTaxRate))
+	builder.WriteString(", ")
+	builder.WriteString("grouping_mode=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GroupingMode))
 	builder.WriteString(", ")
 	builder.WriteString("fee_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.FeeCount))

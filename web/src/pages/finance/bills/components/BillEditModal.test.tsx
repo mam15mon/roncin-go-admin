@@ -9,16 +9,30 @@ const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBillSettlementAccountUpdateCandidates: mocks.accounts,
 }));
+vi.mock('@/utils/options', () => ({
+  getCurrencyOptions: vi.fn().mockResolvedValue([
+    { label: 'CNY - 人民币', value: 'CNY' },
+    { label: 'USD - 美元', value: 'USD' },
+  ]),
+}));
 
 import BillEditModal from './BillEditModal';
 
 function EditHarness({ editing }: { editing?: API.FinanceBill }) {
   const [form] = Form.useForm<BillFormValues>();
   const settlementAccountId = Form.useWatch('settlementAccountId', form);
+  const estimatedInvoiceCurrency = Form.useWatch(
+    'estimatedInvoiceCurrency',
+    form,
+  );
+  const estimatedInvoiceRate = Form.useWatch('estimatedInvoiceRate', form);
   useEffect(() => {
     form.setFieldsValue({
       statementTitle: editing?.statementTitle || '',
       settlementAccountId: editing?.settlementAccountId || '',
+      estimatedInvoiceCurrency:
+        editing?.estimatedInvoiceCurrency || editing?.currency || '',
+      estimatedInvoiceRate: editing?.estimatedInvoiceRate || '',
     });
   }, [editing, form]);
   return (
@@ -32,6 +46,12 @@ function EditHarness({ editing }: { editing?: API.FinanceBill }) {
         onOk={async () => {}}
       />
       <output data-testid="settlement-account-id">{settlementAccountId}</output>
+      <output data-testid="estimated-invoice-currency">
+        {estimatedInvoiceCurrency}
+      </output>
+      <output data-testid="estimated-invoice-rate">
+        {estimatedInvoiceRate}
+      </output>
     </>
   );
 }
@@ -64,24 +84,30 @@ describe('BillEditModal 结算账户候选', () => {
         editing={{
           id: 'bill-a',
           billNo: 'BILL-A',
+          currency: 'CNY',
           settlementAccountId: 'account-a',
         }}
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({ billId: 'bill-a' }),
+      expect(mocks.accounts).toHaveBeenCalledWith({
+        billId: 'bill-a',
+      }),
     );
     view.rerender(
       <EditHarness
         editing={{
           id: 'bill-b',
           billNo: 'BILL-B',
+          currency: 'CNY',
           settlementAccountId: 'account-b',
         }}
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({ billId: 'bill-b' }),
+      expect(mocks.accounts).toHaveBeenCalledWith({
+        billId: 'bill-b',
+      }),
     );
     resolveA?.({
       data: [
@@ -96,7 +122,7 @@ describe('BillEditModal 结算账户候选', () => {
     await waitFor(() =>
       expect(screen.getByText('编辑账单 BILL-B')).toBeInTheDocument(),
     );
-    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.mouseDown(screen.getByLabelText('结算账户'));
     expect(
       (await screen.findAllByText('账户 B｜银行 B｜CNY')).length,
     ).toBeGreaterThan(1);
@@ -120,17 +146,44 @@ describe('BillEditModal 结算账户候选', () => {
         editing={{
           id: 'bill-a',
           billNo: 'BILL-A',
+          currency: 'CNY',
           settlementAccountId: 'removed-account',
         }}
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({ billId: 'bill-a' }),
+      expect(mocks.accounts).toHaveBeenCalledWith({
+        billId: 'bill-a',
+      }),
     );
     await waitFor(() =>
       expect(screen.getByTestId('settlement-account-id')).toHaveTextContent(
         'replacement-account',
       ),
+    );
+  });
+
+  it('展示固定账单币种及独立的预计开票字段', async () => {
+    mocks.accounts.mockResolvedValue({ data: [] });
+    render(
+      <EditHarness
+        editing={{
+          id: 'bill-a',
+          billNo: 'BILL-A',
+          currency: 'USD',
+          estimatedInvoiceCurrency: 'CNY',
+          estimatedInvoiceRate: '7.2',
+        }}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByText('账单币种：USD')).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId('estimated-invoice-currency')).toHaveTextContent(
+      'CNY',
+    );
+    expect(screen.getByTestId('estimated-invoice-rate')).toHaveTextContent(
+      '7.2',
     );
   });
 });

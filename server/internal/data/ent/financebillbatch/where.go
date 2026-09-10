@@ -436,6 +436,26 @@ func SplitByTaxRateNEQ(v bool) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(sql.FieldNEQ(FieldSplitByTaxRate, v))
 }
 
+// GroupingModeEQ applies the EQ predicate on the "grouping_mode" field.
+func GroupingModeEQ(v GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldEQ(FieldGroupingMode, v))
+}
+
+// GroupingModeNEQ applies the NEQ predicate on the "grouping_mode" field.
+func GroupingModeNEQ(v GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldNEQ(FieldGroupingMode, v))
+}
+
+// GroupingModeIn applies the In predicate on the "grouping_mode" field.
+func GroupingModeIn(vs ...GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldIn(FieldGroupingMode, vs...))
+}
+
+// GroupingModeNotIn applies the NotIn predicate on the "grouping_mode" field.
+func GroupingModeNotIn(vs ...GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldNotIn(FieldGroupingMode, vs...))
+}
+
 // FeeCountEQ applies the EQ predicate on the "fee_count" field.
 func FeeCountEQ(v int) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(sql.FieldEQ(FieldFeeCount, v))

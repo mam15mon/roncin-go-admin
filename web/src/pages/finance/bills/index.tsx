@@ -206,6 +206,8 @@ export default function FinanceBillsPage() {
       paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
       settlementAccountId: bill.settlementAccountId,
+      estimatedInvoiceCurrency: bill.estimatedInvoiceCurrency || bill.currency,
+      estimatedInvoiceRate: bill.estimatedInvoiceRate,
     });
     setEditOpen(true);
   };
@@ -239,6 +241,9 @@ export default function FinanceBillsPage() {
           paymentTermsDays: values.paymentTermsDays,
           note: values.note?.trim() || undefined,
           settlementAccountId: values.settlementAccountId,
+          estimatedInvoiceCurrency:
+            values.estimatedInvoiceCurrency || undefined,
+          estimatedInvoiceRate: values.estimatedInvoiceRate || undefined,
         },
       );
       message.success('账单已成功更新并自动刷新汇率快照');

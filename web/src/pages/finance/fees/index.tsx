@@ -55,14 +55,21 @@ export function resolveSingleBillCreationOrganization(
     : undefined;
 }
 
+// 费用台账允许检查双向往来，但普通账单必须由财务按方向分别发起。
+export function hasMixedBillDirections(rows: API.FeeLedgerItem[]) {
+  return new Set(rows.map((row) => row.direction).filter(Boolean)).size > 1;
+}
+
 // 费用标签写入以当前筛选的单一公司为边界；跨组织选择应在请求候选和提交前拦截。
 export function feeRowsBelongToOrganization(
   rows: API.FeeLedgerItem[],
   organizationId: string | undefined,
 ) {
-  return Boolean(organizationId) &&
+  return (
+    Boolean(organizationId) &&
     rows.length > 0 &&
-    rows.every((row) => row.organizationId === organizationId);
+    rows.every((row) => row.organizationId === organizationId)
+  );
 }
 
 export default function FinanceFeeLedgerPage() {
@@ -370,6 +377,12 @@ export default function FinanceFeeLedgerPage() {
           if (invalidRows.length > 0) {
             message.warning(
               '所选费用中包含不可建账的记录，请仅选择已确认且未入账单的费用',
+            );
+            return;
+          }
+          if (hasMixedBillDirections(rows)) {
+            message.warning(
+              '普通账单不能同时包含应收和应付，请只保留一个方向后再建账，或改用对冲账单。',
             );
             return;
           }

@@ -557,6 +557,19 @@ declare namespace API {
     netAmount?: string;
     taxAmount?: string;
     baseCurrencyAmount?: string;
+    isTemporaryBillDate?: boolean;
+    configurationComplete?: boolean;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
+    estimatedInvoiceAmount?: string;
+  };
+
+  type BillBatchPreviewGroupConfigInput = {
+    groupKey: string;
+    billDate?: string;
+    settlementAccountId?: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type BilledFeeEditPolicy = {
@@ -577,6 +590,7 @@ declare namespace API {
   type BillGroupingPolicy = {
     splitByOrder?: boolean;
     splitByTaxRate?: boolean;
+    mode?: number;
   };
 
   type BillingUnit = {
@@ -963,6 +977,8 @@ declare namespace API {
     paymentTermsDays?: number;
     note?: string;
     settlementAccountId: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type CreateBillBatchRequest = {
@@ -2230,6 +2246,9 @@ declare namespace API {
     settlementBankAccount?: string;
     settlementAccountCurrency?: string;
     settlementSwiftCode?: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
+    estimatedInvoiceAmount?: string;
   };
 
   type FinanceBillBatch = {
@@ -2243,6 +2262,7 @@ declare namespace API {
     baseCurrency?: string;
     bills?: FinanceBill[];
     createdAt?: string;
+    mode?: number;
   };
 
   type FinanceBillLine = {
@@ -4990,6 +5010,7 @@ declare namespace API {
     feeIds: string[];
     groupingPolicy: BillGroupingPolicy;
     organizationId: string;
+    groupConfigs?: BillBatchPreviewGroupConfigInput[];
   };
 
   type PreviewBillBatchResponse = {
@@ -6877,6 +6898,8 @@ declare namespace API {
     statementTitle?: string;
     paymentTermsDays?: number;
     settlementAccountId: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type UpdateBillResponse = {

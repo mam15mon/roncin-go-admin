@@ -56,6 +56,12 @@ type FinanceBill struct {
 	SettlementAccountCurrency string `json:"settlement_account_currency,omitempty"`
 	// SettlementSwiftCode holds the value of the "settlement_swift_code" field.
 	SettlementSwiftCode string `json:"settlement_swift_code,omitempty"`
+	// EstimatedInvoiceCurrency holds the value of the "estimated_invoice_currency" field.
+	EstimatedInvoiceCurrency *string `json:"estimated_invoice_currency,omitempty"`
+	// EstimatedInvoiceRate holds the value of the "estimated_invoice_rate" field.
+	EstimatedInvoiceRate *string `json:"estimated_invoice_rate,omitempty"`
+	// EstimatedInvoiceAmount holds the value of the "estimated_invoice_amount" field.
+	EstimatedInvoiceAmount *string `json:"estimated_invoice_amount,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
@@ -231,7 +237,7 @@ func (*FinanceBill) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financebill.FieldFeeCount, financebill.FieldPaymentTermsDays, financebill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldSettlementAccountName, financebill.FieldSettlementAccountHolder, financebill.FieldSettlementBankName, financebill.FieldSettlementBankAccount, financebill.FieldSettlementAccountCurrency, financebill.FieldSettlementSwiftCode, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
+		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldSettlementAccountName, financebill.FieldSettlementAccountHolder, financebill.FieldSettlementBankName, financebill.FieldSettlementBankAccount, financebill.FieldSettlementAccountCurrency, financebill.FieldSettlementSwiftCode, financebill.FieldEstimatedInvoiceCurrency, financebill.FieldEstimatedInvoiceRate, financebill.FieldEstimatedInvoiceAmount, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financebill.FieldCreatedAt, financebill.FieldUpdatedAt, financebill.FieldConfirmedAt, financebill.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -360,6 +366,27 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field settlement_swift_code", values[i])
 			} else if value.Valid {
 				_m.SettlementSwiftCode = value.String
+			}
+		case financebill.FieldEstimatedInvoiceCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field estimated_invoice_currency", values[i])
+			} else if value.Valid {
+				_m.EstimatedInvoiceCurrency = new(string)
+				*_m.EstimatedInvoiceCurrency = value.String
+			}
+		case financebill.FieldEstimatedInvoiceRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field estimated_invoice_rate", values[i])
+			} else if value.Valid {
+				_m.EstimatedInvoiceRate = new(string)
+				*_m.EstimatedInvoiceRate = value.String
+			}
+		case financebill.FieldEstimatedInvoiceAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field estimated_invoice_amount", values[i])
+			} else if value.Valid {
+				_m.EstimatedInvoiceAmount = new(string)
+				*_m.EstimatedInvoiceAmount = value.String
 			}
 		case financebill.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -636,6 +663,21 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("settlement_swift_code=")
 	builder.WriteString(_m.SettlementSwiftCode)
+	builder.WriteString(", ")
+	if v := _m.EstimatedInvoiceCurrency; v != nil {
+		builder.WriteString("estimated_invoice_currency=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.EstimatedInvoiceRate; v != nil {
+		builder.WriteString("estimated_invoice_rate=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.EstimatedInvoiceAmount; v != nil {
+		builder.WriteString("estimated_invoice_amount=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
