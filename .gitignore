@@ -15,5 +15,6 @@ web/test-results/
 server/bin/
 server/tmp/
 server/var/
+server/migrate
 server/internal/webassets/dist/*
 !server/internal/webassets/dist/.gitkeep
