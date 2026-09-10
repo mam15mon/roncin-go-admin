@@ -12,6 +12,9 @@ export default defineConfig({
     baseURL: process.env.RONCIN_WEB_BASE_URL || 'http://127.0.0.1:8001',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // 验收编排以 max dev 开发态服务承载 e2e，页面按需编译存在秒级首屏延迟；
+    // 断言等待窗放宽到 15s，避免把开发态编译抖动误判为页面缺陷。
+    expect: { timeout: 15_000 },
     ...devices['Desktop Chrome'],
   },
 });

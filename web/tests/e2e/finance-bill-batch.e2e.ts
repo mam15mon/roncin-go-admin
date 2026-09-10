@@ -1,4 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
+
+// 验收编排以 max dev 开发态服务承载 e2e，页面按需编译存在秒级首屏延迟；
+// 文件级放宽断言等待窗，避免把开发态编译抖动误判为页面缺陷。
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 function requiredEnvironment(name: string) {
   const value = process.env[name]?.trim();
@@ -6,7 +10,11 @@ function requiredEnvironment(name: string) {
   return value;
 }
 
+// 验收编排以 max dev 开发态服务承载本用例，页面按需编译；
+// 全链路要跨越账单、费用、往来单位、发票、资金、核销等多个页面，
+// 按官方 slow 语义放宽超时，避免把开发态首屏编译时间误判为失败。
 test('费用、账单、开票、收付与核销页面可完成财务闭环操作', async ({ page }) => {
+  test.slow();
   await page.goto('/user/login');
   await page
     .getByPlaceholder('用户名 / 邮箱')
@@ -96,7 +104,8 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   const firstRow = page.locator('.ant-table-tbody > tr.ant-table-row').first();
   await expect(firstRow).toBeVisible();
   await firstRow.getByText('详情', { exact: true }).click();
-  await expect(page.getByText(/开票详情/)).toBeVisible();
+  // 抽屉标题按销项/进项方向区分（AC3）：本链路为销项客户发票。
+  await expect(page.getByText(/开票记录详情/)).toBeVisible();
   await expect(page.getByText('发票抬头', { exact: true })).toBeVisible();
   await expect(page.getByText('纳税人识别号', { exact: true })).toBeVisible();
   await expect(page.getByText('开票项目', { exact: true })).toBeVisible();
@@ -119,6 +128,9 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
     name: '资金与账单核销工作台',
   });
   await expect(verificationDialog).toBeVisible();
+  // Phase 1 起，核销候选按「所属公司 → 结算单位」级联：先选组织，结算单位才启用。
+  await verificationDialog.getByLabel('所属公司').click();
+  await page.locator('.ant-select-item-option').first().click();
   await verificationDialog.getByLabel('结算单位').click();
   await page
     .locator('.ant-select-item-option')

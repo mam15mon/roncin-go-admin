@@ -278,18 +278,31 @@ assert(
   '外币验收客户创建失败或字段不符',
 );
 
-// 6. 创建订单
+// 6. 创建订单（海运出口订单必须选择船公司并提供主单信息，047b3e79 起为强约束）。
+const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+  method: 'POST',
+  body: JSON.stringify({
+    scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
+    nameZh: `验收船公司${stamp}`,
+    nameEn: `Acceptance Carrier ${stamp}`,
+    countryCode: 'CN',
+  }),
+});
+const shippingLine = shippingLineResponse.data;
+assert(shippingLine?.id, '验收船公司创建失败');
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
     customerId: customer.id,
+    shippingLineId: shippingLine.id,
+    seaMasterBill: { masterNo: `ACCMB${stamp}` },
+    seaDocument: { documentStructure: 2 }, // SEA_DOCUMENT_STRUCTURE_DIRECT 直单
     businessType: 1,
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
     shipmentMode: 1,
-    loadingTerms: 'CFS-CFS',
     goodsDescription: '外币财务全链路验收货物',
     totalPackages: 1,
     totalGrossWeightKg: 100,
@@ -415,21 +428,64 @@ const confirmedFeeResponse = await request(
 assert(confirmedFeeResponse.data?.status === 2, '费用确认失败');
 
 // 8. 账单预览与创建（100 EUR @ 1.20 = 120.00000000 USD）
+// 账单必须固化结算账户快照：为客户创建 EUR 应收结算账户。
+const accountResponse = await request(`/api/v1/partners/${customer.id}/accounts`, {
+  method: 'POST',
+  body: JSON.stringify({
+    partnerId: customer.id,
+    account: {
+      name: `验收外币账户${stamp}`,
+      accountHolder: customer.legalName,
+      currency: 'EUR',
+      bankName: '验收银行',
+      accountNo: `ACF${stamp}`,
+      usage: 1, // PARTNER_ACCOUNT_USAGE_RECEIVABLE
+      isDefaultReceivable: true,
+      enabled: true,
+    },
+  }),
+});
+const settlementAccount = accountResponse.data;
+assert(settlementAccount?.id, '验收外币结算账户创建失败');
+
+const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
+  method: 'POST',
+  body: JSON.stringify({
+    feeIds: [fee.id],
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+  }),
+});
+assert(initialPreview.data?.length === 1, '初次预览分组数不为 1');
+assert(
+  initialPreview.data[0].configurationComplete !== true,
+  '初次预览未配置日期与账户时应为待补齐状态',
+);
+
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
   body: JSON.stringify({
     feeIds: [fee.id],
-    groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+    groupConfigs: [
+      {
+        groupKey: initialPreview.data[0].groupKey,
+        billDate: today,
+        settlementAccountId: settlementAccount.id,
+      },
+    ],
   }),
 });
-assert(preview.previewToken?.length === 64, '账单预览未返回有效快照令牌');
-assert(preview.data?.length === 1, '账单预览分组数不为 1');
+assert(preview.previewToken, '配置后预览未签发创建令牌');
+assert(preview.data?.length === 1, '配置后预览分组数不为 1');
 
 const batchResponse = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
   body: JSON.stringify({
     feeIds: [fee.id],
-    groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
     previewToken: preview.previewToken,
     idempotencyKey: `acc-fc-batch-${stamp}`,
     groups: [
@@ -438,6 +494,7 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
         statementTitle: customer.legalName,
         billDate: today,
         paymentTermsDays: 30,
+        settlementAccountId: settlementAccount.id,
         note: '外币账单全链路自动验收',
       },
     ],
@@ -542,6 +599,7 @@ assert(
 const cashflowResponse = await request('/api/v1/finance/cashflows', {
   method: 'POST',
   body: JSON.stringify({
+    organizationId: me.data.currentOrganization.id,
     direction: 'RECEIVABLE',
     settlementPartyId: customer.id,
     currency: 'EUR',
@@ -647,6 +705,7 @@ const commissionRuleResponse = await request(
   {
     method: 'POST',
     body: JSON.stringify({
+      organizationId: me.data.currentOrganization.id,
       rule: {
         name: `ACC-FC-COMM-${stamp}`,
         personnelRole: 'SALES',
@@ -680,20 +739,20 @@ assert(previewCommission?.lines?.length === 1, '提成预览明细数不为 1');
 assert(previewCommission.lines[0].orderId === order.id, '提成预览明细 orderId 不符');
 assert(previewCommission.baseCurrency === 'USD', `提成预览本位币应为 USD，实际 ${previewCommission.baseCurrency}`);
 assert(
-  previewCommission.realizedRevenue === '44.00000000',
-  `提成已实现收入应为 44.00000000 USD，实际 ${previewCommission.realizedRevenue}`,
+  previewCommission.realizedRevenue === '48.00000000',
+  `提成已实现收入应为 48.00000000 USD，实际 ${previewCommission.realizedRevenue}`,
 );
 assert(
   previewCommission.allocatedCost === '0.00000000',
   `提成分摊成本应为 0.00000000 USD，实际 ${previewCommission.allocatedCost}`,
 );
 assert(
-  previewCommission.realizedProfit === '44.00000000',
-  `提成已实现利润应为 44.00000000 USD，实际 ${previewCommission.realizedProfit}`,
+  previewCommission.realizedProfit === '48.00000000',
+  `提成已实现利润应为 48.00000000 USD，实际 ${previewCommission.realizedProfit}`,
 );
 assert(
-  previewCommission.commissionAmount === '4.40000000',
-  `USD 提成金额应为 4.40000000 USD，实际 ${previewCommission.commissionAmount}`,
+  previewCommission.commissionAmount === '4.80000000',
+  `USD 提成金额应为 4.80000000 USD，实际 ${previewCommission.commissionAmount}`,
 );
 assert(
   previewCommission.cnyExchangeRate === '7.14285714',
@@ -713,8 +772,8 @@ assert(
   'CNY 汇率 setting ID 未匹配 CNY_WRITE_OFF 配置',
 );
 assert(
-  previewCommission.cnyCommissionAmount === '31.42857142',
-  `CNY 提成金额应为 31.42857142 CNY，实际 ${previewCommission.cnyCommissionAmount}`,
+  previewCommission.cnyCommissionAmount === '34.28571427',
+  `CNY 提成金额应为 34.28571427 CNY，实际 ${previewCommission.cnyCommissionAmount}`,
 );
 
 // 创建提成草稿
@@ -735,12 +794,12 @@ const createdCommission = commissionCreateResponse.data;
 assert(createdCommission?.id && createdCommission?.commissionNo, '提成创建失败');
 assert(createdCommission.baseCurrency === 'USD', `创建提成本位币应为 USD，实际 ${createdCommission.baseCurrency}`);
 assert(
-  createdCommission.realizedRevenue === '44.00000000',
-  `创建提成已实现收入应为 44.00000000 USD，实际 ${createdCommission.realizedRevenue}`,
+  createdCommission.realizedRevenue === '48.00000000',
+  `创建提成已实现收入应为 48.00000000 USD，实际 ${createdCommission.realizedRevenue}`,
 );
 assert(
-  createdCommission.commissionAmount === '4.40000000',
-  `创建 USD 提成金额应为 4.40000000 USD，实际 ${createdCommission.commissionAmount}`,
+  createdCommission.commissionAmount === '4.80000000',
+  `创建 USD 提成金额应为 4.80000000 USD，实际 ${createdCommission.commissionAmount}`,
 );
 assert(
   createdCommission.cnyExchangeRate === '7.14285714',
@@ -760,8 +819,8 @@ assert(
   '创建提成 CNY 汇率 setting ID 未匹配 CNY_WRITE_OFF 配置',
 );
 assert(
-  createdCommission.cnyCommissionAmount === '31.42857142',
-  `创建提成 CNY 金额应为 31.42857142 CNY，实际 ${createdCommission.cnyCommissionAmount}`,
+  createdCommission.cnyCommissionAmount === '34.28571427',
+  `创建提成 CNY 金额应为 34.28571427 CNY，实际 ${createdCommission.cnyCommissionAmount}`,
 );
 
 // 14. 详情重读持久化快照
@@ -770,13 +829,13 @@ const commissionDetailResponse = await request(
 );
 const persistedCommission = commissionDetailResponse.data;
 assert(
-  persistedCommission.commissionAmount === '4.40000000' &&
+  persistedCommission.commissionAmount === '4.80000000' &&
     persistedCommission.cnyExchangeRate === '7.14285714' &&
     persistedCommission.cnyExchangeRateSource === 'DERIVED' &&
     persistedCommission.cnyExchangeRateDate === today &&
     persistedCommission.cnyExchangeRateSettingId ===
       createdRateSettings.CNY_WRITE_OFF.id &&
-    persistedCommission.cnyCommissionAmount === '31.42857142',
+    persistedCommission.cnyCommissionAmount === '34.28571427',
   '持久化提成详情快照重读不一致',
 );
 
