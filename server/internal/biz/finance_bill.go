@@ -394,7 +394,10 @@ func BuildConfiguredFinanceBillBatchPreview(organizationID uuid.UUID, fees []*Fi
 
 func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceBillableFee, input PreviewFinanceBillBatchInput, configs map[string]FinanceBillBatchPreviewGroupConfig) (*FinanceBillBatchPreview, error) {
 	policy := input.GroupingPolicy
-	if organizationID == uuid.Nil || len(fees) == 0 || len(fees) > 500 || policy.Mode != "NORMAL" {
+	if organizationID == uuid.Nil || len(fees) == 0 || len(fees) > 500 {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	if policy.Mode != "NORMAL" {
 		return nil, ErrFinanceBillGroupingModeUnsupported
 	}
 	ordered := append([]*FinanceBillableFee(nil), fees...)

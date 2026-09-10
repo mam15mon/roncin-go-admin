@@ -107,6 +107,16 @@ func TestConfiguredFinanceBillPreviewRejectsUnsupportedGroupingMode(t *testing.T
 	}
 }
 
+func TestConfiguredFinanceBillPreviewRejectsEmptyFeesAsInvalidArgument(t *testing.T) {
+	if _, err := BuildConfiguredFinanceBillBatchPreview(
+		uuid.New(),
+		nil,
+		PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}},
+	); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("空费用错误=%v，期望参数错误", err)
+	}
+}
+
 func TestConfiguredFinanceBillPreviewRejectsIncompleteOrSameCurrencyEstimatedRate(t *testing.T) {
 	organizationID, partyID, accountID := uuid.New(), uuid.New(), uuid.New()
 	fee := financeBillableFeeForTest(partyID, "100", "94", "6", "100")
