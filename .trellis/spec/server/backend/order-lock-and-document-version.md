@@ -42,8 +42,10 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 - `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 和去除空白后非空的 `idempotency_key`。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
-- 锁定仅允许具备目标类型显式 `business.order.<type>.lock` 权限、有效非 `administrator` 业务角色且数据范围覆盖订单的非 bootstrap 用户；锁权限只依赖同类型 read/update，不得跨类型授权。
-- 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；合格业务角色成员 → `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
+- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色数据范围覆盖目标订单组织——`ORGANIZATION` 要求 membership 组织即目标组织，`ORGANIZATION_TREE` 要求 membership 组织是目标组织或其祖先（沿 parent 链计算，带环保护），`ALL` 覆盖任意组织；锁权限只依赖同类型 read/update，不得跨类型授权。
+- bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
+- 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
+- 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。
 - 所有类型的锁定事务原子创建锁定周期记录、更新订单锁状态与审计；SE 同一事务额外创建/复用完整 MBL/HBL 不可变版本与 HBL 快照，任何一步失败必须全部回滚。
 - 六种类型共用一个 `Security.DingTalk.approval_process_code`；OA 实例必须携带业务类型、订单号、申请人、原因和锁代次，不按类型复制模板配置。
 - `Security.DingTalk.approval_process_code/event_token/event_aes_key` 只接受环境注入；仓库配置仅保留空值或占位符。
@@ -63,7 +65,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 已终止订单残留历史锁信息 | 优先返回终止类错误，不得误提示“先解锁即可编辑” |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
 | 锁定订单发起退关（`ACTIVE → TERMINATING`） | `ORDER_BUSINESS_LOCKED`，保持“锁定资料不可发起退关” |
-| 调用人没有目标订单类型的合格业务锁角色 | `ORDER_LOCK_ROLE_REQUIRED` |
+| 调用人（非 bootstrap）没有覆盖目标组织的有效 lock grant | `ORDER_LOCK_ROLE_REQUIRED` |
+| 钉钉回调审批人不在候选快照中，或快照后实时资格复核失败 | 分别稳定标记 `APPROVER_NOT_IN_SNAPSHOT` / `APPROVER_NOT_QUALIFIED`，订单保持锁定 |
 | 订单已锁 / 未锁或预期版本不匹配 | `ORDER_ALREADY_LOCKED`、`ORDER_NOT_LOCKED` 或 `ORDER_STATUS_CONFLICT` |
 | 同幂等键、同请求指纹 | 返回原结果，不追加事实 |
 | 同幂等键、不同请求指纹 | `ORDER_IDEMPOTENCY_KEY_REUSED` |
@@ -86,7 +89,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 6. Tests Required
 
-- Biz：锁定/三路解锁资格、bootstrap 优先、真实 administrator 边界、幂等同键同/异指纹、错误 metadata。
+- Biz：锁定/三路解锁资格、bootstrap 优先、幂等同键同/异指纹、错误 metadata。
+- Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
 - Data 单元：内容门禁表驱动测试覆盖 TERMINATING/TERMINATED/CLOSED/已锁定四类阻断、生命周期原因优先于业务锁、正常 ACTIVE+OPEN+未锁定放行。
 - Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非 SE 空快照、SE 版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
 - Data/PostgreSQL：代表性子资源（草稿、POD、货物、里程碑等）在四类状态下写阻断且零部分写入；锁定 `DOCUMENT_RELEASED` 订单结案与反结案；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复不复活历史 Link，旧版本稳定冲突。

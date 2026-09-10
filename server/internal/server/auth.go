@@ -258,12 +258,13 @@ func hasPermission(request any, principal *biz.Principal, rule accessRule) bool 
 func scopedFinancePermissionWrites(permission string) (bool, bool) {
 	switch permission {
 	case access.FinanceBillRead, access.FinanceInvoiceRead, access.FinanceCashflowRead,
-		access.FinanceVerificationRead, access.FinanceCommissionRead, access.FinanceCommissionExport,
-		access.FinanceFeeRead:
+		access.FinanceVerificationRead, access.FinanceNettingRead, access.FinanceCommissionRead,
+		access.FinanceCommissionExport, access.FinanceFeeRead:
 		return false, true
 	case access.FinanceBillCreate, access.FinanceBillUpdate, access.FinanceBillConfirm,
 		access.FinanceInvoiceCreate, access.FinanceInvoiceUpdate, access.FinanceCashflowCreate,
 		access.FinanceCashflowUpdate, access.FinanceVerificationCreate, access.FinanceVerificationReverse,
+		access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse,
 		access.FinanceCommissionManage, access.FinanceFeeTag:
 		return true, true
 	default:

@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	roleassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -143,41 +145,95 @@ func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid
 	return nil
 }
 
-// isUserQualifiedBusinessLockRole 验证用户是否具备目标业务类型订单锁定的有效业务角色资格。
+// organizationLockGrantAncestorIDs 沿 parent 链返回目标组织的全部祖先组织 ID
+// （不含目标组织自身）。带环保护；组织行缺失时视为链终止，由调用方的成员关系
+// 条件自然 fail-closed。
+func organizationLockGrantAncestorIDs(ctx context.Context, client *ent.Client, organizationID uuid.UUID) ([]uuid.UUID, error) {
+	ancestors := make([]uuid.UUID, 0, 4)
+	seen := map[uuid.UUID]struct{}{organizationID: {}}
+	current := organizationID
+	for {
+		org, err := client.Organization.Get(ctx, current)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return ancestors, nil
+			}
+			return nil, err
+		}
+		if org.ParentID == nil {
+			return ancestors, nil
+		}
+		parent := *org.ParentID
+		if _, visited := seen[parent]; visited {
+			return ancestors, nil
+		}
+		seen[parent] = struct{}{}
+		ancestors = append(ancestors, parent)
+		current = parent
+	}
+}
+
+// qualifiedBusinessLockGrantPredicate 构造「有效 lock grant」的统一资格谓词，
+// 单用户判断（isUserQualifiedBusinessLockRole）与候选查询
+// （queryQualifiedBusinessLockCandidates）必须复用同一口径：
+//   - 用户 enabled、非 bootstrap（bootstrap 由调用方显式分流）；
+//   - membership enabled；
+//   - 角色 enabled 且真实持有目标业务类型 lock 权限（不按角色代码排除
+//     administrator 等任何角色）；
+//   - 角色数据范围覆盖目标订单组织：ORGANIZATION 要求 membership 组织即目标
+//     组织；ORGANIZATION_TREE 要求 membership 组织是目标组织或其祖先；
+//     ALL 覆盖任意组织。
+//
+// membershipPredicates 由调用方追加用户过滤等条件。
+func qualifiedBusinessLockGrantPredicate(permissionKey string, targetOrganizationID uuid.UUID, ancestorIDs []uuid.UUID, membershipPredicates ...predicate.Membership) predicate.RoleAssignment {
+	baseMembership := make([]predicate.Membership, 0, len(membershipPredicates)+2)
+	baseMembership = append(baseMembership, membershipent.EnabledEQ(true))
+	baseMembership = append(baseMembership, membershipPredicates...)
+	roleQualifies := func(scope roleent.DataScope) []predicate.Role {
+		return []predicate.Role{
+			roleent.EnabledEQ(true),
+			roleent.HasPermissionsWith(permissionent.KeyEQ(permissionKey)),
+			roleent.DataScopeEQ(scope),
+		}
+	}
+	treeOrganizationIDs := make([]uuid.UUID, 0, len(ancestorIDs)+1)
+	treeOrganizationIDs = append(treeOrganizationIDs, targetOrganizationID)
+	treeOrganizationIDs = append(treeOrganizationIDs, ancestorIDs...)
+	return roleassignmentent.Or(
+		roleassignmentent.And(
+			roleassignmentent.HasMembershipWith(baseMembership...),
+			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeAll)...),
+		),
+		roleassignmentent.And(
+			roleassignmentent.HasMembershipWith(append(slices.Clone(baseMembership), membershipent.OrganizationIDEQ(targetOrganizationID))...),
+			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeOrganization)...),
+		),
+		roleassignmentent.And(
+			roleassignmentent.HasMembershipWith(append(slices.Clone(baseMembership), membershipent.OrganizationIDIn(treeOrganizationIDs...))...),
+			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeOrganizationTree)...),
+		),
+	)
+}
+
+// isUserQualifiedBusinessLockRole 验证用户是否具备目标业务类型订单锁定的有效
+// lock grant。bootstrap admin 不经本函数判定，由调用方显式分流。
 func isUserQualifiedBusinessLockRole(ctx context.Context, client *ent.Client, organizationID, userID uuid.UUID, businessType access.OrderBusinessType) (bool, error) {
 	permissionKey := access.OrderPermission(businessType, access.OrderLock)
 	if permissionKey == "" {
 		return false, biz.ErrOrderBusinessUnsupported
 	}
-	u, err := client.User.Query().
-		Where(
-			userent.IDEQ(userID),
-			userent.EnabledEQ(true),
-			userent.IsBootstrapAdminEQ(false),
-		).
-		Only(ctx)
+	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return false, nil
-		}
 		return false, err
 	}
-
 	exists, err := client.RoleAssignment.Query().
 		Where(
-			roleassignmentent.HasMembershipWith(
-				membershipent.UserIDEQ(u.ID),
-				membershipent.OrganizationIDEQ(organizationID),
-				membershipent.EnabledEQ(true),
-			),
-			roleassignmentent.HasRoleWith(
-				roleent.OrganizationIDEQ(organizationID),
-				roleent.EnabledEQ(true),
-				roleent.CodeNEQ("administrator"),
-				roleent.HasPermissionsWith(
-					permissionent.KeyEQ(permissionKey),
+			qualifiedBusinessLockGrantPredicate(permissionKey, organizationID, ancestorIDs,
+				membershipent.UserIDEQ(userID),
+				membershipent.HasUserWith(
+					userent.EnabledEQ(true),
+					userent.IsBootstrapAdminEQ(false),
 				),
-				roleent.DataScopeIn(roleent.DataScopeAll, roleent.DataScopeOrganizationTree, roleent.DataScopeOrganization),
 			),
 		).
 		Exist(ctx)
@@ -196,36 +252,34 @@ type candidateInfo struct {
 	RoleID                 uuid.UUID
 }
 
-// queryQualifiedBusinessLockCandidates 查询组织内所有具备目标业务类型锁定权限的有效业务角色成员候选列表。
+// queryQualifiedBusinessLockCandidates 查询具备目标业务类型锁定「有效 lock
+// grant」的审批候选人列表，与单用户判断复用同一资格口径。bootstrap admin 不进
+// 入候选池：它没有可写入候选快照的常规成员关系/角色事实，回调也不得绕过快照。
+// 同一用户存在多个合格 grant 时按稳定顺序（RoleAssignment ID 升序）选择首个
+// 可追溯 grant。
 func queryQualifiedBusinessLockCandidates(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType access.OrderBusinessType) ([]*candidateInfo, error) {
 	permissionKey := access.OrderPermission(businessType, access.OrderLock)
 	if permissionKey == "" {
 		return nil, biz.ErrOrderBusinessUnsupported
 	}
+	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, tx.Client(), organizationID)
+	if err != nil {
+		return nil, err
+	}
 	assignments, err := tx.RoleAssignment.Query().
 		Where(
-			roleassignmentent.HasMembershipWith(
-				membershipent.OrganizationIDEQ(organizationID),
-				membershipent.EnabledEQ(true),
+			qualifiedBusinessLockGrantPredicate(permissionKey, organizationID, ancestorIDs,
 				membershipent.HasUserWith(
 					userent.EnabledEQ(true),
 					userent.IsBootstrapAdminEQ(false),
 				),
-			),
-			roleassignmentent.HasRoleWith(
-				roleent.OrganizationIDEQ(organizationID),
-				roleent.EnabledEQ(true),
-				roleent.CodeNEQ("administrator"),
-				roleent.HasPermissionsWith(
-					permissionent.KeyEQ(permissionKey),
-				),
-				roleent.DataScopeIn(roleent.DataScopeAll, roleent.DataScopeOrganizationTree, roleent.DataScopeOrganization),
 			),
 		).
 		WithMembership(func(mq *ent.MembershipQuery) {
 			mq.WithUser()
 		}).
 		WithRole().
+		Order(roleassignmentent.ByID()).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -481,12 +535,17 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		state.ActiveUnlockRequest = r.mapUnlockRequest(ctx, client, activeReq)
 	}
 
-	// 判断调用人角色资格
+	// 判断调用人角色资格：bootstrap admin 显式具备锁单资格（应急解锁入口见下方
+	// 锁定分支）；普通用户按统一 lock grant 口径判定。
 	isQualifiedBusinessRole := false
-	if caller != nil && !caller.IsBootstrapAdmin {
-		isQualifiedBusinessRole, err = isUserQualifiedBusinessLockRole(ctx, client, organizationID, caller.UserID, businessType)
-		if err != nil {
-			return nil, err
+	if caller != nil {
+		if caller.IsBootstrapAdmin {
+			isQualifiedBusinessRole = true
+		} else {
+			isQualifiedBusinessRole, err = isUserQualifiedBusinessLockRole(ctx, client, organizationID, caller.UserID, businessType)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -564,12 +623,15 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 		if parseErr != nil {
 			return parseErr
 		}
-		qualified, qualificationErr := isUserQualifiedBusinessLockRole(ctx, tx.Client(), organizationID, caller.UserID, businessType)
-		if qualificationErr != nil {
-			return qualificationErr
-		}
-		if !qualified {
-			return biz.ErrOrderLockRoleRequired
+		// bootstrap admin 显式具备锁单资格；普通用户按统一 lock grant 口径判定。
+		if !caller.IsBootstrapAdmin {
+			qualified, qualificationErr := isUserQualifiedBusinessLockRole(ctx, tx.Client(), organizationID, caller.UserID, businessType)
+			if qualificationErr != nil {
+				return qualificationErr
+			}
+			if !qualified {
+				return biz.ErrOrderLockRoleRequired
+			}
 		}
 
 		// 取得 Order 锁后重查幂等记录，确保两个并发同键请求中等待者能看到先提交的事实，

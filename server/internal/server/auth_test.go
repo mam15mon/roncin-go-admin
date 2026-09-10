@@ -113,6 +113,7 @@ func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testin
 		access.FinanceInvoiceRead:         false,
 		access.FinanceCashflowRead:        false,
 		access.FinanceVerificationRead:    false,
+		access.FinanceNettingRead:         false,
 		access.FinanceCommissionRead:      false,
 		access.FinanceCommissionExport:    false,
 		access.FinanceBillCreate:          true,
@@ -124,6 +125,9 @@ func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testin
 		access.FinanceCashflowUpdate:      true,
 		access.FinanceVerificationCreate:  true,
 		access.FinanceVerificationReverse: true,
+		access.FinanceNettingCreate:       true,
+		access.FinanceNettingConfirm:      true,
+		access.FinanceNettingReverse:      true,
 		access.FinanceCommissionManage:    true,
 		access.FinanceFeeTag:              true,
 	}
@@ -161,6 +165,59 @@ func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
 	principal.RoleGrants[0].DataScope = biz.DataScopeSelf
 	if hasPermission(&financev1.ListBillsRequest{}, principal, rule) {
 		t.Fatal("未迁移汇率权限的 self 范围不得通过组织级通用粗门")
+	}
+}
+
+func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		RoleGrants: []biz.RoleGrant{
+			serverRoleGrant("netting-reader", biz.DataScopeOrganization, []string{access.FinanceNettingRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("netting-operator", biz.DataScopeOrganization, []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+		},
+	}
+	if !isScopedFinancePermission(access.FinanceNettingRead) {
+		t.Fatal("netting read 必须进入按目标组织解析的财务网关路径")
+	}
+	readRule := accessRule{permission: access.FinanceNettingRead, scope: biz.DataScopeOrganization}
+	if !hasPermission(&financev1.ListNettingsRequest{}, principal, readRule) {
+		t.Fatal("附加北京只读的 netting read 应通过网关并按目标组织解析")
+	}
+	readIDs := organizationIDsForPermission(principal, access.FinanceNettingRead, false)
+	if len(readIDs) != 2 || !containsOrganizationID(readIDs, beijingID) {
+		t.Fatalf("netting read 应解析出包含北京附加只读组织的范围，actual=%v", readIDs)
+	}
+
+	// 北京只读附加访问不得进入任一 netting 写命令的可写目标组织（Service 层按此范围执行写入）。
+	for _, permission := range []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse} {
+		writeIDs := organizationIDsForPermission(principal, permission, true)
+		if containsOrganizationID(writeIDs, beijingID) {
+			t.Fatalf("附加组织只读访问不得进入 %s 的可写目标组织，actual=%v", permission, writeIDs)
+		}
+	}
+	// 附加组织改为可写后，netting 写命令的解析范围包含北京；网关粗门继续放行。
+	principal.RoleGrants[1].OrganizationAccesses[0].Writable = true
+	for _, permission := range []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse} {
+		writeRule := accessRule{permission: permission, scope: biz.DataScopeOrganization}
+		if !hasPermission(&financev1.CreateNettingRequest{}, principal, writeRule) {
+			t.Fatalf("可写附加组织应通过 %s 的网关粗门", permission)
+		}
+		writeIDs := organizationIDsForPermission(principal, permission, true)
+		if !containsOrganizationID(writeIDs, beijingID) {
+			t.Fatalf("可写附加组织应进入 %s 的目标组织解析，actual=%v", permission, writeIDs)
+		}
+	}
+
+	// 无任何目标组织授权时网关拒绝（403）。
+	noGrant := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+	}
+	if hasPermission(&financev1.ListNettingsRequest{}, noGrant, readRule) {
+		t.Fatal("无目标组织授权的 netting 请求必须在网关拒绝（403）")
 	}
 }
 
