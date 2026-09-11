@@ -29,7 +29,7 @@ func TestFinanceNettingLoadPreviewRejectsTooManyBills(t *testing.T) {
 	mock.ExpectQuery(`SELECT .*FROM "partners" WHERE`).
 		WithArgs(partyID, organizationID).
 		WillReturnRows(sqlmock.NewRows(partnerent.Columns).
-			AddRow(partyID, now, now, organizationID, "P001", "测试伙伴", "测试伙伴", nil, "", true, ""))
+			AddRow(partyID, now, now, organizationID, "P001", "测试伙伴", "测试伙伴", nil, "", true, false, ""))
 
 	// 按 financebillent.Columns 顺序构造一行可完整扫描的已确认账单，
 	// 重复 biz.MaxFinanceNettingBills+1 行触发预览上限。

@@ -553,23 +553,26 @@ export default function FinanceCashflowsPage() {
             });
           }}
           fieldProps={{
-            optionRender: (option) => (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                }}
-              >
-                <span>{option.label}</span>
-                {(option.data as any)?.isCasual && (
-                  <Tag color="orange" style={{ marginInlineEnd: 0 }}>
-                    散客
-                  </Tag>
-                )}
-              </div>
-            ),
+            optionRender: (option) => {
+              const item = option.data as { isCasual?: boolean } | undefined;
+              return (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {item?.isCasual && (
+                    <Tag color="orange" style={{ marginInlineEnd: 0 }}>
+                      散客
+                    </Tag>
+                  )}
+                </div>
+              );
+            },
           }}
         />
         <ProFormSearchableSelect

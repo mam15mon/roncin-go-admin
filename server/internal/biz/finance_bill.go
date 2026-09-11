@@ -464,13 +464,6 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 		group := groupsByRawKey[raw]
 		if group == nil {
 			group = &FinanceBillBatchPreviewGroup{GroupKey: financeSHA256(raw), Direction: fee.Direction, SettlementPartyID: fee.SettlementPartyID, SettlementPartyName: fee.SettlementPartyName, Currency: fee.Currency, BaseCurrency: fee.BaseCurrency, Fees: make([]*FinanceBillableFee, 0)}
-			if item.SettlementPartyIsCasual {
-				group.IsCasual = true
-				if fee.Direction == OrderFeeReceivable {
-					zero := 0
-					group.DefaultPaymentTermsDays = &zero
-				}
-			}
 			if policy.SplitByTaxRate {
 				value := *fee.TaxRate
 				group.TaxRate = &value
@@ -481,7 +474,8 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 			}
 			groupsByRawKey[raw] = group
 			rawKeys = append(rawKeys, raw)
-		} else if item.SettlementPartyIsCasual {
+		}
+		if item.SettlementPartyIsCasual && !group.IsCasual {
 			group.IsCasual = true
 			if fee.Direction == OrderFeeReceivable {
 				zero := 0

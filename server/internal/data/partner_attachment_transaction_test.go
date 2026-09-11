@@ -28,7 +28,7 @@ func TestPartnerAttachmentRepoCreateAuditErrorRollsBack(t *testing.T) {
 	organizationID, actorID, partnerID := uuid.New(), uuid.New(), uuid.New()
 	now := time.Now()
 	mock.ExpectQuery(`SELECT "partners"\."id"`).WithArgs(partnerID, organizationID).WillReturnRows(
-		sqlmock.NewRows(partnerent.Columns).AddRow(partnerID, now, now, organizationID, "P001", "测试伙伴", "测试伙伴", nil, "", true, ""),
+		sqlmock.NewRows(partnerent.Columns).AddRow(partnerID, now, now, organizationID, "P001", "测试伙伴", "测试伙伴", nil, "", true, false, ""),
 	)
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "partner_attachments"`).WillReturnResult(sqlmock.NewResult(0, 1))

@@ -406,8 +406,7 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 		SetLegalName(input.LegalName).
 		SetNormalizedName(input.NormalizedName).
 		SetRegisteredAddress(input.RegisteredAddress).
-		SetEnabled(true).
-		SetIsCasual(false)
+		SetEnabled(true)
 	if input.UnifiedSocialCreditCode == "" {
 		update.ClearUnifiedSocialCreditCode()
 	} else {

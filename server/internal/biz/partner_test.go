@@ -16,6 +16,9 @@ type partnerRepoStub struct {
 	blacklistInput  PartnerBlacklistUpdate
 	blacklistResult *PartnerBlacklistResult
 	auditEvent      *AuditEvent
+	listOptions     PartnerListOptions
+	importedItems   []*Partner
+	importedMode    PartnerImportMode
 }
 
 func (s *partnerRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error) {
@@ -27,6 +30,7 @@ func (s *partnerRepoStub) FindAuthorized(context.Context, uuid.UUID, []uuid.UUID
 }
 
 func (s *partnerRepoStub) List(_ context.Context, _ []uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
+	s.listOptions = options
 	return &PartnerList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
@@ -68,7 +72,9 @@ func (s *partnerRepoStub) SetSupplierBlacklist(_ context.Context, organizationID
 	return &PartnerBlacklistResult{Partner: &Partner{ID: id, OrganizationID: organizationID}}, nil
 }
 
-func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, _ PartnerImportMode, items []*Partner, audit *AuditEvent) (*PartnerImportResult, error) {
+func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, mode PartnerImportMode, items []*Partner, audit *AuditEvent) (*PartnerImportResult, error) {
+	s.importedMode = mode
+	s.importedItems = items
 	s.auditEvent = audit
 	return &PartnerImportResult{CreatedCount: len(items)}, nil
 }
@@ -543,6 +549,135 @@ func TestFormatPartnerRolesAuditValueIsStable(t *testing.T) {
 
 	if got, want := FormatPartnerRolesAuditValue(roles), "customer:true,supplier:false"; got != want {
 		t.Fatalf("FormatPartnerRolesAuditValue() = %q, want %q", got, want)
+	}
+}
+
+func TestPartnerCreateAndUpdatePreservesIsCasual(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+
+	// 1. 创建散客
+	created, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
+		Code:                    "CASUAL01",
+		LegalName:               "散客测试公司",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		IsCasual:                true,
+		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatalf("Create() casual partner error = %v", err)
+	}
+	if !created.IsCasual || repo.created == nil || !repo.created.IsCasual {
+		t.Fatalf("预期创建散客伙伴 IsCasual = true，实际 created=%v, repo.created=%v", created.IsCasual, repo.created.IsCasual)
+	}
+
+	// 2. 更新为正式伙伴（转正）
+	updated, err := usecase.Update(context.Background(), organizationID, actorID, created.ID, &Partner{
+		ID:                      created.ID,
+		Code:                    "CASUAL01",
+		LegalName:               "散客测试公司（已转正）",
+		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		IsCasual:                false,
+		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatalf("Update() partner error = %v", err)
+	}
+	if updated.IsCasual || repo.updated == nil || repo.updated.IsCasual {
+		t.Fatalf("预期更新伙伴转正 IsCasual = false，实际 updated=%v, repo.updated=%v", updated.IsCasual, repo.updated.IsCasual)
+	}
+}
+
+func TestPartnerImportForcesIsCasualFalse(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+
+	items := []*Partner{
+		{
+			Code:                    "IMP01",
+			LegalName:               "导入客户一",
+			UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+			IsCasual:                true, // 试图导入为散客
+			Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		},
+		{
+			Code:                    "IMP02",
+			LegalName:               "导入客户二",
+			UnifiedSocialCreditCode: "91310000MA1FL7A22Q",
+			IsCasual:                false,
+			Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		},
+	}
+
+	result, err := usecase.Import(context.Background(), organizationID, actorID, PartnerImportInput{
+		Source: "test.xlsx",
+		Mode:   PartnerImportCreateOnly,
+		Items:  items,
+	})
+	if err != nil {
+		t.Fatalf("Import() error = %v", err)
+	}
+	if result.CreatedCount != 2 {
+		t.Fatalf("预期导入 2 条，实际=%d", result.CreatedCount)
+	}
+	if len(repo.importedItems) != 2 {
+		t.Fatalf("预期传给 repo 的 items 数量为 2，实际=%d", len(repo.importedItems))
+	}
+	for i, item := range repo.importedItems {
+		if item.IsCasual {
+			t.Fatalf("第 %d 条导入项目 IsCasual 应被强制设为 false，实际为 true", i)
+		}
+	}
+}
+
+func TestPartnerListFiltersByIsCasual(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	organizationIDs := []uuid.UUID{uuid.New()}
+
+	// 1. 过滤散客
+	isCasualTrue := true
+	_, err := usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:     1,
+		PageSize: 20,
+		IsCasual: &isCasualTrue,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.IsCasual == nil || *repo.listOptions.IsCasual != true {
+		t.Fatalf("预期传递给 repo 的 IsCasual 为 true，实际=%v", repo.listOptions.IsCasual)
+	}
+
+	// 2. 过滤正式伙伴
+	isCasualFalse := false
+	_, err = usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:     1,
+		PageSize: 20,
+		IsCasual: &isCasualFalse,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.IsCasual == nil || *repo.listOptions.IsCasual != false {
+		t.Fatalf("预期传递给 repo 的 IsCasual 为 false，实际=%v", repo.listOptions.IsCasual)
+	}
+
+	// 3. 不带过滤
+	_, err = usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:     1,
+		PageSize: 20,
+		IsCasual: nil,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.IsCasual != nil {
+		t.Fatalf("预期传递给 repo 的 IsCasual 为 nil，实际=%v", repo.listOptions.IsCasual)
 	}
 }
 
