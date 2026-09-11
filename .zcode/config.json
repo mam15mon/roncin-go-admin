@@ -8,7 +8,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "python3 \"${ZCODE_PROJECT_DIR}/.zcode/hooks/session-start.py\"",
+              "command": "d=\"${ZCODE_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}\"; while [ ! -d \"$d/.trellis/scripts\" ] && [ \"$d\" != \"/\" ]; do d=$(dirname \"$d\"); done; export CLAUDE_PROJECT_DIR=\"$d\" ZCODE_PROJECT_DIR=\"$d\"; exec python3 \"$d/.zcode/hooks/session-start.py\"",
               "timeout": 30
             }
           ]
@@ -19,7 +19,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "python3 \"${ZCODE_PROJECT_DIR}/.zcode/hooks/inject-workflow-state.py\"",
+              "command": "d=\"${ZCODE_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}\"; while [ ! -d \"$d/.trellis/scripts\" ] && [ \"$d\" != \"/\" ]; do d=$(dirname \"$d\"); done; export CLAUDE_PROJECT_DIR=\"$d\" ZCODE_PROJECT_DIR=\"$d\"; exec python3 \"$d/.zcode/hooks/inject-workflow-state.py\"",
               "timeout": 15
             }
           ]
@@ -31,7 +31,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "python3 \"${ZCODE_PROJECT_DIR}/.zcode/hooks/inject-subagent-context.py\"",
+              "command": "d=\"${ZCODE_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}\"; while [ ! -d \"$d/.trellis/scripts\" ] && [ \"$d\" != \"/\" ]; do d=$(dirname \"$d\"); done; export CLAUDE_PROJECT_DIR=\"$d\" ZCODE_PROJECT_DIR=\"$d\"; exec python3 \"$d/.zcode/hooks/inject-subagent-context.py\"",
               "timeout": 30
             }
           ]
@@ -41,7 +41,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "python3 \"${ZCODE_PROJECT_DIR}/.zcode/hooks/inject-shell-session-context.py\"",
+              "command": "d=\"${ZCODE_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}\"; while [ ! -d \"$d/.trellis/scripts\" ] && [ \"$d\" != \"/\" ]; do d=$(dirname \"$d\"); done; export CLAUDE_PROJECT_DIR=\"$d\" ZCODE_PROJECT_DIR=\"$d\"; exec python3 \"$d/.zcode/hooks/inject-shell-session-context.py\"",
               "timeout": 5
             }
           ]
