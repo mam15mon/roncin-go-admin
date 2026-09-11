@@ -1165,3 +1165,46 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 45: 散客闭环：单次合作往来单位实施与验收归档
+<!-- trellis-session: v=2 fp=ef6da754dd2e1871 -->
+
+**Date**: 2026-09-11
+**Task**: 散客闭环：单次合作往来单位实施与验收归档
+**Branch**: `main`
+
+### Summary
+
+完成散客闭环最小实现：Ent Schema 与迁移、Proto/OpenAPI契约生成、向散客出款无账户强制拦截、散客建账默认0天与黄色预警、快捷建档单选角色与单次合作勾选、伙伴列表与详情页维护；修复 sqlmock 12列对齐、upsert保留散客标识、去重复分支与类型安全；沉淀跨层契约规范并通过全量服务端测试与前端测试。
+
+### Main Changes
+
+- Ent Schema 与迁移新增 is_casual 字段，同步更新 Proto 契约与前端 API 生成物
+- 实现向散客供应商出款无账户刚性拦截，建账工作台散客应收默认 0 天并弹黄色预警
+- 快捷建档客商类型单选并按费用方向预选，伙伴列表与详情页支持合作类型筛选与展示
+- 修复两处 sqlmock 12 列 fixture，调整 upsert 更新保留人工散客标记，消除前端 as any
+- 沉淀散客往来单位跨层契约规范 partner-casual-contract.md 与前端组件软硬边界规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6632e77c` | feat(partner): support casual partner lifecycle and risk control loop |
+| `87654abf` | fix(partner): fix sqlmock fixtures, preserve upsert casual status, and add biz tests |
+| `ade8c412` | docs(spec): 沉淀散客往来单位跨层契约 |
+| `ab595283` | chore(web): tsconfig 启用 noEmit 防止裸 tsc 产出编译文件 |
+
+### Testing
+
+- [OK] 服务端全量测试 go -C server test ./... 100% 全部通过
+- [OK] 新增 biz 层 TestPartnerCreateAndUpdatePreservesIsCasual、TestPartnerImportForcesIsCasualFalse、TestPartnerListFiltersByIsCasual 单测通过
+- [OK] 前端 Vitest 7 套件 38 测试用例全绿，tsc --noEmit 0 错误，Biome 检查通过，git diff --check 0 格式异常
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 承接后续任务 09-11-partner-terms-credit（正式客户应收账期主档带出与信用额度双模管控）
