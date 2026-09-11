@@ -40,14 +40,6 @@ const (
 	FieldAmount = "amount"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
 	FieldBaseCurrency = "base_currency"
-	// FieldExchangeRate holds the string denoting the exchange_rate field in the database.
-	FieldExchangeRate = "exchange_rate"
-	// FieldExchangeRateSource holds the string denoting the exchange_rate_source field in the database.
-	FieldExchangeRateSource = "exchange_rate_source"
-	// FieldExchangeRateDate holds the string denoting the exchange_rate_date field in the database.
-	FieldExchangeRateDate = "exchange_rate_date"
-	// FieldExchangeRateSettingID holds the string denoting the exchange_rate_setting_id field in the database.
-	FieldExchangeRateSettingID = "exchange_rate_setting_id"
 	// FieldBaseAmount holds the string denoting the base_amount field in the database.
 	FieldBaseAmount = "base_amount"
 	// FieldBillBaseAmount holds the string denoting the bill_base_amount field in the database.
@@ -141,10 +133,6 @@ var Columns = []string{
 	FieldCurrency,
 	FieldAmount,
 	FieldBaseCurrency,
-	FieldExchangeRate,
-	FieldExchangeRateSource,
-	FieldExchangeRateDate,
-	FieldExchangeRateSettingID,
 	FieldBaseAmount,
 	FieldBillBaseAmount,
 	FieldCashflowBaseAmount,
@@ -184,8 +172,6 @@ var (
 	CurrencyValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
-	// ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
-	ExchangeRateDateValidator func(string) error
 	// VerificationDateValidator is a validator for the "verification_date" field. It is called by the builders before save.
 	VerificationDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -244,32 +230,6 @@ func DirectionValidator(d Direction) error {
 		return nil
 	default:
 		return fmt.Errorf("financeverification: invalid enum value for direction field: %q", d)
-	}
-}
-
-// ExchangeRateSource defines the type for the "exchange_rate_source" enum field.
-type ExchangeRateSource string
-
-// ExchangeRateSource values.
-const (
-	ExchangeRateSourceSYSTEM                  ExchangeRateSource = "SYSTEM"
-	ExchangeRateSourceBASE_CURRENCY           ExchangeRateSource = "BASE_CURRENCY"
-	ExchangeRateSourceINHERITED_BASE_CURRENCY ExchangeRateSource = "INHERITED_BASE_CURRENCY"
-	ExchangeRateSourceMANUAL                  ExchangeRateSource = "MANUAL"
-	ExchangeRateSourceDERIVED                 ExchangeRateSource = "DERIVED"
-)
-
-func (ers ExchangeRateSource) String() string {
-	return string(ers)
-}
-
-// ExchangeRateSourceValidator is a validator for the "exchange_rate_source" field enum values. It is called by the builders before save.
-func ExchangeRateSourceValidator(ers ExchangeRateSource) error {
-	switch ers {
-	case ExchangeRateSourceSYSTEM, ExchangeRateSourceBASE_CURRENCY, ExchangeRateSourceINHERITED_BASE_CURRENCY, ExchangeRateSourceMANUAL, ExchangeRateSourceDERIVED:
-		return nil
-	default:
-		return fmt.Errorf("financeverification: invalid enum value for exchange_rate_source field: %q", ers)
 	}
 }
 
@@ -339,26 +299,6 @@ func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByBaseCurrency orders the results by the base_currency field.
 func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
-}
-
-// ByExchangeRate orders the results by the exchange_rate field.
-func ByExchangeRate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExchangeRate, opts...).ToFunc()
-}
-
-// ByExchangeRateSource orders the results by the exchange_rate_source field.
-func ByExchangeRateSource(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExchangeRateSource, opts...).ToFunc()
-}
-
-// ByExchangeRateDate orders the results by the exchange_rate_date field.
-func ByExchangeRateDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExchangeRateDate, opts...).ToFunc()
-}
-
-// ByExchangeRateSettingID orders the results by the exchange_rate_setting_id field.
-func ByExchangeRateSettingID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExchangeRateSettingID, opts...).ToFunc()
 }
 
 // ByBaseAmount orders the results by the base_amount field.

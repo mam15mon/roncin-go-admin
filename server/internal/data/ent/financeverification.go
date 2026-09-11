@@ -45,14 +45,6 @@ type FinanceVerification struct {
 	Amount string `json:"amount,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
 	BaseCurrency string `json:"base_currency,omitempty"`
-	// ExchangeRate holds the value of the "exchange_rate" field.
-	ExchangeRate string `json:"exchange_rate,omitempty"`
-	// ExchangeRateSource holds the value of the "exchange_rate_source" field.
-	ExchangeRateSource financeverification.ExchangeRateSource `json:"exchange_rate_source,omitempty"`
-	// ExchangeRateDate holds the value of the "exchange_rate_date" field.
-	ExchangeRateDate string `json:"exchange_rate_date,omitempty"`
-	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
-	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
 	// BaseAmount holds the value of the "base_amount" field.
 	BaseAmount string `json:"base_amount,omitempty"`
 	// BillBaseAmount holds the value of the "bill_base_amount" field.
@@ -163,11 +155,11 @@ func (*FinanceVerification) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financeverification.FieldExchangeRateSettingID, financeverification.FieldReversedBy:
+		case financeverification.FieldReversedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeverification.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financeverification.FieldVerificationNo, financeverification.FieldIdempotencyKey, financeverification.FieldStatus, financeverification.FieldDirection, financeverification.FieldSettlementPartyName, financeverification.FieldCurrency, financeverification.FieldAmount, financeverification.FieldBaseCurrency, financeverification.FieldExchangeRate, financeverification.FieldExchangeRateSource, financeverification.FieldExchangeRateDate, financeverification.FieldBaseAmount, financeverification.FieldBillBaseAmount, financeverification.FieldCashflowBaseAmount, financeverification.FieldExchangeGainLoss, financeverification.FieldVerificationDate, financeverification.FieldNote, financeverification.FieldReversalReason:
+		case financeverification.FieldVerificationNo, financeverification.FieldIdempotencyKey, financeverification.FieldStatus, financeverification.FieldDirection, financeverification.FieldSettlementPartyName, financeverification.FieldCurrency, financeverification.FieldAmount, financeverification.FieldBaseCurrency, financeverification.FieldBaseAmount, financeverification.FieldBillBaseAmount, financeverification.FieldCashflowBaseAmount, financeverification.FieldExchangeGainLoss, financeverification.FieldVerificationDate, financeverification.FieldNote, financeverification.FieldReversalReason:
 			values[i] = new(sql.NullString)
 		case financeverification.FieldCreatedAt, financeverification.FieldUpdatedAt, financeverification.FieldReversedAt:
 			values[i] = new(sql.NullTime)
@@ -265,31 +257,6 @@ func (_m *FinanceVerification) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
 			} else if value.Valid {
 				_m.BaseCurrency = value.String
-			}
-		case financeverification.FieldExchangeRate:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field exchange_rate", values[i])
-			} else if value.Valid {
-				_m.ExchangeRate = value.String
-			}
-		case financeverification.FieldExchangeRateSource:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field exchange_rate_source", values[i])
-			} else if value.Valid {
-				_m.ExchangeRateSource = financeverification.ExchangeRateSource(value.String)
-			}
-		case financeverification.FieldExchangeRateDate:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field exchange_rate_date", values[i])
-			} else if value.Valid {
-				_m.ExchangeRateDate = value.String
-			}
-		case financeverification.FieldExchangeRateSettingID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field exchange_rate_setting_id", values[i])
-			} else if value.Valid {
-				_m.ExchangeRateSettingID = new(uuid.UUID)
-				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
 			}
 		case financeverification.FieldBaseAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -456,20 +423,6 @@ func (_m *FinanceVerification) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_currency=")
 	builder.WriteString(_m.BaseCurrency)
-	builder.WriteString(", ")
-	builder.WriteString("exchange_rate=")
-	builder.WriteString(_m.ExchangeRate)
-	builder.WriteString(", ")
-	builder.WriteString("exchange_rate_source=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ExchangeRateSource))
-	builder.WriteString(", ")
-	builder.WriteString("exchange_rate_date=")
-	builder.WriteString(_m.ExchangeRateDate)
-	builder.WriteString(", ")
-	if v := _m.ExchangeRateSettingID; v != nil {
-		builder.WriteString("exchange_rate_setting_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
 	builder.WriteString(", ")
 	builder.WriteString("base_amount=")
 	builder.WriteString(_m.BaseAmount)

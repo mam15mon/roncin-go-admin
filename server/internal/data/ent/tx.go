@@ -52,14 +52,10 @@ type Tx struct {
 	EnterpriseTag *EnterpriseTagClient
 	// EnterpriseTagGroup is the client for interacting with the EnterpriseTagGroup builders.
 	EnterpriseTagGroup *EnterpriseTagGroupClient
-	// ExchangeRateCustomSetting is the client for interacting with the ExchangeRateCustomSetting builders.
-	ExchangeRateCustomSetting *ExchangeRateCustomSettingClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
 	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
-	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
-	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
 	// FinanceBill is the client for interacting with the FinanceBill builders.
@@ -379,10 +375,8 @@ func (tx *Tx) init() {
 	tx.EnterpriseResourceShippingText = NewEnterpriseResourceShippingTextClient(tx.config)
 	tx.EnterpriseTag = NewEnterpriseTagClient(tx.config)
 	tx.EnterpriseTagGroup = NewEnterpriseTagGroupClient(tx.config)
-	tx.ExchangeRateCustomSetting = NewExchangeRateCustomSettingClient(tx.config)
 	tx.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
-	tx.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.FinanceBill = NewFinanceBillClient(tx.config)
 	tx.FinanceBillBatch = NewFinanceBillBatchClient(tx.config)

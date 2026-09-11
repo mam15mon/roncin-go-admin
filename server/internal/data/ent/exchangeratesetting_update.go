@@ -49,20 +49,6 @@ func (_u *ExchangeRateSettingUpdate) SetNillableOrganizationID(v *uuid.UUID) *Ex
 	return _u
 }
 
-// SetRateType sets the "rate_type" field.
-func (_u *ExchangeRateSettingUpdate) SetRateType(v exchangeratesetting.RateType) *ExchangeRateSettingUpdate {
-	_u.mutation.SetRateType(v)
-	return _u
-}
-
-// SetNillableRateType sets the "rate_type" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillableRateType(v *exchangeratesetting.RateType) *ExchangeRateSettingUpdate {
-	if v != nil {
-		_u.SetRateType(*v)
-	}
-	return _u
-}
-
 // SetFromCurrency sets the "from_currency" field.
 func (_u *ExchangeRateSettingUpdate) SetFromCurrency(v string) *ExchangeRateSettingUpdate {
 	_u.mutation.SetFromCurrency(v)
@@ -125,30 +111,16 @@ func (_u *ExchangeRateSettingUpdate) ClearEffectiveTo() *ExchangeRateSettingUpda
 	return _u
 }
 
-// SetReceivableRate sets the "receivable_rate" field.
-func (_u *ExchangeRateSettingUpdate) SetReceivableRate(v string) *ExchangeRateSettingUpdate {
-	_u.mutation.SetReceivableRate(v)
+// SetRate sets the "rate" field.
+func (_u *ExchangeRateSettingUpdate) SetRate(v string) *ExchangeRateSettingUpdate {
+	_u.mutation.SetRate(v)
 	return _u
 }
 
-// SetNillableReceivableRate sets the "receivable_rate" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillableReceivableRate(v *string) *ExchangeRateSettingUpdate {
+// SetNillableRate sets the "rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdate) SetNillableRate(v *string) *ExchangeRateSettingUpdate {
 	if v != nil {
-		_u.SetReceivableRate(*v)
-	}
-	return _u
-}
-
-// SetPayableRate sets the "payable_rate" field.
-func (_u *ExchangeRateSettingUpdate) SetPayableRate(v string) *ExchangeRateSettingUpdate {
-	_u.mutation.SetPayableRate(v)
-	return _u
-}
-
-// SetNillablePayableRate sets the "payable_rate" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillablePayableRate(v *string) *ExchangeRateSettingUpdate {
-	if v != nil {
-		_u.SetPayableRate(*v)
+		_u.SetRate(*v)
 	}
 	return _u
 }
@@ -210,11 +182,6 @@ func (_u *ExchangeRateSettingUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *ExchangeRateSettingUpdate) check() error {
-	if v, ok := _u.mutation.RateType(); ok {
-		if err := exchangeratesetting.RateTypeValidator(v); err != nil {
-			return &ValidationError{Name: "rate_type", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.rate_type": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FromCurrency(); ok {
 		if err := exchangeratesetting.FromCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "from_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.from_currency": %w`, err)}
@@ -246,9 +213,6 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	if value, ok := _u.mutation.OrganizationID(); ok {
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
 	}
-	if value, ok := _u.mutation.RateType(); ok {
-		_spec.SetField(exchangeratesetting.FieldRateType, field.TypeEnum, value)
-	}
 	if value, ok := _u.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
 	}
@@ -264,11 +228,8 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	if _u.mutation.EffectiveToCleared() {
 		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeTime)
 	}
-	if value, ok := _u.mutation.ReceivableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldReceivableRate, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.PayableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldPayableRate, field.TypeString, value)
+	if value, ok := _u.mutation.Rate(); ok {
+		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)
@@ -309,20 +270,6 @@ func (_u *ExchangeRateSettingUpdateOne) SetOrganizationID(v uuid.UUID) *Exchange
 func (_u *ExchangeRateSettingUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *ExchangeRateSettingUpdateOne {
 	if v != nil {
 		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// SetRateType sets the "rate_type" field.
-func (_u *ExchangeRateSettingUpdateOne) SetRateType(v exchangeratesetting.RateType) *ExchangeRateSettingUpdateOne {
-	_u.mutation.SetRateType(v)
-	return _u
-}
-
-// SetNillableRateType sets the "rate_type" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillableRateType(v *exchangeratesetting.RateType) *ExchangeRateSettingUpdateOne {
-	if v != nil {
-		_u.SetRateType(*v)
 	}
 	return _u
 }
@@ -389,30 +336,16 @@ func (_u *ExchangeRateSettingUpdateOne) ClearEffectiveTo() *ExchangeRateSettingU
 	return _u
 }
 
-// SetReceivableRate sets the "receivable_rate" field.
-func (_u *ExchangeRateSettingUpdateOne) SetReceivableRate(v string) *ExchangeRateSettingUpdateOne {
-	_u.mutation.SetReceivableRate(v)
+// SetRate sets the "rate" field.
+func (_u *ExchangeRateSettingUpdateOne) SetRate(v string) *ExchangeRateSettingUpdateOne {
+	_u.mutation.SetRate(v)
 	return _u
 }
 
-// SetNillableReceivableRate sets the "receivable_rate" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillableReceivableRate(v *string) *ExchangeRateSettingUpdateOne {
+// SetNillableRate sets the "rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdateOne) SetNillableRate(v *string) *ExchangeRateSettingUpdateOne {
 	if v != nil {
-		_u.SetReceivableRate(*v)
-	}
-	return _u
-}
-
-// SetPayableRate sets the "payable_rate" field.
-func (_u *ExchangeRateSettingUpdateOne) SetPayableRate(v string) *ExchangeRateSettingUpdateOne {
-	_u.mutation.SetPayableRate(v)
-	return _u
-}
-
-// SetNillablePayableRate sets the "payable_rate" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillablePayableRate(v *string) *ExchangeRateSettingUpdateOne {
-	if v != nil {
-		_u.SetPayableRate(*v)
+		_u.SetRate(*v)
 	}
 	return _u
 }
@@ -487,11 +420,6 @@ func (_u *ExchangeRateSettingUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *ExchangeRateSettingUpdateOne) check() error {
-	if v, ok := _u.mutation.RateType(); ok {
-		if err := exchangeratesetting.RateTypeValidator(v); err != nil {
-			return &ValidationError{Name: "rate_type", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.rate_type": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FromCurrency(); ok {
 		if err := exchangeratesetting.FromCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "from_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.from_currency": %w`, err)}
@@ -540,9 +468,6 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	if value, ok := _u.mutation.OrganizationID(); ok {
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
 	}
-	if value, ok := _u.mutation.RateType(); ok {
-		_spec.SetField(exchangeratesetting.FieldRateType, field.TypeEnum, value)
-	}
 	if value, ok := _u.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
 	}
@@ -558,11 +483,8 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	if _u.mutation.EffectiveToCleared() {
 		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeTime)
 	}
-	if value, ok := _u.mutation.ReceivableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldReceivableRate, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.PayableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldPayableRate, field.TypeString, value)
+	if value, ok := _u.mutation.Rate(); ok {
+		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)

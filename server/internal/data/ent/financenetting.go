@@ -50,6 +50,10 @@ type FinanceNetting struct {
 	BaseCurrency string `json:"base_currency,omitempty"`
 	// BaseCurrencyAmount holds the value of the "base_currency_amount" field.
 	BaseCurrencyAmount string `json:"base_currency_amount,omitempty"`
+	// PayableBaseAmount holds the value of the "payable_base_amount" field.
+	PayableBaseAmount string `json:"payable_base_amount,omitempty"`
+	// ExchangeGainLoss holds the value of the "exchange_gain_loss" field.
+	ExchangeGainLoss string `json:"exchange_gain_loss,omitempty"`
 	// Note holds the value of the "note" field.
 	Note *string `json:"note,omitempty"`
 	// Version holds the value of the "version" field.
@@ -181,7 +185,7 @@ func (*FinanceNetting) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financenetting.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financenetting.FieldNettingNo, financenetting.FieldIdempotencyKey, financenetting.FieldRequestHash, financenetting.FieldStatus, financenetting.FieldSettlementPartyName, financenetting.FieldCurrency, financenetting.FieldAmount, financenetting.FieldBaseCurrency, financenetting.FieldBaseCurrencyAmount, financenetting.FieldNote, financenetting.FieldCancellationReason, financenetting.FieldReversalReason:
+		case financenetting.FieldNettingNo, financenetting.FieldIdempotencyKey, financenetting.FieldRequestHash, financenetting.FieldStatus, financenetting.FieldSettlementPartyName, financenetting.FieldCurrency, financenetting.FieldAmount, financenetting.FieldBaseCurrency, financenetting.FieldBaseCurrencyAmount, financenetting.FieldPayableBaseAmount, financenetting.FieldExchangeGainLoss, financenetting.FieldNote, financenetting.FieldCancellationReason, financenetting.FieldReversalReason:
 			values[i] = new(sql.NullString)
 		case financenetting.FieldCreatedAt, financenetting.FieldUpdatedAt, financenetting.FieldConfirmedAt, financenetting.FieldCancelledAt, financenetting.FieldReversedAt:
 			values[i] = new(sql.NullTime)
@@ -292,6 +296,18 @@ func (_m *FinanceNetting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field base_currency_amount", values[i])
 			} else if value.Valid {
 				_m.BaseCurrencyAmount = value.String
+			}
+		case financenetting.FieldPayableBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field payable_base_amount", values[i])
+			} else if value.Valid {
+				_m.PayableBaseAmount = value.String
+			}
+		case financenetting.FieldExchangeGainLoss:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_gain_loss", values[i])
+			} else if value.Valid {
+				_m.ExchangeGainLoss = value.String
 			}
 		case financenetting.FieldNote:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -476,6 +492,12 @@ func (_m *FinanceNetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_currency_amount=")
 	builder.WriteString(_m.BaseCurrencyAmount)
+	builder.WriteString(", ")
+	builder.WriteString("payable_base_amount=")
+	builder.WriteString(_m.PayableBaseAmount)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_gain_loss=")
+	builder.WriteString(_m.ExchangeGainLoss)
 	builder.WriteString(", ")
 	if v := _m.Note; v != nil {
 		builder.WriteString("note=")

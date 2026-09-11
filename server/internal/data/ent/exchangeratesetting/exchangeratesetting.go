@@ -3,7 +3,6 @@
 package exchangeratesetting
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -21,8 +20,6 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
-	// FieldRateType holds the string denoting the rate_type field in the database.
-	FieldRateType = "rate_type"
 	// FieldFromCurrency holds the string denoting the from_currency field in the database.
 	FieldFromCurrency = "from_currency"
 	// FieldToCurrency holds the string denoting the to_currency field in the database.
@@ -31,10 +28,8 @@ const (
 	FieldEffectiveFrom = "effective_from"
 	// FieldEffectiveTo holds the string denoting the effective_to field in the database.
 	FieldEffectiveTo = "effective_to"
-	// FieldReceivableRate holds the string denoting the receivable_rate field in the database.
-	FieldReceivableRate = "receivable_rate"
-	// FieldPayableRate holds the string denoting the payable_rate field in the database.
-	FieldPayableRate = "payable_rate"
+	// FieldRate holds the string denoting the rate field in the database.
+	FieldRate = "rate"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// Table holds the table name of the exchangeratesetting in the database.
@@ -47,13 +42,11 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrganizationID,
-	FieldRateType,
 	FieldFromCurrency,
 	FieldToCurrency,
 	FieldEffectiveFrom,
 	FieldEffectiveTo,
-	FieldReceivableRate,
-	FieldPayableRate,
+	FieldRate,
 	FieldIsActive,
 }
 
@@ -84,32 +77,6 @@ var (
 	DefaultID func() uuid.UUID
 )
 
-// RateType defines the type for the "rate_type" enum field.
-type RateType string
-
-// RateType values.
-const (
-	RateTypeBASE_CURRENCY RateType = "BASE_CURRENCY"
-	RateTypeINVOICE       RateType = "INVOICE"
-	RateTypeSETTLEMENT    RateType = "SETTLEMENT"
-	RateTypeWRITE_OFF     RateType = "WRITE_OFF"
-	RateTypeBILL          RateType = "BILL"
-)
-
-func (rt RateType) String() string {
-	return string(rt)
-}
-
-// RateTypeValidator is a validator for the "rate_type" field enum values. It is called by the builders before save.
-func RateTypeValidator(rt RateType) error {
-	switch rt {
-	case RateTypeBASE_CURRENCY, RateTypeINVOICE, RateTypeSETTLEMENT, RateTypeWRITE_OFF, RateTypeBILL:
-		return nil
-	default:
-		return fmt.Errorf("exchangeratesetting: invalid enum value for rate_type field: %q", rt)
-	}
-}
-
 // OrderOption defines the ordering options for the ExchangeRateSetting queries.
 type OrderOption func(*sql.Selector)
 
@@ -133,11 +100,6 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
 }
 
-// ByRateType orders the results by the rate_type field.
-func ByRateType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRateType, opts...).ToFunc()
-}
-
 // ByFromCurrency orders the results by the from_currency field.
 func ByFromCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFromCurrency, opts...).ToFunc()
@@ -158,14 +120,9 @@ func ByEffectiveTo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEffectiveTo, opts...).ToFunc()
 }
 
-// ByReceivableRate orders the results by the receivable_rate field.
-func ByReceivableRate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldReceivableRate, opts...).ToFunc()
-}
-
-// ByPayableRate orders the results by the payable_rate field.
-func ByPayableRate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPayableRate, opts...).ToFunc()
+// ByRate orders the results by the rate field.
+func ByRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRate, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

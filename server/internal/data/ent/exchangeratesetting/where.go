@@ -90,14 +90,9 @@ func EffectiveTo(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveTo, v))
 }
 
-// ReceivableRate applies equality check predicate on the "receivable_rate" field. It's identical to ReceivableRateEQ.
-func ReceivableRate(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldReceivableRate, v))
-}
-
-// PayableRate applies equality check predicate on the "payable_rate" field. It's identical to PayableRateEQ.
-func PayableRate(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldPayableRate, v))
+// Rate applies equality check predicate on the "rate" field. It's identical to RateEQ.
+func Rate(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldRate, v))
 }
 
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
@@ -223,26 +218,6 @@ func OrganizationIDLT(v uuid.UUID) predicate.ExchangeRateSetting {
 // OrganizationIDLTE applies the LTE predicate on the "organization_id" field.
 func OrganizationIDLTE(v uuid.UUID) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldOrganizationID, v))
-}
-
-// RateTypeEQ applies the EQ predicate on the "rate_type" field.
-func RateTypeEQ(v RateType) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldRateType, v))
-}
-
-// RateTypeNEQ applies the NEQ predicate on the "rate_type" field.
-func RateTypeNEQ(v RateType) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldRateType, v))
-}
-
-// RateTypeIn applies the In predicate on the "rate_type" field.
-func RateTypeIn(vs ...RateType) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldIn(FieldRateType, vs...))
-}
-
-// RateTypeNotIn applies the NotIn predicate on the "rate_type" field.
-func RateTypeNotIn(vs ...RateType) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldRateType, vs...))
 }
 
 // FromCurrencyEQ applies the EQ predicate on the "from_currency" field.
@@ -465,134 +440,69 @@ func EffectiveToNotNil() predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNotNull(FieldEffectiveTo))
 }
 
-// ReceivableRateEQ applies the EQ predicate on the "receivable_rate" field.
-func ReceivableRateEQ(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldReceivableRate, v))
+// RateEQ applies the EQ predicate on the "rate" field.
+func RateEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldRate, v))
 }
 
-// ReceivableRateNEQ applies the NEQ predicate on the "receivable_rate" field.
-func ReceivableRateNEQ(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldReceivableRate, v))
+// RateNEQ applies the NEQ predicate on the "rate" field.
+func RateNEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldRate, v))
 }
 
-// ReceivableRateIn applies the In predicate on the "receivable_rate" field.
-func ReceivableRateIn(vs ...string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldIn(FieldReceivableRate, vs...))
+// RateIn applies the In predicate on the "rate" field.
+func RateIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIn(FieldRate, vs...))
 }
 
-// ReceivableRateNotIn applies the NotIn predicate on the "receivable_rate" field.
-func ReceivableRateNotIn(vs ...string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldReceivableRate, vs...))
+// RateNotIn applies the NotIn predicate on the "rate" field.
+func RateNotIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldRate, vs...))
 }
 
-// ReceivableRateGT applies the GT predicate on the "receivable_rate" field.
-func ReceivableRateGT(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldGT(FieldReceivableRate, v))
+// RateGT applies the GT predicate on the "rate" field.
+func RateGT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGT(FieldRate, v))
 }
 
-// ReceivableRateGTE applies the GTE predicate on the "receivable_rate" field.
-func ReceivableRateGTE(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldReceivableRate, v))
+// RateGTE applies the GTE predicate on the "rate" field.
+func RateGTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldRate, v))
 }
 
-// ReceivableRateLT applies the LT predicate on the "receivable_rate" field.
-func ReceivableRateLT(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldLT(FieldReceivableRate, v))
+// RateLT applies the LT predicate on the "rate" field.
+func RateLT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLT(FieldRate, v))
 }
 
-// ReceivableRateLTE applies the LTE predicate on the "receivable_rate" field.
-func ReceivableRateLTE(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldReceivableRate, v))
+// RateLTE applies the LTE predicate on the "rate" field.
+func RateLTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldRate, v))
 }
 
-// ReceivableRateContains applies the Contains predicate on the "receivable_rate" field.
-func ReceivableRateContains(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContains(FieldReceivableRate, v))
+// RateContains applies the Contains predicate on the "rate" field.
+func RateContains(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContains(FieldRate, v))
 }
 
-// ReceivableRateHasPrefix applies the HasPrefix predicate on the "receivable_rate" field.
-func ReceivableRateHasPrefix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldReceivableRate, v))
+// RateHasPrefix applies the HasPrefix predicate on the "rate" field.
+func RateHasPrefix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldRate, v))
 }
 
-// ReceivableRateHasSuffix applies the HasSuffix predicate on the "receivable_rate" field.
-func ReceivableRateHasSuffix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldReceivableRate, v))
+// RateHasSuffix applies the HasSuffix predicate on the "rate" field.
+func RateHasSuffix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldRate, v))
 }
 
-// ReceivableRateEqualFold applies the EqualFold predicate on the "receivable_rate" field.
-func ReceivableRateEqualFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldReceivableRate, v))
+// RateEqualFold applies the EqualFold predicate on the "rate" field.
+func RateEqualFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldRate, v))
 }
 
-// ReceivableRateContainsFold applies the ContainsFold predicate on the "receivable_rate" field.
-func ReceivableRateContainsFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldReceivableRate, v))
-}
-
-// PayableRateEQ applies the EQ predicate on the "payable_rate" field.
-func PayableRateEQ(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldPayableRate, v))
-}
-
-// PayableRateNEQ applies the NEQ predicate on the "payable_rate" field.
-func PayableRateNEQ(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldPayableRate, v))
-}
-
-// PayableRateIn applies the In predicate on the "payable_rate" field.
-func PayableRateIn(vs ...string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldIn(FieldPayableRate, vs...))
-}
-
-// PayableRateNotIn applies the NotIn predicate on the "payable_rate" field.
-func PayableRateNotIn(vs ...string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldPayableRate, vs...))
-}
-
-// PayableRateGT applies the GT predicate on the "payable_rate" field.
-func PayableRateGT(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldGT(FieldPayableRate, v))
-}
-
-// PayableRateGTE applies the GTE predicate on the "payable_rate" field.
-func PayableRateGTE(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldPayableRate, v))
-}
-
-// PayableRateLT applies the LT predicate on the "payable_rate" field.
-func PayableRateLT(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldLT(FieldPayableRate, v))
-}
-
-// PayableRateLTE applies the LTE predicate on the "payable_rate" field.
-func PayableRateLTE(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldPayableRate, v))
-}
-
-// PayableRateContains applies the Contains predicate on the "payable_rate" field.
-func PayableRateContains(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContains(FieldPayableRate, v))
-}
-
-// PayableRateHasPrefix applies the HasPrefix predicate on the "payable_rate" field.
-func PayableRateHasPrefix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldPayableRate, v))
-}
-
-// PayableRateHasSuffix applies the HasSuffix predicate on the "payable_rate" field.
-func PayableRateHasSuffix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldPayableRate, v))
-}
-
-// PayableRateEqualFold applies the EqualFold predicate on the "payable_rate" field.
-func PayableRateEqualFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldPayableRate, v))
-}
-
-// PayableRateContainsFold applies the ContainsFold predicate on the "payable_rate" field.
-func PayableRateContainsFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldPayableRate, v))
+// RateContainsFold applies the ContainsFold predicate on the "rate" field.
+func RateContainsFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldRate, v))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

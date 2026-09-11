@@ -971,48 +971,6 @@ var (
 			},
 		},
 	}
-	// ExchangeRateCustomSettingsColumns holds the columns for the "exchange_rate_custom_settings" table.
-	ExchangeRateCustomSettingsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "inherit_base_currency_rate", Type: field.TypeBool, Default: false},
-		{Name: "version", Type: field.TypeUint64, Default: 1},
-		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "updated_by", Type: field.TypeUUID},
-	}
-	// ExchangeRateCustomSettingsTable holds the schema information for the "exchange_rate_custom_settings" table.
-	ExchangeRateCustomSettingsTable = &schema.Table{
-		Name:       "exchange_rate_custom_settings",
-		Columns:    ExchangeRateCustomSettingsColumns,
-		PrimaryKey: []*schema.Column{ExchangeRateCustomSettingsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "exchange_rate_custom_settings_organizations_exchange_rate_custom_setting",
-				Columns:    []*schema.Column{ExchangeRateCustomSettingsColumns[5]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "exchange_rate_custom_settings_users_updated_exchange_rate_custom_settings",
-				Columns:    []*schema.Column{ExchangeRateCustomSettingsColumns[6]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "exchangeratecustomsetting_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{ExchangeRateCustomSettingsColumns[2]},
-			},
-			{
-				Name:    "exchange_rate_custom_setting_organization_unique",
-				Unique:  true,
-				Columns: []*schema.Column{ExchangeRateCustomSettingsColumns[5]},
-			},
-		},
-	}
 	// ExchangeRateImportBatchesColumns holds the columns for the "exchange_rate_import_batches" table.
 	ExchangeRateImportBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1075,13 +1033,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "rate_type", Type: field.TypeEnum, Enums: []string{"BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"}},
 		{Name: "from_currency", Type: field.TypeString, Size: 3},
 		{Name: "to_currency", Type: field.TypeString, Size: 3},
 		{Name: "effective_from", Type: field.TypeTime},
 		{Name: "effective_to", Type: field.TypeTime, Nullable: true},
-		{Name: "receivable_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "payable_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 	}
 	// ExchangeRateSettingsTable holds the schema information for the "exchange_rate_settings" table.
@@ -1098,50 +1054,17 @@ var (
 			{
 				Name:    "exchange_rate_setting_unique_effective_from",
 				Unique:  true,
-				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7]},
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6]},
 			},
 			{
 				Name:    "exchange_rate_setting_active_lookup",
 				Unique:  false,
-				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[11]},
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[9]},
 			},
 			{
 				Name:    "exchange_rate_setting_effective_range",
 				Unique:  false,
-				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[7], ExchangeRateSettingsColumns[8]},
-			},
-		},
-	}
-	// ExchangeRateTimeStandardsColumns holds the columns for the "exchange_rate_time_standards" table.
-	ExchangeRateTimeStandardsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "rate_type", Type: field.TypeEnum, Enums: []string{"BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"}},
-		{Name: "time_standard", Type: field.TypeEnum, Enums: []string{"ETD_ETA_TRAIN_DATE", "BUSINESS_TIME", "BARGE_ETD", "EXPENSE_TIME", "ORDER_CREATED_AT", "BILL_DATE", "INVOICE_DATE", "TRANSACTION_DATE", "WRITE_OFF_TIME"}},
-		{Name: "sort_order", Type: field.TypeInt},
-	}
-	// ExchangeRateTimeStandardsTable holds the schema information for the "exchange_rate_time_standards" table.
-	ExchangeRateTimeStandardsTable = &schema.Table{
-		Name:       "exchange_rate_time_standards",
-		Columns:    ExchangeRateTimeStandardsColumns,
-		PrimaryKey: []*schema.Column{ExchangeRateTimeStandardsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "exchangeratetimestandard_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{ExchangeRateTimeStandardsColumns[2]},
-			},
-			{
-				Name:    "exchange_rate_time_standard_unique",
-				Unique:  true,
-				Columns: []*schema.Column{ExchangeRateTimeStandardsColumns[3], ExchangeRateTimeStandardsColumns[4], ExchangeRateTimeStandardsColumns[5]},
-			},
-			{
-				Name:    "exchange_rate_time_standard_sort_unique",
-				Unique:  true,
-				Columns: []*schema.Column{ExchangeRateTimeStandardsColumns[3], ExchangeRateTimeStandardsColumns[4], ExchangeRateTimeStandardsColumns[6]},
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7]},
 			},
 		},
 	}
@@ -2362,6 +2285,8 @@ var (
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "payable_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "exchange_gain_loss", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
@@ -2384,37 +2309,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_nettings_finance_bill_batches_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[19]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[21]},
 				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_nettings_organizations_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[20]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_partners_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[21]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_users_confirmed_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_nettings_users_reversed_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2428,27 +2353,27 @@ var (
 			{
 				Name:    "financenetting_organization_id_netting_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[3]},
+				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[3]},
 			},
 			{
 				Name:    "financenetting_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[4]},
+				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[4]},
 			},
 			{
 				Name:    "financenetting_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[20], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
+				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
 			},
 			{
 				Name:    "financenetting_settlement_party_id_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[21], FinanceNettingsColumns[8]},
+				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[8]},
 			},
 			{
 				Name:    "financenetting_batch_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[19]},
+				Columns: []*schema.Column{FinanceNettingsColumns[21]},
 			},
 		},
 	}
@@ -2520,10 +2445,6 @@ var (
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
-		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED"}},
-		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
-		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "bill_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "cashflow_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -2545,19 +2466,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_verifications_organizations_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[24]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[20]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verifications_partners_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[25]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[21]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verifications_users_reversed_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[26]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[22]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2571,17 +2492,17 @@ var (
 			{
 				Name:    "financeverification_organization_id_verification_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceVerificationsColumns[24], FinanceVerificationsColumns[3]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[3]},
 			},
 			{
 				Name:    "financeverification_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceVerificationsColumns[24], FinanceVerificationsColumns[4]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[4]},
 			},
 			{
 				Name:    "financeverification_organization_id_status_verification_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceVerificationsColumns[24], FinanceVerificationsColumns[5], FinanceVerificationsColumns[19]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[5], FinanceVerificationsColumns[15]},
 			},
 		},
 	}
@@ -2595,7 +2516,6 @@ var (
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "bill_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "cashflow_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
-		{Name: "write_off_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "exchange_gain_loss", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "bill_id", Type: field.TypeUUID},
@@ -2610,19 +2530,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_verification_allocations_finance_bills_verification_allocations",
-				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[11]},
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[10]},
 				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verification_allocations_finance_cashflows_verification_allocations",
-				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[12]},
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[11]},
 				RefColumns: []*schema.Column{FinanceCashflowsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verification_allocations_finance_verifications_allocations",
-				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[13]},
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[12]},
 				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2636,22 +2556,22 @@ var (
 			{
 				Name:    "financeverificationallocation_verification_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[13], FinanceVerificationAllocationsColumns[10]},
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[12], FinanceVerificationAllocationsColumns[9]},
 			},
 			{
 				Name:    "financeverificationallocation_cashflow_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[12], FinanceVerificationAllocationsColumns[10]},
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[11], FinanceVerificationAllocationsColumns[9]},
 			},
 			{
 				Name:    "financeverificationallocation_bill_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[11], FinanceVerificationAllocationsColumns[10]},
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[10], FinanceVerificationAllocationsColumns[9]},
 			},
 			{
 				Name:    "verification_allocation_pair_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[13], FinanceVerificationAllocationsColumns[12], FinanceVerificationAllocationsColumns[11]},
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[12], FinanceVerificationAllocationsColumns[11], FinanceVerificationAllocationsColumns[10]},
 			},
 		},
 	}
@@ -6733,10 +6653,8 @@ var (
 		EnterpriseResourceShippingTextsTable,
 		EnterpriseTagsTable,
 		EnterpriseTagGroupsTable,
-		ExchangeRateCustomSettingsTable,
 		ExchangeRateImportBatchesTable,
 		ExchangeRateSettingsTable,
-		ExchangeRateTimeStandardsTable,
 		FeeSettingsTable,
 		FinanceBillsTable,
 		FinanceBillBatchesTable,
@@ -6859,8 +6777,6 @@ func init() {
 	EnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
 	EnterpriseTagsTable.ForeignKeys[1].RefTable = EnterpriseTagGroupsTable
 	EnterpriseTagGroupsTable.ForeignKeys[0].RefTable = OrganizationsTable
-	ExchangeRateCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
-	ExchangeRateCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FeeSettingsTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	FeeSettingsTable.ForeignKeys[1].RefTable = MasterDataItemsTable
 	FeeSettingsTable.ForeignKeys[2].RefTable = MasterDataItemsTable
@@ -6931,9 +6847,10 @@ func init() {
 	FinanceNettingsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceNettingsTable.Annotation = &entsql.Annotation{}
 	FinanceNettingsTable.Annotation.Checks = map[string]string{
-		"financenetting_amount_positive":          "amount > 0",
-		"financenetting_base_amount_non_negative": "base_currency_amount >= 0",
-		"financenetting_status_check":             "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
+		"financenetting_amount_positive":                  "amount > 0",
+		"financenetting_base_amount_non_negative":         "base_currency_amount >= 0",
+		"financenetting_payable_base_amount_non_negative": "payable_base_amount >= 0",
+		"financenetting_status_check":                     "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
 	}
 	FinanceNettingAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceNettingAllocationsTable.ForeignKeys[1].RefTable = FinanceNettingsTable

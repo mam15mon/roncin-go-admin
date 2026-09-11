@@ -211,6 +211,8 @@ func (f *feeLedgerPostgresFixture) createNetting(key string, status financenetti
 		SetAmount(total8).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
+		SetPayableBaseAmount("0.00000000").
+		SetExchangeGainLoss("0.00000000").
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -274,9 +276,6 @@ func (f *feeLedgerPostgresFixture) createActiveVerification(key string, amount s
 		SetCurrency("CNY").
 		SetAmount(amount8).
 		SetBaseCurrency("CNY").
-		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financeverificationent.ExchangeRateSourceBASE_CURRENCY).
-		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseAmount(amount8).
 		SetBillBaseAmount(amount8).
 		SetCashflowBaseAmount(amount8).
@@ -311,7 +310,6 @@ func (f *feeLedgerPostgresFixture) verificationAllocationCreate(verificationID u
 		SetAmount(amount8).
 		SetBillBaseAmount(amount8).
 		SetCashflowBaseAmount(amount8).
-		SetWriteOffBaseAmount(amount8).
 		SetExchangeGainLoss("0.00000000").
 		SetActive(true)
 }

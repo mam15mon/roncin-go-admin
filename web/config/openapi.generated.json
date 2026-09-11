@@ -3880,56 +3880,6 @@
         }
       }
     },
-    "/api/v1/finance/exchange-rate-custom-setting": {
-      "get": {
-        "tags": [
-          "ExchangeRateService"
-        ],
-        "description": "GetExchangeRateCustomSetting 获取组织级汇率自定义策略。",
-        "operationId": "ExchangeRateService_GetExchangeRateCustomSetting",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.GetExchangeRateCustomSettingResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "ExchangeRateService"
-        ],
-        "description": "UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。",
-        "operationId": "ExchangeRateService_UpdateExchangeRateCustomSetting",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateCustomSettingRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateCustomSettingResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/finance/exchange-rate-import-template": {
       "get": {
         "tags": [
@@ -4036,54 +3986,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.GetExchangeRateImportResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/exchange-rate-time-standards": {
-      "get": {
-        "tags": [
-          "ExchangeRateService"
-        ],
-        "operationId": "ExchangeRateService_ListExchangeRateTimeStandards",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListExchangeRateTimeStandardsResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "ExchangeRateService"
-        ],
-        "operationId": "ExchangeRateService_UpdateExchangeRateTimeStandards",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateTimeStandardsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateTimeStandardsResponse"
                 }
               }
             }
@@ -8405,7 +8307,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。",
+        "description": "ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。",
         "operationId": "OrderFeeService_ResolveFeeExchangeRate",
         "parameters": [
           {
@@ -16117,18 +16019,13 @@
       },
       "finance.v1.CreateExchangeRateSettingRequest": {
         "required": [
-          "rateType",
           "fromCurrency",
           "toCurrency",
           "effectiveFrom",
-          "receivableRate",
-          "payableRate"
+          "rate"
         ],
         "type": "object",
         "properties": {
-          "rateType": {
-            "type": "string"
-          },
           "fromCurrency": {
             "type": "string"
           },
@@ -16142,10 +16039,7 @@
           "effectiveTo": {
             "type": "string"
           },
-          "receivableRate": {
-            "type": "string"
-          },
-          "payableRate": {
+          "rate": {
             "type": "string"
           }
         }
@@ -16484,28 +16378,6 @@
           }
         }
       },
-      "finance.v1.ExchangeRateCustomSetting": {
-        "type": "object",
-        "properties": {
-          "organizationId": {
-            "type": "string"
-          },
-          "inheritBaseCurrencyRate": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "string",
-            "description": "未保存过自定义设置时为 0；首次保存需携带 expected_version=0。"
-          },
-          "updatedAt": {
-            "type": "string"
-          },
-          "updatedBy": {
-            "type": "string"
-          }
-        },
-        "description": "ExchangeRateCustomSetting 供参数设置中的“自定义设置”使用。\n 开启继承后，BILL、INVOICE、SETTLEMENT、WRITE_OFF 专用汇率未命中时，\n 后端才会查询同一时点的 BASE_CURRENCY 汇率；已配置的专用汇率始终优先。"
-      },
       "finance.v1.ExchangeRateImportBatch": {
         "type": "object",
         "properties": {
@@ -16568,19 +16440,13 @@
             "type": "integer",
             "format": "int32"
           },
-          "rateType": {
-            "type": "string"
-          },
           "fromCurrency": {
             "type": "string"
           },
           "toCurrency": {
             "type": "string"
           },
-          "receivableRate": {
-            "type": "string"
-          },
-          "payableRate": {
+          "rate": {
             "type": "string"
           },
           "effectiveFrom": {
@@ -16609,9 +16475,6 @@
           "organizationId": {
             "type": "string"
           },
-          "rateType": {
-            "type": "string"
-          },
           "fromCurrency": {
             "type": "string"
           },
@@ -16626,12 +16489,6 @@
             "type": "string",
             "description": "effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。"
           },
-          "receivableRate": {
-            "type": "string"
-          },
-          "payableRate": {
-            "type": "string"
-          },
           "isActive": {
             "type": "boolean"
           },
@@ -16640,20 +16497,10 @@
           },
           "updatedAt": {
             "type": "string"
-          }
-        }
-      },
-      "finance.v1.ExchangeRateTimeStandardSetting": {
-        "type": "object",
-        "properties": {
-          "rateType": {
-            "type": "string"
           },
-          "timeStandards": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "rate": {
+            "type": "string",
+            "description": "rate 为原币折本位币的单一基准汇率。"
           }
         }
       },
@@ -18126,6 +17973,12 @@
           },
           "batchNo": {
             "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "exchangeGainLoss": {
+            "type": "string"
           }
         },
         "description": "FinanceNetting 只保存双方共同账单币种的抵销金额，不产生混合币种总额。"
@@ -18375,18 +18228,6 @@
           "baseCurrency": {
             "type": "string"
           },
-          "exchangeRate": {
-            "type": "string"
-          },
-          "exchangeRateSource": {
-            "type": "string"
-          },
-          "exchangeRateDate": {
-            "type": "string"
-          },
-          "exchangeRateSettingId": {
-            "type": "string"
-          },
           "baseAmount": {
             "type": "string"
           },
@@ -18435,9 +18276,6 @@
             "type": "string"
           },
           "cashflowBaseAmount": {
-            "type": "string"
-          },
-          "writeOffBaseAmount": {
             "type": "string"
           },
           "exchangeGainLoss": {
@@ -18517,27 +18355,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceCommission"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.GetExchangeRateCustomSettingResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.ExchangeRateCustomSetting"
           },
           "traceId": {
             "type": "string"
@@ -19065,30 +18882,6 @@
             "type": "string"
           },
           "baseCurrency": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.ListExchangeRateTimeStandardsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
-            }
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -20226,57 +20019,17 @@
           }
         }
       },
-      "finance.v1.UpdateExchangeRateCustomSettingRequest": {
-        "required": [
-          "expectedVersion"
-        ],
-        "type": "object",
-        "properties": {
-          "inheritBaseCurrencyRate": {
-            "type": "boolean"
-          },
-          "expectedVersion": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.UpdateExchangeRateCustomSettingResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.ExchangeRateCustomSetting"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "finance.v1.UpdateExchangeRateSettingRequest": {
         "required": [
           "id",
-          "rateType",
           "fromCurrency",
           "toCurrency",
           "effectiveFrom",
-          "receivableRate",
-          "payableRate"
+          "rate"
         ],
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "rateType": {
             "type": "string"
           },
           "fromCurrency": {
@@ -20292,10 +20045,7 @@
           "effectiveTo": {
             "type": "string"
           },
-          "receivableRate": {
-            "type": "string"
-          },
-          "payableRate": {
+          "rate": {
             "type": "string"
           }
         }
@@ -20315,44 +20065,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.ExchangeRateSetting"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.UpdateExchangeRateTimeStandardsRequest": {
-        "required": [
-          "data"
-        ],
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
-            }
-          }
-        }
-      },
-      "finance.v1.UpdateExchangeRateTimeStandardsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
-            }
           },
           "traceId": {
             "type": "string"
@@ -31795,7 +31507,7 @@
     },
     {
       "name": "ExchangeRateService",
-      "description": "ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。"
+      "description": "ExchangeRateService 维护总部统一的折本币基准汇率主数据。"
     },
     {
       "name": "FeeCatalogService",

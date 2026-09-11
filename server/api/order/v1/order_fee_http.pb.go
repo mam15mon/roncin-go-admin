@@ -45,7 +45,7 @@ type OrderFeeServiceHTTPServer interface {
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
 	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
 	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
-	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
@@ -324,7 +324,7 @@ type OrderFeeServiceHTTPClient interface {
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
 	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
 	ReopenFee(ctx context.Context, req *ReopenFeeRequest, opts ...http.CallOption) (rsp *ReopenFeeResponse, err error)
-	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
@@ -493,7 +493,7 @@ func (c *OrderFeeServiceHTTPClientImpl) ReopenFee(ctx context.Context, in *Reope
 	return &out, nil
 }
 
-// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
+// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
 func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (*ResolveFeeExchangeRateResponse, error) {
 	var out ResolveFeeExchangeRateResponse
 	pattern := "/api/v1/orders/{order_id}/fee-exchange-rate"

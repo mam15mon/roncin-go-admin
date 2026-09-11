@@ -41,8 +41,6 @@ type FinanceVerificationAllocation struct {
 	BillBaseAmount string `json:"bill_base_amount,omitempty"`
 	// CashflowBaseAmount holds the value of the "cashflow_base_amount" field.
 	CashflowBaseAmount string `json:"cashflow_base_amount,omitempty"`
-	// WriteOffBaseAmount holds the value of the "write_off_base_amount" field.
-	WriteOffBaseAmount string `json:"write_off_base_amount,omitempty"`
 	// ExchangeGainLoss holds the value of the "exchange_gain_loss" field.
 	ExchangeGainLoss string `json:"exchange_gain_loss,omitempty"`
 	// Active holds the value of the "active" field.
@@ -106,7 +104,7 @@ func (*FinanceVerificationAllocation) scanValues(columns []string) ([]any, error
 		switch columns[i] {
 		case financeverificationallocation.FieldActive:
 			values[i] = new(sql.NullBool)
-		case financeverificationallocation.FieldCashflowNo, financeverificationallocation.FieldBillNo, financeverificationallocation.FieldAmount, financeverificationallocation.FieldBillBaseAmount, financeverificationallocation.FieldCashflowBaseAmount, financeverificationallocation.FieldWriteOffBaseAmount, financeverificationallocation.FieldExchangeGainLoss:
+		case financeverificationallocation.FieldCashflowNo, financeverificationallocation.FieldBillNo, financeverificationallocation.FieldAmount, financeverificationallocation.FieldBillBaseAmount, financeverificationallocation.FieldCashflowBaseAmount, financeverificationallocation.FieldExchangeGainLoss:
 			values[i] = new(sql.NullString)
 		case financeverificationallocation.FieldCreatedAt, financeverificationallocation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -192,12 +190,6 @@ func (_m *FinanceVerificationAllocation) assignValues(columns []string, values [
 				return fmt.Errorf("unexpected type %T for field cashflow_base_amount", values[i])
 			} else if value.Valid {
 				_m.CashflowBaseAmount = value.String
-			}
-		case financeverificationallocation.FieldWriteOffBaseAmount:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field write_off_base_amount", values[i])
-			} else if value.Valid {
-				_m.WriteOffBaseAmount = value.String
 			}
 		case financeverificationallocation.FieldExchangeGainLoss:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -291,9 +283,6 @@ func (_m *FinanceVerificationAllocation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cashflow_base_amount=")
 	builder.WriteString(_m.CashflowBaseAmount)
-	builder.WriteString(", ")
-	builder.WriteString("write_off_base_amount=")
-	builder.WriteString(_m.WriteOffBaseAmount)
 	builder.WriteString(", ")
 	builder.WriteString("exchange_gain_loss=")
 	builder.WriteString(_m.ExchangeGainLoss)

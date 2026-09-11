@@ -15,7 +15,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	exchangeratesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
@@ -98,6 +97,17 @@ type observingCommissionRepo struct {
 	getUsedTransaction bool
 }
 
+// failingExchangeRateRepo 包装真实汇率仓储并让组织汇率上下文解析固定失败，
+// 用于验证提成创建事务内汇率错误的整体回滚。
+type failingExchangeRateRepo struct {
+	biz.ExchangeRateRepo
+	err error
+}
+
+func (r *failingExchangeRateRepo) ResolveContext(context.Context, uuid.UUID) (*biz.ExchangeRateContext, error) {
+	return nil, r.err
+}
+
 func (r *observingCommissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCommission, error) {
 	r.getCalls++
 	_, r.getUsedTransaction = transactionFromContext(ctx)
@@ -155,18 +165,22 @@ func TestCommissionCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("真实汇率解析失败时不创建提成主单明细与审计", func(t *testing.T) {
 		fixture := newCommissionPostgresFixture(t)
 		ctx := context.Background()
-		// 删除核销汇率时间标准，触发真实 ExchangeRateUsecase.Resolve 日期缺失错误
-		if _, err := fixture.data.db.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(fixture.organizationID)).Exec(ctx); err != nil {
-			t.Fatalf("删除汇率时间标准: %v", err)
-		}
-		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
+		// 夹具本位币为 CNY，CNY 折算恒为 1 不会触达按日汇率查询；在 ResolveContext
+		// 边界注入 ErrExchangeRateMissing，验证汇率解析错误在共享事务内整体回滚。
+		rateRepo := &failingExchangeRateRepo{ExchangeRateRepo: NewExchangeRateRepo(fixture.data), err: biz.ErrExchangeRateMissing}
+		usecase := biz.NewCommissionUsecase(
+			NewCommissionRepo(fixture.data),
+			biz.NewOrderConfigUsecase(NewOrderConfigRepo(fixture.data)),
+			biz.NewExchangeRateUsecase(rateRepo),
+			fixture.data,
+		)
 
 		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("rate-fail"))
 		if err == nil {
-			t.Fatalf("汇率时间标准缺失时未返回错误: created=%#v", created)
+			t.Fatalf("汇率解析失败时未返回错误: created=%#v", created)
 		}
-		if !errors.Is(err, biz.ErrExchangeRateDateMissing) {
-			t.Fatalf("返回错误 = %v，期望 %v", err, biz.ErrExchangeRateDateMissing)
+		if !errors.Is(err, biz.ErrExchangeRateMissing) {
+			t.Fatalf("返回错误 = %v，期望 %v", err, biz.ErrExchangeRateMissing)
 		}
 		fixture.requireRolledBackState()
 	})
@@ -213,11 +227,8 @@ func TestCommissionCreateSharedTransactionPostgres(t *testing.T) {
 
 func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 	t.Helper()
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	data, cleanup, err := newIntegrationData(source)
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
+	// 与其余集成测试一致：隔离 Schema + 完整版本化迁移链，避免直连 public 残留旧列。
+	data, cleanup := getIntegrationData(t)
 	// 先注册关库，利用 Cleanup 的 LIFO 顺序保证夹具删除先于连接关闭。
 	t.Cleanup(cleanup)
 
@@ -455,9 +466,6 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetCurrency("CNY").
 		SetAmount("1000.00000000").
 		SetBaseCurrency("CNY").
-		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(verification.ExchangeRateSourceBASE_CURRENCY).
-		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseAmount("1000.00000000").
 		SetBillBaseAmount("1000.00000000").
 		SetCashflowBaseAmount("1000.00000000").
@@ -479,7 +487,6 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetAmount("1000.00000000").
 		SetBillBaseAmount("1000.00000000").
 		SetCashflowBaseAmount("1000.00000000").
-		SetWriteOffBaseAmount("1000.00000000").
 		SetExchangeGainLoss("0.00000000").
 		SetActive(true).
 		Save(ctx); err != nil {
@@ -510,15 +517,6 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试提成编号规则: %v", err)
-	}
-
-	if _, err = data.db.ExchangeRateTimeStandard.Create().
-		SetOrganizationID(org.ID).
-		SetRateType(exchangeratetimestandardent.RateTypeWRITE_OFF).
-		SetTimeStandard(exchangeratetimestandardent.TimeStandardWRITE_OFF_TIME).
-		SetSortOrder(0).
-		Save(ctx); err != nil {
-		t.Fatalf("创建测试核销汇率时间标准: %v", err)
 	}
 
 	return fixture
@@ -713,10 +711,6 @@ func (f *commissionPostgresFixture) cleanup() {
 			_, err := f.data.db.ExchangeRateSetting.Delete().Where(exchangeratesettingent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
-		{name: "汇率时间标准", run: func() error {
-			_, err := f.data.db.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
-			return err
-		}},
 		{name: "组织", run: func() error {
 			return f.data.db.Organization.DeleteOneID(f.organizationID).Exec(ctx)
 		}},
@@ -729,16 +723,8 @@ func (f *commissionPostgresFixture) cleanup() {
 }
 
 func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
-
-	data, cleanup, err := newIntegrationData(source)
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
-	// 先注册关库，利用 Cleanup 的 LIFO 顺序保证夹具删除先于连接关闭。
+	// 关库经 t.Cleanup 注册（LIFO），保证测试自身的夹具清理先于连接关闭执行。
+	data, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 
 	ctx := context.Background()

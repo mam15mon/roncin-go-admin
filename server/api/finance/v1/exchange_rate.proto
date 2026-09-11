@@ -5,11 +5,10 @@ package finance.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
-// ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。
+// ExchangeRateService 维护总部统一的折本币基准汇率主数据。
 service ExchangeRateService {
   rpc ListExchangeRateSettings(ListExchangeRateSettingsRequest) returns (ListExchangeRateSettingsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -29,28 +28,6 @@ service ExchangeRateService {
   rpc DisableExchangeRateSetting(DisableExchangeRateSettingRequest) returns (DisableExchangeRateSettingResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.disable" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/exchange-rates/{id}/disable" body: "*"};
-  }
-
-  rpc ListExchangeRateTimeStandards(ListExchangeRateTimeStandardsRequest) returns (ListExchangeRateTimeStandardsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-time-standards"};
-  }
-
-  rpc UpdateExchangeRateTimeStandards(UpdateExchangeRateTimeStandardsRequest) returns (UpdateExchangeRateTimeStandardsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {put: "/api/v1/finance/exchange-rate-time-standards" body: "*"};
-  }
-
-  // GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
-  rpc GetExchangeRateCustomSetting(GetExchangeRateCustomSettingRequest) returns (GetExchangeRateCustomSettingResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-custom-setting"};
-  }
-
-  // UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
-  rpc UpdateExchangeRateCustomSetting(UpdateExchangeRateCustomSettingRequest) returns (UpdateExchangeRateCustomSettingResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {put: "/api/v1/finance/exchange-rate-custom-setting" body: "*"};
   }
 
   // DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
@@ -80,7 +57,8 @@ service ExchangeRateService {
 message ExchangeRateSetting {
   string id = 1;
   string organization_id = 2;
-  string rate_type = 3;
+  reserved 3;
+  reserved "rate_type";
   string from_currency = 4;
   string to_currency = 5;
   reserved 6;
@@ -89,11 +67,15 @@ message ExchangeRateSetting {
   string effective_from = 7;
   // effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。
   optional string effective_to = 8;
-  string receivable_rate = 9;
-  string payable_rate = 10;
+  reserved 9;
+  reserved "receivable_rate";
+  reserved 10;
+  reserved "payable_rate";
   bool is_active = 11;
   string created_at = 12;
   string updated_at = 13;
+  // rate 为原币折本位币的单一基准汇率。
+  string rate = 14;
 }
 
 message ListExchangeRateSettingsRequest {}
@@ -108,7 +90,8 @@ message ListExchangeRateSettingsResponse {
 }
 
 message CreateExchangeRateSettingRequest {
-  string rate_type = 1 [(google.api.field_behavior) = REQUIRED];
+  reserved 1;
+  reserved "rate_type";
   string from_currency = 2 [(google.api.field_behavior) = REQUIRED];
   string to_currency = 3 [(google.api.field_behavior) = REQUIRED];
   reserved 4;
@@ -116,13 +99,17 @@ message CreateExchangeRateSettingRequest {
   // 示例：2026-08-27T09:30:00+08:00。
   string effective_from = 5 [(google.api.field_behavior) = REQUIRED];
   optional string effective_to = 6;
-  string receivable_rate = 7 [(google.api.field_behavior) = REQUIRED];
-  string payable_rate = 8 [(google.api.field_behavior) = REQUIRED];
+  reserved 7;
+  reserved "receivable_rate";
+  reserved 8;
+  reserved "payable_rate";
+  string rate = 9 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateExchangeRateSettingRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string rate_type = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 2;
+  reserved "rate_type";
   string from_currency = 3 [(google.api.field_behavior) = REQUIRED];
   string to_currency = 4 [(google.api.field_behavior) = REQUIRED];
   reserved 5;
@@ -130,8 +117,11 @@ message UpdateExchangeRateSettingRequest {
   // 示例：2026-08-27T09:30:00+08:00。
   string effective_from = 6 [(google.api.field_behavior) = REQUIRED];
   optional string effective_to = 7;
-  string receivable_rate = 8 [(google.api.field_behavior) = REQUIRED];
-  string payable_rate = 9 [(google.api.field_behavior) = REQUIRED];
+  reserved 8;
+  reserved "receivable_rate";
+  reserved 9;
+  reserved "payable_rate";
+  string rate = 10 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DisableExchangeRateSettingRequest {
@@ -159,68 +149,6 @@ message DisableExchangeRateSettingResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
-}
-
-message ExchangeRateTimeStandardSetting {
-  string rate_type = 1;
-  repeated string time_standards = 2;
-}
-
-message ListExchangeRateTimeStandardsRequest {}
-
-message ListExchangeRateTimeStandardsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated ExchangeRateTimeStandardSetting data = 4;
-  string trace_id = 5;
-}
-
-message UpdateExchangeRateTimeStandardsRequest {
-  repeated ExchangeRateTimeStandardSetting data = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-message UpdateExchangeRateTimeStandardsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated ExchangeRateTimeStandardSetting data = 4;
-  string trace_id = 5;
-}
-
-// ExchangeRateCustomSetting 供参数设置中的“自定义设置”使用。
-// 开启继承后，BILL、INVOICE、SETTLEMENT、WRITE_OFF 专用汇率未命中时，
-// 后端才会查询同一时点的 BASE_CURRENCY 汇率；已配置的专用汇率始终优先。
-message ExchangeRateCustomSetting {
-  string organization_id = 1;
-  bool inherit_base_currency_rate = 2;
-  // 未保存过自定义设置时为 0；首次保存需携带 expected_version=0。
-  uint64 version = 3;
-  optional string updated_at = 4;
-  optional string updated_by = 5;
-}
-
-message GetExchangeRateCustomSettingRequest {}
-
-message GetExchangeRateCustomSettingResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  ExchangeRateCustomSetting data = 4;
-  string trace_id = 5;
-}
-
-message UpdateExchangeRateCustomSettingRequest {
-  bool inherit_base_currency_rate = 1;
-  google.protobuf.UInt64Value expected_version = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-message UpdateExchangeRateCustomSettingResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  ExchangeRateCustomSetting data = 4;
-  string trace_id = 5;
 }
 
 message DownloadExchangeRateImportTemplateRequest {}
@@ -252,15 +180,19 @@ message GetExchangeRateImportRequest {
 
 message ExchangeRateImportRow {
   int32 row_number = 1;
-  string rate_type = 2;
+  reserved 2;
+  reserved "rate_type";
   string from_currency = 3;
   string to_currency = 4;
-  string receivable_rate = 5;
-  string payable_rate = 6;
-  string effective_from = 7;
-  optional string effective_to = 8;
-  string status = 9;
-  repeated string errors = 10;
+  reserved 5;
+  reserved "receivable_rate";
+  reserved 6;
+  reserved "payable_rate";
+  string rate = 7;
+  string effective_from = 8;
+  optional string effective_to = 9;
+  string status = 10;
+  repeated string errors = 11;
 }
 
 message ExchangeRateImportBatch {

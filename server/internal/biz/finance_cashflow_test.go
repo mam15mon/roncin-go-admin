@@ -87,12 +87,10 @@ func TestSameFinanceCashflowIntent(t *testing.T) {
 	}
 }
 
-func TestCreateFinanceCashflowUsesSettlementRateSnapshot(t *testing.T) {
-	settingID := uuid.New()
+func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}}},
-		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.25"), Source: "SYSTEM", RateDate: "2026-08-27", SettingID: &settingID},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
+		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	repo := &financeCashflowRepoStub{}
 	usecase := NewFinanceCashflowUsecase(repo, NewExchangeRateUsecase(exchangeRepo))
@@ -107,18 +105,20 @@ func TestCreateFinanceCashflowUsesSettlementRateSnapshot(t *testing.T) {
 		IdempotencyKey:    "cashflow-rate-snapshot",
 	}, false)
 	if err != nil {
-		t.Fatalf("按结算日汇率创建资金流水失败: %v", err)
+		t.Fatalf("按到账日汇率创建资金流水失败: %v", err)
 	}
-	if item.ExchangeRate.StringFixed(8) != "7.25000000" || item.BaseCurrency != "CNY" || item.BaseAmount.StringFixed(8) != "725.00000000" || item.ExchangeRateSource != "SYSTEM" || item.ExchangeRateSettingID == nil || *item.ExchangeRateSettingID != settingID {
+	if item.ExchangeRate.StringFixed(8) != "7.25000000" || item.BaseCurrency != "CNY" || item.BaseAmount.StringFixed(8) != "725.00000000" || item.ExchangeRateSource != "SYSTEM" || item.ExchangeRateDate != "2026-08-27" || item.ExchangeRateSettingID != nil {
 		t.Fatalf("资金流水汇率快照不完整: %#v", item)
+	}
+	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-08-27" {
+		t.Fatalf("资金流水汇率必须按到账日解析: %v", exchangeRepo.resolveDates)
 	}
 }
 
 func TestCreateFinanceCashflowRejectsUnauthorizedRateOverride(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}}},
-		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.25"), Source: "SYSTEM", RateDate: "2026-08-27"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
+		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	usecase := NewFinanceCashflowUsecase(&financeCashflowRepoStub{}, NewExchangeRateUsecase(exchangeRepo))
 	override := decimal.RequireFromString("7.30")
@@ -182,11 +182,8 @@ func TestFinanceCashflow_CasualSupplierAccountConstraint(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	partyID := uuid.New()
-	settingID := uuid.New()
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}}},
-		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("1"), Source: "SYSTEM", RateDate: "2026-08-27", SettingID: &settingID},
+		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 	}
 	rateUsecase := NewExchangeRateUsecase(exchangeRepo)
 

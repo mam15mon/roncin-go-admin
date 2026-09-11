@@ -31,6 +31,8 @@ func (FinanceNetting) Fields() []ent.Field {
 		field.String("amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("payable_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("exchange_gain_loss").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("note").Optional().Nillable().MaxLen(500),
 		field.Uint64("version").Default(1),
 		field.Time("confirmed_at").Optional().Nillable(),
@@ -68,8 +70,9 @@ func (FinanceNetting) Indexes() []ent.Index {
 
 func (FinanceNetting) Annotations() []schema.Annotation {
 	return []schema.Annotation{entsql.Checks(map[string]string{
-		"financenetting_status_check":             "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
-		"financenetting_amount_positive":          "amount > 0",
-		"financenetting_base_amount_non_negative": "base_currency_amount >= 0",
+		"financenetting_status_check":                     "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
+		"financenetting_amount_positive":                  "amount > 0",
+		"financenetting_base_amount_non_negative":         "base_currency_amount >= 0",
+		"financenetting_payable_base_amount_non_negative": "payable_base_amount >= 0",
 	})}
 }

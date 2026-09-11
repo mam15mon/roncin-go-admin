@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	ExchangeRateImportTemplateVersion = 1
+	ExchangeRateImportTemplateVersion = 2
 	ExchangeRateImportMaxRows         = 500
 	ExchangeRateImportPreviewTTL      = 30 * time.Minute
 	ExchangeRateImportPreviewReady    = "PREVIEW_READY"
@@ -39,17 +39,15 @@ const (
 )
 
 type ExchangeRateImportRow struct {
-	SettingID      uuid.UUID `json:"settingId"`
-	RowNumber      int       `json:"rowNumber"`
-	RateType       string    `json:"rateType"`
-	FromCurrency   string    `json:"fromCurrency"`
-	ToCurrency     string    `json:"toCurrency"`
-	ReceivableRate string    `json:"receivableRate"`
-	PayableRate    string    `json:"payableRate"`
-	EffectiveFrom  string    `json:"effectiveFrom"`
-	EffectiveTo    *string   `json:"effectiveTo,omitempty"`
-	Status         string    `json:"status"`
-	Errors         []string  `json:"errors"`
+	SettingID     uuid.UUID `json:"settingId"`
+	RowNumber     int       `json:"rowNumber"`
+	FromCurrency  string    `json:"fromCurrency"`
+	ToCurrency    string    `json:"toCurrency"`
+	Rate          string    `json:"rate"`
+	EffectiveFrom string    `json:"effectiveFrom"`
+	EffectiveTo   *string   `json:"effectiveTo,omitempty"`
+	Status        string    `json:"status"`
+	Errors        []string  `json:"errors"`
 }
 
 type ExchangeRateImportBatch struct {
@@ -86,6 +84,10 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
 		return nil, "", err
+	}
+	// 汇率导入同样只在总部执行，分支机构不提供导入通道。
+	if rateContext.OwnerOrganizationID != organizationID {
+		return nil, "", ErrExchangeRateHeadquartersRequired
 	}
 	rows := normalizeExchangeRateImportRows(input.Rows, rateContext.BaseCurrency)
 	inspectionErrors, err := uc.repo.InspectImport(ctx, rateContext.OwnerOrganizationID, rows)
@@ -137,6 +139,9 @@ func (uc *ExchangeRateUsecase) ConfirmImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
+	if rateContext.OwnerOrganizationID != organizationID {
+		return nil, ErrExchangeRateHeadquartersRequired
+	}
 	tokenHash := hashExchangeRateImportPreviewToken(previewToken)
 	audit := exchangeRateImportAudit(organizationID, actorID, uuid.Nil, "finance.exchange_rate.import.confirm", "")
 	return uc.repo.ConfirmImport(ctx, organizationID, rateContext.OwnerOrganizationID, actorID, tokenHash, idempotencyKey, time.Now().UTC(), audit)
@@ -157,11 +162,9 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 		}
 		row := *source
 		row.Errors = append([]string(nil), source.Errors...)
-		row.RateType = normalizeExchangeRateImportType(row.RateType)
 		row.FromCurrency = strings.ToUpper(strings.TrimSpace(row.FromCurrency))
 		row.ToCurrency = strings.ToUpper(strings.TrimSpace(row.ToCurrency))
-		row.ReceivableRate = strings.TrimSpace(row.ReceivableRate)
-		row.PayableRate = strings.TrimSpace(row.PayableRate)
+		row.Rate = strings.TrimSpace(row.Rate)
 		row.EffectiveFrom = normalizeExchangeRateImportTime(row.EffectiveFrom)
 		if row.EffectiveTo != nil {
 			value := normalizeExchangeRateImportTime(*row.EffectiveTo)
@@ -171,13 +174,9 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 				row.EffectiveTo = &value
 			}
 		}
-		receivable, receivableErr := decimal.NewFromString(row.ReceivableRate)
-		payable, payableErr := decimal.NewFromString(row.PayableRate)
-		if receivableErr != nil {
-			row.Errors = appendUniqueStrings(row.Errors, "应收汇率格式不合法")
-		}
-		if payableErr != nil {
-			row.Errors = appendUniqueStrings(row.Errors, "应付汇率格式不合法")
+		rate, rateErr := decimal.NewFromString(row.Rate)
+		if rateErr != nil {
+			row.Errors = appendUniqueStrings(row.Errors, "折本币汇率格式不合法")
 		}
 		if row.EffectiveFrom == "" {
 			row.Errors = appendUniqueStrings(row.Errors, "生效开始时间格式不合法")
@@ -185,14 +184,14 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 		if row.ToCurrency != baseCurrency {
 			row.Errors = appendUniqueStrings(row.Errors, "本币必须是当前组织本币 "+baseCurrency)
 		}
-		if receivableErr == nil && payableErr == nil && row.EffectiveFrom != "" {
-			setting := &ExchangeRateSetting{RateType: row.RateType, FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency, EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo, ReceivableRate: receivable, PayableRate: payable}
+		if rateErr == nil && row.EffectiveFrom != "" {
+			setting := &ExchangeRateSetting{FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency, EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo, Rate: rate}
 			if normalized, err := normalizeExchangeRateSetting(setting); err != nil {
 				row.Errors = appendUniqueStrings(row.Errors, "汇率字段或生效区间不合法")
 			} else {
 				row.SettingID = uuid.Must(uuid.NewV7())
-				row.RateType, row.FromCurrency, row.ToCurrency = normalized.RateType, normalized.FromCurrency, normalized.ToCurrency
-				row.ReceivableRate, row.PayableRate = normalized.ReceivableRate.StringFixed(8), normalized.PayableRate.StringFixed(8)
+				row.FromCurrency, row.ToCurrency = normalized.FromCurrency, normalized.ToCurrency
+				row.Rate = normalized.Rate.StringFixed(8)
 				row.EffectiveFrom, row.EffectiveTo = normalized.EffectiveFrom, normalized.EffectiveTo
 			}
 		}
@@ -214,7 +213,7 @@ func markExchangeRateImportInternalOverlaps(rows []*ExchangeRateImportRow) {
 		}
 		for j := i + 1; j < len(rows); j++ {
 			right := rows[j]
-			if right.SettingID == uuid.Nil || left.RateType != right.RateType || left.FromCurrency != right.FromCurrency || left.ToCurrency != right.ToCurrency {
+			if right.SettingID == uuid.Nil || left.FromCurrency != right.FromCurrency || left.ToCurrency != right.ToCurrency {
 				continue
 			}
 			if exchangeRateImportIntervalsOverlap(left, right) {
@@ -240,23 +239,6 @@ func exchangeRateImportIntervalsOverlap(left, right *ExchangeRateImportRow) bool
 		rightBeforeLeftEnd = rightFrom.Before(leftTo)
 	}
 	return leftBeforeRightEnd && rightBeforeLeftEnd
-}
-
-func normalizeExchangeRateImportType(value string) string {
-	switch strings.ToUpper(strings.TrimSpace(value)) {
-	case "汇率（折本币）", "折本币汇率", BaseCurrencyRateType:
-		return BaseCurrencyRateType
-	case "开票汇率", InvoiceRateType:
-		return InvoiceRateType
-	case "结算汇率", "收付汇率", SettlementRateType:
-		return SettlementRateType
-	case "核销汇率", WriteOffRateType:
-		return WriteOffRateType
-	case "账单汇率", BillRateType:
-		return BillRateType
-	default:
-		return strings.ToUpper(strings.TrimSpace(value))
-	}
 }
 
 func normalizeExchangeRateImportTime(value string) string {

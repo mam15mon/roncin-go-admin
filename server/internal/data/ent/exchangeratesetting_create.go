@@ -55,12 +55,6 @@ func (_c *ExchangeRateSettingCreate) SetOrganizationID(v uuid.UUID) *ExchangeRat
 	return _c
 }
 
-// SetRateType sets the "rate_type" field.
-func (_c *ExchangeRateSettingCreate) SetRateType(v exchangeratesetting.RateType) *ExchangeRateSettingCreate {
-	_c.mutation.SetRateType(v)
-	return _c
-}
-
 // SetFromCurrency sets the "from_currency" field.
 func (_c *ExchangeRateSettingCreate) SetFromCurrency(v string) *ExchangeRateSettingCreate {
 	_c.mutation.SetFromCurrency(v)
@@ -93,15 +87,9 @@ func (_c *ExchangeRateSettingCreate) SetNillableEffectiveTo(v *time.Time) *Excha
 	return _c
 }
 
-// SetReceivableRate sets the "receivable_rate" field.
-func (_c *ExchangeRateSettingCreate) SetReceivableRate(v string) *ExchangeRateSettingCreate {
-	_c.mutation.SetReceivableRate(v)
-	return _c
-}
-
-// SetPayableRate sets the "payable_rate" field.
-func (_c *ExchangeRateSettingCreate) SetPayableRate(v string) *ExchangeRateSettingCreate {
-	_c.mutation.SetPayableRate(v)
+// SetRate sets the "rate" field.
+func (_c *ExchangeRateSettingCreate) SetRate(v string) *ExchangeRateSettingCreate {
+	_c.mutation.SetRate(v)
 	return _c
 }
 
@@ -197,14 +185,6 @@ func (_c *ExchangeRateSettingCreate) check() error {
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "ExchangeRateSetting.organization_id"`)}
 	}
-	if _, ok := _c.mutation.RateType(); !ok {
-		return &ValidationError{Name: "rate_type", err: errors.New(`ent: missing required field "ExchangeRateSetting.rate_type"`)}
-	}
-	if v, ok := _c.mutation.RateType(); ok {
-		if err := exchangeratesetting.RateTypeValidator(v); err != nil {
-			return &ValidationError{Name: "rate_type", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.rate_type": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.FromCurrency(); !ok {
 		return &ValidationError{Name: "from_currency", err: errors.New(`ent: missing required field "ExchangeRateSetting.from_currency"`)}
 	}
@@ -224,11 +204,8 @@ func (_c *ExchangeRateSettingCreate) check() error {
 	if _, ok := _c.mutation.EffectiveFrom(); !ok {
 		return &ValidationError{Name: "effective_from", err: errors.New(`ent: missing required field "ExchangeRateSetting.effective_from"`)}
 	}
-	if _, ok := _c.mutation.ReceivableRate(); !ok {
-		return &ValidationError{Name: "receivable_rate", err: errors.New(`ent: missing required field "ExchangeRateSetting.receivable_rate"`)}
-	}
-	if _, ok := _c.mutation.PayableRate(); !ok {
-		return &ValidationError{Name: "payable_rate", err: errors.New(`ent: missing required field "ExchangeRateSetting.payable_rate"`)}
+	if _, ok := _c.mutation.Rate(); !ok {
+		return &ValidationError{Name: "rate", err: errors.New(`ent: missing required field "ExchangeRateSetting.rate"`)}
 	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "ExchangeRateSetting.is_active"`)}
@@ -280,10 +257,6 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
 		_node.OrganizationID = value
 	}
-	if value, ok := _c.mutation.RateType(); ok {
-		_spec.SetField(exchangeratesetting.FieldRateType, field.TypeEnum, value)
-		_node.RateType = value
-	}
 	if value, ok := _c.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
 		_node.FromCurrency = value
@@ -300,13 +273,9 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeTime, value)
 		_node.EffectiveTo = &value
 	}
-	if value, ok := _c.mutation.ReceivableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldReceivableRate, field.TypeString, value)
-		_node.ReceivableRate = value
-	}
-	if value, ok := _c.mutation.PayableRate(); ok {
-		_spec.SetField(exchangeratesetting.FieldPayableRate, field.TypeString, value)
-		_node.PayableRate = value
+	if value, ok := _c.mutation.Rate(); ok {
+		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
+		_node.Rate = value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)

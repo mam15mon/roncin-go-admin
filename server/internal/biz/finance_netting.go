@@ -54,6 +54,8 @@ type FinanceNettingAllocation struct {
 }
 
 // FinanceNetting 只保存双方共同账单币种的抵销金额，不保存对冲汇率，也不产生混合币种总额。
+// BaseCurrencyAmount 语义固化为应收侧抵销本位币；PayableBaseAmount 为应付侧抵销本位币，
+// ExchangeGainLoss 为应付侧减应收侧的对冲汇差，具体计算在后续阶段接入。
 type FinanceNetting struct {
 	ID                   uuid.UUID
 	OrganizationID       uuid.UUID
@@ -70,6 +72,8 @@ type FinanceNetting struct {
 	Amount               decimal.Decimal
 	BaseCurrency         string
 	BaseCurrencyAmount   decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	ExchangeGainLoss     decimal.Decimal
 	Note                 *string
 	Version              uint64
 	ConfirmedAt          *time.Time

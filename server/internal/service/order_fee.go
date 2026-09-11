@@ -110,16 +110,11 @@ func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v
 	if !valid {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	resolved, err := s.usecase.ResolveExchangeRate(ctx, principal.Organization.ID, orderID, direction, request.GetCurrency(), request.GetExpenseDate())
+	resolvedRate, err := s.usecase.ResolveExchangeRate(ctx, principal.Organization.ID, orderID, direction, request.GetCurrency(), request.GetExpenseDate())
 	if err != nil {
 		return nil, err
 	}
-	response := ok(ctx, &v1.ResolveFeeExchangeRateResponse{ExchangeRate: resolved.Rate.StringFixed(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate})
-	if resolved.SettingID != nil {
-		value := resolved.SettingID.String()
-		response.ExchangeRateSettingId = &value
-	}
-	return response, nil
+	return ok(ctx, &v1.ResolveFeeExchangeRateResponse{ExchangeRate: resolvedRate.StringFixed(8), ExchangeRateSource: "SYSTEM", ExchangeRateDate: request.GetExpenseDate()}), nil
 }
 
 func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest) (*v1.AddFeeResponse, error) {

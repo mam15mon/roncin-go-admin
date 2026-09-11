@@ -44,6 +44,10 @@ const (
 	FieldBaseCurrency = "base_currency"
 	// FieldBaseCurrencyAmount holds the string denoting the base_currency_amount field in the database.
 	FieldBaseCurrencyAmount = "base_currency_amount"
+	// FieldPayableBaseAmount holds the string denoting the payable_base_amount field in the database.
+	FieldPayableBaseAmount = "payable_base_amount"
+	// FieldExchangeGainLoss holds the string denoting the exchange_gain_loss field in the database.
+	FieldExchangeGainLoss = "exchange_gain_loss"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -148,6 +152,8 @@ var Columns = []string{
 	FieldAmount,
 	FieldBaseCurrency,
 	FieldBaseCurrencyAmount,
+	FieldPayableBaseAmount,
+	FieldExchangeGainLoss,
 	FieldNote,
 	FieldVersion,
 	FieldConfirmedAt,
@@ -305,6 +311,16 @@ func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByBaseCurrencyAmount orders the results by the base_currency_amount field.
 func ByBaseCurrencyAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBaseCurrencyAmount, opts...).ToFunc()
+}
+
+// ByPayableBaseAmount orders the results by the payable_base_amount field.
+func ByPayableBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPayableBaseAmount, opts...).ToFunc()
+}
+
+// ByExchangeGainLoss orders the results by the exchange_gain_loss field.
+func ByExchangeGainLoss(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeGainLoss, opts...).ToFunc()
 }
 
 // ByNote orders the results by the note field.

@@ -66,17 +66,11 @@ type EnterpriseTag func(*sql.Selector)
 // EnterpriseTagGroup is the predicate function for enterprisetaggroup builders.
 type EnterpriseTagGroup func(*sql.Selector)
 
-// ExchangeRateCustomSetting is the predicate function for exchangeratecustomsetting builders.
-type ExchangeRateCustomSetting func(*sql.Selector)
-
 // ExchangeRateImportBatch is the predicate function for exchangerateimportbatch builders.
 type ExchangeRateImportBatch func(*sql.Selector)
 
 // ExchangeRateSetting is the predicate function for exchangeratesetting builders.
 type ExchangeRateSetting func(*sql.Selector)
-
-// ExchangeRateTimeStandard is the predicate function for exchangeratetimestandard builders.
-type ExchangeRateTimeStandard func(*sql.Selector)
 
 // FeeSetting is the predicate function for feesetting builders.
 type FeeSetting func(*sql.Selector)

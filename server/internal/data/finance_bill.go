@@ -774,6 +774,8 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				SetSettlementPartyID(netting.SettlementPartyID).SetSettlementPartyName(netting.SettlementPartyName).
 				SetCurrency(netting.Currency).SetAmount(netting.Amount.StringFixed(8)).
 				SetBaseCurrency(netting.BaseCurrency).SetBaseCurrencyAmount(netting.BaseCurrencyAmount.StringFixed(8)).
+				SetPayableBaseAmount(netting.PayableBaseAmount.StringFixed(8)).
+				SetExchangeGainLoss(netting.ExchangeGainLoss.StringFixed(8)).
 				SetNillableNote(netting.Note).SetVersion(1).Save(ctx); nettingErr != nil {
 				return mapEntConstraint(nettingErr, "financenetting_organization_id_idempotency_key", biz.ErrFinanceNettingIdempotency)
 			}

@@ -372,9 +372,6 @@ func (_u *FinanceVerificationUpdate) sqlSave(ctx context.Context) (_node int, er
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeverification.FieldStatus, field.TypeEnum, value)
 	}
-	if _u.mutation.ExchangeRateSettingIDCleared() {
-		_spec.ClearField(financeverification.FieldExchangeRateSettingID, field.TypeUUID)
-	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financeverification.FieldNote, field.TypeString, value)
 	}
@@ -951,9 +948,6 @@ func (_u *FinanceVerificationUpdateOne) sqlSave(ctx context.Context) (_node *Fin
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeverification.FieldStatus, field.TypeEnum, value)
-	}
-	if _u.mutation.ExchangeRateSettingIDCleared() {
-		_spec.ClearField(financeverification.FieldExchangeRateSettingID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financeverification.FieldNote, field.TypeString, value)

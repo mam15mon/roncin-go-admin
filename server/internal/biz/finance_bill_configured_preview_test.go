@@ -34,10 +34,8 @@ func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *t
 	usdFee := financeBillableFeeForTest(partyID, "10", "8", "2", "72")
 	usdFee.Fee.Currency, usdFee.Fee.ExchangeRate, usdFee.Fee.BaseCurrencyAmount = "USD", decimal.RequireFromString("7.2"), decimal.RequireFromString("72")
 	fees := []*FinanceBillableFee{usdFee, cnyFee}
-	rateSettingID := uuid.New()
-	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}}, resolvedByCurrency: map[string]*ResolvedExchangeRate{
-		"USD": {Rate: decimal.RequireFromString("7.2"), Source: "SYSTEM", RateDate: "2026-09-10", SettingID: &rateSettingID},
-		"CNY": {Rate: decimal.NewFromInt(1), Source: "BASE_CURRENCY", RateDate: "2026-09-10"},
+	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, rateByCurrency: map[string]decimal.Decimal{
+		"USD": decimal.RequireFromString("7.2"),
 	}})
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: fees}, rates, nil)
 	input := PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{cnyFee.Fee.ID, usdFee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
@@ -83,15 +81,14 @@ func TestConfiguredFinanceBillInitialPreviewDoesNotRequireTemporaryDateRate(t *t
 	fee.Fee.ExchangeRate = decimal.RequireFromString("7.2")
 	fee.Fee.BaseCurrencyAmount = decimal.NewFromInt(720)
 	rateRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
-		resolveErr:    ErrExchangeRateMissing,
+		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		resolveErr:  ErrExchangeRateMissing,
 	}
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: []*FinanceBillableFee{fee}}, NewExchangeRateUsecase(rateRepo), nil)
 	input := PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{fee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	initial, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || len(initial.Groups) != 1 || initial.PreviewToken != "" || !initial.Groups[0].TemporaryBillDate || len(rateRepo.resolveTypes) != 0 {
-		t.Fatalf("初次预览不应依赖临时日期汇率: preview=%#v resolveTypes=%v err=%v", initial, rateRepo.resolveTypes, err)
+	if err != nil || len(initial.Groups) != 1 || initial.PreviewToken != "" || !initial.Groups[0].TemporaryBillDate || len(rateRepo.resolveDates) != 0 {
+		t.Fatalf("初次预览不应依赖临时日期汇率: preview=%#v resolveDates=%v err=%v", initial, rateRepo.resolveDates, err)
 	}
 	input.GroupConfigs = []FinanceBillBatchPreviewGroupConfig{{GroupKey: initial.Groups[0].GroupKey, BillDate: "2026-09-10", SettlementAccountID: accountID}}
 	if _, err = uc.PreviewBatch(t.Context(), organizationID, input); err != ErrExchangeRateMissing {
@@ -159,9 +156,7 @@ func TestConfiguredFinanceBillPreviewRejectsIncompleteOrSameCurrencyEstimatedRat
 		t.Fatalf("预计开票汇率缺币种时错误=%v", err)
 	}
 
-	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}}, resolvedByCurrency: map[string]*ResolvedExchangeRate{
-		"CNY": {Rate: decimal.NewFromInt(1), Source: "BASE_CURRENCY", RateDate: "2026-09-10"},
-	}})
+	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}})
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: []*FinanceBillableFee{fee}}, rates, nil)
 	initial, err := uc.PreviewBatch(t.Context(), organizationID, PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{fee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil || len(initial.Groups) != 1 {

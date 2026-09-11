@@ -275,13 +275,14 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 			}
 			x.CashflowNo = c.FlowNo
 			x.BillNo = b.BillNo
-			x.BillBaseAmount, x.CashflowBaseAmount, x.WriteOffBaseAmount, x.ExchangeGainLoss, e = biz.CalculateVerificationAllocationAmounts(v.Direction, x.Amount, ba, billBaseTotal, ca, cashBaseTotal, v.ExchangeRate)
+			x.BillBaseAmount, x.CashflowBaseAmount, x.ExchangeGainLoss, e = biz.CalculateVerificationAllocationAmounts(v.Direction, x.Amount, ba, billBaseTotal, ca, cashBaseTotal)
 			if e != nil {
 				return e
 			}
 			v.BillBaseAmount = v.BillBaseAmount.Add(x.BillBaseAmount)
 			v.CashflowBaseAmount = v.CashflowBaseAmount.Add(x.CashflowBaseAmount)
-			v.BaseAmount = v.BaseAmount.Add(x.WriteOffBaseAmount)
+			// 单头本位币金额严格等于行级流水本位币合计（B1：核销不再解析汇率）。
+			v.BaseAmount = v.BaseAmount.Add(x.CashflowBaseAmount)
 			v.ExchangeGainLoss = v.ExchangeGainLoss.Add(x.ExchangeGainLoss)
 		}
 		v.BaseAmount = v.BaseAmount.RoundBank(8)
@@ -297,13 +298,13 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		if e != nil {
 			return e
 		}
-		_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(ver.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetBillBaseAmount(v.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(v.CashflowBaseAmount.StringFixed(8)).SetExchangeGainLoss(v.ExchangeGainLoss.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+		_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetBillBaseAmount(v.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(v.CashflowBaseAmount.StringFixed(8)).SetExchangeGainLoss(v.ExchangeGainLoss.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
 		if e != nil {
 			return mapEntConstraint(e, "financeverification_org_idempotency", biz.ErrVerificationIdempotency)
 		}
 		builders := make([]*ent.FinanceVerificationAllocationCreate, 0, len(v.Allocations))
 		for _, x := range v.Allocations {
-			builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetBillBaseAmount(x.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(x.CashflowBaseAmount.StringFixed(8)).SetWriteOffBaseAmount(x.WriteOffBaseAmount.StringFixed(8)).SetExchangeGainLoss(x.ExchangeGainLoss.StringFixed(8)).SetActive(true))
+			builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetBillBaseAmount(x.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(x.CashflowBaseAmount.StringFixed(8)).SetExchangeGainLoss(x.ExchangeGainLoss.StringFixed(8)).SetActive(true))
 		}
 		if _, e = tx.FinanceVerificationAllocation.CreateBulk(builders...).Save(ctx); e != nil {
 			return mapEntConstraint(e, "verification_allocation_pair_unique", biz.ErrVerificationInvalid)
@@ -460,10 +461,6 @@ func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, er
 	if e != nil {
 		return nil, e
 	}
-	exchangeRate, e := decimalOf(x.ExchangeRate)
-	if e != nil {
-		return nil, e
-	}
 	baseAmount, e := decimalOf(x.BaseAmount)
 	if e != nil {
 		return nil, e
@@ -480,7 +477,7 @@ func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, er
 	if e != nil {
 		return nil, e
 	}
-	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseAmount: baseAmount, BillBaseAmount: billBaseAmount, CashflowBaseAmount: cashflowBaseAmount, ExchangeGainLoss: exchangeGainLoss, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
+	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, BaseCurrency: x.BaseCurrency, BaseAmount: baseAmount, BillBaseAmount: billBaseAmount, CashflowBaseAmount: cashflowBaseAmount, ExchangeGainLoss: exchangeGainLoss, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
 	if organization, edgeErr := x.Edges.OrganizationOrErr(); edgeErr == nil {
 		v.OrganizationName = organization.Name
 	}
@@ -497,15 +494,11 @@ func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, er
 		if e != nil {
 			return nil, e
 		}
-		writeOffBase, e := decimalOf(a.WriteOffBaseAmount)
-		if e != nil {
-			return nil, e
-		}
 		gainLoss, e := decimalOf(a.ExchangeGainLoss)
 		if e != nil {
 			return nil, e
 		}
-		v.Allocations = append(v.Allocations, &biz.VerificationAllocation{ID: a.ID, VerificationID: a.VerificationID, CashflowID: a.CashflowID, BillID: a.BillID, CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: z, BillBaseAmount: billBase, CashflowBaseAmount: cashBase, WriteOffBaseAmount: writeOffBase, ExchangeGainLoss: gainLoss, Active: a.Active})
+		v.Allocations = append(v.Allocations, &biz.VerificationAllocation{ID: a.ID, VerificationID: a.VerificationID, CashflowID: a.CashflowID, BillID: a.BillID, CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: z, BillBaseAmount: billBase, CashflowBaseAmount: cashBase, ExchangeGainLoss: gainLoss, Active: a.Active})
 	}
 	return v, nil
 }

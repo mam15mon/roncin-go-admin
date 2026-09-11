@@ -1169,14 +1169,12 @@ declare namespace API {
   };
 
   type CreateExchangeRateSettingRequest = {
-    rateType: string;
     fromCurrency: string;
     toCurrency: string;
     /** 示例：2026-08-27T09:30:00+08:00。 */
     effectiveFrom: string;
     effectiveTo?: string;
-    receivableRate: string;
-    payableRate: string;
+    rate: string;
   };
 
   type CreateExchangeRateSettingResponse = {
@@ -1881,15 +1879,6 @@ declare namespace API {
     sortOrder?: number;
   };
 
-  type ExchangeRateCustomSetting = {
-    organizationId?: string;
-    inheritBaseCurrencyRate?: boolean;
-    /** 未保存过自定义设置时为 0；首次保存需携带 expected_version=0。 */
-    version?: string;
-    updatedAt?: string;
-    updatedBy?: string;
-  };
-
   type ExchangeRateImportBatch = {
     id?: string;
     fileName?: string;
@@ -1909,11 +1898,9 @@ declare namespace API {
 
   type ExchangeRateImportRow = {
     rowNumber?: number;
-    rateType?: string;
     fromCurrency?: string;
     toCurrency?: string;
-    receivableRate?: string;
-    payableRate?: string;
+    rate?: string;
     effectiveFrom?: string;
     effectiveTo?: string;
     status?: string;
@@ -1935,23 +1922,17 @@ declare namespace API {
   type ExchangeRateSetting = {
     id?: string;
     organizationId?: string;
-    rateType?: string;
     fromCurrency?: string;
     toCurrency?: string;
     /** effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。 */
     effectiveFrom?: string;
     /** effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。 */
     effectiveTo?: string;
-    receivableRate?: string;
-    payableRate?: string;
     isActive?: boolean;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type ExchangeRateTimeStandardSetting = {
-    rateType?: string;
-    timeStandards?: string[];
+    /** rate 为原币折本位币的单一基准汇率。 */
+    rate?: string;
   };
 
   type ExecuteChangeSeaDocumentModeRequest = {
@@ -2626,6 +2607,8 @@ declare namespace API {
     organizationName?: string;
     batchId?: string;
     batchNo?: string;
+    payableBaseAmount?: string;
+    exchangeGainLoss?: string;
   };
 
   type FinanceNettingAllocation = {
@@ -2716,10 +2699,6 @@ declare namespace API {
     allocations?: FinanceVerificationAllocation[];
     createdAt?: string;
     baseCurrency?: string;
-    exchangeRate?: string;
-    exchangeRateSource?: string;
-    exchangeRateDate?: string;
-    exchangeRateSettingId?: string;
     baseAmount?: string;
     billBaseAmount?: string;
     cashflowBaseAmount?: string;
@@ -2738,7 +2717,6 @@ declare namespace API {
     active?: boolean;
     billBaseAmount?: string;
     cashflowBaseAmount?: string;
-    writeOffBaseAmount?: string;
     exchangeGainLoss?: string;
   };
 
@@ -2813,14 +2791,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: EnterpriseResource;
-    traceId?: string;
-  };
-
-  type GetExchangeRateCustomSettingResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ExchangeRateCustomSetting;
     traceId?: string;
   };
 
@@ -3248,14 +3218,6 @@ declare namespace API {
     data?: ExchangeRateSetting[];
     traceId?: string;
     baseCurrency?: string;
-  };
-
-  type ListExchangeRateTimeStandardsResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ExchangeRateTimeStandardSetting[];
-    traceId?: string;
   };
 
   type ListFeeLedgerResponse = {
@@ -7217,29 +7179,14 @@ declare namespace API {
     traceId?: string;
   };
 
-  type UpdateExchangeRateCustomSettingRequest = {
-    inheritBaseCurrencyRate?: boolean;
-    expectedVersion: string;
-  };
-
-  type UpdateExchangeRateCustomSettingResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ExchangeRateCustomSetting;
-    traceId?: string;
-  };
-
   type UpdateExchangeRateSettingRequest = {
     id: string;
-    rateType: string;
     fromCurrency: string;
     toCurrency: string;
     /** 示例：2026-08-27T09:30:00+08:00。 */
     effectiveFrom: string;
     effectiveTo?: string;
-    receivableRate: string;
-    payableRate: string;
+    rate: string;
   };
 
   type UpdateExchangeRateSettingResponse = {
@@ -7247,18 +7194,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateSetting;
-    traceId?: string;
-  };
-
-  type UpdateExchangeRateTimeStandardsRequest = {
-    data: ExchangeRateTimeStandardSetting[];
-  };
-
-  type UpdateExchangeRateTimeStandardsResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ExchangeRateTimeStandardSetting[];
     traceId?: string;
   };
 

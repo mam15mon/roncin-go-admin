@@ -129,17 +129,6 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 	return orderFeeToBiz(item)
 }
 
-func (r *orderFeeRepo) ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeExchangeRateContext, error) {
-	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
-	}
-	return &biz.OrderFeeExchangeRateContext{
-		TradeDirection: biz.OrderTradeDirection(item.TradeDirection),
-		ETD:            item.Etd, ETA: item.Eta, BusinessTime: item.OrderDate, OrderCreatedAt: item.CreatedAt,
-	}, nil
-}
-
 func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {
 	applicability, err := r.loadApplicability(ctx, organizationID, orderID)
 	if err != nil {
@@ -420,7 +409,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	return input, nil
 }
 
-func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedExchangeRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
+func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *decimal.Decimal, audit *biz.AuditEvent) (*biz.OrderFee, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -508,7 +497,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			if item.Currency != input.Currency && activeBill.FeeCount != 1 {
 				return biz.ErrBilledFeeCurrencyConflict
 			}
-			if item.Currency != input.Currency && (billExchangeRate == nil || billExchangeRate.RateDate != activeBill.BillDate) {
+			if item.Currency != input.Currency && billExchangeRate == nil {
 				return biz.ErrFinanceBillInvalidArgument
 			}
 		} else if item.Status != orderfeeent.StatusDRAFT {
@@ -606,13 +595,10 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			}
 			billUpdate := tx.FinanceBill.UpdateOneID(activeBill.ID).SetTotalAmount(total.StringFixed(8)).SetNetAmount(net.StringFixed(8)).SetTaxAmount(tax.StringFixed(8)).SetVersion(activeBill.Version + 1)
 			if item.Currency != input.Currency {
-				billRate = billExchangeRate.Rate
-				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(billExchangeRate.Source)).SetExchangeRateDate(billExchangeRate.RateDate)
-				if billExchangeRate.SettingID == nil {
-					billUpdate.ClearExchangeRateSettingID()
-				} else {
-					billUpdate.SetExchangeRateSettingID(*billExchangeRate.SettingID)
-				}
+				billRate = *billExchangeRate
+				// 币种变更后按账单当前业务日期固化的总部基准汇率重建账单汇率快照。
+				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource("SYSTEM")).SetExchangeRateDate(activeBill.BillDate)
+				billUpdate.ClearExchangeRateSettingID()
 			}
 			billUpdate.SetBaseCurrencyAmount(total.Mul(billRate).RoundBank(8).StringFixed(8))
 			if _, updateErr := billUpdate.Save(ctx); updateErr != nil {

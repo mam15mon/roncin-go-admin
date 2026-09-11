@@ -9483,7 +9483,6 @@ type FinanceVerificationAllocation struct {
 	Active             bool                   `protobuf:"varint,7,opt,name=active,proto3" json:"active,omitempty"`
 	BillBaseAmount     string                 `protobuf:"bytes,8,opt,name=bill_base_amount,json=billBaseAmount,proto3" json:"bill_base_amount,omitempty"`
 	CashflowBaseAmount string                 `protobuf:"bytes,9,opt,name=cashflow_base_amount,json=cashflowBaseAmount,proto3" json:"cashflow_base_amount,omitempty"`
-	WriteOffBaseAmount string                 `protobuf:"bytes,10,opt,name=write_off_base_amount,json=writeOffBaseAmount,proto3" json:"write_off_base_amount,omitempty"`
 	ExchangeGainLoss   string                 `protobuf:"bytes,11,opt,name=exchange_gain_loss,json=exchangeGainLoss,proto3" json:"exchange_gain_loss,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -9582,13 +9581,6 @@ func (x *FinanceVerificationAllocation) GetCashflowBaseAmount() string {
 	return ""
 }
 
-func (x *FinanceVerificationAllocation) GetWriteOffBaseAmount() string {
-	if x != nil {
-		return x.WriteOffBaseAmount
-	}
-	return ""
-}
-
 func (x *FinanceVerificationAllocation) GetExchangeGainLoss() string {
 	if x != nil {
 		return x.ExchangeGainLoss
@@ -9597,35 +9589,31 @@ func (x *FinanceVerificationAllocation) GetExchangeGainLoss() string {
 }
 
 type FinanceVerification struct {
-	state                 protoimpl.MessageState           `protogen:"open.v1"`
-	Id                    string                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	VerificationNo        string                           `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
-	Status                FinanceVerificationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=finance.v1.FinanceVerificationStatus" json:"status,omitempty"`
-	Direction             string                           `protobuf:"bytes,4,opt,name=direction,proto3" json:"direction,omitempty"`
-	SettlementPartyId     string                           `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	SettlementPartyName   string                           `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
-	Currency              string                           `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
-	Amount                string                           `protobuf:"bytes,8,opt,name=amount,proto3" json:"amount,omitempty"`
-	VerificationDate      string                           `protobuf:"bytes,9,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
-	Note                  *string                          `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version               uint64                           `protobuf:"varint,11,opt,name=version,proto3" json:"version,omitempty"`
-	ReversedAt            *string                          `protobuf:"bytes,12,opt,name=reversed_at,json=reversedAt,proto3,oneof" json:"reversed_at,omitempty"`
-	ReversalReason        *string                          `protobuf:"bytes,13,opt,name=reversal_reason,json=reversalReason,proto3,oneof" json:"reversal_reason,omitempty"`
-	Allocations           []*FinanceVerificationAllocation `protobuf:"bytes,14,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	CreatedAt             string                           `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	BaseCurrency          string                           `protobuf:"bytes,16,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	ExchangeRate          string                           `protobuf:"bytes,17,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
-	ExchangeRateSource    string                           `protobuf:"bytes,18,opt,name=exchange_rate_source,json=exchangeRateSource,proto3" json:"exchange_rate_source,omitempty"`
-	ExchangeRateDate      string                           `protobuf:"bytes,19,opt,name=exchange_rate_date,json=exchangeRateDate,proto3" json:"exchange_rate_date,omitempty"`
-	ExchangeRateSettingId *string                          `protobuf:"bytes,20,opt,name=exchange_rate_setting_id,json=exchangeRateSettingId,proto3,oneof" json:"exchange_rate_setting_id,omitempty"`
-	BaseAmount            string                           `protobuf:"bytes,21,opt,name=base_amount,json=baseAmount,proto3" json:"base_amount,omitempty"`
-	BillBaseAmount        string                           `protobuf:"bytes,22,opt,name=bill_base_amount,json=billBaseAmount,proto3" json:"bill_base_amount,omitempty"`
-	CashflowBaseAmount    string                           `protobuf:"bytes,23,opt,name=cashflow_base_amount,json=cashflowBaseAmount,proto3" json:"cashflow_base_amount,omitempty"`
-	ExchangeGainLoss      string                           `protobuf:"bytes,24,opt,name=exchange_gain_loss,json=exchangeGainLoss,proto3" json:"exchange_gain_loss,omitempty"`
-	OrganizationId        string                           `protobuf:"bytes,25,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName      string                           `protobuf:"bytes,26,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state               protoimpl.MessageState           `protogen:"open.v1"`
+	Id                  string                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	VerificationNo      string                           `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
+	Status              FinanceVerificationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=finance.v1.FinanceVerificationStatus" json:"status,omitempty"`
+	Direction           string                           `protobuf:"bytes,4,opt,name=direction,proto3" json:"direction,omitempty"`
+	SettlementPartyId   string                           `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName string                           `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	Currency            string                           `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
+	Amount              string                           `protobuf:"bytes,8,opt,name=amount,proto3" json:"amount,omitempty"`
+	VerificationDate    string                           `protobuf:"bytes,9,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
+	Note                *string                          `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version             uint64                           `protobuf:"varint,11,opt,name=version,proto3" json:"version,omitempty"`
+	ReversedAt          *string                          `protobuf:"bytes,12,opt,name=reversed_at,json=reversedAt,proto3,oneof" json:"reversed_at,omitempty"`
+	ReversalReason      *string                          `protobuf:"bytes,13,opt,name=reversal_reason,json=reversalReason,proto3,oneof" json:"reversal_reason,omitempty"`
+	Allocations         []*FinanceVerificationAllocation `protobuf:"bytes,14,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	CreatedAt           string                           `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	BaseCurrency        string                           `protobuf:"bytes,16,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	BaseAmount          string                           `protobuf:"bytes,21,opt,name=base_amount,json=baseAmount,proto3" json:"base_amount,omitempty"`
+	BillBaseAmount      string                           `protobuf:"bytes,22,opt,name=bill_base_amount,json=billBaseAmount,proto3" json:"bill_base_amount,omitempty"`
+	CashflowBaseAmount  string                           `protobuf:"bytes,23,opt,name=cashflow_base_amount,json=cashflowBaseAmount,proto3" json:"cashflow_base_amount,omitempty"`
+	ExchangeGainLoss    string                           `protobuf:"bytes,24,opt,name=exchange_gain_loss,json=exchangeGainLoss,proto3" json:"exchange_gain_loss,omitempty"`
+	OrganizationId      string                           `protobuf:"bytes,25,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrganizationName    string                           `protobuf:"bytes,26,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *FinanceVerification) Reset() {
@@ -9766,34 +9754,6 @@ func (x *FinanceVerification) GetCreatedAt() string {
 func (x *FinanceVerification) GetBaseCurrency() string {
 	if x != nil {
 		return x.BaseCurrency
-	}
-	return ""
-}
-
-func (x *FinanceVerification) GetExchangeRate() string {
-	if x != nil {
-		return x.ExchangeRate
-	}
-	return ""
-}
-
-func (x *FinanceVerification) GetExchangeRateSource() string {
-	if x != nil {
-		return x.ExchangeRateSource
-	}
-	return ""
-}
-
-func (x *FinanceVerification) GetExchangeRateDate() string {
-	if x != nil {
-		return x.ExchangeRateDate
-	}
-	return ""
-}
-
-func (x *FinanceVerification) GetExchangeRateSettingId() string {
-	if x != nil && x.ExchangeRateSettingId != nil {
-		return *x.ExchangeRateSettingId
 	}
 	return ""
 }
@@ -10246,6 +10206,8 @@ type FinanceNetting struct {
 	OrganizationName    string                      `protobuf:"bytes,21,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	BatchId             *string                     `protobuf:"bytes,22,opt,name=batch_id,json=batchId,proto3,oneof" json:"batch_id,omitempty"`
 	BatchNo             *string                     `protobuf:"bytes,23,opt,name=batch_no,json=batchNo,proto3,oneof" json:"batch_no,omitempty"`
+	PayableBaseAmount   string                      `protobuf:"bytes,24,opt,name=payable_base_amount,json=payableBaseAmount,proto3" json:"payable_base_amount,omitempty"`
+	ExchangeGainLoss    string                      `protobuf:"bytes,25,opt,name=exchange_gain_loss,json=exchangeGainLoss,proto3" json:"exchange_gain_loss,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -10437,6 +10399,20 @@ func (x *FinanceNetting) GetBatchId() string {
 func (x *FinanceNetting) GetBatchNo() string {
 	if x != nil && x.BatchNo != nil {
 		return *x.BatchNo
+	}
+	return ""
+}
+
+func (x *FinanceNetting) GetPayableBaseAmount() string {
+	if x != nil {
+		return x.PayableBaseAmount
+	}
+	return ""
+}
+
+func (x *FinanceNetting) GetExchangeGainLoss() string {
+	if x != nil {
+		return x.ExchangeGainLoss
 	}
 	return ""
 }
@@ -18826,7 +18802,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1aReverseVerificationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\x90\x03\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xfa\x02\n" +
 	"\x1dFinanceVerificationAllocation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vcashflow_id\x18\x02 \x01(\tR\n" +
@@ -18838,10 +18814,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x16\n" +
 	"\x06active\x18\a \x01(\bR\x06active\x12(\n" +
 	"\x10bill_base_amount\x18\b \x01(\tR\x0ebillBaseAmount\x120\n" +
-	"\x14cashflow_base_amount\x18\t \x01(\tR\x12cashflowBaseAmount\x121\n" +
-	"\x15write_off_base_amount\x18\n" +
-	" \x01(\tR\x12writeOffBaseAmount\x12,\n" +
-	"\x12exchange_gain_loss\x18\v \x01(\tR\x10exchangeGainLoss\"\x96\t\n" +
+	"\x14cashflow_base_amount\x18\t \x01(\tR\x12cashflowBaseAmount\x12,\n" +
+	"\x12exchange_gain_loss\x18\v \x01(\tR\x10exchangeGainLossJ\x04\b\n" +
+	"\x10\vR\x15write_off_base_amount\"\xa1\b\n" +
 	"\x13FinanceVerification\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0fverification_no\x18\x02 \x01(\tR\x0everificationNo\x12=\n" +
@@ -18861,11 +18836,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vallocations\x18\x0e \x03(\v2).finance.v1.FinanceVerificationAllocationR\vallocations\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x0f \x01(\tR\tcreatedAt\x12#\n" +
-	"\rbase_currency\x18\x10 \x01(\tR\fbaseCurrency\x12#\n" +
-	"\rexchange_rate\x18\x11 \x01(\tR\fexchangeRate\x120\n" +
-	"\x14exchange_rate_source\x18\x12 \x01(\tR\x12exchangeRateSource\x12,\n" +
-	"\x12exchange_rate_date\x18\x13 \x01(\tR\x10exchangeRateDate\x12<\n" +
-	"\x18exchange_rate_setting_id\x18\x14 \x01(\tH\x03R\x15exchangeRateSettingId\x88\x01\x01\x12\x1f\n" +
+	"\rbase_currency\x18\x10 \x01(\tR\fbaseCurrency\x12\x1f\n" +
 	"\vbase_amount\x18\x15 \x01(\tR\n" +
 	"baseAmount\x12(\n" +
 	"\x10bill_base_amount\x18\x16 \x01(\tR\x0ebillBaseAmount\x120\n" +
@@ -18875,8 +18846,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x11organization_name\x18\x1a \x01(\tR\x10organizationNameB\a\n" +
 	"\x05_noteB\x0e\n" +
 	"\f_reversed_atB\x12\n" +
-	"\x10_reversal_reasonB\x1b\n" +
-	"\x19_exchange_rate_setting_id\"\x8b\x02\n" +
+	"\x10_reversal_reasonJ\x04\b\x11\x10\x12J\x04\b\x12\x10\x13J\x04\b\x13\x10\x14J\x04\b\x14\x10\x15R\rexchange_rateR\x14exchange_rate_sourceR\x12exchange_rate_dateR\x18exchange_rate_setting_id\"\x8b\x02\n" +
 	"\x19ListVerificationsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -18906,7 +18876,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\tdirection\x18\x04 \x01(\tR\tdirection\x12\x16\n" +
 	"\x06amount\x18\x05 \x01(\tR\x06amount\x120\n" +
 	"\x14base_currency_amount\x18\x06 \x01(\tR\x12baseCurrencyAmount\x12\x16\n" +
-	"\x06active\x18\a \x01(\bR\x06active\"\x92\b\n" +
+	"\x06active\x18\a \x01(\bR\x06active\"\xf0\b\n" +
 	"\x0eFinanceNetting\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -18935,7 +18905,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x14 \x01(\tR\x0eorganizationId\x12+\n" +
 	"\x11organization_name\x18\x15 \x01(\tR\x10organizationName\x12\x1e\n" +
 	"\bbatch_id\x18\x16 \x01(\tH\x06R\abatchId\x88\x01\x01\x12\x1e\n" +
-	"\bbatch_no\x18\x17 \x01(\tH\aR\abatchNo\x88\x01\x01B\a\n" +
+	"\bbatch_no\x18\x17 \x01(\tH\aR\abatchNo\x88\x01\x01\x12.\n" +
+	"\x13payable_base_amount\x18\x18 \x01(\tR\x11payableBaseAmount\x12,\n" +
+	"\x12exchange_gain_loss\x18\x19 \x01(\tR\x10exchangeGainLossB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +

@@ -13,7 +13,6 @@ import (
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	exchangeratesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	numberruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
@@ -22,6 +21,7 @@ import (
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
+	"github.com/shopspring/decimal"
 )
 
 const financeBillIntegrationDate = "2026-08-30"
@@ -60,16 +60,16 @@ func (r *invalidAuditResultFinanceBillRepo) Create(ctx context.Context, bill *bi
 	return r.FinanceBillRepo.Create(ctx, bill, audit)
 }
 
-func (r *pausingExchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
-	resolved, err := r.ExchangeRateRepo.Resolve(ctx, organizationID, rateType, direction, fromCurrency, toCurrency, rateDate)
+func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
+	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, fromCurrency, toCurrency, rateDate)
 	if err != nil {
-		return nil, err
+		return decimal.Decimal{}, err
 	}
 	r.resolvedOne.Do(func() {
 		close(r.resolved)
 		<-r.release
 	})
-	return resolved, nil
+	return rate, nil
 }
 
 func (r *pausingExchangeRateRepo) continueResolve() {
@@ -184,7 +184,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_, err := data.db.ExchangeRateSetting.UpdateOneID(settingID).SetReceivableRate("7.30000000").Save(ctx)
+			_, err := data.db.ExchangeRateSetting.UpdateOneID(settingID).SetRate("7.30000000").Save(ctx)
 			updateResult <- err
 		}()
 		select {
@@ -204,7 +204,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 		if created.err != nil || created.bill == nil {
 			t.Fatalf("创建汇率快照账单: bill=%#v error=%v", created.bill, created.err)
 		}
-		if created.bill.ExchangeRate.StringFixed(8) != "7.20000000" || created.bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" || created.bill.ExchangeRateSettingID == nil || *created.bill.ExchangeRateSettingID != settingID {
+		if created.bill.ExchangeRate.StringFixed(8) != "7.20000000" || created.bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" {
 			t.Fatalf("账单未保存事务内汇率快照: %#v", created.bill)
 		}
 		select {
@@ -216,7 +216,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 			t.Fatal("等待汇率更新超时")
 		}
 		setting, err := data.db.ExchangeRateSetting.Get(context.Background(), settingID)
-		if err != nil || setting.ReceivableRate != "7.30000000" {
+		if err != nil || setting.Rate != "7.30000000" {
 			t.Fatalf("并发汇率最终值 = %#v，期望 7.30000000，error=%v", setting, err)
 		}
 		fixture.requireCommittedState(feeID, 1)
@@ -553,14 +553,6 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试账单编号规则: %v", err)
 	}
-	if _, err = data.db.ExchangeRateTimeStandard.Create().
-		SetOrganizationID(organization.ID).
-		SetRateType(exchangeratetimestandardent.RateTypeBILL).
-		SetTimeStandard(exchangeratetimestandardent.TimeStandardBILL_DATE).
-		SetSortOrder(0).
-		Save(ctx); err != nil {
-		t.Fatalf("创建测试账单汇率时间标准: %v", err)
-	}
 	return fixture
 }
 
@@ -599,16 +591,14 @@ func (f *financeBillPostgresFixture) createConfirmedFeeWithCurrency(key, currenc
 	return fee.ID
 }
 
-func (f *financeBillPostgresFixture) createExchangeRateSetting(receivableRate string) uuid.UUID {
+func (f *financeBillPostgresFixture) createExchangeRateSetting(rate string) uuid.UUID {
 	f.t.Helper()
 	setting, err := f.data.db.ExchangeRateSetting.Create().
 		SetOrganizationID(f.organizationID).
-		SetRateType(exchangeratesettingent.RateTypeBILL).
 		SetFromCurrency("USD").
 		SetToCurrency("CNY").
 		SetEffectiveFrom(time.Date(2026, 8, 1, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
-		SetReceivableRate(receivableRate).
-		SetPayableRate(receivableRate).
+		SetRate(rate).
 		SetIsActive(true).
 		Save(context.Background())
 	if err != nil {
@@ -737,10 +727,6 @@ func (f *financeBillPostgresFixture) cleanup() {
 		}},
 		{name: "汇率设置", run: func() error {
 			_, err := f.data.db.ExchangeRateSetting.Delete().Where(exchangeratesettingent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
-			return err
-		}},
-		{name: "汇率时间标准", run: func() error {
-			_, err := f.data.db.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
 		{name: "组织", run: func() error { return f.data.db.Organization.DeleteOneID(f.organizationID).Exec(ctx) }},

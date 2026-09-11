@@ -149,24 +149,15 @@ type OrderFeeOptions struct {
 	CustomerName             string
 }
 
-type OrderFeeExchangeRateContext struct {
-	TradeDirection OrderTradeDirection
-	ETD            string
-	ETA            string
-	BusinessTime   string
-	OrderCreatedAt time.Time
-}
-
 type OrderFeeRepo interface {
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
-	ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeExchangeRateContext, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
 	Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*OrderFee, error)
 	BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*BilledFeeBillContext, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *ResolvedExchangeRate, audit *AuditEvent) (*OrderFee, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *decimal.Decimal, audit *AuditEvent) (*OrderFee, error)
 	Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to OrderFeeStatus, reason *string, audit *AuditEvent) (*OrderFee, error)
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 }
@@ -318,7 +309,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
 		return nil, err
 	}
-	var billExchangeRate *ResolvedExchangeRate
+	var billExchangeRate *decimal.Decimal
 	switch current.Status {
 	case OrderFeeDraft:
 		if requestedTaxRate != nil || input.FeeNameOverride != nil {
@@ -346,10 +337,11 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 			if billContext.FeeCount != 1 {
 				return nil, ErrBilledFeeCurrencyConflict
 			}
-			billExchangeRate, contextErr = uc.exchangeRate.Resolve(ctx, organizationID, BillRateType, normalized.Direction, normalized.Currency, map[string]string{BillDateStandard: billContext.BillDate})
+			billRate, contextErr := uc.exchangeRate.ResolveRate(ctx, organizationID, normalized.Currency, billContext.BillDate)
 			if contextErr != nil {
 				return nil, contextErr
 			}
+			billExchangeRate = &billRate
 		}
 	default:
 		return nil, ErrOrderFeeInvalidTransition
@@ -442,15 +434,12 @@ func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, o
 	return nil
 }
 
-func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (*ResolvedExchangeRate, error) {
-	if organizationID == uuid.Nil || orderID == uuid.Nil {
-		return nil, ErrOrderFeeInvalidArgument
+// ResolveExchangeRate 按费用发生日解析折本币基准汇率，供前端录入费用时预览。
+func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (decimal.Decimal, error) {
+	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
+		return decimal.Decimal{}, ErrOrderFeeInvalidArgument
 	}
-	candidates, err := uc.exchangeRateDateCandidates(ctx, organizationID, orderID, expenseDate)
-	if err != nil {
-		return nil, err
-	}
-	return uc.exchangeRate.Resolve(ctx, organizationID, BaseCurrencyRateType, direction, currency, candidates)
+	return uc.exchangeRate.ResolveRate(ctx, organizationID, currency, expenseDate)
 }
 
 func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
@@ -464,46 +453,15 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	candidates, err := uc.exchangeRateDateCandidates(ctx, organizationID, orderID, fee.ExpenseDate)
+	rate, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Currency, fee.ExpenseDate)
 	if err != nil {
 		return err
 	}
-	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, BaseCurrencyRateType, fee.Direction, fee.Currency, candidates)
-	if err != nil {
-		return err
-	}
-	fee.ExchangeRate = resolved.Rate
-	fee.ExchangeRateSource = resolved.Source
-	fee.ExchangeRateDate = resolved.RateDate
-	fee.ExchangeRateSettingID = resolved.SettingID
+	fee.ExchangeRate = rate
+	fee.ExchangeRateSource = "SYSTEM"
+	fee.ExchangeRateDate = fee.ExpenseDate
+	fee.ExchangeRateSettingID = nil
 	return nil
-}
-
-func (uc *OrderFeeUsecase) exchangeRateDateCandidates(ctx context.Context, organizationID, orderID uuid.UUID, expenseDate string) (map[string]string, error) {
-	rateContext, err := uc.repo.ExchangeRateContext(ctx, organizationID, orderID)
-	if err != nil {
-		return nil, err
-	}
-	candidates := map[string]string{ExpenseTimeStandard: expenseDate}
-	scheduleTime := rateContext.ETD
-	if rateContext.TradeDirection == OrderTradeImport {
-		scheduleTime = rateContext.ETA
-	}
-	for standard, value := range map[string]string{
-		ETDETAOrTrainDateStandard: scheduleTime,
-		BusinessTimeStandard:      rateContext.BusinessTime,
-	} {
-		if value == "" {
-			continue
-		}
-		parsed, parseErr := time.Parse(time.RFC3339, value)
-		if parseErr != nil {
-			return nil, ErrOrderFeeInvalidArgument
-		}
-		candidates[standard] = parsed.In(exchangeRateBusinessLocation).Format("2006-01-02")
-	}
-	candidates[OrderCreatedAtStandard] = rateContext.OrderCreatedAt.In(exchangeRateBusinessLocation).Format("2006-01-02")
-	return candidates, nil
 }
 
 func (uc *OrderFeeUsecase) Confirm(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64) (*OrderFee, error) {

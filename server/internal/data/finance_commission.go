@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	billline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
@@ -378,17 +379,18 @@ type commissionCalculationStore struct {
 	rules         *ent.FinanceCommissionRuleClient
 	users         *ent.UserClient
 	bills         *ent.FinanceBillClient
+	billLines     *ent.FinanceBillLineClient
 	attributions  *ent.OrderCommissionAttributionClient
 	fees          *ent.OrderFeeClient
 	orders        *ent.OrderClient
 }
 
 func commissionStoreFromClient(client *ent.Client) commissionCalculationStore {
-	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
+	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, billLines: client.FinanceBillLine, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
 }
 
 func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
-	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
+	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, billLines: tx.FinanceBillLine, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
 }
 
 func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.UUID, billIDs []uuid.UUID, lock bool) *ent.FinanceBillQuery {
@@ -415,7 +417,8 @@ func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, emplo
 	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, employeeID, ruleID, false)
 }
 
-// GetGenerationContext 读取生成提成所需的核销上下文：归属日期、汇率日期和本位币。
+// GetGenerationContext 读取生成提成所需的核销上下文：归属日期和本位币。
+// CNY 折算汇率按归属日期（verification_date）解析，核销单不再携带汇率快照。
 // 事务内首次读取即加 ForUpdate：同一事务内的写入阶段还会对同一核销行 ForUpdate，
 // 若先 ForShare 再升级，两个并发创建事务可同持共享锁互等升级形成死锁，因此从入口
 // 串行化；普通上下文保持无锁读取。
@@ -432,20 +435,21 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionSource, nil)
 	}
-	return &biz.CommissionGenerationContext{CommissionDate: v.VerificationDate, ExchangeRateDate: v.ExchangeRateDate, BaseCurrency: v.BaseCurrency}, nil
+	return &biz.CommissionGenerationContext{CommissionDate: v.VerificationDate, BaseCurrency: v.BaseCurrency}, nil
 }
 
 type commissionCalculationSource struct {
-	organizationID  uuid.UUID
-	verification    *ent.FinanceVerification
-	rule            *ent.FinanceCommissionRule
-	rate            decimal.Decimal
-	baseCurrency    string
-	orderIDs        []uuid.UUID
-	orderRealized   map[uuid.UUID]decimal.Decimal
-	orderByID       map[uuid.UUID]*ent.Order
-	feesByOrder     map[uuid.UUID][]*ent.OrderFee
-	fingerprintBase []string
+	organizationID    uuid.UUID
+	verification      *ent.FinanceVerification
+	rule              *ent.FinanceCommissionRule
+	rate              decimal.Decimal
+	baseCurrency      string
+	orderIDs          []uuid.UUID
+	orderRealized     map[uuid.UUID]decimal.Decimal
+	orderByID         map[uuid.UUID]*ent.Order
+	feesByOrder       map[uuid.UUID][]*ent.OrderFee
+	billLineBaseByFee map[uuid.UUID]decimal.Decimal
+	fingerprintBase   []string
 }
 
 func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, employeeID, ruleID uuid.UUID, lock bool) (*biz.CommissionCalculation, error) {
@@ -599,10 +603,37 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	for _, item := range fees {
 		feesByOrder[item.OrderID] = append(feesByOrder[item.OrderID], item)
 	}
+	// B3：分母聚合拉齐分子口径。分子（已实现收入）按账单行本位币快照计算，
+	// 分母（订单总应收/总应付）改用各费用关联账单行的本位币合计；尚未建账的费用
+	// 没有账单日快照，回落到费用自身本位币快照，保证分母仍覆盖订单全部费用。
+	feeIDs := make([]uuid.UUID, 0, len(fees))
+	for _, item := range fees {
+		feeIDs = append(feeIDs, item.ID)
+	}
+	billLineQuery := store.billLines.Query().Where(billline.OrderFeeIDIn(feeIDs...), billline.ActiveEQ(true)).
+		// 多行加锁前先按主键排序，固定加锁顺序防止并发提成创建在重叠账单行上死锁。
+		Order(billline.ByID())
+	if lock {
+		billLineQuery.ForUpdate()
+	}
+	feeBillLines, err := billLineQuery.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	billLineBaseByFee := make(map[uuid.UUID]decimal.Decimal, len(feeBillLines))
+	for _, line := range feeBillLines {
+		base, parseErr := decimalOf(line.BaseCurrencyAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		billLineBaseByFee[line.OrderFeeID] = billLineBaseByFee[line.OrderFeeID].Add(base)
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee_bill_line|%s|%s|%s|%t", line.ID, line.OrderFeeID, line.BaseCurrencyAmount, line.Active))
+	}
 	return &commissionCalculationSource{
 		organizationID: org, verification: v, rule: ruleItem, rate: rate, baseCurrency: baseCurrency,
 		orderIDs: orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
-		fingerprintBase: fingerprintParts,
+		billLineBaseByFee: billLineBaseByFee,
+		fingerprintBase:   fingerprintParts,
 	}, nil
 }
 
@@ -671,10 +702,16 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 				return nil, biz.ErrCommissionSource
 			}
 			line.BaseCurrency = result.BaseCurrency
+			// 总应收/总应付分母优先使用关联账单行的本位币快照（账单日口径），
+			// 未建账费用回落到费用自身快照，避免分子分母汇率基准混用。
+			aggregateBase := baseAmount
+			if billedBase, billed := source.billLineBaseByFee[feeItem.ID]; billed {
+				aggregateBase = billedBase
+			}
 			if feeItem.Direction == fee.DirectionRECEIVABLE {
-				line.RealizedRevenue = line.RealizedRevenue.Add(baseAmount)
+				line.RealizedRevenue = line.RealizedRevenue.Add(aggregateBase)
 			} else {
-				line.AllocatedCost = line.AllocatedCost.Add(baseAmount)
+				line.AllocatedCost = line.AllocatedCost.Add(aggregateBase)
 			}
 			line.Fees = append(line.Fees, &biz.CommissionFeeDetail{
 				FeeID: feeItem.ID, SettlementPartyID: feeItem.SettlementPartyID, Direction: string(feeItem.Direction),

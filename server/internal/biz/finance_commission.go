@@ -49,7 +49,7 @@ const (
 	CommissionRoleCustomerService                  CommissionPersonnelRole        = "CUSTOMER_SERVICE"
 	CommissionBasisRealizedProfit                  CommissionCalculationBasis     = "REALIZED_PROFIT"
 	CommissionBasisRealizedRevenue                 CommissionCalculationBasis     = "REALIZED_REVENUE"
-	CommissionCalculationVersion                                                  = "CUSTOMER_REALIZED_PROFIT_V2"
+	CommissionCalculationVersion                                                  = "CUSTOMER_REALIZED_PROFIT_V3"
 	CommissionAdjustmentIncrease                   CommissionAdjustmentDirection  = "INCREASE"
 	CommissionAdjustmentDecrease                   CommissionAdjustmentDirection  = "DECREASE"
 	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"
@@ -124,34 +124,28 @@ func (s *CommissionCNYSnapshot) ApplyCommissionAmount(commissionAmount decimal.D
 }
 
 // ResolveCommissionCNYRate 是预览与创建共用的 CNY 汇率快照纯计算函数：
-// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种按解析到的
-// CNY→本位币汇率倒数派生（round 8 位），来源 DERIVED 并回填来源配置。
+// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种按提成生成日解析到的
+// CNY→本位币基准汇率倒数派生（round 8 位），来源 DERIVED。
 // 禁止浮点数、补差与零值回退；汇率缺失或日期无效时返回业务错误。
-func ResolveCommissionCNYRate(baseCurrency, commissionDate, exchangeRateDate string, resolved *ResolvedExchangeRate) (*CommissionCNYSnapshot, error) {
-	if baseCurrency == "" || !validFinanceDate(commissionDate) || !validFinanceDate(exchangeRateDate) {
+func ResolveCommissionCNYRate(baseCurrency, commissionDate string, resolvedRate decimal.Decimal) (*CommissionCNYSnapshot, error) {
+	if baseCurrency == "" || !validFinanceDate(commissionDate) {
 		return nil, ErrCommissionInvalid
 	}
-	snapshot := &CommissionCNYSnapshot{CommissionDate: commissionDate, ExchangeRateDate: exchangeRateDate}
+	snapshot := &CommissionCNYSnapshot{CommissionDate: commissionDate, ExchangeRateDate: commissionDate}
 	if baseCurrency == cnyCurrency {
 		snapshot.ExchangeRate = decimal.NewFromInt(1)
 		snapshot.ExchangeRateSource = CommissionCNYRateSourceBaseCurrency
 		return snapshot, nil
 	}
-	if resolved == nil || !resolved.Rate.IsPositive() || resolved.SettingID == nil {
+	if !resolvedRate.IsPositive() {
 		return nil, ErrExchangeRateInvalidArgument
 	}
-	// 解析结果回填的汇率日期必须合法且与请求的汇率日期一致，防止下游快照写入口径不一致。
-	if !validFinanceDate(resolved.RateDate) || resolved.RateDate != exchangeRateDate {
-		return nil, ErrExchangeRateInvalidArgument
-	}
-	rate := decimal.NewFromInt(1).Div(resolved.Rate).Round(8)
+	rate := decimal.NewFromInt(1).Div(resolvedRate).Round(8)
 	if !rate.IsPositive() {
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	snapshot.ExchangeRate = rate
 	snapshot.ExchangeRateSource = CommissionCNYRateSourceDerived
-	snapshot.ExchangeRateDate = resolved.RateDate
-	snapshot.ExchangeRateSettingID = resolved.SettingID
 	return snapshot, nil
 }
 
@@ -365,9 +359,8 @@ type CreateCommissionAdjustmentInput struct {
 
 // CommissionGenerationContext 是生成提成前从核销单读取的 CNY 折算上下文。
 type CommissionGenerationContext struct {
-	CommissionDate   string // 归属日期，等于核销单 verification_date
-	ExchangeRateDate string // 核销单使用的汇率日期
-	BaseCurrency     string // 核销单本位币
+	CommissionDate string // 归属日期，等于核销单 verification_date，同时作为 CNY 汇率解析日
+	BaseCurrency   string // 核销单本位币
 }
 
 type CommissionRepo interface {
@@ -556,11 +549,11 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, em
 	if err != nil {
 		return nil, err
 	}
-	resolved, err := u.exchangeRate.Resolve(ctx, org, WriteOffRateType, OrderFeeReceivable, cnyCurrency, map[string]string{WriteOffTimeStandard: generation.ExchangeRateDate})
+	resolvedRate, err := u.exchangeRate.ResolveRate(ctx, org, cnyCurrency, generation.CommissionDate)
 	if err != nil {
 		return nil, err
 	}
-	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, generation.ExchangeRateDate, resolved)
+	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, resolvedRate)
 	if err != nil {
 		return nil, err
 	}
@@ -675,11 +668,11 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		if transactionErr != nil {
 			return transactionErr
 		}
-		resolved, transactionErr := u.exchangeRate.Resolve(txCtx, org, WriteOffRateType, OrderFeeReceivable, cnyCurrency, map[string]string{WriteOffTimeStandard: generation.ExchangeRateDate})
+		resolvedRate, transactionErr := u.exchangeRate.ResolveRate(txCtx, org, cnyCurrency, generation.CommissionDate)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, generation.ExchangeRateDate, resolved)
+		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, resolvedRate)
 		if transactionErr != nil {
 			return transactionErr
 		}

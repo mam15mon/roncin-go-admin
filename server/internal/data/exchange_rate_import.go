@@ -22,7 +22,11 @@ func (r *exchangeRateRepo) InspectImport(ctx context.Context, ownerOrganizationI
 	if err != nil {
 		return nil, err
 	}
-	existing, err := r.data.db.ExchangeRateSetting.Query().Where(exchangerateent.OrganizationIDEQ(ownerOrganizationID), exchangerateent.IsActiveEQ(true)).All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	existing, err := client.ExchangeRateSetting.Query().Where(exchangerateent.OrganizationIDEQ(ownerOrganizationID), exchangerateent.IsActiveEQ(true)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +171,8 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 				return biz.ErrExchangeRateImportStale
 			}
 			builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).SetOrganizationID(ownerOrganizationID).
-				SetRateType(exchangerateent.RateType(row.RateType)).SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
-				SetEffectiveFrom(effectiveFrom).SetReceivableRate(row.ReceivableRate).SetPayableRate(row.PayableRate).SetIsActive(true)
+				SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
+				SetEffectiveFrom(effectiveFrom).SetRate(row.Rate).SetIsActive(true)
 			if row.EffectiveTo != nil {
 				effectiveTo, parseErr := parseExchangeRateStorageTime(*row.EffectiveTo)
 				if parseErr != nil {
@@ -248,7 +252,7 @@ func validateExchangeRateImportRowsInTx(ctx context.Context, tx *ent.Tx, ownerOr
 	for _, row := range rows {
 		effectiveFrom, _ := parseExchangeRateStorageTime(row.EffectiveFrom)
 		query := tx.ExchangeRateSetting.Query().Where(
-			exchangerateent.OrganizationIDEQ(ownerOrganizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(row.RateType)),
+			exchangerateent.OrganizationIDEQ(ownerOrganizationID),
 			exchangerateent.FromCurrencyEQ(row.FromCurrency), exchangerateent.ToCurrencyEQ(row.ToCurrency), exchangerateent.IsActiveEQ(true),
 			exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
 		)
@@ -281,7 +285,7 @@ func exchangeRateImportOverlapsExisting(row *biz.ExchangeRateImportRow, existing
 		rowTo = &value
 	}
 	for _, current := range existing {
-		if string(current.RateType) != row.RateType || current.FromCurrency != row.FromCurrency || current.ToCurrency != row.ToCurrency {
+		if current.FromCurrency != row.FromCurrency || current.ToCurrency != row.ToCurrency {
 			continue
 		}
 		rowBeforeCurrentEnd := current.EffectiveTo == nil || rowFrom.Before(*current.EffectiveTo)
@@ -297,7 +301,7 @@ func exchangeRateImportLockKeys(ownerOrganizationID uuid.UUID, rows []*biz.Excha
 	set := make(map[string]struct{})
 	for _, row := range rows {
 		if row != nil {
-			key := fmt.Sprintf("exchange-rate:%s:%s:%s:%s", ownerOrganizationID, row.RateType, row.FromCurrency, row.ToCurrency)
+			key := fmt.Sprintf("exchange-rate:%s:%s:%s", ownerOrganizationID, row.FromCurrency, row.ToCurrency)
 			set[key] = struct{}{}
 		}
 	}
