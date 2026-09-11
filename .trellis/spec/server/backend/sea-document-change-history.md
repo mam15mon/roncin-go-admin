@@ -99,7 +99,8 @@ type SeaHouseBillSwitchCommand struct {
 | 工作版本或当前不可变版本已变化 | 409 单证版本/结构冲突，事务不落库 |
 | 订单或共享 MBL 任一成员已锁定 | 409 订单业务锁或 `SEA_MASTER_BILL_MEMBER_ORDER_LOCKED` |
 | MBL 锁前后活动成员集合变化 | 409 `SEA_DOCUMENT_STRUCTURE_CONFLICT` |
-| 已有费用、账单、发票、核销、提成、提成调整或相关箱货分配 | 409 `SEA_DOCUMENT_CHANGE_BLOCKED`；Switch 使用 `SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED` |
+| 已有费用、账单、发票、核销、提成、提成调整或相关箱货分配 | 409 `SEA_DOCUMENT_CHANGE_BLOCKED`；Switch 使用 `SEA_HOUSE_BILL_SWITCH_DOWNSTREAM_BLOCKED`；模式变更同样适用（HOUSE→DIRECT 先定位活动 HBL，其箱货分配计入阻断事实） |
+| 订单处于 TERMINATING/TERMINATED/CLOSED 或任一成员订单不可编辑 | 409 生命周期/业务锁错误（单证变更、模式变更统一走 `ensureOrderBusinessEditable`） |
 | 同幂等键、同请求指纹 | 返回原版本/事件/新 HBL，不追加事实 |
 | 同幂等键、不同请求指纹 | 409 版本或 Switch 冲突 |
 | 对 `VOIDED` 单证再次修改 | 409 `SEA_DOCUMENT_VOIDED` |
@@ -129,7 +130,8 @@ type SeaHouseBillSwitchCommand struct {
 - 并发：不同请求同时改单或 Switch 只有一个成功；相同幂等键并发返回同一事实；共享 MBL 在锁前后
   增加成员时返回结构冲突且不使用旧成员集合提交。
 - 门禁：构造非活动账单行仍保留的发票/核销事实，证明直接门禁可命中；同时覆盖费用、活动账单、
-  提成/调整和 HBL 箱货分配。
+  提成/调整和 HBL 箱货分配；模式变更（含被作废 HBL 的箱货分配）与业务锁/生命周期门禁
+  （TERMINATING/CLOSED）须有正反例。
 - 终态：普通 HBL Update/Remove、箱货分配和汇总入口均拒绝 `VOIDED/REPLACED`，数据库无部分更新。
 - Frontend：Execute 初始禁用；Preview 成功并展示差异后启用；输入变化重新禁用；锁态、加载失败及
   终态都失败关闭；动作成功先刷新 Order version，再刷新单证历史。

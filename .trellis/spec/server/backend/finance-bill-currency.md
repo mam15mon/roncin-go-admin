@@ -133,3 +133,33 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 
 **Related**：对冲预览与计划共用 `biz.MaxFinanceNettingBills` 上限（当前 500），
 超限 fail-closed 返回 `ErrFinanceNettingTooManyBills`，不静默截断预览总额。
+
+## 核销单头本位币与对冲两端本位币口径
+
+### Convention: 核销不是交易，不引入核销日汇率
+
+**What**：核销是流水与账单的配对分摊，不产生新汇率。行级三口径：
+`cashflow_base_amount`（流水本位币按分摊比例）、`bill_base_amount`（账单本位币按比例）、
+`exchange_gain_loss = cashflow_base − bill_base`（应收；应付取反）。单头
+`base_amount = Σ 行级 cashflow_base_amount`。核销实体不携带任何汇率快照字段与行级
+`write_off_base_amount`。
+
+**Why**：核销日汇率是第三种无经济事实支撑的口径，会让 Σ核销 ≠ 所消耗流水的本位币合计，
+报表体系出现不可解释差额（2026-09 审计 B1）。
+
+**Example**：核销 100 USD 消耗某流水的一部分 → 单头本币 = 该流水本币 × (100/流水原币额)，
+损益按两端差额沉淀在行级。
+
+### Convention: 对冲单头双端披露，汇差=应付−应收
+
+**What**：对冲单头三个本位币字段：`base_currency_amount`（**应收侧**抵销本位币，语义固定）、
+`payable_base_amount`（应付侧，≥0 CHECK）、`exchange_gain_loss = payable − receivable`
+（可负；同币种同汇率对冲为 0 属正常）。单笔计划与批量建账两路径同口径分侧累加，各自
+`RoundBank(8)`。
+
+**Why**：对冲是双边债务消灭，只披露应收侧会让应付端本位币无处安放、汇兑损益无字段承载
+（2026-09 审计 B2）。
+
+**Related**：提成计算的收入实现口径与分母聚合均以账单行 `BaseCurrencyAmount`（账单日汇率）
+为基准；未建账费用分母回落费用自身快照（费用发生日），见 finance-commission-lock.md 与
+提成分母相关测试。
