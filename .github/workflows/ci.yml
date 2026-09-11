@@ -37,6 +37,20 @@ jobs:
   server:
     name: 服务端检查与构建
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: roncin
+          POSTGRES_PASSWORD: roncin_local_dev
+          POSTGRES_DB: roncin_go_admin_integration
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U roncin -d roncin_go_admin_integration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     timeout-minutes: 30
     steps:
       - name: 检出代码
